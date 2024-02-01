@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.provider
+package org.gradle.internal.declarativedsl.provider
 
-import org.gradle.internal.restricteddsl.evaluator.DefaultRestrictedKotlinScriptEvaluator
-import org.gradle.internal.restricteddsl.evaluator.DefaultInterpretationSchemaBuilder
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator
-import org.gradle.internal.restricteddsl.evaluator.StoringInterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluator.DefaultDeclarativeKotlinScriptEvaluator
+import org.gradle.internal.declarativedsl.evaluator.DefaultInterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
+import org.gradle.internal.declarativedsl.evaluator.StoringInterpretationSchemaBuilder
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
 
-class RestrictedDslServiceRegistry : AbstractPluginServiceRegistry() {
+class DeclarativeDslServiceRegistry : AbstractPluginServiceRegistry() {
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(BuildServices)
     }
@@ -34,8 +34,8 @@ class RestrictedDslServiceRegistry : AbstractPluginServiceRegistry() {
 internal
 object BuildServices {
     @Suppress("unused")
-    fun createRestrictedKotlinScriptEvaluator(): RestrictedKotlinScriptEvaluator {
+    fun createRestrictedKotlinScriptEvaluator(): DeclarativeKotlinScriptEvaluator {
         val schemaBuilder = StoringInterpretationSchemaBuilder(DefaultInterpretationSchemaBuilder())
-        return DefaultRestrictedKotlinScriptEvaluator(schemaBuilder)
+        return DefaultDeclarativeKotlinScriptEvaluator(schemaBuilder)
     }
 }

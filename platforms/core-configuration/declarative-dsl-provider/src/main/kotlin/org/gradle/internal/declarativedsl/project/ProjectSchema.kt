@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.project
+package org.gradle.internal.declarativedsl.project
 
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisStatementFilter
@@ -43,11 +43,11 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.restricteddsl.plugins.PluginsTopLevelReceiver
-import org.gradle.internal.restricteddsl.plugins.schemaForPluginsBlock
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
+import org.gradle.internal.declarativedsl.plugins.schemaForPluginsBlock
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.management.internal.PluginRequests
@@ -183,7 +183,7 @@ fun projectAccessorsSupport(targetScope: ClassLoaderScope): ProjectAccessorsSupp
         returnType = DataTypeRef.Name(FqName.parse(projectAccessorsClass.qualifiedName!!)),
         propertyMode = DataProperty.PropertyMode.READ_ONLY,
         hasDefaultValue = true,
-        isHiddenInRestrictedDsl = false,
+        isHiddenInDeclarativeDsl = false,
         isDirectAccessOnly = false
     )
 

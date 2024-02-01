@@ -16,7 +16,7 @@
 
 package com.example.com.h0tk3y.kotlin.staticObjectNotation.analysis
 
-import com.h0tk3y.kotlin.staticObjectNotation.HiddenInRestrictedDsl
+import com.h0tk3y.kotlin.staticObjectNotation.HiddenInDeclarativeDsl
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
@@ -31,7 +31,7 @@ private class HasHiddenProperty {
     var x: Int = 0
 
     @Restricted
-    @HiddenInRestrictedDsl
+    @HiddenInDeclarativeDsl
     var y: Int = 0
 }
 

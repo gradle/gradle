@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.evaluator
+package org.gradle.internal.declarativedsl.evaluator
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionResult
@@ -43,18 +43,18 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInLanguageTree
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInResolution
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.UnassignedValuesUsed
-import org.gradle.internal.restricteddsl.plugins.PluginsTopLevelReceiver
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInLanguageTree
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInResolution
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.UnassignedValuesUsed
+import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
 
 
-interface RestrictedKotlinScriptEvaluator {
+interface DeclarativeKotlinScriptEvaluator {
     fun evaluate(
         target: Any,
         scriptSource: ScriptSource,
@@ -85,23 +85,23 @@ interface RestrictedKotlinScriptEvaluator {
 
 
 /**
- * A default implementation of a restricted DSL script evaluator, for use when no additional information needs to be provided at the use site.
+ * A default implementation of a declarative DSL script evaluator, for use when no additional information needs to be provided at the use site.
  * TODO: The consumers should get an instance properly injected instead.
  */
-val defaultRestrictedKotlinScriptEvaluator: RestrictedKotlinScriptEvaluator by lazy {
-    DefaultRestrictedKotlinScriptEvaluator(DefaultInterpretationSchemaBuilder())
+val defaultDeclarativeKotlinScriptEvaluator: DeclarativeKotlinScriptEvaluator by lazy {
+    DefaultDeclarativeKotlinScriptEvaluator(DefaultInterpretationSchemaBuilder())
 }
 
 
 internal
-class DefaultRestrictedKotlinScriptEvaluator(
+class DefaultDeclarativeKotlinScriptEvaluator(
     private val schemaBuilder: InterpretationSchemaBuilder
-) : RestrictedKotlinScriptEvaluator {
+) : DeclarativeKotlinScriptEvaluator {
     override fun evaluate(
         target: Any,
         scriptSource: ScriptSource,
-        evaluationContext: RestrictedKotlinScriptEvaluator.EvaluationContext
-    ): RestrictedKotlinScriptEvaluator.EvaluationResult {
+        evaluationContext: DeclarativeKotlinScriptEvaluator.EvaluationContext
+    ): DeclarativeKotlinScriptEvaluator.EvaluationResult {
         return when (val built = schemaBuilder.getEvaluationSchemaForScript(target, scriptContextFor(target, scriptSource, evaluationContext))) {
             InterpretationSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(target)))
             is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> runInterpretationSequence(scriptSource, built.sequence)
@@ -112,21 +112,21 @@ class DefaultRestrictedKotlinScriptEvaluator(
     fun runInterpretationSequence(
         scriptSource: ScriptSource,
         sequence: InterpretationSequence
-    ): RestrictedKotlinScriptEvaluator.EvaluationResult {
+    ): DeclarativeKotlinScriptEvaluator.EvaluationResult {
         sequence.steps.forEach { step ->
             val result = runInterpretationSequenceStep(scriptSource, step)
             if (result is NotEvaluated) {
                 return result
             }
         }
-        return RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated
+        return DeclarativeKotlinScriptEvaluator.EvaluationResult.Evaluated
     }
 
     private
     fun <R : Any> runInterpretationSequenceStep(
         scriptSource: ScriptSource,
         step: InterpretationSequenceStep<R>
-    ): RestrictedKotlinScriptEvaluator.EvaluationResult {
+    ): DeclarativeKotlinScriptEvaluator.EvaluationResult {
         val failureReasons = mutableListOf<NotEvaluated.StageFailure>()
 
         val evaluationSchema = step.evaluationSchemaForStep()
@@ -165,7 +165,7 @@ class DefaultRestrictedKotlinScriptEvaluator(
 
         step.whenEvaluated(topLevelReceiver)
 
-        return RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated
+        return DeclarativeKotlinScriptEvaluator.EvaluationResult.Evaluated
     }
 
     private
@@ -185,11 +185,11 @@ class DefaultRestrictedKotlinScriptEvaluator(
     fun scriptContextFor(
         target: Any,
         scriptSource: ScriptSource,
-        evaluationContext: RestrictedKotlinScriptEvaluator.EvaluationContext
+        evaluationContext: DeclarativeKotlinScriptEvaluator.EvaluationContext
     ) = when (target) {
         is Settings -> RestrictedScriptContext.SettingsScript
         is Project -> {
-            require(evaluationContext is ScriptPluginEvaluationContext) { "restricted DSL for projects is only supported in script plugins" }
+            require(evaluationContext is ScriptPluginEvaluationContext) { "declarative DSL for projects is only supported in script plugins" }
             RestrictedScriptContext.ProjectScript(evaluationContext.targetScope, scriptSource)
         }
         is PluginsTopLevelReceiver -> RestrictedScriptContext.PluginsBlock

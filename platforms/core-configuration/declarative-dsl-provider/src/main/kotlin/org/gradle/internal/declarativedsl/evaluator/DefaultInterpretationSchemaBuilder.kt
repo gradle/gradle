@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.evaluator
+package org.gradle.internal.declarativedsl.evaluator
 
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus
@@ -28,13 +28,13 @@ import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.restricteddsl.evaluator.InterpretationSchemaBuildingResult.InterpretationSequenceAvailable
-import org.gradle.internal.restricteddsl.evaluator.InterpretationSchemaBuildingResult.SchemaNotBuilt
-import org.gradle.internal.restricteddsl.plugins.schemaForPluginsBlock
-import org.gradle.internal.restricteddsl.project.projectInterpretationSequence
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluator.InterpretationSchemaBuildingResult.InterpretationSequenceAvailable
+import org.gradle.internal.declarativedsl.evaluator.InterpretationSchemaBuildingResult.SchemaNotBuilt
+import org.gradle.internal.declarativedsl.plugins.schemaForPluginsBlock
+import org.gradle.internal.declarativedsl.project.projectInterpretationSequence
 import org.gradle.plugin.management.PluginManagementSpec
 
 

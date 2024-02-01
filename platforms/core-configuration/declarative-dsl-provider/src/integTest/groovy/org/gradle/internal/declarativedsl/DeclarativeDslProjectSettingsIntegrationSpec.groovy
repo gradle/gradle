@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl
+package org.gradle.internal.declarativedsl
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class RestrictedDslProjectSettingsIntegrationSpec extends AbstractIntegrationSpec {
+class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSpec {
 
-    def "can interpret the settings file with the restricted DSL"() {
+    def "can interpret the settings file with the declarative DSL"() {
         given:
         file("settings.gradle.something") << """
             rootProject.name = "test-value"

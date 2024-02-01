@@ -19,7 +19,7 @@ package org.gradle.configurationcache.inputs.undeclared
 class UndeclaredBuildInputsKotlinBuildScriptPluginsBlockIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
 
     @Override
-    boolean isRestrictedDsl() {
+    boolean isDeclarativeDsl() {
         true
     }
 

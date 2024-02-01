@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.evaluationSchema
+package org.gradle.internal.declarativedsl.evaluationSchema
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisStatementFilter

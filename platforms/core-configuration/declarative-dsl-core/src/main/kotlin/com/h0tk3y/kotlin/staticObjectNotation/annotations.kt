@@ -7,4 +7,4 @@ annotation class HasDefaultValue
 annotation class Builder
 
 annotation class AccessFromCurrentReceiverOnly
-annotation class HiddenInRestrictedDsl
+annotation class HiddenInDeclarativeDsl

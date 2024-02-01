@@ -14,25 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.project
+package org.gradle.internal.declarativedsl.plugins
 
-import com.h0tk3y.kotlin.staticObjectNotation.Configuring
-import com.h0tk3y.kotlin.staticObjectNotation.Restricted
-import org.gradle.api.Action
-import org.gradle.api.artifacts.ProjectDependency
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
 
 
 internal
-interface ProjectTopLevelReceiver {
-    @Restricted
-    val dependencies: RestrictedDependenciesHandler
-
-    @Configuring
-    fun dependencies(configure: Action<in RestrictedDependenciesHandler>)
-
-    @Restricted
-    fun project(path: String): ProjectDependency
+val schemaForPluginsBlock by lazy {
+    schemaFromTypes(
+        PluginsTopLevelReceiver::class,
+        listOf(PluginsTopLevelReceiver::class, PluginsCollectingPluginsBlock::class, MutablePluginDependencySpec::class)
+    )
 }
-
-
-interface RestrictedDependenciesHandler

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.project
+package org.gradle.internal.declarativedsl.project
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class RestrictedDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSpec {
+class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSpec {
 
-    def 'can apply plugins in restricted DSL'() {
+    def 'can apply plugins in declarative DSL'() {
         file("build.gradle.something") << """
             plugins {
                 id("java")
@@ -77,7 +77,7 @@ class RestrictedDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSp
         "type-safe" | "projects.a"      | "enableFeaturePreview(\"TYPESAFE_PROJECT_ACCESSORS\")\n"
     }
 
-    def 'schema is written during project files interpretation with restricted DSL'() {
+    def 'schema is written during project files interpretation with declarative DSL'() {
         given:
         settingsFile("""
             include(":sub")
@@ -105,7 +105,7 @@ class RestrictedDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSp
         ].every { it.isFile() && it.text != "" }
     }
 
-    def 'can configure a custom plugin extension in restricted DSL'() {
+    def 'can configure a custom plugin extension in declarative DSL'() {
         given:
         file("buildSrc/build.gradle") << """
             plugins {

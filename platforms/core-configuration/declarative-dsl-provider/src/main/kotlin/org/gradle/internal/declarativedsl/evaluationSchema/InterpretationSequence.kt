@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.provider
-
-import org.gradle.configuration.ScriptPlugin
-import org.gradle.groovy.scripts.ScriptSource
+package org.gradle.internal.declarativedsl.evaluationSchema
 
 
 internal
-class RestrictedDslPlugin(
-    private val scriptSource: ScriptSource,
-    private val script: (Any) -> Unit
-) : ScriptPlugin {
+class InterpretationSequence(
+    val steps: Iterable<InterpretationSequenceStep<*>>
+)
 
-    override fun getSource() =
-        scriptSource
 
-    override fun apply(target: Any) {
-        script(target)
-    }
+internal
+interface InterpretationSequenceStep<R : Any> {
+    val stepIdentifier: String
+    fun evaluationSchemaForStep(): EvaluationSchema
+    fun topLevelReceiver(): R
+    fun whenEvaluated(resultReceiver: R)
 }

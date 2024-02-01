@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.evaluator
+package org.gradle.internal.declarativedsl.evaluator
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
 import com.h0tk3y.kotlin.staticObjectNotation.serialization.SchemaSerialization
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
-import org.gradle.internal.restricteddsl.evaluationSchema.EvaluationSchema
-import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import java.io.File
 
 

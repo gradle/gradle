@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.evaluator
+package org.gradle.internal.declarativedsl.evaluator
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.restricteddsl.evaluationSchema.InterpretationSequence
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 
 
 internal

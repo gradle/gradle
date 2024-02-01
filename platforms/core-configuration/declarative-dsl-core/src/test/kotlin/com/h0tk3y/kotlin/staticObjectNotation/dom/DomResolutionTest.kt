@@ -18,7 +18,7 @@ package com.example.com.h0tk3y.kotlin.staticObjectNotation.dom
 
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Configuring
-import com.h0tk3y.kotlin.staticObjectNotation.HiddenInRestrictedDsl
+import com.h0tk3y.kotlin.staticObjectNotation.HiddenInDeclarativeDsl
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaFunction
@@ -256,7 +256,7 @@ object DomResolutionTest {
         val utils: Utils = Utils()
 
         @Restricted
-        @HiddenInRestrictedDsl
+        @HiddenInDeclarativeDsl
         val nested = NestedReceiver()
     }
 

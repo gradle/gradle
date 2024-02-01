@@ -14,15 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.project
+package org.gradle.internal.declarativedsl.project
 
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.PropertyExtractor
-import kotlin.reflect.KClass
+import com.h0tk3y.kotlin.staticObjectNotation.Configuring
+import com.h0tk3y.kotlin.staticObjectNotation.Restricted
+import org.gradle.api.Action
+import org.gradle.api.artifacts.ProjectDependency
 
 
 internal
-class ExtensionProperties(private val extensionPropertiesByClass: Map<KClass<*>, Iterable<CollectedPropertyInformation>>) : PropertyExtractor {
-    override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
-        extensionPropertiesByClass[kClass]?.filter { propertyNamePredicate(it.name) } ?: emptyList()
+interface ProjectTopLevelReceiver {
+    @Restricted
+    val dependencies: RestrictedDependenciesHandler
+
+    @Configuring
+    fun dependencies(configure: Action<in RestrictedDependenciesHandler>)
+
+    @Restricted
+    fun project(path: String): ProjectDependency
 }
+
+
+interface RestrictedDependenciesHandler

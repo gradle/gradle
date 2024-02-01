@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.provider
+package org.gradle.internal.declarativedsl.provider
 
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.restricteddsl.evaluator.RestrictedDslNotEvaluatedException
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeDslNotEvaluatedException
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
 import javax.inject.Inject
 
 /*
@@ -44,8 +44,8 @@ import javax.inject.Inject
 
 
 @Suppress("unused") // The name of this class is hardcoded in Gradle
-class RestrictedDslScriptPluginFactory @Inject constructor(
-    private val restrictedKotlinScriptEvaluator: RestrictedKotlinScriptEvaluator
+class DeclarativeDslScriptPluginFactory @Inject constructor(
+    private val declarativeKotlinScriptEvaluator: DeclarativeKotlinScriptEvaluator
 ) : ScriptPluginFactory {
 
     override fun create(
@@ -55,11 +55,11 @@ class RestrictedDslScriptPluginFactory @Inject constructor(
         baseScope: ClassLoaderScope,
         topLevelScript: Boolean
     ): ScriptPlugin =
-        RestrictedDslPlugin(scriptSource) { target ->
-            when (val result = restrictedKotlinScriptEvaluator.evaluate(target, scriptSource, ScriptPluginEvaluationContext(targetScope))) {
-                is RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated -> Unit
-                is RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated ->
-                    throw RestrictedDslNotEvaluatedException(scriptSource, result.stageFailures)
+        DeclarativeDslPlugin(scriptSource) { target ->
+            when (val result = declarativeKotlinScriptEvaluator.evaluate(target, scriptSource, ScriptPluginEvaluationContext(targetScope))) {
+                is DeclarativeKotlinScriptEvaluator.EvaluationResult.Evaluated -> Unit
+                is DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated ->
+                    throw DeclarativeDslNotEvaluatedException(scriptSource, result.stageFailures)
             }
 
             targetScope.lock()

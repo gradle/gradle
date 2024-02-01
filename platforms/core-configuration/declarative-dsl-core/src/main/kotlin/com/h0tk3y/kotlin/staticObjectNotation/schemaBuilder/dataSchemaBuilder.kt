@@ -99,7 +99,7 @@ class DataSchemaBuilder(
                 properties.forEach {
                     addProperty(
                         type,
-                        DataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInRestrictedDsl, it.isDirectAccessOnly),
+                        DataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDeclarativeDsl, it.isDirectAccessOnly),
                         it.originalReturnType
                     )
                 }

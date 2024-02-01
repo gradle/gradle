@@ -229,10 +229,10 @@ private class LanguageTreeBackedDocument(
 
 internal fun DeclarativeDocument.DocumentNode.blockElement(): BlockElement = when (this) {
     is LanguageTreeBackedDocument.BlockElementBackedDocumentNode -> blockElement
-    else -> throw IllegalStateException("cannot run document resolution with documents not produced from restricted DSL")
+    else -> throw IllegalStateException("cannot run document resolution with documents not produced from declarative DSL")
 }
 
 internal fun DeclarativeDocument.ValueNode.expr(): Expr = when (this) {
     is LanguageTreeBackedDocument.ExprBackedValueNode -> expr
-    else -> throw IllegalStateException("cannot run document resolution with documents not produced from restricted DSL")
+    else -> throw IllegalStateException("cannot run document resolution with documents not produced from declarative DSL")
 }

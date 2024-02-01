@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.plugins
+package org.gradle.internal.declarativedsl.plugins
 
 /*
  * Copyright 2023 the original author or authors.

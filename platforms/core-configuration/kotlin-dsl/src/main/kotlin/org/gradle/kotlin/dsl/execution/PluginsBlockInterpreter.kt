@@ -18,10 +18,10 @@ package org.gradle.kotlin.dsl.execution
 
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.resource.StringTextResource
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator
-import org.gradle.internal.restricteddsl.evaluator.defaultRestrictedKotlinScriptEvaluator
-import org.gradle.internal.restricteddsl.plugins.MutablePluginDependencySpec
-import org.gradle.internal.restricteddsl.plugins.PluginsTopLevelReceiver
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
+import org.gradle.internal.declarativedsl.evaluator.defaultDeclarativeKotlinScriptEvaluator
+import org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec
+import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
@@ -45,24 +45,24 @@ sealed class PluginsBlockInterpretation {
 
 
 internal
-enum class RestrictedDslPluginsBlockMode {
+enum class DeclarativeDslPluginsBlockMode {
     OFF, WITH_FALLBACK, RESTRICTED_ONLY
 }
 
 
 internal
-fun interpret(program: Program.Plugins, restrictedDslMode: RestrictedDslPluginsBlockMode = RestrictedDslPluginsBlockMode.OFF): PluginsBlockInterpretation {
-    if (restrictedDslMode != RestrictedDslPluginsBlockMode.OFF) {
+fun interpret(program: Program.Plugins, declarativeDslMode: DeclarativeDslPluginsBlockMode = DeclarativeDslPluginsBlockMode.OFF): PluginsBlockInterpretation {
+    if (declarativeDslMode != DeclarativeDslPluginsBlockMode.OFF) {
         val pluginsTopLevelReceiver = PluginsTopLevelReceiver()
-        val isEvaluated = defaultRestrictedKotlinScriptEvaluator.evaluate(
+        val isEvaluated = defaultDeclarativeKotlinScriptEvaluator.evaluate(
             pluginsTopLevelReceiver,
             TextResourceScriptSource(StringTextResource("plugins block", program.fragment.identifierString)),
-            RestrictedKotlinScriptEvaluator.EvaluationContext.PluginsDslEvaluationContext
+            DeclarativeKotlinScriptEvaluator.EvaluationContext.PluginsDslEvaluationContext
         )
-        if (isEvaluated is RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated) {
+        if (isEvaluated is DeclarativeKotlinScriptEvaluator.EvaluationResult.Evaluated) {
             return PluginsBlockInterpretation.Static(pluginsTopLevelReceiver.plugins.specs.map { it.toRequestSpec() })
         }
-        if (restrictedDslMode == RestrictedDslPluginsBlockMode.RESTRICTED_ONLY && isEvaluated is RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated) {
+        if (declarativeDslMode == DeclarativeDslPluginsBlockMode.RESTRICTED_ONLY && isEvaluated is DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated) {
             return PluginsBlockInterpretation.Dynamic(isEvaluated.stageFailures.toString())
         }
     }

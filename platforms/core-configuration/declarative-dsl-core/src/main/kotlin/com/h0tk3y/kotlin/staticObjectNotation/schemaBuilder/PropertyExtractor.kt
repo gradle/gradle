@@ -18,7 +18,7 @@ package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
 
 import com.h0tk3y.kotlin.staticObjectNotation.AccessFromCurrentReceiverOnly
 import com.h0tk3y.kotlin.staticObjectNotation.HasDefaultValue
-import com.h0tk3y.kotlin.staticObjectNotation.HiddenInRestrictedDsl
+import com.h0tk3y.kotlin.staticObjectNotation.HiddenInDeclarativeDsl
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataProperty
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
 import java.util.Locale
@@ -69,7 +69,7 @@ data class CollectedPropertyInformation(
     val returnType: DataTypeRef,
     val propertyMode: DataProperty.PropertyMode,
     val hasDefaultValue: Boolean,
-    val isHiddenInRestrictedDsl: Boolean,
+    val isHiddenInDeclarativeDsl: Boolean,
     val isDirectAccessOnly: Boolean
 )
 
@@ -91,7 +91,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
                 return@mapNotNull null
 
             val type = getter.returnType.toDataTypeRefOrError()
-            val isHidden = getter.annotations.any { it is HiddenInRestrictedDsl }
+            val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
             val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
             val mode = run {
                 val hasSetter = functionsByName["set$nameAfterGet"].orEmpty().any { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
@@ -111,7 +111,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
 
     private fun kPropertyInformation(property: KProperty<*>): CollectedPropertyInformation {
         val isReadOnly = property !is KMutableProperty<*>
-        val isHidden = property.annotationsWithGetters.any { it is HiddenInRestrictedDsl }
+        val isHidden = property.annotationsWithGetters.any { it is HiddenInDeclarativeDsl }
         val isDirectAccessOnly = property.annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
         return CollectedPropertyInformation(
             property.name,
@@ -121,7 +121,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             hasDefaultValue = run {
                 isReadOnly || property.annotationsWithGetters.any { it is HasDefaultValue }
             },
-            isHiddenInRestrictedDsl = isHidden,
+            isHiddenInDeclarativeDsl = isHidden,
             isDirectAccessOnly = isDirectAccessOnly
         )
     }

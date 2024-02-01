@@ -76,7 +76,7 @@ public interface ArchUnitFixture {
     DescribedPredicate<JavaClass> classes_not_written_in_kotlin = resideOutsideOfPackages(
         "org.gradle.configurationcache..",
         "org.gradle.kotlin..",
-        "org.gradle.internal.restricteddsl.."
+        "org.gradle.internal.declarativedsl.."
     ).as("classes written in Java or Groovy");
 
     DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<JavaClass>("not synthetic classes") {

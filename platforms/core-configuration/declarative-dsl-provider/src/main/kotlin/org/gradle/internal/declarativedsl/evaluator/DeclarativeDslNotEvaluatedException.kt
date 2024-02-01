@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.evaluator
+package org.gradle.internal.declarativedsl.evaluator
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
@@ -26,17 +26,17 @@ import com.h0tk3y.kotlin.staticObjectNotation.parsing.SingleFailureResult
 import com.h0tk3y.kotlin.staticObjectNotation.parsing.UnsupportedConstruct
 import org.gradle.api.GradleException
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.restricteddsl.evaluator.RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure
+import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure
 
 
 internal
-class RestrictedDslNotEvaluatedException(
+class DeclarativeDslNotEvaluatedException(
     private val scriptSource: ScriptSource,
     private val stageFailures: List<StageFailure>
 ) : GradleException() {
     override val message: String
         get() = buildString {
-            appendLine("Failed to interpret the restricted DSL file '${scriptSource.fileName}':")
+            appendLine("Failed to interpret the declarative DSL file '${scriptSource.fileName}':")
             stageFailures.forEach { stageFailure ->
                 when (stageFailure) {
                     is StageFailure.FailuresInLanguageTree -> {

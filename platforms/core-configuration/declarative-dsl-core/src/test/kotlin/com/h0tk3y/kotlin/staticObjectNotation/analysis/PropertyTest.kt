@@ -87,7 +87,7 @@ object PropertyTest {
                         DataType.IntDataType.ref,
                         DataProperty.PropertyMode.WRITE_ONLY,
                         hasDefaultValue = false,
-                        isHiddenInRestrictedDsl = false,
+                        isHiddenInDeclarativeDsl = false,
                         isDirectAccessOnly = false
                     )
                 )

@@ -16,6 +16,6 @@ dependencies {
         because("Adds support for Kotlin DSL scripts.")
     }
     runtime(project(":declarative-dsl-provider")) {
-        because("Adds support for interpreting files with the restricted DSL")
+        because("Adds support for interpreting files with the declarative DSL")
     }
 }

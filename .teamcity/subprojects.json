@@ -175,6 +175,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "declarative-dsl-provider",
+    "path": "platforms/core-configuration/declarative-dsl-provider",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "dependency-management",
     "path": "platforms/software/dependency-management",
     "unitTests": true,
@@ -815,13 +822,6 @@
     "name": "resources-sftp",
     "path": "platforms/software/resources-sftp",
     "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "declarative-dsl-provider",
-    "path": "platforms/core-configuration/declarative-dsl-provider",
-    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },

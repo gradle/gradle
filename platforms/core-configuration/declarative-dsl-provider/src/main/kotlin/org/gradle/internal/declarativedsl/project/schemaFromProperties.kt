@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.project
+package org.gradle.internal.declarativedsl.project
 
 import com.h0tk3y.kotlin.staticObjectNotation.AccessFromCurrentReceiverOnly
-import com.h0tk3y.kotlin.staticObjectNotation.HiddenInRestrictedDsl
+import com.h0tk3y.kotlin.staticObjectNotation.HiddenInDeclarativeDsl
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataProperty
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.PropertyExtractor
@@ -58,7 +58,7 @@ fun schemaFromPropertiesComponents(): SchemaFromPropertiesComponents {
                     property.visibility == KVisibility.PUBLIC &&
                     isGradlePropertyType(property.returnType)
             }.map { property ->
-                val isHidden = property.annotationsWithGetters.any { it is HiddenInRestrictedDsl }
+                val isHidden = property.annotationsWithGetters.any { it is HiddenInDeclarativeDsl }
                 val isDirectAccessOnly = property.annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
                 CollectedPropertyInformation(
                     property.name,
@@ -66,7 +66,7 @@ fun schemaFromPropertiesComponents(): SchemaFromPropertiesComponents {
                     propertyValueType(property.returnType).toDataTypeRefOrError(),
                     DataProperty.PropertyMode.WRITE_ONLY,
                     hasDefaultValue = false,
-                    isHiddenInRestrictedDsl = isHidden,
+                    isHiddenInDeclarativeDsl = isHidden,
                     isDirectAccessOnly = isDirectAccessOnly
                 )
             }
@@ -83,7 +83,7 @@ fun schemaFromPropertiesComponents(): SchemaFromPropertiesComponents {
                 val nameAfterGet = name.substringAfter("get")
                 val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
                 val type = propertyValueType(getter.returnType).toDataTypeRefOrError()
-                val isHidden = getter.annotations.any { it is HiddenInRestrictedDsl }
+                val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
                 val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
                 CollectedPropertyInformation(propertyName, getter.returnType, type, DataProperty.PropertyMode.WRITE_ONLY, false, isHidden, isDirectAccessOnly)
             }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.restricteddsl.project
+package org.gradle.internal.declarativedsl.project
 
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
 import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DefaultPropertyExtractor
