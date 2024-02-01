@@ -29,7 +29,7 @@ dependencies {
     implementation(project(":resources"))
     api(project(":base-services"))
     api(libs.inject)
-    api(libs.restrictedKotlin)
+    api(project(":declarative-dsl-core"))
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))

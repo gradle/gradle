@@ -31,7 +31,6 @@ plugins {
 
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
-includeBuild("kotlin-static-object-notation")
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
@@ -105,6 +104,7 @@ platform("core-configuration") {
     subproject("model-core")
     subproject("model-groovy")
     subproject("restricted-dsl")
+    subproject("declarative-dsl-core")
 }
 
 // Core Execution Platform

@@ -168,6 +168,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "declarative-dsl-core",
+    "path": "platforms/core-configuration/declarative-dsl-core",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "dependency-management",
     "path": "platforms/software/dependency-management",
     "unitTests": true,

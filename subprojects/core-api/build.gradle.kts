@@ -14,6 +14,7 @@ dependencies {
     api(project(":files"))
     api(project(":resources"))
     api(project(":persistent-cache"))
+    api(project(":declarative-dsl-core"))
 
     api(libs.jsr305)
     api(libs.groovy)
@@ -27,7 +28,6 @@ dependencies {
     implementation(project(":base-services-groovy"))
     implementation(project(":logging"))
 
-    api(libs.restrictedKotlin)
     runtimeOnly(libs.futureKotlin("reflect"))
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)

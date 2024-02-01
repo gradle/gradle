@@ -1,12 +1,10 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.plugin.serialization)
+    kotlin("jvm")
+    embeddedKotlin("plugin.serialization")
+    id("gradlebuild.repositories")
 }
-
-group = "com.h0tk3y"
-version = "1.0-SNAPSHOT"
 
 kotlin {
     compilerOptions {

@@ -134,7 +134,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private void removeKotlin(Collection<File> apiClasspath) {
         for (File file : new ArrayList<>(apiClasspath)) {
             String name = file.getName();
-            if (file.getName().contains("kotlin") && !file.getName().startsWith("kotlin-static-object-notation")) {
+            if (file.getName().contains("kotlin")) {
                 apiClasspath.remove(file);
             }
         }
@@ -156,7 +156,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         ArrayList<File> files = new ArrayList<>();
         for (File file : classPath) {
             String name = file.getName();
-            if (name.startsWith("kotlin-static-object-notation-")) {
+            if (name.startsWith("gradle-declarative-dsl-core-")) {
                 files.add(file);
             }
         }
