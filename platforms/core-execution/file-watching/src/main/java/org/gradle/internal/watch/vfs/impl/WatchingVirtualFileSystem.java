@@ -46,7 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -231,7 +230,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                 if (watchMode.isEnabled()) {
                     if (reasonForNotWatchingFiles != null) {
                         // Log exception again so it doesn't get lost.
-                        logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD, watchMode);
+                        logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
                         reasonForNotWatchingFiles = null;
                     }
                     SnapshotHierarchy newRoot;
@@ -318,7 +317,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             watchableHierarchiesRegisteredEarly.clear();
             return newRoot;
         } catch (Exception ex) {
-            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD, null);
+            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
             closeUnderLock();
             return currentRoot.empty();
         }
@@ -442,12 +441,12 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         try {
             return supplier.get();
         } catch (Exception ex) {
-            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD, null);
+            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
             return stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
         }
     }
 
-    private void logWatchingError(Exception exception, String fileWatchingErrorMessage, @Nullable WatchMode watchMode) {
+    private void logWatchingError(Exception exception, String fileWatchingErrorMessage) {
         if (exception instanceof InotifyInstanceLimitTooLowException) {
             warningLogger.warn("{}. The inotify instance limit is too low. {}",
                 fileWatchingErrorMessage,

@@ -4,12 +4,6 @@ plugins {
 
 description = "File system watchers for keeping the VFS up-to-date"
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedVariable", // 1 occurrences
-    )
-}
-
 dependencies {
     api(project(":snapshots"))
     api(project(":build-operations"))
