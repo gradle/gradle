@@ -87,6 +87,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)
         _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
         _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
+        _ * serviceRegistry.get(IsolatedProjectEvaluationListenerProvider) >> Stub(IsolatedProjectEvaluationListenerProvider)
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
@@ -454,7 +455,7 @@ class DefaultGradleSpec extends Specification {
         })
 
         then:
-        1 * registrationListener.onBuildScopeListenerRegistration(_, _, _)
+        1 * registrationListener.onBuildScopeListenerRegistration(_, _, gradle)
 
         cleanup:
         listenerManager.removeListener(registrationListener)
