@@ -100,6 +100,9 @@ class DependenciesExtensions {
 }
 
 
+// The #module and #constraint methods here allow the usage of named arguments in Kotlin, even though the signature is overall the same as the Java method.
+
+
 /**
  * Creates a dependency based on the group, name and version (GAV) coordinates.
  *
