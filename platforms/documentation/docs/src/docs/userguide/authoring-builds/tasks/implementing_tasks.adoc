@@ -15,351 +15,175 @@
 [[implementing_tasks]]
 = Implementing Tasks
 
-hey welcome back to understanding gradle
-today i would like to talk about how you
-implement your own tasks
+To address more individual needs and if no existing plugins provide the build functionality you need, you can create your own task implementation.
 
-last time we
-have seen how to register and configure
-an existing task which was the zip task
-that comes with gradle core
+== Extending `DefaultTask`
 
-to address more individual needs you can
-also add your own task implementations
+Let's start with an example built by Gradle `init` for a Java application with multiple subprojects:
 
-last time we added a start script for
-our application as a file to the app
-project
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+gradle-project
+├── app
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+│       └── ...
+├── utilities
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+│       └── ...
+├── list
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+│       └── ...
+├── buildSrc
+│   ├── build.gradle.kts
+│   ├── settings.gradle.kts
+│   └── src                 // common build logic
+│       └── ...
+├── settings.gradle.kts
+├── gradle
+├── gradlew
+└── gradlew.bat
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+gradle-project
+├── app
+│   ├── build.gradle
+│   └── src             // some java code
+│       └── ...
+├── utilities
+│   ├── build.gradle
+│   └── src             // some java code
+│       └── ...
+├── list
+│   ├── build.gradle
+│   └── src             // some java code
+│       └── ...
+├── buildSrc
+│   ├── build.gradle
+│   ├── settings.gradle
+│   └── src             // common build logic
+│       └── ...
+├── settings.gradle
+├── gradle
+├── gradlew
+└── gradlew.bat
+----
+=====
+====
 
-if we look into the script we see that
-it contains information that could be
-configured in the build script for
-example the name of the main class
+If we look into the script, we see that it contains information that could be configured in the build script, such as the name of the main class.
+So now, instead of adding the start script as a file directly, we would like Gradle to generate it and configure the main class name in the build script.
 
-so now instead of adding the start
-script as a file directly we would like
-gradle to generate it and configure the
-main class name in the build script
+As mentioned before, it's convenient that our convention plugin scripts are inside the Kotlin source folder.
+Now we can add more source code to this folder and keep all the build logic well-structured.
 
- as i
-mentioned before it's convenient that
-our convention plugin scripts are inside
-the kotlin source folder
+We add a new Kotlin class to implement our task.
+To let Gradle know that this is a task implementation, we have to extend the `DefaultTask` class that comes with Gradle.
+It's also beneficial to make our task class `abstract` because Gradle will handle many things automatically:
 
-so now we can just add more source code
-to this folder and keep all the build
-logic via implemented where structured
-
-we add a new kotlin class to implement
-our task
-
-to let gradle know that this is a task
-implementation we have to extend the
-default task class which comes with
-gradle
-
+[source,kotlin]
+----
 Abstract class GenerateStartScript : DefaultTask() {
+
 }
+----
 
- you should also make your task
-class abstract because then gradle will
-do a lot of things for you automatically
+Next, we define the inputs and outputs using properties and annotations. In this context, properties in Gradle act as references to the actual values behind them, allowing Gradle to track inputs and outputs between tasks.
 
-next thing is to define the inputs and
-outputs which is done via properties and
-annotations
+For the input of our task, we define an abstract Kotlin property using the property interface of Gradle.
+We annotate it with `@Input` to indicate that it is an input to the task.
 
-when i talk about properties here i mean
-the property concept of gradle itself
-not to be confused with standard kotlin
-properties
-
-gradle's properties are like
-references to the actual values behind
-them
-through this gradle is able to
-track the information that a certain
-property is input or output of a task
-and can determine the dependencies
-between tasks if an output of one task
-becomes the input of another
-
-when we
-define the input to our task which
-should be the main class we can define
-it as an abstract kotlin property we
-just need to use the property interface
-of gradle and says this should be of
-type string
-
+[source,kotlin]
+----
 Abstract class GenerateStartScript : DefaultTask() {
-@get :Input
-abstract val mainClass: Property<String>
+    @get :Input
+    abstract val mainClass: Property<String>
 }
+----
 
-later at build runtime when
-gradle needs to execute the code we are
-writing right now it will automatically
-create a subclass of this abstract class
-that it can instantiate
+Similarly, for the output, we use a `RegularFileProperty` and annotate it with `@OutputFile`.
 
-to tell gradle
-that this main class property is an
-input we add the input annotation
-
-for other types of input you might need
-a different annotation like input file
-or input files
-
-next we add a property for the output of
-all tasks
-
-in this case the output is a
-single file which is the start script
-
-files and folders have specific property
-interfaces in gradle
-so here we define a
-regular file property and we annotate it
-with the output file annotation to let
-Gradle notes that this is the output of
-our task
-
+[source,kotlin]
+----
 Abstract class GenerateStartScript : DefaultTask() {
-@get :Input
-abstract val mainClass: Property<String>
+    @get :Input
+    abstract val mainClass: Property<String>
 
 	@get: OutputFile
 	abstract val scriptFile: RegularFileProperty
 }
+----
 
-with the input and outputs
-Implement Task action
-defined the only thing that remains is
-the actual task action
+With inputs and outputs defined, the only thing that remains is the actual task action, which is implemented in a method annotated with `@TaskAction`.
+Inside this method, we write normal Kotlin code with minimal Gradle-specific details, mainly accessing inputs and outputs using Gradle-specific APIs:
 
-so the actual
-implementation of what the task is doing
-
-this is implemented simply in a method
-without parameters which is annotated
-with the task action annotation
-
-inside this method you write normal
-kotlin code and there are very little
-gradle specifics you need to be aware of
-
-the only grader specific api you need to
-use is accessing the inputs and outputs
-
-which you will convert into standard
-java or kotlin types
-
-in our case string
-for the input and file for the output
-
+[source,kotlin]
+----
 Abstract class GenerateStartScript : DefaultTask() {
-@get :Input
-abstract val mainClass: Property<String>
+    @get :Input
+    abstract val mainClass: Property<String>
 
 	@get: OutputFile
 	abstract val scriptFile: RegularFileProperty
 
 	@TaskAction
-	fun generae() {
+	fun generate() {
 		val main = mainClass.get()
 		val out = scriptFile.get().asFile
 		var script = “”
 
 		out.writeText(script)
-…
+    }
 }
+----
 
-and now you have apis you are probably
-familiar with and with which many
-libraries can work in our example we
-first generate the content of the script
-file which is only one line of text that
-includes the main class name and then we
-write this text to our output file
-and change a few file permissions on
-this file so that it becomes executable
+The task generates the content of the script file, writes it to the output file, and adjusts file permissions.
 
-and now we are already done with
-implementing our own task
+Now, back in our application convention plugin, we can register this task using `task.register()`.
 
-if we go back to our application
-convention plugin
-we can now register this task as we
-registered the zip task last time
+Finally, we configure the inputs and outputs of the Zip task to use the output of our custom start script generation task.
+The main class for the start script task is configured in the build script:
 
+[source,kotlin]
+----
 Val geberateSrtartScript = task.register<GenerateStartScript>(“geberateStartScrip”) {}
-
- the
-first thing we will do now is configure
-the output
-for which we just pick a location in our
-build directory
-
-now we go back to the
-configuration of our zip task
-and change the input so that it doesn't
-use a static file which we deleted now
-but instead he uses the output of our
-own start script generation task as an
-input
 
 Val packageApp = tasks.register<Zip> …. {
 From(generateStartScript)
 …
 }
 
-now the only thing that remains is
-configuring the input of our start
-script task which is the main class of
-the application
-
-we could do this in the
-convention plugin as well but because
-it's something specific to the one
-application we are building
-we are doing
-this in our build script
-
-similar to how we have defined it for
-the application plugin in earlier
-versions of this example
-
 Tasks.generateStartScript {
 mainclass.set(“vfdgdgfd”)
 }
-
-we can see that our custom task now also
-is accessible in the build script
-because we applied our convention plugin
-
-if we run our package zip task
-now we can observe that our own start
-script generation task was also executed
-
-./gradlew :app:build
-
-because it is an input to the package
-app task
-
-if we run the build again
-we can see how also our own task is up
-to date because we defined the inputs
-and outputs gradles incremental building
-and caching mechanism is automatically
-working also for your custom tasks
-
-this is a really powerful feature of
-gradle because you can write your own
-complex build logic like calling your
-own compilers etc as long
-
-as you define
-inputs and outputs correctly all the
-mechanisms of gradle to speed up your
-build are still working with your very
-custom build logic
-
-there are more
-details you can configure on inputs and
-outputs to optimize cachability of a
-task
-
-i added pointers to the
-documentation of this to the github page
-that is linked from the description of
-this video
-
-one more thing before we end
-
-earlier i said in the build files you
-should only apply plugins configure
-dependencies and if you need to
-configure something use an extension
-but what we did here now is configuring
-our own tasks directly
-
-so if we want to be strict with this
-rule i introduced earlier we will need
-our own extension which is actually
-really easy to do
-
-extensions can be defined as interfaces
-
-so we simply go back to the source
-folder for convention plugins and add a
-kotlin interface for a custom extension
-
-for our purpose we only want to define
-one thing the main class of our
-application
 
 Interface MyAppExtension {
 val mainClass: Property<String>
 }
 
-so as with inputs for task
-you define details of extensions in
-terms of grader properties so we add an
-abstract kotlin property that represents
-the name of our main class to this
-interface
-
-so now we can go back to our
-convention plugin and register the
-extension by giving it a name through
-which it will become accessible
-
-now the
-only thing left is wiring the extension
-to the task input which we do by setting
-the input property of our start script
-task to the part of the extension that
-should configure it
-
-for this we can use convention instead
-of set which means that this value will
-always be used as a default fallback if
-the task is not further configured
 
 Val generateStartScript = tasks.register<>(“) {
 mainClass.convention(….)
 ….
 }
+----
 
-but
-if you should still configure the task
-for whatever reason the fallback will be
-ignored
+By running the build, we observe that our start script generation task is executed, and it's up to date in subsequent builds. Gradle's incremental building and caching mechanisms work seamlessly with custom tasks:
 
-now if we go back to our build
-script
-we see that now the extension becomes
-available and we can configure our tasks
-there and building our application still
-works
+[source,text]
+----
+./gradlew :app:build
+----
 
-that's it
+This demonstrates the power of Gradle in handling complex build logic, ensuring efficiency when defining inputs and outputs correctly. More details on configuring inputs and outputs for optimal task cachability are available in the linked GitHub page.
 
-as you see implementing your
-own build logic and tasks in gradle
-isn't too hard if you understand the
-concept of inputs and outputs
-
-if you
-follow this advice the task will
-automatically integrate with other
-existing tasks gradle will know when to
-call it and also use incremental
-building and caching with your custom
-task
-
-we also learned that it's pretty easy to
-add your own extension if you want to
-make custom details configurable in
-build scripts
+As a final note, although we directly configured tasks in the build script (contrary to the earlier rule of using extensions), we explored how easy it is to define and use custom extensions for configuration. This ensures adherence to best practices in Gradle build scripts.

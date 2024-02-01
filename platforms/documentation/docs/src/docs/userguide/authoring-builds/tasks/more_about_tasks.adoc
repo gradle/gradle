@@ -205,12 +205,12 @@ These labels are based on whether a task has actions to execute and if Gradle ex
 
 `(no label)` or `EXECUTED`:: *Task executed its actions.*
 * Task has actions and Gradle executed them.
-* Task has no actions and some dependencies, and Gradle executed one or more of the dependencies. See also <<#sec:lifecycle_tasks,Lifecycle Tasks>>.
+* Task has no actions and some dependencies, and Gradle executed one or more of the dependencies. See also <<lifecycle_tasks.adoc#sec:lifecycle_tasks,Lifecycle Tasks>>.
 
 `UP-TO-DATE`:: *Task's outputs did not change.*
 * Task has outputs and inputs but they have not changed. See <<incremental_build.adoc#incremental_build,Incremental Build>>.
 * Task has actions, but the task tells Gradle it did not change its outputs.
-* Task has no actions and some dependencies, but all the dependencies are `UP-TO-DATE`, `SKIPPED` or `FROM-CACHE`. See <<#sec:lifecycle_tasks,Lifecycle Tasks>>.
+* Task has no actions and some dependencies, but all the dependencies are `UP-TO-DATE`, `SKIPPED` or `FROM-CACHE`. See <<lifecycle_tasks.adoc#sec:lifecycle_tasks,Lifecycle Tasks>>.
 * Task has no actions and no dependencies.
 
 `FROM-CACHE`:: *Task's outputs could be found from a previous execution.*

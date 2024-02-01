@@ -15,299 +15,233 @@
 [[actionable_tasks]]
 = Actionable Tasks
 
-Actionable Tasks have inputs and outputs
-hi welcome back to understanding gradle
-today i'm going to talk about
-registering and configuring actionable
-tasks
+Actionable tasks have inputs and outputs.
+Inputs and outputs can be files, directories, or properties.
 
-actionable tasks are the things that do
-the actual work in gradle
+Actionable tasks describe work in Gradle.
 
-examples of such tasks in gradle core
-are the compiled java task that compiles
-java source code all the jar and zip
-tasks that zip up files into archives
+In Gradle core, the `compileJava` task compiles the Java source code.
+The `Jar` and `Zip` tasks zip up files into archives.
 
-such actionable tasks have input and
-outputs
+Let's look into registering and configuring actionable tasks.
 
-inputs are files collection of files
-folders and or configuration data
+[[sec:task_groups]]
+== Task inputs and outputs
 
-outputs are one or multiple files or
-folders
-the input of the java compile task for
-example are the java source files and
-the configuration in the build script
-like the java version
+In actionable tasks:
 
-the implementation of the task then
-calls java compiler and as an output
-produces class files
+- *Inputs* consist of a collection of files, folders, and/or configuration data. +
+For instance, the `javaCompile`takes inputs such as Java source files and build script configurations like the Java version.
+- *Outputs* refer to one or multiple files or folders. +
+For instance, the `javaCompile` produces class files as output.
 
-the jar task takes these class files as
-input and produces a jar archive using
-standard java functionality to implement
+Furthermore, the `jar` task takes these class files as input and produces a JAR archive.
 
-this input and outputs are important for
+Clearly defined task inputs and outputs serve two purposes:
 
-Why are inputs and outputs important?
-two reasons
+1. They inform Gradle about task dependencies. +
+For example, if Gradle understands that the output of the `compileJava` task serves as the input for the `jar` task, it will prioritize running `compileJava` first.
+2. They facilitate incremental building. +
+For example, if Gradle recognizes that the inputs and outputs of a task remain unchanged, it can leverage results from previous build runs or the build cache, thereby avoiding the need to rerun the task action altogether.
 
-first they let grader know the
-dependencies between the tasks
-so if grader knows that the output of
-the compile java task is the input of
-the jar task it knows that it has to run
-the compile java task first
+When you apply a plugin like the `java-library` plugin.
+Gradle will automatically register some tasks and configure them with defaults.
 
-the second reason is the incremental
-building if gradle knows that inputs and
-outputs of the task have not changed it
-can use a result from the previous build
-run or from the build cache avoiding to
-run the task action at all
+Let's define a task that packages JARs and a start script into an archive in an imaginary sample project:
 
-if you apply a plugin like the java
-library plugin gradle will already
-register a couple of tasks and configure
-them with defaults
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+gradle-project
+├── app
+│   ├── build.gradle.kts    // app build logic
+│   ├── run.sh              // script file
+│   └── ...                 // some java code
+├── settings.gradle.kts     // includes app subproject
+├── gradle
+├── gradlew
+└── gradlew.bat
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+gradle-project
+├── app
+│   ├── build.gradle    // app build logic
+│   ├── run.sh          // script file
+│   └── ...             // some java code
+├── settings.gradle     // includes app subproject
+├── gradle
+├── gradlew
+└── gradlew.bat
+----
+=====
+====
 
-to better understand what's going on
-there we will now register and configure
-a task ourselves
+The `run.sh` script can execute the java app (once packaged as a JAR) from the build:
 
-let's get back at our
-example and specifically at the
-convention plugin we defined for
-application project
+.app/run.sh
+[source,bash]
+----
+java -cp 'libs/*' gradle.project.App
+----
 
-Plugins {
-id my-java-base <- convention plugin
-if(application
+Let's register a new task called `packageApp` using `task.register()`:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+tasks.register<Zip>("packageApp") {
+
 }
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.register(Zip, "packageApp") {
 
-previously we
-applied the application plugin which
-already registers and configures tasks
-to package the application
-
-we now want
-to do this ourselves
-
-Plugins {
-id my-java-base <- convention plugin
-// no more application
 }
+----
+=====
+====
 
-so we just use a
-basic java plugin our packaged
-application should consist of a start
-script and the jar file of our
-application and all the dependencies
+We used an existing implementation from Gradle core which is the `Zip` task implementation (i.e,. a subclass of `Task`).
+Because we register a new task here, it's not pre-configured so we need to configure the inputs and outputs.
 
-the
-start script is something we write
-manually and which are added here to the
-root of the application project so all
-we want to do is package the jars and
-the start script into an archive
+Defining inputs and outputs is essentially what makes a task an actionable task.
 
-For this we now register a new task
+For the `Zip` task type, we can use the `from` notation to add a file to the inputs.
+In our case, we add the run script.
 
-the
-syntax is the same as we have seen last
-time when registering lifecycle tasks
+If the input is a file we create or edit directly, like a run file or Java source code, it's usually located somewhere in our project directory.
+To ensure we use the correct location, we use `layout.projectDirectory` and define a relative path to the project directory root.
 
-so
-we write
-tasks.registrar and give a name to the
-task in this case packageapp
+We provide the outputs of the `jar` task as well as the JAR of all the dependencies (using `configurations.runtimeClasspath`) as additional inputs.
 
-Task.register(“packageApp”)
+For outputs, we need to define two properties.
+First, the destination directory, which should be a directory inside the build folder.
+We can access this through `layout`.
+Second, we need to specify a name for the zip file, which we've called `myapplication.zip`
 
-what we do in addition is define an
-implementation which is the difference
-between life cycle and actionable tasks
+Here is what the complete task looks like:
 
-Task.register<Zip>(“packageApp”)
-
-today we just used an existing
-implementation from gradle core which is
-the zip task implementation
-
-and because we register a new task here
-it's not pre-configured so we need to
-configure the inputs and outputs
-
-in the
-implementation of the task it is
-specified which inputs and outputs are
-required and supported
-
-in the case of
-zip task we can use the from notation to
-add a file to the inputs so we first add
-our run script if the input is a file
-that i create or edit directly like this
-run file or like java source code it's
-usually located somewhere in our project
-directory to make sure we use the right
-location we can use layout.project
-directory and then define a relative
-path to the project directory root
-
-Task.register<Zip>(“packageApp”) {
-from(layout…..)
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+val packageApp = tasks.register<Zip>("packageApp") {
+    from(layout.projectDirectory.file("run.sh"))                // input - run.sh file
+    from(tasks.jar) {                                           // input - jar task output
+        into("libs")
+    }
+    from(configurations.runtimeClasspath) {                     // input - jar of dependencies
+        into("libs")
+    }
+    destinationDirectory.set(layout.buildDirectory.dir("dist")) // output - location of the zip file
+    archiveFileName.set("myApplication.zip")                    // output - name of the zip file
 }
-
- in
-the case of the zip task the output has
-to be defined by at least two properties
-the first is the destination directory
-which should be a directory inside the
-build folder which we can also access
-through the layout then we also need to
-define a name for the zip file which we
-call myapplication.zip
-
-Task.register<Zip>(“packageApp”) {
-from(layout…..)
-Destination Directory.set
-archiveFileName.set(myApp)
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+def packageApp = tasks.register(Zip, 'packageApp') {
+    from layout.projectDirectory.file('run.sh')                 // input - run.sh file
+    from tasks.jar {                                            // input - jar task output
+        into 'libs'
+    }
+    from configurations.runtimeClasspath {                      // input - jar of dependencies
+        into 'libs'
+    }
+    destinationDirectory.set(layout.buildDirectory.dir('dist')) // output - location of the zip file
+    archiveFileName.set('myApplication.zip')                    // output - name of the zip file
 }
+----
+=====
+====
 
-if we run our
-package app task now we get an archive
+if we run our `packageApp` task, `myApplication.zip` is produced:
 
-./gradlew :app:packageApp
+[source,text]
+----
+$./gradlew :app:packageApp
 
-that only contains the run script
+> Task :app:compileJava
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+> Task :app:jar
+> Task :app:packageApp
 
-we can
-see that gradle did not execute any
-other tasks in the project because it
-didn't need to
+BUILD SUCCESSFUL in 1s
+3 actionable tasks: 3 executed
+----
 
-the only thing required
-to build the archive was the run script
-which is a file that is already there in
-our project directory
+Gradle executed a number of tasks it required to build the JAR file, which is in addition to the JAR itself includes the compilation of the code of the `app` project and the compilation of code dependencies.
 
-now we also would like to add the jar
-files as additional inputs to the task
+Looking at the newly created ZIP file, we can see that it contains everything needed to run the Java application:
 
-for that we add another from statement
-this time we don't specify a file in the
-from statement but the jar task which
-means to grader use the output of this
-task as an input here and since the only
-output of the jar task is the jar file
-we can specify it like we did here
+[source,bash]
+----
+> unzip -l ./app/build/dist/myApplication.zip
 
-Task.register<Zip>(“packageApp”) {
-from(layout…..)
-from(Task.jar) {
-}
-Destination Directory.set
-archiveFileName.set(myApp)
-}
+Archive:  ./app/build/dist/myApplication.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+       42  01-31-2024 14:16   run.sh
+        0  01-31-2024 14:22   libs/
+      847  01-31-2024 14:22   libs/app.jar
+  3041591  01-29-2024 14:20   libs/guava-32.1.2-jre.jar
+     4617  01-29-2024 14:15   libs/failureaccess-1.0.1.jar
+     2199  01-29-2024 14:15   libs/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
+    19936  01-29-2024 14:15   libs/jsr305-3.0.2.jar
+   223979  01-31-2024 14:16   libs/checker-qual-3.33.0.jar
+    16017  01-31-2024 14:16   libs/error_prone_annotations-2.18.0.jar
+---------                     -------
+  3309228                     9 files
+----
 
-as
-additional configuration which is also
-treated as input to the task we can tag
-radal to place the jar file in a folder
-called libs inside the zip file
+Actionable tasks should be wired to lifecycle tasks so that a developer only need run lifecycle tasks.
 
-Task.register<Zip>(“packageApp”) {
-from(layout…..)
-from(Task.jar) {
-into(“libs”)
-}
-Destination Directory.set
-archiveFileName.set(myApp)
-}
+So far we called our new task directly.
+Let's wire it to a lifecycle task.
 
-if we
-run our task again now our app jar is
-added to the zip file
+The following is added to the build script so that the `packageApp` actionable task is wired to the `build` lifecycle task using `dependsOn()`:
 
-./gradlew :app:packageApp
-
-we can also see that gradle executed a
-number of tasks it required to build the
-jar file which is in addition to the jar
-itself the compilation of the code of
-the app project but also the compilation
-of the code of its dependencies which
-are required for compilation
-
-as a last step we also add the jar files
-of all the dependencies
-
-we can do that by accessing the runtime
-class path which represents the
-collection of all jars required to run
-the application
-
-runtime class path is a so-called
-configuration or resolvable
-configuration
-
-
-we'll talk much more about
-this in the future for now it's
-important to understand that by this
-grader knows that there are dependencies
-to other projects or binary libraries
-which are input of the zip task so if
-the zip is to be built gradle makes sure
-that binary dependencies are downloaded
-and that other projects produce a needed
-artifact which are the jar files in this
-case
-
-Task.register<Zip>(“packageApp”) {
-from(layout…..)
-from(Task.jar) {
-into(“libs”)
-}
-from(configurations.runtimeClasspath) {
-into(“libs”)
-}
-Destination Directory.set
-archiveFileName.set(myApp)
-}
-
-so if we run the task again
-
-./gradlew :app:packageApp
-
-we can see that also the jar tasks of
-the other projects have been executed
-and if we open our zip file we can see
-that it's complete now and we can run
-our application
-
-you might remember from my last video
-that i said ideally actionable tasks
-should be wired to lifecycle tasks and
-then the build user should only cause
-the lifecycle tasks
-
-so far we called our new tasks directly
-for demonstration purposes
-but of course we should also wire it
-into a lifecycle
-
-here i'll just add it to the build
-lifecycle because packaging the
-application is usually the last thing
-you do when you run the build
-
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
 tasks.build {
-dependsOn(packageApp)
+    dependsOn(packageApp)
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.build {
+    dependsOn(packageApp)
+}
+----
+=====
+====
 
-but you could also define your own
-lifecycle if needed
+You could  define your own lifecycle task if needed.
