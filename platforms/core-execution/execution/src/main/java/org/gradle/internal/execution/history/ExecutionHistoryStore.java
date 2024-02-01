@@ -16,12 +16,14 @@
 
 package org.gradle.internal.execution.history;
 
+import org.gradle.internal.hash.HashCode;
+
 import java.util.Optional;
 
 public interface ExecutionHistoryStore {
     Optional<PreviousExecutionState> load(String key);
 
-    void store(String key, AfterExecutionState executionState);
+    void store(String key, HashCode cacheKey, AfterExecutionState executionState);
 
     void remove(String key);
 }

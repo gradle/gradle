@@ -67,6 +67,7 @@ public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetada
     /**
      * Returns the artifacts associated with this configuration, if known.
      */
+    @Override
     ImmutableList<? extends ComponentArtifactMetadata> getArtifacts();
 
     /**

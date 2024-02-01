@@ -44,6 +44,7 @@ public interface BuildOperationExecutor extends BuildOperationRunner {
      * Runtime exceptions are rethrown as is.
      * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
      */
+    @Override
     void run(RunnableBuildOperation buildOperation);
 
     /**
@@ -54,6 +55,7 @@ public interface BuildOperationExecutor extends BuildOperationRunner {
      * Runtime exceptions are rethrown as is.
      * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
      */
+    @Override
     <T> T call(CallableBuildOperation<T> buildOperation);
 
     /**
@@ -61,6 +63,7 @@ public interface BuildOperationExecutor extends BuildOperationRunner {
      *
      * When a parent operation is finished any unfinished child operations will be failed.
      */
+    @Override
     BuildOperationContext start(BuildOperationDescriptor.Builder descriptor);
 
     /**

@@ -23,9 +23,11 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -40,15 +42,18 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     private final Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer;
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
     private final Serializer<ValueSnapshot> valueSnapshotSerializer;
+    private final HashCodeSerializer hashCodeSerializer;
     private final Serializer<OriginMetadata> originMetadataSerializer;
 
     public DefaultPreviousExecutionStateSerializer(
         Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer,
         Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer,
-        ClassLoaderHierarchyHasher classLoaderHasher
+        ClassLoaderHierarchyHasher classLoaderHasher,
+        HashCodeSerializer hashCodeSerializer
     ) {
         this.fileCollectionFingerprintSerializer = fileCollectionFingerprintSerializer;
         this.fileSystemSnapshotSerializer = fileSystemSnapshotSerializer;
+        this.hashCodeSerializer = hashCodeSerializer;
         this.implementationSnapshotSerializer = new ImplementationSnapshotSerializer();
         this.valueSnapshotSerializer = new SnapshotSerializer(classLoaderHasher);
         this.originMetadataSerializer = new OriginMetadataSerializer();
@@ -57,6 +62,8 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     @Override
     public PreviousExecutionState read(Decoder decoder) throws Exception {
         OriginMetadata originMetadata = originMetadataSerializer.read(decoder);
+
+        HashCode cacheKey = hashCodeSerializer.read(decoder);
 
         ImplementationSnapshot taskImplementation = implementationSnapshotSerializer.read(decoder);
 
@@ -77,6 +84,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
 
         return new DefaultPreviousExecutionState(
             originMetadata,
+            cacheKey,
             taskImplementation,
             taskActionImplementations,
             inputProperties,
@@ -90,6 +98,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     public void write(Encoder encoder, PreviousExecutionState execution) throws Exception {
         originMetadataSerializer.write(encoder, execution.getOriginMetadata());
 
+        hashCodeSerializer.write(encoder, execution.getCacheKey());
         implementationSnapshotSerializer.write(encoder, execution.getImplementation());
         ImmutableList<ImplementationSnapshot> additionalImplementations = execution.getAdditionalImplementations();
         encoder.writeSmallInt(additionalImplementations.size());

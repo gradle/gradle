@@ -284,11 +284,13 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             this.variantCoordinatesMap = Lazy.locking().of(() -> mapVariantNamesToCoordinates(root, componentCoordinates, identityPath));
         }
 
+        @Override
         public T getComponentCoordinates() {
             return componentCoordinates.get(root);
         }
 
         @Nullable
+        @Override
         public T getVariantCoordinates(String resolvedVariant) {
             return variantCoordinatesMap.get().get(resolvedVariant);
         }

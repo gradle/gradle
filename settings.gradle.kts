@@ -24,9 +24,10 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.16.1") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.16.2") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
+//    id("net.ltgt.errorprone").version("3.1.0")
 }
 
 includeBuild("build-logic-commons")

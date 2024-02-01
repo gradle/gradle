@@ -56,6 +56,7 @@ public class DefaultGradlePublication implements Serializable, GradleProjectIden
         return this;
     }
 
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("id", id)

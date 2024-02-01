@@ -93,6 +93,10 @@ data class StructuredMessage(val fragments: List<Fragment>) {
         fun reference(type: KClass<*>) {
             reference(type.qualifiedName!!)
         }
+
+        fun message(message: StructuredMessage) {
+            fragments.addAll(message.fragments)
+        }
     }
 }
 

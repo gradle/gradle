@@ -34,7 +34,7 @@ public class CompositePluginResolver implements PluginResolver {
         ImmutableList.Builder<PluginResolutionResult.NotFound> notFoundList = ImmutableList.builder();
         for (PluginResolver repository : repositories) {
             PluginResolutionResult result = repository.resolve(pluginRequest);
-            if (result.isSuccess()) {
+            if (result.isFound()) {
                 return result;
             }
             notFoundList.addAll(result.getNotFound());

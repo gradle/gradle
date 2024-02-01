@@ -80,6 +80,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
                 compileSdkVersion(29)
                 buildToolsVersion("${TestedVersions.androidTools}")
                 buildFeatures { buildConfig = true }
+                kotlinOptions { jvmTarget = "1.8" }
             }
 
             androidComponents {
@@ -170,7 +171,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
             ]
         ].combinations()
         providerType = provider['type']
-        kotlinVersionNumber = VersionNumber.parse('1.7.0')
+        kotlinVersionNumber = VersionNumber.parse('1.8.0')
         taskName = 'compileDebugKotlin'
     }
 
@@ -202,7 +203,6 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
             expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber)
             maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectProjectConventionDeprecationWarning(agpVersion)
             maybeExpectConventionTypeDeprecation(kotlinVersionNumber)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)

@@ -319,7 +319,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         return DefaultResolverResults.graphResolved(
             graphResults,
-            new DefaultResolvedConfiguration(lenientConfiguration),
+            new DefaultResolvedConfiguration(graphResults, resolutionHost, lenientConfiguration),
             lenientConfiguration
         );
     }

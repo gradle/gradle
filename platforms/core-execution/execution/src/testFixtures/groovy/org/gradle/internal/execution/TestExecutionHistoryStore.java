@@ -24,6 +24,7 @@ import org.gradle.internal.execution.history.impl.DefaultPreviousExecutionState;
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.hash.HashCode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,9 +43,10 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
     }
 
     @Override
-    public void store(String key, AfterExecutionState executionState) {
+    public void store(String key, HashCode cacheKey, AfterExecutionState executionState) {
         executionHistory.put(key, new DefaultPreviousExecutionState(
             executionState.getOriginMetadata(),
+            cacheKey,
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
             executionState.getInputProperties(),

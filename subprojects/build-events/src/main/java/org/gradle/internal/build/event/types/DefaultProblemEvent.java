@@ -33,6 +33,7 @@ public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDe
         this.details = details;
     }
 
+    @Override
     public String getDisplayName() {
         return "problem";
     }

@@ -18,8 +18,9 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.MutableClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
@@ -34,12 +35,11 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.resolve.internal.AlreadyOnClasspathIgnoringPluginResolver;
 import org.gradle.plugin.use.resolve.internal.AlreadyOnClasspathPluginResolver;
-import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositoriesProvider;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
+import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionVisitor;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
@@ -77,8 +77,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     @Override
-    public void applyPlugins(PluginRequests requests, PluginRequests autoAppliedPlugins, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, final ClassLoaderScope classLoaderScope) {
-        if (target == null || noPluginsApplied(requests, autoAppliedPlugins)) {
+    public void applyPlugins(PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, final ClassLoaderScope classLoaderScope) {
+        if (target == null || requests.isEmpty()) {
             classLoaderScope.export(scriptHandler.getInstrumentedScriptClassPath());
             classLoaderScope.lock();
             return;
@@ -88,52 +88,13 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         resolveContext.applyRepositoriesTo(scriptHandler.getRepositories());
 
         List<ApplyAction> pluginApplyActions = new ArrayList<>();
-
-        PluginResolver pluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope, resolveContext);
-
-        if (!requests.isEmpty()) {
-            resolvePluginsAndBuildClasspath(requests, scriptHandler, classLoaderScope, pluginResolver, pluginApplyActions);
-        }
-        classLoaderScope.lock();
-
-        if (!autoAppliedPlugins.isEmpty()) {
-            PluginResolver alreadyOnClasspathIgnoringPluginResolver =
-                new AlreadyOnClasspathIgnoringPluginResolver(
-                    pluginResolver,
-                    new ClassloaderBackedPluginDescriptorLocator(scriptHandler.getClassLoader())
-                );
-
-            // Reset class loader & script handler since we are re-resolving classpath
-            MutableClassLoaderScope mutableClassLoaderScope = classLoaderScope.asMutable("-plugins");
-            scriptHandler.dropResolvedClassPath();
-
-            resolvePluginsAndBuildClasspath(autoAppliedPlugins, scriptHandler, mutableClassLoaderScope, alreadyOnClasspathIgnoringPluginResolver, pluginApplyActions);
-        }
-        classLoaderScope.lock();
-
-        // Apply the plugins
-        pluginApplyActions.forEach(action -> action.apply(target));
-    }
-
-    private void resolvePluginsAndBuildClasspath(
-        PluginRequests requests,
-        ScriptHandlerInternal scriptHandler,
-        ClassLoaderScope classLoaderScope,
-        PluginResolver pluginResolver,
-        List<ApplyAction> pluginApplyActions
-    ) {
-        boolean resolvedPlugin = false;
         CollectingPluginRequestResolutionVisitor pluginDependencies = new CollectingPluginRequestResolutionVisitor();
+
+        // Resolve the plugin requests
+        PluginResolver pluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope, resolveContext);
         for (PluginRequestInternal originalRequest : requests) {
             PluginRequestInternal request = pluginResolutionStrategy.applyTo(originalRequest);
-
-            PluginResolutionResult result = resolveToFoundResult(pluginResolver, request);
-            if (result.isAlreadyApplied()) {
-                continue;
-            }
-
-            resolvedPlugin = true;
-            PluginResolution resolved = result.getFound();
+            PluginResolution resolved = resolvePluginRequest(pluginResolver, request);
 
             resolved.accept(pluginDependencies);
 
@@ -151,12 +112,22 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             }
         }
 
-        // Only re-define the classpath if we resolved a new plugin, otherwise we break caching.
-        if (resolvedPlugin) {
-            pluginDependencies.getAdditionalDependencies().forEach(scriptHandler::addScriptClassPathDependency);
-            classLoaderScope.export(scriptHandler.getInstrumentedScriptClassPath());
-            pluginDependencies.getAdditionalClassloaders().forEach(classLoaderScope::export);
+        // Configure the resolution
+        pluginDependencies.getAdditionalDependencies().forEach(scriptHandler::addScriptClassPathDependency);
+        if (!pluginDependencies.getReplacements().isEmpty()) {
+            ComponentModuleMetadataHandler modules = scriptHandler.getDependencies().getModules();
+            for (CollectingPluginRequestResolutionVisitor.ModuleReplacement replacement : pluginDependencies.getReplacements()) {
+                modules.module(replacement.original, details -> details.replacedBy(replacement.replacement));
+            }
         }
+
+        // Perform resolution & configure the classloader
+        classLoaderScope.export(scriptHandler.getInstrumentedScriptClassPath());
+        pluginDependencies.getAdditionalClassloaders().forEach(classLoaderScope::export);
+        classLoaderScope.lock();
+
+        // Apply the plugins
+        pluginApplyActions.forEach(action -> action.apply(target));
     }
 
     private PluginResolver wrapInAlreadyInClasspathResolver(ClassLoaderScope classLoaderScope, PluginArtifactRepositories resolveContext) {
@@ -194,10 +165,6 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
     }
 
-    private static boolean noPluginsApplied(PluginRequests requests, PluginRequests autoAppliedPlugins) {
-        return requests.isEmpty() && autoAppliedPlugins.isEmpty();
-    }
-
     private static InvalidPluginException couldNotApply(PluginRequestInternal request, PluginId id, UnknownPluginException cause) {
         return new InvalidPluginException(
             String.format(
@@ -212,23 +179,33 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         return new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request.getDisplayName()), e);
     }
 
-    private static PluginResolutionResult resolveToFoundResult(PluginResolver effectivePluginResolver, PluginRequestInternal request) {
+    private static PluginResolution resolvePluginRequest(PluginResolver resolver, PluginRequestInternal request) {
         PluginResolutionResult result;
         try {
-            result = effectivePluginResolver.resolve(request);
+            result = resolver.resolve(request);
         } catch (Exception e) {
             throw new LocationAwareException(
                 new GradleException(String.format("Error resolving plugin %s", request.getDisplayName()), e),
                 request.getScriptDisplayName(), request.getLineNumber());
         }
 
-        result.assertSuccess(request);
-        return result;
+        return result.getFound(request);
     }
 
     private static class CollectingPluginRequestResolutionVisitor implements PluginResolutionVisitor {
         private List<Dependency> additionalDependencies;
+        private List<ModuleReplacement> replacements;
         private List<ClassLoader> additionalClassloaders;
+
+        static class ModuleReplacement {
+            private final ModuleIdentifier original;
+            private final ModuleIdentifier replacement;
+
+            public ModuleReplacement(ModuleIdentifier original, ModuleIdentifier replacement) {
+                this.original = original;
+                this.replacement = replacement;
+            }
+        }
 
         @Override
         public void visitDependency(Dependency dependency) {
@@ -236,6 +213,14 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 additionalDependencies = new ArrayList<>();
             }
             additionalDependencies.add(dependency);
+        }
+
+        @Override
+        public void visitReplacement(ModuleIdentifier original, ModuleIdentifier replacement) {
+            if (replacements == null) {
+                replacements = new ArrayList<>();
+            }
+            replacements.add(new ModuleReplacement(original, replacement));
         }
 
         @Override
@@ -251,6 +236,13 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 return Collections.emptyList();
             }
             return additionalDependencies;
+        }
+
+        public List<ModuleReplacement> getReplacements() {
+            if (replacements == null) {
+                return Collections.emptyList();
+            }
+            return replacements;
         }
 
         public List<ClassLoader> getAdditionalClassloaders() {

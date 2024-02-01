@@ -4,6 +4,12 @@ plugins {
 
 description = "Shared classes for projects requiring GPG support"
 
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 1 occurrences
+    )
+}
+
 dependencies {
     api(project(":core-api"))
     api(project(":resources"))

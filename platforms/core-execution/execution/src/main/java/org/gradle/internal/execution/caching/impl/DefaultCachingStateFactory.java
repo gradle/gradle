@@ -22,6 +22,7 @@ import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.caching.CachingStateFactory;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.slf4j.Logger;
@@ -34,7 +35,18 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
     }
 
     @Override
-    public final CachingState createCachingState(BeforeExecutionState beforeExecutionState, ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
+    public final CachingState createCachingState(BeforeExecutionState beforeExecutionState, HashCode cacheKey, ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
+        if (cachingDisabledReasons.isEmpty()) {
+            return CachingState.enabled(new DefaultBuildCacheKey(cacheKey), beforeExecutionState);
+        } else {
+            cachingDisabledReasons.forEach(reason ->
+                logger.warn("Non-cacheable because {} [{}]", reason.getMessage(), reason.getCategory()));
+            return CachingState.disabled(cachingDisabledReasons, new DefaultBuildCacheKey(cacheKey), beforeExecutionState);
+        }
+    }
+
+    @Override
+    public HashCode calculateCacheKey(BeforeExecutionState beforeExecutionState) {
         final Hasher cacheKeyHasher = Hashing.newHasher();
 
         logger.warn("Appending implementation to build cache key: {}",
@@ -68,12 +80,6 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
             cacheKeyHasher.putString(propertyName);
         });
 
-        if (cachingDisabledReasons.isEmpty()) {
-            return CachingState.enabled(new DefaultBuildCacheKey(cacheKeyHasher.hash()), beforeExecutionState);
-        } else {
-            cachingDisabledReasons.forEach(reason ->
-                logger.warn("Non-cacheable because {} [{}]", reason.getMessage(), reason.getCategory()));
-            return CachingState.disabled(cachingDisabledReasons, new DefaultBuildCacheKey(cacheKeyHasher.hash()), beforeExecutionState);
-        }
+        return cacheKeyHasher.hash();
     }
 }
