@@ -16,18 +16,10 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.ArtifactVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 
-import javax.inject.Inject;
-
-public class UnknownArtifactSelectionFailureDescriber extends AbstractResolutionFailureDescriber<ArtifactVariantSelectionException, UnknownArtifactSelectionFailure> {
-    @Inject
-    public UnknownArtifactSelectionFailureDescriber(DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
-    }
-
+public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractResolutionFailureDescriber<ArtifactVariantSelectionException, UnknownArtifactSelectionFailure> {
     @Override
     public ArtifactVariantSelectionException describeFailure(UnknownArtifactSelectionFailure failure) {
         final ArtifactVariantSelectionException result;

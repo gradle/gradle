@@ -16,18 +16,10 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.ConfigurationNotFoundException;
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
 
-import javax.inject.Inject;
-
-public class RequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationNotFoundException, RequestedConfigurationNotFoundFailure> {
-    @Inject
-    public RequestedConfigurationNotFoundFailureDescriber(DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
-    }
-
+public abstract class RequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationNotFoundException, RequestedConfigurationNotFoundFailure> {
     @Override
     public ConfigurationNotFoundException describeFailure(RequestedConfigurationNotFoundFailure failure) {
         ConfigurationNotFoundException result = new ConfigurationNotFoundException(buildConfigurationNotFoundFailureMsg(failure));

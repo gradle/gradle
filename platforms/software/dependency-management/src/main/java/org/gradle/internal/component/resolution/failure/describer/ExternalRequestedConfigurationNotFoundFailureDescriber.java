@@ -17,18 +17,10 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.ExternalConfigurationNotFoundException;
 import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
 
-import javax.inject.Inject;
-
-public class ExternalRequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ExternalConfigurationNotFoundException, ExternalRequestedConfigurationNotFoundFailure> {
-    @Inject
-    public ExternalRequestedConfigurationNotFoundFailureDescriber(DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
-    }
-
+public abstract class ExternalRequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ExternalConfigurationNotFoundException, ExternalRequestedConfigurationNotFoundFailure> {
     @Override
     public ExternalConfigurationNotFoundException describeFailure(ExternalRequestedConfigurationNotFoundFailure failure) {
         ExternalConfigurationNotFoundException result = new ExternalConfigurationNotFoundException(buildExternalConfigurationNotFoundFailureMsg(failure));

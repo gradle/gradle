@@ -21,7 +21,6 @@ import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.internal.isolation.TestIsolatableFactory
@@ -31,7 +30,7 @@ import spock.lang.Specification
 
 class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
 
-    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), new TestIsolatableFactory(), new DocumentationRegistry())
+    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), new TestIsolatableFactory(), TestUtil.objectFactory())
     def explanationBuilder = Stub(AttributeMatchingExplanationBuilder)
 
     def highest = Attribute.of("highest", String)

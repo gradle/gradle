@@ -16,18 +16,10 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.ConfigurationNotConsumableException;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 
-import javax.inject.Inject;
-
-public class ConfigurationNotConsumableFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationNotConsumableException, ConfigurationNotConsumableFailure> {
-    @Inject
-    public ConfigurationNotConsumableFailureDescriber(DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
-    }
-
+public abstract class ConfigurationNotConsumableFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationNotConsumableException, ConfigurationNotConsumableFailure> {
     @Override
     public ConfigurationNotConsumableException describeFailure(ConfigurationNotConsumableFailure failure) {
         String message = buildConfigurationNotConsumableFailureMsg(failure);

@@ -19,28 +19,21 @@ package org.gradle.internal.component.resolution.failure.describer;
 import com.google.common.collect.Ordering;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.transform.AmbiguousArtifactTransformException;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-public class AmbiguousArtifactTransformFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformException, AmbiguousArtifactTransformFailure> {
+public abstract class AmbiguousArtifactTransformFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformException, AmbiguousArtifactTransformFailure> {
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
-
-    @Inject
-    public AmbiguousArtifactTransformFailureDescriber(DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
-    }
 
     @Override
     public AmbiguousArtifactTransformException describeFailure(AmbiguousArtifactTransformFailure failure) {

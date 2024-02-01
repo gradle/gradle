@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.AmbiguousGraphVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
@@ -27,20 +26,14 @@ import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguo
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import javax.inject.Inject;
 import java.util.Map;
 import java.util.TreeMap;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
-public class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousGraphVariantsException, VariantAwareAmbiguousResolutionFailure> {
+public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousGraphVariantsException, VariantAwareAmbiguousResolutionFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
-
-    @Inject
-    protected AmbiguousGraphVariantsFailureDescriber(DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
-    }
 
     @Override
     public AmbiguousGraphVariantsException describeFailure(VariantAwareAmbiguousResolutionFailure failure) {

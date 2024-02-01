@@ -29,6 +29,7 @@ import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -40,18 +41,15 @@ import static org.gradle.internal.exceptions.StyledException.style;
 public abstract class AbstractResolutionFailureDescriber<EXCEPTION extends AbstractVariantSelectionException, FAILURE extends ResolutionFailure> implements ResolutionFailureDescriber<EXCEPTION, FAILURE> {
     private static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
-    protected final DocumentationRegistry documentationRegistry;
-
-    protected AbstractResolutionFailureDescriber(DocumentationRegistry documentationRegistry) {
-        this.documentationRegistry = documentationRegistry;
-    }
+    @Inject
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     protected void suggestReviewAlgorithm(AbstractVariantSelectionException exception) {
-        exception.addResolution(DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
+        exception.addResolution(DEFAULT_MESSAGE_PREFIX + getDocumentationRegistry().getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
     }
 
     protected void suggestSpecificDocumentation(AbstractVariantSelectionException exception, String prefix, String section) {
-        exception.addResolution(prefix + documentationRegistry.getDocumentationFor("variant_model", section) + ".");
+        exception.addResolution(prefix + getDocumentationRegistry().getDocumentationFor("variant_model", section) + ".");
     }
 
     protected void formatAttributeSection(TreeFormatter formatter, String section, List<String> values) {

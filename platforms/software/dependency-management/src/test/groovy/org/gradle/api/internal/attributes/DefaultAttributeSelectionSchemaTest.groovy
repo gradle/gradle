@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.component.model.AttributeSelectionSchema
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -28,7 +27,6 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.util.TestUtil.objectFactory
-
 /**
  * Tests {@link DefaultAttributesSchema.DefaultAttributeSelectionSchema}. The class-under-test should
  * eventually be moved into its own file so that we don't need to instantiate it indirectly through a
@@ -38,7 +36,7 @@ import static org.gradle.util.TestUtil.objectFactory
 class DefaultAttributeSelectionSchemaTest extends Specification {
     private static final ImmutableAttributesFactory ATTRIBUTES_FACTORY = AttributeTestUtil.attributesFactory()
 
-    private AttributesSchemaInternal attributesSchema = Spy(new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), new DocumentationRegistry()))
+    private AttributesSchemaInternal attributesSchema = Spy(new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory()))
     private AttributeSelectionSchema schema = attributesSchema.matcher().selectionSchema
 
     def "collects extra attributes, single candidate"() {

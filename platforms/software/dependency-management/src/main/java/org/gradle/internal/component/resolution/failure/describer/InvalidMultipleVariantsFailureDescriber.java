@@ -16,21 +16,13 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.IncompatibleArtifactVariantsException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVariantsSelectionFailure;
 
-import javax.inject.Inject;
-
-public class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleArtifactVariantsException, InvalidMultipleVariantsSelectionFailure> {
+public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleArtifactVariantsException, InvalidMultipleVariantsSelectionFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
-
-    @Inject
-    public InvalidMultipleVariantsFailureDescriber(DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
-    }
 
     @Override
     public IncompatibleArtifactVariantsException describeFailure(InvalidMultipleVariantsSelectionFailure failure) {

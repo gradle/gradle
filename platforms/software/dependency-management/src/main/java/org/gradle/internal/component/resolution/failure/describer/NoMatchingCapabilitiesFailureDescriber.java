@@ -16,20 +16,12 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.component.NoMatchingCapabilitiesException;
 import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
 
-import javax.inject.Inject;
-
-public class NoMatchingCapabilitiesFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingCapabilitiesException, NoMatchingCapabilitiesFailure> {
-    @Inject
-    public NoMatchingCapabilitiesFailureDescriber(DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
-    }
-
+public abstract class NoMatchingCapabilitiesFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingCapabilitiesException, NoMatchingCapabilitiesFailure> {
     @Override
     public NoMatchingCapabilitiesException describeFailure(NoMatchingCapabilitiesFailure failure) {
         String message = buildNoMatchingCapabilitiesFailureMsg(failure);

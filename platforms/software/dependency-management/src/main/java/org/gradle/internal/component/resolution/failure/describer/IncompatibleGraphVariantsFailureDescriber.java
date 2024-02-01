@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.NoMatchingGraphVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
@@ -27,18 +26,11 @@ import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVa
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import javax.inject.Inject;
-
 import static org.gradle.internal.exceptions.StyledException.style;
 
-public class IncompatibleGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingGraphVariantsException, IncompatibleGraphVariantFailure> {
+public abstract class IncompatibleGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingGraphVariantsException, IncompatibleGraphVariantFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
-
-    @Inject
-    protected IncompatibleGraphVariantsFailureDescriber(DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
-    }
 
     @Override
     public NoMatchingGraphVariantsException describeFailure(IncompatibleGraphVariantFailure failure) {

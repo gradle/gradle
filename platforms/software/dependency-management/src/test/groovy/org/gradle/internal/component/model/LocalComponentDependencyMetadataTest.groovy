@@ -54,7 +54,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     GraphVariantSelector variantSelector
 
     def setup() {
-        attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), new DocumentationRegistry())
+        attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
         factory = AttributeTestUtil.attributesFactory()
         def documentationRegistry = new DocumentationRegistry();
         def failureDescriberRegistry = ResolutionFailureDescriberRegistry.standardRegistry(TestUtil.instantiatorFactory(), documentationRegistry);
@@ -348,7 +348,7 @@ Configuration 'bar':
         def toState = Stub(ComponentGraphResolveState) {
             getCandidatesForGraphVariantSelection() >> toCandidates
         }
-        def attributeSchemaWithCompatibility = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), new DocumentationRegistry())
+        def attributeSchemaWithCompatibility = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
         attributeSchemaWithCompatibility.attribute(Attribute.of('key', String), {
             it.compatibilityRules.add(EqualsValuesCompatibleRule)
             it.compatibilityRules.add(ValueCompatibleRule)

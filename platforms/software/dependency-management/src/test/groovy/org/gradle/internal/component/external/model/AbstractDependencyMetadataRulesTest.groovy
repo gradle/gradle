@@ -75,7 +75,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     }
 
     private DefaultAttributesSchema createSchema() {
-        def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), new DocumentationRegistry())
+        def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
         DependencyManagementTestUtil.platformSupport().configureSchema(schema)
         GradlePluginVariantsSupport.configureSchema(schema)
         JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())

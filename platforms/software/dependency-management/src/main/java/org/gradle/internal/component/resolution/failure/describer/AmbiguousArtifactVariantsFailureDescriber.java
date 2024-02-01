@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.AmbiguousArtifactVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
@@ -24,16 +23,9 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import javax.inject.Inject;
-
-public class AmbiguousArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactVariantsException, AmbiguousResolutionFailure> {
+public abstract class AmbiguousArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactVariantsException, AmbiguousResolutionFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
-
-    @Inject
-    public AmbiguousArtifactVariantsFailureDescriber(DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
-    }
 
     @Override
     public AmbiguousArtifactVariantsException describeFailure(AmbiguousResolutionFailure failure) {
