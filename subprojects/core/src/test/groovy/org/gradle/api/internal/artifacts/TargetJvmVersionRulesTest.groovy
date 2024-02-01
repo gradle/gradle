@@ -33,7 +33,7 @@ class TargetJvmVersionRulesTest extends Specification {
     private DisambiguationRule<Object> disambiguationRules
 
     def setup() {
-        AttributesSchema schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
+        AttributesSchema schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
         compatibilityRules = schema.compatibilityRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
         disambiguationRules = schema.disambiguationRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)

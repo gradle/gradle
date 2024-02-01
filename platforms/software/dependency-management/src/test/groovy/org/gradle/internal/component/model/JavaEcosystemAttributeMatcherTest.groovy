@@ -38,7 +38,7 @@ import spock.lang.Specification
  */
 class JavaEcosystemAttributeMatcherTest extends Specification {
 
-    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), new TestIsolatableFactory(), TestUtil.objectFactory())
+    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), new TestIsolatableFactory())
     def explanationBuilder = Stub(AttributeMatchingExplanationBuilder)
 
     def setup() {

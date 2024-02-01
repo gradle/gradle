@@ -48,7 +48,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
     def versionComparator = new DefaultVersionComparator()
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, versionParser)
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
-    def attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
+    def attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
     def consumerAttributes = ImmutableAttributes.EMPTY
     def cachePolicy = new DefaultCachePolicy()
 

@@ -28,7 +28,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultAttributesSchemaTest extends Specification {
-    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
+    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
     def "can create an attribute of scalar type #type"() {
         when:
@@ -286,7 +286,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "merging creates schema with additional attributes defined by producer"() {
-        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
+        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
         def attr1 = Attribute.of("a", String)
         def attr2 = Attribute.of("b", Integer)
@@ -304,7 +304,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "uses the producers compatibility rules when the consumer does not express an opinion"() {
-        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
+        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
         def attr = Attribute.of("a", Flavor)
 
@@ -316,7 +316,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "uses the producers selection rules when the consumer does not express an opinion"() {
-        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
+        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
         def attr = Attribute.of("a", Flavor)
 
@@ -360,7 +360,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "precedence order is honored with merged schema"() {
-        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
+        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         when:
         def x = Attribute.of("x", String)
         producer.attributeDisambiguationPrecedence(x, Attribute.of("a", String))
@@ -388,7 +388,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "precedence order is honored with merged schema when producer has attributes with the same name"() {
-        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory())
+        def producer = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         when:
         def producerA = Attribute.of("a", String)
         def x = Attribute.of("x", String)

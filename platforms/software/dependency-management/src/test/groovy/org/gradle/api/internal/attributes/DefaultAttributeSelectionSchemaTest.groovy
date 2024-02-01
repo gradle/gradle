@@ -36,7 +36,7 @@ import static org.gradle.util.TestUtil.objectFactory
 class DefaultAttributeSelectionSchemaTest extends Specification {
     private static final ImmutableAttributesFactory ATTRIBUTES_FACTORY = AttributeTestUtil.attributesFactory()
 
-    private AttributesSchemaInternal attributesSchema = Spy(new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory()))
+    private AttributesSchemaInternal attributesSchema = Spy(new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory()))
     private AttributeSelectionSchema schema = attributesSchema.matcher().selectionSchema
 
     def "collects extra attributes, single candidate"() {
