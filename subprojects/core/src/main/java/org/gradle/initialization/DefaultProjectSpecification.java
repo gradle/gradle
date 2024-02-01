@@ -27,6 +27,7 @@ abstract public class DefaultProjectSpecification extends AbstractProjectSpecifi
     @Inject
     public DefaultProjectSpecification(Settings settings, String logicalPathRelativeToParent, ProjectSpecificationContainer parent) {
         super(settings, logicalPathRelativeToParent, parent);
+        getAutoDetect().convention(parent.getAutoDetect());
     }
 
     @Override

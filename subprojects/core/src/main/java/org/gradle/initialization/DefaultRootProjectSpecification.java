@@ -24,12 +24,10 @@ import org.gradle.api.provider.Provider;
 import javax.inject.Inject;
 
 abstract public class DefaultRootProjectSpecification extends AbstractProjectSpecificationContainer implements RootProjectSpecification {
-    boolean autoDetect = false;
-
     @Inject
     public DefaultRootProjectSpecification(Settings settings, Provider<Directory> dir) {
-        super(settings, dir);
-        getProjectDir().finalizeValue();
+        super(settings);
+        getProjectDir().value(dir).finalizeValue();
     }
 
     @Override
@@ -38,12 +36,12 @@ abstract public class DefaultRootProjectSpecification extends AbstractProjectSpe
     }
 
     @Override
-    public boolean isAutoDetect() {
-        return autoDetect;
+    public void enableAutoDetect(boolean autoDetect) {
+        getAutoDetect().set(autoDetect);
     }
 
     @Override
-    public void setAutoDetect(boolean autoDetect) {
-        this.autoDetect = autoDetect;
+    public void autoDetectIfConfigured() {
+        super.autoDetectIfConfigured();
     }
 }

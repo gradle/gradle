@@ -20,22 +20,25 @@ import com.h0tk3y.kotlin.staticObjectNotation.Adding;
 import com.h0tk3y.kotlin.staticObjectNotation.Restricted;
 import org.gradle.api.Action;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.Property;
 
 @Restricted
 public interface ProjectSpecificationContainer {
     // Can't currently have both subproject methods annotated with @Adding
-//    @Adding
+    // @Adding
     ProjectSpecification subproject(String logicalPath);
 
     @Adding
     ProjectSpecification subproject(String logicalPath, Action<? super ProjectSpecification> action);
 
     // this is not right, but Property<String> isn't supported, @Restricted requires this to be a property,
-    // and @Configuring requires an Action argument
+    // and @Configuring requires an Action argument.  Ideally this should be Property<String>.
     @Adding
     void setProjectDirRelativePath(String projectRelativePath);
 
     String getLogicalPath();
 
     DirectoryProperty getProjectDir();
+
+    Property<Boolean> getAutoDetect();
 }

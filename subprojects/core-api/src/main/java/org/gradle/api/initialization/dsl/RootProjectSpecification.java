@@ -16,12 +16,13 @@
 
 package org.gradle.api.initialization.dsl;
 
-import com.h0tk3y.kotlin.staticObjectNotation.Restricted;
+import com.h0tk3y.kotlin.staticObjectNotation.Adding;
 
 public interface RootProjectSpecification extends ProjectSpecificationContainer {
-    @Restricted
-    boolean isAutoDetect();
 
-    @Restricted
-    void setAutoDetect(boolean autoDetect);
+    // this is not right, but Property<Boolean> isn't supported, @Restricted requires this to be a property,
+    // and @Configuring requires an Action argument.  Ideally this should be configured via the Property<Boolean>
+    // from ProjectSpecificationContainer.
+    @Adding
+    void enableAutoDetect(boolean autoDetect);
 }

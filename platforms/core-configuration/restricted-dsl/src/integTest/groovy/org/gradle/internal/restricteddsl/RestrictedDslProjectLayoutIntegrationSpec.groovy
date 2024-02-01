@@ -18,10 +18,15 @@ package org.gradle.internal.restricteddsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.initialization.AbstractProjectSpecificationContainer.*
+
 class RestrictedDslProjectLayoutIntegrationSpec extends AbstractIntegrationSpec {
-    def "can create nested projects with restricted DSL"() {
+
+    public static final ArrayList<String> SETTINGS_SCRIPTS = ["settings.gradle.something", "settings.gradle.kts"]
+
+    def "can create nested projects with restricted DSL (#settingsScript)"() {
         given:
-        file("settings.gradle.something") << """
+        file(settingsScript) << """
             build {
                 name = "test-value"
             }
@@ -59,11 +64,14 @@ class RestrictedDslProjectLayoutIntegrationSpec extends AbstractIntegrationSpec 
         outputContains("--- Project ':foo:bar'")
         outputContains("--- Project ':baz:qux:qax'")
         outputContains("--- Project ':baz:fizz'")
+
+        where:
+        settingsScript << SETTINGS_SCRIPTS
     }
 
-    def "can set physical dir different than logical dir"() {
+    def "can set physical dir different than logical dir (#settingsScript)"() {
         given:
-        file("settings.gradle.something") << """
+        file(settingsScript) << """
             build {
                 name = "test-value"
             }
@@ -108,11 +116,14 @@ class RestrictedDslProjectLayoutIntegrationSpec extends AbstractIntegrationSpec 
         outputContains("--- Project ':foo:bar'")
         outputContains("--- Project ':baz:qux:qax'")
         outputContains("--- Project ':baz:fizz'")
+
+        where:
+        settingsScript << SETTINGS_SCRIPTS
     }
 
-    def "cannot add the same logical path twice"() {
+    def "cannot add the same logical path twice (#settingsScript)"() {
         given:
-        file("settings.gradle.something") << """
+        file(settingsScript) << """
             build {
                 name = "test-value"
             }
@@ -133,11 +144,14 @@ class RestrictedDslProjectLayoutIntegrationSpec extends AbstractIntegrationSpec 
         // stack trace.
         //failureHasCause("A project with path ':foo' has already been registered.")
         errorOutput.contains("A project with path ':foo' has already been registered.")
+
+        where:
+        settingsScript << SETTINGS_SCRIPTS
     }
 
-    def "cannot add the same physical path twice"() {
+    def "cannot add the same physical path twice (#settingsScript)"() {
         given:
-        file("settings.gradle.something") << """
+        file(settingsScript) << """
             build {
                 name = "test-value"
             }
@@ -160,5 +174,44 @@ class RestrictedDslProjectLayoutIntegrationSpec extends AbstractIntegrationSpec 
         // stack trace.
         //failureHasCause("A project with directory 'foo' has already been registered.")
         errorOutput.contains("A project with directory 'foo' has already been registered.")
+
+        where:
+        settingsScript << SETTINGS_SCRIPTS
+    }
+
+    def "can autodetect projects in a multi-project workspace (#settingsScript)"() {
+        given:
+        file(settingsScript) << """
+            build {
+                name = "test-value"
+            }
+
+            layout {
+
+            }
+        """
+        buildFile << """
+            println('name = ' + rootProject.name)
+            assert project(':foo').projectDir == file('foo')
+            assert project(':foo:bar').projectDir == file('foo/bar')
+            assert project(':baz').projectDir == file('baz')
+            assert project(':baz:qux').projectDir == file('baz/qux')
+            assert project(':baz:qux:qax').projectDir == file('baz/qux/qax')
+        """
+        file("foo/${PROJECT_MARKER_FILE}") << ""
+        file("foo/bar/${PROJECT_MARKER_FILE}") << ""
+        file("baz/${PROJECT_MARKER_FILE}") << ""
+        file("baz/qux/${PROJECT_MARKER_FILE}") << ""
+        file("baz/qux/qax/${PROJECT_MARKER_FILE}") << ""
+        file("baz/fizz/${PROJECT_MARKER_FILE}") << ""
+
+        expect:
+        succeeds("projects")
+        outputContains("--- Project ':foo:bar'")
+        outputContains("--- Project ':baz:qux:qax'")
+        outputContains("--- Project ':baz:fizz'")
+
+        where:
+        settingsScript << SETTINGS_SCRIPTS
     }
 }

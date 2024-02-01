@@ -91,7 +91,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
 
     private final ToolchainManagementInternal toolchainManagement;
-    private final RootProjectSpecification rootProjectSpecification;
+    private final DefaultRootProjectSpecification rootProjectSpecification;
 
     public DefaultSettings(
         ServiceRegistryFactory serviceRegistryFactory,
@@ -442,5 +442,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public void layout(Action<? super RootProjectSpecification> rootProjectConfiguration) {
         rootProjectConfiguration.execute(rootProjectSpecification);
+        rootProjectSpecification.autoDetectIfConfigured();
     }
 }
