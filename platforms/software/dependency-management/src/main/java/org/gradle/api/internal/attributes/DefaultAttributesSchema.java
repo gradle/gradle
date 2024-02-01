@@ -30,6 +30,7 @@ import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
@@ -59,9 +60,13 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final ResolutionFailureDescriberRegistry failureDescriberRegistry;
 
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
+        this(instantiatorFactory, instantiatorFactory.inject(), isolatableFactory);
+    }
+
+    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, InstanceGenerator instanceGenerator, IsolatableFactory isolatableFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
-        this.failureDescriberRegistry = ResolutionFailureDescriberRegistry.emptyRegistry(instantiatorFactory.inject());
+        this.failureDescriberRegistry = ResolutionFailureDescriberRegistry.emptyRegistry(instanceGenerator);
     }
 
     @Override
