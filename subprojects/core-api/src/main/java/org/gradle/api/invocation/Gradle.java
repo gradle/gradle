@@ -21,6 +21,8 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
@@ -158,6 +160,15 @@ public interface Gradle extends PluginAware, ExtensionAware {
     void beforeProject(Action<? super Project> action);
 
     /**
+     * Adds an {@link IsolatedAction isolated action} to be called immediately before a project is evaluated.
+     *
+     * @param action The action to execute.
+     * @since 8.7
+     */
+    @Incubating
+    void onBeforeProject(IsolatedAction<? super Project> action);
+
+    /**
      * Adds a closure to be called immediately after a project is evaluated.
      *
      * The project is passed to the closure as the first parameter. The project evaluation failure, if any,
@@ -272,8 +283,8 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * A {@link BuildResult} instance is passed to the closure as a parameter.
      *
      * @param closure The closure to execute.
-     * @deprecated This method is not supported when configuration caching is enabled.
      * @see FlowProviders#getBuildWorkResult()
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
     @Deprecated
     void buildFinished(Closure closure);
@@ -284,9 +295,9 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * All selected tasks have been executed.
      *
      * @param action The action to execute.
+     * @see FlowProviders#getBuildWorkResult()
      * @since 3.4
      * @deprecated This method is not supported when configuration caching is enabled.
-     * @see FlowProviders#getBuildWorkResult()
      */
     @Deprecated
     void buildFinished(Action<? super BuildResult> action);

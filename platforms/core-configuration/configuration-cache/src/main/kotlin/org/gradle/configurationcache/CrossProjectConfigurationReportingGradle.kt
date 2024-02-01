@@ -20,6 +20,7 @@ import groovy.lang.Closure
 import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.api.Action
+import org.gradle.api.IsolatedAction
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
@@ -114,6 +115,10 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun beforeProject(action: Action<in Project>) {
         delegate.beforeProject(action.withCrossProjectModelAccessCheck())
+    }
+
+    override fun onBeforeProject(action: IsolatedAction<in Project>) {
+        delegate.onBeforeProject(action)
     }
 
     override fun afterProject(closure: Closure<*>) {

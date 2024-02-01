@@ -21,6 +21,7 @@ import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.Action
+import org.gradle.api.IsolatedAction
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.execution.TaskExecutionGraph
@@ -98,6 +99,9 @@ abstract class GradleDelegate : Gradle {
 
     override fun beforeProject(action: Action<in Project>) =
         delegate.beforeProject(action)
+
+    override fun onBeforeProject(action: IsolatedAction<in Project>) =
+        delegate.onBeforeProject(action)
 
     override fun afterProject(closure: Closure<Any>) =
         delegate.afterProject(closure)

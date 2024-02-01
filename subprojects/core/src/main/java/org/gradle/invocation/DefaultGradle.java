@@ -22,6 +22,7 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
@@ -332,6 +333,14 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     public void beforeProject(Action<? super Project> action) {
         assertProjectMutatingMethodAllowed("beforeProject(Action)");
         projectEvaluationListenerBroadcast.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.beforeProject", action));
+    }
+
+    @Override
+    public void onBeforeProject(IsolatedAction<? super Project> action) {
+        // TODO:isolated onBeforeProject
+        if (projectsLoaded) {
+            throw new IllegalStateException("Gradle#onBeforeProject cannot be called after settings have been evaluated.");
+        }
     }
 
     @Override
