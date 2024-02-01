@@ -18,7 +18,11 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.event.ListenerNotificationException;
-import org.gradle.tooling.*;
+import org.gradle.tooling.BuildCancelledException;
+import org.gradle.tooling.BuildException;
+import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.ListenerFailedException;
+import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
@@ -59,4 +63,4 @@ public class ExceptionTransformer implements Transformer<GradleConnectionExcepti
     private String connectionFailureMessage(Throwable failure) {
         return connectionFailureProvider.transform(failure);
     }
-};
+}
