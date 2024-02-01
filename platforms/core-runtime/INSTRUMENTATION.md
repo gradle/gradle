@@ -109,14 +109,19 @@ At Gradle Distribution Build time we have two major parts:
 
 
 
-The first one is important for both configuration cache instrumentation and API upgrades while the second one is used just for API upgrades. Collecting the Gradle API type hierarchy is fully automatic, while declaring interceptors have to be done by Gradle developers.  \
-\
+The first one is important for both configuration cache instrumentation and API upgrades while the second one is used just for API upgrades. 
+Collecting the Gradle API type hierarchy is fully automatic, while declaring interceptors have to be done by Gradle developers. 
 
-
-<p id="gdcalert1" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image1.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert2">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image1.png "image_tooltip")
+```mermaid
+flowchart TB
+    api[[Gradle API]] --> transform{{"Gradle API type\nhierarchy collector\n(Artifact transform)"}}
+    declaredInterceptors[[Interceptors declarations]] --> processor{{"Interceptor generator\n(Annotation processor)"}}
+    processor --> generatedInterceptors[[Generated Interceptors]]
+    transform --> metadata[[Gradle API type metadata]]
+    metadata --> distribution(Gradle distribution)
+    implementation[[Gradle implementation]] --> distribution
+    generatedInterceptors --> distribution
+```
 
 
 
@@ -287,24 +292,93 @@ When a user runs a Gradle build Gradle uses instrumented plugin jars. The whole 
 We instrument plugins classpath, TestKit classpath and buildscript classes separately. Plugins classpath, TestKit classpath are instrumented via Artifact transform, base logic is implemented in [BaseInstrumentingArtifactTransform.java](https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/api/internal/initialization/transform/BaseInstrumentingArtifactTransform.java). Buildscripts for Kotlin and Groovy are instrumented via execution engine when they are compiled, base logic is in [BuildScriptCompileUnitOfWork.java](https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/internal/scripts/BuildScriptCompileUnitOfWork.java). The execution engine handles all the caching.
 
 
-
-<p id="gdcalert3" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image2.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert4">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image2.png "image_tooltip")
+```mermaid
+flowchart TB
+    distribution(Gradle distribution) --> invocation{{Gradle invocation}}
+   
+    invocation -.-> originalTestKit(TestKit classpath)
+    originalTestKit --> testKitTransform{{"Intrumentation and upgrades\n(Artifact transform)"}}
+    testKitTransform --> instrumentedTestKit(TestKit classpath*)
+    instrumentedTestKit --> buildscriptClasspath(Buildscript runtime classpath)
+   
+    invocation --> originalPluginsClasspath(Plugins classpath)
+    originalPluginsClasspath --> pluginsClasspathTransform{{"Intrumentation and upgrades\n(Artifact transform)"}}
+    pluginsClasspathTransform --> instrumentedPluginsClasspath(Plugins classpath*)
+    instrumentedPluginsClasspath --> buildscriptClasspath
+    
+    invocation --> originalBuildscriptSource(Buildscript source)
+    originalBuildscriptSource --> buildscriptCompilation{{"Compilation and instrumentation\n(Execution engine)"}}
+    buildscriptCompilation --> buildscriptClasses(Buildscript classes*)
+    buildscriptClasses --> buildscriptClasspath
+```
 
 
 
 #### Instrumentation of plugins classpath
 
-The instrumentation of plugins classpath is done with Artifact transforms. The code that does all the transforms can be found in the [DefaultScriptClassPathResolver.java](https://github.com/gradle/gradle/blob/18d4dbb606a3be8a7c3f3d6120b1c2a5e7d64f53/subprojects/core/src/main/java/org/gradle/api/internal/initialization/DefaultScriptClassPathResolver.java#L75-L120). The schema below shows how runtime classpath is transformed to upgrade classpath via “Extract type hierarchy” and “Instrument + upgrade transform” and “Instrument only” transform. In this context “instrument” means instrument for configuration cache and “upgrade” means “API upgrade”.
+The instrumentation of plugins classpath is done with Artifact transforms. 
+The code that does all the transforms can be found in the [DefaultScriptClassPathResolver.java](https://github.com/gradle/gradle/blob/18d4dbb606a3be8a7c3f3d6120b1c2a5e7d64f53/subprojects/core/src/main/java/org/gradle/api/internal/initialization/DefaultScriptClassPathResolver.java#L75-L120). 
+The schema below shows how runtime classpath is transformed to upgrade classpath via “Extract type hierarchy” and “Instrument + upgrade transform” and “Instrument only” transform. 
+In this context “instrument” means instrument for configuration cache and “upgrade” means “API upgrade”.
 
 
+```mermaid
+flowchart LR
+    classpath(Plugins classpath)
+    extraction{{"Extract type hierarchy\n(Artifact transform)"}}
+    typeHierarchy(Type hierarchy)
+    gradleCoreHierarchy(Gradle core type hierarchy)
+    instrumentAndUpgrade{{"Instrument and upgrade\n(Artifact transform)"}}
+    instrumentOnly{{"Instrument only\n(Artifact transform)"}}
+    instrumentedAndUpgradedClasspath(Plugins classpath*)
+    externalJar1(External jar1)
+    externalJar1_2(External jar1)
+    externalJar1_3(External jar1)
+    modifiedExternalJar1(External jar1*)
+    externalJar2(External jar2)
+    externalJar2_2(External jar2)
+    externalJar2_3(External jar2)
+    modifiedExternalJar2(External jar2*)
+    projectJar(Project jar)
+    projectJar_2(Project jar)
+    modifiedProjectJar(Project jar*)
 
-<p id="gdcalert4" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image3.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert5">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
+    subgraph Plugins classpath
+        classpath
+        externalJar1
+        externalJar2
+        projectJar
+    end
+    
+    subgraph External dependencies types
+        extraction
+        externalJar1_3
+        externalJar2_3
+    end
 
+    subgraph External dependencies
+        instrumentAndUpgrade
+        externalJar1_2
+        externalJar2_2
+    end
 
-![alt_text](images/image3.png "image_tooltip")
+    subgraph Project dependencies
+        instrumentOnly
+        projectJar_2
+    end
+
+    subgraph Plugins classpath*
+        instrumentedAndUpgradedClasspath
+        modifiedExternalJar1
+        modifiedExternalJar2
+        modifiedProjectJar
+    end
+    
+    gradleCoreHierarchy --> typeHierarchy
+    classpath --> extraction --> typeHierarchy --> instrumentAndUpgrade
+    classpath --> instrumentAndUpgrade --> instrumentedAndUpgradedClasspath
+    classpath --> instrumentOnly --> instrumentedAndUpgradedClasspath
+```
 
 
 Third party dependencies are instrumented and upgraded in two steps:
@@ -340,14 +414,14 @@ The main difference here is, that all dependencies are files, so we cannot do an
 
 Instrumentation of build scripts is relatively simple and happens in the same execution unit of work as compilation.
 
-
-
-<p id="gdcalert6" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image4.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert7">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image4.png "image_tooltip")
-
-
+```mermaid
+flowchart LR
+    sources(Buildscript sources)
+    compileAndInstrument{{"Compile and instrument\n(Execution engine)"}}
+    classes(Buildscript classes*)
+    
+    sources --> compileAndInstrument --> classes
+```
 
 #### Closer look at instrumentation of an individual Jars or class directories
 
@@ -371,12 +445,33 @@ For jar visiting we use different implementations of [ClasspathElementTransform]
 
 Illustration of Jar instrumentation is shown below.
 
+```mermaid
+flowchart TB
+    jar(Jar)
+    modifiedJar(Jar*)
+    class1("Class1")
+    class2("Class2")
+    class3("Class3")
+    modifiedClass1("Class1*")
+    modifiedClass2("Class2*")
+    modifiedClass3("Class3*")
+    instrumentingClassTransform{{"InstrumentingClassTransform\n(ClassVisitor)"}}
+    interceptors(Generated interceptors)
+    gradleAPIMetadata("Gradle API\ntype metadata")
+    externalPluginsMetadata("External plugins\ntype metadata")
 
-
-<p id="gdcalert8" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image5.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert9">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image5.png "image_tooltip")
+    subgraph Injected
+        interceptors
+        gradleAPIMetadata
+        externalPluginsMetadata
+    end
+    
+    jar --> class1 --> instrumentingClassTransform --> modifiedClass1 --> modifiedJar
+    jar --> class2 --> instrumentingClassTransform --> modifiedClass2 --> modifiedJar
+    jar --> class3 --> instrumentingClassTransform --> modifiedClass3 --> modifiedJar
+    Injected --> instrumentingClassTransform
+    
+```
 
 
 
