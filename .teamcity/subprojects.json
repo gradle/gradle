@@ -819,8 +819,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "restricted-dsl",
-    "path": "platforms/core-configuration/restricted-dsl",
+    "name": "declarative-dsl-provider",
+    "path": "platforms/core-configuration/declarative-dsl-provider",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false

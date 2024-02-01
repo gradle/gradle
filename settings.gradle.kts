@@ -103,7 +103,7 @@ platform("core-configuration") {
     subproject("kotlin-dsl-integ-tests")
     subproject("model-core")
     subproject("model-groovy")
-    subproject("restricted-dsl")
+    subproject("declarative-dsl-provider")
     subproject("declarative-dsl-core")
 }
 
