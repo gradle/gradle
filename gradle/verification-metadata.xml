@@ -67,7 +67,6 @@
       <ignored-keys>
          <ignored-key id="218FA0F6A941A037" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="74DAFDFD6DAE2441" reason="Key couldn't be downloaded from any key server"/>
-         <ignored-key id="8B8E0CB0F6A7657E" reason="Key couldn't be downloaded from any key server"/>
       </ignored-keys>
       <trusted-keys>
          <trusted-key id="015479E1055341431B4545AB72475FD306B9CAB7" group="com.googlecode.javaewah"/>
@@ -236,6 +235,7 @@
          </trusted-key>
          <trusted-key id="A7892505CF1A58076453E52D7999BEFBA1039E8B" group="net.bytebuddy"/>
          <trusted-key id="ACF39CCDED38E2C6F0898BF28F7F6C0451967B84" group="org.scala-lang"/>
+         <trusted-key id="AD296CA014321485EB6780FF8B8E0CB0F6A7657E" group="org.asciidoctor"/>
          <trusted-key id="ADBC987D1A7B91DB6B0AAA81995EFBF4A3D20BEB" group="^com[.]pinterest($|([.].*))" regex="true"/>
          <trusted-key id="B02137D875D833D9B23392ECAE5A7FB608A0221C">
             <trusting group="com.thoughtworks.qdox"/>
