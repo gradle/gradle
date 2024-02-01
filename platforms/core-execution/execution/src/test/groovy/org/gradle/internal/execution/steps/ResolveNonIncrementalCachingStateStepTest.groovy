@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.history;
+package org.gradle.internal.execution.steps
 
-import org.gradle.internal.hash.HashCode;
-
-import java.util.Optional;
-
-public interface ExecutionHistoryStore {
-    Optional<PreviousExecutionState> load(String key);
-
-    void store(String key, HashCode cacheKey, AfterExecutionState executionState);
-
-    void remove(String key);
+class ResolveNonIncrementalCachingStateStepTest extends AbstractResolveCachingStateStepTest<ValidationFinishedContext, ResolveNonIncrementalCachingStateStep<ValidationFinishedContext>> {
+    @Override
+    ResolveNonIncrementalCachingStateStep<ValidationFinishedContext> createStep() {
+        return new ResolveNonIncrementalCachingStateStep<>(buildCache, delegate)
+    }
 }

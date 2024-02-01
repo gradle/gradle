@@ -45,21 +45,21 @@ import java.util.Optional;
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.FROM_CACHE;
 
-public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExecutionResult> {
+public class BuildCacheStep<C extends WorkspaceContext & CachingContext> implements Step<C, AfterExecutionResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStep.class);
 
     private final BuildCacheController buildCache;
     private final Deleter deleter;
     private final FileSystemAccess fileSystemAccess;
     private final OutputChangeListener outputChangeListener;
-    private final Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate;
+    private final Step<? super C, ? extends AfterExecutionResult> delegate;
 
     public BuildCacheStep(
         BuildCacheController buildCache,
         Deleter deleter,
         FileSystemAccess fileSystemAccess,
         OutputChangeListener outputChangeListener,
-        Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate
+        Step<? super C, ? extends AfterExecutionResult> delegate
     ) {
         this.buildCache = buildCache;
         this.deleter = deleter;
@@ -69,14 +69,14 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     }
 
     @Override
-    public AfterExecutionResult execute(UnitOfWork work, IncrementalChangesContext context) {
+    public AfterExecutionResult execute(UnitOfWork work, C context) {
         return context.getCachingState().fold(
             cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey()),
             cachingDisabled -> executeWithoutCache(work, context)
         );
     }
 
-    private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey) {
+    private AfterExecutionResult executeWithCache(UnitOfWork work, C context, BuildCacheKey cacheKey) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? tryLoadingFromCache(cacheKey, cacheableWork)
@@ -137,7 +137,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         });
     }
 
-    private AfterExecutionResult executeAndStoreInCache(CacheableWork cacheableWork, BuildCacheKey cacheKey, IncrementalChangesContext context) {
+    private AfterExecutionResult executeAndStoreInCache(CacheableWork cacheableWork, BuildCacheKey cacheKey, C context) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Did not find cache entry for {} with cache key {}, executing instead",
                 cacheableWork.getDisplayName(), cacheKey.getHashCode());
@@ -185,7 +185,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         }
     }
 
-    private AfterExecutionResult executeWithoutCache(UnitOfWork work, IncrementalChangesContext context) {
+    private AfterExecutionResult executeWithoutCache(UnitOfWork work, C context) {
         return delegate.execute(work, context);
     }
 
