@@ -49,7 +49,11 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class ResolutionFailureDescriberRegistry {
+/**
+ * An ordered registry of {@link ResolutionFailureDescriber} instances that can be queried
+ * by the {@link ResolutionFailure} type they can describe.
+ */
+public final class ResolutionFailureDescriberRegistry {
     private final ObjectFactory objectFactory;
     private final LinkedHashMap<Class<? extends ResolutionFailure>, List<ResolutionFailureDescriber<?, ?>>> describers = new LinkedHashMap<>();
 
@@ -57,10 +61,23 @@ public class ResolutionFailureDescriberRegistry {
         this.objectFactory = objectFactory;
     }
 
+    /**
+     * Creates a new, empty registry of {@link ResolutionFailureDescriber}s.
+     *
+     * @param objectFactory The object factory to use to create describers
+     * @return a new, empty registry instance
+     */
     public static ResolutionFailureDescriberRegistry emptyRegistry(ObjectFactory objectFactory) {
         return new ResolutionFailureDescriberRegistry(objectFactory);
     }
 
+    /**
+     * Creates a new, registry of {@link ResolutionFailureDescriber}s containing the default internal list of describers
+     * that can describe the complete set of {@link ResolutionFailure} types used by Gradle.
+     *
+     * @param objectFactory The object factory to use to create describers
+     * @return a new registry instance with the default describers registered
+     */
     public static ResolutionFailureDescriberRegistry standardRegistry(ObjectFactory objectFactory) {
         ResolutionFailureDescriberRegistry registry = new ResolutionFailureDescriberRegistry(objectFactory);
 
@@ -84,6 +101,13 @@ public class ResolutionFailureDescriberRegistry {
         return registry;
     }
 
+    /**
+     * Returns the list of {@link ResolutionFailureDescriber}s registered for the given {@link ResolutionFailure} type.
+     *
+     * @param failureType The type of failure to describe
+     * @param <FAILURE> The type of failure to describe
+     * @return The list of describers registered for the given failure type
+     */
     public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getDescribers(Class<FAILURE> failureType) {
         List<ResolutionFailureDescriber<?, FAILURE>> result = new ArrayList<>();
         describers.getOrDefault(failureType, Collections.emptyList()).forEach(d -> {
@@ -93,6 +117,14 @@ public class ResolutionFailureDescriberRegistry {
         return result;
     }
 
+    /**
+     * Adds a {@link ResolutionFailureDescriber} to the custom describers
+     * contained in this registry for the given {@link ResolutionFailure} type.
+     *
+     * @param failureType The type of failure to describe
+     * @param describerType A describer that can potentially describe failures of the given type
+     * @param <FAILURE> The type of failure to describe
+     */
     public <FAILURE extends ResolutionFailure> void registerDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<?, FAILURE>> describerType) {
         ResolutionFailureDescriber<?, ?> describer = objectFactory.newInstance(describerType);
         describers.computeIfAbsent(failureType, k -> new ArrayList<>()).add(describer);

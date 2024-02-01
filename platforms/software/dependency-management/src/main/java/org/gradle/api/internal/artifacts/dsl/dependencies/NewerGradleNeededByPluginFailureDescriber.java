@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.internal.component.NoMatchingGraphVariantsException;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedAttribute;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.describer.AbstractResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
@@ -32,7 +33,7 @@ import java.util.Optional;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link ResolutionFailure} caused by a plugin requiring
- * a newer Gradle version that the one currently running the build.
+ * a newer Gradle version than the one currently running the build.
  *
  * This is determined by assessing the incompatibility of the {@link GradlePluginApiVersion#GRADLE_PLUGIN_API_VERSION_ATTRIBUTE} attribute.
  */
@@ -61,7 +62,7 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
         boolean requestingPluginApi = failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
         boolean allIncompatibleDueToGradleVersion = failure.getCandidates().stream()
             .allMatch(candidate -> candidate.getIncompatibleAttributes().stream()
-                .anyMatch(incompatibleAttribute -> incompatibleAttribute.getAttribute().getName().equals(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE.getName())));
+                .anyMatch(this::isGradlePluginApiAttribute));
         return requestingPluginApi && allIncompatibleDueToGradleVersion;
     }
 
@@ -76,9 +77,13 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
 
     private Optional<GradleVersion> findMinGradleVersionSupportedByPlugin(AssessedCandidate candidate) {
         return candidate.getIncompatibleAttributes().stream()
-            .filter(incompatibleAttribute -> incompatibleAttribute.getAttribute().getName().equals(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE.getName()))
+            .filter(this::isGradlePluginApiAttribute)
             .map(apiVersionAttribute -> GradleVersion.version(String.valueOf(apiVersionAttribute.getProvided())))
             .min(Comparator.comparing(GradleVersion::getVersion));
+    }
+
+    private boolean isGradlePluginApiAttribute(AssessedAttribute<?> attribute) {
+        return attribute.getAttribute().getName().equals(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE.getName());
     }
 
     private String buildPluginNeedsNewerGradleVersionFailureMsg(String pluginId, GradleVersion minRequiredGradleVersion) {

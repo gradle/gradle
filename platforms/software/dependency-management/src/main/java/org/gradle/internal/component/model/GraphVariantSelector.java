@@ -26,7 +26,6 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -139,7 +138,6 @@ public class GraphVariantSelector {
                 return new GraphVariantSelectionResult(Collections.emptyList(), true);
             }
 
-            AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
             throw failureProcessor.noMatchingGraphVariantFailure(consumerSchema, attributeMatcher, consumerAttributes, targetComponent, candidates);
         }
     }

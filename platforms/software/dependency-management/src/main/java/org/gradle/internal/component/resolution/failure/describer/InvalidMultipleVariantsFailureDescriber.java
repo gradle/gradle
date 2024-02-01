@@ -16,9 +16,16 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleArtifactVariantsException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.type.InvalidMultipleVariantsSelectionFailure;
+
+import java.util.Comparator;
+import java.util.List;
 
 public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleArtifactVariantsException, InvalidMultipleVariantsSelectionFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
@@ -43,5 +50,21 @@ public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractRe
             sb.append("\n");
         }
         return sb.toString();
+    }
+
+    private void formatAttributes(StringBuilder sb, ImmutableAttributes attributes) {
+        ImmutableSet<Attribute<?>> keySet = attributes.keySet();
+        List<Attribute<?>> sorted = Lists.newArrayList(keySet);
+        sorted.sort(Comparator.comparing(Attribute::getName));
+        boolean space = false;
+        sb.append("{");
+        for (Attribute<?> attribute : sorted) {
+            if (space) {
+                sb.append(", ");
+            }
+            sb.append(attribute.getName()).append("=").append(attributes.getAttribute(attribute));
+            space = true;
+        }
+        sb.append("}");
     }
 }

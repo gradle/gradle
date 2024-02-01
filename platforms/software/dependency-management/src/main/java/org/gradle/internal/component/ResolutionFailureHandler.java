@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.problems.Problems;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
@@ -58,21 +57,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-// TODO: Register all failures with the Problems API
-
 /**
- * Provides a central location for logging and reporting failures appearing during
- * each stage of resolution, including during the variant selection process.
+ * Provides a central location for handling failures encountered during
+ * each stage of the variant selection process during dependency resolution.
  *
  * All variant selection failures encountered during selection by the {@link GraphVariantSelector} or
  * {@link AttributeMatchingArtifactVariantSelector}
  * should be routed through this class.
  *
- * This class reports failures to the {@link Problems} service.  It is a
- * Gradle managed type, and so it can serve as an injection point for any types wishing to be notified or respond
- * to the variant selection process.
+ * This class is responsible for packaging failure data into the appropriate {@link ResolutionFailure} type,
+ * selecting the appropriate {@link ResolutionFailureDescriber} to describe that failure,
+ * returning the result of running the describer.  It maintains a registry of <strong>default</strong>
+ * describers for each failure type; but will first consult the {@link AttributesSchemaInternal} for
+ * any custom describers registered on that schema for a given failure type.
  */
-public class ResolutionFailureHandler {
+public final class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
     private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
@@ -149,6 +148,7 @@ public class ResolutionFailureHandler {
 
     // region Configuration by name
     // These are cases where a configuration is requested by name in a target component, so there is sometimes no relevant schema to provide to this handler method.
+
     public AbstractVariantSelectionException incompatibleRequestedConfigurationFailure(
         AttributesSchemaInternal schema,
         AttributeMatcher matcher,

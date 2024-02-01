@@ -16,12 +16,9 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.AbstractVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedAttribute;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
@@ -31,13 +28,21 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
+/**
+ * An abstract base class for implementing {@link ResolutionFailureDescriber}s.
+ *
+ * This type provides methods for suggesting common resolutions, and doing common formatting
+ * of failure messages.
+ *
+ * @param <EXCEPTION> The type of exception that this describer will produce
+ * @param <FAILURE> The type of {@link ResolutionFailure} that this describer can describe
+ */
 public abstract class AbstractResolutionFailureDescriber<EXCEPTION extends AbstractVariantSelectionException, FAILURE extends ResolutionFailure> implements ResolutionFailureDescriber<EXCEPTION, FAILURE> {
     private static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
@@ -71,12 +76,12 @@ public abstract class AbstractResolutionFailureDescriber<EXCEPTION extends Abstr
         AttributeDescriber describer
     ) {
         // None of the nullability warnings are relevant here because the attribute values are only retrieved from collections that will contain them
-        Map<Attribute<?>, ?> compatibleAttrs = assessedCandidate.getCompatibleAttributes().stream()
+        @SuppressWarnings("DataFlowIssue") Map<Attribute<?>, ?> compatibleAttrs = assessedCandidate.getCompatibleAttributes().stream()
             .collect(Collectors.toMap(AssessedAttribute::getAttribute, AssessedAttribute::getProvided, (a, b) -> a));
-        List<String> onlyOnProducer = assessedCandidate.getOnlyOnCandidateAttributes().stream()
+        @SuppressWarnings("DataFlowIssue") List<String> onlyOnProducer = assessedCandidate.getOnlyOnCandidateAttributes().stream()
             .map(assessedAttribute -> "Provides " + describer.describeExtraAttribute(assessedAttribute.getAttribute(), assessedAttribute.getProvided()) + " but the consumer didn't ask for it")
             .collect(Collectors.toList());
-        List<String> onlyOnConsumer = assessedCandidate.getOnlyOnRequestAttributes().stream()
+        @SuppressWarnings("DataFlowIssue") List<String> onlyOnConsumer = assessedCandidate.getOnlyOnRequestAttributes().stream()
             .map(assessedAttribute -> "Doesn't say anything about " + describer.describeMissingAttribute(assessedAttribute.getAttribute(), assessedAttribute.getRequested()))
             .collect(Collectors.toList());
 
@@ -99,13 +104,13 @@ public abstract class AbstractResolutionFailureDescriber<EXCEPTION extends Abstr
         AttributeDescriber describer
     ) {
         // None of the nullability warnings are relevant here because the attribute values are only retrieved from collections that will contain them
-        Map<Attribute<?>, ?> compatibleAttrs = assessedCandidate.getCompatibleAttributes().stream()
+        @SuppressWarnings("DataFlowIssue") Map<Attribute<?>, ?> compatibleAttrs = assessedCandidate.getCompatibleAttributes().stream()
             .collect(Collectors.toMap(AssessedAttribute::getAttribute, AssessedAttribute::getProvided, (a, b) -> a));
-        Map<Attribute<?>, ?> incompatibleAttrs = assessedCandidate.getIncompatibleAttributes().stream()
+        @SuppressWarnings("DataFlowIssue") Map<Attribute<?>, ?> incompatibleAttrs = assessedCandidate.getIncompatibleAttributes().stream()
             .collect(Collectors.toMap(AssessedAttribute::getAttribute, AssessedAttribute::getProvided, (a, b) -> a));
-        Map<Attribute<?>, ?> incompatibleConsumerAttrs = assessedCandidate.getIncompatibleAttributes().stream()
+        @SuppressWarnings("DataFlowIssue") Map<Attribute<?>, ?> incompatibleConsumerAttrs = assessedCandidate.getIncompatibleAttributes().stream()
             .collect(Collectors.toMap(AssessedAttribute::getAttribute, AssessedAttribute::getRequested, (a, b) -> a));
-        List<String> otherValues = assessedCandidate.getOnlyOnRequestAttributes().stream()
+        @SuppressWarnings("DataFlowIssue") List<String> otherValues = assessedCandidate.getOnlyOnRequestAttributes().stream()
             .map(assessedAttribute -> "Doesn't say anything about " + describer.describeMissingAttribute(assessedAttribute.getAttribute(), assessedAttribute.getRequested()))
             .sorted()
             .collect(Collectors.toList());
@@ -119,21 +124,5 @@ public abstract class AbstractResolutionFailureDescriber<EXCEPTION extends Abstr
         }
         formatAttributeSection(formatter, "Other compatible attribute", otherValues);
         formatter.endChildren();
-    }
-
-    protected void formatAttributes(StringBuilder sb, ImmutableAttributes attributes) {
-        ImmutableSet<Attribute<?>> keySet = attributes.keySet();
-        List<Attribute<?>> sorted = Lists.newArrayList(keySet);
-        sorted.sort(Comparator.comparing(Attribute::getName));
-        boolean space = false;
-        sb.append("{");
-        for (Attribute<?> attribute : sorted) {
-            if (space) {
-                sb.append(", ");
-            }
-            sb.append(attribute.getName()).append("=").append(attributes.getAttribute(attribute));
-            space = true;
-        }
-        sb.append("}");
     }
 }
