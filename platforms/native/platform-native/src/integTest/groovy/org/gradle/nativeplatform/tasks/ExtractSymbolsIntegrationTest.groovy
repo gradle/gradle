@@ -55,9 +55,7 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         executedAndNotSkipped":extractSymbolsDebug"
-        // clang 11: [greeter.cpp, sum.cpp, multiply.cpp, main.cpp]
-        // clang 14: ['multiply.cpp', 'Multiply', 'multiply', 'int', 'this', 'a', 'b', ...]
-        fixture("build/symbols").assertHasDebugSymbolsFor(['multiply.cpp'])
+        fixture("build/symbols").assertHasDebugSymbolsFor(withoutHeaders(app.original))
     }
 
     @ToBeFixedForConfigurationCache
@@ -73,9 +71,7 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         skipped":extractSymbolsDebug"
-        // clang 11: [greeter.cpp, sum.cpp, multiply.cpp, main.cpp]
-        // clang 14: ['multiply.cpp', 'Multiply', 'multiply', 'int', 'this', 'a', 'b', ...]
-        fixture("build/symbols").assertHasDebugSymbolsFor(['multiply.cpp'])
+        fixture("build/symbols").assertHasDebugSymbolsFor(withoutHeaders(app.original))
     }
 
     @ToBeFixedForConfigurationCache
@@ -92,9 +88,7 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         executedAndNotSkipped":extractSymbolsDebug"
-        // clang 11: [greeter.cpp, renamed-sum.cpp, main.cpp]
-        // clang 14: ['greeter.cpp', 'std', '__ioinit', 'ios_base', 'Init', '__exception_ptr', 'exception_ptr', 'rethrow_exception', '__debug' ...]
-        fixture("build/symbols").assertHasDebugSymbolsFor(['greeter.cpp'])
+        fixture("build/symbols").assertHasDebugSymbolsFor(withoutHeaders(app.alternate))
     }
 
     NativeBinaryFixture fixture(String path) {

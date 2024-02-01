@@ -137,16 +137,14 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         result.assertTasksExecuted(tasks.release.allToInstall, tasks.release.extract, tasks.release.assemble)
 
         executable("build/exe/main/release/app").assertExists()
-        // clang 11: build/exe/main/release/app: ['greeter.cpp', 'main.cpp']
-        // clang 14: build/exe/main/release/app: ['greeter.cpp', 'std', '__ioinit', 'ios_base', 'Init', '_Ios_Iostate', '_S_goodbit', ... ]
-        executable("build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(["greeter.cpp"])
+        executable("build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
         succeeds tasks.debug.assemble
         result.assertTasksExecuted(tasks.debug.allToInstall, tasks.debug.assemble)
 
         executable("build/exe/main/debug/app").assertExists()
-        executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(["greeter.cpp"])
+        executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
         installation("build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
