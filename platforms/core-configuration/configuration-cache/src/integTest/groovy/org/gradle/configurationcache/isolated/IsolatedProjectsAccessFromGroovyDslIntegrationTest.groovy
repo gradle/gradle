@@ -673,7 +673,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         outputContains("project name = b")
     }
 
-    def "build script can query basic details of immutable projects in allprojects block"() {
+    def "build script can query basic details of isolated projects in allprojects block"() {
         createDirs("a", "b")
         settingsFile << """
             rootProject.name = "root"
@@ -685,12 +685,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
                 id('java-library')
             }
             allprojects { p ->
-                def immutableProject = p.asImmutableProject
+                def isolatedProject = p.isolated
 
-                println("project name = " + immutableProject.name)
-                println("project path = " + immutableProject.path)
-                println("project projectDir = " + immutableProject.projectDirectory)
-                println("project rootDir = " + immutableProject.rootDirectory)
+                println("project name = " + isolatedProject.name)
+                println("project path = " + isolatedProject.path)
+                println("project projectDir = " + isolatedProject.projectDirectory)
+                println("project rootDir = " + isolatedProject.rootDirectory)
             }
         """
 

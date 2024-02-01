@@ -16,20 +16,20 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.ImmutableProject;
+import org.gradle.api.IsolatedProject;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.Serializable;
 
-public final class DefaultImmutableProject implements ImmutableProject, Serializable {
+public final class DefaultIsolatedProject implements IsolatedProject, Serializable {
 
     private final String name;
     private final String path;
     private final File projectDirectory;
     private final File rootDirectory;
 
-    public DefaultImmutableProject(String name, String path, File projectDirectory, File rootDirectory) {
+    public DefaultIsolatedProject(String name, String path, File projectDirectory, File rootDirectory) {
         this.name = name;
         this.path = path;
         this.projectDirectory = projectDirectory;
@@ -62,7 +62,7 @@ public final class DefaultImmutableProject implements ImmutableProject, Serializ
 
     @Override
     public String toString() {
-        return "DefaultImmutableProject{" +
+        return "DefaultIsolatedProject{" +
             "name='" + name + '\'' +
             ", path='" + path + '\'' +
             ", projectDirectory=" + projectDirectory +

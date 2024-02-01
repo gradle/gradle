@@ -21,10 +21,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 /**
- * An immutable view of {@link Project} that exposes only those properties that are safe to access from outside of
+ * An isolated view of {@link Project} that exposes only those properties that are safe to access from outside of
  * <code>this</code> project, from the perspective of isolated projects.
  */
-public interface ImmutableProject {
+public interface IsolatedProject {
 
     /**
      * <p>Returns the name of this project. The project's name is not necessarily unique within a project hierarchy. You
