@@ -41,7 +41,7 @@ import java.util.Optional;
  * All changes to the outputs must be done at this point, so this step needs to be around anything
  * which uses an {@link ChangingOutputsContext}.
  */
-public class CaptureOutputsAfterExecutionStep<C extends CachingContext, B> extends BuildOperationStep<C, AfterExecutionResult> {
+public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & CachingContext, B> extends BuildOperationStep<C, AfterExecutionResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
     private final AfterExecutionOutputFilter<? super C, B> outputFilter;
