@@ -19,6 +19,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.GradleLifecycleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
@@ -26,6 +27,7 @@ import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
+import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
@@ -63,12 +65,14 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ScopedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.invocation.DefaultGradleLifecycle;
 
 import java.util.List;
 
@@ -194,5 +198,9 @@ public class GradleScopeServices extends ScopedServiceRegistry {
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
         return ConfigurationTargetIdentifier.of(gradle);
+    }
+
+    GradleLifecycleInternal createGradleLifecycle(IsolatableFactory isolatableFactory, CrossProjectConfigurator crossProjectConfigurator, ListenerManager listenerManager, ListenerBuildOperationDecorator decorator) {
+        return new DefaultGradleLifecycle(isolatableFactory, crossProjectConfigurator, listenerManager, decorator);
     }
 }

@@ -143,7 +143,16 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
 
         @Override
         public Isolatable<?> javaSerialized(Object value, byte[] serializedValue) {
-            return new IsolatedJavaSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue, value.getClass());
+            return new IsolatedJavaSerializedValueSnapshot(classLoaderHashOf(value), serializedValue, value.getClass());
+        }
+
+        @Override
+        public Isolatable<?> visitLambda(LambdaMetadata metadata, ImmutableList<Isolatable<?>> isolatedArgs) {
+            return new IsolatedLambda(metadata, isolatedArgs);
+        }
+
+        private HashCode classLoaderHashOf(Object value) {
+            return classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader());
         }
 
         @Override
