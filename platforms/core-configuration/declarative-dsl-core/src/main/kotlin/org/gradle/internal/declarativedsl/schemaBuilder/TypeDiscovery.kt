@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 
 import kotlin.reflect.KClass
 
+
 interface TypeDiscovery {
     fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>>
 
@@ -28,10 +29,12 @@ interface TypeDiscovery {
     }
 }
 
+
 class CompositeTypeDiscovery(internal val implementations: Iterable<TypeDiscovery>) : TypeDiscovery {
     override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
         implementations.flatMapTo(mutableSetOf()) { it.getClassesToVisitFrom(kClass) }
 }
+
 
 operator fun TypeDiscovery.plus(other: TypeDiscovery): CompositeTypeDiscovery = CompositeTypeDiscovery(buildList {
     fun include(typeDiscovery: TypeDiscovery) = when (typeDiscovery) {

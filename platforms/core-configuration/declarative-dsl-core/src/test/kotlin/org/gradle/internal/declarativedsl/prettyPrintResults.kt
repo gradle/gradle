@@ -37,10 +37,12 @@ import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.This
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parse
 
+
 fun prettyPrintLanguageTreeResult(languageTreeResult: LanguageTreeResult): String {
     val languageResults = languageTreeResult.imports.map { Element(it) } + languageTreeResult.topLevelBlock.content.map { Element(it) }
     return languageResults.joinToString("\n") { prettyPrintLanguageResult(it) }
 }
+
 
 fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int = 0): String {
     fun StringBuilder.recurse(current: LanguageResult<*>, depth: Int) {
@@ -89,11 +91,12 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
             is Element -> {
                 append(prettyPrintLanguageTree(current.element as LanguageTreeElement))
             }
-            else -> { error("Unhandled language result type: ${current.javaClass.simpleName}")}
+            else -> { error("Unhandled language result type: ${current.javaClass.simpleName}") }
         }
     }
     return buildString { recurse(languageResult, startDepth) }
 }
+
 
 fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
     fun StringBuilder.recurse(current: LanguageTreeElement, depth: Int) {
@@ -240,12 +243,15 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
     return buildString { recurse(languageTreeElement, 0) }
 }
 
-private fun SourceData.prettyPrint(): String =
+
+private
+fun SourceData.prettyPrint(): String =
     buildString {
         append("indexes: $indexRange, ")
         append("line/column: ${lineRange.first}/$startColumn..${lineRange.last}/$endColumn, ")
         append("file: ${sourceIdentifier.fileIdentifier}")
     }
+
 
 fun main() {
     val result = parse(

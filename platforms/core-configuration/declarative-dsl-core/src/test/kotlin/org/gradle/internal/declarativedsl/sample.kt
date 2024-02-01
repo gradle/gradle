@@ -1,5 +1,6 @@
 package com.example
 
+
 fun Abc.body() {
     val myB = b()
 
@@ -15,6 +16,7 @@ fun Abc.body() {
         d = myD
     }
 }
+
 
 object Main {
     @JvmStatic

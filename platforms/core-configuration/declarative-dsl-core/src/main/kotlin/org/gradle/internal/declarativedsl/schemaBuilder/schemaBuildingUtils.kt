@@ -26,6 +26,7 @@ import kotlin.reflect.KClassifier
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 
+
 fun KClassifier.toDataTypeRef(): DataTypeRef =
     when (this) {
         Unit::class -> DataType.UnitType.ref
@@ -37,7 +38,9 @@ fun KClassifier.toDataTypeRef(): DataTypeRef =
         else -> error("unexpected type")
     }
 
-internal fun checkInScope(
+
+internal
+fun checkInScope(
     type: KType,
     typeScope: DataSchemaBuilder.PreIndex
 ) {
@@ -46,22 +49,30 @@ internal fun checkInScope(
     }
 }
 
-private fun KClassifier.isInScope(typeScope: DataSchemaBuilder.PreIndex) =
+
+private
+fun KClassifier.isInScope(typeScope: DataSchemaBuilder.PreIndex) =
     isBuiltInType || this is KClass<*> && typeScope.hasType(this)
 
-private val KClassifier.isBuiltInType: Boolean
+
+private
+val KClassifier.isBuiltInType: Boolean
     get() = when (this) {
         Int::class, String::class, Boolean::class, Long::class, Unit::class -> true
         else -> false
     }
 
+
 val KCallable<*>.annotationsWithGetters: List<Annotation>
     get() = this.annotations + if (this is KProperty) this.getter.annotations else emptyList()
+
 
 fun KType.toDataTypeRefOrError() =
     toDataTypeRef() ?: error("failed to convert type $this to data type")
 
-private fun KType.toDataTypeRef(): DataTypeRef? = when {
+
+private
+fun KType.toDataTypeRef(): DataTypeRef? = when {
     // isMarkedNullable -> TODO: support nullable types
     arguments.isNotEmpty() -> null // TODO: support for some particular generic types
     else -> when (val classifier = classifier) {

@@ -28,6 +28,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KVisibility
 
+
 fun schemaFromTypes(
     topLevelReceiver: KClass<*>,
     types: Iterable<KClass<*>>,
@@ -43,9 +44,11 @@ fun schemaFromTypes(
         topLevelReceiver, types, externalFunctions, externalObjects, defaultImports
     )
 
+
 val isPublic: MemberFilter = MemberFilter { member: KCallable<*> ->
     member.visibility == KVisibility.PUBLIC
 }
+
 
 val isPublicAndRestricted: MemberFilter = MemberFilter { member: KCallable<*> ->
     member.visibility == KVisibility.PUBLIC &&

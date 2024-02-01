@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm")
     embeddedKotlin("plugin.serialization")
     id("gradlebuild.repositories")
+    id("gradlebuild.ktlint")
 }
 
 kotlin {

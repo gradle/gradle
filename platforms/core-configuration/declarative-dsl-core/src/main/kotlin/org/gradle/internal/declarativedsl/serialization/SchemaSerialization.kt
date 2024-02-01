@@ -20,8 +20,10 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+
 object SchemaSerialization {
-    private val json = Json {
+    private
+    val json = Json {
         prettyPrint = true
         allowStructuredMapKeys = true
     }
