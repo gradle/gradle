@@ -90,8 +90,7 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
         /**
          * The build cache key of the work in the origin build invocation.
          * <p>
-         * Null if {@link #getOriginBuildInvocationId()} is null or
-         * if the build cache key was not calculated in the origin build invocation.
+         * Null if {@link #getOriginBuildInvocationId()} is null.
          *
          * @since 8.7
          */

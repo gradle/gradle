@@ -86,7 +86,7 @@ public class OriginMetadataFactory {
             Duration originalExecutionTime = Duration.ofMillis(Long.parseLong(executionTimeAsString));
             return new OriginMetadata(
                 originBuildInvocationId,
-                originBuildCacheKey == null ? null : HashCode.fromString(originBuildCacheKey),
+                HashCode.fromString(originBuildCacheKey),
                 originalExecutionTime);
         };
     }

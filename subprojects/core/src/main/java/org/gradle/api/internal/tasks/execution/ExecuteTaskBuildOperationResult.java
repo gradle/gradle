@@ -70,7 +70,7 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     public byte[] getOriginBuildCacheKeyBytes() {
         return originMetadata == null
             ? null
-            : (originMetadata.getBuildCacheKey() == null ? null : originMetadata.getBuildCacheKey().toByteArray());
+            : originMetadata.getBuildCacheKey().toByteArray();
     }
 
     @Nullable
