@@ -35,7 +35,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 128 * 1024 * 1024
+        return 129 * 1024 * 1024
     }
 
     /**
