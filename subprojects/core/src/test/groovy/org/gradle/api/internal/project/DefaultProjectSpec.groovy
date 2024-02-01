@@ -100,18 +100,18 @@ class DefaultProjectSpec extends Specification {
         1 * project.artifacts.add('foo', 'bar')
     }
 
-    def "can view as an ImmutableProject"() {
+    def "can view as an IsolatedProject"() {
         given:
         def project = project('root', null, Stub(GradleInternal))
 
         when:
-        def immutableProject = project.asImmutableProject
+        def isolatedProject = project.isolated
 
         then:
-        immutableProject.name == 'root'
-        immutableProject.path == ':'
-        immutableProject.projectDirectory == new File('project')
-        immutableProject.rootDirectory == new File('project')
+        isolatedProject.name == 'root'
+        isolatedProject.path == ':'
+        isolatedProject.projectDirectory == new File('project')
+        isolatedProject.rootDirectory == new File('project')
     }
 
     def "has useful toString and displayName and paths"() {

@@ -21,10 +21,12 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 /**
- * An immutable view of {@link Project} that exposes only those properties that are safe to access from outside of
+ * An isolated view of {@link Project} that exposes only those properties that are safe to access from outside of
  * <code>this</code> project, from the perspective of isolated projects.
+ * @since 8.7
  */
-public interface ImmutableProject {
+@Incubating
+public interface IsolatedProject {
 
     /**
      * <p>Returns the name of this project. The project's name is not necessarily unique within a project hierarchy. You
@@ -33,6 +35,7 @@ public interface ImmutableProject {
      * </p>
      *
      * @return The name of this project. Never return null.
+     * @since 8.7
      */
     @NotNull
     String getName();
@@ -41,6 +44,7 @@ public interface ImmutableProject {
      * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
      *
      * @return The path. Never returns null.
+     * @since 8.7
      */
     @NotNull
     String getPath();
@@ -49,6 +53,7 @@ public interface ImmutableProject {
      * <p>The directory containing the project build file.</p>
      *
      * @return The project directory. Never returns null.
+     * @since 8.7
      */
     @NotNull
     File getProjectDirectory();
@@ -58,6 +63,7 @@ public interface ImmutableProject {
      * project.</p>
      *
      * @return The root directory. Never returns null.
+     * @since 8.7
      */
     @NotNull
     File getRootDirectory();

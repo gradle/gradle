@@ -21,7 +21,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
-import org.gradle.api.ImmutableProject;
+import org.gradle.api.IsolatedProject;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -784,8 +784,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @NotNull
     @Override
-    public ImmutableProject getAsImmutableProject() {
-        return new DefaultImmutableProject(name, getPath(), projectDir, getRootDir());
+    public IsolatedProject getIsolated() {
+        return new DefaultIsolatedProject(name, getPath(), projectDir, getRootDir());
     }
 
     @Override
