@@ -77,7 +77,7 @@ public class OriginMetadata {
     public String toString() {
         return "OriginMetadata{"
             + "buildInvocationId=" + buildInvocationId
-            + "buildCacheKey=" + buildCacheKey
+            + ", buildCacheKey=" + buildCacheKey
             + ", executionTime=" + executionTime
             + '}';
     }

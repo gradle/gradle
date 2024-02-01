@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.origin
 
 import org.gradle.caching.internal.CacheableEntity
+import org.gradle.internal.hash.TestHashCodes
 import spock.lang.Specification
 
 import java.time.Duration
@@ -30,7 +31,7 @@ class OriginMetadataFactoryTest extends Specification {
         { it.gradleVersion = "3.0" },
         { "my-host" }
     )
-    def buildCacheKey = "0123456789abcdef"
+    def buildCacheKey = TestHashCodes.hashCodeFrom(1234)
 
     def "converts to origin metadata"() {
         def origin = new Properties()
@@ -46,7 +47,7 @@ class OriginMetadataFactoryTest extends Specification {
         then:
         origin.identity == "identity"
         origin.type == CacheableEntity.canonicalName
-        origin.buildCacheKey == buildCacheKey
+        origin.buildCacheKey == buildCacheKey.toString()
         origin.gradleVersion == "3.0"
         origin.creationTime != null
         origin.executionTime == "10"
