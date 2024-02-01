@@ -15,7 +15,7 @@
  */
 package org.gradle.api.initialization;
 
-import com.h0tk3y.kotlin.staticObjectNotation.Restricted;
+import org.gradle.internal.declarativedsl.Restricted;
 
 import javax.annotation.Nullable;
 import java.io.File;

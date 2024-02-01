@@ -16,8 +16,8 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
-import com.h0tk3y.kotlin.staticObjectNotation.serialization.SchemaSerialization
+import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
+import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema

@@ -16,10 +16,10 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.kotlinFunctionAsConfigureLambda
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.plus
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.treatInterfaceAsConfigureLambda
+import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
+import org.gradle.internal.declarativedsl.schemaBuilder.plus
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
 import org.gradle.api.Action
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.ArtifactRepository

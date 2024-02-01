@@ -16,10 +16,10 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DefaultPropertyExtractor
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.PropertyExtractor
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
+import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 

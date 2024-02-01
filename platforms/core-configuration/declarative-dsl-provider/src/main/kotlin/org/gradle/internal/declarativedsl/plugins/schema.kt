@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.plugins
 
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 
 
 internal

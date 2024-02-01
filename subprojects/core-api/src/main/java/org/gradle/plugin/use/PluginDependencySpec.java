@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.use;
 
-import com.h0tk3y.kotlin.staticObjectNotation.Builder;
+import org.gradle.internal.declarativedsl.Builder;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;

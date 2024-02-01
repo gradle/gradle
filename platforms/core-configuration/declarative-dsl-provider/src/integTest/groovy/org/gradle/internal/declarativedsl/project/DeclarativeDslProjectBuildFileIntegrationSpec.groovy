@@ -124,9 +124,9 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
         file("buildSrc/src/main/java/com/example/restricted/Extension.java") << """
             package com.example.restricted;
 
-            import com.h0tk3y.kotlin.staticObjectNotation.Adding;
-            import com.h0tk3y.kotlin.staticObjectNotation.Configuring;
-            import com.h0tk3y.kotlin.staticObjectNotation.Restricted;
+            import org.gradle.internal.declarativedsl.Adding;
+            import org.gradle.internal.declarativedsl.Configuring;
+            import org.gradle.internal.declarativedsl.Restricted;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;

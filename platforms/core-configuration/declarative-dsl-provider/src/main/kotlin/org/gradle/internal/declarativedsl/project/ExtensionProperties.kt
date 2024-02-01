@@ -16,8 +16,8 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.PropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import kotlin.reflect.KClass
 
 

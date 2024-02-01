@@ -16,16 +16,16 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.ConfigureAccessor
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataConstructor
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataMemberFunction
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaMemberFunction
-import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimeCustomAccessors
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DataSchemaBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.FunctionExtractor
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.TypeDiscovery
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.toDataTypeRef
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
+import org.gradle.internal.declarativedsl.analysis.DataConstructor
+import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
+import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import kotlin.reflect.KClass

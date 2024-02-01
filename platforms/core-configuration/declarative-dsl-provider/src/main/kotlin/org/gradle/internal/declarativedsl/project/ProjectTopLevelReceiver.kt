@@ -16,8 +16,8 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import com.h0tk3y.kotlin.staticObjectNotation.Configuring
-import com.h0tk3y.kotlin.staticObjectNotation.Restricted
+import org.gradle.internal.declarativedsl.Configuring
+import org.gradle.internal.declarativedsl.Restricted
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ProjectDependency
 

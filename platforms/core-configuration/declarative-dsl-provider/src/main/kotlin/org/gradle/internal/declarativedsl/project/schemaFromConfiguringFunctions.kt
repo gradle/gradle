@@ -16,9 +16,9 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CompositeConfigureLambdas
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.MemberFilter
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.CompositeConfigureLambdas
+import org.gradle.internal.declarativedsl.schemaBuilder.MemberFilter
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberFunctions
 

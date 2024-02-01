@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts.dsl;
 
-import com.h0tk3y.kotlin.staticObjectNotation.Adding;
+import org.gradle.internal.declarativedsl.Adding;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;

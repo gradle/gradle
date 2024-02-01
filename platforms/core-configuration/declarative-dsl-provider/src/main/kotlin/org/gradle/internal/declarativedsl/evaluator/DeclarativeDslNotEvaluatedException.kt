@@ -16,14 +16,14 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
-import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
-import com.h0tk3y.kotlin.staticObjectNotation.language.SourceData
-import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTraceElement
-import com.h0tk3y.kotlin.staticObjectNotation.parsing.ParsingError
-import com.h0tk3y.kotlin.staticObjectNotation.parsing.SingleFailureResult
-import com.h0tk3y.kotlin.staticObjectNotation.parsing.UnsupportedConstruct
+import org.gradle.internal.declarativedsl.analysis.ErrorReason
+import org.gradle.internal.declarativedsl.analysis.ResolutionError
+import org.gradle.internal.declarativedsl.language.LanguageTreeElement
+import org.gradle.internal.declarativedsl.language.SourceData
+import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
+import org.gradle.internal.declarativedsl.parsing.ParsingError
+import org.gradle.internal.declarativedsl.parsing.SingleFailureResult
+import org.gradle.internal.declarativedsl.parsing.UnsupportedConstruct
 import org.gradle.api.GradleException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure

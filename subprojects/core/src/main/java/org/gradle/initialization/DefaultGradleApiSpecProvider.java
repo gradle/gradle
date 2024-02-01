@@ -35,7 +35,7 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
     @Override
     public Set<String> getExportedPackages() {
         return ImmutableSet.of(
-            "com.h0tk3y.kotlin.staticObjectNotation",
+            "org.gradle.internal.declarativedsl",
             "org.gradle",
             "org.apache.tools.ant",
             "groovy",

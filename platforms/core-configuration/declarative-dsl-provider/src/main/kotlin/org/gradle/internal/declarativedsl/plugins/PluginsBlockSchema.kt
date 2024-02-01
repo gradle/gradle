@@ -32,11 +32,11 @@ package org.gradle.internal.declarativedsl.plugins
  * limitations under the License.
  */
 
-import com.h0tk3y.kotlin.staticObjectNotation.AccessFromCurrentReceiverOnly
-import com.h0tk3y.kotlin.staticObjectNotation.Adding
-import com.h0tk3y.kotlin.staticObjectNotation.Builder
-import com.h0tk3y.kotlin.staticObjectNotation.Configuring
-import com.h0tk3y.kotlin.staticObjectNotation.Restricted
+import org.gradle.internal.declarativedsl.AccessFromCurrentReceiverOnly
+import org.gradle.internal.declarativedsl.Adding
+import org.gradle.internal.declarativedsl.Builder
+import org.gradle.internal.declarativedsl.Configuring
+import org.gradle.internal.declarativedsl.Restricted
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 

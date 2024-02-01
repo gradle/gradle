@@ -16,19 +16,19 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataConstructor
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataMemberFunction
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataParameter
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTopLevelFunction
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterValueBinding
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.SchemaMemberFunction
-import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RestrictedRuntimeFunction
-import com.h0tk3y.kotlin.staticObjectNotation.mappingToJvm.RuntimeFunctionResolver
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.DataSchemaBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.FunctionExtractor
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.toDataTypeRef
+import org.gradle.internal.declarativedsl.analysis.DataConstructor
+import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DataParameter
+import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.ParameterSemantics
+import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
+import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.mappingToJvm.RestrictedRuntimeFunction
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
+import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler

@@ -16,15 +16,15 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import com.h0tk3y.kotlin.staticObjectNotation.AccessFromCurrentReceiverOnly
-import com.h0tk3y.kotlin.staticObjectNotation.HiddenInDeclarativeDsl
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataProperty
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.CollectedPropertyInformation
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.PropertyExtractor
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.TypeDiscovery
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.annotationsWithGetters
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.isPublicAndRestricted
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.toDataTypeRefOrError
+import org.gradle.internal.declarativedsl.AccessFromCurrentReceiverOnly
+import org.gradle.internal.declarativedsl.HiddenInDeclarativeDsl
+import org.gradle.internal.declarativedsl.analysis.DataProperty
+import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
+import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
+import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRefOrError
 import org.gradle.api.provider.Property
 import java.util.Locale
 import kotlin.reflect.KClass
