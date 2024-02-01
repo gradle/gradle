@@ -6,6 +6,13 @@ plugins {
 
 description = "Collection of test fixtures for performance tests, internal use only"
 
+sourceSets {
+    main {
+        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
+        errorprone.enabled = false
+    }
+}
+
 val reports by configurations.creating
 val flamegraph by configurations.creating
 configurations.compileOnly { extendsFrom(flamegraph) }

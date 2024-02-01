@@ -31,6 +31,7 @@ import org.gradle.api.problems.internal.TaskPathLocation;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
+import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.build.event.types.DefaultLabel;
 import org.gradle.internal.build.event.types.DefaultProblemCategory;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
@@ -40,6 +41,7 @@ import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
@@ -104,9 +106,17 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                 toInternalDocumentationLink(problem.getDocumentationLink()),
                 toInternalSolutions(problem.getSolutions()),
                 toInternalAdditionalData(problem.getAdditionalData()),
-                problem.getException()
+                toInternalFailure(problem.getException())
             )
         );
+    }
+
+    @Nullable
+    private static InternalFailure toInternalFailure(@Nullable RuntimeException ex) {
+        if (ex == null) {
+            return null;
+        }
+        return DefaultFailure.fromThrowable(ex);
     }
 
     private DefaultProblemDescriptor cerateDefaultProblemDescriptor(OperationIdentifier parentBuildOperationId) {

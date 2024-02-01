@@ -32,8 +32,8 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.Factory;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -132,7 +132,6 @@ public class DefaultConfigurationFactory {
                 configurationsProvider,
                 resolver,
                 dependencyResolutionListeners,
-                listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
                 metaDataProvider,
                 componentIdentifierFactory,
                 dependencyLockingProvider,
@@ -176,7 +175,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
             metaDataProvider,
             componentIdentifierFactory,
             dependencyLockingProvider,
@@ -219,7 +217,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
             metaDataProvider,
             componentIdentifierFactory,
             dependencyLockingProvider,
@@ -262,7 +259,6 @@ public class DefaultConfigurationFactory {
             configurationsProvider,
             resolver,
             dependencyResolutionListeners,
-            listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
             metaDataProvider,
             componentIdentifierFactory,
             dependencyLockingProvider,

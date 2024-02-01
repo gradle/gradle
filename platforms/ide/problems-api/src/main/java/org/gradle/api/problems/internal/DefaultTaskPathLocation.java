@@ -27,6 +27,7 @@ public class DefaultTaskPathLocation implements TaskPathLocation {
         this.buildTreePath = buildTreePath;
     }
 
+    @Override
     public String getBuildTreePath() {
         return buildTreePath;
     }

@@ -33,7 +33,7 @@ class ServiceRegistryBuilderTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+        exception.message.contains("The service '${BuildTreeScopedService.name}' declares service scope 'BuildTree' but is registered in the 'Build' scope. Either update the '@ServiceScope()' annotation on '${BuildTreeScopedService.simpleName}' to include the 'Build' scope or move the service registration to one of the declared scopes.")
     }
 
     @ServiceScope(Scopes.BuildTree)

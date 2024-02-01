@@ -65,6 +65,11 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
+    public boolean isIncludeEmptyDirs() {
+        return specResolver.getIncludeEmptyDirs();
+    }
+
+    @Override
     public String getDisplayName() {
         return fileDetails.toString();
     }
@@ -259,13 +264,9 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         return this.duplicatesStrategy;
     }
 
+    @Override
     public boolean isDefaultDuplicatesStrategy() {
         return defaultDuplicatesStrategy;
-    }
-
-    @Override
-    public CopySpecResolver getSpecResolver() {
-        return specResolver;
     }
 
     @Override

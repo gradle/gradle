@@ -740,7 +740,7 @@ Lazy property assignment is supported from IntelliJ 2022.3 and from Android Stud
 == The Kotlin DSL Plugin
 
 The Kotlin DSL Plugin provides a convenient way to develop Kotlin-based projects that contribute build logic.
-That includes <<multi_project_builds.adoc#sec:multiproject_buildsrc,buildSrc projects>>, <<composite_builds#composite_builds,included builds>> and <<custom_plugins#custom_plugins,Gradle plugins>>.
+That includes <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,buildSrc projects>>, <<composite_builds#composite_builds,included builds>> and <<custom_plugins#custom_plugins,Gradle plugins>>.
 
 The plugin achieves this by doing the following:
 

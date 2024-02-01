@@ -43,9 +43,10 @@ public class GuidesContributeIncludeProcessor extends IncludeProcessor {
     }
 
     // This method adheres the asciidoctorj 1.6.0 API
+    @Override
     public void process(Document document, PreprocessorReader reader, String target, Map<String, Object> attributes) {
         final String contributeMessage = getContributeMessage((String) attributes.getOrDefault("guide-name", document.getAttributes().get("guide-name")));
-        reader.push_include(contributeMessage, target, target, 1, attributes);
+        reader.pushInclude(contributeMessage, target, target, 1, attributes);
     }
 
     private String issueUrl(String guideName) {

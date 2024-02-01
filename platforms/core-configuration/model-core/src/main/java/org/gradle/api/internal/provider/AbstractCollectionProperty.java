@@ -37,8 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
-    extends AbstractProperty<C, AbstractCollectionProperty.CollectionSupplierGuard<T, C>>
+public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C, CollectionSupplier<T, C>>
     implements CollectionPropertyInternal<T, C> {
 
     private static final CollectionSupplier<Object, Collection<Object>> NO_VALUE = new NoValueSupplier<>(Value.missing());
@@ -46,7 +45,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     private final Class<T> elementType;
     private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
     private final ValueCollector<T> valueCollector;
-    private CollectionSupplierGuard<T, C> defaultValue = emptySupplier();
+    private CollectionSupplier<T, C> defaultValue = emptySupplier();
 
     AbstractCollectionProperty(PropertyHost host, Class<? extends Collection> collectionType, Class<T> elementType, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
         super(host);
@@ -58,24 +57,16 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     }
 
     @Override
-    protected CollectionSupplierGuard<T, C> getDefaultConvention() {
+    protected CollectionSupplier<T, C> getDefaultConvention() {
         return noValueSupplier();
     }
 
-    private CollectionSupplierGuard<T, C> emptySupplier() {
-        return guard(new EmptySupplier());
+    private CollectionSupplier<T, C> emptySupplier() {
+        return new EmptySupplier();
     }
 
-    private CollectionSupplierGuard<T, C> noValueSupplier() {
-        return guard(Cast.uncheckedCast(NO_VALUE));
-    }
-
-    private void setSupplier(CollectionSupplier<T, C> unguardedSupplier) {
-        setSupplier(guard(unguardedSupplier));
-    }
-
-    private void setConvention(CollectionSupplier<T, C> unguardedConvention) {
-        setConvention(guard(unguardedConvention));
+    private CollectionSupplier<T, C> noValueSupplier() {
+        return Cast.uncheckedCast(NO_VALUE);
     }
 
     /**
@@ -99,8 +90,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         return isNoValueSupplier(getConventionSupplier());
     }
 
-    private boolean isNoValueSupplier(CollectionSupplierGuard<T, C> valueSupplier) {
-        return valueSupplier.supplier instanceof NoValueSupplier;
+    private boolean isNoValueSupplier(CollectionSupplier<T, C> valueSupplier) {
+        return valueSupplier instanceof NoValueSupplier;
     }
 
     @Override
@@ -229,24 +220,24 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
     }
 
     @Override
-    protected Value<? extends C> calculateValueFrom(CollectionSupplierGuard<T, C> value, ValueConsumer consumer) {
+    protected Value<? extends C> calculateValueFrom(EvaluationContext.ScopeContext context, CollectionSupplier<T, C> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
     @Override
-    protected CollectionSupplierGuard<T, C> finalValue(CollectionSupplierGuard<T, C> value, ValueConsumer consumer) {
+    protected CollectionSupplier<T, C> finalValue(EvaluationContext.ScopeContext context, CollectionSupplier<T, C> value, ValueConsumer consumer) {
         Value<? extends C> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return guard(new FixedSupplier<>(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect())));
+            return new FixedSupplier<>(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
-            return guard(new NoValueSupplier<>(result));
+            return new NoValueSupplier<>(result);
         }
     }
 
     @Override
-    protected ExecutionTimeValue<? extends C> calculateOwnExecutionTimeValue(CollectionSupplierGuard<T, C> value) {
+    protected ExecutionTimeValue<? extends C> calculateOwnExecutionTimeValue(EvaluationContext.ScopeContext context, CollectionSupplier<T, C> value) {
         return value.calculateExecutionTimeValue();
     }
 
@@ -268,7 +259,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
 
     @Override
     protected String describeContents() {
-        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, getSupplier().toString());
+        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, describeValue());
     }
 
     static class NoValueSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
@@ -537,68 +528,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
             set(newValue);
         } else {
             set((Iterable<? extends T>) null);
-        }
-    }
-
-    protected CollectionSupplierGuard<T, C> guard(CollectionSupplier<T, C> supplier) {
-        return new CollectionSupplierGuard<>(this, supplier);
-    }
-
-    protected static final class CollectionSupplierGuard<T, C extends Collection<T>> implements CollectionSupplier<T, C>, GuardedData<CollectionSupplier<T, C>>, GuardedValueSupplier<CollectionSupplierGuard<T, C>> {
-        private final EvaluationContext.EvaluationOwner owner;
-        private final CollectionSupplier<T, C> supplier;
-
-        public CollectionSupplierGuard(EvaluationContext.EvaluationOwner owner, CollectionSupplier<T, C> supplier) {
-            this.owner = owner;
-            this.supplier = supplier;
-        }
-
-        @Override
-        public CollectionSupplierGuard<T, C> withOwner(EvaluationContext.EvaluationOwner newOwner) {
-            return new CollectionSupplierGuard<T, C>(newOwner, supplier);
-        }
-
-        @Override
-        public EvaluationContext.EvaluationOwner getOwner() {
-            return owner;
-        }
-
-        @Override
-        public CollectionSupplier<T, C> unsafeGet() {
-            return supplier;
-        }
-
-        @Override
-        public Value<? extends C> calculateValue(ValueConsumer consumer) {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
-                return supplier.calculateValue(consumer);
-            }
-        }
-
-        @Override
-        public CollectionSupplierGuard<T, C> plus(Collector<T> collector) {
-            return new CollectionSupplierGuard<>(owner, supplier.plus(collector));
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
-                return supplier.calculateExecutionTimeValue();
-            }
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
-                return supplier.getProducer();
-            }
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
-                return supplier.calculatePresence(consumer);
-            }
         }
     }
 

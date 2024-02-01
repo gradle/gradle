@@ -199,6 +199,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         });
     }
 
+    @Override
     public List<ResourceLock> getSharedResources(Set<Provider<? extends BuildService<?>>> services) {
         if (services.isEmpty()) {
             return Collections.emptyList();

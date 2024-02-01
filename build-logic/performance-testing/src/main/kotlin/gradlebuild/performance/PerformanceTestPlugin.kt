@@ -84,6 +84,8 @@ object Config {
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
     // Android Studio Iguana 2023.2.1.16 Canary 16
+    // Find all references here https://developer.android.com/studio/archive
+    // Update verification-medata.xml
     const val performanceTestAndroidStudioVersion = "2023.2.1.16"
     val performanceTestAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }

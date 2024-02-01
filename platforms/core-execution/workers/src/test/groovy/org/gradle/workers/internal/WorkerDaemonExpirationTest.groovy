@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.jvm.Jvm
@@ -27,7 +26,6 @@ import org.gradle.process.internal.health.memory.MBeanOsMemoryInfo
 import org.gradle.process.internal.health.memory.MaximumHeapHelper
 import org.gradle.process.internal.health.memory.MemoryAmount
 import org.gradle.process.internal.health.memory.MemoryManager
-import org.gradle.process.internal.worker.WorkerProcess
 import spock.lang.Specification
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
@@ -41,7 +39,7 @@ class WorkerDaemonExpirationTest extends Specification {
     def threeGbOptions = daemonForkOptions('3g', '3g', ['three-gb-options'])
     def reportsMemoryUsage = true
     def daemonStarter = Mock(WorkerDaemonStarter) {
-        startDaemon(_, _) >> { DaemonForkOptions forkOptions, Action<WorkerProcess> cleanupAction ->
+        startDaemon(_) >> { DaemonForkOptions forkOptions ->
             Mock(WorkerDaemonClient) {
                 getForkOptions() >> forkOptions
                 isCompatibleWith(_) >> { DaemonForkOptions otherForkOptions ->

@@ -24,16 +24,16 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
-public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvider.ProviderGuard<? extends T>> implements Property<T> {
+public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
-    private final static ProviderGuard<?> NOT_DEFINED = Cast.uncheckedCast(GuardedData.of(Providers.notDefined(), Providers.notDefined()));
+    private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
 
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
         super(propertyHost);
         this.type = type;
         this.sanitizer = ValueSanitizers.forType(type);
-        init(guardProvider(Providers.notDefined()));
+        init(Providers.notDefined());
     }
 
     @Override
@@ -70,7 +70,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvi
         if (value == null) {
             discardValue();
         } else {
-            setSupplier(guardProvider(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer)));
+            setSupplier(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
         }
     }
 
@@ -89,7 +89,9 @@ public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvi
     public ProviderInternal<? extends T> getProvider() {
         // TODO(mlopatkin) while calling getProvider is not going to cause StackOverflowError by itself, the returned provider is typically used in some recursive call.
         //  Without the safety net of the EvaluationContext, it can cause hard-to-debug exceptions.
-        return getSupplier().unsafeGet();
+        try (EvaluationContext.ScopeContext context = openScope()) {
+            return getSupplier(context);
+        }
     }
 
     public DefaultProperty<T> provider(Provider<? extends T> provider) {
@@ -101,15 +103,15 @@ public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvi
     public void set(Provider<? extends T> provider) {
         Preconditions.checkArgument(provider != null, "Cannot set the value of a property using a null provider.");
         ProviderInternal<? extends T> p = Providers.internal(provider);
-        setSupplier(guardProvider(p.asSupplier(getValidationDisplayName(), type, sanitizer)));
+        setSupplier(p.asSupplier(getValidationDisplayName(), type, sanitizer));
     }
 
     @Override
     public Property<T> convention(@Nullable T value) {
         if (value == null) {
-            setConvention(guardProvider(Providers.notDefined()));
+            setConvention(Providers.notDefined());
         } else {
-            setConvention(guardProvider(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer)));
+            setConvention(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
         }
         return this;
     }
@@ -117,7 +119,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvi
     @Override
     public Property<T> convention(Provider<? extends T> provider) {
         Preconditions.checkArgument(provider != null, "Cannot set the convention of a property using a null provider.");
-        setConvention(guardProvider(Providers.internal(provider).asSupplier(getValidationDisplayName(), type, sanitizer)));
+        setConvention(Providers.internal(provider).asSupplier(getValidationDisplayName(), type, sanitizer));
         return this;
     }
 
@@ -134,23 +136,23 @@ public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvi
     }
 
     @Override
-    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(ProviderGuard<? extends T> value) {
+    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value) {
         // Discard this property from a provider chain, as it does not contribute anything to the calculation.
         return value.calculateExecutionTimeValue();
     }
 
     @Override
-    protected Value<? extends T> calculateValueFrom(ProviderGuard<? extends T> value, ValueConsumer consumer) {
+    protected Value<? extends T> calculateValueFrom(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
     @Override
-    protected ProviderGuard<? extends T> finalValue(ProviderGuard<? extends T> value, ValueConsumer consumer) {
-        return guardProvider(value.withFinalValue(consumer));
+    protected ProviderInternal<? extends T> finalValue(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
+        return value.withFinalValue(consumer);
     }
 
     @Override
-    protected ProviderGuard<? extends T> getDefaultConvention() {
+    protected ProviderInternal<? extends T> getDefaultConvention() {
         return Cast.uncheckedCast(NOT_DEFINED);
     }
 
@@ -162,7 +164,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, AbstractMinimalProvi
     @Override
     protected String describeContents() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
-        return String.format("property(%s, %s)", type.getName(), getSupplier());
+        return String.format("property(%s, %s)", type.getName(), describeValue());
     }
 
     public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends T>, ? super Provider<T>> transform) {

@@ -40,8 +40,6 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
-import org.gradle.api.publish.internal.metadata.DependencyAttributesValidator;
-import org.gradle.api.publish.internal.metadata.EnforcedPlatformPublicationValidator;
 import org.gradle.api.publish.internal.metadata.GradleModuleMetadataWriter;
 import org.gradle.api.publish.internal.metadata.InvalidPublicationChecker;
 import org.gradle.api.publish.internal.metadata.ModuleMetadataSpec;
@@ -228,15 +226,6 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
         return new GradleModuleMetadataWriter(getBuildInvocationScopeId(), getChecksumService());
     }
 
-    private List<DependencyAttributesValidator> dependencyAttributeValidators() {
-        // Currently limited to a single validator
-        EnforcedPlatformPublicationValidator validator = new EnforcedPlatformPublicationValidator();
-        if (suppressedValidationErrors.get().contains(validator.getSuppressor())) {
-            return Collections.emptyList();
-        }
-        return Collections.singletonList(validator);
-    }
-
     private boolean hasAttachedComponent() {
         InputState inputState = inputState();
         if (inputState instanceof InputState.ComponentMissing) {
@@ -261,13 +250,12 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
 
     private ModuleMetadataSpec computeModuleMetadataSpec() {
         PublicationInternal<?> publication = publication();
-        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), getPath());
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), getPath(), suppressedValidationErrors.get());
         ModuleMetadataSpec spec = new ModuleMetadataSpecBuilder(
             publication,
             publications(),
             checker,
-            dependencyCoordinateResolverFactory,
-            dependencyAttributeValidators()
+            dependencyCoordinateResolverFactory
         ).build().get();
         checker.validate();
         return spec;

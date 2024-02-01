@@ -199,7 +199,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
             @Override
             public void includeGroupAndSubgroups(String groupPrefix) {
-                desc.includeGroupAndSubgroups(groupPrefix);
+                desc.excludeGroupAndSubgroups(groupPrefix);
             }
 
             @Override

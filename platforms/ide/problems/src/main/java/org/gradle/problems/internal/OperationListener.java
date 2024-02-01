@@ -45,6 +45,7 @@ public class OperationListener implements BuildOperationListener {
 
     @Override
     public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+
     }
 
     @Override

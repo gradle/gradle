@@ -21,7 +21,7 @@ import gradlebuild.modules.model.License
 abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
     val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.17"
-    val configurationCacheReportVersion = "1.3"
+    val configurationCacheReportVersion = "1.4"
     val kotlinVersion = "1.9.22"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
@@ -29,6 +29,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val ansiControlSequenceUtil = "net.rubygrapefruit:ansi-control-sequence-util"
     val ant = "org.apache.ant:ant"
     val antLauncher = "org.apache.ant:ant-launcher"
+    val antJunit = "org.apache.ant:ant-junit"
     val asm = "org.ow2.asm:asm"
     val asmAnalysis = "org.ow2.asm:asm-analysis"
     val asmCommons = "org.ow2.asm:asm-commons"
@@ -99,7 +100,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jetbrainsAnnotations = "org.jetbrains:annotations"
     val jgit = "org.eclipse.jgit:org.eclipse.jgit"
     val joda = "joda-time:joda-time"
-    val jsch = "com.jcraft:jsch"
+    val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"

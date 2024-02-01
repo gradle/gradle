@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import com.google.common.collect.Multimap;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
@@ -86,7 +85,7 @@ public class DependencyVerificationReportWriter {
 
     public VerificationReport generateReport(
         String displayName,
-        Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact,
+        Map<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>> failuresByArtifact,
         boolean useKeyServers
     ) {
         assertInitialized();
@@ -107,7 +106,7 @@ public class DependencyVerificationReportWriter {
 
     public void doRender(
         String displayName,
-        Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failuresByArtifact,
+        Map<ModuleComponentArtifactIdentifier, Collection<RepositoryAwareVerificationFailure>> failuresByArtifact,
         DependencyVerificationReportRenderer renderer,
         boolean useKeyServers
     ) {
@@ -118,7 +117,7 @@ public class DependencyVerificationReportWriter {
         renderer.startNewSection(displayName);
         renderer.startArtifactErrors(() -> {
             // Sorting entries so that error messages are always displayed in a reproducible order
-            failuresByArtifact.asMap()
+            failuresByArtifact
                 .entrySet()
                 .stream()
                 .sorted(DELETED_LAST.thenComparing(MISSING_LAST).thenComparing(BY_MODULE_ID))

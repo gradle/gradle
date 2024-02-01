@@ -40,6 +40,7 @@ public class DefaultResolvedDependencyResult extends AbstractDependencyResult im
         return selectedComponent;
     }
 
+    @Override
     public ResolvedVariantResult getResolvedVariant() {
         return selectedVariant;
     }

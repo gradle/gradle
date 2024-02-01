@@ -85,6 +85,7 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
         primitiveType.appendTo(hasher, array);
     }
 
+    @Override
     public ValueSnapshot snapshot(@Nullable Object value, ValueSnapshotter snapshotter) {
         PrimitiveType valueType = PrimitiveType.maybeOfValue(value);
         if (primitiveType == valueType && primitiveType.equals(array, value)) {

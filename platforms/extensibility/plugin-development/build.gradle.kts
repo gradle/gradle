@@ -4,6 +4,13 @@ plugins {
 
 description = "Gradle plugin development plugins"
 
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 1 occurrences
+        "LoopOverCharArray", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -25,6 +32,7 @@ dependencies {
     implementation(project(":plugins-groovy"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
+    implementation(project(":plugins-java-library"))
     implementation(project(":plugins-jvm-test-suite"))
     implementation(project(":language-java"))
     implementation(project(":plugin-use"))

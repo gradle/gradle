@@ -21,7 +21,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
-import org.gradle.tooling.events.problems.ExceptionContainer;
+import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemCategory;
@@ -80,7 +80,7 @@ public class DynamicProblemOperationDescriptor extends DefaultOperationDescripto
 
     @Nullable
     @Override
-    public ExceptionContainer getException() {
+    public FailureContainer getFailure() {
         throw new UnsupportedOperationException();
     }
 }
