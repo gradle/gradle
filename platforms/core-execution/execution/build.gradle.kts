@@ -29,7 +29,7 @@ dependencies {
         because("Adds generic build operations for the execution engine")
     }
 
-
+    implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 
     testImplementation(project(":native"))
@@ -37,7 +37,6 @@ dependencies {
     testImplementation(project(":process-services"))
     testImplementation(project(":base-services-groovy"))
     testImplementation(project(":resources"))
-    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":file-collections")))
     testImplementation(testFixtures(project(":messaging")))
