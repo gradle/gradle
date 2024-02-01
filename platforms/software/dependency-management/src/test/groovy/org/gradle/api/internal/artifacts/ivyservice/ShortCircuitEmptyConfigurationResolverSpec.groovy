@@ -53,9 +53,6 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         def results = dependencyResolver.resolveBuildDependencies(resolveContext)
 
         then:
-        def localComponentsResult = results.resolvedLocalComponents
-        localComponentsResult.resolvedProjectConfigurations as List == []
-
         def visitedArtifacts = results.visitedArtifacts
         def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), Mock(ArtifactSelectionSpec))
         artifactSet.visitDependencies(depVisitor)
@@ -79,10 +76,6 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
         then:
         results.visitedGraph.resolutionResult.rootSource.get().dependencies.empty
-
-        and:
-        def localComponentsResult = results.resolvedLocalComponents
-        localComponentsResult.resolvedProjectConfigurations as List == []
 
         def visitedArtifacts = results.visitedArtifacts
         def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), Mock(ArtifactSelectionSpec))

@@ -22,8 +22,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollectionConfigurer;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileCollectionConfigurer;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -71,7 +71,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private final DefaultTaskDependency buildDependency;
     private ValueCollector value;
     private ValueState<ValueCollector> valueState;
-    private ValueCollector defaultValue = new EmptyCollector();
+    private final ValueCollector defaultValue = new EmptyCollector();
 
     public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, TaskDependencyFactory dependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost host) {
         super(dependencyFactory, patternSetFactory);
@@ -146,10 +146,12 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         valueState.finalizeOnNextGet();
     }
 
+    @Override
     public void disallowUnsafeRead() {
         valueState.disallowUnsafeRead();
     }
 
+    @Override
     public int getFactoryId() {
         return ManagedFactories.ConfigurableFileCollectionManagedFactory.FACTORY_ID;
     }
@@ -302,23 +304,29 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private ValueCollector newConventionValue(Iterable<?> paths) {
-        return newValue(EMPTY_COLLECTOR, paths);
+        return newValue(getBaseValue(false), paths);
     }
 
     private ValueCollector newConventionValue(Object[] paths) {
-        return newValue(EMPTY_COLLECTOR, paths);
+        return newValue(getBaseValue(false), paths);
     }
 
     private ValueCollector newExplicitValue(Iterable<?> paths) {
-        return newValue(getBaseValue(), paths);
+        return newValue(getBaseValue(true), paths);
     }
 
     private ValueCollector newExplicitValue(Object[] paths) {
-        return newValue(getBaseValue(), paths);
+        return newValue(getBaseValue(true), paths);
     }
 
-    private ValueCollector getBaseValue() {
-        if (!isExplicit() && !value.isEmpty()) {
+    /**
+     * Returns a value collector for the current value of this collection that is valid
+     * as a base for the new explicit or convention value.
+     *
+     * @param forNewExplicitValue true if base value is for an explicit value, false otherwise (i.e. for a convention value)
+     */
+    private ValueCollector getBaseValue(boolean forNewExplicitValue) {
+        if (forNewExplicitValue != isExplicit() && !value.isEmpty()) {
             return copySources(value);
         }
         return value;
@@ -417,10 +425,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     public void visitDependencies(TaskDependencyResolveContext context) {
         context.add(buildDependency);
         super.visitDependencies(context);
-    }
-
-    private ValueCollector getConventionCollector() {
-        return valueState.convention();
     }
 
     /**

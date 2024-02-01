@@ -282,6 +282,7 @@ public class JUnitXmlResultWriter {
             super(outputProvider);
         }
 
+        @Override
         public void write(SimpleXmlWriter writer) throws IOException {
             writeOutput(writer);
         }
@@ -293,6 +294,7 @@ public class JUnitXmlResultWriter {
             super(outputProvider);
         }
 
+        @Override
         public void write(SimpleXmlWriter writer) throws IOException {
             writer.startElement("skipped").endElement();
             writeOutput(writer);
@@ -323,6 +325,7 @@ public class JUnitXmlResultWriter {
             this.type = type;
         }
 
+        @Override
         public void write(SimpleXmlWriter writer) throws IOException {
             writer.startElement(type.elementName)
                 .attribute("message", failure.getMessage())

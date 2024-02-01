@@ -46,6 +46,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -272,6 +273,11 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         }
 
         @Override
+        public Optional<ExecResult> getExecResult() {
+            return delegate.getExecResult();
+        }
+
+        @Override
         public JvmMemoryStatus getJvmMemoryStatus() {
             return delegate.getJvmMemoryStatus();
         }
@@ -279,6 +285,11 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         @Override
         public void stopNow() {
             delegate.stopNow();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return delegate.getDisplayName();
         }
     }
 

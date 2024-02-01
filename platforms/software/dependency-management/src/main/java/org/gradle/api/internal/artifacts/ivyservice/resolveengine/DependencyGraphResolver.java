@@ -74,7 +74,6 @@ public class DependencyGraphResolver {
     private final VersionComparator versionComparator;
     private final ModuleExclusions moduleExclusions;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ComponentSelectorConverter componentSelectorConverter;
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionParser versionParser;
     private final Instantiator instantiator;
@@ -91,7 +90,6 @@ public class DependencyGraphResolver {
         DependencyMetadataFactory dependencyMetadataFactory,
         VersionComparator versionComparator,
         ModuleExclusions moduleExclusions,
-        ComponentSelectorConverter componentSelectorConverter,
         VersionSelectorScheme versionSelectorScheme,
         VersionParser versionParser,
         InstantiatorFactory instantiatorFactory,
@@ -106,7 +104,6 @@ public class DependencyGraphResolver {
         this.versionComparator = versionComparator;
         this.moduleExclusions = moduleExclusions;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.componentSelectorConverter = componentSelectorConverter;
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionParser = versionParser;
         this.instantiator = instantiatorFactory.decorateScheme().instantiator();
@@ -128,7 +125,8 @@ public class DependencyGraphResolver {
         GlobalDependencyResolutionRules metadataHandler,
         Spec<? super DependencyMetadata> edgeFilter,
         boolean includeSyntheticDependencies,
-        List<DependencyGraphVisitor> visitors
+        List<DependencyGraphVisitor> visitors,
+        ComponentSelectorConverter componentSelectorConverter
     ) {
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(
             resolvers.getComponentResolver(), dependencyMetadataFactory, moduleResolveStateFactory

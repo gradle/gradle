@@ -409,10 +409,10 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/8bccc8c51683456910b894e02dc7e915/thing.jar")
+        def cachedFile = testDir.file("cached/bc4f3e05266cfadaa3cd1f4484942739/thing.jar")
 
         when:
-        def cachedClasspath = transformer.transform(classpath, BuildLogic, transform)
+        def cachedClasspath = transformer.transform(classpath, transform)
 
         then:
         cachedClasspath.asFiles == [cachedFile]
@@ -427,7 +427,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         0 * _
 
         when:
-        def cachedClasspath2 = transformer.transform(classpath, BuildLogic, transform)
+        def cachedClasspath2 = transformer.transform(classpath, transform)
 
         then:
         cachedClasspath2.asFiles == [cachedFile]

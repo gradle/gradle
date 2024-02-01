@@ -721,6 +721,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "plugins-java-library",
+    "path": "platforms/jvm/plugins-java-library",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "plugins-jvm-test-fixtures",
     "path": "platforms/jvm/plugins-jvm-test-fixtures",
     "unitTests": false,

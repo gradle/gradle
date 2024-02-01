@@ -63,8 +63,8 @@ import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
-import org.gradle.internal.classpath.DefaultClasspathTransformerCacheFactory;
 import org.gradle.internal.classpath.DefaultClasspathBuilder;
+import org.gradle.internal.classpath.DefaultClasspathTransformerCacheFactory;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
@@ -106,6 +106,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         this.globalServices = globalServices;
     }
 
+    @Override
     public void configure(ServiceRegistration registration) {
         super.configure(registration);
         registration.addProvider(new GradleUserHomeCleanupServices());
@@ -131,6 +132,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return new ToPlannedTaskConverter();
     }
 
+    @Override
     DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), unscopedCacheBuilderFactory);
     }

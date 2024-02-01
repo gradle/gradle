@@ -103,7 +103,7 @@ class ConfigurationCacheReport(
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
             val groovyJsonClassLoader: ClassLoader,
-            val decorateProblem: ((PropertyProblem) -> PropertyProblem)? = null
+            val decorate: (PropertyProblem) -> DecoratedPropertyProblem
         ) : State() {
 
             private
@@ -121,7 +121,7 @@ class ConfigurationCacheReport(
 
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
                 executor.submit {
-                    writer.writeDiagnostic(kind, decorateProblem?.invoke(problem) ?: problem)
+                    writer.writeDiagnostic(kind, decorate(problem))
                 }
                 return this
             }
@@ -197,12 +197,43 @@ class ConfigurationCacheReport(
             temporaryFileProvider.createTemporaryFile("configuration-cache-report", "html"),
             executorFactory.create("Configuration cache report writer", 1),
             CharBuf::class.java.classLoader,
-            if (isStacktraceHashes) ::decorateProblemWithHash else null
+            ::decorateProblem
         ).onDiagnostic(kind, problem)
     }
 
     private
     val stateLock = Object()
+
+    private
+    val stackTraceExtractor = StackTraceExtractor()
+
+    private
+    val exceptionDecorator = ExceptionDecorator(stackTraceExtractor::stackTraceStringFor)
+
+    private
+    fun decorateProblem(problem: PropertyProblem): DecoratedPropertyProblem {
+        val exception = problem.exception
+        return DecoratedPropertyProblem(
+            problem.trace,
+            decorateMessage(problem),
+            exception?.let { exceptionDecorator.decorateException(it) },
+            problem.documentationSection
+        )
+    }
+
+    private
+    fun decorateMessage(problem: PropertyProblem): StructuredMessage {
+        if (!isStacktraceHashes || problem.exception == null) {
+            return problem.message
+        }
+
+        val exceptionHash = problem.exception.hashWithoutMessages()
+        return StructuredMessage.build {
+            reference("[${exceptionHash.toCompactString()}]")
+            text(" ")
+            message(problem.message)
+        }
+    }
 
     override fun close() {
         modifyState {
@@ -249,39 +280,23 @@ class ConfigurationCacheReport(
         }
     }
 
+    /**
+     * A heuristic to get the same hash for different instances of an exception
+     * occurring at the same location.
+     */
     private
-    fun decorateProblemWithHash(problem: PropertyProblem): PropertyProblem {
-        val exception = problem.exception
-            ?: return problem
-
-        return hashedProblemFor(problem, exception)
-    }
-
-    private
-    fun hashedProblemFor(problem: PropertyProblem, exception: Throwable): PropertyProblem {
-        val exceptionHash = exception.hashWithoutMessage()
-        val exceptionMarker = "[${exceptionHash.toCompactString()}]"
-        return problem.prependMessageFragments(
-            StructuredMessage.Fragment.Reference(exceptionMarker),
-            StructuredMessage.Fragment.Text(" ")
-        )
-    }
-
-    private
-    fun PropertyProblem.prependMessageFragments(vararg fragments: StructuredMessage.Fragment): PropertyProblem {
-        val newFragments = fragments.toList() + message.fragments
-        return copy(message = message.copy(fragments = newFragments))
-    }
-
-    private
-    fun Throwable.hashWithoutMessage(): HashCode {
-        val exceptionType = this@hashWithoutMessage.javaClass.name
+    fun Throwable.hashWithoutMessages(): HashCode {
+        val e = this@hashWithoutMessages
         return Hashing.newHasher().apply {
-            putString(exceptionType)
-            // Take all stacktrace lines except the first message
-            stackTraceToString().lineSequence()
-                .dropWhile { !it.trim().startsWith("at ") }
+            putString(e.javaClass.name)
+            // Ignore messages and only take stack frames into account
+            stackTraceStringFor(e).lineSequence()
+                .filter { it.isStackFrameLine() }
                 .forEach { putString(it) }
         }.hash()
     }
+
+    private
+    fun stackTraceStringFor(error: Throwable): String =
+        stackTraceExtractor.stackTraceStringFor(error)
 }

@@ -54,6 +54,7 @@ public class DerivedMavenArtifact extends AbstractMavenArtifact {
         return TaskDependencyInternal.EMPTY;
     }
 
+    @Override
     public boolean shouldBePublished() {
         return original.shouldBePublished() && derivedFile.shouldBePublished();
     }

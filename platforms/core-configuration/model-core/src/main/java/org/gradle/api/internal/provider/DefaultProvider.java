@@ -31,10 +31,10 @@ import java.util.concurrent.Callable;
  * <b>Eager</b>. The value is computed at store time and loaded from the cache.
  */
 public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
-    private final DataGuard<Callable<? extends T>> value;
+    private final Callable<? extends T> value;
 
     public DefaultProvider(Callable<? extends T> value) {
-        this.value = guardData(value);
+        this.value = value;
     }
 
     @Nullable
@@ -52,7 +52,7 @@ public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
     private Class<T> inferTypeFromCallableGenericArgument() {
         // We could do a better job of figuring this out
         // Extract the type for common case that is quick to calculate
-        for (Type superType : value.unsafeGet().getClass().getGenericInterfaces()) {
+        for (Type superType : value.getClass().getGenericInterfaces()) {
             if (superType instanceof ParameterizedType) {
                 ParameterizedType parameterizedSuperType = (ParameterizedType) superType;
                 if (parameterizedSuperType.getRawType().equals(Callable.class)) {
@@ -68,8 +68,8 @@ public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        try (EvaluationContext.ScopeContext context = openScope()) {
-            return Value.ofNullable(value.get(context).call());
+        try (EvaluationContext.ScopeContext ignored = openScope()) {
+            return Value.ofNullable(value.call());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

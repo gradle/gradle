@@ -116,7 +116,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             PluginManagerInternal pluginManager = topLevelScript ? initialPassScriptTarget.getPluginManager() : null;
             PluginRequests autoAppliedPlugins = autoAppliedPluginHandler.getAutoAppliedPlugins(initialPluginRequests, target);
-            pluginRequestApplicator.applyPlugins(initialPluginRequests, autoAppliedPlugins, scriptHandler, pluginManager, targetScope);
+            PluginRequests allPlugins = initialPluginRequests.mergeWith(autoAppliedPlugins);
+            pluginRequestApplicator.applyPlugins(allPlugins, scriptHandler, pluginManager, targetScope);
             // Pass 2, compile everything except buildscript {}, pluginManagement{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);
             scriptType = scriptTarget.getScriptClass();

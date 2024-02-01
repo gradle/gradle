@@ -19,9 +19,11 @@ package org.gradle.process.internal.worker.problem;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.operations.OperationIdentifier;
 
+import javax.annotation.Nullable;
+
 /**
  * Interface used between the worker and the daemon to report problems.
  */
 public interface WorkerProblemProtocol {
-    void reportProblem(Problem problem, OperationIdentifier id);
+    void reportProblem(Problem problem, @Nullable OperationIdentifier id);
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.service
 
-
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import spock.lang.Specification
@@ -32,13 +32,31 @@ class ScopedServiceRegistryTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+        exception.message.contains("The service '${BuildTreeScopedService.name}' declares service scope 'BuildTree' but is registered in the 'Build' scope. Either update the '@ServiceScope()' annotation on '${BuildTreeScopedService.simpleName}' to include the 'Build' scope or move the service registration to one of the declared scopes.")
 
         where:
         method     | registration
         'instance' | { ScopedServiceRegistry it -> it.add(new BuildTreeScopedService()) }
         'type'     | { ScopedServiceRegistry it -> it.register { it.add(BuildTreeScopedService) } }
-        'provider' | { ScopedServiceRegistry it -> it.addProvider(new ScopedServiceProvider()) }
+        'provider' | { ScopedServiceRegistry it -> it.addProvider(new BuildTreeScopedServiceProvider()) }
+    }
+
+    def "fails when registering a multi-scoped service by adding #method in a wrong scope"() {
+        given:
+        def registry = new ScopedServiceRegistry(Scopes.BuildTree)
+
+        when:
+        registration(registry)
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("The service '${GlobalAndBuildScopedService.name}' declares service scopes 'Global', 'Build' but is registered in the 'BuildTree' scope. Either update the '@ServiceScope()' annotation on '${GlobalAndBuildScopedService.simpleName}' to include the 'BuildTree' scope or move the service registration to one of the declared scopes.")
+
+        where:
+        method     | registration
+        'instance' | { ScopedServiceRegistry it -> it.add(new GlobalAndBuildScopedService()) }
+        'type'     | { ScopedServiceRegistry it -> it.register { it.add(GlobalAndBuildScopedService) } }
+        'provider' | { ScopedServiceRegistry it -> it.addProvider(new MultiScopedServiceProvider()) }
     }
 
     def "succeeds when registering a service in the correct scope"() {
@@ -62,7 +80,7 @@ class ScopedServiceRegistryTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+        exception.message.contains("The service '${BuildTreeScopedService.name}' declares service scope 'BuildTree' but is registered in the 'Build' scope. Either update the '@ServiceScope()' annotation on '${BuildTreeScopedService.simpleName}' to include the 'Build' scope or move the service registration to one of the declared scopes.")
     }
 
     def "succeeds when registering an unscoped service"() {
@@ -80,15 +98,44 @@ class ScopedServiceRegistryTest extends Specification {
         registry.get(UnscopedService) === service
     }
 
+    def "succeeds when registering a multi-scoped service in the correct scope (#scopeName)"() {
+        given:
+        def registry = new ScopedServiceRegistry(scope)
+        def service = new GlobalAndBuildScopedService()
+
+        when:
+        registry.add(service)
+
+        then:
+        noExceptionThrown()
+
+        and:
+        registry.get(GlobalAndBuildScopedService) === service
+
+        where:
+        scope << [Scope.Global, Scopes.Build]
+        scopeName = scope.simpleName
+    }
+
     @ServiceScope(Scopes.BuildTree)
     static class BuildTreeScopedService {}
 
+    @ServiceScope([Scope.Global, Scopes.Build])
+    static class GlobalAndBuildScopedService {}
+
     static class UnscopedService {}
 
-    static class ScopedServiceProvider {
+    static class BuildTreeScopedServiceProvider {
         @SuppressWarnings('unused')
         BuildTreeScopedService createScopedService() {
             return new BuildTreeScopedService()
+        }
+    }
+
+    static class MultiScopedServiceProvider {
+        @SuppressWarnings('unused')
+        GlobalAndBuildScopedService createScopedService() {
+            return new GlobalAndBuildScopedService()
         }
     }
 

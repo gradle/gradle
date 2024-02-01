@@ -4,6 +4,13 @@ plugins {
 
 description = "Adds support for generating parsers from Antlr grammars."
 
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 1 occurrences
+        "Finally", // 1 occurrences
+    )
+}
+
 dependencies {
     api(project(":base-annotations"))
     api(project(":base-services"))
@@ -15,8 +22,8 @@ dependencies {
     api(libs.inject)
 
     implementation(project(":platform-jvm"))
-    implementation(project(":plugins"))
     implementation(project(":plugins-java-base"))
+    implementation(project(":plugins-java-library"))
 
     implementation(libs.guava)
     implementation(libs.jsr305)
@@ -27,6 +34,7 @@ dependencies {
     }
 
     runtimeOnly(project(":language-jvm"))
+    runtimeOnly(project(":plugins"))
     runtimeOnly(project(":workers"))
 
     testImplementation(project(":base-services-groovy"))

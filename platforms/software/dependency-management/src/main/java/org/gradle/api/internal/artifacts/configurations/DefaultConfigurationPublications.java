@@ -230,6 +230,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         return capabilities == null ? Collections.emptyList() : ImmutableList.copyOf(capabilities);
     }
 
+    @Override
     public void preventFromFurtherMutation() {
         canCreate = false;
         if (variants != null) {

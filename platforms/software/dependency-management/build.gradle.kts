@@ -9,6 +9,46 @@ description = """This project contains most of the dependency management logic o
     |
     |DSL facing APIs are to be found in 'core-api'""".trimMargin()
 
+errorprone {
+    disabledChecks.addAll(
+        "AmbiguousMethodReference", // 1 occurrences
+        "ClassCanBeStatic",
+        "DefaultCharset", // 3 occurrences
+        "EmptyBlockTag", // 2 occurrences
+        "Finally", // 4 occurrences
+        "HidingField", // 1 occurrences
+        "IdentityHashMapUsage", // 2 occurrences
+        "ImmutableEnumChecker", // 2 occurrences
+        "InconsistentCapitalization", // 2 occurrences
+        "InlineFormatString", // 5 occurrences
+        "InlineMeSuggester", // 2 occurrences
+        "InvalidParam", // 1 occurrences
+        "LoopOverCharArray", // 1 occurrences
+        "MathAbsoluteNegative",
+        "MissingCasesInEnumSwitch", // 7 occurrences
+        "MixedMutabilityReturnType", // 5 occurrences
+        "ModifiedButNotUsed", // 1 occurrences
+        "MutablePublicArray", // 1 occurrences
+        "NonApiType", // 3 occurrences
+        "NonCanonicalType", // 3 occurrences
+        "ObjectEqualsForPrimitives", // 3 occurrences
+        "OperatorPrecedence", // 2 occurrences
+        "ReferenceEquality", // 10 occurrences
+        "SameNameButDifferent", // 4 occurrences
+        "StreamResourceLeak", // 1 occurrences
+        "StringCaseLocaleUsage", // 3 occurrences
+        "StringCharset", // 1 occurrences
+        "StringSplitter", // 4 occurrences
+        "TypeParameterShadowing", // 4 occurrences
+        "TypeParameterUnusedInFormals", // 2 occurrences
+        "UndefinedEquals", // 1 occurrences
+        "UnusedMethod", // 34 occurrences
+        "UnusedTypeParameter", // 1 occurrences
+        "UnusedVariable", // 6 occurrences
+    )
+}
+
+
 dependencies {
     api(project(":base-annotations"))
     api(project(":base-services"))

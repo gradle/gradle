@@ -51,9 +51,7 @@ import spock.lang.Specification
 class DefaultConfigurationContainerTest extends Specification {
 
     private ConfigurationResolver resolver = Mock(ConfigurationResolver)
-    private ListenerManager listenerManager = Stub(ListenerManager.class) {
-        _ * getBroadcaster(ProjectDependencyObservedListener.class) >> Stub(ProjectDependencyObservedListener)
-    }
+    private ListenerManager listenerManager = Stub(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
     private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)

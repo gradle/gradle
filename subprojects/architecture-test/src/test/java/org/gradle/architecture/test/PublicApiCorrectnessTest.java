@@ -21,9 +21,6 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import groovy.lang.Closure;
-import groovy.util.Node;
-import groovy.xml.MarkupBuilder;
 import kotlin.Pair;
 import kotlin.jvm.functions.Function1;
 import kotlin.reflect.KClass;
@@ -79,11 +76,6 @@ public class PublicApiCorrectnessTest {
                 .or(type(QName.class))
                 .or(type(BiFunction.class))
                 .as("built-in JDK classes"))
-            .or(type(Node.class)
-                .or(type(MarkupBuilder.class))
-                .or(type(Closure.class))
-                .as("Groovy classes")
-            )
             .or(type(Function1.class)
                 .or(type(KClass.class))
                 .or(type(KClass[].class))
