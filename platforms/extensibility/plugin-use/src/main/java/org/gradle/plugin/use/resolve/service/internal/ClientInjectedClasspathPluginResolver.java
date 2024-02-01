@@ -22,16 +22,7 @@ import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import java.util.Collection;
 
 public interface ClientInjectedClasspathPluginResolver {
-    ClientInjectedClasspathPluginResolver EMPTY = new ClientInjectedClasspathPluginResolver() {
-        @Override
-        public void collectResolversInto(Collection<? super PluginResolver> dest) {
-        }
-        @Override
-        public void prepareClassPath(ScriptHandlerInternal scriptHandler) {
-        }
-    };
+    ClientInjectedClasspathPluginResolver EMPTY = (scriptHandler, dest) -> {};
 
-    void collectResolversInto(Collection<? super PluginResolver> dest);
-
-    void prepareClassPath(ScriptHandlerInternal scriptHandler);
+    void collectResolversInto(ScriptHandlerInternal scriptHandler, Collection<? super PluginResolver> dest);
 }

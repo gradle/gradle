@@ -76,17 +76,17 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     }
 
     @Override
-    public void collectResolversInto(Collection<? super PluginResolver> dest) {
+    public void collectResolversInto(ScriptHandlerInternal scriptHandler, Collection<? super PluginResolver> dest) {
+        preparePluginRegistry(scriptHandler);
         dest.add(this);
     }
 
-    @Override
-    public void prepareClassPath(ScriptHandlerInternal scriptHandlerInternal) {
+    private void preparePluginRegistry(ScriptHandlerInternal scriptHandler) {
         if (pluginRegistry == null) {
             synchronized (this) {
                 if (pluginRegistry == null) {
-                    DependencyHandler dependencies = scriptHandlerInternal.getDependencies();
-                    ConfigurationContainer configurations = scriptHandlerInternal.getConfigurations();
+                    DependencyHandler dependencies = scriptHandler.getDependencies();
+                    ConfigurationContainer configurations = scriptHandler.getConfigurations();
                     Dependency injectedClasspathDependency = dependencies.create(fileCollectionFactory.fixed(injectedClasspath.getAsFiles()));
                     Configuration configuration = configurations.detachedConfiguration(injectedClasspathDependency);
                     scriptClassPathResolver.prepareClassPath(configuration, dependencies);

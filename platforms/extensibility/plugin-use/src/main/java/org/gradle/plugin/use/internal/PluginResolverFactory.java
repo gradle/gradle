@@ -85,8 +85,7 @@ public class PluginResolverFactory {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
 
-        injectedClasspathPluginResolver.prepareClassPath(scriptHandler);
-        injectedClasspathPluginResolver.collectResolversInto(resolvers);
+        injectedClasspathPluginResolver.collectResolversInto(scriptHandler, resolvers);
 
         pluginResolverContributors.forEach(contributor -> contributor.collectResolversInto(resolvers));
         resolvers.add(pluginResolveContext.getPluginResolver());
