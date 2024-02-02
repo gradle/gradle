@@ -18,7 +18,8 @@ package org.gradle.internal.declarativedsl.dom
 
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
-import org.gradle.internal.declarativedsl.analysis.DataType
+import org.gradle.internal.declarativedsl.analysis.DataClass
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
@@ -28,12 +29,13 @@ import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.analysis.getDataType
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
-import org.gradle.internal.declarativedsl.parsing.LanguageTreeResult
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueResolution.ValueFactoryResolution
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.FunctionCall
+import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
+
 
 fun resolvedDocument(
     schema: AnalysisSchema,
@@ -45,6 +47,7 @@ fun resolvedDocument(
     tracingResolver.resolve(schema, languageTreeResult.imports, languageTreeResult.topLevelBlock)
     return resolvedDocument(schema, tracingResolver.trace, languageTreeResult.toDocument(), strictReceiverChecks)
 }
+
 
 fun resolvedDocument(
     schema: AnalysisSchema,
@@ -59,7 +62,9 @@ fun resolvedDocument(
     )
 }
 
-private class DocumentResolver(
+
+private
+class DocumentResolver(
     private val trace: ResolutionTrace,
     private val typeRefContext: SchemaTypeRefContext,
     private val strictReceiverChecks: Boolean
@@ -70,7 +75,8 @@ private class DocumentResolver(
         is DeclarativeDocument.DocumentNode.ErrorNode -> ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedError(node, node.sourceData)
     }
 
-    private fun resolvedElement(elementNode: DeclarativeDocument.DocumentNode.ElementNode): ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedElement {
+    private
+    fun resolvedElement(elementNode: DeclarativeDocument.DocumentNode.ElementNode): ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedElement {
         val statement = elementNode.blockElement() as FunctionCall
         val elementResolution = when (val callResolution = trace.expressionResolution(statement)) {
             is ResolutionTrace.ResolutionOrErrors.Resolution -> run {
@@ -82,7 +88,7 @@ private class DocumentResolver(
                 val function = functionOrigin.function
                 when (val semantics = function.semantics) {
                     is FunctionSemantics.AccessAndConfigure -> {
-                        val configuredType = typeRefContext.resolveRef(semantics.accessor.objectType) as DataType.DataClass
+                        val configuredType = typeRefContext.resolveRef(semantics.accessor.objectType) as DataClass
                         DocumentResolution.ElementResolution.SuccessfulElementResolution.PropertyConfiguringElementResolved(configuredType)
                     }
 
@@ -106,7 +112,8 @@ private class DocumentResolver(
         return ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedElement(elementNode.name, content, elementResolution, args, elementNode.sourceData)
     }
 
-    private fun resolvedProperty(propertyNode: DeclarativeDocument.DocumentNode.PropertyNode): ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedProperty {
+    private
+    fun resolvedProperty(propertyNode: DeclarativeDocument.DocumentNode.PropertyNode): ResolvedDeclarativeDocumentImpl.ResolvedNode.ResolvedProperty {
         val statement = propertyNode.blockElement() as Assignment
         val resolution = when (val assignment = trace.assignmentResolution(statement)) {
             is ResolutionTrace.ResolutionOrErrors.Resolution -> {
@@ -133,7 +140,8 @@ private class DocumentResolver(
         }
     }
 
-    private fun resolveValueFactory(valueFactoryNode: DeclarativeDocument.ValueNode.ValueFactoryNode): ValueFactoryResolution {
+    private
+    fun resolveValueFactory(valueFactoryNode: DeclarativeDocument.ValueNode.ValueFactoryNode): ValueFactoryResolution {
         val expr = valueFactoryNode.expr()
         return when (val exprResolution = trace.expressionResolution(expr)) {
             is ResolutionTrace.ResolutionOrErrors.Resolution -> ValueFactoryResolution.ValueFactoryResolved((exprResolution.result as ObjectOrigin.FunctionOrigin).function)
@@ -142,10 +150,12 @@ private class DocumentResolver(
         }
     }
 
-    private fun mapValueFactoryErrors(errors: Iterable<ResolutionError>): List<ValueFactoryNotResolvedReason> =
+    private
+    fun mapValueFactoryErrors(errors: Iterable<ResolutionError>): List<ValueFactoryNotResolvedReason> =
         mapElementErrors(errors).map { it as ValueFactoryNotResolvedReason } // maybe handle value factory errors separately?
 
-    private fun mapPropertyErrors(errors: Iterable<ResolutionError>): List<PropertyNotAssignedReason> = errors.map {
+    private
+    fun mapPropertyErrors(errors: Iterable<ResolutionError>): List<PropertyNotAssignedReason> = errors.map {
         when (it.errorReason) {
             is ErrorReason.ExternalReassignment,
             ErrorReason.UnresolvedAssignmentLhs -> UnresolvedName
@@ -171,7 +181,8 @@ private class DocumentResolver(
         }
     }.distinct()
 
-    private fun mapElementErrors(errors: Iterable<ResolutionError>): List<ElementNotResolvedReason> = errors.map {
+    private
+    fun mapElementErrors(errors: Iterable<ResolutionError>): List<ElementNotResolvedReason> = errors.map {
         when (it.errorReason) {
             is ErrorReason.AmbiguousFunctions -> AmbiguousName
 
@@ -201,7 +212,9 @@ private class DocumentResolver(
     }.distinct()
 }
 
-private class ResolvedDeclarativeDocumentImpl(
+
+private
+class ResolvedDeclarativeDocumentImpl(
     override val content: Collection<ResolvedNode>,
     override val sourceIdentifier: SourceIdentifier
 ) : ResolvedDeclarativeDocument {

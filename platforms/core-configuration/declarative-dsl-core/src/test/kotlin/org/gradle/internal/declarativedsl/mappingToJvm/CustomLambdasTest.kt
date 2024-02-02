@@ -26,6 +26,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigur
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
+
 class CustomLambdasTest {
     @Test
     fun `custom lambda interface with no generic`() {
@@ -56,11 +57,12 @@ class CustomLambdasTest {
         assertEquals(124, o.inner.x)
     }
 
-    private fun applyToOuter(code: String): Outer {
+    private
+    fun applyToOuter(code: String): Outer {
         val reflection = schema.reflect(code)
 
         val outer = Outer()
-        val converter = RestrictedReflectionToObjectConverter(
+        val converter = DeclarativeReflectionToObjectConverter(
             emptyMap(), outer, MemberFunctionResolver(functionalLambdaHandler), ReflectionRuntimePropertyResolver, RuntimeCustomAccessors.none
         )
         converter.apply(reflection)
@@ -68,6 +70,7 @@ class CustomLambdasTest {
         return outer
     }
 }
+
 
 class Outer {
     @Restricted
@@ -83,13 +86,16 @@ class Outer {
     }
 }
 
+
 interface Functional {
     fun configure(inner: Inner)
 }
 
+
 interface GenericFunctional<T> {
     fun configure(something: T)
 }
+
 
 class Inner {
     @Restricted
@@ -101,11 +107,15 @@ class Inner {
     }
 }
 
-private val functionalLambdaHandler =
+
+private
+val functionalLambdaHandler =
     treatInterfaceAsConfigureLambda(Functional::class)
         .plus(treatInterfaceAsConfigureLambda(GenericFunctional::class))
 
-private val schema = schemaFromTypes(
+
+private
+val schema = schemaFromTypes(
     Outer::class, listOf(
         Outer::class,
         Inner::class,

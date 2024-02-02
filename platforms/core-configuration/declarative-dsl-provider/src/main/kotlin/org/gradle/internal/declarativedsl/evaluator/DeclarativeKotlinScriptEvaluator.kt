@@ -26,14 +26,12 @@ import org.gradle.internal.declarativedsl.mappingToJvm.CompositeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.CompositePropertyResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.MemberFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionRuntimePropertyResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.RestrictedReflectionToObjectConverter
+import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
 import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
 import org.gradle.internal.declarativedsl.objectGraph.reflect
-import org.gradle.internal.declarativedsl.parsing.LanguageTreeResult
-import org.gradle.internal.declarativedsl.parsing.SingleFailureResult
 import org.gradle.internal.declarativedsl.parsing.parse
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
@@ -51,6 +49,8 @@ import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvalu
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.FailuresInResolution
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.UnassignedValuesUsed
+import org.gradle.internal.declarativedsl.language.LanguageTreeResult
+import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
 
 
@@ -160,7 +160,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         val customAccessors = CompositeCustomAccessors(evaluationSchema.runtimeCustomAccessors)
 
         val topLevelReceiver = step.topLevelReceiver()
-        val converter = RestrictedReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors)
+        val converter = DeclarativeReflectionToObjectConverter(emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors)
         converter.apply(topLevelObjectReflection)
 
         step.whenEvaluated(topLevelReceiver)

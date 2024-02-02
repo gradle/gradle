@@ -276,7 +276,7 @@ class FunctionCallResolverImpl(
         functionCall: FunctionCall,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
     ): List<FunctionResolutionAndBinding> {
-        val receiverType = getDataType(receiver) as? DataType.DataClass
+        val receiverType = getDataType(receiver) as? DataClass
             ?: return emptyList()
         val functionName = functionCall.name
         val matchingMembers = receiverType.memberFunctions.filter { it.simpleName == functionName }
@@ -360,7 +360,7 @@ class FunctionCallResolverImpl(
             }
         }
         val constructors = candidateTypes
-            .flatMap { (it as? DataType.DataClass)?.constructors.orEmpty() }
+            .flatMap { (it as? DataClass)?.constructors.orEmpty() }
             .filter { it.parameters.size == functionCall.args.size }
 
         return chooseMatchingOverloads(null, constructors, functionCall.args, argResolution)

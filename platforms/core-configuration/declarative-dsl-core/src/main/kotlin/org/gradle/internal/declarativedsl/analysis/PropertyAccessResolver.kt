@@ -2,6 +2,7 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.internal.declarativedsl.analysis.PropertyAccessResolverImpl.AssignmentResolution.*
 import org.gradle.internal.declarativedsl.language.AccessChain
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.PropertyAccess
@@ -193,7 +194,7 @@ class PropertyAccessResolverImpl(
     private fun findDataProperty(
         receiverType: DataType, name: String
     ): DataProperty? =
-        if (receiverType is DataType.DataClass) receiverType.properties.find { !it.isHiddenInDsl && it.name == name } else null
+        if (receiverType is DataClass) receiverType.properties.find { !it.isHiddenInDsl && it.name == name } else null
 
     sealed interface AssignmentResolution {
         data class AssignProperty(val propertyReference: PropertyReferenceResolution) : AssignmentResolution

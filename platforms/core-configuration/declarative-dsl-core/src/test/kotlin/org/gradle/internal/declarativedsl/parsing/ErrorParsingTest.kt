@@ -1,8 +1,11 @@
 package org.gradle.internal.declarativedsl.astToLanguageTree
 
-import org.gradle.internal.declarativedsl.parsing.*
-import org.gradle.internal.declarativedsl.parsing.LanguageTreeResult
+
+import org.gradle.internal.declarativedsl.language.LanguageTreeResult
+import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
+import org.gradle.internal.declarativedsl.parsing.assert
 import org.junit.jupiter.api.Test
+
 
 class ErrorParsingTest {
 
@@ -17,8 +20,7 @@ class ErrorParsingTest {
                     potentialElementSource = indexes: 0..1, line/column: 1/1..1/2, file: test,
                     erroneousSource = indexes: 0..1, line/column: 1/1..1/2, file: test
                 )
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -40,8 +42,7 @@ class ErrorParsingTest {
                     potentialElementSource = indexes: 17..18, line/column: 1/18..1/19, file: test,
                     erroneousSource = indexes: 17..18, line/column: 1/18..1/19, file: test
                 )
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -117,8 +118,7 @@ class ErrorParsingTest {
             LocalValue [indexes: 38..47, line/column: 5/1..5/10, file: test] (
                 name = e
                 rhs = IntLiteral [indexes: 46..47, line/column: 5/9..5/10, file: test] (5)
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -145,8 +145,7 @@ class ErrorParsingTest {
             LocalValue [indexes: 21..30, line/column: 3/1..3/10, file: test] (
                 name = c
                 rhs = IntLiteral [indexes: 29..30, line/column: 3/9..3/10, file: test] (9)
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -181,8 +180,7 @@ class ErrorParsingTest {
             LocalValue [indexes: 30..39, line/column: 3/1..3/10, file: test] (
                 name = d
                 rhs = IntLiteral [indexes: 38..39, line/column: 3/9..3/10, file: test] (4)
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -236,8 +234,7 @@ class ErrorParsingTest {
                         )
                     )
                 ]
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 

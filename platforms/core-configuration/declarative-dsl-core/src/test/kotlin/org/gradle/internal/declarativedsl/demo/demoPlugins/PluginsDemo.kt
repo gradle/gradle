@@ -4,6 +4,7 @@ import org.gradle.internal.declarativedsl.analysis.*
 import org.gradle.internal.declarativedsl.demo.printResolutionResults
 import org.gradle.internal.declarativedsl.demo.printResolvedAssignments
 import org.gradle.internal.declarativedsl.demo.resolve
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

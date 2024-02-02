@@ -21,12 +21,12 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
-import org.gradle.internal.declarativedsl.parsing.ParsingError
-import org.gradle.internal.declarativedsl.parsing.SingleFailureResult
-import org.gradle.internal.declarativedsl.parsing.UnsupportedConstruct
 import org.gradle.api.GradleException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure
+import org.gradle.internal.declarativedsl.language.ParsingError
+import org.gradle.internal.declarativedsl.language.SingleFailureResult
+import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 
 
 internal

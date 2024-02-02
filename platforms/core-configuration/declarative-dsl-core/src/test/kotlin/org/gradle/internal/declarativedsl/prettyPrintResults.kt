@@ -16,25 +16,25 @@
 
 package org.gradle.internal.declarativedsl
 
-import org.gradle.internal.declarativedsl.parsing.Element
-import org.gradle.internal.declarativedsl.parsing.LanguageResult
-import org.gradle.internal.declarativedsl.parsing.LanguageTreeResult
-import org.gradle.internal.declarativedsl.parsing.MultipleFailuresResult
-import org.gradle.internal.declarativedsl.parsing.ParsingError
-import org.gradle.internal.declarativedsl.parsing.UnsupportedConstruct
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.Block
+import org.gradle.internal.declarativedsl.language.Element
 import org.gradle.internal.declarativedsl.language.ErroneousStatement
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.Import
+import org.gradle.internal.declarativedsl.language.LanguageResult
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
+import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.Literal
 import org.gradle.internal.declarativedsl.language.LocalValue
+import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
 import org.gradle.internal.declarativedsl.language.Null
+import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.This
+import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil.Parser.parse
 
 

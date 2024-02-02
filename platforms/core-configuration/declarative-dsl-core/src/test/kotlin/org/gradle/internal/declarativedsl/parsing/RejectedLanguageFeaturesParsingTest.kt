@@ -1,7 +1,7 @@
 package org.gradle.internal.declarativedsl.astToLanguageTree
 
+import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.prettyPrintLanguageResult
-import org.gradle.internal.declarativedsl.parsing.LanguageTreeResult
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.parsing.assert
 import org.junit.jupiter.api.Test
@@ -19,7 +19,7 @@ class RejectedLanguageFeaturesParsingTest {
                 erroneousSource = indexes: 0..19, line/column: 1/1..1/20, file: test
             )
             """.trimIndent()
-        parse(code).assert(expected) { result -> result.headerFailures.joinToString { prettyPrintLanguageResult(it) } }
+        parse(code).assert(expected) { result: LanguageTreeResult -> result.headerFailures.joinToString { prettyPrintLanguageResult(it) } }
     }
 
     @Test
@@ -46,7 +46,7 @@ class RejectedLanguageFeaturesParsingTest {
                 erroneousSource = indexes: 47..48, line/column: 3/22..3/23, file: test
             )
             """.trimIndent()
-        parse(code).assert(expected) { result -> result.headerFailures.joinToString("\n") { prettyPrintLanguageResult(it) } }
+        parse(code).assert(expected) { result: LanguageTreeResult -> result.headerFailures.joinToString("\n") { prettyPrintLanguageResult(it) } }
     }
 
     @Test
@@ -67,7 +67,7 @@ class RejectedLanguageFeaturesParsingTest {
                 erroneousSource = indexes: 25..29, line/column: 2/12..2/16, file: test
             )
             """.trimIndent()
-        parse(code).assert(expected) { result -> result.headerFailures.joinToString("\n") { prettyPrintLanguageResult(it) } }
+        parse(code).assert(expected) { result: LanguageTreeResult -> result.headerFailures.joinToString("\n") { prettyPrintLanguageResult(it) } }
     }
 
     @Test
@@ -375,13 +375,13 @@ class RejectedLanguageFeaturesParsingTest {
 
     @Test
     fun `rejects annotation usages`() {
-        var code = """
+        val code = """
             @A val x = 1
             @A b { }
             b(@A x)
             b { @A f() }
         """.trimIndent()
-        var expected = """
+        val expected = """
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = AnnotationUsage,

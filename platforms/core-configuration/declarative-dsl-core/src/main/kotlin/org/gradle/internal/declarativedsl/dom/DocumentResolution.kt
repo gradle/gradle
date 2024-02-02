@@ -16,8 +16,9 @@
 
 package org.gradle.internal.declarativedsl.dom
 
+import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataProperty
-import org.gradle.internal.declarativedsl.analysis.DataType
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 
@@ -37,7 +38,7 @@ sealed interface DocumentResolution {
             val elementType: DataType
 
             data class PropertyConfiguringElementResolved(
-                override val elementType: DataType.DataClass
+                override val elementType: DataClass
             ) : SuccessfulElementResolution
 
             data class ContainerElementResolved(

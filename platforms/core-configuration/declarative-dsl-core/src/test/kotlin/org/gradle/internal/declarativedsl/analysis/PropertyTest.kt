@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.internal.declarativedsl.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor

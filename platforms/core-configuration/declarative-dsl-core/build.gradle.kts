@@ -1,19 +1,17 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm")
+    id("gradlebuild.distribution.api-kotlin")
     embeddedKotlin("plugin.serialization")
-    id("gradlebuild.repositories")
-    id("gradlebuild.ktlint")
 }
 
-kotlin {
+tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_1_8)
+        apiVersion.set(KotlinVersion.KOTLIN_1_9)
+        languageVersion.set(KotlinVersion.KOTLIN_1_9)
     }
 }
-
-java.targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
     implementation(kotlin("compiler-embeddable"))
@@ -23,8 +21,4 @@ dependencies {
 
     testImplementation(kotlin("test-junit5"))
     testImplementation("org.jetbrains:annotations:24.0.1")
-}
-
-testing.suites.named("test", JvmTestSuite::class) {
-    useJUnitJupiter()
 }

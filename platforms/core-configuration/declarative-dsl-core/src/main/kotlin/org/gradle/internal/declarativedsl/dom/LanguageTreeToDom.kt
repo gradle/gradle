@@ -16,11 +16,6 @@
 
 package org.gradle.internal.declarativedsl.dom
 
-import org.gradle.internal.declarativedsl.parsing.FailingResult
-import org.gradle.internal.declarativedsl.parsing.LanguageTreeResult
-import org.gradle.internal.declarativedsl.parsing.MultipleFailuresResult
-import org.gradle.internal.declarativedsl.parsing.ParsingError
-import org.gradle.internal.declarativedsl.parsing.UnsupportedConstruct
 import org.gradle.internal.declarativedsl.dom.LanguageTreeBackedDocument.BlockElementBackedDocumentNode.AssignmentBackedPropertyNode
 import org.gradle.internal.declarativedsl.dom.LanguageTreeBackedDocument.BlockElementBackedDocumentNode.BlockElementBackedErrorNode
 import org.gradle.internal.declarativedsl.language.Assignment
@@ -28,22 +23,31 @@ import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.BlockElement
 import org.gradle.internal.declarativedsl.language.ErroneousStatement
 import org.gradle.internal.declarativedsl.language.Expr
+import org.gradle.internal.declarativedsl.language.FailingResult
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
+import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.Literal
 import org.gradle.internal.declarativedsl.language.LocalValue
+import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
 import org.gradle.internal.declarativedsl.language.Null
+import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.language.This
+import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
+
 
 // TODO: imports are ignored for now; we should instead represent them as unsupported feature usage in the document
 fun LanguageTreeResult.toDocument(): DeclarativeDocument = convertBlockToDocument(topLevelBlock)
 
+
 fun convertBlockToDocument(block: Block): DeclarativeDocument = LanguageTreeBackedDocument(block, block.content.map(::blockElementToNode))
 
-private fun blockElementToNode(blockElement: BlockElement): LanguageTreeBackedDocument.BlockElementBackedDocumentNode = when (blockElement) {
+
+private
+fun blockElementToNode(blockElement: BlockElement): LanguageTreeBackedDocument.BlockElementBackedDocumentNode = when (blockElement) {
     is Assignment -> {
         if ((blockElement.lhs.receiver != null))
             BlockElementBackedErrorNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.AssignmentWithExplicitReceiver)))
@@ -91,6 +95,7 @@ private fun blockElementToNode(blockElement: BlockElement): LanguageTreeBackedDo
     is ErroneousStatement -> BlockElementBackedErrorNode(blockElement, mapBlockElementErrors(blockElement.failingResult))
 }
 
+
 fun mapBlockElementErrors(failingResult: FailingResult): Collection<DocumentError> {
     return buildList {
         fun visit(result: FailingResult) {
@@ -105,12 +110,15 @@ fun mapBlockElementErrors(failingResult: FailingResult): Collection<DocumentErro
 }
 
 
-private sealed interface ExprConversion {
+private
+sealed interface ExprConversion {
     data class Converted(val valueNode: LanguageTreeBackedDocument.ExprBackedValueNode) : ExprConversion
     data class Failed(val errors: Collection<DocumentError>) : ExprConversion
 }
 
-private fun exprToValue(expr: Expr): ExprConversion = when (expr) {
+
+private
+fun exprToValue(expr: Expr): ExprConversion = when (expr) {
     is Literal<*> -> ExprConversion.Converted(LanguageTreeBackedDocument.ExprBackedValueNode.LiteralBackedLiteralValueNode(expr))
     is FunctionCall -> run {
         val errors = mutableListOf<DocumentError>()
@@ -147,7 +155,9 @@ private fun exprToValue(expr: Expr): ExprConversion = when (expr) {
     is This -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.UnsupportedThisValue)))
 }
 
-private fun Expr.asChainedNameOrNull(): String? {
+
+private
+fun Expr.asChainedNameOrNull(): String? {
     fun recurse(e: Expr): StringBuilder? = when (e) {
         is PropertyAccess -> {
             when (e.receiver) {
@@ -161,7 +171,9 @@ private fun Expr.asChainedNameOrNull(): String? {
     return recurse(this)?.toString()
 }
 
-private class LanguageTreeBackedDocument(
+
+private
+class LanguageTreeBackedDocument(
     val block: Block,
     override val content: Collection<BlockElementBackedDocumentNode>
 ) : DeclarativeDocument {
@@ -181,7 +193,8 @@ private class LanguageTreeBackedDocument(
             override val value: ExprBackedValueNode
 
         ) : DeclarativeDocument.DocumentNode.PropertyNode, BlockElementBackedDocumentNode {
-            override val name: String get() = blockElement.lhs.name
+            override val name: String
+                get() = blockElement.lhs.name
         }
 
         data class FunctionCallBackedElementNode(
@@ -217,7 +230,8 @@ private class LanguageTreeBackedDocument(
             get() = expr.sourceData
 
         data class LiteralBackedLiteralValueNode(override val expr: Literal<*>) : DeclarativeDocument.ValueNode.LiteralValueNode, ExprBackedValueNode {
-            override val value: Any get() = expr.value
+            override val value: Any
+                get() = expr.value
         }
         data class FunctionCallBackedValueFactoryNode(
             override val factoryName: String,
@@ -227,12 +241,16 @@ private class LanguageTreeBackedDocument(
     }
 }
 
-internal fun DeclarativeDocument.DocumentNode.blockElement(): BlockElement = when (this) {
+
+internal
+fun DeclarativeDocument.DocumentNode.blockElement(): BlockElement = when (this) {
     is LanguageTreeBackedDocument.BlockElementBackedDocumentNode -> blockElement
     else -> throw IllegalStateException("cannot run document resolution with documents not produced from declarative DSL")
 }
 
-internal fun DeclarativeDocument.ValueNode.expr(): Expr = when (this) {
+
+internal
+fun DeclarativeDocument.ValueNode.expr(): Expr = when (this) {
     is LanguageTreeBackedDocument.ExprBackedValueNode -> expr
     else -> throw IllegalStateException("cannot run document resolution with documents not produced from declarative DSL")
 }

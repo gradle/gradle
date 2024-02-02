@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_PARAMETER")
+
 package com.example
 
 import org.gradle.internal.declarativedsl.Adding
@@ -17,13 +19,15 @@ class Abc {
     @Adding
     fun c(x: Int, configure: C.() -> Unit = { }) =
         C().apply {
-            this.x = x;
-            configure();
+            this.x = x
+            configure()
             cItems.add(this)
         }
 
-    internal val cItems = mutableListOf<C>()
+    internal
+    val cItems = mutableListOf<C>()
 }
+
 
 class C(var x: Int = 0) {
     @Builder
@@ -42,9 +46,11 @@ class C(var x: Int = 0) {
     fun f(y: String) = 0
 }
 
+
 class D {
     @Restricted
     var id: String = "none"
 }
+
 
 fun newD(id: String): D = D().also { it.id = id }

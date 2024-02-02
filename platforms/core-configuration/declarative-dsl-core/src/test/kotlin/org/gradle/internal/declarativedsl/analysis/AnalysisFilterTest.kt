@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("UNUSED_PARAMETER")
+
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.internal.declarativedsl.Configuring

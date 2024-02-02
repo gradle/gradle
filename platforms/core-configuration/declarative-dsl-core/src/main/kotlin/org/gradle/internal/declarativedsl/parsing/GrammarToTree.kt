@@ -1,7 +1,7 @@
 package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.parsing.FailureCollectorContext.CheckedResult
-import org.gradle.internal.declarativedsl.parsing.UnsupportedLanguageFeature.*
+import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.*
 import org.gradle.internal.declarativedsl.language.*
 import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression

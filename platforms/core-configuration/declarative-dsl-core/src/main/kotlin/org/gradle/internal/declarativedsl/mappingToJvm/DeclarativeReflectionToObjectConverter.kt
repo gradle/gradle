@@ -6,11 +6,12 @@ import org.gradle.internal.declarativedsl.analysis.DataProperty
 import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
-import org.gradle.internal.declarativedsl.mappingToJvm.RestrictedReflectionToObjectConverter.ConversionFilter
+import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter.ConversionFilter
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.objectGraph.PropertyValueReflection
 
-class RestrictedReflectionToObjectConverter(
+
+class DeclarativeReflectionToObjectConverter(
     private val externalObjectsMap: Map<ExternalObjectProviderKey, Any>,
     private val topLevelObject: Any,
     private val functionResolver: RuntimeFunctionResolver,
@@ -54,9 +55,11 @@ class RestrictedReflectionToObjectConverter(
         }
     }
 
-    private val reflectionIdentityObjects = mutableMapOf<Long, Any?>()
+    private
+    val reflectionIdentityObjects = mutableMapOf<Long, Any?>()
 
-    private fun objectByIdentity(identity: Long, newObject: () -> Any?): Any? {
+    private
+    fun objectByIdentity(identity: Long, newObject: () -> Any?): Any? {
         // This code does not use `computeIfAbsent` because `newObject` can make reentrant calls, leading to CME.
         // Also, it does not check for the value being null, because null values are potentially allowed
         if (identity !in reflectionIdentityObjects) {
@@ -68,7 +71,8 @@ class RestrictedReflectionToObjectConverter(
         }
     }
 
-    private fun applyPropertyValue(receiver: ObjectOrigin, property: DataProperty, assigned: PropertyValueReflection) {
+    private
+    fun applyPropertyValue(receiver: ObjectOrigin, property: DataProperty, assigned: PropertyValueReflection) {
         when (assigned.assignmentMethod) {
             is AssignmentMethod.Property -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned.value.objectOrigin))
             is AssignmentMethod.BuilderFunction -> invokeBuilderFunction(receiver, assigned.assignmentMethod.function, assigned.value.objectOrigin)
@@ -76,7 +80,8 @@ class RestrictedReflectionToObjectConverter(
         }
     }
 
-    private fun getObjectByResolvedOrigin(objectOrigin: ObjectOrigin): Any? {
+    private
+    fun getObjectByResolvedOrigin(objectOrigin: ObjectOrigin): Any? {
         return when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> getObjectByResolvedOrigin(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.value
@@ -84,7 +89,7 @@ class RestrictedReflectionToObjectConverter(
                 externalObjectsMap[objectOrigin.key] ?: error("No external object provided for external object key of ${objectOrigin.key}")
             }
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(objectOrigin.invocationId) { objectFromMemberFunction(objectOrigin) }
-            is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(objectOrigin.invocationId) { objectFromTopLevelFunction(objectOrigin) }
+            is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(objectOrigin.invocationId) { objectFromTopLevelFunction(/*objectOrigin*/) }
             is ObjectOrigin.NullObjectOrigin -> null
             is ObjectOrigin.PropertyDefaultValue -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
             is ObjectOrigin.PropertyReference -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
@@ -96,7 +101,8 @@ class RestrictedReflectionToObjectConverter(
         }
     }
 
-    private fun objectFromMemberFunction(
+    private
+    fun objectFromMemberFunction(
         origin: ObjectOrigin.NewObjectFromMemberFunction
     ): Any? {
         val dataFun = origin.function
@@ -107,7 +113,8 @@ class RestrictedReflectionToObjectConverter(
         return callResult.result
     }
 
-    private fun invokeFunctionAndGetResult(
+    private
+    fun invokeFunctionAndGetResult(
         receiverInstance: Any,
         origin: ObjectOrigin.FunctionInvocationOrigin
     ): RestrictedRuntimeFunction.InvocationResult {
@@ -123,7 +130,8 @@ class RestrictedReflectionToObjectConverter(
         }
     }
 
-    private fun objectFromConfiguringLambda(
+    private
+    fun objectFromConfiguringLambda(
         origin: ObjectOrigin.ConfiguringLambdaReceiver
     ): Any? {
         val function = origin.function
@@ -133,7 +141,8 @@ class RestrictedReflectionToObjectConverter(
         return invokeFunctionAndGetResult(receiverInstance, origin).capturedValue
     }
 
-    private fun invokeBuilderFunction(receiverOrigin: ObjectOrigin, function: DataBuilderFunction, valueOrigin: ObjectOrigin) {
+    private
+    fun invokeBuilderFunction(receiverOrigin: ObjectOrigin, function: DataBuilderFunction, valueOrigin: ObjectOrigin) {
         val receiverInstance = getObjectByResolvedOrigin(receiverOrigin)
             ?: error("Tried to invoke a function $function on a null receiver $receiverOrigin")
         val receiverKClass = receiverInstance::class
@@ -146,13 +155,15 @@ class RestrictedReflectionToObjectConverter(
         }
     }
 
-    private fun objectFromTopLevelFunction(
-        origin: ObjectOrigin.NewObjectFromTopLevelFunction
+    private
+    fun objectFromTopLevelFunction(
+        // origin: ObjectOrigin.NewObjectFromTopLevelFunction
     ): Any? {
         TODO("support calls to top-level functions: they need to carry the owner class information to get resolved")
     }
 
-    private fun getPropertyValue(receiver: ObjectOrigin, dataProperty: DataProperty): Any? {
+    private
+    fun getPropertyValue(receiver: ObjectOrigin, dataProperty: DataProperty): Any? {
         val receiverInstance = getObjectByResolvedOrigin(receiver)
             ?: error("tried to access a property ${dataProperty.name} on a null receiver")
         val receiverKClass = receiverInstance::class
@@ -162,7 +173,8 @@ class RestrictedReflectionToObjectConverter(
         }
     }
 
-    private fun setPropertyValue(receiver: ObjectOrigin, dataProperty: DataProperty, value: Any?) {
+    private
+    fun setPropertyValue(receiver: ObjectOrigin, dataProperty: DataProperty, value: Any?) {
         val receiverInstance = getObjectByResolvedOrigin(receiver)
             ?: error("tried to access a property ${dataProperty.name} on a null receiver")
         val receiverKClass = receiverInstance::class

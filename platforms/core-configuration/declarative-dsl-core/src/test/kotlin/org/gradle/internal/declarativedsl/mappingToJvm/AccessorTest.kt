@@ -81,7 +81,7 @@ object AccessorTest {
         val topLevel = reflect(resolution.topLevelReceiver, context)
 
         val runtimeInstance = MyReceiver()
-        RestrictedReflectionToObjectConverter(
+        DeclarativeReflectionToObjectConverter(
             emptyMap(),
             runtimeInstance,
             MemberFunctionResolver(configureLambdas),

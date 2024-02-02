@@ -1,5 +1,6 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.Literal
@@ -220,7 +221,7 @@ private fun functionInvocationString(function: SchemaFunction, receiver: ObjectO
         if (function is DataConstructor) {
             val fqn = when (val ref = function.dataClass) {
                 is DataTypeRef.Name -> ref.fqName.toString()
-                is DataTypeRef.Type -> (ref.dataType as? DataType.DataClass)?.name?.qualifiedName
+                is DataTypeRef.Type -> (ref.dataType as? DataClass)?.name?.qualifiedName
                     ?: ref.dataType.toString()
             }
             append(fqn)

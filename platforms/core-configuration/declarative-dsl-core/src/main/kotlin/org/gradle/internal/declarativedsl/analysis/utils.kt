@@ -1,12 +1,15 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+
 @OptIn(ExperimentalContracts::class)
-internal inline fun AnalysisContext.withScope(scope: AnalysisScope, action: () -> Unit) {
+internal
+inline fun AnalysisContext.withScope(scope: AnalysisScope, action: () -> Unit) {
     contract {
         callsInPlace(action, InvocationKind.EXACTLY_ONCE)
     }
@@ -18,14 +21,19 @@ internal inline fun AnalysisContext.withScope(scope: AnalysisScope, action: () -
     }
 }
 
-internal fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): Boolean = when (isAssignableTo) {
+
+internal
+fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): Boolean = when (isAssignableTo) {
     is DataType.ConstantType<*> -> valueType == isAssignableTo
-    is DataType.DataClass -> valueType is DataType.DataClass && (isAssignableTo == valueType || isAssignableTo.name in valueType.supertypes)
+    is DataClass -> valueType is DataClass && (isAssignableTo == valueType || isAssignableTo.name in valueType.supertypes)
     DataType.NullType -> false // TODO: proper null type support
     DataType.UnitType -> valueType == DataType.UnitType
+    else -> error("Unhandled data type: ${isAssignableTo.javaClass.simpleName}")
 }
 
-internal fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (objectOrigin) {
+
+internal
+fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (objectOrigin) {
     is ObjectOrigin.DelegatingObjectOrigin -> getDataType(objectOrigin.delegate)
     is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.type
     is ObjectOrigin.External -> resolveRef(objectOrigin.key.type)
@@ -39,7 +47,9 @@ internal fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = 
     is ObjectOrigin.ConfiguringLambdaReceiver -> resolveRef(objectOrigin.lambdaReceiverType)
 }
 
-internal fun AnalysisContext.checkAccessOnCurrentReceiver(
+
+internal
+fun AnalysisContext.checkAccessOnCurrentReceiver(
     receiver: ObjectOrigin,
     access: LanguageTreeElement
 ) {

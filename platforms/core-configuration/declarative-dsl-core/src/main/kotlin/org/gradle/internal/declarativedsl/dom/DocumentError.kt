@@ -16,8 +16,8 @@
 
 package org.gradle.internal.declarativedsl.dom
 
-import org.gradle.internal.declarativedsl.parsing.ParsingError
-import org.gradle.internal.declarativedsl.parsing.UnsupportedConstruct
+import org.gradle.internal.declarativedsl.language.ParsingError
+import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 
 sealed interface DocumentError
 

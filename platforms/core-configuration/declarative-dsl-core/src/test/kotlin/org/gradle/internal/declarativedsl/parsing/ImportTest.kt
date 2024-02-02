@@ -2,7 +2,7 @@ package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.analysis.AnalysisContext
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.analysis.DataType
+import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.ErrorCollectorImpl
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.FqName
@@ -18,14 +18,18 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class ImportTest {
-    private val resolver = defaultCodeResolver()
-    private val errorCollector = ErrorCollectorImpl()
 
-    private fun testContext(): AnalysisContext {
+class ImportTest {
+    private
+    val resolver = defaultCodeResolver()
+    private
+    val errorCollector = ErrorCollectorImpl()
+
+    private
+    fun testContext(): AnalysisContext {
         return AnalysisContext(
             AnalysisSchema(
-                DataType.DataClass(FqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
+                DataClass(FqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),
@@ -97,9 +101,11 @@ class ImportTest {
         assertTrue(analysisContext.errorCollector.errors.isEmpty())
     }
 
-    private fun importOf(vararg nameParts: String) = Import(AccessChain(listOf(*nameParts)), mockSourceData)
+    private
+    fun importOf(vararg nameParts: String) = Import(AccessChain(listOf(*nameParts)), mockSourceData)
 
-    private val mockNode = object : LighterASTNode {
+    private
+    val mockNode = object : LighterASTNode {
         override fun getTokenType(): IElementType = KtNodeTypes.FUN // whatever, doesn't matter
 
         override fun getStartOffset(): Int = 0
@@ -107,7 +113,9 @@ class ImportTest {
         override fun getEndOffset(): Int = 0
     }
 
-    private val sourceIdentifier = SourceIdentifier("test")
+    private
+    val sourceIdentifier = SourceIdentifier("test")
 
-    private val mockSourceData = mockNode.sourceData(sourceIdentifier, "", 0)
+    private
+    val mockSourceData = mockNode.sourceData(sourceIdentifier, "", 0)
 }

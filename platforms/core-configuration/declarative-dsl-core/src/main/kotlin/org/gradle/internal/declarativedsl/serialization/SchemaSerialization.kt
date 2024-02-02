@@ -19,11 +19,28 @@ package org.gradle.internal.declarativedsl.serialization
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
+import org.gradle.internal.declarativedsl.analysis.DataClass
+import org.gradle.internal.declarativedsl.language.DataType
 
 
 object SchemaSerialization {
+
     private
     val json = Json {
+        serializersModule = SerializersModule {
+            polymorphic(DataType::class) {
+                subclass(DataType.IntDataType::class)
+                subclass(DataType.LongDataType::class)
+                subclass(DataType.StringDataType::class)
+                subclass(DataType.BooleanDataType::class)
+                subclass(DataType.NullType::class)
+                subclass(DataType.UnitType::class)
+                subclass(DataClass::class)
+            }
+        }
         prettyPrint = true
         allowStructuredMapKeys = true
     }

@@ -18,15 +18,20 @@ package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.Block
+import org.gradle.internal.declarativedsl.language.Element
+import org.gradle.internal.declarativedsl.language.ElementResult
 import org.gradle.internal.declarativedsl.language.ErroneousStatement
+import org.gradle.internal.declarativedsl.language.FailingResult
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.Import
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.Literal
 import org.gradle.internal.declarativedsl.language.LocalValue
+import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
 import org.gradle.internal.declarativedsl.language.Null
 import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.language.This
 
 internal fun collectFailures(results: Iterable<ElementResult<*>>): List<SingleFailureResult> = buildList {

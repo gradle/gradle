@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
-import org.gradle.internal.declarativedsl.analysis.DataType
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.ref

@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.internal.declarativedsl.Adding
 import org.gradle.internal.declarativedsl.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -94,7 +95,7 @@ object SubtypingTest {
             assertNotNull(error)
             val reason = error.errorReason
             assertIs<ErrorReason.AssignmentTypeMismatch>(reason)
-            assertEquals(NotASubtype::class.simpleName, ((reason.actual.ref as DataTypeRef.Type).dataType as DataType.DataClass).name.simpleName)
+            assertEquals(NotASubtype::class.simpleName, ((reason.actual.ref as DataTypeRef.Type).dataType as DataClass).name.simpleName)
         }
     }
 

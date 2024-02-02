@@ -1,58 +1,32 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.gradle.internal.declarativedsl.language.DataType
+
 
 @Serializable
 data class AnalysisSchema(
-    val topLevelReceiverType: DataType.DataClass,
-    val dataClassesByFqName: Map<FqName, DataType.DataClass>,
+    val topLevelReceiverType: DataClass,
+    val dataClassesByFqName: Map<FqName, DataClass>,
     val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
     val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>,
     val defaultImports: Set<FqName>
 )
 
+
 @Serializable
-sealed interface DataType {
-    @Serializable
-    sealed interface ConstantType<JvmType> : DataType
-    @Serializable
-    data object IntDataType : ConstantType<Int> {
-        override fun toString(): String = "Int"
-    }
-    @Serializable
-    data object LongDataType : ConstantType<Long> {
-        override fun toString(): String = "Long"
-    }
-    @Serializable
-    data object StringDataType : ConstantType<String> {
-        override fun toString(): String = "String"
-    }
-    @Serializable
-    data object BooleanDataType : ConstantType<Boolean> {
-        override fun toString(): String = "Boolean"
-    }
-
-    // TODO: implement nulls?
-    @Serializable
-    data object NullType : DataType
-
-    @Serializable
-    data object UnitType : DataType
-
-    // TODO: `Any` type?
-    // TODO: Support subtyping of some sort in the schema rather than via reflection?
-
-    @Serializable
-    data class DataClass(
-        val name: FqName,
-        val supertypes: Set<FqName>,
-        val properties: List<DataProperty>,
-        val memberFunctions: List<SchemaMemberFunction>,
-        val constructors: List<DataConstructor>
-    ) : DataType {
-        override fun toString(): String = name.simpleName
-    }
+@SerialName("data")
+data class DataClass(
+    val name: FqName,
+    val supertypes: Set<FqName>,
+    val properties: List<DataProperty>,
+    val memberFunctions: List<SchemaMemberFunction>,
+    val constructors: List<DataConstructor>
+) : DataType {
+    override fun toString(): String = name.simpleName
 }
+
 
 @Serializable
 data class DataProperty(
@@ -67,17 +41,22 @@ data class DataProperty(
         READ_WRITE, READ_ONLY, WRITE_ONLY
     }
 
-    val isReadOnly: Boolean get() = mode == PropertyMode.READ_ONLY
-    val isWriteOnly: Boolean get() = mode == PropertyMode.WRITE_ONLY
+    val isReadOnly: Boolean
+        get() = mode == PropertyMode.READ_ONLY
+    val isWriteOnly: Boolean
+        get() = mode == PropertyMode.WRITE_ONLY
 }
+
 
 @Serializable
 sealed interface SchemaFunction {
     val simpleName: String
     val semantics: FunctionSemantics
     val parameters: List<DataParameter>
-    val returnValueType: DataTypeRef get() = semantics.returnValueType
+    val returnValueType: DataTypeRef
+        get() = semantics.returnValueType
 }
+
 
 @Serializable
 sealed interface SchemaMemberFunction : SchemaFunction {
@@ -85,6 +64,7 @@ sealed interface SchemaMemberFunction : SchemaFunction {
     val receiver: DataTypeRef
     val isDirectAccessOnly: Boolean
 }
+
 
 @Serializable
 data class DataBuilderFunction(
@@ -98,6 +78,7 @@ data class DataBuilderFunction(
         get() = listOf(dataParameter)
 }
 
+
 @Serializable
 data class DataTopLevelFunction(
     val packageName: String,
@@ -105,6 +86,7 @@ data class DataTopLevelFunction(
     override val parameters: List<DataParameter>,
     override val semantics: FunctionSemantics.Pure,
 ) : SchemaFunction
+
 
 @Serializable
 data class DataMemberFunction(
@@ -115,14 +97,17 @@ data class DataMemberFunction(
     override val semantics: FunctionSemantics,
 ) : SchemaMemberFunction
 
+
 @Serializable
 data class DataConstructor(
     override val parameters: List<DataParameter>,
     val dataClass: DataTypeRef
 ) : SchemaFunction {
-    override val simpleName get() = "<init>"
+    override val simpleName
+        get() = "<init>"
     override val semantics: FunctionSemantics = FunctionSemantics.Pure(dataClass)
 }
+
 
 @Serializable
 data class DataParameter(
@@ -132,6 +117,7 @@ data class DataParameter(
     val semantics: ParameterSemantics
 )
 
+
 @Serializable
 sealed interface ParameterSemantics {
     @Serializable
@@ -139,6 +125,7 @@ sealed interface ParameterSemantics {
     @Serializable
     data object Unknown : ParameterSemantics
 }
+
 
 @Serializable
 sealed interface FunctionSemantics {
@@ -191,14 +178,17 @@ sealed interface FunctionSemantics {
         enum class ConfigureBlockRequirement {
             NOT_ALLOWED, OPTIONAL, REQUIRED;
 
-            val allows: Boolean get() = this != NOT_ALLOWED
-            val requires: Boolean get() = this == REQUIRED
+            val allows: Boolean
+                get() = this != NOT_ALLOWED
+            val requires: Boolean
+                get() = this == REQUIRED
         }
     }
 
     @Serializable
     class Pure(override val returnValueType: DataTypeRef) : NewObjectFunctionSemantics
 }
+
 
 @Serializable
 sealed interface ConfigureAccessor {
@@ -231,6 +221,7 @@ sealed interface ConfigureAccessor {
     // TODO: Do we want to support configuring external objects?
 }
 
+
 @Serializable
 data class FqName(val packageName: String, val simpleName: String) {
     companion object {
@@ -240,15 +231,20 @@ data class FqName(val packageName: String, val simpleName: String) {
         }
     }
 
-    val qualifiedName get() = "$packageName.$simpleName"
+    val qualifiedName
+        get() = "$packageName.$simpleName"
 
     override fun toString(): String = qualifiedName
 }
 
-val DataTopLevelFunction.fqName: FqName get() = FqName(packageName, simpleName)
+
+val DataTopLevelFunction.fqName: FqName
+    get() = FqName(packageName, simpleName)
+
 
 @Serializable
 data class ExternalObjectProviderKey(val type: DataTypeRef)
+
 
 @Serializable
 sealed interface DataTypeRef {
@@ -258,4 +254,6 @@ sealed interface DataTypeRef {
     data class Name(val fqName: FqName) : DataTypeRef
 }
 
-val DataType.ref: DataTypeRef get() = DataTypeRef.Type(this)
+
+val DataType.ref: DataTypeRef
+    get() = DataTypeRef.Type(this)

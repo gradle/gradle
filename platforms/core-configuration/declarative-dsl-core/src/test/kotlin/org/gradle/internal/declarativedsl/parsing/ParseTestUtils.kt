@@ -1,5 +1,6 @@
 package org.gradle.internal.declarativedsl.parsing
 
+import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.prettyPrintLanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.intellij.lang.annotations.Language

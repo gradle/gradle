@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("UNUSED_PARAMETER")
+
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.internal.declarativedsl.AccessFromCurrentReceiverOnly
@@ -26,15 +28,20 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-private class TopLevelForTest {
+
+private
+class TopLevelForTest {
     @Configuring
     fun inner(f: HasAnnotatedMembers.() -> Unit) = Unit
 
     @Restricted
-    val inner: HasAnnotatedMembers get() = TODO()
+    val inner: HasAnnotatedMembers
+        get() = TODO()
 }
 
-private class HasAnnotatedMembers {
+
+private
+class HasAnnotatedMembers {
     @Restricted
     @AccessFromCurrentReceiverOnly
     var x: Int = 0
@@ -50,13 +57,17 @@ private class HasAnnotatedMembers {
     fun nested(fn: Nested.() -> Unit) = Unit
 
     @Restricted
-    val nested: Nested get() = TODO()
+    val nested: Nested
+        get() = TODO()
 }
 
-private class Nested {
+
+private
+class Nested {
     @Restricted
     var n = 1
 }
+
 
 class AccessInCurrentReceiverOnlyTest {
     val schema = schemaFromTypes(TopLevelForTest::class, listOf(TopLevelForTest::class, HasAnnotatedMembers::class, Nested::class))

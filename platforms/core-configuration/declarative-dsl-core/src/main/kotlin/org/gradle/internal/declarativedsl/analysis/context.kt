@@ -1,5 +1,6 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import java.util.concurrent.atomic.AtomicLong

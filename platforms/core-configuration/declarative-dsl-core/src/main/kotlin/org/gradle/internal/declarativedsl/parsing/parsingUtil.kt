@@ -2,8 +2,16 @@ package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.language.BlockElement
 import org.gradle.internal.declarativedsl.language.DataStatement
+import org.gradle.internal.declarativedsl.language.Element
+import org.gradle.internal.declarativedsl.language.ElementResult
 import org.gradle.internal.declarativedsl.language.ErroneousStatement
+import org.gradle.internal.declarativedsl.language.FailingResult
+import org.gradle.internal.declarativedsl.language.LanguageResult
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
+import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
+import org.gradle.internal.declarativedsl.language.SingleFailureResult
+import org.gradle.internal.declarativedsl.language.Syntactic
+import org.gradle.internal.declarativedsl.language.SyntacticResult
 
 internal class FailureCollectorContext {
     private val currentFailures: MutableList<FailingResult> = mutableListOf()

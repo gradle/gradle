@@ -1,14 +1,18 @@
 package org.gradle.internal.declarativedsl.demo
 
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.analysis.DataType
+import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.Resolver
 import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
+import org.gradle.internal.declarativedsl.language.FailingResult
+import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
+import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
+import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentAdditionResult.AssignmentAdded
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
@@ -16,11 +20,18 @@ import org.gradle.internal.declarativedsl.objectGraph.AssignmentTrace
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
-import org.gradle.internal.declarativedsl.parsing.*
+import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
+import org.gradle.internal.declarativedsl.parsing.parse
+
 
 val int = DataType.IntDataType.ref
+
+
 val string = DataType.StringDataType.ref
+
+
 val boolean = DataType.BooleanDataType.ref
+
 
 fun AnalysisSchema.resolve(
     code: String,
@@ -53,6 +64,7 @@ fun AnalysisSchema.resolve(
     return result
 }
 
+
 fun printResolutionResults(
     result: ResolutionResult
 ) {
@@ -62,8 +74,10 @@ fun printResolutionResults(
     println("Additions:\n" + result.additions.joinToString("\n") { (container, obj) -> "$container += $obj" })
 }
 
+
 fun assignmentTrace(result: ResolutionResult) =
     AssignmentTracer { AssignmentResolver() }.produceAssignmentTrace(result)
+
 
 fun printAssignmentTrace(trace: AssignmentTrace) {
     trace.elements.forEach { element ->
@@ -84,15 +98,18 @@ fun printAssignmentTrace(trace: AssignmentTrace) {
     }
 }
 
+
 fun printResolvedAssignments(result: ResolutionResult) {
     println("\nResolved assignments:")
     printAssignmentTrace(assignmentTrace(result))
 }
 
+
 inline fun <reified T> typeRef(): DataTypeRef.Name {
     val parts = T::class.qualifiedName!!.split(".")
     return DataTypeRef.Name(FqName(parts.dropLast(1).joinToString("."), parts.last()))
 }
+
 
 fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
     val visitedIdentity = mutableSetOf<Long>()

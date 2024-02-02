@@ -47,7 +47,7 @@ object ReflectionDemo {
         println(versionRange)
 
         println("===")
-        val newCode = code.replaceRange(versionRange!!, "\"1.9.20-Beta\"")
+        val newCode = code.replaceRange(versionRange, "\"1.9.20-Beta\"")
         println(newCode)
 
         println("===")
