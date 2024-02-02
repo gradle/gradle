@@ -58,6 +58,11 @@ Eclipse JGit has been updated from 5.7.0 to https://projects.eclipse.org/project
 
 This includes reworking the way that Gradle configures JGit for SSH operations by moving from JSch to Apache SSHD.
 
+==== Upgrade to Apache Commons Compress 1.25.0
+
+Apache Commons Compress has been updated from 1.21 to https://commons.apache.org/proper/commons-compress/changes-report.html#a1.25.0[1.25.0].
+This change may affect the checksums of the produced jars, zips, and other archive types because the metadata of the produced artifacts may differ.
+
 === Deprecations
 
 [[string_invoke]]

@@ -528,12 +528,12 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def selectedArtifactSet = Mock(SelectedArtifactSet)
 
         given:
-        _ * visitedArtifactSet.select(_, _) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_) >> selectedArtifactSet
         _ * selectedArtifactSet.visitDependencies(_) >> { TaskDependencyResolveContext visitor -> visitor.add(artifactTaskDependencies) }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
         and:
-        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Mock(VisitedGraphResults), visitedArtifactSet)
+        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Mock(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
 
         expect:
         configuration.buildDependencies.getDependencies(targetTask) == requiredTasks
@@ -1047,7 +1047,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def result = new DefaultMinimalResolutionResult(rootSource, ImmutableAttributes.EMPTY)
         def graphResults = new DefaultVisitedGraphResults(result, [] as Set, null)
 
-        resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, Mock(ResolvedConfiguration), visitedArtifacts())
+        resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
 
         when:
         def out = config.incoming.resolutionResult
@@ -1748,7 +1748,7 @@ All Artifacts:
     private ResolverResults buildDependenciesResolved() {
         def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
-        DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set))
+        DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
@@ -1756,33 +1756,53 @@ All Artifacts:
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
-            select(_, _) >> Stub(SelectedArtifactSet) {
-                visitDependencies(_) >> { it[0].visitFailure(failure) }
-                visitFiles(_, _) >> { ResolvedFileVisitor v, boolean l -> v.visitFailure(failure) }
-            }
-        }
-        def resolvedConfiguration = Stub(ResolvedConfiguration) {
-            hasError() >> true
+            select(_) >> selectedArtifacts(failure)
         }
 
-        DefaultResolverResults.graphResolved(visitedGraphResults, resolvedConfiguration, visitedArtifactSet)
+        def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
+            depSpec -> selectedArtifacts(failure),
+            Mock(ResolvedConfiguration) {
+                hasError() >> true
+            }
+        )
+
+        DefaultResolverResults.graphResolved(visitedGraphResults, visitedArtifactSet, legacyResults)
     }
 
     private ResolverResults graphResolved(Set<File> files = []) {
         def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
-        DefaultResolverResults.graphResolved(visitedGraphResults, Mock(ResolvedConfiguration), visitedArtifacts(files))
+
+        def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
+            depSpec -> selectedArtifacts(files),
+            Mock(ResolvedConfiguration)
+        )
+
+        DefaultResolverResults.graphResolved(visitedGraphResults, visitedArtifacts(files), legacyResults)
     }
 
     private visitedArtifacts(Set<File> files = []) {
         Stub(VisitedArtifactSet) {
-            select(_, _) >> Stub(SelectedArtifactSet) {
-                visitFiles(_, _) >> { ResolvedFileVisitor visitor, boolean l ->
-                    files.each {
-                        visitor.visitFile(it)
-                    }
-                    visitor.endVisitCollection(null)
+            select(_) >> selectedArtifacts(files)
+        }
+    }
+
+    private SelectedArtifactSet selectedArtifacts(Set<File> files = []) {
+        Stub(SelectedArtifactSet) {
+            visitFiles(_, _) >> { ResolvedFileVisitor visitor, boolean l ->
+                files.each {
+                    visitor.visitFile(it)
                 }
+                visitor.endVisitCollection(null)
+            }
+        }
+    }
+
+    private SelectedArtifactSet selectedArtifacts(Throwable failure) {
+        Stub(SelectedArtifactSet) {
+            visitDependencies(_) >> { it[0].visitFailure(failure) }
+            visitFiles(_, _) >> { ResolvedFileVisitor v, boolean l ->
+                v.visitFailure(failure)
             }
         }
     }

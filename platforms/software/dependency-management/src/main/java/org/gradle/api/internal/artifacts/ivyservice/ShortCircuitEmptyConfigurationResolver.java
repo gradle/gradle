@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
@@ -43,8 +44,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 
 import java.io.File;
 import java.util.Collections;
@@ -76,7 +79,9 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
-        return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE);
+        return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE,
+            DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(EmptyResults.INSTANCE)
+        );
     }
 
     @Override
@@ -97,9 +102,13 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
         VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
         ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
-            graphResults, resolveContext.getResolutionHost(), new EmptyLenientConfiguration()
+            graphResults, resolveContext.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
         );
-        return DefaultResolverResults.graphResolved(graphResults, resolvedConfiguration, EmptyResults.INSTANCE);
+        return DefaultResolverResults.graphResolved(graphResults, EmptyResults.INSTANCE,
+            DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
+                EmptyResults.INSTANCE, resolvedConfiguration
+            )
+        );
     }
 
     private VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
@@ -110,11 +119,16 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
     }
 
-    private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet {
+    private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, ResolverResults.LegacyResolverResults.LegacyVisitedArtifactSet {
         private static final EmptyResults INSTANCE = new EmptyResults();
 
         @Override
-        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, ArtifactSelectionSpec spec) {
+        public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
+            return this;
+        }
+
+        @Override
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec) {
             return this;
         }
 
@@ -131,8 +145,10 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     public static class EmptyLenientConfiguration implements LenientConfigurationInternal {
 
         @Override
-        public SelectedArtifactSet select() {
-            return EmptyResults.INSTANCE;
+        public ArtifactSelectionSpec getImplicitSelectionSpec() {
+            return new ArtifactSelectionSpec(
+                ImmutableAttributes.EMPTY, Specs.satisfyAll(), false, false, ResolutionStrategy.SortOrder.DEFAULT
+            );
         }
 
         @Override

@@ -16,23 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.LenientConfiguration;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 
 /**
  * Internal counterpart of {@link LenientConfiguration}.
  */
-public interface LenientConfigurationInternal extends LenientConfiguration {
+public interface LenientConfigurationInternal extends LenientConfiguration, ResolverResults.LegacyResolverResults.LegacyVisitedArtifactSet {
 
     /**
-     * Selects artifacts non-leniently using the implicit selection spec, without filtering.
+     * An artifact selection spec that can be applied to a visited artifact set to select
+     * the artifacts that a configuration's intrinsic file collection would select.
      */
-    SelectedArtifactSet select();
-
-    /**
-     * Selects artifacts non-leniently using the implicit selection spec, with filtering by first-level dependency.
-     */
-    SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec);
+    ArtifactSelectionSpec getImplicitSelectionSpec();
 }
