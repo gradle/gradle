@@ -41,4 +41,10 @@ public interface ProjectSpecificationContainer {
     DirectoryProperty getProjectDir();
 
     Property<Boolean> getAutoDetect();
+
+    void autoDetectIfConfigured();
+
+    // Ideally this should be ListProperty<String> with relative paths, but these are not yet supported.
+    @Adding
+    void addAutoDetectDir(String path);
 }

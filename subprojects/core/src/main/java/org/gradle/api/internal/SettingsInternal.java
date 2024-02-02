@@ -75,4 +75,6 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
 
     @Override
     CacheConfigurationsInternal getCaches();
+
+    void autoDetectIfConfigured();
 }

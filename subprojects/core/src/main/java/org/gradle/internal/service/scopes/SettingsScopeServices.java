@@ -44,6 +44,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.initialization.DefaultProjectSpecificationRegistry;
+import org.gradle.initialization.ProjectSpecificationRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
@@ -118,5 +120,9 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
             taskDependencyFactory,
             fileCollectionFactory,
             domainObjectCollectionFactory);
+    }
+
+    ProjectSpecificationRegistry createProjectSpecificationRegistry() {
+        return new DefaultProjectSpecificationRegistry();
     }
 }

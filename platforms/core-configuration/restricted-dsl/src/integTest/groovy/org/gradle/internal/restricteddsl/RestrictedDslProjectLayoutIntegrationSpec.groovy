@@ -185,10 +185,6 @@ class RestrictedDslProjectLayoutIntegrationSpec extends AbstractIntegrationSpec 
             build {
                 name = "test-value"
             }
-
-            layout {
-
-            }
         """
         buildFile << """
             println('name = ' + rootProject.name)
@@ -204,6 +200,47 @@ class RestrictedDslProjectLayoutIntegrationSpec extends AbstractIntegrationSpec 
         file("baz/qux/${PROJECT_MARKER_FILE}") << ""
         file("baz/qux/qax/${PROJECT_MARKER_FILE}") << ""
         file("baz/fizz/${PROJECT_MARKER_FILE}") << ""
+
+        expect:
+        succeeds("projects")
+        outputContains("--- Project ':foo:bar'")
+        outputContains("--- Project ':baz:qux:qax'")
+        outputContains("--- Project ':baz:fizz'")
+
+        where:
+        settingsScript << SETTINGS_SCRIPTS
+    }
+
+    def "can autodetect projects with additional configured directories in a multi-project workspace (#settingsScript)"() {
+        given:
+        file(settingsScript) << """
+            build {
+                name = "test-value"
+            }
+
+            layout {
+                subproject("foo") {
+                    addAutoDetectDir("libraries")
+                }
+                subproject("baz") {
+                    addAutoDetectDir("libraries")
+                }
+            }
+        """
+        buildFile << """
+            println('name = ' + rootProject.name)
+            assert project(':foo').projectDir == file('foo')
+            assert project(':foo:bar').projectDir == file('foo/libraries/bar')
+            assert project(':baz').projectDir == file('baz')
+            assert project(':baz:qux').projectDir == file('baz/libraries/qux')
+            assert project(':baz:qux:qax').projectDir == file('baz/libraries/qux/qax')
+        """
+        file("foo/${PROJECT_MARKER_FILE}") << ""
+        file("foo/libraries/bar/${PROJECT_MARKER_FILE}") << ""
+        file("baz/${PROJECT_MARKER_FILE}") << ""
+        file("baz/libraries/qux/${PROJECT_MARKER_FILE}") << ""
+        file("baz/libraries/qux/qax/${PROJECT_MARKER_FILE}") << ""
+        file("baz/libraries/fizz/${PROJECT_MARKER_FILE}") << ""
 
         expect:
         succeeds("projects")

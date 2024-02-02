@@ -52,13 +52,17 @@ abstract public class AbstractProjectSpecificationContainer implements ProjectSp
         this(settings, "", null);
     }
 
-    //@Override
-    public ProjectSpecification subproject(String logicalPath) {
+    @Override
+    public DefaultProjectSpecification subproject(String logicalPath) {
         return subproject(logicalPath, Actions.doNothing());
     }
 
     @Override
-    public ProjectSpecification subproject(String logicalPathRelativeToParent, Action<? super ProjectSpecification> action) {
+    public DefaultProjectSpecification subproject(String logicalPathRelativeToParent, Action<? super ProjectSpecification> action) {
+        return subproject(logicalPathRelativeToParent, getProjectDir().dir(logicalPathRelativeToParent), action);
+    }
+
+    public DefaultProjectSpecification subproject(String logicalPathRelativeToParent, Provider<Directory> dir, Action<? super ProjectSpecification> action) {
         if (logicalPathRelativeToParent.contains(LOGICAL_PATH_SEPARATOR) || logicalPathRelativeToParent.contains(File.separator)) {
             throw new IllegalArgumentException("The logical path '" + logicalPathRelativeToParent + "' should not contain separators.  To create a complex logical path, use nested calls to the 'subproject()' method.");
         }
@@ -71,16 +75,16 @@ abstract public class AbstractProjectSpecificationContainer implements ProjectSp
         }
 
         settings.include(subproject.getLogicalPath());
-        subproject.setProjectDirRelativePath(logicalPathRelativeToParent);
+        subproject.setExplicitProjectDir(dir);
+        getProjectSpecificationRegistry().registerProjectSpecification(subproject);
 
         action.execute(subproject);
-        subproject.autoDetectIfConfigured();
 
         return subproject;
     }
 
-    private ProjectSpecification subproject(File dir) {
-        return subproject(dir.getName());
+    private DefaultProjectSpecification subproject(File dir) {
+        return subproject(dir.getName(), getObjectFactory().directoryProperty().fileValue(dir), Actions.doNothing());
     }
 
     private static boolean notEqual(Provider<Directory> dir, Provider<Directory> otherDir) {
@@ -88,16 +92,21 @@ abstract public class AbstractProjectSpecificationContainer implements ProjectSp
     }
 
     private boolean isAlreadyRegistered(Provider<Directory> dir) {
-        return getProjectRegistry().getProject(dir.get().getAsFile()) != null;
+        return getProjectRegistry().getProject(dir.get().getAsFile()) != null
+            || getProjectSpecificationRegistry().getProjectSpecificationByDir(dir.get().getAsFile()).isPresent();
     }
 
     @Override
     public void setProjectDirRelativePath(String projectRelativePath) {
+        setExplicitProjectDir(parent.getProjectDir().dir(projectRelativePath));
+    }
+
+    public void setExplicitProjectDir(Provider<Directory> newProjectDir) {
         Provider<Directory> logicalProjectDir = parent.getProjectDir().dir(logicalPathRelativeToParent);
-        Provider<Directory> newProjectDir = parent.getProjectDir().dir(projectRelativePath);
 
         if (notEqual(logicalProjectDir, newProjectDir) && isAlreadyRegistered(newProjectDir)) {
-            throw new IllegalArgumentException("A project with directory '" + projectRelativePath + "' has already been registered.");
+            String relativePath = getRootDir().get().getAsFile().toPath().relativize(newProjectDir.get().getAsFile().toPath()).toString();
+            throw new IllegalArgumentException("A project with directory '" + relativePath + "' has already been registered.");
         }
 
         getProjectDir().set(newProjectDir);
@@ -105,6 +114,15 @@ abstract public class AbstractProjectSpecificationContainer implements ProjectSp
         ((DefaultProjectDescriptor)settings.project(getLogicalPath())).setProjectDir(getProjectDir());
     }
 
+    public Provider<Directory> getRootDir() {
+        if (parent != null) {
+            return ((AbstractProjectSpecificationContainer)parent).getRootDir();
+        } else {
+            return getProjectDir();
+        }
+    }
+
+    @Override
     public void autoDetectIfConfigured() {
         if (getAutoDetect().get()) {
             getAutoDetectDirs().get().forEach(dir -> {
@@ -112,9 +130,18 @@ abstract public class AbstractProjectSpecificationContainer implements ProjectSp
                         File[] subdirs = dir.listFiles(File::isDirectory);
                         if (subdirs != null) {
                             Arrays.stream(subdirs)
-                                .filter(file -> new File(file, PROJECT_MARKER_FILE).exists()
-                                    && !isAlreadyRegistered(getProjectDir().dir(file.getName())))
-                                .forEach(this::subproject);
+                                .filter(file -> new File(file, PROJECT_MARKER_FILE).exists())
+                                .forEach(file -> {
+                                    ProjectSpecificationContainer spec;
+                                    if (isAlreadyRegistered(getProjectDir().dir(file.getName()))) {
+                                        spec = getProjectSpecificationRegistry().getProjectSpecificationByDir(file).orElse(null);
+                                    } else {
+                                        spec = subproject(file);
+                                    }
+                                    if (spec != null) {
+                                        spec.autoDetectIfConfigured();
+                                    }
+                                });
                         }
                     }
                 }
@@ -122,11 +149,19 @@ abstract public class AbstractProjectSpecificationContainer implements ProjectSp
         }
     }
 
+    @Override
+    public void addAutoDetectDir(String path) {
+        getAutoDetectDirs().add(getProjectDir().dir(path).map(Directory::getAsFile));
+    }
+
     @Inject
     abstract protected ObjectFactory getObjectFactory();
 
     @Inject
     abstract protected ProjectDescriptorRegistry getProjectRegistry();
+
+    @Inject
+    abstract protected ProjectSpecificationRegistry getProjectSpecificationRegistry();
 
     abstract SetProperty<File> getAutoDetectDirs();
 }
