@@ -18,13 +18,26 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.problems.internal.DocLink;
+import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 
 public abstract class AbstractMutationGuard implements MutationGuard {
+
+    private DocLink mutationDeprecationUrl = null;
+    private Factory<RuntimeException> unconditionalMutationExceptionFactory = null;
+
     @Override
     public void assertMutationAllowed(String methodName, Object target) {
         if (!isMutationAllowed()) {
             throw createIllegalStateException(new DslObject(target).getPublicType().getConcreteClass(), methodName, target);
+        }
+        if (unconditionalMutationExceptionFactory != null) {
+            throw unconditionalMutationExceptionFactory.create();
+        }
+        if (mutationDeprecationUrl != null) {
+            maybeEmitMutationDeprecation(target);
         }
     }
 
@@ -33,10 +46,23 @@ public abstract class AbstractMutationGuard implements MutationGuard {
         if (!isMutationAllowed()) {
             throw createIllegalStateException(targetType, methodName, target);
         }
+        if (unconditionalMutationExceptionFactory != null) {
+            throw unconditionalMutationExceptionFactory.create();
+        }
+        if (mutationDeprecationUrl != null) {
+            maybeEmitMutationDeprecation(target);
+        }
     }
 
     private static <T> IllegalStateException createIllegalStateException(Class<T> targetType, String methodName, T target) {
         return new IllegalMutationException(String.format("%s#%s on %s cannot be executed in the current context.", targetType.getSimpleName(), methodName, target));
+    }
+
+    private <T> void maybeEmitMutationDeprecation(T target) {
+        DeprecationLogger.deprecateAction(String.format("Mutating %s", target))
+            .willBecomeAnErrorInGradle9()
+            .withDocumentation(mutationDeprecationUrl)
+            .nagUser();
     }
 
     @Contextual
@@ -56,5 +82,15 @@ public abstract class AbstractMutationGuard implements MutationGuard {
     @Override
     public <T> Action<? super T> withMutationDisabled(Action<? super T> action) {
         return newActionWithMutation(action, false);
+    }
+
+    @Override
+    public void deprecateMutation(DocLink documentationUrl) {
+        this.mutationDeprecationUrl = documentationUrl;
+    }
+
+    @Override
+    public void forbidMutation(Factory<RuntimeException> exceptionFactory) {
+        this.unconditionalMutationExceptionFactory = exceptionFactory;
     }
 }

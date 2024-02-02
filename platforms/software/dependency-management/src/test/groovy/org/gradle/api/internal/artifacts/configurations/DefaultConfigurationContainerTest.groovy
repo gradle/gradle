@@ -35,7 +35,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest
 import org.gradle.internal.code.UserCodeApplicationContext
@@ -64,7 +64,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private ImmutableAttributesFactory immutableAttributesFactory = AttributeTestUtil.attributesFactory()
-    private DomainObjectContext domainObjectContext = new RootScriptDomainObjectContext()
+    private DomainObjectContext domainObjectContext = StandaloneDomainObjectContext.ANONYMOUS
     private DefaultRootComponentMetadataBuilder metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
         getValidator() >> Mock(MutationValidator)
     }

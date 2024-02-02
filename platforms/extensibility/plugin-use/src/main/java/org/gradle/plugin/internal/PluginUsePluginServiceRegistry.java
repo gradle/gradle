@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
@@ -127,7 +127,7 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return new Factory<DependencyResolutionServices>() {
                 @Override
                 public DependencyResolutionServices create() {
-                    return dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.PLUGINS);
+                    return dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), StandaloneDomainObjectContext.PLUGINS);
                 }
             };
         }

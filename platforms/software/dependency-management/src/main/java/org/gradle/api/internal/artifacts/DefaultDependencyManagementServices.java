@@ -370,6 +370,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ConfigurationContainerInternal createConfigurationContainer(
             Instantiator instantiator,
             CollectionCallbackActionDecorator callbackDecorator,
+            DomainObjectContext domainObjectContext,
             DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
             DefaultConfigurationFactory defaultConfigurationFactory,
             ResolutionStrategyFactory resolutionStrategyFactory
@@ -377,6 +378,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 instantiator,
                 callbackDecorator,
+                domainObjectContext,
                 rootComponentMetadataBuilderFactory,
                 defaultConfigurationFactory,
                 resolutionStrategyFactory

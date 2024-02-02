@@ -17,9 +17,14 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.internal.DocLink;
+import org.gradle.internal.Factory;
 
 /**
- * A guard object for the mutability of an object. All mutable method of the object needs to be guarded by calling {@code #assertMutationAllowed(String)}. If you want to allow ad-hoc code to pass over the mutation guard of the object, the object will need to implement {@code WithMutationGuard}. You can then use {@code MutationGuards#of(Object)} to acquire the guard and enable/disable the mutation as you see fit.
+ * A guard object for the mutability of an object.
+ * All mutable method of the object needs to be guarded by calling {@code #assertMutationAllowed(String)}.
+ * If you want to allow ad-hoc code to pass over the mutation guard of the object, the object will need to implement {@code WithMutationGuard}.
+ * You can then use {@code MutationGuards#of(Object)} to acquire the guard and enable/disable the mutation as you see fit.
  */
 public interface MutationGuard {
     /**
@@ -54,4 +59,26 @@ public interface MutationGuard {
     void assertMutationAllowed(String methodName, Object target);
 
     <T> void assertMutationAllowed(String methodName, T target, Class<T> targetType);
+
+    /**
+     * Unconditionally deprecate subsequent mutations of the object guarded by this guard.
+     *
+     * Even {@link #withMutationDisabled} and {@link #withMutationEnabled} cannot override
+     * this deprecation.
+     *
+     * In a future version of Gradle, the deprecation will become an error.
+     *
+     * @param documentationUrl The URL to the documentation explaining the deprecation.
+     */
+    void deprecateMutation(DocLink documentationUrl);
+
+    /**
+     * Unconditionally forbid subsequent mutations of the object guarded by this guard.
+     *
+     * Even {@link #withMutationDisabled} and {@link #withMutationEnabled} cannot override
+     * this prohibition.
+     *
+     * @param exceptionFactory A factory for the exception to throw when a mutation is attempted.
+     */
+    void forbidMutation(Factory<RuntimeException> exceptionFactory);
 }

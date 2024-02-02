@@ -30,10 +30,12 @@ import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
 import org.gradle.internal.artifacts.configurations.AbstractRoleBasedConfigurationCreationRequest;
 import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest;
@@ -58,19 +60,23 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private static final Set<ConfigurationRole> VALID_MAYBE_CREATE_ROLES = new HashSet<>(Arrays.asList(ConfigurationRoles.CONSUMABLE, ConfigurationRoles.RESOLVABLE, ConfigurationRoles.DEPENDENCY_SCOPE, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE));
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
-    private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
+
+    private final DomainObjectContext domainObjectContext;
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
+    private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
 
     public DefaultConfigurationContainer(
         Instantiator instantiator,
         CollectionCallbackActionDecorator callbackDecorator,
+        DomainObjectContext domainObjectContext,
         DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ResolutionStrategyFactory resolutionStrategyFactory
     ) {
         super(Configuration.class, instantiator, new Configuration.Namer(), callbackDecorator);
 
+        this.domainObjectContext = domainObjectContext;
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
@@ -385,5 +391,10 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         protected I createDomainObject() {
             return factory.apply(getName());
         }
+    }
+
+    @Override
+    public String getDisplayName() {
+        return Describables.of("configuration container for", domainObjectContext).getDisplayName();
     }
 }

@@ -37,6 +37,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
 
     public DefaultReportContainer(Class<? extends T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, instantiator, Report.NAMER, callbackActionDecorator);
+        getMutationGuard().forbidMutation(ImmutableViolationException::new);
 
         enabled = matching(new Spec<T>() {
             @Override
@@ -44,11 +45,6 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
                 return element.getRequired().get();
             }
         });
-    }
-
-    @Override
-    protected void assertMutableCollectionContents() {
-        throw new ImmutableViolationException();
     }
 
     @Override

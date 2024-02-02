@@ -1610,5 +1610,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         public boolean isDetachedState() {
             return true;
         }
+
+        @Override
+        public String getDisplayName() {
+            return delegate.getDisplayName();
+        }
     }
 }

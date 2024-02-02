@@ -18,6 +18,7 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
@@ -26,18 +27,38 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class RootScriptDomainObjectContext implements DomainObjectContext, ModelContainer<Object> {
+public abstract class StandaloneDomainObjectContext implements DomainObjectContext, ModelContainer<Object> {
     private static final Object MODEL = new Object();
-    public static final RootScriptDomainObjectContext INSTANCE = new RootScriptDomainObjectContext();
 
-    public static final RootScriptDomainObjectContext PLUGINS = new RootScriptDomainObjectContext() {
+    public static final StandaloneDomainObjectContext ANONYMOUS = new StandaloneDomainObjectContext() {
+        @Override
+        public String getDisplayName() {
+            return "anonymous";
+        }
+    };
+
+    public static final StandaloneDomainObjectContext PLUGINS = new StandaloneDomainObjectContext() {
         @Override
         public boolean isPluginContext() {
             return true;
         }
+
+        @Override
+        public String getDisplayName() {
+            return "plugins";
+        }
     };
 
-    private RootScriptDomainObjectContext() {
+    public static StandaloneDomainObjectContext forScript(ScriptSource source) {
+        return new StandaloneDomainObjectContext() {
+            @Override
+            public String getDisplayName() {
+                return source.getShortDisplayName().getDisplayName();
+            }
+        };
+    }
+
+    private StandaloneDomainObjectContext() {
     }
 
     @Override

@@ -43,7 +43,7 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -81,7 +81,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def configurationsFactory = new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
-        configurationsProvider, metadataBuilder, RootScriptDomainObjectContext.INSTANCE, TestUtil.calculatedValueContainerFactory())
+        configurationsProvider, metadataBuilder, StandaloneDomainObjectContext.ANONYMOUS, TestUtil.calculatedValueContainerFactory())
 
     def metadata = new DefaultLocalComponentMetadata(
         id, componentIdentifier, "status", Mock(AttributesSchemaInternal),

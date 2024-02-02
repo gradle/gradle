@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -136,7 +136,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                 return state;
             });
         } else {
-            return createRootComponentMetadata(module, componentIdentifier, EmptySchema.INSTANCE, RootScriptDomainObjectContext.INSTANCE);
+            return createRootComponentMetadata(module, componentIdentifier, EmptySchema.INSTANCE, StandaloneDomainObjectContext.ANONYMOUS);
         }
     }
 

@@ -59,7 +59,7 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
@@ -1821,7 +1821,7 @@ All Artifacts:
         _ * domainObjectContext.identityPath(_) >> { String p -> build.append(Path.path(projectPath)).child(p) }
         _ * domainObjectContext.projectPath(_) >> { String p -> Path.path(projectPath).child(p) }
         _ * domainObjectContext.buildPath >> Path.path(buildPath)
-        _ * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+        _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
             instantiator,

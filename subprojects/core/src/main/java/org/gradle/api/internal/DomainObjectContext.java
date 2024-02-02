@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.api.Describable;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
@@ -24,7 +25,7 @@ import javax.annotation.Nullable;
 /**
  * Represents a node in the tree of builds/projects.
  */
-public interface DomainObjectContext {
+public interface DomainObjectContext extends Describable {
 
     /**
      * Creates a path from the root of the build tree to the current context + name.

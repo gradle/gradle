@@ -185,6 +185,56 @@ tasks.register("resolveReplacement") {
 ======
 =====
 
+[[creating_new_buildscript_configurations]]
+==== Deprecated creating new buildscript configurations
+
+Starting in Gradle 9.0, creating new configurations in a script's link:{javadocPath}/org/gradle/api/Script.html#buildscript-groovy.lang.Closure-[buildscript] block will result in an error.
+This applies to project, settings, init, and standalone scripts.
+
+The buildscript configurations block is only intended to be used to declare dependencies for the buildscript classpath.
+
+Consider the following script that creates a new buildscript configuration in a Settings script and resolves it:
+
+=====
+[.multi-language-sample]
+======
+.settings.gradle.kts
+[source,kotlin]
+----
+buildscript {
+    configurations {
+        create("myConfig")
+    }
+    dependencies {
+        "myConfig"("org:foo:1.0")
+    }
+}
+
+val files = buildscript.configurations["myConfig"].files
+----
+======
+=====
+
+This pattern is sometimes used to resolve dependencies in Settings, where there is no other way to obtain a Configuration.
+Resolving dependencies in this context is not recommended, however using a detached configuration will still work for the time being.
+
+Consider the following replacement to the above example, which uses a detached configuration instead:
+
+=====
+[.multi-language-sample]
+======
+.settings.gradle.kts
+[source,kotlin]
+----
+val myConfig = buildscript.configurations.detachedConfiguration(
+    buildscript.dependencies.create("org:foo:1.0")
+)
+
+val files = myConfig.files
+----
+======
+=====
+
 [[changes_8.6]]
 == Upgrading from 8.5 and earlier
 

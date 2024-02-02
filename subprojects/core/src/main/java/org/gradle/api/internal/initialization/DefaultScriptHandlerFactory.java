@@ -50,7 +50,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
 
     @Override
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope) {
-        return create(scriptSource, classLoaderScope, RootScriptDomainObjectContext.INSTANCE);
+        return create(scriptSource, classLoaderScope, StandaloneDomainObjectContext.forScript(scriptSource));
     }
 
     @Override

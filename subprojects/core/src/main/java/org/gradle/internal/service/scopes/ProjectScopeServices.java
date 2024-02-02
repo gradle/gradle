@@ -294,6 +294,11 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
         public boolean isPluginContext() {
             return false;
         }
+
+        @Override
+        public String getDisplayName() {
+            return "buildscript of " + delegate.getDisplayName();
+        }
     }
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {

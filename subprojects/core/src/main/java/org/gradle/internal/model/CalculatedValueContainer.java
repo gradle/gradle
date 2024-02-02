@@ -17,7 +17,7 @@
 package org.gradle.internal.model;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
@@ -149,7 +149,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         if (calculationState != null && calculationState.supplier.usesMutableProjectState()) {
             return calculationState.supplier.getOwningProject().getOwner();
         } else {
-            return RootScriptDomainObjectContext.INSTANCE.getModel();
+            return StandaloneDomainObjectContext.ANONYMOUS.getModel();
         }
     }
 

@@ -17,6 +17,8 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.internal.DocLink;
+import org.gradle.internal.Factory;
 
 public class MutationGuards {
     private static final MutationGuard IDENTITY_MUTATION_GUARD = new MutationGuard() {
@@ -44,6 +46,16 @@ public class MutationGuards {
         public <T> void assertMutationAllowed(String methodName, T target, Class<T> targetType) {
             // do nothing
         }
+
+        @Override
+        public void deprecateMutation(DocLink documentationUrl) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void forbidMutation(Factory<RuntimeException> exceptionFactory) {
+            throw new UnsupportedOperationException();
+        }
     };
 
     /**
@@ -54,13 +66,13 @@ public class MutationGuards {
     }
 
     /**
-     * Retrieves the {@code MutationGuard} of the target if it implements {@code WithMutationGuard}, else returns an identity mutation guard performing no guard operations.
+     * Retrieves the {@code MutationGuard} of the target if it implements {@code WithMutationGuard}, otherwise throws an exception.
      */
     public static MutationGuard of(Object target) {
         if (target instanceof WithMutationGuard) {
             return ((WithMutationGuard) target).getMutationGuard();
         } else {
-            return IDENTITY_MUTATION_GUARD;
+            throw new IllegalArgumentException("The target object does not implement WithMutationGuard: " + target);
         }
     }
 }

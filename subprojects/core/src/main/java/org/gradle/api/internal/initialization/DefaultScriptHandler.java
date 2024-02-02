@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
@@ -35,6 +36,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -157,6 +159,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
+            MutationGuards.of(configContainer).deprecateMutation(Documentation.upgradeGuide(8, "creating_new_buildscript_configurations"));
             buildLogicBuilder.prepareClassPath(classpathConfiguration, dependencyHandler);
         }
     }
