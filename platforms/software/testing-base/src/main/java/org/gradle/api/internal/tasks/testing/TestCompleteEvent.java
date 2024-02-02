@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 public class TestCompleteEvent {
     private final long endTime;
     private final TestResult.ResultType resultType;
+    private final String skipReason;
 
     @UsedByScanPlugin("test-distribution")
     public TestCompleteEvent(long endTime) {
@@ -33,8 +34,13 @@ public class TestCompleteEvent {
 
     @UsedByScanPlugin("test-distribution")
     public TestCompleteEvent(long endTime, TestResult.ResultType resultType) {
+        this(endTime, resultType, null);
+    }
+
+    public TestCompleteEvent(long endTime, TestResult.ResultType resultType, @Nullable String skipReason) {
         this.endTime = endTime;
         this.resultType = resultType;
+        this.skipReason = skipReason;
     }
 
     public long getEndTime() {
@@ -44,5 +50,10 @@ public class TestCompleteEvent {
     @Nullable
     public TestResult.ResultType getResultType() {
         return resultType;
+    }
+
+    @Nullable
+    public String getSkipReason() {
+        return skipReason;
     }
 }

@@ -85,10 +85,12 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract class for all test tasks.
@@ -535,7 +537,18 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             if (testsAreNotFiltered()) {
                 emitDeprecationMessage();
             } else if (shouldFailOnNoMatchingTests()) {
-                throw new TestExecutionException(createNoMatchingTestErrorMessage());
+                throw new TestExecutionException(createNoMatchingTestErrorMessage(testCountLogger.getSkipReasons()));
+            }
+        } else if (testCountLogger.getTotalTests() == testCountLogger.getSkippedTests()) {
+
+            DeprecationLogger.deprecateBehaviour("All tests skipped.")
+                .withAdvice("Tests were discovered and not filtered, but were skipped after discovery.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "test_task_fail_on_no_test_executed")
+                .nagUser();
+
+            if (!testCountLogger.getSkipReasons().isEmpty()) {
+                getLogger().warn(formatSkippedTestMessage(testCountLogger.getSkipReasons()));
             }
         }
     }
@@ -562,9 +575,32 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             || !filter.getExcludePatterns().isEmpty();
     }
 
-    private String createNoMatchingTestErrorMessage() {
-        return "No tests found for given includes: "
+    private String createNoMatchingTestErrorMessage(Set<String> skipReasons) {
+        String message =  "No tests found for given includes: "
             + Joiner.on(' ').join(getNoMatchingTestErrorReasons());
+
+        String skipReasonsMessage = formatSkippedTestMessage(skipReasons);
+        if (skipReasonsMessage.isEmpty()) {
+            return message;
+        }
+
+        return message + "\n" + skipReasonsMessage;
+    }
+
+    private static String formatSkippedTestMessage(Set<String> skipReasons) {
+        StringBuilder message = new StringBuilder();
+        if (!skipReasons.isEmpty()) {
+
+            List<String> sortedReasons = new ArrayList<String>(skipReasons);
+            Collections.sort(sortedReasons);
+
+            message = new StringBuilder("Tests were skipped for the following reasons:\n");
+            for (String reason : sortedReasons) {
+                message.append("  - ").append(reason).append("\n");
+            }
+
+        }
+        return message.toString();
     }
 
     /**

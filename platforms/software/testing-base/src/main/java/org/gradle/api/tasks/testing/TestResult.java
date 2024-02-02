@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Describes a test result.
@@ -57,6 +58,16 @@ public interface TestResult {
      */
     @Incubating
     List<TestFailure> getFailures();
+
+    /**
+     * For all skipped tests, this will contain the reason why those tests were skipped, if any.
+     *
+     * @return The reported skip reasons.
+     *
+     * @since 8.7
+     */
+    @Incubating
+    Set<String> getSkipReasons();
 
     /**
      * If the test failed with any exceptions, this will contain the exceptions.  Some test frameworks do not fail

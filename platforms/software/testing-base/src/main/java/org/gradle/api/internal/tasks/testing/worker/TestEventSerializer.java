@@ -137,13 +137,15 @@ public class TestEventSerializer {
         public TestCompleteEvent read(Decoder decoder) throws Exception {
             long endTime = decoder.readLong();
             TestResult.ResultType result = typeSerializer.read(decoder);
-            return new TestCompleteEvent(endTime, result);
+            String skipReason = decoder.readNullableString();
+            return new TestCompleteEvent(endTime, result, skipReason);
         }
 
         @Override
         public void write(Encoder encoder, TestCompleteEvent value) throws Exception {
             encoder.writeLong(value.getEndTime());
             typeSerializer.write(encoder, value.getResultType());
+            encoder.writeNullableString(value.getSkipReason());
         }
     }
 

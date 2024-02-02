@@ -22,6 +22,7 @@ import org.gradle.api.tasks.testing.TestResult
 class SimpleTestResult implements TestResult {
     TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
     List<Throwable> exceptions = []
+    Set<String> skipReasons = [] as Set
     Throwable exception = exceptions[0]
     List<TestFailure> failures
     long startTime = 0

@@ -23,8 +23,10 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class TestState {
     public final TestDescriptorInternal test;
@@ -32,6 +34,7 @@ public class TestState {
     private final Map<Object, TestState> executing;
     public boolean failedChild;
     public List<TestFailure> failures = new ArrayList<TestFailure>();
+    public Set<String> skipReasons = new HashSet<String>();
     public long testCount;
     public long successfulCount;
     public long failedCount;
@@ -77,6 +80,10 @@ public class TestState {
             }
         }
 
+        if (resultType == TestResult.ResultType.SKIPPED && event.getSkipReason() != null) {
+            skipReasons.add(event.getSkipReason());
+        }
+
         if (startEvent.getParentId() != null) {
             TestState parentState = executing.get(startEvent.getParentId());
             if (parentState != null) {
@@ -86,6 +93,7 @@ public class TestState {
                 parentState.testCount += testCount;
                 parentState.successfulCount += successfulCount;
                 parentState.failedCount += failedCount;
+                parentState.skipReasons.addAll(skipReasons);
             }
         }
     }

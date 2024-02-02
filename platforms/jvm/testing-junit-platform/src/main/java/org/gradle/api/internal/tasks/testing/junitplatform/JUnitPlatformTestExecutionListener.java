@@ -100,12 +100,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void executionSkipped(TestIdentifier testIdentifier, String reason) {
-        executionSkipped(testIdentifier);
-    }
-
-    private void executionSkipped(TestIdentifier testIdentifier) {
         executionStarted(testIdentifier);
-        reportSkipped(testIdentifier);
+        reportSkipped(testIdentifier, reason);
     }
 
     @Override
@@ -121,7 +117,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (testExecutionResult.getStatus() == ABORTED) {
-            reportSkipped(testIdentifier);
+            reportSkipped(testIdentifier, "Execution was aborted");
             return;
         }
         if (testExecutionResult.getStatus() == FAILED) {
@@ -155,12 +151,13 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
     }
 
-    private void reportSkipped(TestIdentifier testIdentifier) {
+    private void reportSkipped(TestIdentifier testIdentifier, String reason) {
         currentTestPlan.getChildren(testIdentifier).stream()
             .filter(child -> !wasStarted(child))
-            .forEach(this::executionSkipped);
+            .forEach(filteredId -> executionSkipped(filteredId, reason));
+
         if (testIdentifier.isTest()) {
-            resultProcessor.completed(getId(testIdentifier), completeEvent(SKIPPED));
+            resultProcessor.completed(getId(testIdentifier), skipEvent(reason));
         } else if (hasClassSource(testIdentifier)) {
             resultProcessor.completed(getId(testIdentifier), completeEvent());
         }
@@ -187,6 +184,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private TestCompleteEvent completeEvent(@Nullable ResultType resultType) {
         return new TestCompleteEvent(clock.getCurrentTime(), resultType);
+    }
+
+    private TestCompleteEvent skipEvent(String reason) {
+        return new TestCompleteEvent(clock.getCurrentTime(), SKIPPED, reason);
     }
 
     private boolean wasStarted(TestIdentifier testIdentifier) {

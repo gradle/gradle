@@ -141,6 +141,64 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
             .testClass("Sub").assertTestCount(2, 0, 0)
     }
 
+    def "spock skipped tests print reason with deprecation when tests are selected"() {
+        given:
+        writeSpockDependencies()
+        file("src/test/groovy/MyTest.groovy") << """
+            import spock.lang.Specification
+            import spock.lang.Requires
+            import spock.lang.Unroll
+
+            @Requires(value = { false }, reason = "my reason")
+            class MyTest extends Specification {
+                def pass() {
+                    expect:
+                    true
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("All tests skipped. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Tests were discovered and not filtered, but were skipped after discovery. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
+        succeeds("test")
+
+        then:
+        outputContains("""Tests were skipped for the following reasons:
+  - Ignored via @Requires: my reason""")
+    }
+
+    def "spock skipped tests print reason upon failure when no tests are selected"() {
+        given:
+        writeSpockDependencies()
+        file("src/test/groovy/MyTest.groovy") << """
+            import spock.lang.Specification
+            import spock.lang.Requires
+            import spock.lang.Unroll
+
+            @Requires(value = { false }, reason = "my reason")
+            class MyTest extends Specification {
+                // Unroll needed so that this test is composite, and so not leaf tests are actually executed/skipped,
+                // and therefore the `No tests found for given includes` message is printed
+                @Unroll("test name #value")
+                def pass() {
+                    expect:
+                    true
+
+                    where:
+                    value << [1, 2]
+                }
+            }
+        """
+
+        when:
+        fails("test", "--tests", "MyTest.pass")
+
+        then:
+        failure.assertHasCause("""No tests found for given includes: [MyTest.pass](--tests filter)
+Tests were skipped for the following reasons:
+  - Ignored via @Requires: my reason""")
+    }
+
     private void writeSpockDependencies() {
         file("build.gradle") << """
             apply plugin: 'groovy'

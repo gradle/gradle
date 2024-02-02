@@ -25,6 +25,9 @@ import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class TestCountLogger implements TestListener {
     private final ProgressLoggerFactory factory;
     private ProgressLogger progressLogger;
@@ -34,6 +37,7 @@ public class TestCountLogger implements TestListener {
     private long failedTests;
     private long skippedTests;
     private boolean hadFailures;
+    private final Set<String> skipReasons = new HashSet<String>();
 
     public TestCountLogger(ProgressLoggerFactory factory) {
         this(factory, LoggerFactory.getLogger(TestCountLogger.class));
@@ -53,6 +57,7 @@ public class TestCountLogger implements TestListener {
         totalTests += result.getTestCount();
         failedTests += result.getFailedTestCount();
         skippedTests += result.getSkippedTestCount();
+        skipReasons.addAll(result.getSkipReasons());
         progressLogger.progress(summary());
     }
 
@@ -94,6 +99,7 @@ public class TestCountLogger implements TestListener {
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
+        skipReasons.addAll(result.getSkipReasons());
         if (suite.getParent() == null) {
             if (failedTests > 0) {
                 logger.error(TextUtil.getPlatformLineSeparator() + summary());
@@ -112,5 +118,13 @@ public class TestCountLogger implements TestListener {
 
     public long getTotalTests() {
         return totalTests;
+    }
+
+    public long getSkippedTests() {
+        return skippedTests;
+    }
+
+    public Set<String> getSkipReasons() {
+        return skipReasons;
     }
 }

@@ -79,8 +79,13 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
         }
 
         PredicatesFile.checkValidCombinations(predicateClassNames, acceptedCombinations)
-        // If all preconditions are met, we DON'T skip the tests
-        specOfFeature.skipped |= !TestPrecondition.allSatisfied(annotation.value())
+
+        for (Class<? extends TestPrecondition> preconditionClass : annotation.value()) {
+            if (!TestPrecondition.satisfied(preconditionClass)) {
+                specOfFeature.skip("Precondition not satisfied: " + preconditionClass.simpleName)
+                return
+            }
+        }
     }
 
 }
