@@ -221,7 +221,7 @@ public interface GradleExecuter extends Stoppable {
     /**
      * Downloads and sets up the JVM arguments for running the Gradle daemon with the file leak detector: https://github.com/jenkinsci/lib-file-leak-detector
      *
-     * NOTE: This requires running the test with JDK11 and the forking executer.
+     * NOTE: This requires running the test with at least JDK11 and the forking executer.
      *
      * This should not be checked-in on. This is only for local debugging.
      *
