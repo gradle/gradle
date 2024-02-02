@@ -23,6 +23,7 @@ import java.io.File;
 /**
  * An isolated view of {@link Project} that exposes only those properties that are safe to access from outside of
  * <code>this</code> project, from the perspective of isolated projects.
+ * @since 8.7
  */
 @Incubating
 public interface IsolatedProject {
