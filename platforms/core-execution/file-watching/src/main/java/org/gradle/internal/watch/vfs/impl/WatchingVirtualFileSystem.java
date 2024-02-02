@@ -305,8 +305,15 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     @Override
     public void afterBuildFinished() {
         updateRootUnderLock(currentRoot ->
-            withWatcherChangeErrorHandling(currentRoot, () ->
-                watchRegistry.updateVfsAfterBuildFinished(currentRoot)));
+            withWatcherChangeErrorHandling(currentRoot, () -> {
+                FileWatcherRegistry watchRegistry = this.watchRegistry;
+                if (watchRegistry != null) {
+                    return watchRegistry.updateVfsAfterBuildFinished(currentRoot);
+                } else {
+                    // Drop everything if we can't watch the file system
+                    return currentRoot.empty();
+                }
+            }));
     }
 
     /**
