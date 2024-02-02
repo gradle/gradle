@@ -63,6 +63,10 @@ This includes reworking the way that Gradle configures JGit for SSH operations b
 Apache Commons Compress has been updated from 1.21 to https://commons.apache.org/proper/commons-compress/changes-report.html#a1.25.0[1.25.0].
 This change may affect the checksums of the produced jars, zips, and other archive types because the metadata of the produced artifacts may differ.
 
+==== Upgrade to ASM 9.6
+
+ASM was upgraded from 9.5 to https://asm.ow2.io/versions.html[9.6] for better support of multi-release jars.
+
 === Deprecations
 
 [[string_invoke]]
