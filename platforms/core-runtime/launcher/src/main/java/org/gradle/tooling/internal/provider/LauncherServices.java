@@ -77,6 +77,7 @@ import org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsWorkerThreadBuildActionExecutor;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
+import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.continuous.ContinuousBuildActionExecutor;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DaemonSidePayloadClassLoaderFactory;
@@ -214,6 +215,10 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
     }
 
     static class ToolingBuildTreeScopeServices {
+
+        ProblemStream createProblemStream(StartParameter parameter, ProblemDiagnosticsFactory diagnosticsFactory){
+            return  parameter.getWarningMode().shouldDisplayMessages()? diagnosticsFactory.newUnlimitedStream() : diagnosticsFactory.newStream();
+        }
         BuildTreeActionExecutor createActionExecutor(
             List<BuildActionRunner> buildActionRunners,
             StyledTextOutputFactory styledTextOutputFactory,
@@ -236,7 +241,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             InternalOptions options,
             ProblemDiagnosticsFactory problemDiagnosticsFactory,
             StartParameter startParameter,
-            InternalProblems problemsService
+            InternalProblems problemsService,
+            ProblemStream problemStream
         ) {
             return new InitProblems(
                 new InitDeprecationLoggingActionExecutor(
@@ -268,7 +274,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     problemDiagnosticsFactory,
                     eventEmitter,
                     startParameter,
-                    problemsService),
+                    problemsService,
+                    problemStream),
                 problemsService);
         }
 
