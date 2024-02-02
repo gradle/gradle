@@ -334,7 +334,7 @@ public abstract class InitBuild extends DefaultTask {
 
     private UserInputHandler getEffectiveInputHandler() {
         if (getUseDefaults().get()) {
-            return new NonInteractiveUserInputHandler(getProviderFactory());
+            return new NonInteractiveUserInputHandler();
         }
 
         return getUserInputHandler();

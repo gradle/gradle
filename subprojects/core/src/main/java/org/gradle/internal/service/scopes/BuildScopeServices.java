@@ -122,8 +122,8 @@ import org.gradle.groovy.scripts.internal.BuildScopeInMemoryCachingScriptClassCo
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
-import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.GroovyDslWorkspaceProvider;
+import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.ScriptSourceListener;
 import org.gradle.initialization.BuildLoader;
@@ -474,7 +474,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         ExecutionEngine executionEngine,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        GroovyDslWorkspaceProvider  groovyDslWorkspaceProvider,
+        GroovyDslWorkspaceProvider groovyDslWorkspaceProvider,
         ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
     ) {
         return new GroovyScriptClassCompiler(
@@ -737,11 +737,11 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         );
     }
 
-    UserInputHandler createUserInputHandler(BuildRequestMetaData requestMetaData, OutputEventListenerManager outputEventListenerManager, Clock clock, ProviderFactory providerFactory) {
+    UserInputHandler createUserInputHandler(BuildRequestMetaData requestMetaData, OutputEventListenerManager outputEventListenerManager, Clock clock) {
         if (!requestMetaData.isInteractive()) {
-            return new NonInteractiveUserInputHandler(providerFactory);
+            return new NonInteractiveUserInputHandler();
         }
 
-        return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), clock, new DefaultUserInputReader(), providerFactory);
+        return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), clock, new DefaultUserInputReader());
     }
 }

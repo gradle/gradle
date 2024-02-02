@@ -16,22 +16,17 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-
 import java.util.Collection;
 import java.util.function.Function;
 
-public class NonInteractiveUserInputHandler implements UserInputHandler, UserQuestions {
-    private final ProviderFactory providerFactory;
-
-    public NonInteractiveUserInputHandler(ProviderFactory providerFactory) {
-        this.providerFactory = providerFactory;
+public class NonInteractiveUserInputHandler extends AbstractUserInputHandler implements AbstractUserInputHandler.CloseableUserQuestions {
+    @Override
+    protected CloseableUserQuestions newInteraction() {
+        return this;
     }
 
     @Override
-    public <T> Provider<T> askUser(Function<? super UserQuestions, ? extends T> interaction) {
-        return providerFactory.provider(() -> interaction.apply(this));
+    public void close() {
     }
 
     @Override
