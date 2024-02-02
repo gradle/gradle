@@ -364,7 +364,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             }
 
             extensions.create("thing", Thing)
-            assert thing.value.toString() == "[]"
+            assert thing.value.toString() == "Bean collection"
             assert thing.value.empty
             thing.value.add(new Bean(name: "a"))
             thing.value.add(new Bean(name: "b"))

@@ -236,7 +236,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
         modelNode.functionalSources.myJavaSourceSet.@type[0] == 'SomeJavaSourceSet'
-        modelNode.sources.@nodeValue[0]  == '[]'
+        modelNode.sources.@nodeValue[0]  == 'LanguageSourceSet collection'
 
         and:
         normaliseFileSeparators(output).contains("source dirs: [${normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")

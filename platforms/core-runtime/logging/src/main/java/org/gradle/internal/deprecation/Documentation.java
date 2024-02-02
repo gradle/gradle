@@ -35,7 +35,7 @@ public abstract class Documentation implements DocLink {
         return new UserGuide(id, null);
     }
 
-    static Documentation upgradeGuide(int majorVersion, String upgradeGuideSection) {
+    public static Documentation upgradeGuide(int majorVersion, String upgradeGuideSection) {
         return new UpgradeGuide(majorVersion, upgradeGuideSection);
     }
 

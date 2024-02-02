@@ -1667,7 +1667,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         if (isDirectElementAdditionAllowed()) {
             methods += [
                 "add(T)": { container.add(b) },
-                "addAll(Collection<T>)": { container.addAll([b]) }
+                "addAll(Collection)": { container.addAll([b]) }
             ]
         }
 

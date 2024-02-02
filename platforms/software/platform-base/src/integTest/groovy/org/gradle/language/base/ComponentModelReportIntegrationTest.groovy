@@ -72,7 +72,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                          ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ProjectIdentifier)
                             + tasks
                                   | Type:   	org.gradle.platform.base.BinaryTasksCollection
-                                  | Value:  	[]
+                                  | Value:  	Task collection
                                   | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary)
                     + sources
                           | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
@@ -145,7 +145,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                           | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary) > create(myBinarySource)
                             + tasks
                                   | Type:   	org.gradle.platform.base.BinaryTasksCollection
-                                  | Value:  	[]
+                                  | Value:  	Task collection
                                   | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary)
                     + data
                           | Type:   	java.lang.String
