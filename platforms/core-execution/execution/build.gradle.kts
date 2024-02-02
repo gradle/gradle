@@ -43,8 +43,8 @@ dependencies {
         because("Adds generic build operations for the execution engine")
     }
 
-
     implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
 
     testImplementation(project(":native"))
     testImplementation(project(":logging"))
