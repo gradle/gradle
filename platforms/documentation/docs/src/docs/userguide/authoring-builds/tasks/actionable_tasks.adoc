@@ -13,17 +13,15 @@
 // limitations under the License.
 
 [[actionable_tasks]]
-= Actionable Tasks
+= Actionable Tasks - Input and Outputs
 
 Actionable tasks have inputs and outputs.
-Inputs and outputs can be files, directories, or properties.
+Inputs and outputs can be files, directories, or variables.
 
 Actionable tasks describe work in Gradle.
 
 In Gradle core, the `compileJava` task compiles the Java source code.
 The `Jar` and `Zip` tasks zip up files into archives.
-
-Let's look into registering and configuring actionable tasks.
 
 [[sec:task_groups]]
 == Task inputs and outputs
@@ -31,11 +29,11 @@ Let's look into registering and configuring actionable tasks.
 In actionable tasks:
 
 - *Inputs* consist of a collection of files, folders, and/or configuration data. +
-For instance, the `javaCompile`takes inputs such as Java source files and build script configurations like the Java version.
+For instance, the `javaCompile` task takes inputs such as Java source files and build script configurations like the Java version.
 - *Outputs* refer to one or multiple files or folders. +
 For instance, the `javaCompile` produces class files as output.
 
-Furthermore, the `jar` task takes these class files as input and produces a JAR archive.
+Then, the `jar` task takes these class files as input and produces a JAR archive.
 
 Clearly defined task inputs and outputs serve two purposes:
 
@@ -82,15 +80,15 @@ gradle-project
 =====
 ====
 
-The `run.sh` script can execute the java app (once packaged as a JAR) from the build:
+The `run.sh` script can execute the Java app (once packaged as a JAR) from the build:
 
 .app/run.sh
 [source,bash]
 ----
-java -cp 'libs/*' gradle.project.App
+java -cp 'libs/*' gradle.project.app.App
 ----
 
-Let's register a new task called `packageApp` using `task.register()`:
+Let's register a new task called `packageApp` using link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`task.register()`]:
 
 ====
 [.multi-language-sample]
@@ -115,23 +113,24 @@ tasks.register(Zip, "packageApp") {
 =====
 ====
 
-We used an existing implementation from Gradle core which is the `Zip` task implementation (i.e,. a subclass of `Task`).
-Because we register a new task here, it's not pre-configured so we need to configure the inputs and outputs.
+We used an existing implementation from Gradle core which is the link:{javadocPath}/org/gradle/api/tasks/bundling/Zip.html[`Zip`] task implementation (i.e., a subclass of link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`]).
+Because we register a new task here, it's not pre-configured.
+We need to configure the inputs and outputs.
 
 Defining inputs and outputs is essentially what makes a task an actionable task.
 
-For the `Zip` task type, we can use the `from` notation to add a file to the inputs.
+For the link:{javadocPath}/org/gradle/api/tasks/bundling/Zip.html[`Zip`] task type, we can use the link:{javadocPath}/org/gradle/api/tasks/AbstractCopyTask.html#from-java.lang.Object...-[`from()`] method to add a file to the inputs.
 In our case, we add the run script.
 
 If the input is a file we create or edit directly, like a run file or Java source code, it's usually located somewhere in our project directory.
-To ensure we use the correct location, we use `layout.projectDirectory` and define a relative path to the project directory root.
+To ensure we use the correct location, we use link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[`layout.projectDirectory`] and define a relative path to the project directory root.
 
-We provide the outputs of the `jar` task as well as the JAR of all the dependencies (using `configurations.runtimeClasspath`) as additional inputs.
+We provide the outputs of the `jar` task as well as the JAR of all the dependencies (using link:{javadocPath}/org/gradle/api/Project.html#getConfigurations--[`configurations`]link:{javadocPath}/org/gradle/api/tasks/SourceSet.html#getRuntimeClasspath--[`.runtimeClasspath`]) as additional inputs.
 
 For outputs, we need to define two properties.
 First, the destination directory, which should be a directory inside the build folder.
-We can access this through `layout`.
-Second, we need to specify a name for the zip file, which we've called `myapplication.zip`
+We can access this through link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[`layout`].
+Second, we need to specify a name for the zip file, which we've called `myApplication.zip`
 
 Here is what the complete task looks like:
 
@@ -190,7 +189,7 @@ BUILD SUCCESSFUL in 1s
 3 actionable tasks: 3 executed
 ----
 
-Gradle executed a number of tasks it required to build the JAR file, which is in addition to the JAR itself includes the compilation of the code of the `app` project and the compilation of code dependencies.
+Gradle executed a number of tasks it required to build the JAR file, which includes the compilation of the code of the `app` project and the compilation of code dependencies.
 
 Looking at the newly created ZIP file, we can see that it contains everything needed to run the Java application:
 
@@ -219,7 +218,7 @@ Actionable tasks should be wired to lifecycle tasks so that a developer only nee
 So far we called our new task directly.
 Let's wire it to a lifecycle task.
 
-The following is added to the build script so that the `packageApp` actionable task is wired to the `build` lifecycle task using `dependsOn()`:
+The following is added to the build script so that the `packageApp` actionable task is wired to the `build` lifecycle task using link:{javadocPath}/org/gradle/api/DefaultTask.html#dependsOn-java.lang.Object...-[`dependsOn()`]:
 
 ====
 [.multi-language-sample]
@@ -244,4 +243,30 @@ tasks.build {
 =====
 ====
 
-You could  define your own lifecycle task if needed.
+We see that running `:build` also runs `:packageApp`:
+
+[source,text]
+----
+$ ./gradlew :app:build
+
+> Task :app:compileJava UP-TO-DATE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar UP-TO-DATE
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses
+> Task :app:test
+> Task :app:check
+> Task :app:packageApp
+> Task :app:build
+
+BUILD SUCCESSFUL in 1s
+8 actionable tasks: 6 executed, 2 up-to-date
+----
+
+You could define your own lifecycle task if needed.
