@@ -65,7 +65,6 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
-import org.gradle.internal.watch.vfs.FileSystemWatchingInformation;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -182,7 +181,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             WorkerLeaseService workerLeaseService,
             BuildLayoutValidator buildLayoutValidator,
             FileSystem fileSystem,
-            FileSystemWatchingInformation fileSystemWatchingInformation,
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
             ValueSnapshotter valueSnapshotter
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
@@ -203,7 +202,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     clock,
                     fileSystem,
                     caseSensitivity,
-                    fileSystemWatchingInformation,
+                    virtualFileSystem,
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(

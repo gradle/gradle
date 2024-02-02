@@ -19,10 +19,10 @@ package org.gradle.launcher.daemon.protocol;
 import java.util.List;
 import java.util.UUID;
 
-public class InvalidateVirtualFileSystem extends Command {
+public class InvalidateVirtualFileSystemAfterChange extends Command {
     private final List<String> changedPaths;
 
-    public InvalidateVirtualFileSystem(List<String> changedPaths, UUID identifier, byte[] token) {
+    public InvalidateVirtualFileSystemAfterChange(List<String> changedPaths, UUID identifier, byte[] token) {
         super(identifier, token);
         this.changedPaths = changedPaths;
     }

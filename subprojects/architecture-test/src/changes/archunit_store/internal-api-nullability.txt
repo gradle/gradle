@@ -3488,7 +3488,7 @@ Class <org.gradle.launcher.daemon.protocol.Failure> is not annotated (directly o
 Class <org.gradle.launcher.daemon.protocol.Finished> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Finished.java:0)
 Class <org.gradle.launcher.daemon.protocol.ForwardInput> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ForwardInput.java:0)
 Class <org.gradle.launcher.daemon.protocol.InputMessage> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InputMessage.java:0)
-Class <org.gradle.launcher.daemon.protocol.InvalidateVirtualFileSystem> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InvalidateVirtualFileSystem.java:0)
+Class <org.gradle.launcher.daemon.protocol.InvalidateVirtualFileSystemAfterChange> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InvalidateVirtualFileSystemAfterChange.java:0)
 Class <org.gradle.launcher.daemon.protocol.Message> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Message.java:0)
 Class <org.gradle.launcher.daemon.protocol.OutputMessage> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (OutputMessage.java:0)
 Class <org.gradle.launcher.daemon.protocol.ReportStatus> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ReportStatus.java:0)
