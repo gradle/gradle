@@ -67,15 +67,13 @@
          <ignored-key id="AB2DA4527F6FFC0B" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="66B50994442D2D40" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="4D8159D6A1159B69" reason="Key couldn't be downloaded from any key server"/>
-         <ignored-key id="1CF69814023DEDE9" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="218FA0F6A941A037" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="74DAFDFD6DAE2441" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="8B8E0CB0F6A7657E" reason="Key couldn't be downloaded from any key server"/>
-         <ignored-key id="D945E643368FEF62" reason="Key couldn't be downloaded from any key server"/>
-         <ignored-key id="DEE12B9896F97E34" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="B3DE72E647D35161" reason="Key couldn't be downloaded from any key server"/>
       </ignored-keys>
       <trusted-keys>
+         <trusted-key id="015479E1055341431B4545AB72475FD306B9CAB7" group="com.googlecode.javaewah"/>
          <trusted-key id="019082BC00E0324E2AEF4CF00D3B328562A119A7" group="org.openjdk.jmh"/>
          <trusted-key id="04543577D6A9CC626239C50C7ECBD740FF06AEB5">
             <trusting group="com.sun.xml.bind"/>
@@ -189,9 +187,13 @@
          <trusted-key id="76E94E8FF0AB5AF3B6F8366972FEFD1572EB75E1" group="org.spockframework"/>
          <trusted-key id="7B79ADD11F8A779FE90FD3D0893A028475557671">
             <trusting group="com.gradle"/>
+            <trusting group="com.gradle" name="gradle-enterprise-gradle-plugin"/>
             <trusting group="org.gradle"/>
          </trusted-key>
-         <trusted-key id="7C669810892CBD3148FA92995B05CCDE140C2876" group="org.eclipse.jgit" name="org.eclipse.jgit"/>
+         <trusted-key id="7C669810892CBD3148FA92995B05CCDE140C2876">
+            <trusting group="org.eclipse.jgit" name="org.eclipse.jgit"/>
+            <trusting group="org.eclipse.jgit" name="org.eclipse.jgit.ssh.apache"/>
+         </trusted-key>
          <trusted-key id="7FAA0F2206DE228F0DB01AD741321490758AAD6F" group="org.codehaus.groovy"/>
          <trusted-key id="829D279BA9A3C503EB98A0E53C48F45A0E97AF7E" group="org.gebish"/>
          <trusted-key id="842AFB86375D805422835BFD82B5574242C20D6F">
@@ -690,16 +692,6 @@
             <pgp value="4922C79AF3339C8941C3E7AF80662F8192D749A0"/>
          </artifact>
       </component>
-      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.1.6">
-         <artifact name="JavaEWAH-1.1.6.jar">
-            <pgp value="015479E1055341431B4545AB72475FD306B9CAB7"/>
-         </artifact>
-      </component>
-      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.1.7">
-         <artifact name="JavaEWAH-1.1.7.jar">
-            <pgp value="015479E1055341431B4545AB72475FD306B9CAB7"/>
-         </artifact>
-      </component>
       <component group="com.googlecode.json-simple" name="json-simple" version="1.1">
          <artifact name="json-simple-1.1.jar">
             <sha256 value="2d9484f4c649f708f47f9a479465fc729770ee65617dca3011836602264f6439" reason="Artifact is not signed"/>
@@ -1148,6 +1140,11 @@
       <component group="net.bytebuddy" name="byte-buddy-agent" version="1.8.5">
          <artifact name="byte-buddy-agent-1.8.5.jar">
             <pgp value="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3"/>
+         </artifact>
+      </component>
+      <component group="net.i2p.crypto" name="eddsa" version="0.3.0">
+         <artifact name="eddsa-0.3.0.jar">
+            <pgp value="43C79B4BBD131821E17D2CA77B2F0491728B8E02"/>
          </artifact>
       </component>
       <component group="net.jcip" name="jcip-annotations" version="1.0">

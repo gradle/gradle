@@ -30,7 +30,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class StoreExecutionStateStep<C extends BeforeExecutionContext, R extends AfterExecutionResult> implements Step<C, R> {
+public class StoreExecutionStateStep<C extends IncrementalChangesContext, R extends AfterExecutionResult> implements Step<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
     public StoreExecutionStateStep(
@@ -47,7 +47,11 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext, R extends
                 .flatMap(beforeExecutionState -> result.getAfterExecutionOutputState()
                     .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
                     .map(executionOutputState -> new DefaultAfterExecutionState(beforeExecutionState, executionOutputState)))
-                .ifPresent(afterExecutionState -> history.store(context.getIdentity().getUniqueId(), afterExecutionState)));
+                .ifPresent(afterExecutionState -> history.store(
+                    context.getIdentity().getUniqueId(),
+                    // TODO: Encode the "no cache key available" case in the context type hierarchy
+                    context.getCacheKey().orElseThrow(() -> new IllegalStateException("Cache key needs to be present when we store the execution history")),
+                    afterExecutionState)));
         return result;
     }
 

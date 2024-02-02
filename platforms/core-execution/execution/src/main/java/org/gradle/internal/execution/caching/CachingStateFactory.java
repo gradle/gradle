@@ -18,11 +18,14 @@ package org.gradle.internal.execution.caching;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.hash.HashCode;
 
 public interface CachingStateFactory {
 
     /**
      * Creates a CachingState for beforeExecutionState, that can be either Enabled or Disabled.
      */
-    CachingState createCachingState(BeforeExecutionState beforeExecutionState, ImmutableList<CachingDisabledReason> cachingDisabledReasons);
+    CachingState createCachingState(BeforeExecutionState beforeExecutionState, HashCode cacheKey, ImmutableList<CachingDisabledReason> cachingDisabledReasons);
+
+    HashCode calculateCacheKey(BeforeExecutionState beforeExecutionState);
 }

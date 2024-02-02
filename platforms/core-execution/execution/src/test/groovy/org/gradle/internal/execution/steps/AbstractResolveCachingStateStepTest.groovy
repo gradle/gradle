@@ -17,21 +17,31 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.problems.internal.Problem
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
+import org.gradle.internal.execution.history.BeforeExecutionState
 
 import java.time.Duration
 
-class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
+abstract class AbstractResolveCachingStateStepTest<C extends ValidationFinishedContext, S extends AbstractResolveCachingStateStep<C>> extends StepSpec<C> {
 
     def buildCache = Mock(BuildCacheController)
-    def step = new ResolveCachingStateStep(buildCache, true, delegate)
+    S step
     def delegateResult = Stub(UpToDateResult)
+    def beforeExecutionState = Stub(BeforeExecutionState) {
+        inputFileProperties >> ImmutableSortedMap.of()
+        inputProperties >> ImmutableSortedMap.of()
+        outputFileLocationSnapshots >> ImmutableSortedMap.of()
+    }
+
+    abstract S createStep()
 
     def setup() {
         delegateResult.duration >> Duration.ofSeconds(1)
+        step = createStep()
     }
 
     def "build cache disabled reason is reported when build cache is disabled"() {
@@ -73,5 +83,28 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
         1 * delegate.execute(work, { CachingContext context ->
             context.cachingState.whenDisabled().map { it.disabledReasons }.get() as List == [disabledReason]
         }) >> delegateResult
+    }
+
+    def "calculates cache key when execution state is available"() {
+        delegateResult.executionReasons >> ImmutableList.of()
+        delegateResult.reusedOutputOriginMetadata >> Optional.empty()
+        delegateResult.afterExecutionOutputState >> Optional.empty()
+
+        when:
+        step.execute(work, context)
+        then:
+        _ * buildCache.enabled >> buildCacheEnabled
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+
+        _ * context.validationProblems >> ImmutableList.of()
+        1 * delegate.execute(work, { CachingContext context ->
+            def buildCacheKey = buildCacheEnabled
+                ? context.cachingState.whenEnabled().get().key
+                : context.cachingState.whenDisabled().get().key.get()
+            buildCacheKey != null
+        }) >> delegateResult
+
+        where:
+        buildCacheEnabled << [true, false]
     }
 }
