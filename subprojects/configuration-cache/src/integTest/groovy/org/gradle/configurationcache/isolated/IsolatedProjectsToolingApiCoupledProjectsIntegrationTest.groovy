@@ -77,13 +77,14 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         fixture.assertStateLoaded()
 
         when:
-        file("build.gradle") << """
+        changeFile("build.gradle", """
             project(":a") {
                 afterEvaluate {
                     myExtension.message = "new project a"
                 }
             }
-        """
+        """)
+
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -151,9 +152,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         fixture.assertStateLoaded()
 
         when:
-        file("a/build.gradle") << """
-            // Some change
-        """
+        changeFile("a/build.gradle")
+
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -220,9 +220,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         fixture.assertStateLoaded()
 
         when:
-        file("b/build.gradle") << """
-            // some change
-        """
+        changeFile("b/build.gradle")
+
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -253,9 +252,10 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         and:
         fixture.assertStateLoaded()
 
-        file("a/build.gradle") << """
+        changeFile("a/build.gradle", """
             myExtension.message = "new message"
-        """
+        """)
+
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -324,9 +324,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         fixture.assertStateLoaded()
 
         when:
-        file("b/build.gradle") << """
-            // some change
-        """
+        changeFile("b/build.gradle")
+
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT, "-Dorg.gradle.internal.invalidate-coupled-projects=false")
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 

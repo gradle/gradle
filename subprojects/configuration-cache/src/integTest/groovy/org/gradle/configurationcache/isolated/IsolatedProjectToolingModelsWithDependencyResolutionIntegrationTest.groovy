@@ -79,9 +79,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         fixture.assertStateLoaded()
 
         when:
-        file("a/build.gradle") << """
-            // some change
-        """
+        changeFile("a/build.gradle")
+
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -152,11 +151,12 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         fixture.assertStateLoaded()
 
         when:
-        file("a/build.gradle") << """
+        changeFile("a/build.gradle", """
             dependencies {
                 implementation(project(":b"))
             }
-        """
+        """)
+
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -190,9 +190,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         fixture.assertStateLoaded()
 
         when:
-        file("a/build.gradle") << """
-            // some change
-        """
+        changeFile("a/build.gradle")
+
         executer.withArguments(ENABLE_CLI)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -265,11 +264,12 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         fixture.assertStateLoaded()
 
         when:
-        file("a/build.gradle") << """
+        changeFile("a/build.gradle", """
             dependencies {
                 implementation(project(":b"))
             }
-        """
+        """)
+
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -303,9 +303,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         fixture.assertStateLoaded()
 
         when:
-        file("a/build.gradle") << """
-            // some change
-        """
+        changeFile("a/build.gradle")
+
         executer.withArguments(ENABLE_CLI)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -382,6 +381,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
 
         when:
         file("a/build.gradle").replace('implementation(project(":b"))', "")
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
@@ -415,9 +415,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         fixture.assertStateLoaded()
 
         when:
-        file("a/build.gradle") << """
-            // some change
-        """
+        changeFile("a/build.gradle")
+
         executer.withArguments(ENABLE_CLI)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -493,9 +492,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         fixture.assertStateLoaded()
 
         when:
-        file("c/build.gradle") << """
-            // some change
-        """
+        changeFile("c/build.gradle")
+
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -528,9 +526,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         fixture.assertStateLoaded()
 
         when:
-        file("b/build.gradle") << """
-            // some change
-        """
+        changeFile("b/build.gradle")
+
         executer.withArguments(ENABLE_CLI)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -615,11 +612,12 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         fixture.assertStateLoaded()
 
         when:
-        file("a/build.gradle") << """
+        changeFile("a/build.gradle", """
             dependencies {
                 implementation(project(":d"))
             }
-        """
+        """)
+
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 

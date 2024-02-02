@@ -84,9 +84,9 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         file("a/build.gradle") << """
             myExtension.message = 'this is project a'
         """
-        file("b/build.gradle") << """
+        changeFile("b/build.gradle", """
             myExtension.message = 'this is project b'
-        """
+        """)
 
         server.expect("configure-root")
         server.expectConcurrent("configure-a", "configure-b")
