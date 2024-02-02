@@ -63,6 +63,10 @@ public class CachingState {
         delegate.apply(enabled, disabled);
     }
 
+    public Optional<BeforeExecutionState> getBeforeExecutionState() {
+        return delegate.fold(enabled -> Optional.of(enabled.beforeExecutionState), Disabled::getBeforeExecutionState);
+    }
+
     /**
      * Caching state when caching is enabled for the work.
      */

@@ -44,7 +44,7 @@ class StoreExecutionStateStepTest extends StepSpec<IncrementalChangesContext> im
     def outputFile = file("output.txt").text = "output"
     def outputFilesProducedByWork = snapshotsOf(output: outputFile)
 
-    def step = new StoreExecutionStateStep<BeforeExecutionContext, AfterExecutionResult>(delegate)
+    def step = new StoreExecutionStateStep<IncrementalCachingContext, AfterExecutionResult>(delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
 

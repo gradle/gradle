@@ -18,8 +18,10 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
@@ -30,7 +32,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class StoreExecutionStateStep<C extends IncrementalChangesContext, R extends AfterExecutionResult> implements Step<C, R> {
+public class StoreExecutionStateStep<C extends BeforeExecutionContext & CachingContext, R extends AfterExecutionResult> implements Step<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
     public StoreExecutionStateStep(
@@ -43,14 +45,14 @@ public class StoreExecutionStateStep<C extends IncrementalChangesContext, R exte
     public R execute(UnitOfWork work, C context) {
         R result = delegate.execute(work, context);
         context.getHistory()
-            .ifPresent(history -> context.getBeforeExecutionState()
+            .ifPresent(history -> context.getCachingState().getBeforeExecutionState()
                 .flatMap(beforeExecutionState -> result.getAfterExecutionOutputState()
                     .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
                     .map(executionOutputState -> new DefaultAfterExecutionState(beforeExecutionState, executionOutputState)))
                 .ifPresent(afterExecutionState -> history.store(
                     context.getIdentity().getUniqueId(),
                     // TODO: Encode the "no cache key available" case in the context type hierarchy
-                    context.getCacheKey().orElseThrow(() -> new IllegalStateException("Cache key needs to be present when we store the execution history")),
+                    ((DefaultBuildCacheKey) context.getCachingState().fold(CachingState.Enabled::getKey, disabled -> disabled.getKey().get())).getHashCodeInternal(),
                     afterExecutionState)));
         return result;
     }

@@ -20,6 +20,7 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.NoOpBuildCacheController;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Optional;
@@ -40,12 +41,23 @@ public class ResolveNonIncrementalCachingStateStep<C extends ValidationFinishedC
     }
 
     @Override
-    protected UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState) {
-        return delegate.execute(work, new NonIncrementalCachingContext(context, cachingState));
+    protected Optional<CacheKeyWithBeforeExecutionState> determineCacheKeyWithBeforeExecutionState(C context) {
+        return context.getBeforeExecutionState()
+            .map(beforeExecutionState -> new CacheKeyWithBeforeExecutionState() {
+                @Override
+                public Optional<HashCode> getCacheKey() {
+                    return Optional.empty();
+                }
+
+                @Override
+                public BeforeExecutionState getBeforeExecutionState() {
+                    return beforeExecutionState;
+                }
+            });
     }
 
     @Override
-    protected Optional<HashCode> cacheKeyFromContext(C context) {
-        return Optional.empty();
+    protected UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState) {
+        return delegate.execute(work, new NonIncrementalCachingContext(context, cachingState));
     }
 }
