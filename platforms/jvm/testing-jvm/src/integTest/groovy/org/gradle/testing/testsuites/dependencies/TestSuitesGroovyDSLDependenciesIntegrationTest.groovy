@@ -1264,7 +1264,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
     // region dependencies - dependency providers
 
-    private static final String ERROR_MESSAGE_PROVIDER = "Providers of type java.lang.String are not supported. Only Provider<Dependency> and Provider<DependencyConstraint> are supported. Try using the Provider#map method to convert to a supported type.";
+    private static final String ERROR_MESSAGE_PROVIDER = "Providers of type 'java.lang.String' are not supported. Only Provider<Dependency> and Provider<DependencyConstraint> are supported. Try using the Provider#map method to convert to a supported type.";
 
     def 'can add dependency providers which provide dependency objects to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
         given:

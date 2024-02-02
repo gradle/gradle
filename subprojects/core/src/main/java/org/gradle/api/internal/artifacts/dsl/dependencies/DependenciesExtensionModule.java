@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.util.internal.CollectionUtils;
@@ -266,9 +267,9 @@ public class DependenciesExtensionModule {
         self.add(dependency, ConfigureUtil.configureUsing(configuration));
     }
 
-    private static InvalidUserDataException badProviderError(Object given) {
+    private static InvalidUserDataException badProviderError(Class<?> given) {
         return new InvalidUserDataException(
-            "Providers of type " + given.getClass().getName() + " are not supported. Only Provider<Dependency> and Provider<DependencyConstraint> are supported. Try using the Provider#map method to convert to a supported type."
+            "Providers of type '" + given.getName() + "' are not supported. Only Provider<Dependency> and Provider<DependencyConstraint> are supported. Try using the Provider#map method to convert to a supported type."
         );
     }
 
@@ -293,24 +294,33 @@ public class DependenciesExtensionModule {
      * @param configuration an action to configure the dependency or dependency constraint
      */
     public static <D> void call(DependencyCollector self, Provider<? extends D> dependencyOrDependencyConstraint, @ClosureParams(SecondParam.FirstGenericType.class) Closure<?> configuration) {
-        self.add(dependencyOrDependencyConstraint.map(it -> {
-            if (it instanceof Dependency) {
-                return (Dependency) it;
-            }
-            if (it instanceof DependencyConstraint) {
-                return null;
-            }
-            throw badProviderError(it);
-        }), ConfigureUtil.configureUsing(configuration));
-        self.addConstraint(dependencyOrDependencyConstraint.map(it -> {
-            if (it instanceof DependencyConstraint) {
-                return (DependencyConstraint) it;
-            }
-            if (it instanceof Dependency) {
-                return null;
-            }
-            throw badProviderError(it);
-        }), ConfigureUtil.configureUsing(configuration));
+        Class<?> providerType = Providers.internal(dependencyOrDependencyConstraint).getType();
+        if (providerType == null) {
+            self.add(dependencyOrDependencyConstraint.map(it -> {
+                if (it instanceof Dependency) {
+                    return (Dependency) it;
+                }
+                if (it instanceof DependencyConstraint) {
+                    return null;
+                }
+                throw badProviderError(it.getClass());
+            }), ConfigureUtil.configureUsing(configuration));
+            self.addConstraint(dependencyOrDependencyConstraint.map(it -> {
+                if (it instanceof DependencyConstraint) {
+                    return (DependencyConstraint) it;
+                }
+                if (it instanceof Dependency) {
+                    return null;
+                }
+                throw badProviderError(it.getClass());
+            }), ConfigureUtil.configureUsing(configuration));
+        } else if (Dependency.class.isAssignableFrom(providerType)) {
+            self.add(dependencyOrDependencyConstraint.map(it -> (Dependency) it), ConfigureUtil.configureUsing(configuration));
+        } else if (DependencyConstraint.class.isAssignableFrom(providerType)) {
+            self.addConstraint(dependencyOrDependencyConstraint.map(it -> (DependencyConstraint) it), ConfigureUtil.configureUsing(configuration));
+        } else {
+            throw badProviderError(providerType);
+        }
     }
 
     /**
