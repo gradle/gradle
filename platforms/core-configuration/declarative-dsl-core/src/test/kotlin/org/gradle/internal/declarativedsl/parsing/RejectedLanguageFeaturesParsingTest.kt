@@ -6,6 +6,7 @@ import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.parsing.assert
 import org.junit.jupiter.api.Test
 
+
 class RejectedLanguageFeaturesParsingTest {
 
     @Test
@@ -27,8 +28,7 @@ class RejectedLanguageFeaturesParsingTest {
         val code = """
             import a.b.c.*
             import a.*
-            import a.A.Companion.*
-            """.trimIndent()
+            import a.A.Companion.*""".trimIndent()
         val expected = """
             UnsupportedConstruct(
                 languageFeature = StarImport,
@@ -44,8 +44,7 @@ class RejectedLanguageFeaturesParsingTest {
                 languageFeature = StarImport,
                 potentialElementSource = indexes: 26..48, line/column: 3/1..3/23, file: test,
                 erroneousSource = indexes: 47..48, line/column: 3/22..3/23, file: test
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected) { result: LanguageTreeResult -> result.headerFailures.joinToString("\n") { prettyPrintLanguageResult(it) } }
     }
 
@@ -53,8 +52,7 @@ class RejectedLanguageFeaturesParsingTest {
     fun `rejects renaming imports`() {
         val code = """
             import a as b
-            import a.A as B
-            """.trimIndent()
+            import a.A as B""".trimIndent()
         val expected = """
             UnsupportedConstruct(
                 languageFeature = RenamingImport,
@@ -65,8 +63,7 @@ class RejectedLanguageFeaturesParsingTest {
                 languageFeature = RenamingImport,
                 potentialElementSource = indexes: 14..29, line/column: 2/1..2/16, file: test,
                 erroneousSource = indexes: 25..29, line/column: 2/12..2/16, file: test
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected) { result: LanguageTreeResult -> result.headerFailures.joinToString("\n") { prettyPrintLanguageResult(it) } }
     }
 
@@ -123,8 +120,7 @@ class RejectedLanguageFeaturesParsingTest {
     @Test
     fun `rejects variable type labels`() {
         val code = """
-            val a: Int = 0
-            """.trimIndent()
+            val a: Int = 0""".trimIndent()
         val expected = """
             ErroneousStatement (
                 UnsupportedConstruct(
@@ -132,8 +128,7 @@ class RejectedLanguageFeaturesParsingTest {
                     potentialElementSource = indexes: 0..14, line/column: 1/1..1/15, file: test,
                     erroneousSource = indexes: 7..10, line/column: 1/8..1/11, file: test
                 )
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -147,8 +142,7 @@ class RejectedLanguageFeaturesParsingTest {
             a.b[a[b]].c = 1
             a = b[1]
             a = b[1][2]
-            a = b[b[1]]
-            """.trimIndent()
+            a = b[b[1]]""".trimIndent()
         val expected = """
             ErroneousStatement (
                 UnsupportedConstruct(
@@ -205,8 +199,7 @@ class RejectedLanguageFeaturesParsingTest {
                     potentialElementSource = indexes: 89..96, line/column: 8/5..8/12, file: test,
                     erroneousSource = indexes: 89..96, line/column: 8/5..8/12, file: test
                 )
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -216,8 +209,7 @@ class RejectedLanguageFeaturesParsingTest {
             var x = 0
             var x: Int = 0
             var x: Int
-            lateinit var x: Int
-            """.trimIndent()
+            lateinit var x: Int""".trimIndent()
         val expected = """
             ErroneousStatement (
                 UnsupportedConstruct(
@@ -282,8 +274,7 @@ class RejectedLanguageFeaturesParsingTest {
                         erroneousSource = indexes: 36..55, line/column: 4/1..4/20, file: test
                     )
                 )
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -291,8 +282,7 @@ class RejectedLanguageFeaturesParsingTest {
     fun `rejects modifiers on vals`() {
         val code = """
             public val x: Int = 0
-            private val x: Int
-            """.trimIndent()
+            private val x: Int""".trimIndent()
         val expected = """
         ErroneousStatement (
             MultipleFailures(
@@ -336,8 +326,7 @@ class RejectedLanguageFeaturesParsingTest {
         val code = """
             fun f() { }
             f { fun local() { } }
-            abstract fun f() { }
-            """.trimIndent()
+            abstract fun f() { }""".trimIndent()
         val expected = """
             ErroneousStatement (
                 UnsupportedConstruct(
@@ -368,8 +357,7 @@ class RejectedLanguageFeaturesParsingTest {
                     potentialElementSource = indexes: 34..54, line/column: 3/1..3/21, file: test,
                     erroneousSource = indexes: 34..54, line/column: 3/1..3/21, file: test
                 )
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -418,8 +406,7 @@ class RejectedLanguageFeaturesParsingTest {
                         )
                     )
                 ]
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -427,8 +414,7 @@ class RejectedLanguageFeaturesParsingTest {
     fun `rejects augmenting assignments`() {
         val code = """
             a += b
-            a.x -= b
-            """.trimIndent()
+            a.x -= b""".trimIndent()
         val expected = """
             ErroneousStatement (
                 UnsupportedConstruct(
@@ -443,8 +429,7 @@ class RejectedLanguageFeaturesParsingTest {
                     potentialElementSource = indexes: 7..15, line/column: 2/1..2/9, file: test,
                     erroneousSource = indexes: 7..15, line/column: 2/1..2/9, file: test
                 )
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -462,8 +447,7 @@ class RejectedLanguageFeaturesParsingTest {
                     potentialElementSource = indexes: 9..14, line/column: 1/10..1/15, file: test,
                     erroneousSource = indexes: 9..14, line/column: 1/10..1/15, file: test
                 )
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 
@@ -495,8 +479,7 @@ class RejectedLanguageFeaturesParsingTest {
                         erroneousSource = indexes: 31..34, line/column: 2/18..2/21, file: test
                     )
                 )
-            )
-            """.trimIndent()
+            )""".trimIndent()
         parse(code).assert(expected)
     }
 

@@ -7,6 +7,7 @@ import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection.ConstantValue
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection.DataObjectReflection
 
+
 object ReflectionDemo {
     @JvmStatic
     fun main(args: Array<String>) {
@@ -20,8 +21,7 @@ object ReflectionDemo {
 
                 val app = id("application")
                 app.apply(false)
-            }
-            """.trimIndent()
+            }""".trimIndent()
         val result = schema.reflect(code)
 
         printReflection(result)
@@ -55,11 +55,18 @@ object ReflectionDemo {
     }
 }
 
-private fun String.replaceRange(range: IntRange, replacement: String): String {
+
+private
+fun String.replaceRange(range: IntRange, replacement: String): String {
     return take(range.start) + replacement + drop(range.last + 1)
 }
 
+
 val pluginDefinition = schema.dataClassesByFqName
     .getValue(FqName.parse("org.gradle.internal.declarativedsl.demo.demoPlugins.PluginDefinition"))
+
+
 val idProp = pluginDefinition.properties.single { it.name == "id" }
+
+
 val versionProp = pluginDefinition.properties.single { it.name == "version" }

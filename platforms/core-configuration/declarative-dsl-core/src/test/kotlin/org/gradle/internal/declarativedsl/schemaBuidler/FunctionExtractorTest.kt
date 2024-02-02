@@ -24,6 +24,7 @@ import kotlin.test.Test
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
+
 object FunctionExtractorTest {
     @Test
     fun `adding function may have a configuring lambda if it returns the added value`() {

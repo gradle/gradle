@@ -24,13 +24,16 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+
 class TreatInterfaceAsConfigureLambdaTest {
 
-    private interface MyFunctionalInterface<T> {
+    private
+    interface MyFunctionalInterface<T> {
         fun configure(t: T)
     }
 
-    private val customConfigureLambdas =
+    private
+    val customConfigureLambdas =
         treatInterfaceAsConfigureLambda(MyFunctionalInterface::class)
 
     @Test

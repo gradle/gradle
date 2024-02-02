@@ -7,17 +7,24 @@ import org.jetbrains.kotlin.parsing.KotlinLightParser
 import org.jetbrains.kotlin.parsing.KotlinParserDefinition
 import org.jetbrains.kotlin.utils.doNothing
 
-private val lexer by lazy {
+
+private
+val lexer by lazy {
     KotlinLexer()
 }
 
-private val parserDefinition by lazy {
+
+private
+val parserDefinition by lazy {
     KotlinParserDefinition()
 }
 
-private val psiBuilderFactory by lazy {
+
+private
+val psiBuilderFactory by lazy {
     PsiBuilderFactoryImpl()
 }
+
 
 fun parse(@Language("kts") code: String): Triple<LightTree, String, Int> {
     val (wrappedCode, codeOffset) = wrapScriptIntoClassInitializerBlock(code)
@@ -28,21 +35,23 @@ fun parse(@Language("kts") code: String): Triple<LightTree, String, Int> {
     )
 }
 
+
 fun main() {
     parse(
         """
             #!/usr/bin/env kscript
-        a = 1
-    """.trimIndent()
+        a = 1""".trimIndent()
     ).first.print()
 }
 
-private fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): Pair<String, Int> {
+
+private
+fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): Pair<String, Int> {
     val packageStatements = mutableListOf<String>()
     val importStatements = mutableListOf<String>()
     val codeStatements = mutableListOf<String>()
 
-    code.lines().forEach {line ->
+    code.lines().forEach { line ->
         when {
             line.startsWith("import") -> importStatements.add(line)
             line.startsWith("package") -> packageStatements.add(line)
@@ -66,4 +75,3 @@ private fun wrapScriptIntoClassInitializerBlock(@Language("kts") code: String): 
     val codeOffset = prefix.length
     return "$prefix$codeSection}}" to codeOffset
 }
-

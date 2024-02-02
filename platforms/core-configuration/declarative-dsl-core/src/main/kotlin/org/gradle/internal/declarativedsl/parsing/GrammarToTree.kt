@@ -1,21 +1,98 @@
 package org.gradle.internal.declarativedsl.parsing
 
+import org.gradle.internal.declarativedsl.language.AccessChain
+import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.Block
+import org.gradle.internal.declarativedsl.language.DataStatement
+import org.gradle.internal.declarativedsl.language.Element
+import org.gradle.internal.declarativedsl.language.ElementResult
+import org.gradle.internal.declarativedsl.language.Expr
+import org.gradle.internal.declarativedsl.language.FailingResult
+import org.gradle.internal.declarativedsl.language.FunctionArgument
+import org.gradle.internal.declarativedsl.language.FunctionCall
+import org.gradle.internal.declarativedsl.language.Import
+import org.gradle.internal.declarativedsl.language.LanguageTreeResult
+import org.gradle.internal.declarativedsl.language.Literal
+import org.gradle.internal.declarativedsl.language.LocalValue
+import org.gradle.internal.declarativedsl.language.Null
+import org.gradle.internal.declarativedsl.language.ParsingError
+import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.SourceData
+import org.gradle.internal.declarativedsl.language.SourceIdentifier
+import org.gradle.internal.declarativedsl.language.Syntactic
+import org.gradle.internal.declarativedsl.language.SyntacticResult
+import org.gradle.internal.declarativedsl.language.This
+import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
+import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature
 import org.gradle.internal.declarativedsl.parsing.FailureCollectorContext.CheckedResult
-import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.*
-import org.gradle.internal.declarativedsl.language.*
 import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression
-import org.jetbrains.kotlin.KtNodeTypes.*
+import org.jetbrains.kotlin.KtNodeTypes.ANNOTATED_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.ANNOTATION_ENTRY
+import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.BINARY_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.BLOCK
+import org.jetbrains.kotlin.KtNodeTypes.BOOLEAN_CONSTANT
+import org.jetbrains.kotlin.KtNodeTypes.CALL_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.CLASS
+import org.jetbrains.kotlin.KtNodeTypes.CLASS_BODY
+import org.jetbrains.kotlin.KtNodeTypes.CLASS_INITIALIZER
+import org.jetbrains.kotlin.KtNodeTypes.DOT_QUALIFIED_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.FUN
+import org.jetbrains.kotlin.KtNodeTypes.FUNCTION_LITERAL
+import org.jetbrains.kotlin.KtNodeTypes.IMPORT_ALIAS
+import org.jetbrains.kotlin.KtNodeTypes.IMPORT_LIST
+import org.jetbrains.kotlin.KtNodeTypes.INTEGER_CONSTANT
+import org.jetbrains.kotlin.KtNodeTypes.LABELED_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.LAMBDA_ARGUMENT
+import org.jetbrains.kotlin.KtNodeTypes.LAMBDA_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.LITERAL_STRING_TEMPLATE_ENTRY
+import org.jetbrains.kotlin.KtNodeTypes.MODIFIER_LIST
+import org.jetbrains.kotlin.KtNodeTypes.NULL
+import org.jetbrains.kotlin.KtNodeTypes.OPERATION_REFERENCE
+import org.jetbrains.kotlin.KtNodeTypes.PACKAGE_DIRECTIVE
+import org.jetbrains.kotlin.KtNodeTypes.PARENTHESIZED
+import org.jetbrains.kotlin.KtNodeTypes.PREFIX_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.PROPERTY
+import org.jetbrains.kotlin.KtNodeTypes.REFERENCE_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
+import org.jetbrains.kotlin.KtNodeTypes.THIS_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.TYPEALIAS
+import org.jetbrains.kotlin.KtNodeTypes.TYPE_REFERENCE
+import org.jetbrains.kotlin.KtNodeTypes.VALUE_ARGUMENT
+import org.jetbrains.kotlin.KtNodeTypes.VALUE_ARGUMENT_LIST
+import org.jetbrains.kotlin.KtNodeTypes.VALUE_ARGUMENT_NAME
+import org.jetbrains.kotlin.KtNodeTypes.VALUE_PARAMETER_LIST
 import org.jetbrains.kotlin.com.intellij.lang.LighterASTNode
 import org.jetbrains.kotlin.com.intellij.lang.impl.PsiBuilderImpl
 import org.jetbrains.kotlin.com.intellij.psi.TokenType.ERROR_ELEMENT
 import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
-import org.jetbrains.kotlin.lexer.KtTokens.*
-import org.jetbrains.kotlin.parsing.*
+import org.jetbrains.kotlin.lexer.KtTokens.ARROW
+import org.jetbrains.kotlin.lexer.KtTokens.CLOSING_QUOTE
+import org.jetbrains.kotlin.lexer.KtTokens.COLON
+import org.jetbrains.kotlin.lexer.KtTokens.COMMA
+import org.jetbrains.kotlin.lexer.KtTokens.DOT
+import org.jetbrains.kotlin.lexer.KtTokens.EQ
+import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
+import org.jetbrains.kotlin.lexer.KtTokens.INTEGER_LITERAL
+import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
+import org.jetbrains.kotlin.lexer.KtTokens.LPAR
+import org.jetbrains.kotlin.lexer.KtTokens.MUL
+import org.jetbrains.kotlin.lexer.KtTokens.OPEN_QUOTE
+import org.jetbrains.kotlin.lexer.KtTokens.QUALIFIED_ACCESS
+import org.jetbrains.kotlin.lexer.KtTokens.RBRACE
+import org.jetbrains.kotlin.lexer.KtTokens.RPAR
+import org.jetbrains.kotlin.lexer.KtTokens.SAFE_ACCESS
+import org.jetbrains.kotlin.parsing.hasIllegalUnderscore
+import org.jetbrains.kotlin.parsing.hasLongSuffix
+import org.jetbrains.kotlin.parsing.hasUnsignedLongSuffix
+import org.jetbrains.kotlin.parsing.parseBoolean
+import org.jetbrains.kotlin.parsing.parseNumericLiteral
 import org.jetbrains.kotlin.psi.stubs.elements.KtConstantExpressionElementType
 import org.jetbrains.kotlin.psi.stubs.elements.KtNameReferenceExpressionElementType
 import org.jetbrains.kotlin.utils.doNothing
+
 
 class GrammarToTree(
     private val sourceIdentifier: SourceIdentifier,
@@ -25,7 +102,8 @@ class GrammarToTree(
 
     inner
     class CachingLightTree(tree: LightTree) : LightTree by tree {
-        private val sourceData: MutableMap<LighterASTNode, LightTreeSourceData> = mutableMapOf()
+        private
+        val sourceData: MutableMap<LighterASTNode, LightTreeSourceData> = mutableMapOf()
 
         fun sourceData(node: LighterASTNode, offset: Int = sourceOffset): LightTreeSourceData =
             sourceData.computeIfAbsent(node) {
@@ -90,7 +168,7 @@ class GrammarToTree(
     private
     fun packageHeader(tree: CachingLightTree, node: LighterASTNode): List<FailingResult> =
         when {
-            tree.children(node).isNotEmpty() -> listOf(tree.unsupportedNoOffset(node, node, PackageHeader))
+            tree.children(node).isNotEmpty() -> listOf(tree.unsupportedNoOffset(node, node, UnsupportedLanguageFeature.PackageHeader))
             else -> listOf()
         }
 
@@ -103,8 +181,8 @@ class GrammarToTree(
             children.forEach {
                 when (it.tokenType) {
                     DOT_QUALIFIED_EXPRESSION, REFERENCE_EXPRESSION -> content = checkForFailure(propertyAccessStatement(tree, it))
-                    MUL -> collectingFailure(tree.unsupportedNoOffset(node, it, StarImport))
-                    IMPORT_ALIAS -> collectingFailure(tree.unsupportedNoOffset(node, it, RenamingImport))
+                    MUL -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.StarImport))
+                    IMPORT_ALIAS -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.RenamingImport))
                     ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
                 }
             }
@@ -137,21 +215,21 @@ class GrammarToTree(
     fun expression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
         when (val tokenType = node.tokenType) {
             BINARY_EXPRESSION -> binaryExpression(tree, node)
-            LABELED_EXPRESSION -> tree.unsupported(node, LabelledStatement)
-            ANNOTATED_EXPRESSION -> tree.unsupported(node, AnnotationUsage)
+            LABELED_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.LabelledStatement)
+            ANNOTATED_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.AnnotationUsage)
             in QUALIFIED_ACCESS, REFERENCE_EXPRESSION -> propertyAccessStatement(tree, node)
             is KtConstantExpressionElementType, INTEGER_LITERAL -> constantExpression(tree, node)
             STRING_TEMPLATE -> stringTemplate(tree, node)
             CALL_EXPRESSION -> callExpression(tree, node)
             in QUALIFIED_ACCESS -> qualifiedExpression(tree, node)
-            CLASS, TYPEALIAS -> tree.unsupported(node, TypeDeclaration)
-            ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, Indexing)
-            FUN -> tree.unsupported(node, FunctionDeclaration)
+            CLASS, TYPEALIAS -> tree.unsupported(node, UnsupportedLanguageFeature.TypeDeclaration)
+            ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.Indexing)
+            FUN -> tree.unsupported(node, UnsupportedLanguageFeature.FunctionDeclaration)
             ERROR_ELEMENT -> tree.parsingError(node, node)
-            PREFIX_EXPRESSION -> tree.unsupported(node, PrefixExpression)
-            OPERATION_REFERENCE -> tree.unsupported(node, UnsupportedOperator)
+            PREFIX_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.PrefixExpression)
+            OPERATION_REFERENCE -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperator)
             PARENTHESIZED -> parenthesized(tree, node)
-            LAMBDA_EXPRESSION -> tree.unsupported(node, FunctionDeclaration)
+            LAMBDA_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.FunctionDeclaration)
             THIS_EXPRESSION -> Element(This(tree.sourceData(node)))
             else -> tree.parsingError(node, "Parsing failure, unexpected tokenType in expression: $tokenType")
         }
@@ -175,7 +253,7 @@ class GrammarToTree(
         when (val tokenType = node.tokenType) {
             REFERENCE_EXPRESSION -> Element(PropertyAccess(null, referenceExpression(node).value, tree.sourceData(node)))
             in QUALIFIED_ACCESS -> qualifiedExpression(tree, node) as ElementResult<PropertyAccess>
-            ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, Indexing)
+            ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, UnsupportedLanguageFeature.Indexing)
             else -> tree.parsingError(node, "Parsing failure, unexpected tokenType in property access statement: $tokenType")
         }
 
@@ -192,16 +270,16 @@ class GrammarToTree(
                         val modifiers = tree.children(it)
                         modifiers.forEach { modifier ->
                             when (modifier.tokenType) {
-                                ANNOTATION_ENTRY -> collectingFailure(tree.unsupported(node, modifier, AnnotationUsage))
-                                else -> collectingFailure(tree.unsupported(node, modifier, ValModifierNotSupported))
+                                ANNOTATION_ENTRY -> collectingFailure(tree.unsupported(node, modifier, UnsupportedLanguageFeature.AnnotationUsage))
+                                else -> collectingFailure(tree.unsupported(node, modifier, UnsupportedLanguageFeature.ValModifierNotSupported))
                             }
                         }
                     }
                     is KtSingleValueToken -> if (tokenType.value == "var") {
-                        collectingFailure(tree.unsupported(node, it, LocalVarNotSupported))
+                        collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.LocalVarNotSupported))
                     }
                     IDENTIFIER -> identifier = Syntactic(it.asText)
-                    COLON, TYPE_REFERENCE -> collectingFailure(tree.unsupported(node, it, ExplicitVariableType))
+                    COLON, TYPE_REFERENCE -> collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.ExplicitVariableType))
                     ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
                     else -> if (it.isExpression()) {
                         expression = checkForFailure(expression(tree, it))
@@ -210,7 +288,7 @@ class GrammarToTree(
             }
 
             collectingFailure(identifier ?: tree.parsingError(node, "Local value without identifier"))
-            collectingFailure(expression ?: tree.unsupported(node, UninitializedProperty))
+            collectingFailure(expression ?: tree.unsupported(node, UnsupportedLanguageFeature.UninitializedProperty))
 
             elementIfNoFailures {
                 Element(LocalValue(identifier!!.value, checked(expression!!), tree.sourceData(node)))
@@ -226,12 +304,12 @@ class GrammarToTree(
             var referenceSelector: CheckedResult<SyntacticResult<String>>? = null
             var referenceSourceData: SourceData? = null
             var functionCallSelector: CheckedResult<ElementResult<FunctionCall>>? = null
-            var receiver: CheckedResult<ElementResult<Expr>>? = null //before dot
+            var receiver: CheckedResult<ElementResult<Expr>>? = null // before dot
             children.forEach {
                 when (val tokenType = it.tokenType) {
                     DOT -> isSelector = true
                     SAFE_ACCESS -> {
-                        collectingFailure(tree.unsupported(node, it, SafeNavigation))
+                        collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.SafeNavigation))
                     }
                     ERROR_ELEMENT -> collectingFailure(tree.parsingError(node, it))
                     else -> {
@@ -388,7 +466,7 @@ class GrammarToTree(
                 val literalNodeChildren = tree.children(functionalLiteralNode)
                 literalNodeChildren.forEach {
                     when (it.tokenType) {
-                        VALUE_PARAMETER_LIST -> collectingFailure(tree.unsupported(node, it, LambdaWithParameters))
+                        VALUE_PARAMETER_LIST -> collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.LambdaWithParameters))
                         BLOCK -> block = it
                         ARROW -> doNothing()
                     }
@@ -451,7 +529,6 @@ class GrammarToTree(
                     else FunctionArgument.Positional(checked(expression!!), tree.sourceData(node))
                 )
             }
-
         }
 
     @Suppress("UNCHECKED_CAST")
@@ -460,7 +537,7 @@ class GrammarToTree(
         when (val binaryStatement = binaryStatement(tree, node)) {
             is FailingResult -> binaryStatement
             is Element -> if (binaryStatement.element is Expr) binaryStatement as ElementResult<Expr>
-            else tree.unsupported(node, UnsupportedOperationInBinaryExpression)
+            else tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
         }
 
     private
@@ -511,7 +588,7 @@ class GrammarToTree(
                 }
             }
 
-            else -> tree.unsupported(node, UnsupportedOperationInBinaryExpression)
+            else -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
         }
     }
 
@@ -571,6 +648,4 @@ class GrammarToTree(
         }
         return children
     }
-
 }
-

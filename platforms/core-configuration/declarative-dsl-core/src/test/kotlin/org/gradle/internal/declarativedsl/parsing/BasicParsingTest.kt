@@ -5,6 +5,7 @@ import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.parsing.assert
 import org.junit.jupiter.api.Test
 
+
 class BasicParsingTest {
 
     @Test
@@ -49,8 +50,7 @@ class BasicParsingTest {
                         name = d
                     )
                     rhs = BooleanLiteral [indexes: 45..50, line/column: 5/5..5/10, file: test] (false)
-                )
-            """.trimIndent()
+                )""".trimIndent()
         results.assert(expected)
     }
 
@@ -73,8 +73,7 @@ class BasicParsingTest {
                 )
                 Import [indexes: 31..49, line/column: 3/1..3/19, file: test (
                     name parts = [MyOtherData]
-                )
-            """.trimIndent()
+                )""".trimIndent()
         results.assert(expected)
     }
 
@@ -106,8 +105,7 @@ class BasicParsingTest {
                             expr = IntLiteral [indexes: 11..12, line/column: 2/3..2/4, file: test] (1)
                         )
                     ]
-                )
-            """.trimIndent()
+                )""".trimIndent()
         results.assert(expected)
     }
 
@@ -143,8 +141,7 @@ class BasicParsingTest {
                         )
                     )
                 ]
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 
@@ -178,8 +175,7 @@ class BasicParsingTest {
                         )
                     )
                 ]
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 
@@ -208,8 +204,7 @@ class BasicParsingTest {
                         )
                     )
                 ]
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 
@@ -233,8 +228,7 @@ class BasicParsingTest {
                     name = c
                 )
                 rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 
@@ -252,8 +246,7 @@ class BasicParsingTest {
                     name = a
                 )
                 rhs = This
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 
@@ -271,8 +264,7 @@ class BasicParsingTest {
                     name = a
                 )
                 rhs = Null
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 
@@ -284,8 +276,7 @@ class BasicParsingTest {
             LocalValue [indexes: 0..9, line/column: 1/1..1/10, file: test] (
                 name = a
                 rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 
@@ -307,8 +298,7 @@ class BasicParsingTest {
                     )
                     name = d
                 )
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 
@@ -334,8 +324,7 @@ class BasicParsingTest {
                         )
                     )
                 ]
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 
@@ -367,8 +356,7 @@ class BasicParsingTest {
                         expr = IntLiteral [indexes: 12..13, line/column: 1/13..1/14, file: test] (3)
                     )
                 ]
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 
@@ -428,8 +416,7 @@ class BasicParsingTest {
                         )
                     )
                 ]
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 
@@ -457,8 +444,7 @@ class BasicParsingTest {
                         expr = StringLiteral [indexes: 9..12, line/column: 1/10..1/13, file: test] (b)
                     )
                 ]
-            )
-            """.trimIndent()
+            )""".trimIndent()
         results.assert(expected)
     }
 

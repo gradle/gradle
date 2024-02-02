@@ -4,6 +4,7 @@ import org.gradle.internal.declarativedsl.demo.printResolutionResults
 import org.gradle.internal.declarativedsl.demo.printResolvedAssignments
 import org.gradle.internal.declarativedsl.demo.resolve
 
+
 object AssignmentResolverDemo {
     @JvmStatic
     fun main(args: Array<String>) {
@@ -20,4 +21,3 @@ object AssignmentResolverDemo {
         printResolvedAssignments(resolution)
     }
 }
-

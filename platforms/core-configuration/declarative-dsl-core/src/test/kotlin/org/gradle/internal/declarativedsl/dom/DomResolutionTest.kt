@@ -25,16 +25,13 @@ import org.gradle.internal.declarativedsl.analysis.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
-import org.gradle.internal.declarativedsl.dom.DocumentResolution
-import org.gradle.internal.declarativedsl.dom.ResolvedDeclarativeDocument
-import org.gradle.internal.declarativedsl.dom.convertBlockToDocument
-import org.gradle.internal.declarativedsl.dom.resolvedDocument
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+
 
 object DomResolutionTest {
 
@@ -166,9 +163,11 @@ object DomResolutionTest {
         )
     }
 
-    private val schema = schemaFromTypes(TopLevelReceiver::class, this::class.nestedClasses.toList())
+    private
+    val schema = schemaFromTypes(TopLevelReceiver::class, this::class.nestedClasses.toList())
 
-    private fun collectResolutions(resolvedDeclarativeDocument: ResolvedDeclarativeDocument) = buildList {
+    private
+    fun collectResolutions(resolvedDeclarativeDocument: ResolvedDeclarativeDocument) = buildList {
         class Visitor {
             fun visitNode(node: ResolvedDeclarativeDocument.ResolvedDocumentNode) {
                 add(node.resolution)
@@ -197,7 +196,8 @@ object DomResolutionTest {
         Visitor().run { resolvedDeclarativeDocument.content.forEach(::visitNode) }
     }
 
-    private fun resolutionPrettyString(resolution: DocumentResolution): String =
+    private
+    fun resolutionPrettyString(resolution: DocumentResolution): String =
         resolution::class.simpleName + when (resolution) {
             is DocumentResolution.ElementResolution.SuccessfulElementResolution.ContainerElementResolved ->
                 " -> element ${functionSignatureString(resolution.elementFactoryFunction)}"
@@ -215,16 +215,19 @@ object DomResolutionTest {
             is DocumentResolution.UnsuccessfulResolution -> "(${resolution.reasons.joinToString()})"
         }
 
-    private fun typeString(typeRef: DataTypeRef) = when (typeRef) {
+    private
+    fun typeString(typeRef: DataTypeRef) = when (typeRef) {
         is DataTypeRef.Type -> typeRef.dataType.toString()
         is DataTypeRef.Name -> typeRef.fqName.simpleName
     }
 
-    private fun functionSignatureString(function: SchemaFunction) =
+    private
+    fun functionSignatureString(function: SchemaFunction) =
         "${function.simpleName}(${function.parameters.joinToString { typeString(it.type) }}): ${typeString(function.returnValueType)}"
 
     @Suppress("unused", "UNUSED_PARAMETER")
-    private class TopLevelReceiver {
+    private
+    class TopLevelReceiver {
         @Adding
         fun addAndConfigure(name: String, configure: TopLevelElement.() -> Unit) = TopLevelElement().also {
             it.name = name
@@ -260,11 +263,14 @@ object DomResolutionTest {
         val nested = NestedReceiver()
     }
 
-    private class ComplexValueOne
-    private class ComplexValueTwo
+    private
+    class ComplexValueOne
+    private
+    class ComplexValueTwo
 
     @Suppress("unused")
-    private class TopLevelElement {
+    private
+    class TopLevelElement {
         @Restricted
         var name: String = ""
 
@@ -273,7 +279,8 @@ object DomResolutionTest {
     }
 
     @Suppress("unused")
-    private class NestedReceiver {
+    private
+    class NestedReceiver {
         @Restricted
         var number: Int = 0
 
@@ -281,14 +288,17 @@ object DomResolutionTest {
         fun add(): MyNestedElement = MyNestedElement()
     }
 
-    private class Utils {
+    private
+    class Utils {
         @Restricted
         fun oneUtil(): ComplexValueOne = ComplexValueOne()
     }
 
-    private class MyNestedElement
+    private
+    class MyNestedElement
 
-    private fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
+    private
+    fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
         val (tree, sourceCode, sourceOffset) = parse(code)
         return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).topLevelBlock
     }

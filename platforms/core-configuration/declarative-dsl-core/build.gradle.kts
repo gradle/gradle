@@ -14,9 +14,11 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 
 dependencies {
-    implementation(kotlin("compiler-embeddable"))
-    implementation(kotlin("reflect"))
+    api(kotlin("stdlib"))
+    api(kotlin("compiler-embeddable"))
+    api("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
 
+    implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 
     testImplementation(kotlin("test-junit5"))

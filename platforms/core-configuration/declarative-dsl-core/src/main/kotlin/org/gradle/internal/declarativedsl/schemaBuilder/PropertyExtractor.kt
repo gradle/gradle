@@ -32,6 +32,7 @@ import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
+
 interface PropertyExtractor {
     fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean = { true }): Iterable<CollectedPropertyInformation>
 
@@ -41,6 +42,7 @@ interface PropertyExtractor {
         }
     }
 }
+
 
 class CompositePropertyExtractor(internal val extractors: Iterable<PropertyExtractor>) : PropertyExtractor {
     override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> = buildList {
@@ -54,6 +56,7 @@ class CompositePropertyExtractor(internal val extractors: Iterable<PropertyExtra
     }
 }
 
+
 operator fun PropertyExtractor.plus(other: PropertyExtractor): CompositePropertyExtractor = CompositePropertyExtractor(buildList {
     fun include(propertyExtractor: PropertyExtractor) = when (propertyExtractor) {
         is CompositePropertyExtractor -> addAll(propertyExtractor.extractors)
@@ -62,6 +65,7 @@ operator fun PropertyExtractor.plus(other: PropertyExtractor): CompositeProperty
     include(this@plus)
     include(other)
 })
+
 
 data class CollectedPropertyInformation(
     val name: String,
@@ -73,11 +77,13 @@ data class CollectedPropertyInformation(
     val isDirectAccessOnly: Boolean
 )
 
+
 class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = isPublicAndRestricted) : PropertyExtractor {
     override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean) =
         (propertiesFromAccessorsOf(kClass, propertyNamePredicate) + memberPropertiesOf(kClass, propertyNamePredicate)).distinctBy { it }
 
-    private fun propertiesFromAccessorsOf(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> {
+    private
+    fun propertiesFromAccessorsOf(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> {
         val functionsByName = kClass.memberFunctions.groupBy { it.name }
         val getters = functionsByName
             .filterKeys { it.startsWith("get") && it.substringAfter("get").firstOrNull()?.isUpperCase() == true }
@@ -101,7 +107,8 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
         }
     }
 
-    private fun memberPropertiesOf(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> = kClass.memberProperties
+    private
+    fun memberPropertiesOf(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> = kClass.memberProperties
         .filter { property ->
             (includeMemberFilter.shouldIncludeMember(property) ||
                 kClass.primaryConstructor?.parameters.orEmpty().any { it.name == property.name && it.type == property.returnType })
@@ -109,7 +116,8 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
                 && propertyNamePredicate(property.name)
         }.map { property -> kPropertyInformation(property) }
 
-    private fun kPropertyInformation(property: KProperty<*>): CollectedPropertyInformation {
+    private
+    fun kPropertyInformation(property: KProperty<*>): CollectedPropertyInformation {
         val isReadOnly = property !is KMutableProperty<*>
         val isHidden = property.annotationsWithGetters.any { it is HiddenInDeclarativeDsl }
         val isDirectAccessOnly = property.annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }

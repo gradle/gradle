@@ -6,6 +6,7 @@ import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.intellij.lang.annotations.Language
 import kotlin.test.assertEquals
 
+
 class ParseTestUtil {
 
     companion object Parser {
@@ -14,8 +15,8 @@ class ParseTestUtil {
             return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test"))
         }
     }
-
 }
+
 
 fun LanguageTreeResult.assert(
     expectedPrettyPrintedForm: String,

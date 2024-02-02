@@ -19,13 +19,13 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.DataProperty
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.fqName
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
+
 
 class DataSchemaBuilder(
     private val typeDiscovery: TypeDiscovery,
@@ -57,11 +57,15 @@ class DataSchemaBuilder(
         )
     }
 
-    private val KClass<*>.fqName get() = FqName.parse(qualifiedName!!)
+    private
+    val KClass<*>.fqName
+        get() = FqName.parse(qualifiedName!!)
 
     class PreIndex {
-        private val properties = mutableMapOf<KClass<*>, MutableMap<String, DataProperty>>()
-        private val propertyOriginalTypes = mutableMapOf<KClass<*>, MutableMap<String, KType>>()
+        private
+        val properties = mutableMapOf<KClass<*>, MutableMap<String, DataProperty>>()
+        private
+        val propertyOriginalTypes = mutableMapOf<KClass<*>, MutableMap<String, KType>>()
 
         fun addType(kClass: KClass<*>) {
             properties.getOrPut(kClass) { mutableMapOf() }
@@ -73,7 +77,8 @@ class DataSchemaBuilder(
             propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }[property.name] = originalType
         }
 
-        val types: Iterable<KClass<*>> get() = properties.keys
+        val types: Iterable<KClass<*>>
+            get() = properties.keys
 
         fun hasType(kClass: KClass<*>): Boolean = kClass in properties
 
@@ -83,7 +88,8 @@ class DataSchemaBuilder(
         fun getPropertyType(kClass: KClass<*>, name: String) = propertyOriginalTypes[kClass]?.get(name)
     }
 
-    private fun createPreIndex(types: Iterable<KClass<*>>): PreIndex {
+    private
+    fun createPreIndex(types: Iterable<KClass<*>>): PreIndex {
         val allTypesToVisit = buildSet {
             fun visit(type: KClass<*>) {
                 if (add(type)) {
@@ -108,7 +114,8 @@ class DataSchemaBuilder(
         }
     }
 
-    private fun createDataType(
+    private
+    fun createDataType(
         kClass: KClass<*>,
         preIndex: PreIndex,
     ): DataClass {
@@ -120,9 +127,10 @@ class DataSchemaBuilder(
         return DataClass(name, supertypesOf(kClass), properties, functions.toList(), constructors.toList())
     }
 
-    private fun supertypesOf(kClass: KClass<*>): Set<FqName> = buildSet {
+    private
+    fun supertypesOf(kClass: KClass<*>): Set<FqName> = buildSet {
         fun visit(supertype: KType) {
-            val classifier = supertype.classifier as? KClass<*> ?: error("a supertype is not represented by KClass: ${supertype}")
+            val classifier = supertype.classifier as? KClass<*> ?: error("a supertype is not represented by KClass: $supertype")
             if (add(classifier.fqName)) {
                 classifier.supertypes.forEach(::visit)
             }

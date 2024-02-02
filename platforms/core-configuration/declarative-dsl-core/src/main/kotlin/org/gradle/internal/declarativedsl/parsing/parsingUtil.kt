@@ -13,10 +13,14 @@ import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.language.Syntactic
 import org.gradle.internal.declarativedsl.language.SyntacticResult
 
-internal class FailureCollectorContext {
-    private val currentFailures: MutableList<FailingResult> = mutableListOf()
 
-    val failures: List<FailingResult> get() = currentFailures
+internal
+class FailureCollectorContext {
+    private
+    val currentFailures: MutableList<FailingResult> = mutableListOf()
+
+    val failures: List<FailingResult>
+        get() = currentFailures
 
     // TODO: introduce a type for a result with definitely collected failure?
     fun <T> checkForFailure(result: SyntacticResult<T>): CheckedResult<SyntacticResult<T>> =
@@ -62,16 +66,14 @@ internal class FailureCollectorContext {
 
     fun <T : LanguageTreeElement> elementIfNoFailures(evaluate: CheckBarrierContext.() -> ElementResult<T>): ElementResult<T> =
         when (currentFailures.size) {
-            0 -> evaluate(object :
-                CheckBarrierContext {})
+            0 -> evaluate(object : CheckBarrierContext {})
             1 -> currentFailures.single()
             else -> MultipleFailuresResult(currentFailures.flatMap { if (it is MultipleFailuresResult) it.failures else listOf(it as SingleFailureResult) })
         }
 
     fun <T> syntacticIfNoFailures(evaluate: CheckBarrierContext.() -> SyntacticResult<T>): SyntacticResult<T> =
         when (currentFailures.size) {
-            0 -> evaluate(object :
-                CheckBarrierContext {})
+            0 -> evaluate(object : CheckBarrierContext {})
             1 -> currentFailures.single()
             else -> MultipleFailuresResult(currentFailures.flatMap { if (it is MultipleFailuresResult) it.failures else listOf(it as SingleFailureResult) })
         }
@@ -79,20 +81,25 @@ internal class FailureCollectorContext {
     class CheckedResult<T : LanguageResult<*>>(val value: T)
 }
 
-internal fun ElementResult<DataStatement>.asBlockElement(): BlockElement = when (this) {
+
+internal
+fun ElementResult<DataStatement>.asBlockElement(): BlockElement = when (this) {
     is Element -> element
     is FailingResult -> ErroneousStatement(this)
 }
 
 
-internal fun <T : LanguageTreeElement> elementOrFailure(
+internal
+fun <T : LanguageTreeElement> elementOrFailure(
     evaluate: FailureCollectorContext.() -> ElementResult<T>
 ): ElementResult<T> {
     val context = FailureCollectorContext()
     return evaluate(context)
 }
 
-internal fun <T> syntacticOrFailure(
+
+internal
+fun <T> syntacticOrFailure(
     evaluate: FailureCollectorContext.() -> SyntacticResult<T>
 ): SyntacticResult<T> {
     val context = FailureCollectorContext()

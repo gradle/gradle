@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 
 import kotlin.reflect.KCallable
 
+
 fun interface MemberFilter {
     fun shouldIncludeMember(member: KCallable<*>): Boolean
 }

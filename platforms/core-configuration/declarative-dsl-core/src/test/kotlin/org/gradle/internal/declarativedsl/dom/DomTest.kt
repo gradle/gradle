@@ -25,6 +25,7 @@ import org.intellij.lang.annotations.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+
 object DomTest {
     @Test
     fun `converts a simple language tree to document`() {
@@ -119,12 +120,14 @@ object DomTest {
         )
     }
 
-    private fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
+    private
+    fun parseAsTopLevelBlock(@Language("kts") code: String): Block {
         val (tree, sourceCode, sourceOffset) = parse(code)
         return DefaultLanguageTreeBuilder().build(tree, sourceCode, sourceOffset, SourceIdentifier("test")).topLevelBlock
     }
 
-    internal class DomPrettyPrinter(private val withSourceData: Boolean) {
+    internal
+    class DomPrettyPrinter(private val withSourceData: Boolean) {
         fun domAsString(document: DeclarativeDocument) = buildString {
             fun valueToString(valueNode: DeclarativeDocument.ValueNode): String = when (valueNode) {
                 is DeclarativeDocument.ValueNode.ValueFactoryNode -> "valueFactory(${valueNode.factoryName}" +
@@ -154,18 +157,22 @@ object DomTest {
             document.content.forEach(::visit)
         }
 
-        private fun errorString(error: DocumentError): String = when (error) {
+        private
+        fun errorString(error: DocumentError): String = when (error) {
             is SyntaxError -> "SyntaxError(${error.parsingError.message})"
             is UnsupportedKotlinFeature -> "UnsupportedKotlinFeature(${error.unsupportedConstruct.languageFeature})"
             is UnsupportedSyntax -> "UnsupportedSyntax(${error.cause})"
         }
 
-        private fun maybeSourceData(documentNode: DeclarativeDocument.DocumentNode) =
+        private
+        fun maybeSourceData(documentNode: DeclarativeDocument.DocumentNode) =
             if (withSourceData) sourceDataString(documentNode.sourceData) else ""
 
-        private fun maybeSourceData(valueNode: DeclarativeDocument.ValueNode) =
+        private
+        fun maybeSourceData(valueNode: DeclarativeDocument.ValueNode) =
             if (withSourceData) sourceDataString(valueNode.sourceData) else ""
 
-        private fun sourceDataString(sourceData: SourceData) = "[${sourceData.indexRange}]"
+        private
+        fun sourceDataString(sourceData: SourceData) = "[${sourceData.indexRange}]"
     }
 }

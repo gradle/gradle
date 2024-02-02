@@ -2,7 +2,14 @@ package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.jetbrains.kotlin.KtNodeTypes.*
+import org.jetbrains.kotlin.KtNodeTypes.BLOCK
+import org.jetbrains.kotlin.KtNodeTypes.CALL_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.FUN
+import org.jetbrains.kotlin.KtNodeTypes.FUNCTION_LITERAL
+import org.jetbrains.kotlin.KtNodeTypes.LAMBDA_ARGUMENT
+import org.jetbrains.kotlin.KtNodeTypes.LAMBDA_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.PARENTHESIZED
+import org.jetbrains.kotlin.KtNodeTypes.SCRIPT
 import org.jetbrains.kotlin.com.intellij.lang.LighterASTNode
 import org.jetbrains.kotlin.com.intellij.lang.impl.PsiBuilderImpl
 import org.jetbrains.kotlin.com.intellij.openapi.util.Ref
@@ -11,9 +18,12 @@ import org.jetbrains.kotlin.com.intellij.psi.TokenType.WHITE_SPACE
 import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.com.intellij.util.diff.FlyweightCapableTreeStructure
 import org.jetbrains.kotlin.diagnostics.isExpression
-import org.jetbrains.kotlin.lexer.KtTokens.*
+import org.jetbrains.kotlin.lexer.KtTokens.COMMENTS
+import org.jetbrains.kotlin.lexer.KtTokens.SEMICOLON
+
 
 typealias LightTree = FlyweightCapableTreeStructure<LighterASTNode>
+
 
 fun FlyweightCapableTreeStructure<LighterASTNode>.sourceData(
     sourceIdentifier: SourceIdentifier,
@@ -26,6 +36,7 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.sourceData(
         sourceOffset,
         this.root
     )
+
 
 class LightTreeSourceData(
     override val sourceIdentifier: SourceIdentifier,
@@ -137,6 +148,7 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.print(
     }
 }
 
+
 internal
 fun FlyweightCapableTreeStructure<LighterASTNode>.children(
     node: LighterASTNode
@@ -148,6 +160,7 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.children(
         .filter { it.isUseful }
 } // TODO: any usages that need to be checked for parsing errors?
 
+
 internal
 fun FlyweightCapableTreeStructure<LighterASTNode>.getFirstChildExpressionUnwrapped(node: LighterASTNode): LighterASTNode? {
     val firstChild = children(node).firstOrNull { it: LighterASTNode -> it.isExpression() } ?: return null
@@ -158,38 +171,47 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.getFirstChildExpressionUnwrapp
     }
 }
 
+
 internal
 val LighterASTNode.asText: String
     get() = this.toString()
 
+
 internal
 val LighterASTNode.isUseful: Boolean
     get() = !(COMMENTS.contains(tokenType) || tokenType == WHITE_SPACE || tokenType == SEMICOLON)
+
 
 internal
 fun LighterASTNode.expectKind(expected: IElementType) {
     check(isKind(expected))
 }
 
+
 internal
 fun List<LighterASTNode>.expectSingleOfKind(expected: IElementType): LighterASTNode =
     this.single { it.isKind(expected) }
+
 
 internal
 fun LighterASTNode.isKind(expected: IElementType) =
     this.tokenType == expected
 
+
 internal
 fun LighterASTNode.sourceData(sourceIdentifier: SourceIdentifier, sourceCode: String, sourceOffset: Int) =
     LightTreeSourceData(sourceIdentifier, sourceCode, sourceOffset, this)
 
+
 private
 fun LighterASTNode.print(indent: String) {
-    println("$indent${tokenType} (${range()}): ${content()}")
+    println("$indent$tokenType (${range()}): ${content()}")
 }
+
 
 internal
 fun LighterASTNode.range() = startOffset..endOffset
+
 
 private
 fun LighterASTNode.content(): String? =

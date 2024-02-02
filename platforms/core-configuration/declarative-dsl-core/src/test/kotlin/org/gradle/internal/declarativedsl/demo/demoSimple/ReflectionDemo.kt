@@ -2,6 +2,7 @@ package org.gradle.internal.declarativedsl.demo.demoSimple
 
 import org.gradle.internal.declarativedsl.demo.reflection.reflectAndPrint
 
+
 object ReflectionDemo {
     @JvmStatic
     fun main(args: Array<String>) {

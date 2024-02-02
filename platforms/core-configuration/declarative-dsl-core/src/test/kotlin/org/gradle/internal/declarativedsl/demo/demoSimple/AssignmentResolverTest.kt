@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
+
 object AssignmentResolverTest {
     @Test
     fun `resolves transitive property`() {

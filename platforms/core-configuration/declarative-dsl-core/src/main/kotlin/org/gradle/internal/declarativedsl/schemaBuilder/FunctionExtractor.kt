@@ -43,22 +43,25 @@ import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.typeOf
 
+
 interface FunctionExtractor {
     fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction>
     fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor>
     fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction?
 }
 
+
 class CompositeFunctionExtractor(internal val extractors: Iterable<FunctionExtractor>) : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        extractors.flatMapTo(mutableSetOf()) { it.memberFunctions(kClass, preIndex)}
+        extractors.flatMapTo(mutableSetOf()) { it.memberFunctions(kClass, preIndex) }
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> =
-        extractors.flatMapTo(mutableSetOf()) { it.constructors(kClass, preIndex)}
+        extractors.flatMapTo(mutableSetOf()) { it.constructors(kClass, preIndex) }
 
     override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? =
         extractors.asSequence().mapNotNull { it.topLevelFunction(function, preIndex) }.firstOrNull()
 }
+
 
 operator fun FunctionExtractor.plus(other: FunctionExtractor): CompositeFunctionExtractor = CompositeFunctionExtractor(buildList {
     fun include(functionExtractor: FunctionExtractor) = when (functionExtractor) {
@@ -68,6 +71,7 @@ operator fun FunctionExtractor.plus(other: FunctionExtractor): CompositeFunction
     include(this@plus)
     include(other)
 })
+
 
 class DefaultFunctionExtractor(
     private val includeFilter: MemberFilter,
@@ -86,7 +90,8 @@ class DefaultFunctionExtractor(
     override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction =
         dataTopLevelFunction(function, preIndex)
 
-    private fun memberFunction(
+    private
+    fun memberFunction(
         inType: KClass<*>,
         function: KFunction<*>,
         preIndex: DataSchemaBuilder.PreIndex,
@@ -137,7 +142,8 @@ class DefaultFunctionExtractor(
         }
     }
 
-    private fun constructor(
+    private
+    fun constructor(
         constructor: KFunction<Any>,
         kClass: KClass<*>,
         preIndex: DataSchemaBuilder.PreIndex
@@ -149,7 +155,8 @@ class DefaultFunctionExtractor(
         return DataConstructor(dataParams, kClass.toDataTypeRef())
     }
 
-    private fun dataTopLevelFunction(
+    private
+    fun dataTopLevelFunction(
         function: KFunction<*>,
         preIndex: DataSchemaBuilder.PreIndex
     ): DataTopLevelFunction {
@@ -174,7 +181,8 @@ class DefaultFunctionExtractor(
         )
     }
 
-    private fun dataParameter(
+    private
+    fun dataParameter(
         function: KFunction<*>,
         fnParam: KParameter,
         returnClass: KClass<*>,
@@ -187,7 +195,8 @@ class DefaultFunctionExtractor(
         return DataParameter(fnParam.name, paramType.toDataTypeRefOrError(), fnParam.isOptional, paramSemantics)
     }
 
-    private fun getParameterSemantics(
+    private
+    fun getParameterSemantics(
         functionSemantics: FunctionSemantics,
         function: KFunction<*>,
         fnParam: KParameter,
@@ -209,7 +218,8 @@ class DefaultFunctionExtractor(
         return ParameterSemantics.Unknown
     }
 
-    private fun inferFunctionSemanticsFromSignature(
+    private
+    fun inferFunctionSemanticsFromSignature(
         function: KFunction<*>,
         returnTypeClassifier: KType,
         inType: KClass<*>?,
@@ -271,7 +281,7 @@ class DefaultFunctionExtractor(
         }
     }
 
-    private fun KType.toKClass() = (classifier ?: error("unclassifiable type $this is used in the schema")) as? KClass<*>
+    private
+    fun KType.toKClass() = (classifier ?: error("unclassifiable type $this is used in the schema")) as? KClass<*>
         ?: error("type $this classified as a non-class is used in the schema")
-
 }

@@ -8,6 +8,7 @@ import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
 
+
 fun AnalysisSchema.reflect(code: String): ObjectReflection {
     val resolution = resolve(code)
     val trace = assignmentTrace(resolution)
@@ -17,9 +18,11 @@ fun AnalysisSchema.reflect(code: String): ObjectReflection {
     return topLevel
 }
 
+
 fun printReflection(objectReflection: ObjectReflection) {
     println(prettyStringFromReflection(objectReflection))
 }
+
 
 fun AnalysisSchema.reflectAndPrint(code: String) {
     println(prettyStringFromReflection(reflect(code)))

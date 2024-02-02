@@ -27,6 +27,7 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.typeOf
 
+
 interface ConfigureLambdaHandler {
     fun getTypeConfiguredByLambda(type: KType): KType?
     fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType): Boolean
@@ -36,9 +37,11 @@ interface ConfigureLambdaHandler {
         val lambda: Any,
         private val lazyValue: Lazy<Any?>
     ) {
-        val value: Any? get() = lazyValue.value
+        val value: Any?
+            get() = lazyValue.value
     }
 }
+
 
 operator fun ConfigureLambdaHandler.plus(other: ConfigureLambdaHandler) =
     CompositeConfigureLambdas(buildList {
@@ -52,6 +55,7 @@ operator fun ConfigureLambdaHandler.plus(other: ConfigureLambdaHandler) =
         }
     })
 
+
 val kotlinFunctionAsConfigureLambda: ConfigureLambdaHandler = object : ConfigureLambdaHandler {
     override fun getTypeConfiguredByLambda(type: KType): KType? = if (isConfigureLambdaType(type)) type.arguments[0].type else null
     override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType): Boolean = isConfigureLambdaType(maybeLambdaType, configuredType)
@@ -61,11 +65,14 @@ val kotlinFunctionAsConfigureLambda: ConfigureLambdaHandler = object : Configure
         return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { value })
     }
 
-    private fun isConfigureLambdaType(maybeLambdaType: KType) = maybeLambdaType.isSubtypeOf(typeOf<Function1<*, Unit>>())
+    private
+    fun isConfigureLambdaType(maybeLambdaType: KType) = maybeLambdaType.isSubtypeOf(typeOf<Function1<*, Unit>>())
 
-    private fun isConfigureLambdaType(maybeLambdaType: KType, configuredType: KType) = maybeLambdaType.isSubtypeOf(configureLambdaTypeFor(configuredType))
+    private
+    fun isConfigureLambdaType(maybeLambdaType: KType, configuredType: KType) = maybeLambdaType.isSubtypeOf(configureLambdaTypeFor(configuredType))
 
-    private fun configureLambdaTypeFor(configuredType: KType) =
+    private
+    fun configureLambdaTypeFor(configuredType: KType) =
         Function1::class.createType(
             listOf(
                 KTypeProjection.contravariant(configuredType),
@@ -73,6 +80,7 @@ val kotlinFunctionAsConfigureLambda: ConfigureLambdaHandler = object : Configure
             )
         )
 }
+
 
 class CompositeConfigureLambdas(internal val implementations: List<ConfigureLambdaHandler>) : ConfigureLambdaHandler {
     override fun getTypeConfiguredByLambda(type: KType): KType? =
@@ -88,16 +96,20 @@ class CompositeConfigureLambdas(internal val implementations: List<ConfigureLamb
             else -> return implementation.produceValueCaptor(lambdaType)
         }
     }
-
 }
 
+
 fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLambdaHandler = object : ConfigureLambdaHandler {
-    private val typeParameters = functionalInterface.typeParameters
-    private val starProjectedType = functionalInterface.createType(typeParameters.map { KTypeProjection.STAR })
-    private val staticallyKnownConfiguredType = if (functionalInterface.typeParameters.isEmpty())
+    private
+    val typeParameters = functionalInterface.typeParameters
+    private
+    val starProjectedType = functionalInterface.createType(typeParameters.map { KTypeProjection.STAR })
+    private
+    val staticallyKnownConfiguredType = if (functionalInterface.typeParameters.isEmpty())
         functionalInterface.declaredMemberFunctions.singleOrNull()?.let { fn -> fn.parameters.takeIf { it.size == 2 && it[0] == fn.instanceParameter }?.last()?.type } else null
 
-    private fun interfaceTypeWithArgument(typeArgument: KType): KType {
+    private
+    fun interfaceTypeWithArgument(typeArgument: KType): KType {
         val inTypeProjection = KTypeProjection.contravariant(typeArgument)
         return functionalInterface.createType(functionalInterface.typeParameters.map { inTypeProjection })
     }
@@ -118,7 +130,8 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
             valueCaptor()
         } else throw IllegalArgumentException("requested lambda type $lambdaType is not a subtype of the interface $starProjectedType")
 
-    private fun valueCaptor(): ConfigureLambdaHandler.ValueCaptor {
+    private
+    fun valueCaptor(): ConfigureLambdaHandler.ValueCaptor {
         var value: Any? = null
         val lambda = Proxy.newProxyInstance(
             functionalInterface.java.classLoader,

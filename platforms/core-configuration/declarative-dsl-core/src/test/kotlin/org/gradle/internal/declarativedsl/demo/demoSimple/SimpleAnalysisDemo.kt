@@ -1,10 +1,14 @@
 package org.gradle.internal.declarativedsl.demo.demoSimple
 
-import com.example.*
-import org.gradle.internal.declarativedsl.analysis.*
+import com.example.Abc
+import com.example.C
+import com.example.D
+import com.example.newD
+import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.demo.printResolutionResults
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+
 
 val schema = schemaFromTypes(
     topLevelReceiver = Abc::class,
@@ -12,6 +16,7 @@ val schema = schemaFromTypes(
     externalFunctions = listOf(::newD),
     defaultImports = listOf(FqName("com.example", "newD"))
 )
+
 
 object SimpleAnalysisDemo {
     @JvmStatic
@@ -37,6 +42,7 @@ object SimpleAnalysisDemo {
         )
     }
 }
+
 
 object BuilderFunctionsDemo {
     @JvmStatic

@@ -45,6 +45,7 @@ import kotlin.reflect.KFunction
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+
 object AccessorTest {
     @Test
     fun `uses custom accessor in mapping to JVM`() {
@@ -52,8 +53,7 @@ object AccessorTest {
             """
             configureCustomInstance {
                 x = 123
-            }
-        """.trimIndent()
+            }""".trimIndent()
         )
         assertEquals(123, runtimeInstanceFromResult(resolution).myHiddenInstance.x)
     }
@@ -67,15 +67,15 @@ object AccessorTest {
             }
             configureLambdaArgumentWithCustomInterface {
                 y = "test"
-            }
-        """.trimIndent()
+            }""".trimIndent()
         )
         val runtimeInstanceFromResult = runtimeInstanceFromResult(resolution)
         assertEquals(123, runtimeInstanceFromResult.myLambdaReceiver.x)
         assertEquals("test", runtimeInstanceFromResult.myLambdaReceiver.y)
     }
 
-    private fun runtimeInstanceFromResult(resolution: ResolutionResult): MyReceiver {
+    private
+    fun runtimeInstanceFromResult(resolution: ResolutionResult): MyReceiver {
         val trace = assignmentTrace(resolution)
         val context = ReflectionContext(SchemaTypeRefContext(schema), resolution, trace)
         val topLevel = reflect(resolution.topLevelReceiver, context)
@@ -91,14 +91,16 @@ object AccessorTest {
         return runtimeInstance
     }
 
-    private val runtimeCustomAccessors = object : RuntimeCustomAccessors {
+    private
+    val runtimeCustomAccessors = object : RuntimeCustomAccessors {
         override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
             if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
                 receiverObject.myHiddenInstance
             else null
     }
 
-    private val functionContributorWithCustomAccessor = object : FunctionExtractor {
+    private
+    val functionContributorWithCustomAccessor = object : FunctionExtractor {
         override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
             if (kClass == MyReceiver::class) {
                 listOf(
@@ -124,7 +126,8 @@ object AccessorTest {
         functionExtractor = DefaultFunctionExtractor(isPublicAndRestricted, configureLambdas) + functionContributorWithCustomAccessor
     )
 
-    internal class MyReceiver {
+    internal
+    class MyReceiver {
         val myLambdaReceiver = Configured()
 
         @Configuring
@@ -140,11 +143,13 @@ object AccessorTest {
         val myHiddenInstance = Configured()
     }
 
-    internal interface MyFunctionalInterface<in T> {
+    internal
+    interface MyFunctionalInterface<in T> {
         fun action(t: T)
     }
 
-    internal class Configured {
+    internal
+    class Configured {
         @Restricted
         var x: Int = 0
 

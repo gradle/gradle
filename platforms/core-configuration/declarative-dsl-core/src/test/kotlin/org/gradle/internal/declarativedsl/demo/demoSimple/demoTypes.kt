@@ -6,6 +6,7 @@ import org.gradle.internal.declarativedsl.Adding
 import org.gradle.internal.declarativedsl.Builder
 import org.gradle.internal.declarativedsl.Restricted
 
+
 class Abc {
     @Restricted
     var a: Int = 0
