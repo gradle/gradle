@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.language
 
+
 data class LanguageTreeResult(
     val imports: List<Import>,
     val topLevelBlock: Block,
@@ -25,7 +26,9 @@ data class LanguageTreeResult(
     val allFailures = headerFailures + codeFailures
 }
 
+
 sealed interface LanguageResult<out T>
+
 
 sealed interface ElementResult<out T : LanguageTreeElement> : LanguageResult<T> {
     fun <R : LanguageTreeElement> flatMap(mapping: (T) -> ElementResult<R>): ElementResult<R> = when (this) {
@@ -34,6 +37,7 @@ sealed interface ElementResult<out T : LanguageTreeElement> : LanguageResult<T> 
     }
 }
 
+
 sealed interface SyntacticResult<out T> : LanguageResult<T> {
     fun <R> flatMap(mapping: (T) -> SyntacticResult<R>): SyntacticResult<R> = when (this) {
         is Syntactic -> mapping(value)
@@ -41,10 +45,18 @@ sealed interface SyntacticResult<out T> : LanguageResult<T> {
     }
 }
 
+
 data class Element<T : LanguageTreeElement>(val element: T) : ElementResult<T>
+
+
 data class Syntactic<out T>(val value: T) : SyntacticResult<T>
+
+
 sealed interface FailingResult : ElementResult<Nothing>, SyntacticResult<Nothing>
+
+
 sealed interface SingleFailureResult : FailingResult
+
 
 data class UnsupportedConstruct(
     val potentialElementSource: SourceData,
@@ -52,14 +64,17 @@ data class UnsupportedConstruct(
     val languageFeature: UnsupportedLanguageFeature
 ) : SingleFailureResult
 
+
 data class ParsingError(
     val potentialElementSource: SourceData,
     val erroneousSource: SourceData,
     val message: String
 ) : SingleFailureResult
 
+
 data class MultipleFailuresResult(val failures: List<SingleFailureResult>) :
     FailingResult // TODO: should this exist at all?
+
 
 sealed interface UnsupportedLanguageFeature {
     data object PackageHeader : UnsupportedLanguageFeature
@@ -94,7 +109,7 @@ sealed interface UnsupportedLanguageFeature {
     data object Indexing : UnsupportedLanguageFeature
     data object InvalidLanguageConstruct : UnsupportedLanguageFeature
     data object PrefixExpression : UnsupportedLanguageFeature
-    data object UnsupportedOperationInBinaryExpression: UnsupportedLanguageFeature
+    data object UnsupportedOperationInBinaryExpression : UnsupportedLanguageFeature
 
     data object SafeNavigation : UnsupportedLanguageFeature
 

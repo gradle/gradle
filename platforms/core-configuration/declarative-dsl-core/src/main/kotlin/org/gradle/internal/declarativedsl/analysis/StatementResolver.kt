@@ -22,11 +22,13 @@ import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LocalValue
 
+
 interface StatementResolver {
     fun doResolveAssignment(context: AnalysisContext, assignment: Assignment): AssignmentRecord?
     fun doResolveLocalValue(context: AnalysisContext, localValue: LocalValue)
     fun doResolveExpressionStatement(context: AnalysisContext, expr: Expr)
 }
+
 
 class StatementResolverImpl(
     private val propertyAccessResolver: PropertyAccessResolver,
@@ -50,7 +52,8 @@ class StatementResolverImpl(
         }
     }
 
-    private fun AnalysisContext.doAnalyzeAssignment(assignment: Assignment): AssignmentRecord? {
+    private
+    fun AnalysisContext.doAnalyzeAssignment(assignment: Assignment): AssignmentRecord? {
         val lhsResolution = propertyAccessResolver.doResolvePropertyAccessToAssignable(this, assignment.lhs)
 
         return if (lhsResolution == null) {
@@ -88,7 +91,8 @@ class StatementResolverImpl(
         }
     }
 
-    private fun AnalysisContext.doAnalyzeLocal(localValue: LocalValue) {
+    private
+    fun AnalysisContext.doAnalyzeLocal(localValue: LocalValue) {
         val rhs = expressionResolver.doResolveExpression(this, localValue.rhs)
         if (rhs == null) {
             errorCollector.collect(ResolutionError(localValue, ErrorReason.UnresolvedAssignmentRhs))
@@ -101,7 +105,8 @@ class StatementResolverImpl(
     }
 
     // If we can trace the function invocation back to something that is not transient, we consider it not dangling
-    private fun isDanglingPureCall(obj: ObjectOrigin.FunctionOrigin): Boolean {
+    private
+    fun isDanglingPureCall(obj: ObjectOrigin.FunctionOrigin): Boolean {
         fun isPotentiallyPersistentReceiver(objectOrigin: ObjectOrigin): Boolean = when (objectOrigin) {
             is ObjectOrigin.AccessAndConfigureReceiver -> true
             is ObjectOrigin.ImplicitThisReceiver -> true
@@ -132,5 +137,4 @@ class StatementResolverImpl(
             else -> false
         }
     }
-
 }

@@ -22,6 +22,7 @@ import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.analysis.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 
+
 sealed interface DocumentResolution {
     sealed interface SuccessfulResolution : DocumentResolution
     sealed interface UnsuccessfulResolution : DocumentResolution {
@@ -52,7 +53,8 @@ sealed interface DocumentResolution {
     }
 
     data object ErrorResolution : DocumentResolution, UnsuccessfulResolution {
-        override val reasons: Iterable<ResolutionFailureReason> get() = listOf(IsError)
+        override val reasons: Iterable<ResolutionFailureReason>
+            get() = listOf(IsError)
     }
 
     sealed interface ValueResolution : DocumentResolution {
@@ -63,5 +65,4 @@ sealed interface DocumentResolution {
             data class ValueFactoryNotResolved(override val reasons: List<ValueFactoryNotResolvedReason>) : ValueFactoryResolution, UnsuccessfulResolution
         }
     }
-
 }

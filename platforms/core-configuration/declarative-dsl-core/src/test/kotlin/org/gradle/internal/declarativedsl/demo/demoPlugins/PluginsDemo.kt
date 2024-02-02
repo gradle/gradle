@@ -1,6 +1,6 @@
 package org.gradle.internal.declarativedsl.demo.demoPlugins
 
-import org.gradle.internal.declarativedsl.analysis.*
+import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.demo.printResolutionResults
 import org.gradle.internal.declarativedsl.demo.printResolvedAssignments
 import org.gradle.internal.declarativedsl.demo.resolve
@@ -12,10 +12,12 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
+
 val schema = schemaFromTypes(
     topLevelReceiver = TopLevelScope::class,
     types = listOf(TopLevelScope::class, PluginsBlock::class, PluginDefinition::class)
 )
+
 
 fun main() {
     val result = schema.resolve(
@@ -35,6 +37,7 @@ fun main() {
 
     printResolvedAssignments(result)
 }
+
 
 class Tests {
     @Test

@@ -1,7 +1,13 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.FunctionResolutionAndBinding
-import org.gradle.internal.declarativedsl.language.*
+import org.gradle.internal.declarativedsl.language.DataType
+import org.gradle.internal.declarativedsl.language.Expr
+import org.gradle.internal.declarativedsl.language.FunctionArgument
+import org.gradle.internal.declarativedsl.language.FunctionCall
+import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.asChainOrNull
+
 
 interface FunctionCallResolver {
     fun doResolveFunctionCall(
@@ -16,13 +22,17 @@ interface FunctionCallResolver {
     )
 }
 
+
 data class ParameterArgumentBinding(
     val binding: Map<DataParameter, FunctionArgument.ValueArgument>
 )
 
+
 class FunctionCallResolverImpl(
-    private val expressionResolver: ExpressionResolver,
-    private val codeAnalyzer: CodeAnalyzer
+    private
+    val expressionResolver: ExpressionResolver,
+    private
+    val codeAnalyzer: CodeAnalyzer
 ) : FunctionCallResolver {
 
     override fun doResolveFunctionCall(
@@ -63,7 +73,8 @@ class FunctionCallResolverImpl(
         }
     }
 
-    private fun AnalysisContext.invokeIfSingleOverload(
+    private
+    fun AnalysisContext.invokeIfSingleOverload(
         overloads: List<FunctionResolutionAndBinding>,
         functionCall: FunctionCall,
         argResolutions: Lazy<Map<FunctionArgument.ValueArgument, ObjectOrigin>>
@@ -85,7 +96,8 @@ class FunctionCallResolverImpl(
     }
 
     // TODO: check the resolution order with the Kotlin spec
-    private fun AnalysisContext.lookupFunctions(
+    private
+    fun AnalysisContext.lookupFunctions(
         functionCall: FunctionCall,
         argResolutions: Lazy<Map<FunctionArgument.ValueArgument, ObjectOrigin>>,
         context: AnalysisContext
@@ -124,7 +136,8 @@ class FunctionCallResolverImpl(
         return overloads
     }
 
-    private fun AnalysisContext.doProduceAndHandleFunctionResult(
+    private
+    fun AnalysisContext.doProduceAndHandleFunctionResult(
         function: FunctionResolutionAndBinding,
         argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
         functionCall: FunctionCall,
@@ -146,7 +159,8 @@ class FunctionCallResolverImpl(
         return if (isCorrectConfigureLambda) result else null
     }
 
-    private fun AnalysisContext.doAnalyzeAndCheckConfiguringSemantics(
+    private
+    fun AnalysisContext.doAnalyzeAndCheckConfiguringSemantics(
         call: FunctionCall,
         semantics: FunctionSemantics,
         function: FunctionResolutionAndBinding,
@@ -189,7 +203,8 @@ class FunctionCallResolverImpl(
         return true
     }
 
-    private fun AnalysisContext.doRecordSemanticsSideEffects(
+    private
+    fun AnalysisContext.doRecordSemanticsSideEffects(
         call: FunctionCall,
         semantics: FunctionSemantics,
         receiver: ObjectOrigin?,
@@ -214,7 +229,8 @@ class FunctionCallResolverImpl(
         }
     }
 
-    private fun checkBuilderSemantics(
+    private
+    fun checkBuilderSemantics(
         semantics: FunctionSemantics,
         receiver: ObjectOrigin?,
         function: FunctionResolutionAndBinding
@@ -229,7 +245,8 @@ class FunctionCallResolverImpl(
         }
     }
 
-    private fun invocationResultObjectOrigin(
+    private
+    fun invocationResultObjectOrigin(
         semantics: FunctionSemantics,
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
@@ -255,7 +272,8 @@ class FunctionCallResolverImpl(
         else -> newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
     }
 
-    private fun configureReceiverObject(
+    private
+    fun configureReceiverObject(
         semantics: FunctionSemantics.AccessAndConfigure,
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
@@ -266,12 +284,14 @@ class FunctionCallResolverImpl(
         return ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, newFunctionCallId, semantics.accessor)
     }
 
-    private fun preFilterSignatures(
+    private
+    fun preFilterSignatures(
         matchingMembers: List<SchemaFunction>,
         args: List<FunctionArgument>,
     ) = matchingMembers.filter { it.parameters.size >= args.filterIsInstance<FunctionArgument.ValueArgument>().size }
 
-    private fun TypeRefContext.findMemberFunction(
+    private
+    fun TypeRefContext.findMemberFunction(
         receiver: ObjectOrigin,
         functionCall: FunctionCall,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
@@ -290,7 +310,8 @@ class FunctionCallResolverImpl(
         return chooseMatchingOverloads(receiver, signatureSizeMatches, args, argResolution)
     }
 
-    private fun AnalysisContextView.findTopLevelFunction(
+    private
+    fun AnalysisContextView.findTopLevelFunction(
         functionCall: FunctionCall,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ): List<FunctionResolutionAndBinding> {
@@ -322,7 +343,8 @@ class FunctionCallResolverImpl(
         }
     }
 
-    private fun newObjectInvocationResult(
+    private
+    fun newObjectInvocationResult(
         function: FunctionResolutionAndBinding,
         valueBinding: ParameterValueBinding,
         functionCall: FunctionCall,
@@ -336,7 +358,8 @@ class FunctionCallResolverImpl(
         )
     }
 
-    private fun AnalysisContextView.findDataConstructor(
+    private
+    fun AnalysisContextView.findDataConstructor(
         functionCall: FunctionCall,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ): List<FunctionResolutionAndBinding> {
@@ -366,7 +389,8 @@ class FunctionCallResolverImpl(
         return chooseMatchingOverloads(null, constructors, functionCall.args, argResolution)
     }
 
-    private fun TypeRefContext.chooseMatchingOverloads(
+    private
+    fun TypeRefContext.chooseMatchingOverloads(
         receiver: ObjectOrigin?,
         signatureSizeMatches: List<SchemaFunction>,
         args: List<FunctionArgument>,
@@ -385,7 +409,8 @@ class FunctionCallResolverImpl(
         FunctionResolutionAndBinding(receiver, candidate, binding)
     }
 
-    private fun TypeRefContext.typeCheckFunctionCall(
+    private
+    fun TypeRefContext.typeCheckFunctionCall(
         binding: ParameterArgumentBinding,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ): Boolean = binding.binding.all { (param, arg) ->
@@ -400,7 +425,8 @@ class FunctionCallResolverImpl(
     }
 
     // TODO: performance optimization (?) Don't create the binding objects until a single candidate has been chosen
-    private fun bindFunctionParametersToArguments(
+    private
+    fun bindFunctionParametersToArguments(
         parameters: List<DataParameter>,
         arguments: List<FunctionArgument>,
     ): ParameterArgumentBinding? {
@@ -421,11 +447,10 @@ class FunctionCallResolverImpl(
             }
 
             val param =
-                if (arg is FunctionArgument.Named)
-                    findParameterByName(arg.name)
+                if (arg is FunctionArgument.Named) {
+                    findParameterByName(arg.name) ?: return null
                     // TODO return a named argument that does not match any parameter
-                        ?: return null
-                else parameters[argIndex]
+                } else parameters[argIndex]
 
             if (param in bindingMap) {
                 // TODO: report arg conflict
@@ -444,7 +469,7 @@ class FunctionCallResolverImpl(
         }
     }
 
-    private fun ParameterArgumentBinding.toValueBinding(argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>) =
+    private
+    fun ParameterArgumentBinding.toValueBinding(argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>) =
         ParameterValueBinding(binding.mapValues { (_, arg) -> argResolution.getValue(arg) })
-
 }

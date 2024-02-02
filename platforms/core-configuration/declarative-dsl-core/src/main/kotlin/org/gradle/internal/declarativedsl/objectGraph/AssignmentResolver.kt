@@ -6,9 +6,12 @@ import org.gradle.internal.declarativedsl.analysis.PropertyReferenceResolution
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.ExpressionResolutionProgress.Ok
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.ExpressionResolutionProgress.UnresolvedReceiver
 
+
 class AssignmentResolver {
-    private val assignmentByNode = mutableMapOf<ResolutionNode.Property, ResolutionNode>()
-    private val assignmentMethodByProperty = mutableMapOf<ResolutionNode.Property, AssignmentMethod>()
+    private
+    val assignmentByNode = mutableMapOf<ResolutionNode.Property, ResolutionNode>()
+    private
+    val assignmentMethodByProperty = mutableMapOf<ResolutionNode.Property, AssignmentMethod>()
 
     sealed interface AssignmentAdditionResult {
         data class AssignmentAdded(
@@ -138,14 +141,16 @@ class AssignmentResolver {
             is ObjectOrigin.TopLevelReceiver -> Ok(objectOrigin)
         }
 
-    private fun withResolved(other: ObjectOrigin, ifResolved: (receiver: ObjectOrigin) -> ObjectOrigin): ExpressionResolutionProgress {
+    private
+    fun withResolved(other: ObjectOrigin, ifResolved: (receiver: ObjectOrigin) -> ObjectOrigin): ExpressionResolutionProgress {
         return when (val receiverResolutionResult = resolveToObjectOrPropertyReference(other)) {
             is UnresolvedReceiver -> receiverResolutionResult
             is Ok -> Ok(ifResolved(receiverResolutionResult.objectOrigin))
         }
     }
 
-    private fun withResolvedReceiver(objectOrigin: ObjectOrigin.HasReceiver, ifReceiverResolved: (receiver: ObjectOrigin) -> ObjectOrigin): ExpressionResolutionProgress {
+    private
+    fun withResolvedReceiver(objectOrigin: ObjectOrigin.HasReceiver, ifReceiverResolved: (receiver: ObjectOrigin) -> ObjectOrigin): ExpressionResolutionProgress {
         val receiver = objectOrigin.receiver
         return withResolved(receiver, ifReceiverResolved)
     }

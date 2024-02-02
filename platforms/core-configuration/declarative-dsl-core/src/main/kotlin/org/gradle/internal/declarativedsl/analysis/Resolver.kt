@@ -3,9 +3,11 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.Import
 
+
 interface Resolver {
     fun resolve(schema: AnalysisSchema, imports: List<Import>, topLevelBlock: Block): ResolutionResult
 }
+
 
 class ResolverImpl(
     private val codeAnalyzer: CodeAnalyzer,
@@ -44,6 +46,7 @@ class ResolverImpl(
         }
     }
 }
+
 
 /**
  * The only purpose of this class is to expose the resolution [trace] to the consumers.

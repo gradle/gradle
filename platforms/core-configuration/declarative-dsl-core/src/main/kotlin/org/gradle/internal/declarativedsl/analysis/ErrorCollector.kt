@@ -16,13 +16,16 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
+
 interface ErrorCollector {
     fun collect(error: ResolutionError)
     val errors: List<ResolutionError>
 }
 
+
 class ErrorCollectorImpl : ErrorCollector {
-    private val collectedErrors = mutableListOf<ResolutionError>()
+    private
+    val collectedErrors = mutableListOf<ResolutionError>()
 
     override fun collect(error: ResolutionError) {
         collectedErrors.add(error)

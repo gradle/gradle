@@ -6,6 +6,7 @@ import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 
+
 data class ResolutionResult(
     val topLevelReceiver: ObjectOrigin.TopLevelReceiver,
     val assignments: List<AssignmentRecord>,
@@ -13,12 +14,15 @@ data class ResolutionResult(
     val errors: List<ResolutionError>,
 )
 
+
 data class DataAddition(val container: ObjectOrigin, val dataObject: ObjectOrigin)
+
 
 data class ResolutionError(
     val element: LanguageTreeElement,
     val errorReason: ErrorReason
 )
+
 
 sealed interface ErrorReason {
     data class AmbiguousImport(val fqName: FqName) : ErrorReason

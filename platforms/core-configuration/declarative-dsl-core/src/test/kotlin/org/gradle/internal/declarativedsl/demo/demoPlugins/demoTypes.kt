@@ -6,6 +6,7 @@ import org.gradle.internal.declarativedsl.Configuring
 import org.gradle.internal.declarativedsl.HasDefaultValue
 import org.gradle.internal.declarativedsl.Restricted
 
+
 class TopLevelScope {
     @Restricted
     val plugins = PluginsBlock()
@@ -16,13 +17,16 @@ class TopLevelScope {
     }
 }
 
+
 class PluginsBlock {
-    private val pluginDefinitions = mutableListOf<PluginDefinition>()
+    private
+    val pluginDefinitions = mutableListOf<PluginDefinition>()
 
     @Adding
     fun id(id: String): PluginDefinition =
         PluginDefinition(id).also(pluginDefinitions::add)
 }
+
 
 class PluginDefinition(@Restricted val id: String) {
     @Restricted

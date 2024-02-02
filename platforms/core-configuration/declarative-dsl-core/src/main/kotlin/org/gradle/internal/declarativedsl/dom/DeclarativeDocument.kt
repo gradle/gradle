@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.dom
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 
+
 interface DeclarativeDocument {
     val content: Collection<DocumentNode>
     val sourceIdentifier: SourceIdentifier

@@ -3,10 +3,12 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.internal.declarativedsl.Adding
 import org.gradle.internal.declarativedsl.Restricted
 
+
 class MyClass {
     @Restricted
     lateinit var my: MyClass
 }
+
 
 class TopLevel {
     @Adding

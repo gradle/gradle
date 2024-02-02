@@ -8,8 +8,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
+
 val schema =
     schemaFromTypes(TopLevel::class, listOf(TopLevel::class, MyClass::class), emptyList(), emptyMap(), emptyList())
+
 
 object LocalValueTest {
     @Test

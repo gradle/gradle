@@ -29,6 +29,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
+
 object ResolutionTracerTest {
     val schema = schemaFromTypes(TopLevelReceiver::class, listOf(TopLevelReceiver::class))
 
@@ -136,6 +137,10 @@ object ResolutionTracerTest {
         var s: String = ""
     }
 
-    private val <R> ResolutionTrace.ResolutionOrErrors<R>.result: R? get() = (this as? ResolutionTrace.ResolutionOrErrors.Resolution)?.result
-    private val <R> ResolutionTrace.ResolutionOrErrors<R>.errors: List<ResolutionError>? get() = (this as? ResolutionTrace.ResolutionOrErrors.Errors)?.errors
+    private
+    val <R> ResolutionTrace.ResolutionOrErrors<R>.result: R?
+        get() = (this as? ResolutionTrace.ResolutionOrErrors.Resolution)?.result
+    private
+    val <R> ResolutionTrace.ResolutionOrErrors<R>.errors: List<ResolutionError>?
+        get() = (this as? ResolutionTrace.ResolutionOrErrors.Errors)?.errors
 }

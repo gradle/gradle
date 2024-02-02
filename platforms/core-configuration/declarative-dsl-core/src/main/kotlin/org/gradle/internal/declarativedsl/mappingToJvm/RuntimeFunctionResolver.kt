@@ -21,6 +21,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberFunctions
 
+
 interface RuntimeFunctionResolver {
     fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): Resolution
 
@@ -29,6 +30,7 @@ interface RuntimeFunctionResolver {
         data object Unresolved : Resolution
     }
 }
+
 
 class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambdaHandler) : RuntimeFunctionResolver {
     override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
@@ -42,6 +44,7 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
         return RuntimeFunctionResolver.Resolution.Unresolved
     }
 }
+
 
 class CompositeFunctionResolver(private val resolvers: List<RuntimeFunctionResolver>) : RuntimeFunctionResolver {
     override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {

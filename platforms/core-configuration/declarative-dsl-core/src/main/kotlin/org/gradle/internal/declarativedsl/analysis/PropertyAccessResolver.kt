@@ -1,12 +1,12 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.analysis.PropertyAccessResolverImpl.AssignmentResolution.*
 import org.gradle.internal.declarativedsl.language.AccessChain
 import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.language.asChainOrNull
+
 
 interface PropertyAccessResolver {
     fun doResolvePropertyAccessToObjectOrigin(
@@ -19,6 +19,7 @@ interface PropertyAccessResolver {
         propertyAccess: PropertyAccess
     ): PropertyReferenceResolution?
 }
+
 
 class PropertyAccessResolverImpl(
     private val expressionResolver: ExpressionResolver
@@ -35,37 +36,39 @@ class PropertyAccessResolverImpl(
     ): PropertyReferenceResolution? =
         analysisContext.doResolvePropertyAccessToAssignableReference(propertyAccess)
 
-    private fun AnalysisContext.doResolvePropertyAccessToAssignableReference(
+    private
+    fun AnalysisContext.doResolvePropertyAccessToAssignableReference(
         propertyAccess: PropertyAccess
     ): PropertyReferenceResolution? {
         val candidates = sequence {
             runPropertyAccessResolution(
                 propertyAccess,
-                onLocalValue = { yield(ReassignLocalVal(it.localValue)) },
-                onProperty = { yield(AssignProperty(PropertyReferenceResolution(it.receiver, it.property))) },
-                onExternalObject = { yield(ReassignExternal(it)) }
+                onLocalValue = { yield(AssignmentResolution.ReassignLocalVal(it.localValue)) },
+                onProperty = { yield(AssignmentResolution.AssignProperty(PropertyReferenceResolution(it.receiver, it.property))) },
+                onExternalObject = { yield(AssignmentResolution.ReassignExternal(it)) }
             )
         }
 
         return when (val firstMatch = candidates.firstOrNull()) {
             null -> return null
-            is ReassignLocalVal -> {
+            is AssignmentResolution.ReassignLocalVal -> {
                 errorCollector.collect(ResolutionError(propertyAccess, ErrorReason.ValReassignment(firstMatch.localValue)))
                 null
             }
 
-            is ReassignExternal -> {
+            is AssignmentResolution.ReassignExternal -> {
                 errorCollector.collect(ResolutionError(propertyAccess, ErrorReason.ExternalReassignment(firstMatch.external)))
                 null
             }
 
-            is AssignProperty -> firstMatch.propertyReference
+            is AssignmentResolution.AssignProperty -> firstMatch.propertyReference
         }?.also {
             checkPropertyAccessOnCurrentReceiver(it.property, it.receiverObject, propertyAccess)
         }
     }
 
-    private fun AnalysisContext.doResolvePropertyAccessToObject(
+    private
+    fun AnalysisContext.doResolvePropertyAccessToObject(
         propertyAccess: PropertyAccess
     ): ObjectOrigin? {
         val candidates: Sequence<ObjectOrigin> = sequence {
@@ -96,19 +99,22 @@ class PropertyAccessResolverImpl(
         }
     }
 
-    private fun AnalysisContext.checkAccessOnCurrentReceiver(
+    private
+    fun AnalysisContext.checkAccessOnCurrentReceiver(
         reference: ObjectOrigin.PropertyReference
     ) {
         checkPropertyAccessOnCurrentReceiver(reference.property, reference.receiver, reference.originElement)
     }
 
-    private fun AnalysisContext.checkPropertyAccessOnCurrentReceiver(property: DataProperty, receiver: ObjectOrigin, access: LanguageTreeElement) {
+    private
+    fun AnalysisContext.checkPropertyAccessOnCurrentReceiver(property: DataProperty, receiver: ObjectOrigin, access: LanguageTreeElement) {
         if (property.isDirectAccessOnly) {
             checkAccessOnCurrentReceiver(receiver, access)
         }
     }
 
-    private inline fun AnalysisContext.runPropertyAccessResolution(
+    private
+    inline fun AnalysisContext.runPropertyAccessResolution(
         propertyAccess: PropertyAccess,
         onLocalValue: (ObjectOrigin.FromLocalValue) -> Unit,
         onProperty: (ObjectOrigin.PropertyReference) -> Unit,
@@ -130,7 +136,8 @@ class PropertyAccessResolverImpl(
         }
     }
 
-    private inline fun AnalysisContext.doResolveQualifiedPropertyAccess(
+    private
+    inline fun AnalysisContext.doResolveQualifiedPropertyAccess(
         propertyAccess: PropertyAccess,
         onProperty: (ObjectOrigin.PropertyReference) -> Unit,
         onExternalObject: (ObjectOrigin.External) -> Unit
@@ -152,7 +159,8 @@ class PropertyAccessResolverImpl(
         }
     }
 
-    private inline fun AnalysisContextView.resolveUnqualifiedPropertyAccess(
+    private
+    inline fun AnalysisContextView.resolveUnqualifiedPropertyAccess(
         propertyAccess: PropertyAccess,
         onLocalValue: (ObjectOrigin.FromLocalValue) -> Unit,
         onProperty: (ObjectOrigin.PropertyReference) -> Unit,
@@ -169,7 +177,8 @@ class PropertyAccessResolverImpl(
         }
     }
 
-    private inline fun AnalysisContextView.lookupNamedValueInScopes(
+    private
+    inline fun AnalysisContextView.lookupNamedValueInScopes(
         propertyAccess: PropertyAccess,
         onLocalValue: (ObjectOrigin.FromLocalValue) -> Unit,
         onProperty: (ObjectOrigin.PropertyReference) -> Unit
@@ -185,14 +194,17 @@ class PropertyAccessResolverImpl(
         }
     }
 
-    private fun AnalysisScopeView.findLocalAsObjectOrigin(name: String): ObjectOrigin.FromLocalValue? {
+    private
+    fun AnalysisScopeView.findLocalAsObjectOrigin(name: String): ObjectOrigin.FromLocalValue? {
         val local = findLocal(name) ?: return null
         val fromLocalValue = ObjectOrigin.FromLocalValue(local.localValue, local.assignment)
         return fromLocalValue
     }
 
-    private fun findDataProperty(
-        receiverType: DataType, name: String
+    private
+    fun findDataProperty(
+        receiverType: DataType,
+        name: String
     ): DataProperty? =
         if (receiverType is DataClass) receiverType.properties.find { !it.isHiddenInDsl && it.name == name } else null
 
@@ -203,4 +215,6 @@ class PropertyAccessResolverImpl(
     }
 }
 
-private fun AccessChain.asFqName(): FqName = FqName(nameParts.dropLast(1).joinToString("."), nameParts.last())
+
+private
+fun AccessChain.asFqName(): FqName = FqName(nameParts.dropLast(1).joinToString("."), nameParts.last())

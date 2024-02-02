@@ -1,6 +1,8 @@
 package org.gradle.internal.declarativedsl.language
 
+
 fun Expr.asChainOrNull(): AccessChain? = (this as? PropertyAccess)?.asChainOrNull()
+
 
 fun PropertyAccess.asChainOrNull(): AccessChain? =
     if (receiver == null) AccessChain(listOf(name)) else {

@@ -19,13 +19,13 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.internal.declarativedsl.Adding
 import org.gradle.internal.declarativedsl.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+
 
 object SubtypingTest {
     val schema = schemaFromTypes(
@@ -113,7 +113,9 @@ object SubtypingTest {
     }
 }
 
-private abstract class TopLevelForSubtyping {
+
+private
+abstract class TopLevelForSubtyping {
     @Restricted
     abstract var superClassProp: SuperClass
 
@@ -133,11 +135,18 @@ private abstract class TopLevelForSubtyping {
     abstract fun notASub(): NotASubtype
 }
 
-private abstract class SuperClass
 
-private interface SuperInterface
+private
+abstract class SuperClass
 
-private class Subtype : SuperClass(), SuperInterface
 
-private class NotASubtype
+private
+interface SuperInterface
 
+
+private
+class Subtype : SuperClass(), SuperInterface
+
+
+private
+class NotASubtype

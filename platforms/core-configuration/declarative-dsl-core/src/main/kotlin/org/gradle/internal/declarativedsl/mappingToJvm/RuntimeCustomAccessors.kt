@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
 
+
 interface RuntimeCustomAccessors {
     fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any?
 
@@ -27,6 +28,7 @@ interface RuntimeCustomAccessors {
         }
     }
 }
+
 
 class CompositeCustomAccessors(private val implementations: List<RuntimeCustomAccessors>) : RuntimeCustomAccessors {
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? {

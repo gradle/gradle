@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.dom
 
+
 interface ResolvedDeclarativeDocument : DeclarativeDocument {
     override val content: Collection<ResolvedDocumentNode>
 
@@ -40,7 +41,8 @@ interface ResolvedDeclarativeDocument : DeclarativeDocument {
         val resolution: DocumentResolution.ValueResolution
 
         sealed interface ResolvedLiteralValueNode : DeclarativeDocument.ValueNode.LiteralValueNode, ResolvedValueNode {
-            override val resolution: DocumentResolution.ValueResolution get() = DocumentResolution.ValueResolution.LiteralValueResolved(value)
+            override val resolution: DocumentResolution.ValueResolution
+                get() = DocumentResolution.ValueResolution.LiteralValueResolved(value)
         }
 
         sealed interface ResolvedValueFactoryNode : DeclarativeDocument.ValueNode.ValueFactoryNode, ResolvedValueNode {

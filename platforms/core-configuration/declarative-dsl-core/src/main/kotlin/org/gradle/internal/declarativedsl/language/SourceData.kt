@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.language
 
+
 interface SourceData {
     val sourceIdentifier: SourceIdentifier
     val indexRange: IntRange
@@ -25,5 +26,6 @@ interface SourceData {
 
     fun text(): String
 }
+
 
 data class SourceIdentifier(val fileIdentifier: String)

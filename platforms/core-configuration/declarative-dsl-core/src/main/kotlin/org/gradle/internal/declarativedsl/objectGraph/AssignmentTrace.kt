@@ -5,7 +5,7 @@ import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.PropertyReferenceResolution
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement.UnassignedValueUsed
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentAdditionResult.*
+
 
 class AssignmentTracer(
     val assignmentResolverFactory: () -> AssignmentResolver
@@ -16,9 +16,9 @@ class AssignmentTracer(
             resolutionResult.assignments.forEach { (lhs, rhs, _, method) ->
                 add(
                     when (val additionResult = assignmentResolver.addAssignment(lhs, rhs, method)) {
-                        is AssignmentAdded -> AssignmentTraceElement.RecordedAssignment(additionResult.resolvedLhs, rhs, additionResult.assignmentMethod)
-                        is UnresolvedValueUsedInLhs -> UnassignedValueUsed(additionResult, lhs, rhs)
-                        is UnresolvedValueUsedInRhs -> UnassignedValueUsed(additionResult, lhs, rhs)
+                        is AssignmentResolver.AssignmentAdditionResult.AssignmentAdded -> AssignmentTraceElement.RecordedAssignment(additionResult.resolvedLhs, rhs, additionResult.assignmentMethod)
+                        is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInLhs -> UnassignedValueUsed(additionResult, lhs, rhs)
+                        is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInRhs -> UnassignedValueUsed(additionResult, lhs, rhs)
                     }
                 )
             }
@@ -28,11 +28,13 @@ class AssignmentTracer(
     }
 }
 
+
 class AssignmentTrace(
     val elements: List<AssignmentTraceElement>,
     val resolver: AssignmentResolver,
     val resolvedAssignments: Map<PropertyReferenceResolution, AssignmentResolver.AssignmentResolutionResult>
 )
+
 
 sealed interface AssignmentTraceElement {
     val lhs: PropertyReferenceResolution

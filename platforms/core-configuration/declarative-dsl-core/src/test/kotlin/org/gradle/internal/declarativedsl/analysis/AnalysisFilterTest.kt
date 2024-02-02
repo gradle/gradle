@@ -28,12 +28,16 @@ import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-private class TopLevelForAnalysisFilterTest {
+
+private
+class TopLevelForAnalysisFilterTest {
     @Restricted
-    val n1: NestedForAnalysisFilterTest get() = TODO()
+    val n1: NestedForAnalysisFilterTest
+        get() = TODO()
 
     @Restricted
-    val n2: NestedForAnalysisFilterTest get() = TODO()
+    val n2: NestedForAnalysisFilterTest
+        get() = TODO()
 
     @Configuring
     fun n1(fn: NestedForAnalysisFilterTest.() -> Unit): Unit = TODO()
@@ -42,10 +46,13 @@ private class TopLevelForAnalysisFilterTest {
     fun n2(fn: NestedForAnalysisFilterTest.() -> Unit): Unit = TODO()
 }
 
-private class NestedForAnalysisFilterTest {
+
+private
+class NestedForAnalysisFilterTest {
     @Restricted
     var x = 1
 }
+
 
 class AnalysisFilterTest {
     val schema = schemaFromTypes(TopLevelForAnalysisFilterTest::class, listOf(TopLevelForAnalysisFilterTest::class, NestedForAnalysisFilterTest::class))

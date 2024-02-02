@@ -16,30 +16,47 @@
 
 package org.gradle.internal.declarativedsl.dom
 
+
 sealed interface ResolutionFailureReason
 
+
 sealed interface PropertyNotAssignedReason : ResolutionFailureReason
+
+
 sealed interface ElementNotResolvedReason : ResolutionFailureReason
+
+
 sealed interface ValueNotResolvedReason : ResolutionFailureReason
+
 
 sealed interface ValueFactoryNotResolvedReason : ValueNotResolvedReason
 
+
 data object CrossScopeAccess : PropertyNotAssignedReason, ValueFactoryNotResolvedReason, ElementNotResolvedReason
+
 
 data object UnresolvedValueUsed : ValueNotResolvedReason, PropertyNotAssignedReason
 
+
 data object ValueTypeMismatch : PropertyNotAssignedReason
+
 
 data object BlockMismatch : ElementNotResolvedReason, ValueFactoryNotResolvedReason
 
+
 data object UnresolvedSignature : ElementNotResolvedReason, ValueFactoryNotResolvedReason
+
 
 data object UnresolvedName : PropertyNotAssignedReason, ElementNotResolvedReason, ValueFactoryNotResolvedReason
 
+
 data object NotAssignable : PropertyNotAssignedReason
+
 
 data object AmbiguousName : ElementNotResolvedReason, ValueFactoryNotResolvedReason
 
+
 data object IsError : ElementNotResolvedReason, ValueFactoryNotResolvedReason
+
 
 data object UnresolvedBase : PropertyNotAssignedReason, ElementNotResolvedReason, ValueFactoryNotResolvedReason

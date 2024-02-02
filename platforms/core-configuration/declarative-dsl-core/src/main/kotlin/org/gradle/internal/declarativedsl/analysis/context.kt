@@ -5,6 +5,7 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import java.util.concurrent.atomic.AtomicLong
 
+
 interface AnalysisScopeView {
     val receiver: ObjectOrigin.ReceiverOrigin
     val ownLocals: Map<String, LocalValueAssignment>
@@ -13,14 +14,17 @@ interface AnalysisScopeView {
     fun findLocal(name: String): LocalValueAssignment?
 }
 
+
 data class LocalValueAssignment(val localValue: LocalValue, val assignment: ObjectOrigin)
+
 
 class AnalysisScope(
     private val previousScopeView: AnalysisScopeView?,
     override val receiver: ObjectOrigin.ReceiverOrigin,
     override val syntacticEnclosure: LanguageTreeElement
 ) : AnalysisScopeView {
-    private val ownLocalsByName = mutableMapOf<String, LocalValueAssignment>()
+    private
+    val ownLocalsByName = mutableMapOf<String, LocalValueAssignment>()
 
     override val ownLocals: Map<String, LocalValueAssignment>
         get() = ownLocalsByName
@@ -29,7 +33,9 @@ class AnalysisScope(
         ownLocalsByName[name] ?: previousScopeView?.findLocal(name)
 
     fun declareLocal(
-        localValue: LocalValue, assignedObjectOrigin: ObjectOrigin, reportError: ErrorCollector
+        localValue: LocalValue,
+        assignedObjectOrigin: ObjectOrigin,
+        reportError: ErrorCollector
     ) {
         val name = localValue.name
         if (name in ownLocalsByName) {
@@ -39,9 +45,11 @@ class AnalysisScope(
     }
 }
 
+
 interface TypeRefContext {
     fun resolveRef(dataTypeRef: DataTypeRef): DataType
 }
+
 
 interface AnalysisContextView : TypeRefContext {
     val schema: AnalysisSchema
@@ -50,12 +58,14 @@ interface AnalysisContextView : TypeRefContext {
     val assignments: List<AssignmentRecord>
 }
 
+
 class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
     override fun resolveRef(dataTypeRef: DataTypeRef): DataType = when (dataTypeRef) {
         is DataTypeRef.Name -> schema.dataClassesByFqName.getValue(dataTypeRef.fqName)
         is DataTypeRef.Type -> dataTypeRef.dataType
     }
 }
+
 
 class AnalysisContext(
     override val schema: AnalysisSchema,
@@ -64,10 +74,14 @@ class AnalysisContext(
 ) : AnalysisContextView {
 
     // TODO: thread safety?
-    private val mutableScopes = mutableListOf<AnalysisScope>()
-    private val mutableAssignments = mutableListOf<AssignmentRecord>()
-    private val nextInstant = AtomicLong(1)
-    private val mutableAdditions = mutableListOf<DataAddition>()
+    private
+    val mutableScopes = mutableListOf<AnalysisScope>()
+    private
+    val mutableAssignments = mutableListOf<AssignmentRecord>()
+    private
+    val nextInstant = AtomicLong(1)
+    private
+    val mutableAdditions = mutableListOf<DataAddition>()
 
     override val currentScopes: List<AnalysisScope>
         get() = mutableScopes
@@ -75,9 +89,11 @@ class AnalysisContext(
     override val assignments: List<AssignmentRecord>
         get() = mutableAssignments
 
-    val additions: List<DataAddition> get() = mutableAdditions
+    val additions: List<DataAddition>
+        get() = mutableAdditions
 
-    private val typeRefContext = SchemaTypeRefContext(schema)
+    private
+    val typeRefContext = SchemaTypeRefContext(schema)
 
     override fun resolveRef(dataTypeRef: DataTypeRef): DataType = typeRefContext.resolveRef(dataTypeRef)
 

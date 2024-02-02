@@ -24,7 +24,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-private class HasHiddenProperty {
+
+private
+class HasHiddenProperty {
     @Restricted
     var x: Int = 0
 

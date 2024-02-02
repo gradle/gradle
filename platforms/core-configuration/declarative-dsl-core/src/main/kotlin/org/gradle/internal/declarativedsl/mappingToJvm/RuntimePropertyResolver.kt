@@ -24,6 +24,7 @@ import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
+
 interface RuntimePropertyResolver {
     fun resolvePropertyRead(receiverClass: KClass<*>, name: String): Resolution
     fun resolvePropertyWrite(receiverClass: KClass<*>, name: String): Resolution
@@ -34,9 +35,10 @@ interface RuntimePropertyResolver {
     }
 }
 
+
 object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
     override fun resolvePropertyRead(receiverClass: KClass<*>, name: String): RuntimePropertyResolver.Resolution {
-        val callable = receiverClass.memberProperties.find { it.name == name  && it.visibility == KVisibility.PUBLIC }
+        val callable = receiverClass.memberProperties.find { it.name == name && it.visibility == KVisibility.PUBLIC }
             ?: receiverClass.memberFunctions.find { it.name == getterName(name) && it.parameters.size == 1 && it.visibility == KVisibility.PUBLIC }
 
         return when (callable) {
@@ -63,14 +65,18 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
         }
     }
 
-    private fun getterName(propertyName: String) = "get" + capitalize(propertyName)
+    private
+    fun getterName(propertyName: String) = "get" + capitalize(propertyName)
 
-    private fun setterName(propertyName: String) = "set" + capitalize(propertyName)
+    private
+    fun setterName(propertyName: String) = "set" + capitalize(propertyName)
 
-    private fun capitalize(propertyName: String) = propertyName.replaceFirstChar {
+    private
+    fun capitalize(propertyName: String) = propertyName.replaceFirstChar {
         if (it.isLowerCase()) it.uppercaseChar() else it
     }
 }
+
 
 class CompositePropertyResolver(private val resolvers: List<RuntimePropertyResolver>) : RuntimePropertyResolver {
     override fun resolvePropertyRead(receiverClass: KClass<*>, name: String): RuntimePropertyResolver.Resolution {

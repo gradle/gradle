@@ -1,5 +1,6 @@
 package org.gradle.internal.declarativedsl.demo.demoPlugins
 
+
 fun main() {
     val topLevelScope = TopLevelScope()
     topLevelScope.run {
@@ -12,7 +13,6 @@ fun main() {
             val app = id("application")
             app.apply(false)
         }
-
     }
     println(topLevelScope.plugins)
 }

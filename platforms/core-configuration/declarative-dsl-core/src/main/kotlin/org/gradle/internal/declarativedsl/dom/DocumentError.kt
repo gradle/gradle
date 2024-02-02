@@ -19,11 +19,18 @@ package org.gradle.internal.declarativedsl.dom
 import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 
+
 sealed interface DocumentError
 
+
 data class SyntaxError(val parsingError: ParsingError) : DocumentError // TODO: use a better representation once integration can be done
+
+
 data class UnsupportedKotlinFeature(val unsupportedConstruct: UnsupportedConstruct) : DocumentError
+
+
 data class UnsupportedSyntax(val cause: UnsupportedSyntaxCause) : DocumentError
+
 
 sealed interface UnsupportedSyntaxCause {
     data object DanglingExpr : UnsupportedSyntaxCause

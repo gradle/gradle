@@ -1,10 +1,22 @@
 package org.gradle.internal.declarativedsl.objectGraph
 
-import org.gradle.internal.declarativedsl.analysis.*
+import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
+import org.gradle.internal.declarativedsl.analysis.DataAddition
+import org.gradle.internal.declarativedsl.analysis.DataClass
+import org.gradle.internal.declarativedsl.analysis.DataParameter
+import org.gradle.internal.declarativedsl.analysis.DataProperty
+import org.gradle.internal.declarativedsl.analysis.ExternalObjectProviderKey
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
+import org.gradle.internal.declarativedsl.analysis.PropertyReferenceResolution
+import org.gradle.internal.declarativedsl.analysis.ResolutionResult
+import org.gradle.internal.declarativedsl.analysis.TypeRefContext
+import org.gradle.internal.declarativedsl.analysis.getDataType
 import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Unassigned
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.ExpressionResolutionProgress.Ok
+
 
 sealed interface ObjectReflection {
     val type: DataType
@@ -30,7 +42,8 @@ sealed interface ObjectReflection {
         override val type: DataType,
         override val objectOrigin: ObjectOrigin.External,
     ) : ObjectReflection {
-        val key: ExternalObjectProviderKey get() = objectOrigin.key
+        val key: ExternalObjectProviderKey
+            get() = objectOrigin.key
     }
 
     data class Null(override val objectOrigin: ObjectOrigin) : ObjectReflection {
@@ -56,10 +69,12 @@ sealed interface ObjectReflection {
     }
 }
 
+
 data class PropertyValueReflection(
     val value: ObjectReflection,
     val assignmentMethod: AssignmentMethod
 )
+
 
 fun reflect(
     objectOrigin: ObjectOrigin,
@@ -124,6 +139,7 @@ fun reflect(
     }
 }
 
+
 fun reflectDefaultValue(
     objectOrigin: ObjectOrigin.PropertyDefaultValue,
     context: ReflectionContext
@@ -133,9 +149,10 @@ fun reflectDefaultValue(
         is DataClass -> reflectData(-1L, type, objectOrigin, context)
         DataType.NullType -> error("Null type can't appear in property types")
         DataType.UnitType -> error("Unit can't appear in property types")
-        else -> { error("Unhandled data type: ${type.javaClass.simpleName}")}
+        else -> { error("Unhandled data type: ${type.javaClass.simpleName}") }
     }
 }
+
 
 fun reflectData(
     identity: Long,
@@ -164,10 +181,12 @@ fun reflectData(
     )
 }
 
+
 fun ReflectionContext.resolveAssignment(
     property: PropertyReferenceResolution,
 ): AssignmentResolver.AssignmentResolutionResult =
     trace.resolvedAssignments[property] ?: Unassigned(property)
+
 
 class ReflectionContext(
     val typeRefContext: TypeRefContext,
@@ -182,7 +201,8 @@ class ReflectionContext(
         } else null
     }.groupBy({ it.container }, valueTransform = { it.dataObject })
 
-    private val allReceiversResolved = (resolutionResult.additions.map { it.container } + resolutionResult.assignments.map { it.lhs.receiverObject })
+    private
+    val allReceiversResolved = (resolutionResult.additions.map { it.container } + resolutionResult.assignments.map { it.lhs.receiverObject })
         .map(trace.resolver::resolveToObjectOrPropertyReference)
         .filterIsInstance<Ok>()
         .map { it.objectOrigin }
@@ -201,5 +221,6 @@ class ReflectionContext(
     fun functionCall(callId: Long, resolveIfNotResolved: () -> ObjectReflection) =
         functionCallResults.getOrPut(callId, resolveIfNotResolved)
 
-    private val functionCallResults = mutableMapOf<Long, ObjectReflection>()
+    private
+    val functionCallResults = mutableMapOf<Long, ObjectReflection>()
 }

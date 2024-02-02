@@ -23,8 +23,10 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
+
 object SerializationTest {
-    private val pluginsSchema: AnalysisSchema = schema
+    private
+    val pluginsSchema: AnalysisSchema = schema
 
     @Test
     fun `schema is serializable`() {

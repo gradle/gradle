@@ -23,6 +23,7 @@ import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
+
 object LambdaTest {
     @Test
     fun `if a lambda is required, missing lambda is reported as an error`() {
@@ -54,19 +55,23 @@ object LambdaTest {
         schema.resolve("lambdaNotAllowed(0) { }").isError(ErrorReason.UnusedConfigureLambda::class)
     }
 
-    private fun ResolutionResult.isSuccessful() {
+    private
+    fun ResolutionResult.isSuccessful() {
         assertTrue { errors.isEmpty() }
         assertTrue { additions.size == 1 }
     }
 
-    private fun ResolutionResult.isError(errorReason: KClass<out ErrorReason>) {
+    private
+    fun ResolutionResult.isError(errorReason: KClass<out ErrorReason>) {
         assertTrue { errors.any { errorReason.isInstance(it.errorReason) } }
     }
 
-    private val schema = schemaFromTypes(Receiver::class, listOf(Receiver::class))
+    private
+    val schema = schemaFromTypes(Receiver::class, listOf(Receiver::class))
 
     @Suppress("unused")
-    private abstract class Receiver {
+    private
+    abstract class Receiver {
         @Adding
         abstract fun lambdaRequired(x: Int, configure: Receiver.() -> Unit): Receiver
 

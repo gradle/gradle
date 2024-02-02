@@ -8,6 +8,7 @@ import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.Null
 import org.gradle.internal.declarativedsl.language.PropertyAccess
 
+
 // TODO: report failures to resolve with potential candidates that could not work
 data class PropertyReferenceResolution(
     val receiverObject: ObjectOrigin,
@@ -15,6 +16,7 @@ data class PropertyReferenceResolution(
 ) {
     override fun toString(): String = "$receiverObject${'.'}${property.name}"
 }
+
 
 data class AssignmentRecord(
     val lhs: PropertyReferenceResolution,
@@ -24,11 +26,13 @@ data class AssignmentRecord(
     val originElement: LanguageTreeElement
 )
 
+
 sealed interface AssignmentMethod {
     data object Property : AssignmentMethod
     data object AsConstructed : AssignmentMethod
     data class BuilderFunction(val function: DataBuilderFunction) : AssignmentMethod
 }
+
 
 sealed interface ObjectOrigin {
     val originElement: LanguageTreeElement
@@ -117,7 +121,8 @@ sealed interface ObjectOrigin {
         override val originElement: FunctionCall,
         override val invocationId: Long
     ) : FunctionInvocationOrigin {
-        override val receiver: ObjectOrigin? get() = null
+        override val receiver: ObjectOrigin?
+            get() = null
 
         override fun toString(): String = functionInvocationString(function, null, invocationId, parameterBindings)
     }
@@ -140,9 +145,12 @@ sealed interface ObjectOrigin {
     data class AddAndConfigureReceiver(
         override val receiver: FunctionOrigin,
     ) : FunctionOrigin, DelegatingObjectOrigin, ReceiverOrigin {
-        override val invocationId: Long get() = receiver.invocationId
-        override val originElement: LanguageTreeElement get() = receiver.originElement
-        override val function: SchemaFunction get() = receiver.function
+        override val invocationId: Long
+            get() = receiver.invocationId
+        override val originElement: LanguageTreeElement
+            get() = receiver.originElement
+        override val function: SchemaFunction
+            get() = receiver.function
         override fun toString(): String = receiver.toString()
 
         override val delegate: ObjectOrigin
@@ -163,7 +171,8 @@ sealed interface ObjectOrigin {
         override val originElement: LanguageTreeElement
     ) : ObjectOrigin, HasReceiver {
         override fun toString(): String = "$receiver${'.'}${accessor.customAccessorIdentifier}"
-        val accessedType: DataTypeRef get() = accessor.objectType
+        val accessedType: DataTypeRef
+            get() = accessor.objectType
     }
 
     data class ConfiguringLambdaReceiver(
@@ -214,9 +223,12 @@ sealed interface ObjectOrigin {
     }
 }
 
+
 data class ParameterValueBinding(val bindingMap: Map<DataParameter, ObjectOrigin>)
 
-private fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, invocationId: Long, parameterBindings: ParameterValueBinding) =
+
+private
+fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, invocationId: Long, parameterBindings: ParameterValueBinding) =
     receiver?.toString()?.plus(".").orEmpty() + buildString {
         if (function is DataConstructor) {
             val fqn = when (val ref = function.dataClass) {

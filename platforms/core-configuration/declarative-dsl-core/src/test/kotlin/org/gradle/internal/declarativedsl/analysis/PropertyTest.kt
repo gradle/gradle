@@ -33,6 +33,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
+
 object PropertyTest {
     @Test
     fun `read-only property cannot be written`() {
@@ -65,7 +66,8 @@ object PropertyTest {
         assertEquals(DataType.IntDataType.ref, property.type)
     }
 
-    private interface MyReceiver {
+    private
+    interface MyReceiver {
         @Restricted
         val x: Int
 
@@ -73,7 +75,8 @@ object PropertyTest {
         var y: Int
     }
 
-    private val writeOnlyPropertyContributor = object : PropertyExtractor {
+    private
+    val writeOnlyPropertyContributor = object : PropertyExtractor {
         override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> {
             return if (kClass == MyReceiver::class) {
                 listOf(
@@ -91,13 +94,15 @@ object PropertyTest {
         }
     }
 
-    private fun testPropertyContributor(name: String, type: KType) = object : PropertyExtractor {
+    private
+    fun testPropertyContributor(name: String, type: KType) = object : PropertyExtractor {
         override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
             listOf(CollectedPropertyInformation(name, type, type.toDataTypeRefOrError(), DataProperty.PropertyMode.READ_WRITE, false, false, false))
                 .filter { propertyNamePredicate(it.name) }
     }
 
-    private fun schema() = schemaFromTypes(
+    private
+    fun schema() = schemaFromTypes(
         MyReceiver::class,
         PropertyTest::class.nestedClasses,
         propertyExtractor = DefaultPropertyExtractor() + writeOnlyPropertyContributor

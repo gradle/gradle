@@ -1,10 +1,17 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.language.*
+import org.gradle.internal.declarativedsl.language.Expr
+import org.gradle.internal.declarativedsl.language.FunctionCall
+import org.gradle.internal.declarativedsl.language.Literal
+import org.gradle.internal.declarativedsl.language.Null
+import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.This
+
 
 interface ExpressionResolver {
     fun doResolveExpression(context: AnalysisContext, expr: Expr): ObjectOrigin?
 }
+
 
 class ExpressionResolverImpl(
     private val propertyAccessResolver: PropertyAccessResolver,
@@ -20,6 +27,7 @@ class ExpressionResolverImpl(
         }
     }
 
-    private fun <T : Any> literalObjectOrigin(literalExpr: Literal<T>): ObjectOrigin =
+    private
+    fun <T : Any> literalObjectOrigin(literalExpr: Literal<T>): ObjectOrigin =
         ObjectOrigin.ConstantOrigin(literalExpr)
 }

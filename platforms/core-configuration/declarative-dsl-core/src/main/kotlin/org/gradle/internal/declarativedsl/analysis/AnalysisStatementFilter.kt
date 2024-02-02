@@ -18,8 +18,10 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.internal.declarativedsl.language.DataStatement
 
+
 fun interface AnalysisStatementFilter {
     fun shouldAnalyzeStatement(statement: DataStatement, scopes: List<AnalysisScope>): Boolean
 }
+
 
 val analyzeEverything = AnalysisStatementFilter { _, _ -> true }

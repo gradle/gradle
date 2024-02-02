@@ -25,6 +25,7 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import java.util.*
 
+
 interface ResolutionTrace {
     sealed interface ResolutionOrErrors<out R> {
         data class Resolution<R>(val result: R) : ResolutionOrErrors<R>
@@ -36,21 +37,29 @@ interface ResolutionTrace {
     fun expressionResolution(expr: Expr): ResolutionOrErrors<ObjectOrigin>
 }
 
-internal class ResolutionTracer(
-    private val expressionResolver: ExpressionResolver,
-    private val statementResolver: StatementResolver,
-    private val errorCollector: ErrorCollector
+
+internal
+class ResolutionTracer(
+    private
+    val expressionResolver: ExpressionResolver,
+    private
+    val statementResolver: StatementResolver,
+    private
+    val errorCollector: ErrorCollector
 ) : ExpressionResolver, StatementResolver, ErrorCollector, ResolutionTrace {
 
-    private val assignmentResolutions = IdentityHashMap<Assignment, AssignmentRecord>()
-    private val expressionResolution = IdentityHashMap<Expr, ObjectOrigin>()
-    private val elementErrors = IdentityHashMap<LanguageTreeElement, MutableList<ResolutionError>>()
+    private
+    val assignmentResolutions = IdentityHashMap<Assignment, AssignmentRecord>()
+    private
+    val expressionResolution = IdentityHashMap<Expr, ObjectOrigin>()
+    private
+    val elementErrors = IdentityHashMap<LanguageTreeElement, MutableList<ResolutionError>>()
 
     override fun assignmentResolution(assignment: Assignment): ResolutionTrace.ResolutionOrErrors<AssignmentRecord> =
         assignmentResolutions[assignment]?.let { resolution ->
             check(assignment !in elementErrors)
             Resolution(resolution)
-        } ?: elementErrors[assignment]?.let {errors ->
+        } ?: elementErrors[assignment]?.let { errors ->
             Errors(errors)
         } ?: NoResolution
 

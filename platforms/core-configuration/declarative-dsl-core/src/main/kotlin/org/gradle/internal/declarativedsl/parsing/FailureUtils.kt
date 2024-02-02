@@ -34,7 +34,9 @@ import org.gradle.internal.declarativedsl.language.PropertyAccess
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.language.This
 
-internal fun collectFailures(results: Iterable<ElementResult<*>>): List<SingleFailureResult> = buildList {
+
+internal
+fun collectFailures(results: Iterable<ElementResult<*>>): List<SingleFailureResult> = buildList {
     fun addExpanded(failingResult: FailingResult) {
         when (failingResult) {
             is SingleFailureResult -> add(failingResult)

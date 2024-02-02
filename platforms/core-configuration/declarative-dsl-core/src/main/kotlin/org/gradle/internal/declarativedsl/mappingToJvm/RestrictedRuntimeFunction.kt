@@ -20,13 +20,16 @@ import org.gradle.internal.declarativedsl.analysis.DataParameter
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KFunction
 
+
 interface RestrictedRuntimeFunction {
     fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): InvocationResult
 
     data class InvocationResult(val result: Any?, val capturedValue: Any?)
 }
 
-internal class ReflectionFunction(private val kFunction: KFunction<*>, private val configureLambdaHandler: ConfigureLambdaHandler) : RestrictedRuntimeFunction {
+
+internal
+class ReflectionFunction(private val kFunction: KFunction<*>, private val configureLambdaHandler: ConfigureLambdaHandler) : RestrictedRuntimeFunction {
     override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): RestrictedRuntimeFunction.InvocationResult {
         val params = FunctionBinding.convertBinding(kFunction, receiver, binding, configureLambdaHandler)
             ?: error("signature of $kFunction does not match the arguments: $binding")
