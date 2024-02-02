@@ -96,6 +96,9 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
         }
 
         ClientInjectedClasspathPluginResolver createInjectedClassPathPluginResolver(
+            FileResolver fileResolver,
+            DependencyManagementServices dependencyManagementServices,
+            DependencyMetaDataProvider dependencyMetaDataProvider,
             ClassLoaderScopeRegistry classLoaderScopeRegistry,
             PluginInspector pluginInspector,
             InjectedPluginClasspath injectedPluginClasspath,
@@ -106,13 +109,20 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             if (injectedPluginClasspath.getClasspath().isEmpty()) {
                 return ClientInjectedClasspathPluginResolver.EMPTY;
             }
+            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(
+                fileResolver,
+                fileCollectionFactory,
+                dependencyManagementServices,
+                dependencyMetaDataProvider
+            );
             return new DefaultInjectedClasspathPluginResolver(
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
                 scriptClassPathResolver,
                 fileCollectionFactory,
                 pluginInspector,
                 injectedPluginClasspath.getClasspath(),
-                instrumentationStrategy
+                instrumentationStrategy,
+                dependencyResolutionServicesFactory
             );
         }
 

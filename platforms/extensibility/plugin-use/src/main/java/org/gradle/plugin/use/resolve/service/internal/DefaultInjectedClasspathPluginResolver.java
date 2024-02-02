@@ -20,16 +20,18 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
-import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
@@ -41,8 +43,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 public class DefaultInjectedClasspathPluginResolver implements ClientInjectedClasspathPluginResolver, PluginResolver {
 
     private final ClassPath injectedClasspath;
@@ -50,7 +50,7 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     private final ScriptClassPathResolver scriptClassPathResolver;
     private final ClassLoaderScope parentScope;
     private final PluginInspector pluginInspector;
-    private volatile PluginRegistry pluginRegistry;
+    private final Lazy<PluginRegistry> pluginRegistry;
 
     public DefaultInjectedClasspathPluginResolver(
         ClassLoaderScope parentScope,
@@ -58,14 +58,32 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
         FileCollectionFactory fileCollectionFactory,
         PluginInspector pluginInspector,
         ClassPath injectedClasspath,
-        InjectedClasspathInstrumentationStrategy instrumentationStrategy
+        InjectedClasspathInstrumentationStrategy instrumentationStrategy,
+        Factory<DependencyResolutionServices> dependencyResolutionServicesFactory
     ) {
         this.parentScope = parentScope;
         this.pluginInspector = pluginInspector;
         this.injectedClasspath = injectedClasspath;
         this.fileCollectionFactory = fileCollectionFactory;
         this.scriptClassPathResolver = scriptClassPathResolver;
+        this.pluginRegistry = Lazy.locking().of(() -> createPluginRegistry(dependencyResolutionServicesFactory));
         maybeReportAgentUsageWithTestKitProblem(instrumentationStrategy);
+    }
+
+    private PluginRegistry createPluginRegistry(Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
+        DependencyResolutionServices dependencyResolutionServices = dependencyResolutionServicesFactory.create();
+        DependencyHandler dependencies = dependencyResolutionServices.getDependencyHandler();
+        ConfigurationContainer configurations = dependencyResolutionServices.getConfigurationContainer();
+        Dependency injectedClasspathDependency = dependencies.create(fileCollectionFactory.fixed(injectedClasspath.getAsFiles()));
+        Configuration configuration = configurations.detachedConfiguration(injectedClasspathDependency);
+        scriptClassPathResolver.prepareDependencyHandler(dependencies);
+        scriptClassPathResolver.prepareClassPath(configuration, dependencies);
+        ClassPath instrumentedClassPath = scriptClassPathResolver.resolveClassPath(configuration);
+        return new DefaultPluginRegistry(pluginInspector,
+            parentScope.createChild("injected-plugin", null)
+                .local(instrumentedClassPath)
+                .lock()
+        );
     }
 
     /**
@@ -76,34 +94,13 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
     }
 
     @Override
-    public void collectResolversInto(ScriptHandlerInternal scriptHandler, Collection<? super PluginResolver> dest) {
-        preparePluginRegistry(scriptHandler);
+    public void collectResolversInto(Collection<? super PluginResolver> dest) {
         dest.add(this);
-    }
-
-    private void preparePluginRegistry(ScriptHandlerInternal scriptHandler) {
-        if (pluginRegistry == null) {
-            synchronized (this) {
-                if (pluginRegistry == null) {
-                    DependencyHandler dependencies = scriptHandler.getDependencies();
-                    ConfigurationContainer configurations = scriptHandler.getConfigurations();
-                    Dependency injectedClasspathDependency = dependencies.create(fileCollectionFactory.fixed(injectedClasspath.getAsFiles()));
-                    Configuration configuration = configurations.detachedConfiguration(injectedClasspathDependency);
-                    scriptClassPathResolver.prepareClassPath(configuration, dependencies);
-                    ClassPath instrumentedClassPath = scriptClassPathResolver.resolveClassPath(configuration);
-                    pluginRegistry = new DefaultPluginRegistry(pluginInspector,
-                        parentScope.createChild("injected-plugin", null)
-                            .local(instrumentedClassPath)
-                            .lock()
-                    );
-                }
-            }
-        }
     }
 
     @Override
     public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
-        PluginImplementation<?> plugin = checkNotNull(pluginRegistry).lookup(pluginRequest.getId());
+        PluginImplementation<?> plugin = pluginRegistry.get().lookup(pluginRequest.getId());
         if (plugin == null) {
             String classpathStr = injectedClasspath.getAsFiles().stream().map(File::getAbsolutePath).collect(Collectors.joining(File.pathSeparator));
             return PluginResolutionResult.notFound(getDescription(), "classpath: " + classpathStr);

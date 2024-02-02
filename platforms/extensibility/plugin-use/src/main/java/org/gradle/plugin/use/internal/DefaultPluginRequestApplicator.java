@@ -91,7 +91,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         CollectingPluginRequestResolutionVisitor pluginDependencies = new CollectingPluginRequestResolutionVisitor();
 
         // Resolve the plugin requests
-        PluginResolver pluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope, resolveContext, scriptHandler);
+        PluginResolver pluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope, resolveContext);
         for (PluginRequestInternal originalRequest : requests) {
             PluginRequestInternal request = pluginResolutionStrategy.applyTo(originalRequest);
             PluginResolution resolved = resolvePluginRequest(pluginResolver, request);
@@ -130,10 +130,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         pluginApplyActions.forEach(action -> action.apply(target));
     }
 
-    private PluginResolver wrapInAlreadyInClasspathResolver(ClassLoaderScope classLoaderScope, PluginArtifactRepositories resolveContext, ScriptHandlerInternal scriptHandler) {
+    private PluginResolver wrapInAlreadyInClasspathResolver(ClassLoaderScope classLoaderScope, PluginArtifactRepositories resolveContext) {
         ClassLoaderScope parentLoaderScope = classLoaderScope.getParent();
         PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(parentLoaderScope.getExportClassLoader());
-        PluginResolver pluginResolver = pluginResolverFactory.create(resolveContext, scriptHandler);
+        PluginResolver pluginResolver = pluginResolverFactory.create(resolveContext);
         return new AlreadyOnClasspathPluginResolver(pluginResolver, pluginRegistry, parentLoaderScope, scriptClasspathPluginDescriptorLocator, pluginInspector, pluginVersionTracker);
     }
 

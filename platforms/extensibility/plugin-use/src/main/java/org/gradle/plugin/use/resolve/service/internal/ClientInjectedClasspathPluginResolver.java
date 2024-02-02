@@ -16,13 +16,12 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
-import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.util.Collection;
 
 public interface ClientInjectedClasspathPluginResolver {
-    ClientInjectedClasspathPluginResolver EMPTY = (scriptHandler, dest) -> {};
+    ClientInjectedClasspathPluginResolver EMPTY = dest -> { };
 
-    void collectResolversInto(ScriptHandlerInternal scriptHandler, Collection<? super PluginResolver> dest);
+    void collectResolversInto(Collection<? super PluginResolver> dest);
 }

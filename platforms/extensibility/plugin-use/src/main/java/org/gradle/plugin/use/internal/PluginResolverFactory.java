@@ -17,7 +17,6 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -53,13 +52,13 @@ public class PluginResolverFactory {
         this.pluginResolverContributors = pluginResolverContributors;
     }
 
-    public PluginResolver create(PluginArtifactRepositories pluginResolveContext, ScriptHandlerInternal scriptHandler) {
-        return new CompositePluginResolver(createDefaultResolvers(pluginResolveContext, scriptHandler));
+    public PluginResolver create(PluginArtifactRepositories pluginResolveContext) {
+        return new CompositePluginResolver(createDefaultResolvers(pluginResolveContext));
     }
 
-    private List<PluginResolver> createDefaultResolvers(PluginArtifactRepositories pluginResolveContext, ScriptHandlerInternal scriptHandler) {
+    private List<PluginResolver> createDefaultResolvers(PluginArtifactRepositories pluginResolveContext) {
         List<PluginResolver> resolvers = new LinkedList<>();
-        addDefaultResolvers(pluginResolveContext, scriptHandler, resolvers);
+        addDefaultResolvers(pluginResolveContext, resolvers);
         return resolvers;
     }
 
@@ -81,11 +80,11 @@ public class PluginResolverFactory {
      * This order is optimized for both performance and to allow resolvers earlier in the order
      * to mask plugins which would have been found later in the order.
      */
-    private void addDefaultResolvers(PluginArtifactRepositories pluginResolveContext, ScriptHandlerInternal scriptHandler, List<PluginResolver> resolvers) {
+    private void addDefaultResolvers(PluginArtifactRepositories pluginResolveContext, List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
 
-        injectedClasspathPluginResolver.collectResolversInto(scriptHandler, resolvers);
+        injectedClasspathPluginResolver.collectResolversInto(resolvers);
 
         pluginResolverContributors.forEach(contributor -> contributor.collectResolversInto(resolvers));
         resolvers.add(pluginResolveContext.getPluginResolver());
