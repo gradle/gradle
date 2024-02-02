@@ -1442,9 +1442,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter withFileLeakDetection(String... args) {
-        String leakDetectorUrl = "https://repo1.maven.org/maven2/org/kohsuke/file-leak-detector/1.13/file-leak-detector-1.13-jar-with-dependencies.jar";
+        String leakDetectorUrl = "https://repo.jenkins-ci.org/releases/org/kohsuke/file-leak-detector/1.17/file-leak-detector-1.17-jar-with-dependencies.jar";
         this.beforeExecute(executer -> {
-            File leakDetectorJar = new File(this.gradleUserHomeDir, "file-leak-detector-1.13-jar-with-dependencies.jar");
+            File leakDetectorJar = new File(this.gradleUserHomeDir, "file-leak-detector-1.17-jar-with-dependencies.jar");
             if (!leakDetectorJar.exists()) {
                 // Need to download the jar
                 GFileUtils.parentMkdirs(leakDetectorJar);
