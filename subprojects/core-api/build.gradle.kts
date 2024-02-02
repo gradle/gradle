@@ -20,6 +20,7 @@ errorprone {
 }
 
 dependencies {
+    compileOnly(project(":declarative-dsl-core"))
     compileOnly(libs.jetbrainsAnnotations)
 
     api(project(":process-services"))
@@ -29,8 +30,6 @@ dependencies {
     api(project(":files"))
     api(project(":resources"))
     api(project(":persistent-cache"))
-    api(project(":declarative-dsl-core"))
-
     api(libs.jsr305)
     api(libs.groovy)
     api(libs.groovyAnt)
@@ -38,14 +37,13 @@ dependencies {
     api(libs.ant)
     api(libs.inject)
 
-    compileOnly(libs.jetbrainsAnnotations)
 
     implementation(project(":base-services-groovy"))
     implementation(project(":logging"))
-
-    runtimeOnly(libs.futureKotlin("reflect"))
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
+
+    runtimeOnly(libs.futureKotlin("reflect"))
 
     testImplementation(libs.asm)
     testImplementation(libs.asmCommons)

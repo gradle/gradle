@@ -16,13 +16,6 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import org.gradle.groovy.scripts.TextResourceScriptSource
-import org.gradle.internal.resource.StringTextResource
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
-import org.gradle.internal.declarativedsl.evaluator.defaultDeclarativeKotlinScriptEvaluator
-import org.gradle.internal.declarativedsl.plugins.MutablePluginDependencySpec
-import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
-import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
 import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
@@ -45,28 +38,7 @@ sealed class PluginsBlockInterpretation {
 
 
 internal
-enum class DeclarativeDslPluginsBlockMode {
-    OFF, WITH_FALLBACK, RESTRICTED_ONLY
-}
-
-
-internal
-fun interpret(program: Program.Plugins, declarativeDslMode: DeclarativeDslPluginsBlockMode = DeclarativeDslPluginsBlockMode.OFF): PluginsBlockInterpretation {
-    if (declarativeDslMode != DeclarativeDslPluginsBlockMode.OFF) {
-        val pluginsTopLevelReceiver = PluginsTopLevelReceiver()
-        val isEvaluated = defaultDeclarativeKotlinScriptEvaluator.evaluate(
-            pluginsTopLevelReceiver,
-            TextResourceScriptSource(StringTextResource("plugins block", program.fragment.identifierString)),
-            DeclarativeKotlinScriptEvaluator.EvaluationContext.PluginsDslEvaluationContext
-        )
-        if (isEvaluated is DeclarativeKotlinScriptEvaluator.EvaluationResult.Evaluated) {
-            return PluginsBlockInterpretation.Static(pluginsTopLevelReceiver.plugins.specs.map { it.toRequestSpec() })
-        }
-        if (declarativeDslMode == DeclarativeDslPluginsBlockMode.RESTRICTED_ONLY && isEvaluated is DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated) {
-            return PluginsBlockInterpretation.Dynamic(isEvaluated.stageFailures.toString())
-        }
-    }
-
+fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
     val blockString = program.fragment.blockString
     return when (val r = pluginsBlockParser(blockString)) {
         is ParserResult.Failure -> PluginsBlockInterpretation.Dynamic(r.reason)
@@ -80,11 +52,6 @@ fun interpret(program: Program.Plugins, declarativeDslMode: DeclarativeDslPlugin
         )
     }
 }
-
-
-private
-fun MutablePluginDependencySpec.toRequestSpec(): ResidualProgram.PluginRequestSpec =
-    ResidualProgram.PluginRequestSpec(id, version, apply)
 
 
 private

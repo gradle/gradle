@@ -23,7 +23,7 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Test
 
 
-open class PluginsBlockInterpreterTest {
+class PluginsBlockInterpreterTest {
 
     @Test
     fun `empty plugins block`() {
@@ -104,7 +104,7 @@ open class PluginsBlockInterpreterTest {
 
 
     @Test
-    open fun `single plugin - id() mixed version apply`() {
+    fun `single plugin - id() mixed version apply`() {
         assertStaticInterpretationOf(
             """
                 id("plugin-id").version("1.0").apply(true)
@@ -131,11 +131,11 @@ open class PluginsBlockInterpreterTest {
 
     @Test
     fun `single plugin - id() long chain of versions and applies`() {
-        assertStaticInterpretationOf(
+        assertDynamicInterpretationOf(
             """
                 id("plugin-id").version("1.0").version("2.0").apply(true).apply(false) version "3.0" apply false apply true version "4.0"
             """,
-            PluginRequestSpec(id = "plugin-id", version = "4.0", apply = true)
+            "Expecting token of type RBRACE, but got DOT instead",
         )
     }
 
@@ -156,7 +156,7 @@ open class PluginsBlockInterpreterTest {
     }
 
     @Test
-    open fun `single plugin - kotlin-dsl`() {
+    fun `single plugin - kotlin-dsl`() {
         assertStaticInterpretationOf(
             """`kotlin-dsl`""",
             PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", version = expectedKotlinDslPluginsVersion, apply = true)
@@ -164,7 +164,7 @@ open class PluginsBlockInterpreterTest {
     }
 
     @Test
-    open fun `single plugin - kotlin-dsl apply`() {
+    fun `single plugin - kotlin-dsl apply`() {
         assertStaticInterpretationOf(
             """`kotlin-dsl` apply false""",
             PluginRequestSpec("org.gradle.kotlin.kotlin-dsl", version = expectedKotlinDslPluginsVersion, apply = false)
@@ -534,10 +534,10 @@ open class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin - id() with empty string`() {
-        assertStaticInterpretationOf(
+    fun `syntax error - id() with empty string`() {
+        assertDynamicInterpretationOf(
             """id("")""",
-            PluginRequestSpec(id = "")
+            "Expecting token of type RBRACE, but got IDENTIFIER ('id') instead"
         )
     }
 
@@ -614,10 +614,10 @@ open class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin - kotlin() with empty string`() {
-        assertStaticInterpretationOf(
+    fun `syntax error - kotlin() with empty string`() {
+        assertDynamicInterpretationOf(
             """kotlin("")""",
-            PluginRequestSpec(id = "org.jetbrains.kotlin.")
+            "Expecting token of type RBRACE, but got IDENTIFIER ('kotlin') instead"
         )
     }
 
@@ -712,10 +712,10 @@ open class PluginsBlockInterpreterTest {
         )
     }
 
-    internal
-    open fun assertStaticInterpretationOf(pluginsBlock: String, vararg specs: PluginRequestSpec) {
+    private
+    fun assertStaticInterpretationOf(pluginsBlock: String, vararg specs: PluginRequestSpec) {
         assertThat(
-            interpret(Program.Plugins(fragment("plugins", pluginsBlock)), DeclarativeDslPluginsBlockMode.WITH_FALLBACK),
+            interpret(Program.Plugins(fragment("plugins", pluginsBlock))),
             equalTo(
                 PluginsBlockInterpretation.Static(specs.asList())
             )
@@ -725,7 +725,7 @@ open class PluginsBlockInterpreterTest {
     private
     fun assertDynamicInterpretationOf(pluginsBlock: String, reason: String) {
         assertThat(
-            interpret(Program.Plugins(fragment("plugins", pluginsBlock)), DeclarativeDslPluginsBlockMode.WITH_FALLBACK),
+            interpret(Program.Plugins(fragment("plugins", pluginsBlock))),
             equalTo(
                 PluginsBlockInterpretation.Dynamic(reason)
             )

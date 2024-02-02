@@ -34,7 +34,6 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
-    implementation(project(":declarative-dsl-provider"))
 
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 

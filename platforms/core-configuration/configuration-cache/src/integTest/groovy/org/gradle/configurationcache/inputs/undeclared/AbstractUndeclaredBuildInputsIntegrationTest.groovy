@@ -28,7 +28,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
     abstract String getLocation()
 
-    boolean isDeclarativeDsl() {
+    boolean isRestrictedDsl() {
         return false
     }
 
@@ -149,7 +149,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
     }
 
     def "reports undeclared file system entry check for File.#kind"() {
-        Assume.assumeFalse("cannot use the file APIs in declarative DSL", isDeclarativeDsl())
+        Assume.assumeFalse("cannot use the file APIs in restricted DSL", isRestrictedDsl())
 
         def configurationCache = newConfigurationCacheFixture()
 
@@ -216,7 +216,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
     }
 
     def "reports reading directory contents with #filterOptions"() {
-        Assume.assumeFalse("cannot use the file APIs in declarative DSL", isDeclarativeDsl())
+        Assume.assumeFalse("cannot use the file APIs in restricted DSL", isRestrictedDsl())
 
         def configurationCache = newConfigurationCacheFixture()
 
@@ -263,7 +263,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
     }
 
     def "reports reading file on #testCase"() {
-        Assume.assumeFalse("cannot use the file APIs in declarative DSL", isDeclarativeDsl())
+        Assume.assumeFalse("cannot use the file APIs in restricted DSL", isRestrictedDsl())
 
         def configurationCache = newConfigurationCacheFixture()
 

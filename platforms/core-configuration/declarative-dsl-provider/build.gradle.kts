@@ -19,19 +19,20 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.futureKotlin("reflect"))
-    implementation(kotlin("compiler-embeddable"))
-    implementation(project(":model-core"))
-
-    api(libs.futureKotlin("stdlib"))
+    api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
-    implementation(project(":resources"))
-    api(project(":base-services"))
-    api(libs.inject)
     api(project(":declarative-dsl-core"))
+    api(libs.futureKotlin("stdlib"))
+    api(libs.inject)
+
+    implementation(project(":model-core"))
+    implementation(project(":resources"))
+    implementation(libs.futureKotlin("compiler-embeddable"))
+    implementation(libs.futureKotlin("reflect"))
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))
+
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
