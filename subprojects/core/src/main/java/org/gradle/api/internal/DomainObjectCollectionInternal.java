@@ -15,24 +15,23 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
-import org.gradle.api.tasks.Internal;
 
 /**
  * Internal counterpart to {@link DomainObjectCollection}.
  */
-public interface DomainObjectCollectionInternal<T> extends DomainObjectCollection<T> {
-
-    /**
-     * Get the guard that controls the mutation of this collection.
-     */
-    @Internal
-    MutationGuard getMutationGuard();
+public interface DomainObjectCollectionInternal<T> extends DomainObjectCollection<T>, Describable {
 
     /**
      * @see ElementSource#estimatedSize()
      */
     int estimatedSize();
 
+    /**
+     * Provide an action to be executed before any changes are made to the collection.
+     */
+    void beforeCollectionChanges(Action<String> action);
 }

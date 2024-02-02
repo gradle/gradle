@@ -48,7 +48,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     @Override
     public void add(int index, T element) {
-        assertMutable("add(int, T)");
+        assertCanMutate("add(int, T)");
         assertCanAdd(element);
         getStore().add(index, element);
         didAdd(element);
@@ -57,7 +57,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     @Override
     public boolean addAll(int index, Collection<? extends T> c) {
-        assertMutable("addAll(int, Collection)");
+        assertCanMutate("addAll(int, Collection)");
         boolean changed = false;
         int current = index;
         for (T t : c) {
@@ -84,7 +84,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     @Override
     public T set(int index, T element) {
-        assertMutable("set(int, T)");
+        assertCanMutate("set(int, T)");
         assertCanAdd(element);
         T oldElement = getStore().set(index, element);
         if (oldElement != null) {
@@ -98,7 +98,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     @Override
     public T remove(int index) {
-        assertMutable("remove(int)");
+        assertCanMutate("remove(int)");
         T element = getStore().remove(index);
         if (element != null) {
             didRemove(element);
@@ -205,7 +205,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
         @Override
         public void add(T t) {
-            assertMutable("listIterator().add(T)");
+            assertCanMutate("listIterator().add(T)");
             assertCanAdd(t);
             iterator.add(t);
             didAdd(t);
@@ -214,7 +214,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
         @Override
         public void remove() {
-            assertMutable("listIterator().remove()");
+            assertCanMutate("listIterator().remove()");
             iterator.remove();
             didRemove(lastElement);
             getEventRegister().fireObjectRemoved(lastElement);
@@ -223,7 +223,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
         @Override
         public void set(T t) {
-            assertMutable("listIterator().set(T)");
+            assertCanMutate("listIterator().set(T)");
             assertCanAdd(t);
             iterator.set(t);
             didRemove(lastElement);

@@ -167,13 +167,13 @@ rootProject.name = 'testproject'
         buildFile << """
             buildscript {
                 configurations {
-                    foo {
+                    classpath {
                         attributes {
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "bar"))
                         }
                     }
                 }
-                assert configurations.foo.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == "bar"
+                assert configurations.classpath.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == "bar"
             }
 
             assert configurations.empty
@@ -187,13 +187,13 @@ rootProject.name = 'testproject'
         buildKotlinFile << """
             buildscript {
                 configurations {
-                    create("foo") {
+                    named("classpath") {
                         attributes {
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("bar"))
                         }
                     }
                 }
-                assert(configurations.named("foo").get().attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == "bar")
+                assert(configurations.named("classpath").get().attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == "bar")
             }
 
             assert(configurations.isEmpty())

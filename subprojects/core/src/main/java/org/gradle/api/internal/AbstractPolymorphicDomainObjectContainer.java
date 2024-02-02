@@ -46,7 +46,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     @Override
     public <U extends T> U create(String name, Class<U> type) {
-        assertMutable("create(String, Class)");
+        assertCanMutate("create(String, Class)");
         return create(name, type, null);
     }
 
@@ -61,7 +61,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     @Override
     public <U extends T> U create(String name, Class<U> type, Action<? super U> configuration) {
-        assertMutable("create(String, Class, Action)");
+        assertCanMutate("create(String, Class, Action)");
         assertCanAdd(name);
         U object = doCreate(name, type);
         add(object);
@@ -73,13 +73,13 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     @Override
     public <U extends T> NamedDomainObjectProvider<U> register(String name, Class<U> type) throws InvalidUserDataException {
-        assertMutable("register(String, Class)");
+        assertCanMutate("register(String, Class)");
         return createDomainObjectProvider(name, type, null);
     }
 
     @Override
     public <U extends T> NamedDomainObjectProvider<U> register(String name, Class<U> type, Action<? super U> configurationAction) throws InvalidUserDataException {
-        assertMutable("register(String, Class, Action)");
+        assertCanMutate("register(String, Class, Action)");
         return createDomainObjectProvider(name, type, configurationAction);
     }
 

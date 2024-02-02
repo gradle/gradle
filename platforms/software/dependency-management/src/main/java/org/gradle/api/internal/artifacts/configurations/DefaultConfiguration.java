@@ -329,7 +329,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.roleAtCreation = roleAtCreation;
     }
 
-    private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
+    private static Action<String> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
         return arg -> mutationValidator.validateMutation(type);
     }
 
