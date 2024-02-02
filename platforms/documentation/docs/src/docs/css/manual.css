@@ -59,32 +59,7 @@
 		--footer-color: #242526;
 		--code-color: #1f1f1f;
 		--code-text-color: rgba(255, 255, 255, 0.9);
-		--code-link-color: #15768a;
-		--num-color: #fff;
-		--nav-color: #121212;
-		--table-color: #121212;
-		--box-shadow-color: rgba(255, 255, 255, .15);
-		--top-header-color: #242526;
-		--footer-white-color: #242526;
-		--footer-text-color: #aaa;
-		--quoteblock-color: #1DA2BD;
-		--menu-burger-color: #242526;
-	}
-}
-
-@media (prefers-color-scheme: dark) {
-	:root {
-		/* Dark mode variables go here */
-		--admonition-background: #2a2929;
-		--black-color: #fff;
-		--white-color: #121212;
-		--text-color: #aaa;
-		--title-color: #fff;
-		--header-color: rgba(255, 255, 255, 0.85);
-		--footer-color: #242526;
-		--code-color: #1f1f1f;
-		--code-text-color: rgba(255, 255, 255, 0.9);
-		--code-link-color: #15768a;
+		--code-link-color: #1fafcc;
 		--num-color: #fff;
 		--nav-color: #121212;
 		--table-color: #121212;
@@ -1506,12 +1481,6 @@ path {
 	fill: white;
 }
 
-@media (prefers-color-scheme: dark) {
-	path {
-		fill: white;
-	}
-}
-
 /* Custom scroll bar */
 /* Works on Firefox */
 .docs-navigation {
@@ -1535,31 +1504,6 @@ path {
 }
 
 .dark-mode {
-
-	/* Works on Firefox */
-	.docs-navigation {
-		scrollbar-width: auto;
-		overflow-y: scroll;
-		scrollbar-color: #686868 #242526;
-	}
-
-	/* Works on Chrome, Edge, and Safari */
-	.docs-navigation::-webkit-scrollbar {
-		width: 12px;
-	}
-
-	.docs-navigation::-webkit-scrollbar-track {
-		background: #242526;
-	}
-
-	.docs-navigation::-webkit-scrollbar-thumb {
-		background-color: #686868;
-		border-radius: 20px;
-		border: 3px #686868;
-	}
-}
-
-@media (prefers-color-scheme: dark) {
 
 	/* Works on Firefox */
 	.docs-navigation {
@@ -3216,6 +3160,7 @@ div.screenshot {
 }
 
 .site-header__navigation {
+    z-index: 2;
 	display: flex;
 	flex-direction: column;
 }
@@ -3375,7 +3320,7 @@ div.screenshot {
 		-webkit-box-shadow: 0 2px 4px 0 var(--box-shadow-color);
 		-moz-box-shadow: 0 2px 4px 0 var(--box-shadow-color);
 		box-shadow: 0 2px 4px 0 var(--box-shadow-color);
-		z-index: 1;
+		z-index: 2;
 	}
 
 	.dark-mode {
@@ -3383,16 +3328,7 @@ div.screenshot {
 			-webkit-box-shadow: none;
 			-moz-box-shadow: none;
 			box-shadow: none;
-			z-index: 1;
-		}
-	}
-
-	@media (prefers-color-scheme: dark) {
-		.site-header {
-			-webkit-box-shadow: none;
-			-moz-box-shadow: none;
-			box-shadow: none;
-			z-index: 1;
+			z-index: 2;
 		}
 	}
 
@@ -3486,12 +3422,6 @@ div.screenshot {
 }
 
 .dark-mode {
-	.docs-navigation {
-		border-right: 1px solid #242526;
-	}
-}
-
-@media (prefers-color-scheme: dark) {
 	.docs-navigation {
 		border-right: 1px solid #242526;
 	}
@@ -3918,15 +3848,6 @@ div.screenshot {
 	}
 }
 
-@media (prefers-color-scheme: dark) {
-	.site-footer-secondary {
-		background-color: var(--footer-white-color);
-		border-top: none;
-		width: 100%;
-		z-index: 1;
-	}
-}
-
 .site-footer-secondary__contents {
 	display: flex;
 	align-items: center;
@@ -4343,34 +4264,7 @@ code[data-lang="text"] .fun {
 	}
 }
 
-@media screen and (prefers-color-scheme: dark) {
-
-	code[data-lang="text"] .pln,
-	code[data-lang="text"] .str,
-	code[data-lang="text"] .kwd,
-	code[data-lang="text"] .com,
-	code[data-lang="text"] .typ,
-	code[data-lang="text"] .lit,
-	code[data-lang="text"] .pun,
-	code[data-lang="text"] .opn,
-	code[data-lang="text"] .clo,
-	code[data-lang="text"] .tag,
-	code[data-lang="text"] .atn,
-	code[data-lang="text"] .atv,
-	code[data-lang="text"] .dec,
-	code[data-lang="text"] .var,
-	code[data-lang="text"] .fun {
-		color: #fff !important;
-	}
-}
-
 .dark-mode {
-	.pln {
-		color: #fff !important;
-	}
-}
-
-@media (prefers-color-scheme: dark) {
 	.pln {
 		color: #fff !important;
 	}
@@ -4425,108 +4319,7 @@ code[data-lang="text"] .fun {
 	}
 }
 
-@media screen and (prefers-color-scheme: dark) {
-	.str {
-		color: #f7f !important;
-	}
-
-	.kwd {
-		color: #ff7 !important;
-	}
-
-	.com {
-		color: #7ff !important;
-	}
-
-	.typ {
-		color: #9f9 !important;
-	}
-
-	.lit {
-		color: #f99 !important;
-	}
-
-	.pun,
-	.opn,
-	.clo {
-		color: #99f !important;
-	}
-
-	.tag {
-		color: #ff7 !important;
-	}
-
-	.atn {
-		color: #9f9 !important;
-	}
-
-	.atv {
-		color: #f7f !important;
-	}
-
-	.dec,
-	.var {
-		color: #9f9 !important;
-	}
-
-	.fun {
-		color: green !important;
-	}
-}
-
-@media print,
-projection and (prefers-color-scheme: dark) {
-	.str {
-		color: #f9f !important;
-	}
-
-	.kwd {
-		color: #ff9 !important;
-	}
-
-	.com {
-		color: #9ff !important;
-	}
-
-	.typ {
-		color: #bfb !important;
-	}
-
-	.lit {
-		color: #fbb !important;
-	}
-
-	.pun,
-	.opn,
-	.clo {
-		color: #bbf !important;
-	}
-
-	.tag {
-		color: #ff9 !important;
-	}
-
-	.atn {
-		color: #bfb !important;
-	}
-
-	.atv {
-		color: #f9f !important;
-	}
-}
-
 .dark-mode {
-
-	li.L1,
-	li.L3,
-	li.L5,
-	li.L7,
-	li.L9 {
-		background: #111 !important;
-	}
-}
-
-@media (prefers-color-scheme: dark) {
 
 	li.L1,
 	li.L3,

@@ -335,11 +335,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
 
         then:
-        outputContains("> Task :init")
-        configurationCache.assertStateStoredAndDiscarded {
-            hasStoreFailure = false
-            assert totalProblems == 0
-        }
+        result.assertTasksExecutedAndNotSkipped(":init")
+        configurationCache.assertStateStored { }
         succeeds 'properties'
         def projectName1 = testDirectory.name
         outputContains("name: ${projectName1}")
@@ -349,7 +346,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
 
         then:
-        outputContains("> Task :init")
+        result.assertTasksExecutedAndNotSkipped(":init")
         succeeds 'properties'
         def projectName2 = testDirectory.name
         outputContains("name: ${projectName2}")

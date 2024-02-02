@@ -66,7 +66,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
             expectBuildIdentifierNameDeprecation(agpVersion)
             if (GradleContextualExecuter.notConfigCache) {
-                expectProjectConventionDeprecationWarning(agpVersion)
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
@@ -80,7 +79,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     protected BuildResult buildUpToDateLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
             if (GradleContextualExecuter.notConfigCache) {
-                expectProjectConventionDeprecationWarning(agpVersion)
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
@@ -109,7 +107,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         return runnerForLocation(location, agpVersion,"assembleDebug")
             .deprecations(SantaTrackerDeprecations) {
                 expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-                expectProjectConventionDeprecationWarning(agpVersion)
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
@@ -155,7 +152,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
     protected BuildResult cleanLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "clean").deprecations(SantaTrackerDeprecations) {
-            expectProjectConventionDeprecationWarning(agpVersion)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
             expectConfigUtilDeprecationWarning(agpVersion)

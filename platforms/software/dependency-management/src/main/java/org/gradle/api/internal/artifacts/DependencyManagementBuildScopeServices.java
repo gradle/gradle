@@ -47,7 +47,6 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepository
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -115,7 +114,6 @@ import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
-import org.gradle.internal.execution.steps.CachingContext;
 import org.gradle.internal.execution.steps.CachingResult;
 import org.gradle.internal.execution.steps.CaptureNonIncrementalStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
@@ -124,6 +122,7 @@ import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.NeverUpToDateStep;
 import org.gradle.internal.execution.steps.NoInputChangesStep;
+import org.gradle.internal.execution.steps.NonIncrementalCachingContext;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.Step;
 import org.gradle.internal.execution.steps.TimeoutStep;
@@ -181,8 +180,6 @@ class DependencyManagementBuildScopeServices {
         registration.add(TransformStepNodeDependencyResolver.class);
         registration.add(DefaultProjectPublicationRegistry.class);
         registration.add(FileResourceConnector.class);
-        registration.add(DefaultComponentSelectorConverter.class);
-        registration.add(ProjectDependencyResolver.class);
         registration.add(DependencyGraphResolver.class);
         registration.add(ResolvedArtifactSetResolver.class);
     }
@@ -512,15 +509,15 @@ class DependencyManagementBuildScopeServices {
     }
 
     private static class NoOpCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
-        private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
+        private final Step<? super NonIncrementalCachingContext, ? extends UpToDateResult> delegate;
 
-        public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {
+        public NoOpCachingStateStep(Step<? super NonIncrementalCachingContext, ? extends UpToDateResult> delegate) {
             this.delegate = delegate;
         }
 
         @Override
         public CachingResult execute(UnitOfWork work, ValidationFinishedContext context) {
-            UpToDateResult result = delegate.execute(work, new CachingContext(context, CachingState.NOT_DETERMINED));
+            UpToDateResult result = delegate.execute(work, new NonIncrementalCachingContext(context, CachingState.NOT_DETERMINED));
             return new CachingResult(result, CachingState.NOT_DETERMINED);
         }
     }

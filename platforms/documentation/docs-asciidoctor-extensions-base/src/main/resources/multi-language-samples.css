@@ -65,7 +65,7 @@
     border-radius: 0 0 4px 4px;
 }
 
-@media (prefers-color-scheme: dark) {
+.dark-mode {
     .multi-language-selector .language-option {
         background-color: #1f1f1f;
         border: 1px solid #1e1e22;

@@ -20,7 +20,6 @@ import groovy.io.FileType
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
@@ -198,7 +197,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         )
 
         buildLogicDir.file(commonConventionsPath).assertContents(
-            containsText("JavaLanguageVersion.of(" + Jvm.current().javaVersion.majorVersion + ")")
+            containsText("JavaLanguageVersion.of(21)")
         )
     }
 

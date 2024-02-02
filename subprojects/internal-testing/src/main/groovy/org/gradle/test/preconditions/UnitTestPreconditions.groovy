@@ -471,7 +471,10 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             try {
-                new URL("http://google.com").openConnection().getInputStream().close()
+                HttpURLConnection connection = (HttpURLConnection) new URL("http://google.com").openConnection();
+                connection.setConnectTimeout(60 * 1000);
+                connection.setReadTimeout(60 * 1000);
+                connection.getInputStream().close();
                 return true
             } catch (IOException ex) {
                 return false

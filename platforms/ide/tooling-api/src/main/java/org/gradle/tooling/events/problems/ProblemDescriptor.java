@@ -18,6 +18,7 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -88,11 +89,12 @@ public interface ProblemDescriptor extends BaseProblemDescriptor {
     List<Solution> getSolutions();
 
     /**
-     * Returns the exception associated with this problem.
+     * Returns the failure associated with this problem.
+     * <br>
+     * <code>null</code> if run against a Gradle version prior to 8.7
      *
-     * @return the exception
-     * @since 8.6
+     * @return the failure
+     * @since 8.7
      */
-    //TODO: fix in 8.7
-    //ExceptionContainer getException();
+    @Nullable FailureContainer getFailure();
 }

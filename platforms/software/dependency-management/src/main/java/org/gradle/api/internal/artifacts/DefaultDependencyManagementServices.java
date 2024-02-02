@@ -51,7 +51,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSu
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
@@ -62,6 +61,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultComponentResolversFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
@@ -212,10 +213,13 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
             registration.add(ResolveExceptionContextualizer.class);
             registration.add(ResolutionStrategyFactory.class);
+            registration.add(DefaultLocalComponentRegistry.class);
+            registration.add(ProjectDependencyResolver.class);
             registration.add(DefaultComponentResolversFactory.class);
             registration.add(ConsumerProvidedVariantFinder.class);
             registration.add(DefaultVariantSelectorFactory.class);
             registration.add(DefaultConfigurationFactory.class);
+            registration.add(DefaultComponentSelectorConverter.class);
         }
 
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
@@ -522,8 +526,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             SelectedVariantSerializer selectedVariantSerializer,
             ResolvedVariantCache resolvedVariantCache,
             GraphVariantSelector graphVariantSelector,
-            ProjectStateRegistry projectStateRegistry,
-            ListenerManager listenerManager
+            ProjectStateRegistry projectStateRegistry
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 componentResolversFactory,
@@ -549,18 +552,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 selectedVariantSerializer,
                 resolvedVariantCache,
                 graphVariantSelector,
-                projectStateRegistry,
-                listenerManager
+                projectStateRegistry
             );
 
-            return new ErrorHandlingConfigurationResolver(
-                new ShortCircuitEmptyConfigurationResolver(
-                    defaultResolver,
-                    componentIdentifierFactory,
-                    moduleIdentifierFactory,
-                    currentBuild.getBuildIdentifier()
-                ),
-                resolveExceptionContextualizer
+            return new ShortCircuitEmptyConfigurationResolver(
+                defaultResolver,
+                componentIdentifierFactory,
+                moduleIdentifierFactory,
+                currentBuild.getBuildIdentifier()
             );
         }
 

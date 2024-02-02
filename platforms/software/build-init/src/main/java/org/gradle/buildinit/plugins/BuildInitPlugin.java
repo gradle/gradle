@@ -19,6 +19,7 @@ package org.gradle.buildinit.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
@@ -44,7 +45,6 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
     public void apply(Project project) {
         if (project.getParent() == null) {
             project.getTasks().register("init", InitBuild.class, initBuild -> {
-                initBuild.notCompatibleWithConfigurationCache("Not applicable");
                 initBuild.setGroup("Build Setup");
                 initBuild.setDescription("Initializes a new Gradle build.");
 
@@ -72,7 +72,12 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
     }
 
     private static Provider<Boolean> getCommentsProperty(Project project) {
-        return project.getProviders().gradleProperty(COMMENTS_PROPERTY).map(Boolean::parseBoolean);
+        return project.getProviders().gradleProperty(COMMENTS_PROPERTY).map(new Transformer<Boolean, String>() {
+            @Override
+            public Boolean transform(String s) {
+                return Boolean.parseBoolean(s);
+            }
+        });
     }
 
     private static class InitBuildOnlyIfSpec implements Spec<Task> {

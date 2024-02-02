@@ -36,7 +36,7 @@ val tomljVersion = "1.0.0"
 val archunitVersion = "1.2.0"
 val bytebuddyVersion = "1.10.20"
 val jettyVersion = "9.4.36.v20210114"
-val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
+val sshdVersion = "2.10.0"
 
 // For the junit-bom
 javaPlatform.allowDependencies()
@@ -48,6 +48,7 @@ dependencies {
         api(libs.ansiControlSequenceUtil) { version { strictly("0.3") }}
         api(libs.ant)                   { version { strictly(antVersion) }}
         api(libs.antLauncher)           { version { strictly(antVersion) }}
+        api(libs.antJunit)           { version { strictly(antVersion) }}
         api(libs.asm)                   { version { strictly(asmVersion) }}
         api(libs.asmAnalysis)           { version { strictly(asmVersion) }}
         api(libs.asmCommons)            { version { strictly(asmVersion) }}
@@ -115,10 +116,11 @@ dependencies {
         api(libs.jclToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.jcommander)            { version { strictly("1.78") }}
         api(libs.jetbrainsAnnotations)  { version { strictly("24.0.1") }}
-        api(libs.jgit)                  { version { strictly("5.7.0.202003110725-r"); because("Upgrade has breaking API changes") }}
+        api(libs.jgit)                  { version { strictly("5.13.3.202401111512-r"); because("6.x requires Java 11") }}
+        api(libs.jgitSsh)               { version { strictly("5.13.3.202401111512-r") }}
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
-        api(libs.jsch)                  { version { strictly("0.1.55") }}
+        api(libs.jsch)                  { version { strictly("0.2.16") }}
         api(libs.jsoup)                 { version { strictly("1.15.3") }}
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
@@ -201,6 +203,7 @@ dependencies {
         api(libs.spock)                 { version { strictly(spockVersion) }}
         api(libs.spockJUnit4)           { version { strictly(spockVersion) }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
+        api(libs.sshdOsgi)              { version { rejectAll(); because("It contains sshd-core and sshd-common classes") }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
         api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}

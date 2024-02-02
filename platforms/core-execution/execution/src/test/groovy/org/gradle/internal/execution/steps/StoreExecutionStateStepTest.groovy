@@ -30,7 +30,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
 import static org.gradle.internal.execution.ExecutionEngine.Execution
 
-class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> implements SnapshotterFixture {
+class StoreExecutionStateStepTest extends StepSpec<IncrementalChangesContext> implements SnapshotterFixture {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def originMetadata = Mock(OriginMetadata)
@@ -50,6 +50,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
 
     def setup() {
         _ * context.history >> Optional.of(executionHistoryStore)
+        _ * context.cacheKey >> Optional.of(TestHashCodes.hashCodeFrom(1234))
     }
 
     def "output snapshots are stored after successful execution"() {
@@ -156,6 +157,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     void expectStore(boolean successful, ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs) {
         1 * executionHistoryStore.store(
             identity.uniqueId,
+            _,
             { AfterExecutionState executionState ->
                 executionState.outputFilesProducedByWork == finalOutputs
                 executionState.originMetadata == originMetadata

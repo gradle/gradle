@@ -44,7 +44,50 @@ The previous step will help you identify potential problems by issuing deprecati
 
 The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.22[Kotlin 1.9.22].
 
+==== Upgrade to Apache SSHD 2.10.0
+
+Apache SSHD has been updated from 2.0.0 to https://mina.apache.org/sshd-project/download_2.10.0.html[2.10.0].
+
+==== Replacement and upgrade of JSch
+
+http://www.jcraft.com/jsch/[JSch] has been replaced by https://github.com/mwiede/jsch[`com.github.mwiede:jsch`] and updated from 0.1.55 to https://github.com/mwiede/jsch/releases/tag/jsch-0.2.16[0.2.16]
+
+==== Upgrade to Eclipse JGit 5.13.3
+
+Eclipse JGit has been updated from 5.7.0 to https://projects.eclipse.org/projects/technology.jgit/releases/5.13.3[5.13.3].
+
+This includes reworking the way that Gradle configures JGit for SSH operations by moving from JSch to Apache SSHD.
+
 === Deprecations
+
+[[string_invoke]]
+==== Referencing tasks and domain objects by `"name"()` in Kotlin DSL
+
+In Kotlin DSL, it is possible to reference a task or other domain object by its name using the `"name"()` notation.
+
+There are several ways to look up an element in a container by name:
+```
+tasks {
+    "wrapper"() // 1 - returns TaskProvider<Task>
+    "wrapper"(Wrapper::class) // 2 - returns TaskProvider<Wrapper>
+    "wrapper"(Wrapper::class) { // 3 - configures a task named wrapper of type Wrapper
+    }
+    "wrapper" { // 4 - configures a task named wrapper of type Task
+    }
+}
+```
+
+The first notation is deprecated and will be removed in Gradle 9.0.
+Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
+
+The above example would be written:
+```
+tasks {
+    named("wrapper") // returns TaskProvider<Task>
+}
+```
+
+Groovy DSL build scripts and the Gradle API are not impacted by this.
 
 [[deprecated_invalid_url_decoding]]
 ==== Deprecated invalid URL decoding behavior

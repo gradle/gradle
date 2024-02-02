@@ -4,6 +4,13 @@ plugins {
 
 description = "Plugins for integration with native projects in XCode and Visual Studio IDEs"
 
+sourceSets {
+    main {
+        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
+        errorprone.enabled = false
+    }
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-ide-plugins"))

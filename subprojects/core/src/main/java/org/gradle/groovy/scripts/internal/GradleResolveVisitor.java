@@ -288,6 +288,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         fieldTypesChecked.add(node.getField());
     }
 
+    @Override
     protected boolean resolveToInner(ClassNode type) {
         // we do not do our name mangling to find an inner class
         // if the type is a ConstructedClassWithPackage, because in this case we
@@ -358,6 +359,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         resolveOrFail(type, "", node);
     }
 
+    @Override
     protected boolean resolve(ClassNode type, boolean testModuleImports, boolean testDefaultImports, boolean testStaticInnerClasses) {
         resolveGenericsTypes(type.getGenericsTypes());
         if (type.isResolved() || type.isPrimaryClassNode()) {
@@ -415,6 +417,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         return false;
     }
 
+    @Override
     protected boolean resolveNestedClass(ClassNode type) {
         if (type instanceof ConstructedNestedClass) {
             return false;
@@ -592,6 +595,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         return false;
     }
 
+    @Override
     protected boolean resolveFromCompileUnit(ClassNode type) {
         // look into the compile unit if there is a class with that name
         CompileUnit compileUnit = currentClass.getCompileUnit();
@@ -695,6 +699,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         return false;
     }
 
+    @Override
     protected boolean resolveFromModule(ClassNode type, boolean testModuleImports) {
         if (type instanceof ConstructedNestedClass) {
             return false;
@@ -819,6 +824,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         }
     }
 
+    @Override
     protected boolean resolveToOuter(ClassNode type) {
         String name = type.getName();
 

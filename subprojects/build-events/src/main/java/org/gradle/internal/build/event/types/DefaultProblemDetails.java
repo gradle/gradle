@@ -17,8 +17,9 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
-import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
+import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetailsVersion2;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalLabel;
@@ -32,7 +33,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultProblemDetails implements InternalBasicProblemDetails, Serializable {
+public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion2, Serializable {
     private final InternalProblemCategory category;
     private final InternalLabel label;
     private final InternalDetails details;
@@ -41,7 +42,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
     private final InternalDocumentationLink documentationLink;
     private final List<InternalSolution> solutions;
     private final InternalAdditionalData additionalData;
-    private final RuntimeException exception;
+    private final InternalFailure failure;
 
     public DefaultProblemDetails(
         InternalProblemCategory category,
@@ -52,7 +53,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         @Nullable InternalDocumentationLink documentationLink,
         List<InternalSolution> solutions,
         InternalAdditionalData additionalData,
-        @Nullable RuntimeException exception
+        @Nullable InternalFailure failure
     ) {
         this.category = category;
         this.label = label;
@@ -62,7 +63,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         this.documentationLink = documentationLink;
         this.solutions = solutions;
         this.additionalData = additionalData;
-        this.exception = exception;
+        this.failure = failure;
     }
 
     @Override
@@ -106,12 +107,11 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         return solutions;
     }
 
-    //TODO: fix in 8.7
-//    @Nullable
-//    @Override
-//    public RuntimeException getException() {
-//        return exception;
-//    }
+    @Nullable
+    @Override
+    public InternalFailure getFailure() {
+        return failure;
+    }
 
     @Override
     public InternalAdditionalData getAdditionalData() {

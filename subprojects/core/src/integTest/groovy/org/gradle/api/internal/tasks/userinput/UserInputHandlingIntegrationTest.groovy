@@ -44,7 +44,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
             task askYesNoWithDefault {
                 doLast {
                     def handler = services.get(${UserInputHandler.name})
-                    println "result = " + handler.askYesNoQuestion("thing?", true)
+                    println "result = " + handler.askBooleanQuestion("thing?", true)
                 }
             }
 
@@ -218,7 +218,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.stdinPipe.write(input.bytes)
         gradleHandle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
         poll {
-            assert gradleHandle.standardOutput.contains("Please enter 'yes' or 'no': ")
+            assert gradleHandle.standardOutput.contains("Please enter 'yes' or 'no' (default: 'yes'): ")
         }
         writeToStdInAndClose(gradleHandle, "yes")
         gradleHandle.waitForFinish()

@@ -6,6 +6,12 @@ description = "The Gradle build option parser."
 
 gradlebuildJava.usedInWorkers()
 
+errorprone {
+    disabledChecks.addAll(
+        "StringCaseLocaleUsage", // 2 occurrences
+    )
+}
+
 dependencies {
     api(libs.jsr305)
 

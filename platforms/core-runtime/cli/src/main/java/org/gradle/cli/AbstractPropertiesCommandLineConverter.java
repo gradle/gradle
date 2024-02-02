@@ -23,12 +23,14 @@ public abstract class AbstractPropertiesCommandLineConverter extends AbstractCom
     protected abstract String getPropertyOptionDetailed();
     protected abstract String getPropertyOptionDescription();
 
+    @Override
     public void configure(CommandLineParser parser) {
         CommandLineOption option = parser.option(getPropertyOption(), getPropertyOptionDetailed());
         option = option.hasArguments();
         option.hasDescription(getPropertyOptionDescription());
     }
 
+    @Override
     public Map<String, String> convert(ParsedCommandLine options, Map<String, String> properties) throws CommandLineArgumentException {
         for (String keyValueExpression : options.option(getPropertyOption()).getValues()) {
             int pos = keyValueExpression.indexOf("=");
