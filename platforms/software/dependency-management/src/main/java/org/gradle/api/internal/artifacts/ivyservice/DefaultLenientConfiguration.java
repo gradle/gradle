@@ -124,6 +124,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         };
     }
 
+    @Override
     public ArtifactSelectionSpec getImplicitSelectionSpec() {
         return implicitSelectionSpec;
     }

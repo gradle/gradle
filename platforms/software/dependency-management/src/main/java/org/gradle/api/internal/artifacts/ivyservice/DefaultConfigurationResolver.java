@@ -82,7 +82,6 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -341,15 +340,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     @Override
     public List<ResolutionAwareRepository> getAllRepositories() {
         return repositoriesSupplier.get();
-    }
-
-    @Nullable
-    private static Path getConsumingProjectIdentityPath(ResolveContext resolveContext) {
-        ProjectInternal project = resolveContext.getDomainObjectContext().getProject();
-        if (project != null) {
-            return project.getIdentityPath();
-        }
-        return null;
     }
 
     private List<ResolutionAwareRepository> getFilteredRepositories(ResolveContext resolveContext) {
