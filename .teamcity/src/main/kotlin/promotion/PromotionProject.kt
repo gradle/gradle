@@ -30,6 +30,10 @@ class PromotionProject(branch: VersionedSettingsBranch) : Project({
         buildType(PublishFinalRelease(branch))
     }
 
+    if (branch.isRelease || branch.isExperimental) {
+        buildType(PublishNightlyDocumentation(branch))
+    }
+
     params {
         password("env.ORG_GRADLE_PROJECT_gradleS3AccessKey", "%gradleS3AccessKey%")
         password("env.ORG_GRADLE_PROJECT_gradleS3SecretKey", "%gradleS3SecretKey%")
