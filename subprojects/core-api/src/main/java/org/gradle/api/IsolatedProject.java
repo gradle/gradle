@@ -35,6 +35,7 @@ public interface IsolatedProject {
      * </p>
      *
      * @return The name of this project. Never return null.
+     * @since 8.7
      */
     @NotNull
     String getName();
