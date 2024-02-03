@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.userinput;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 public class NonInteractiveUserInputHandler implements UserInputHandler {
     @Override
@@ -25,13 +26,23 @@ public class NonInteractiveUserInputHandler implements UserInputHandler {
     }
 
     @Override
-    public boolean askYesNoQuestion(String question, boolean defaultValue) {
+    public boolean askBooleanQuestion(String question, boolean defaultValue) {
         return defaultValue;
     }
 
     @Override
     public <T> T selectOption(String question, Collection<T> options, T defaultOption) {
         return defaultOption;
+    }
+
+    @Override
+    public <T> ChoiceBuilder<T> choice(String question, Collection<T> options) {
+        return new DefaultChoiceBuilder<>(options);
+    }
+
+    @Override
+    public int askIntQuestion(String question, int minValue, int defaultValue) {
+        return defaultValue;
     }
 
     @Override
@@ -42,5 +53,36 @@ public class NonInteractiveUserInputHandler implements UserInputHandler {
     @Override
     public boolean interrupted() {
         return false;
+    }
+
+    private static class DefaultChoiceBuilder<T> implements ChoiceBuilder<T> {
+        private T defaultOption;
+
+        DefaultChoiceBuilder(Collection<T> options) {
+            defaultOption = options.iterator().next();
+        }
+
+        @Override
+        public ChoiceBuilder<T> renderUsing(Function<T, String> renderer) {
+            // Ignore, the values are never rendered
+            return this;
+        }
+
+        @Override
+        public ChoiceBuilder<T> defaultOption(T defaultOption) {
+            this.defaultOption = defaultOption;
+            return this;
+        }
+
+        @Override
+        public ChoiceBuilder<T> whenNotConnected(T defaultOption) {
+            this.defaultOption = defaultOption;
+            return this;
+        }
+
+        @Override
+        public T ask() {
+            return defaultOption;
+        }
     }
 }

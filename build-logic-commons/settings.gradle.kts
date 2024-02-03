@@ -21,7 +21,7 @@ dependencyResolutionManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
 }
 
 // Shared basics for all

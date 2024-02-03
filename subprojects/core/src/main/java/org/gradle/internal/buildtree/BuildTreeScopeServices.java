@@ -17,7 +17,6 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.cache.DefaultDecompressionCacheFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -38,8 +37,6 @@ import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.internal.DecompressionCacheFactory;
-import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
@@ -150,10 +147,6 @@ public class BuildTreeScopeServices {
 
     protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
         return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
-    }
-
-    protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-        return new DefaultDecompressionCacheFactory(() -> cacheBuilderFactory);
     }
 
     protected BuildLogicBuildQueue createBuildLogicBuildQueue(

@@ -397,7 +397,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'flavor' with value 'free', attribute 'buildType' with value 'debug'. However we cannot choose between the following variants of project :b:
+        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. However we cannot choose between the following variants of project :b:
   - foo2
   - foo3
 All of them match the consumer attributes:

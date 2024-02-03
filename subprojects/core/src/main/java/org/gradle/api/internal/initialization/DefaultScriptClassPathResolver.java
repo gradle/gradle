@@ -57,8 +57,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     );
 
     private static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("org.gradle.internal.hierarchy-collected", Boolean.class);
-    private static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
-    private static final String NOT_INSTRUMENTED_ATTRIBUTE = "not-instrumented";
+    public static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
+    public static final String NOT_INSTRUMENTED_ATTRIBUTE_VALUE = "not-instrumented";
     private static final String INSTRUMENTED_EXTERNAL_DEPENDENCY_ATTRIBUTE = "instrumented-external-dependency";
     private static final String INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE = "instrumented-project-dependency";
     private final NamedObjectInstantiator instantiator;
@@ -75,7 +75,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     @Override
     public void prepareDependencyHandler(DependencyHandler dependencyHandler) {
         ((DependencyHandlerInternal) dependencyHandler).getDefaultArtifactAttributes()
-            .attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE)
+            .attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE_VALUE)
             .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
 
         // Register instrumentation transforms
@@ -87,7 +87,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         dependencyHandler.registerTransform(
             transform,
             spec -> {
-                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE);
+                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED_ATTRIBUTE_VALUE);
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, instrumentedAttribute);
                 spec.parameters(parameters -> parameters.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled()));
             }

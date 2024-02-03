@@ -27,14 +27,13 @@ class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
     def "understands dependency notations"() {
         when:
         buildFile <<  """
-import org.gradle.api.internal.artifacts.dependencies.*
 configurations {
     conf
     gradleStuff
     allowsCollections
 }
 
-def someDependency = new DefaultSelfResolvingDependency(files('foo.txt'))
+def someDependency = project.dependencies.create(files('foo.txt'))
 dependencies {
     conf someDependency
     conf "org.mockito:mockito-core:1.8"
@@ -80,6 +79,7 @@ task checkDeps {
 }
 """
         then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds 'checkDeps'
     }
 
@@ -160,6 +160,7 @@ task checkDeps {
 }
 """
         then:
+        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
         succeeds 'checkDeps'
     }
 

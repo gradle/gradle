@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
@@ -42,8 +41,6 @@ import java.io.Closeable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
 public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCacheLockingAccessCoordinator, Closeable {
     private final PersistentCache cache;
 
@@ -56,9 +53,8 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
                                                ) {
         cache = unscopedCacheBuilderFactory
                 .cache(cacheMetaData.getCacheDir())
-                .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")
-                .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
+                .withInitialLockMode(FileLockManager.LockMode.OnDemand) // Don't need to lock anything until we use the caches
                 .withCleanupStrategy(createCacheCleanupStrategy(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations))
                 .open();
     }

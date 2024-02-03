@@ -521,7 +521,7 @@
     "name": "kotlin-dsl-tooling-builders",
     "path": "platforms/core-configuration/kotlin-dsl-tooling-builders",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": true
   },
   {
@@ -707,6 +707,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "plugins-java-library",
+    "path": "platforms/jvm/plugins-java-library",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "plugins-jvm-test-fixtures",
     "path": "platforms/jvm/plugins-jvm-test-fixtures",
     "unitTests": false,
@@ -837,6 +844,13 @@
     "path": "platforms/software/signing",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "smoke-ide-test",
+    "path": "subprojects/smoke-ide-test",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

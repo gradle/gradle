@@ -20,12 +20,14 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Issue
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3612")
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule

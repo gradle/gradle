@@ -27,6 +27,14 @@ public final class ResolveArtifactsBuildOperationType implements BuildOperationT
 
     public interface Details {
 
+        /**
+         * This method is not called on the Develocity side, at least in DV plugin &gt;= 3.0.
+         *
+         * @return An empty string.
+         *
+         * @deprecated This method will be removed in Gradle 9.0
+         */
+        @Deprecated
         String getConfigurationPath();
 
     }

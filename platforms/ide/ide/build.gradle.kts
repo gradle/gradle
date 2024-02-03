@@ -4,6 +4,19 @@ plugins {
 
 description = "Plugins and model builders for integration with Eclipse and IntelliJ IDEs"
 
+errorprone {
+    disabledChecks.addAll(
+        "AlreadyChecked", // 2 occurrences
+        "EmptyBlockTag", // 1 occurrences
+        "LoopOverCharArray", // 1 occurrences
+        "ObjectEqualsForPrimitives", // 3 occurrences
+        "StringCaseLocaleUsage", // 2 occurrences
+        "StringSplitter", // 1 occurrences
+        "UnusedMethod", // 1 occurrences
+        "UnusedVariable", // 2 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

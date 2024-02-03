@@ -29,11 +29,12 @@ public class AsmConstants {
     /**
      * The latest version of Java for which ASM understands the bytecodes.
      *
-     * Updated for ASM 9.5.
+     * Updated for ASM 9.6.
      *
      * @see <a href="https://asm.ow2.io/versions.html">ASM release notes</a>
+     * Note that this does not mean that this version of Java is supported, just that ASM can handle the bytecode.
      */
-    public static final int MAX_SUPPORTED_JAVA_VERSION = 21;
+    public static final int MAX_SUPPORTED_JAVA_VERSION = 22;
 
     public static boolean isSupportedVersion(int javaMajorVersion) {
         return javaMajorVersion <= MAX_SUPPORTED_JAVA_VERSION;

@@ -47,6 +47,7 @@ public class DefaultSourceFileClassNameConverter implements SourceFileClassNameC
         return sourceClassesMapping.getOrDefault(sourceFileRelativePath, Collections.emptySet());
     }
 
+    @Override
     public Set<String> getRelativeSourcePaths(String fqcn) {
         return classSourceMapping.getOrDefault(fqcn, Collections.emptySet());
     }

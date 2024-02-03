@@ -58,18 +58,10 @@ abstract class AbstractValueProcessor {
             return visitor.booleanValue((Boolean) value);
         }
         if (value instanceof List) {
-            List<?> list = (List<?>) value;
-            if (list.size() == 0) {
-                return visitor.emptyList();
-            }
-            ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(list.size());
-            for (Object element : list) {
-                builder.add(processValue(element, visitor));
-            }
-            return visitor.list(builder.build());
+            return processList((List<?>) value, visitor);
         }
         if (value instanceof Enum) {
-            return visitor.enumValue((Enum) value);
+            return visitor.enumValue((Enum<?>) value);
         }
         if (value instanceof Class<?>) {
             return visitor.classValue((Class<?>) value);
@@ -91,49 +83,19 @@ abstract class AbstractValueProcessor {
             }
         }
         if (value instanceof Set) {
-            Set<?> set = (Set<?>) value;
-            ImmutableSet.Builder<T> builder = ImmutableSet.builderWithExpectedSize(set.size());
-            for (Object element : set) {
-                builder.add(processValue(element, visitor));
-            }
-            return visitor.set(builder.build());
+            return processSet((Set<?>) value, visitor);
         }
         if (value instanceof Map) {
-            Map<?, ?> map = (Map<?, ?>) value;
-            ImmutableList.Builder<MapEntrySnapshot<T>> builder = ImmutableList.builderWithExpectedSize(map.size());
-            for (Map.Entry<?, ?> entry : map.entrySet()) {
-                builder.add(new MapEntrySnapshot<>(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
-            }
-            if (value instanceof Properties) {
-                return visitor.properties(builder.build());
-            } else {
-                return visitor.map(builder.build());
-            }
+            return processMap((Map<?, ?>) value, visitor);
         }
         if (valueClass.isArray()) {
-            int length = Array.getLength(value);
-            if (length == 0) {
-                return visitor.emptyArray(valueClass.getComponentType());
-            }
-            ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(length);
-            for (int i = 0; i < length; i++) {
-                Object element = Array.get(value, i);
-                builder.add(processValue(element, visitor));
-            }
-            return visitor.array(builder.build(), valueClass.getComponentType());
+            return processArray(value, visitor);
         }
         if (value instanceof Attribute) {
             return visitor.attributeValue((Attribute<?>) value);
         }
         if (value instanceof Managed) {
-            Managed managed = (Managed) value;
-            if (managed.isImmutable()) {
-                return visitor.managedImmutableValue(managed);
-            } else {
-                // May (or may not) be mutable - unpack the state
-                T state = processValue(managed.unpackState(), visitor);
-                return visitor.managedValue(managed, state);
-            }
+            return processManaged((Managed) value, visitor);
         }
         if (value instanceof Isolatable) {
             return visitor.fromIsolatable((Isolatable<?>) value);
@@ -157,8 +119,78 @@ abstract class AbstractValueProcessor {
         return javaSerialization(value, visitor);
     }
 
+    private <T> T processManaged(Managed managed, ValueVisitor<T> visitor) {
+        if (managed.isImmutable()) {
+            return visitor.managedImmutableValue(managed);
+        } else {
+            // May (or may not) be mutable - unpack the state
+            T state = processValue(managed.unpackState(), visitor);
+            return visitor.managedValue(managed, state);
+        }
+    }
+
+    private <T> T processMap(Map<?, ?> map, ValueVisitor<T> visitor) {
+        ImmutableList.Builder<MapEntrySnapshot<T>> builder = ImmutableList.builderWithExpectedSize(map.size());
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            builder.add(new MapEntrySnapshot<>(processValue(entry.getKey(), visitor), processValue(entry.getValue(), visitor)));
+        }
+        if (map instanceof Properties) {
+            return visitor.properties(builder.build());
+        } else {
+            return visitor.map(builder.build());
+        }
+    }
+
+    private <T> T processSet(Set<?> set, ValueVisitor<T> visitor) {
+        ImmutableSet.Builder<T> builder = ImmutableSet.builderWithExpectedSize(set.size());
+        for (Object element : set) {
+            builder.add(processValue(element, visitor));
+        }
+        return visitor.set(builder.build());
+    }
+
+    private <T> T processList(List<?> value, ValueVisitor<T> visitor) {
+        if (value.isEmpty()) {
+            return visitor.emptyList();
+        }
+        return visitor.list(processListElements(value, visitor));
+    }
+
+    private <T> ImmutableList<T> processListElements(List<?> list, ValueVisitor<T> visitor) {
+        ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(list.size());
+        for (Object element : list) {
+            builder.add(processValue(element, visitor));
+        }
+        return builder.build();
+    }
+
+    private <T> T processArray(Object value, ValueVisitor<T> visitor) {
+        Class<?> componentType = value.getClass().getComponentType();
+        int length = Array.getLength(value);
+        if (length == 0) {
+            return visitor.emptyArray(componentType);
+        }
+        if (componentType.isPrimitive()) {
+            return visitor.primitiveArray(value);
+        }
+        return visitor.array(processArrayElements(value, length, visitor), componentType);
+    }
+
+    private <T> ImmutableList<T> processArrayElements(Object array, int length, ValueVisitor<T> visitor) {
+        ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(length);
+        for (int i = 0; i < length; i++) {
+            Object element = Array.get(array, i);
+            builder.add(processValue(element, visitor));
+        }
+        return builder.build();
+    }
+
+    private <T> T gradleSerialization(Object value, Serializer<?> serializer, ValueVisitor<T> visitor) {
+        return visitor.gradleSerialized(value, gradleSerialized(value, serializer));
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T> T gradleSerialization(Object value, Serializer serializer, ValueVisitor<T> visitor) {
+    private static byte[] gradleSerialized(Object value, Serializer serializer) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try (KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream)) {
             serializer.write(encoder, Cast.uncheckedCast(value));
@@ -166,25 +198,36 @@ abstract class AbstractValueProcessor {
         } catch (Exception e) {
             throw newValueSerializationException(value.getClass(), e);
         }
-        return visitor.gradleSerialized(value, outputStream.toByteArray());
+        return outputStream.toByteArray();
     }
 
     private <T> T javaSerialization(Object value, ValueVisitor<T> visitor) {
+        return visitor.javaSerialized(value, javaSerialized(value));
+    }
+
+    private static byte[] javaSerialized(Object value) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try (ObjectOutputStream objectStr = new ObjectOutputStream(outputStream)) {
-            objectStr.writeObject(value);
-            objectStr.flush();
+        try (ObjectOutputStream oos = new ObjectOutputStream(outputStream)) {
+            oos.writeObject(value);
+            oos.flush();
         } catch (IOException e) {
             throw newValueSerializationException(value.getClass(), e);
         }
-        return visitor.javaSerialized(value, outputStream.toByteArray());
+        return outputStream.toByteArray();
     }
 
-    private ValueSnapshottingException newValueSerializationException(Class<?> valueType, Throwable cause) {
+    private static ValueSnapshottingException newValueSerializationException(Class<?> valueType, Throwable cause) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Could not serialize value of type ");
         formatter.appendType(valueType);
         return new ValueSnapshottingException(formatter.toString(), cause);
+    }
+
+    private static ValueSnapshottingException cantSerializePrimitiveArray(Class<?> arrayType) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Cannot serialize primitive arrays of type ");
+        formatter.appendType(arrayType);
+        return new ValueSnapshottingException(formatter.toString());
     }
 
     protected interface ValueVisitor<T> {
@@ -195,7 +238,7 @@ abstract class AbstractValueProcessor {
 
         T booleanValue(Boolean value);
 
-        T enumValue(Enum value);
+        T enumValue(Enum<?> value);
 
         T classValue(Class<?> value);
 
@@ -222,6 +265,8 @@ abstract class AbstractValueProcessor {
         T emptyArray(Class<?> arrayType);
 
         T array(ImmutableList<T> elements, Class<?> arrayType);
+
+        T primitiveArray(Object value);
 
         T emptyList();
 

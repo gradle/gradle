@@ -22,6 +22,49 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class ReadelfBinaryInfoTest extends Specification {
+    def "reads symbols from readelf from clang 14"() {
+        when:
+        def input = """
+Contents of the .debug_info section:
+
+  Compilation Unit @ offset 0x0:
+   Length:        0x81 (32-bit)
+   Version:       5
+   Unit Type:     DW_UT_compile (1)
+   Abbrev Offset: 0x0
+   Pointer Size:  8
+ <0><c>: Abbrev Number: 1 (DW_TAG_compile_unit)
+    <d>   DW_AT_producer    : (indexed string: 0x0): Ubuntu clang version 14.0.0-1ubuntu1.1
+    <e>   DW_AT_language    : 33        (C++14)
+    <10>   DW_AT_name        : (indexed string: 0x1): /opt/gradle_gradle/platforms/native/platform-native/build/tmp/teŝt files/ExtractSymb.Test/ljhaq/src/main/cpp/sum.cpp
+    <11>   DW_AT_str_offsets_base: 0x8
+    <15>   DW_AT_stmt_list   : 0x0
+    <19>   DW_AT_comp_dir    : (indexed string: 0x2): /opt/gradle_gradle/platforms/native/platform-native/build/tmp/teŝt files/ExtractSymb.Test/ljhaq/build/obj/main/debug
+    <1a>   DW_AT_low_pc      : (addr_index: 0x0): 1200
+    <1b>   DW_AT_high_pc     : 0x16
+    <1f>   DW_AT_addr_base   : 0x8
+ <1><23>: Abbrev Number: 2 (DW_TAG_class_type)
+    <24>   DW_AT_calling_convention: 5  (pass by value)
+    <25>   DW_AT_name        : (indexed string: 0x6): Sum
+    <26>   DW_AT_byte_size   : 1
+    <27>   DW_AT_decl_file   : 2
+    <28>   DW_AT_decl_line   : 8
+ <2><29>: Abbrev Number: 3 (DW_TAG_subprogram)
+    <2a>   DW_AT_linkage_name: (indexed string: 0x3): _ZN3Sum3sumEii
+    <2b>   DW_AT_name        : (indexed string: 0x4): sum
+    <2c>   DW_AT_decl_file   : 2
+    <2d>   DW_AT_decl_line   : 10
+    <2e>   DW_AT_type        : <0x44>
+    <32>   DW_AT_declaration : 1
+    <32>   DW_AT_external    : 1
+    <32>   DW_AT_accessibility: 1       (public)
+"""
+        def inputLines = input.readLines()
+
+        then:
+        ReadelfBinaryInfo.readSymbols(inputLines)*.name == ['sum.cpp']
+    }
+
     @Unroll("reads soname value with #language readelf output")
     def "reads soname value"() {
         when:
@@ -160,7 +203,7 @@ ELF Header:
 """],
             ["German", """
 ELF-Header:
-  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 
+  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00
   Klasse:                            ELF32
   Daten:                             2er-Komplement, Little-Endian
   Version:                           1 (current)
@@ -217,7 +260,7 @@ ELF Header:
 """],
             ["German", """
 ELF-Header:
-  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 
+  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00
   Klasse:                            ELF32
   Daten:                             2er-Komplement, Little-Endian
   Version:                           1 (current)

@@ -197,7 +197,7 @@ abstract class AbstractIntegrationSpec extends Specification {
         targetBuildFile << script
     }
 
-    String groovyScript(@GroovyBuildScriptLanguage String script) {
+    static String groovyScript(@GroovyBuildScriptLanguage String script) {
         script
     }
 
@@ -744,14 +744,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         recreateExecuter()
     }
 
-    void assumeGroovy3() {
-        Assume.assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
-    }
-
-    void assumeGroovy4() {
-        Assume.assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
-    }
-
     def enableProblemsApiCheck() {
         enableProblemsApiCheck = true
         buildOperationsFixture = new BuildOperationsFixture(executer, temporaryFolder)
@@ -761,6 +753,12 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         enableProblemsApiCheck = false
     }
 
+    /**
+     * Gets all problems collected by the Problems API.
+     *
+     * @return The list of collected problems
+     * @throws IllegalStateException if the Problems API check is not enabled
+     */
     List<ReceivedProblem> getCollectedProblems() {
         if (!enableProblemsApiCheck) {
             throw new IllegalStateException('Problems API check is not enabled')
@@ -771,6 +769,19 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
                 return new ReceivedProblem(operation.id, problemDetails)
             }
         }
+    }
+
+    /**
+     * Gets the first problem of the given category. Assumes that there is only one problem.
+     *
+     * @return The first collected problem
+     * @throws AssertionError if there is no, or more than one, collected problem
+     * @throws IllegalStateException if the Problems API check is not enabled
+     */
+    ReceivedProblem getCollectedProblem() {
+        def problems = getCollectedProblems()
+        assert problems.size() == 1: "Expected to find exactly one problem, but found ${problems.size()} problems"
+        return problems[0]
     }
 
     /**

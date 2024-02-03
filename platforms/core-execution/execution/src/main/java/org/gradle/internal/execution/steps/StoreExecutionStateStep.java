@@ -30,7 +30,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class StoreExecutionStateStep<C extends BeforeExecutionContext, R extends AfterExecutionResult> implements Step<C, R> {
+public class StoreExecutionStateStep<C extends IncrementalChangesContext, R extends AfterExecutionResult> implements Step<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
     public StoreExecutionStateStep(
@@ -47,11 +47,15 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext, R extends
                 .flatMap(beforeExecutionState -> result.getAfterExecutionOutputState()
                     .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
                     .map(executionOutputState -> new DefaultAfterExecutionState(beforeExecutionState, executionOutputState)))
-                .ifPresent(afterExecutionState -> history.store(context.getIdentity().getUniqueId(), afterExecutionState)));
+                .ifPresent(afterExecutionState -> history.store(
+                    context.getIdentity().getUniqueId(),
+                    // TODO: Encode the "no cache key available" case in the context type hierarchy
+                    context.getCacheKey().orElseThrow(() -> new IllegalStateException("Cache key needs to be present when we store the execution history")),
+                    afterExecutionState)));
         return result;
     }
 
-    private static <C extends BeforeExecutionContext, R extends AfterExecutionResult> boolean shouldPreserveFailedState(C context, ExecutionOutputState afterExecutionOutputState) {
+    private static <C extends BeforeExecutionContext> boolean shouldPreserveFailedState(C context, ExecutionOutputState afterExecutionOutputState) {
         // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
         // For example the current execution fails because of a compilation failure and for the next execution the source file is fixed,
         // so only the one changed source file needs to be compiled.

@@ -21,32 +21,33 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 
 import static org.objectweb.asm.Type.getType;
 
 public class AsmClassGeneratorUtils {
-    /**
-     * Generates the signature for the given constructor
-     */
-    public static String signature(Constructor<?> constructor) {
-        return signature(constructor, false);
-    }
 
     /**
      * Generates the signature for the given constructor, optionally adding a `name` parameter before all other parameters.
      */
     public static String signature(Constructor<?> constructor, boolean addNameParameter) {
         StringBuilder builder = new StringBuilder();
-        visitFormalTypeParameters(builder, constructor.getTypeParameters());
-        if (addNameParameter) {
-            visitType(String.class, builder);
-        }
-        visitParameters(builder, constructor.getGenericParameterTypes());
-        builder.append("V");
-        visitExceptions(builder, constructor.getGenericExceptionTypes());
+        visitFormalTypeParameters(constructor.getTypeParameters(), builder);
+        visitConstructorParameters(constructor.getGenericParameterTypes(), addNameParameter, builder);
+        builder.append('V');
+        visitExceptions(constructor.getGenericExceptionTypes(), builder);
         return builder.toString();
+    }
+
+    private static void visitConstructorParameters(Type[] parameterTypes, boolean addNameParameter, StringBuilder builder) {
+        builder.append('(');
+        if (addNameParameter) {
+            visitClass(String.class, builder);
+        }
+        visitTypes(parameterTypes, builder);
+        builder.append(')');
     }
 
     public static String getterSignature(java.lang.reflect.Type returnType) {
@@ -61,29 +62,33 @@ public class AsmClassGeneratorUtils {
      */
     public static String signature(Method method) {
         StringBuilder builder = new StringBuilder();
-        visitFormalTypeParameters(builder, method.getTypeParameters());
-        visitParameters(builder, method.getGenericParameterTypes());
+        visitFormalTypeParameters(method.getTypeParameters(), builder);
+        visitParameters(method.getGenericParameterTypes(), builder);
         visitType(method.getGenericReturnType(), builder);
-        visitExceptions(builder, method.getGenericExceptionTypes());
+        visitExceptions(method.getGenericExceptionTypes(), builder);
         return builder.toString();
     }
 
-    private static void visitExceptions(StringBuilder builder, java.lang.reflect.Type[] exceptionTypes) {
+    private static void visitExceptions(Type[] exceptionTypes, StringBuilder builder) {
         for (java.lang.reflect.Type exceptionType : exceptionTypes) {
             builder.append('^');
             visitType(exceptionType, builder);
         }
     }
 
-    private static void visitParameters(StringBuilder builder, java.lang.reflect.Type[] parameterTypes) {
+    private static void visitParameters(Type[] parameterTypes, StringBuilder builder) {
         builder.append('(');
-        for (java.lang.reflect.Type paramType : parameterTypes) {
-            visitType(paramType, builder);
-        }
-        builder.append(")");
+        visitTypes(parameterTypes, builder);
+        builder.append(')');
     }
 
-    private static void visitFormalTypeParameters(StringBuilder builder, TypeVariable<?>[] typeParameters) {
+    private static void visitTypes(Type[] types, StringBuilder builder) {
+        for (Type type : types) {
+            visitType(type, builder);
+        }
+    }
+
+    private static void visitFormalTypeParameters(TypeVariable<?>[] typeParameters, StringBuilder builder) {
         if (typeParameters.length > 0) {
             builder.append('<');
             for (TypeVariable<?> typeVariable : typeParameters) {
@@ -99,58 +104,39 @@ public class AsmClassGeneratorUtils {
 
     private static void visitType(java.lang.reflect.Type type, StringBuilder builder) {
         if (type instanceof Class) {
-            Class<?> cl = (Class<?>) type;
-            if (cl.isPrimitive()) {
-                builder.append(descriptorOf(cl));
-            } else {
-                if (cl.isArray()) {
-                    builder.append(cl.getName().replace('.', '/'));
-                } else {
-                    builder.append('L');
-                    builder.append(cl.getName().replace('.', '/'));
-                    builder.append(';');
-                }
-            }
+            visitClass((Class<?>) type, builder);
         } else if (type instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) type;
-            visitNested(parameterizedType.getRawType(), builder);
-            builder.append('<');
-            for (java.lang.reflect.Type param : parameterizedType.getActualTypeArguments()) {
-                visitType(param, builder);
-            }
-            builder.append(">;");
+            visitParameterizedType((ParameterizedType) type, builder);
         } else if (type instanceof WildcardType) {
-            WildcardType wildcardType = (WildcardType) type;
-            if (wildcardType.getUpperBounds().length == 1 && wildcardType.getUpperBounds()[0].equals(Object.class)) {
-                if (wildcardType.getLowerBounds().length == 0) {
-                    builder.append('*');
-                    return;
-                }
-            } else {
-                for (java.lang.reflect.Type upperType : wildcardType.getUpperBounds()) {
-                    builder.append('+');
-                    visitType(upperType, builder);
-                }
-            }
-            for (java.lang.reflect.Type lowerType : wildcardType.getLowerBounds()) {
-                builder.append('-');
-                visitType(lowerType, builder);
-            }
+            visitWildcardType((WildcardType) type, builder);
         } else if (type instanceof TypeVariable) {
-            TypeVariable<?> typeVar = (TypeVariable<?>) type;
-            builder.append('T');
-            builder.append(typeVar.getName());
-            builder.append(';');
+            visitTypeVariable((TypeVariable<?>) type, builder);
         } else if (type instanceof GenericArrayType) {
-            GenericArrayType arrayType = (GenericArrayType) type;
-            builder.append('[');
-            visitType(arrayType.getGenericComponentType(), builder);
+            visitGenericArrayType((GenericArrayType) type, builder);
         } else {
             throw new IllegalArgumentException(String.format("Cannot generate signature for %s.", type));
         }
     }
 
-    private static void visitNested(java.lang.reflect.Type type, StringBuilder builder) {
+    private static void visitGenericArrayType(GenericArrayType type, StringBuilder builder) {
+        builder.append('[');
+        visitType(type.getGenericComponentType(), builder);
+    }
+
+    private static void visitTypeVariable(TypeVariable<?> type, StringBuilder builder) {
+        builder.append('T');
+        builder.append(type.getName());
+        builder.append(';');
+    }
+
+    private static void visitParameterizedType(ParameterizedType type, StringBuilder builder) {
+        visitRawType(type.getRawType(), builder);
+        builder.append('<');
+        visitTypes(type.getActualTypeArguments(), builder);
+        builder.append(">;");
+    }
+
+    private static void visitRawType(java.lang.reflect.Type type, StringBuilder builder) {
         if (type instanceof Class) {
             Class<?> cl = (Class<?>) type;
             if (cl.isPrimitive()) {
@@ -161,6 +147,41 @@ public class AsmClassGeneratorUtils {
             }
         } else {
             visitType(type, builder);
+        }
+    }
+
+    private static void visitWildcardType(WildcardType type, StringBuilder builder) {
+        Type[] upperBounds = type.getUpperBounds();
+        if (upperBounds.length == 1 && upperBounds[0].equals(Object.class)) {
+            if (type.getLowerBounds().length == 0) {
+                builder.append('*');
+                return;
+            }
+        } else {
+            visitTypesWithPrefix('+', upperBounds, builder);
+        }
+        visitTypesWithPrefix('-', type.getLowerBounds(), builder);
+    }
+
+    private static void visitTypesWithPrefix(char prefix, Type[] types, StringBuilder builder) {
+        for (Type upperType : types) {
+            builder.append(prefix);
+            visitType(upperType, builder);
+        }
+    }
+
+    private static void visitClass(Class<?> type, StringBuilder builder) {
+        if (type.isPrimitive()) {
+            builder.append(descriptorOf(type));
+        } else {
+            String binaryName = type.getName().replace('.', '/');
+            if (type.isArray()) {
+                builder.append(binaryName);
+            } else {
+                builder.append('L');
+                builder.append(binaryName);
+                builder.append(';');
+            }
         }
     }
 

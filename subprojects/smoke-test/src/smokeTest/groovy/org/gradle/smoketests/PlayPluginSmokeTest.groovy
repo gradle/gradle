@@ -56,7 +56,6 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 7))
             .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("CollectionUtils", 7))
             .expectLegacyDeprecationWarning(BaseDeprecations.ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION)
-            .expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
             .expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
             .expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
             .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 8))

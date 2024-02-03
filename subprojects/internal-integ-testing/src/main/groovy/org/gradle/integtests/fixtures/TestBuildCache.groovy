@@ -70,11 +70,84 @@ class TestBuildCache {
         cacheDir.listFiles().findAll { it.name ==~ /\p{XDigit}{${Hashing.defaultFunction().hexDigits}}/ }.sort()
     }
 
+    void deleteCacheEntry(String cacheKey) {
+        def entry = getTestFileCacheEntry(cacheKey)
+        if (entry.file.exists()) {
+            entry.file.deleteDir()
+        }
+    }
+
+    boolean hasCacheEntry(String cacheKey) {
+        return getTestFileCacheEntry(cacheKey).file.exists()
+    }
+
+    TestCacheEntry getCacheEntry(String cacheKey) {
+        def cacheEntry = getTestFileCacheEntry(cacheKey)
+        assert cacheEntry.file.exists()
+        return cacheEntry
+    }
+
     boolean isEmpty() {
         listCacheFiles().empty
     }
 
-    TestFile cacheArtifact(String cacheKey) {
-        new TestFile(cacheDir, cacheKey)
+    private TestFileCacheEntry getTestFileCacheEntry(String cacheKey) {
+        return new TestFileCacheEntry(cacheKey, new TestFile(cacheDir, cacheKey))
+    }
+
+    interface TestCacheEntry {
+        String getKey()
+        String getMd5Hash()
+        String getText()
+        void setText(String text)
+        byte[] getBytes()
+        void setBytes(byte[] bytes)
+        void copyBytesTo(TestFile file)
+    }
+
+    private class TestFileCacheEntry implements TestCacheEntry {
+
+        String key
+        TestFile file
+
+        TestFileCacheEntry(String key, TestFile file) {
+            this.key = key
+            this.file = file
+        }
+
+        @Override
+        String getKey() {
+            return key
+        }
+
+        @Override
+        String getMd5Hash() {
+            return file.md5Hash
+        }
+
+        @Override
+        String getText() {
+            return file.text
+        }
+
+        @Override
+        void setText(String text) {
+            file.text = text
+        }
+
+        @Override
+        byte[] getBytes() {
+            return file.bytes
+        }
+
+        @Override
+        void setBytes(byte[] bytes) {
+            file.bytes = bytes
+        }
+
+        @Override
+        void copyBytesTo(TestFile file) {
+            this.file.copyTo(file)
+        }
     }
 }

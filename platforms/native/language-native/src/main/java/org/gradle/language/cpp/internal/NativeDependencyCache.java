@@ -18,7 +18,6 @@ package org.gradle.language.cpp.internal;
 
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
@@ -35,7 +34,9 @@ public class NativeDependencyCache implements Stoppable {
     private final PersistentCache cache;
 
     public NativeDependencyCache(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
-        cache = cacheBuilderFactory.createCacheBuilder("native-dep").withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand)).open();
+        cache = cacheBuilderFactory.createCacheBuilder("native-dep")
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+            .open();
     }
 
     public File getModuleMapFile(final ModuleMap moduleMap) {

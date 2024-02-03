@@ -15,9 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
@@ -40,13 +41,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 
 import java.io.File;
 import java.util.Collections;
@@ -67,30 +68,29 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     @Override
-    public List<ResolutionAwareRepository> getRepositories() {
-        return delegate.getRepositories();
+    public List<ResolutionAwareRepository> getAllRepositories() {
+        return delegate.getAllRepositories();
     }
 
     @Override
     public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
-        if (!resolveContext.hasDependencies()) {
-            return emptyGraph(resolveContext, false);
-        } else {
+        if (resolveContext.hasDependencies()) {
             return delegate.resolveBuildDependencies(resolveContext);
         }
+
+        VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
+        return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE,
+            DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(EmptyResults.INSTANCE)
+        );
     }
 
     @Override
     public ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException {
-        if (!resolveContext.hasDependencies()) {
-            return emptyGraph(resolveContext, true);
-        } else {
+        if (resolveContext.hasDependencies()) {
             return delegate.resolveGraph(resolveContext);
         }
-    }
 
-    private ResolverResults emptyGraph(ResolveContext resolveContext, boolean verifyLocking) {
-        if (verifyLocking && resolveContext.getResolutionStrategy().isDependencyLockingEnabled()) {
+        if (resolveContext.getResolutionStrategy().isDependencyLockingEnabled()) {
             DependencyLockingProvider dependencyLockingProvider = resolveContext.getResolutionStrategy().getDependencyLockingProvider();
             DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(resolveContext.getName());
             if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
@@ -100,20 +100,35 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
             dependencyLockingProvider.persistResolvedDependencies(resolveContext.getName(), Collections.emptySet(), Collections.emptySet());
         }
 
+        VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
+        ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
+            graphResults, resolveContext.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
+        );
+        return DefaultResolverResults.graphResolved(graphResults, EmptyResults.INSTANCE,
+            DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
+                EmptyResults.INSTANCE, resolvedConfiguration
+            )
+        );
+    }
+
+    private VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
         Module module = resolveContext.getModule();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         MinimalResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, resolveContext.getAttributes().asImmutable());
-        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
-        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
-        return DefaultResolverResults.graphResolved(graphResults, emptyProjectResult, new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
+        return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
     }
 
-    private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet {
+    private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, ResolverResults.LegacyResolverResults.LegacyVisitedArtifactSet {
         private static final EmptyResults INSTANCE = new EmptyResults();
 
         @Override
-        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, ArtifactSelectionSpec spec) {
+        public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
+            return this;
+        }
+
+        @Override
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec) {
             return this;
         }
 
@@ -126,64 +141,43 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
     }
 
-    private static class EmptyResolvedConfiguration implements ResolvedConfiguration {
+    @VisibleForTesting
+    public static class EmptyLenientConfiguration implements LenientConfigurationInternal {
 
         @Override
-        public boolean hasError() {
-            return false;
+        public ArtifactSelectionSpec getImplicitSelectionSpec() {
+            return new ArtifactSelectionSpec(
+                ImmutableAttributes.EMPTY, Specs.satisfyAll(), false, false, ResolutionStrategy.SortOrder.DEFAULT
+            );
         }
 
         @Override
-        public LenientConfiguration getLenientConfiguration() {
-            return new LenientConfiguration() {
-                @Override
-                public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<ResolvedDependency> getAllModuleDependencies() {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<File> getFiles() {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<ResolvedArtifact> getArtifacts() {
-                    return Collections.emptySet();
-                }
-
-                @Override
-                public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
-                    return Collections.emptySet();
-                }
-            };
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec) {
+            return EmptyResults.INSTANCE;
         }
 
         @Override
-        public void rethrowFailure() throws ResolveException {
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+            return Collections.emptySet();
         }
 
         @Override
-        public Set<File> getFiles() throws ResolveException {
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<ResolvedDependency> getAllModuleDependencies() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<File> getFiles() {
             return Collections.emptySet();
         }
 
@@ -193,17 +187,12 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+        public Set<ResolvedArtifact> getArtifacts() {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<ResolvedArtifact> getResolvedArtifacts() {
+        public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
             return Collections.emptySet();
         }
     }

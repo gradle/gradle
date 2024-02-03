@@ -81,9 +81,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         return new DefaultProblemBuilder(namespace);
     }
 
-    private Problem transformProblem(Problem problem) {
+    private Problem transformProblem(Problem problem, OperationIdentifier id) {
         for (ProblemTransformer transformer : transformers) {
-            problem = transformer.transform((InternalProblem) problem);
+            problem = transformer.transform((InternalProblem) problem, id);
         }
         return problem;
     }
@@ -115,6 +115,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
-        emitter.emit(transformProblem(problem), id);
+        emitter.emit(transformProblem(problem, id), id);
     }
 }

@@ -18,13 +18,13 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
@@ -46,7 +46,7 @@ class DeprecationMessagesTest extends Specification {
 
         def buildOperationProgressEventEmitter = Stub(BuildOperationProgressEventEmitter)
         def problemEmitter = Stub(ProblemEmitter)
-        DeprecationLogger.init(diagnosticsFactory, WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter))
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter), diagnosticsFactory.newUnlimitedStream())
     }
 
     def cleanup() {

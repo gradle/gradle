@@ -4,6 +4,14 @@ plugins {
 
 description = "Version control integration (with git) for source dependencies"
 
+errorprone {
+    disabledChecks.addAll(
+        "StringSplitter", // 1 occurrences
+        "UnusedMethod", // 13 occurrences
+        "UnusedVariable", // 3 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
@@ -20,7 +28,9 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.jgit)
-    implementation(libs.jsch)
+    implementation(libs.jgitSsh) {
+        exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
+    }
 
     testImplementation(project(":native"))
     testImplementation(project(":snapshots"))
@@ -31,9 +41,11 @@ dependencies {
     testFixturesImplementation(project(":internal-integ-testing"))
 
     testFixturesImplementation(libs.jgit)
+    testFixturesImplementation(libs.jgitSsh) {
+        exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
+    }
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.commonsHttpclient)
-    testFixturesImplementation(libs.jsch)
     testFixturesImplementation(libs.guava)
 
     integTestImplementation(project(":enterprise-operations"))

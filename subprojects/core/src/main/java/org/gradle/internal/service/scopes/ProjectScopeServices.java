@@ -82,7 +82,7 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ScopedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
@@ -105,12 +105,12 @@ import javax.annotation.Nullable;
 /**
  * Contains the services for a given project.
  */
-public class ProjectScopeServices extends DefaultServiceRegistry {
+public class ProjectScopeServices extends ScopedServiceRegistry {
     private final ProjectInternal project;
     private final Factory<LoggingManagerInternal> loggingManagerInternalFactory;
 
     public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
-        super(parent);
+        super(Scopes.Project.class, "Project services", parent);
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
         register(registration -> {

@@ -20,11 +20,31 @@ shadedJar {
     ignoredPackages = setOf("org.gradle.tooling.provider.model")
 }
 
+errorprone {
+    disabledChecks.addAll(
+        "BadImport", // 1 occurrences
+        "EmptyBlockTag", // 1 occurrences
+        "EmptyTopLevelDeclaration", // 1 occurrences
+        "EqualsUnsafeCast", // 1 occurrences
+        "FutureReturnValueIgnored", // 1 occurrences
+        "ImmutableEnumChecker", // 1 occurrences
+        "LockNotBeforeTry", // 1 occurrences
+        "NonApiType", // 1 occurrences
+        "NotJavadoc", // 1 occurrences
+        "StringCaseLocaleUsage", // 1 occurrences
+        "ThreadLocalUsage", // 2 occurrences
+        "TypeParameterShadowing", // 1 occurrences
+        "UnnecessaryCheckNotNull", // 2 occurrences
+        "UnusedMethod", // 11 occurrences
+    )
+}
+
 dependencies {
     shadedImplementation(libs.slf4jApi)
 
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":enterprise-workers"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":core-api"))

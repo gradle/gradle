@@ -50,7 +50,7 @@ IMPORTANT: _Build scripts_ configure `Project` objects and their children.
 The `Project` object is part of the link:{javadocPath}org/gradle/api/Project.html[Gradle API].
 
 - In the Groovy DSL, the `Project` object documentation is found link:{groovyDslPath}/org.gradle.api.Project.html[here].
-- In the Kotlin DSL, the `Project` object documentation is found link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[here].
+- In the Kotlin DSL, the `Project` object documentation is found link:{kotlinDslPath}/gradle/org.gradle.api/-project/index.html[here].
 
 Many top-level properties and blocks in a build script are part of the Project API.
 

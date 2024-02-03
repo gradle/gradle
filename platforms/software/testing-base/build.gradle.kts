@@ -11,7 +11,19 @@ testing-related abstract base types and interfaces for things like Test tasks, l
 This project is a implementation dependency of many other testing-related subprojects in the Gradle build.
 """
 
+errorprone {
+    disabledChecks.addAll(
+        "EmptyBlockTag", // 3 occurrences
+        "InlineMeInliner", // 2 occurrences
+        "MissingCasesInEnumSwitch", // 1 occurrences
+        "OperatorPrecedence", // 1 occurrences
+        "UnusedMethod", // 4 occurrences
+    )
+}
+
 dependencies {
+    api(project(":reporting"))
+
     implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":native"))
@@ -22,7 +34,6 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":base-services-groovy"))
-    implementation(project(":reporting"))
     implementation(project(":platform-base"))
 
     implementation(libs.slf4jApi)

@@ -4,33 +4,42 @@ plugins {
 
 description = "Adds support for generating parsers from Antlr grammars."
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":language-jvm"))
-    implementation(project(":plugins"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":workers"))
-    implementation(project(":files"))
-    implementation(project(":file-collections"))
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 1 occurrences
+        "Finally", // 1 occurrences
+    )
+}
 
-    implementation(libs.slf4jApi)
-    implementation(libs.groovy)
+dependencies {
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":files"))
+    api(project(":model-core"))
+
+    api(libs.inject)
+
+    implementation(project(":platform-jvm"))
+    implementation(project(":plugins-java-base"))
+    implementation(project(":plugins-java-library"))
+
     implementation(libs.guava)
-    implementation(libs.inject)
+    implementation(libs.jsr305)
+    implementation(libs.slf4jApi)
 
     compileOnly("antlr:antlr:2.7.7") {
         because("this dependency is downloaded by the antlr plugin")
     }
 
+    runtimeOnly(project(":language-jvm"))
+    runtimeOnly(project(":plugins"))
+    runtimeOnly(project(":workers"))
+
     testImplementation(project(":base-services-groovy"))
-    testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))
+    testImplementation(project(":file-collections"))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

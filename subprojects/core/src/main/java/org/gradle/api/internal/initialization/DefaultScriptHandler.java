@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -87,8 +88,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     }
 
     @Override
-    public void addScriptClassPathDependency(Object notation) {
-        getDependencies().add(ScriptHandler.CLASSPATH_CONFIGURATION, notation);
+    public void addScriptClassPathDependency(Dependency dependency) {
+        defineConfiguration();
+        classpathConfiguration.getDependencies().add(dependency);
     }
 
     @Override
@@ -100,7 +102,6 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     public ClassPath getInstrumentedScriptClassPath() {
         if (resolvedClasspath == null) {
             if (classpathConfiguration != null) {
-
                 Factory<ClassPath> classPathFactory = () -> buildLogicBuilder.resolveClassPath(classpathConfiguration, dependencyHandler, configContainer);
                 if (getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
                     resolvedClasspath = classPathFactory.create();
@@ -112,10 +113,6 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             }
         }
         return resolvedClasspath;
-    }
-
-    public void dropResolvedClassPath() {
-        resolvedClasspath = null;
     }
 
     @Override

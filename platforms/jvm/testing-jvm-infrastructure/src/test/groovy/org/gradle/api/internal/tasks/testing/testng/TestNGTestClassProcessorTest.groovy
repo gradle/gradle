@@ -38,7 +38,7 @@ class TestNGTestClassProcessorTest extends Specification {
     def filterSpec = Spy(new TestFilterSpec([] as Set, [] as Set, [] as Set))
     def spec = Spy(new TestNGSpec(
         filterSpec,
-        "Gradle suite", "Gradle test", null, -1, false,
+        "Gradle suite", "Gradle test", null, -1, false, null,
         [] as Set, [] as Set, [] as Set,
         TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY, false, false, false))
 

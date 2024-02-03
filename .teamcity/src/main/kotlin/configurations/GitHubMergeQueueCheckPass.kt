@@ -1,8 +1,10 @@
 package configurations
 
 import common.VersionedSettingsBranch
+import common.uuidPrefix
 import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.DslContext
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.RelativeId
 import jetbrains.buildServer.configs.kotlin.triggers.VcsTrigger
@@ -11,7 +13,8 @@ import model.CIBuildModel
 import model.StageName
 
 class GitHubMergeQueueCheckPass(model: CIBuildModel) : BaseGradleBuildType(init = {
-    id("Check_GitHubMergeQueueCheckPass")
+    id("${model.projectId}_GitHubMergeQueueCheckPass")
+    uuid = "${DslContext.uuidPrefix}_${model.projectId}_GitHubMergeQueueCheckPass"
     name = "GitHub Merge Queue Check Pass"
     type = Type.COMPOSITE
 

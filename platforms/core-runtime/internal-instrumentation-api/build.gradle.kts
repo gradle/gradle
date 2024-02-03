@@ -18,13 +18,17 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
-dependencies {
-    implementation(project(":model-core"))
-    implementation(project(":base-annotations"))
-    implementation(project(":base-services"))
+errorprone {
+    disabledChecks.addAll(
+        "ImmutableEnumChecker", // 1 occurrences
+    )
+}
 
-    implementation(libs.groovy)
-    implementation(libs.asm)
-    implementation(libs.asmTree)
-    implementation(libs.asmCommons)
+dependencies {
+    api(project(":base-annotations"))
+
+    api(libs.asm)
+    api(libs.asmTree)
+
+    runtimeOnly(libs.groovy)
 }

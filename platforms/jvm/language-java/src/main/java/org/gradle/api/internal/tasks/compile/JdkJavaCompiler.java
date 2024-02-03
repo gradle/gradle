@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
-import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -45,9 +45,9 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private final DiagnosticToProblemListener diagnosticToProblemListener;
 
     @Inject
-    public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, Problems problems) {
+    public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, InternalProblems problemsService) {
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
-        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problems);
+        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter());
     }
 
     @Override
@@ -55,7 +55,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         LOGGER.info("Compiling with JDK Java compiler API.");
 
         ApiCompilerResult result = new ApiCompilerResult();
-        JavaCompiler.CompilationTask task = createCompileTask(spec, result, diagnosticToProblemListener);
+        JavaCompiler.CompilationTask task = createCompileTask(spec, result);
         boolean success = task.call();
         if (!success) {
             throw new CompilationFailedException(result);
@@ -63,16 +63,20 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         return result;
     }
 
-    private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result, DiagnosticListener<JavaFileObject> diagnosticListener) {
+    private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
+        // We check here if the Problems API is used
+        // If it's not used, the compiler interfaces interpret "null" as "use the default diagnostic listener"
+        DiagnosticListener<JavaFileObject> diagnosticListener = shouldUseProblemsApiReporting() ? diagnosticToProblemListener : null;
+
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         Charset charset = compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null;
-        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, charset);
+        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(diagnosticListener, null, charset);
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
-        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClassesToProcess(), compilationUnits);
+        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticListener, options, spec.getClassesToProcess(), compilationUnits);
         if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
             task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
                 task,
@@ -86,6 +90,11 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
         task = new ResourceCleaningCompilationTask(task, fileManager);
         return task;
+    }
+
+    private static boolean shouldUseProblemsApiReporting() {
+        String property = System.getProperty("org.gradle.internal.emit-compiler-problems");
+        return Boolean.parseBoolean(property);
     }
 
     private static boolean emptySourcepathIn(List<String> options) {

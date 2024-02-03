@@ -32,6 +32,7 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
         this.spec = spec;
     }
 
+    @Override
     public boolean test(JvmInstallationMetadata metadata) {
         Predicate<JvmInstallationMetadata> predicate = languagePredicate().and(vendorPredicate()).and(implementationPredicate());
         return predicate.test(metadata);

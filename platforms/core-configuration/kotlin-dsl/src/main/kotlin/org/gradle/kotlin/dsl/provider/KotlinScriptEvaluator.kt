@@ -30,28 +30,22 @@ import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
-import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
 import org.gradle.internal.execution.ExecutionEngine
-import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.InputVisitor
-import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
-import org.gradle.internal.file.TreeType
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.Hashing.newHasher
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
-import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
@@ -107,6 +101,7 @@ class StandardKotlinScriptEvaluator(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val gradlePropertiesController: GradlePropertiesController,
+    private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -260,7 +255,7 @@ class StandardKotlinScriptEvaluator(
         ): File = try {
             executionEngineFor(scriptHost)
                 .createRequest(
-                    CompileKotlinScript(
+                    KotlinScriptCompilationAndInstrumentation(
                         programId,
                         compilationClassPath,
                         accessorsClassPath,
@@ -268,7 +263,8 @@ class StandardKotlinScriptEvaluator(
                         classpathHasher,
                         workspaceProvider,
                         fileCollectionFactory,
-                        inputFingerprinter
+                        inputFingerprinter,
+                        transformFactoryForLegacy
                     )
                 )
                 .execute()
@@ -289,8 +285,7 @@ class StandardKotlinScriptEvaluator(
             className: String,
             accessorsClassPath: ClassPath
         ): CompiledScript {
-            val instrumentedClasses = cachedClasspathTransformer.transform(DefaultClassPath.of(location), BuildLogic)
-            val classpath = instrumentedClasses.plus(accessorsClassPath)
+            val classpath = DefaultClassPath.of(location).plus(accessorsClassPath)
             return ScopeBackedCompiledScript(classLoaderScope, childScopeId, origin, classpath, className)
         }
 
@@ -348,95 +343,52 @@ class StandardKotlinScriptEvaluator(
                 null
             )
     }
-}
 
+    internal
+    class KotlinScriptCompilationAndInstrumentation(
+        private val programId: ProgramId,
+        private val compilationClassPath: ClassPath,
+        private val accessorsClassPath: ClassPath,
+        private val compileTo: (File) -> Unit,
+        private val classpathHasher: ClasspathHasher,
+        workspaceProvider: KotlinDslWorkspaceProvider,
+        fileCollectionFactory: FileCollectionFactory,
+        inputFingerprinter: InputFingerprinter,
+        transformFactory: ClasspathElementTransformFactoryForLegacy
+    ) : BuildScriptCompilationAndInstrumentation(workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory) {
 
-internal
-class CompileKotlinScript(
-    private val programId: ProgramId,
-    private val compilationClassPath: ClassPath,
-    private val accessorsClassPath: ClassPath,
-    private val compileTo: (File) -> Unit,
-    private val classpathHasher: ClasspathHasher,
-    private val workspaceProvider: KotlinDslWorkspaceProvider,
-    private val fileCollectionFactory: FileCollectionFactory,
-    private val inputFingerprinter: InputFingerprinter
-) : ImmutableUnitOfWork {
+        companion object {
+            const val JVM_TARGET = "jvmTarget"
+            const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
+            const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
+            const val TEMPLATE_ID = "templateId"
+            const val SOURCE_HASH = "sourceHash"
+            const val COMPILATION_CLASS_PATH = "compilationClassPath"
+            const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
+        }
 
-    companion object {
-        const val JVM_TARGET = "jvmTarget"
-        const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
-        const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
-        const val TEMPLATE_ID = "templateId"
-        const val SOURCE_HASH = "sourceHash"
-        const val COMPILATION_CLASS_PATH = "compilationClassPath"
-        const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
-    }
+        override fun getDisplayName(): String =
+            "Kotlin DSL script compilation (${programId.templateId})"
 
-    override fun visitIdentityInputs(
-        visitor: InputVisitor
-    ) {
-        visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
-        visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
-        visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }
-        visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
-        visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
-        visitor.visitClassPathProperty(COMPILATION_CLASS_PATH, compilationClassPath)
-        visitor.visitClassPathProperty(ACCESSORS_CLASS_PATH, accessorsClassPath)
-    }
+        override fun visitIdentityInputs(visitor: UnitOfWork.InputVisitor) {
+            visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
+            visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
+            visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }
+            visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
+            visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
+            visitor.visitInputProperty(COMPILATION_CLASS_PATH) { classpathHasher.hash(compilationClassPath) }
+            visitor.visitInputProperty(ACCESSORS_CLASS_PATH) { classpathHasher.hash(accessorsClassPath) }
+        }
 
-    override fun visitOutputs(
-        workspace: File,
-        visitor: UnitOfWork.OutputVisitor
-    ) {
-        val classesDir = classesDir(workspace)
-        visitor.visitOutputProperty(
-            "classesDir",
-            TreeType.DIRECTORY,
-            OutputFileValueSupplier.fromStatic(classesDir, fileCollectionFactory.fixed(classesDir))
-        )
-    }
-
-    override fun identify(
-        identityInputs: MutableMap<String, ValueSnapshot>,
-        identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>
-    ): UnitOfWork.Identity {
-        val identityHash = newHasher().let { hasher ->
-            identityInputs.values.forEach {
-                requireNotNull(it).appendToHasher(hasher)
+        override fun compile(workspace: File): File {
+            return File(workspace, "classes").apply {
+                mkdirs()
+                compileTo.invoke(this)
             }
-            hasher.hash().toString()
         }
-        return UnitOfWork.Identity { identityHash }
-    }
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
-        val workspace = executionRequest.workspace
-        compileTo(classesDir(workspace))
-        return object : UnitOfWork.WorkOutput {
-            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
-            override fun getOutput(workspace: File) = loadAlreadyProducedOutput(workspace)
-        }
-    }
-
-    override fun getDisplayName(): String =
-        "Kotlin DSL script compilation (${programId.templateId})"
-
-    override fun loadAlreadyProducedOutput(workspace: File): Any =
-        classesDir(workspace)
-
-    override fun getWorkspaceProvider() = workspaceProvider.scripts
-
-    override fun getInputFingerprinter() = inputFingerprinter
-
-    private
-    fun classesDir(workspace: File) =
-        workspace.resolve("classes")
-
-    private
-    fun InputVisitor.visitClassPathProperty(propertyName: String, classPath: ClassPath) {
-        visitInputProperty(propertyName) {
-            classpathHasher.hash(classPath)
+        override fun instrumentedJar(workspace: File): File {
+            return File(workspace, "instrumented/classes.jar")
         }
     }
 }

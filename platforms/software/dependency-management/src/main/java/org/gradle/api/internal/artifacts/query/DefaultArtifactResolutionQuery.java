@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.DefaultArtifactResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultComponentArtifactsResult;
@@ -69,6 +70,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ConfigurationContainerInternal configurationContainer;
@@ -141,10 +143,23 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         if (componentType == null) {
             throw new IllegalStateException("Must specify component type and artifacts to query.");
         }
+
         List<? extends ResolutionAwareRepository> repositories = repositoriesSupplier.get();
+        List<ResolutionAwareRepository> filteredRepositories = repositories.stream()
+            .filter(repository -> {
+                if (repository instanceof ContentFilteringRepository) {
+                    ContentFilteringRepository cfr = (ContentFilteringRepository) repository;
+                    // If the repository requires certain request attributes or requires certain configurations,
+                    // it should not be used for ARQs.
+                    return cfr.getRequiredAttributes() == null && cfr.getIncludedConfigurations() == null;
+                }
+                return true;
+            })
+            .collect(Collectors.toList());
+
         ConfigurationInternal detachedConfiguration = configurationContainer.detachedConfiguration();
         ResolutionStrategyInternal resolutionStrategy = detachedConfiguration.getResolutionStrategy();
-        ComponentResolvers componentResolvers = ivyFactory.create(detachedConfiguration.getName(), resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
+        ComponentResolvers componentResolvers = ivyFactory.create(resolutionStrategy, filteredRepositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
         ComponentMetaDataResolver componentMetaDataResolver = componentResolvers.getComponentResolver();
         ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(componentResolvers.getArtifactResolver());
         return createResult(componentMetaDataResolver, artifactResolver);

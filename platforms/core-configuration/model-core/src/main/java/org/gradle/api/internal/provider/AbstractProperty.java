@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
+import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
@@ -52,6 +53,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     @Override
     public boolean isFinalized() {
         return state.isFinalized();
+    }
+
+    protected boolean isExplicit() {
+        return state.isExplicit();
     }
 
     @Override
@@ -120,6 +125,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected final S getSupplier(@SuppressWarnings("unused") EvaluationContext.ScopeContext context) {
         // context serves as a token here to ensure that the scope is opened.
         return value;
+    }
+
+    protected S getConventionSupplier() {
+        return state.convention();
     }
 
     protected final String describeValue() {
@@ -221,6 +230,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         state.disallowChangesAndFinalizeOnNextGet();
     }
 
+    @Override
     public void disallowUnsafeRead() {
         state.disallowUnsafeRead();
     }
@@ -279,6 +289,60 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         assertCanMutate();
         value = state.implicitValue();
     }
+
+    /**
+     * Discards the convention of this property.
+     */
+    protected void discardConvention() {
+        assertCanMutate();
+        value = state.applyConvention(value, getDefaultConvention());
+    }
+
+    @Override
+    public SupportsConvention unsetConvention() {
+        discardConvention();
+        return this;
+    }
+
+    @Override
+    public SupportsConvention unset() {
+        discardValue();
+        return this;
+    }
+
+    /**
+     * Sets the value of the property to the current convention value, replacing whatever explicit value the property already had.
+     *
+     * If the property has no convention set at the time this method is invoked,
+     * the effect of invoking it is similar to invoking {@link #unset()}.
+     */
+    protected SupportsConvention setToConvention() {
+        assertCanMutate();
+        this.value = state.setToConvention();
+        return this;
+    }
+
+    /**
+     * Sets the value of the property to the current convention value, if an explicit
+     * value has not been set yet.
+     *
+     * If the property has no convention set at the time this method is invoked,
+     * or if an explicit value has already been set, it has no effect.
+     */
+    protected SupportsConvention setToConventionIfUnset() {
+        assertCanMutate();
+        if (!isDefaultConvention()) {
+            this.value = state.setToConventionIfUnset(value);
+        }
+        return this;
+    }
+
+    protected abstract S getDefaultConvention();
+
+    /**
+     * Is convention set to the initial convention value?
+     */
+    protected abstract boolean isDefaultConvention();
 
     protected void assertCanMutate() {
         state.beforeMutate(this.getDisplayName());

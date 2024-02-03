@@ -51,7 +51,7 @@ public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileS
         super(baseDir, tmpProvider, fileAccessTimeJournal, GROUPER, NAMER, checksumService);
     }
 
-    @ServiceScope(Scopes.BuildTree.class)
+    @ServiceScope({Scopes.BuildTree.class, Scopes.Project.class})
     public static class Factory {
         private final TemporaryFileProvider temporaryFileProvider;
         private final FileAccessTimeJournal fileAccessTimeJournal;

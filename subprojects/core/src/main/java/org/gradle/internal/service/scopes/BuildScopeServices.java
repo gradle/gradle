@@ -88,7 +88,6 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer;
 import org.gradle.configuration.BuildTreePreparingProjectsPreparer;
@@ -120,7 +119,8 @@ import org.gradle.groovy.scripts.internal.BuildScopeInMemoryCachingScriptClassCo
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
-import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
+import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler;
+import org.gradle.groovy.scripts.internal.GroovyDslWorkspaceProvider;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.ScriptSourceListener;
 import org.gradle.initialization.BuildLoader;
@@ -178,11 +178,14 @@ import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
@@ -193,7 +196,6 @@ import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -448,7 +450,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory(
-        FileCacheBackedScriptClassCompiler scriptCompiler,
+        GroovyScriptClassCompiler scriptCompiler,
         CrossBuildInMemoryCachingScriptClassCache cache,
         ScriptRunnerFactory scriptRunnerFactory
     ) {
@@ -458,20 +460,27 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         );
     }
 
-    protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
+    protected GroovyScriptClassCompiler createFileCacheBackedScriptClassCompiler(
         BuildOperationExecutor buildOperationExecutor,
-        GlobalScopedCacheBuilderFactory cacheRepository,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         DefaultScriptCompilationHandler scriptCompilationHandler,
         CachedClasspathTransformer classpathTransformer,
-        ProgressLoggerFactory progressLoggerFactory
+        ExecutionEngine executionEngine,
+        FileCollectionFactory fileCollectionFactory,
+        InputFingerprinter inputFingerprinter,
+        GroovyDslWorkspaceProvider  groovyDslWorkspaceProvider,
+        ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
     ) {
-        return new FileCacheBackedScriptClassCompiler(
-            cacheRepository,
+        return new GroovyScriptClassCompiler(
             new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationExecutor),
-            progressLoggerFactory,
             classLoaderHierarchyHasher,
-            classpathTransformer);
+            classpathTransformer,
+            executionEngine,
+            fileCollectionFactory,
+            inputFingerprinter,
+            groovyDslWorkspaceProvider.getWorkspace(),
+            transformFactoryForLegacy
+        );
     }
 
     protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, ListenerManager listenerManager) {

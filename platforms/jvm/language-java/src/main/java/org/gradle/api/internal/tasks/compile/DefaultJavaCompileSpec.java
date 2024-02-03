@@ -139,4 +139,5 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     public void setSourcesRoots(List<File> sourcesRoots) {
         this.sourceRoots = sourcesRoots;
     }
+
 }

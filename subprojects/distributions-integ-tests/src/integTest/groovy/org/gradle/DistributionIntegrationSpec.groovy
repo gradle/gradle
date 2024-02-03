@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 148
+    protected static final THIRD_PARTY_LIB_COUNT = 151
 
     @Shared String baseVersion = GradleVersion.current().baseVersion.version
 
@@ -53,7 +53,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        62
+        63
     }
 
     /**
@@ -79,7 +79,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         expect:
         def size = getZip().size()
 
-        println("######## Distribution size ${size}")
         size <= getMaxDistributionSizeBytes()
     }
 

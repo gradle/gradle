@@ -18,7 +18,6 @@ package org.gradle.api.problems
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
-import org.gradle.integtests.fixtures.problems.ReceivedProblem
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
 
@@ -32,11 +31,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         buildFile getProblemReportingScript(taskActionMethodBody)
     }
 
-    ReceivedProblem getCollectedProblem() {
-        assert this.collectedProblems.size() == 1
-        this.collectedProblems[0]
-    }
-
     def "problem replaced with a validation warning if mandatory label definition is missing"() {
         given:
         withReportProblemTask """
@@ -47,7 +41,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         run('reportProblem')
-
 
         then:
         def problem = collectedProblem

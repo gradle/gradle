@@ -61,6 +61,7 @@ public class DefaultVariantDefinition implements VariantDefinition {
         return previous == null ? 1 : previous.getDepth() + 1;
     }
 
+    @Override
     public String toString() {
         if (previous != null) {
             return previous + " <- (" + getDepth() + ") " + transformStep;

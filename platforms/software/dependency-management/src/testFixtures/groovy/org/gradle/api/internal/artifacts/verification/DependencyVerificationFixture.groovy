@@ -30,6 +30,8 @@ import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifie
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
+import org.gradle.internal.hash.Hashing
+import org.gradle.test.fixtures.HttpModule
 import org.gradle.util.internal.TextUtil
 
 @CompileStatic
@@ -141,8 +143,27 @@ class DependencyVerificationFixture {
             def md = verificationMetadata.find {
                 it.componentId.group == group && it.componentId.module == name && it.componentId.version == version
             }
-            assert md == null : "Didn't expect module $id to be present but it was"
+            assert md == null: "Didn't expect module $id to be present but it was"
         }
+    }
+
+    static String getChecksum(HttpModule module, String algo, String artifactType = 'jar', String classifier = null) {
+        def file = module.getArtifact([type: artifactType, classifier: classifier]).file
+        def function = Hashing.defaultFunction()
+        switch (algo) {
+            case ["sha1", "md5"]:
+                return module.getArtifact([type: "${artifactType}.${algo}", classifier: classifier]).file.text.trim()
+            case "sha256":
+                function = Hashing.sha256()
+                break
+            case "sha512":
+                function = Hashing.sha512()
+                break
+            default:
+                function = Hashing.defaultFunction()
+                break
+        }
+        return function.hashFile(file).toString()
     }
 
     static class ComponentVerification {
@@ -240,11 +261,20 @@ class DependencyVerificationFixture {
             builder.addIgnoredKey(new IgnoredKey(id, reason))
         }
 
-        void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar", String origin = null, String reason = null) {
+        void addChecksum(String id, String algo, String checksum, String type = "jar", String ext = "jar", String origin = null, String reason = null) {
             def parts = id.split(":")
             def group = parts[0]
             def name = parts[1]
             def version = parts.size() == 3 ? parts[2] : "1.0"
+            doAddChecksum(group, name, version, type, ext, algo, checksum, origin, reason)
+        }
+
+        void addChecksum(HttpModule module, String algo, String type = "jar", String ext = "jar", String origin = null, String reason = null) {
+            def checksum = getChecksum(module, algo, type)
+            doAddChecksum(module.group, module.module, module.version, type, ext, algo, checksum, origin, reason)
+        }
+
+        private void doAddChecksum(String group, String name, String version, String type, String ext, String algo, String checksum, String origin, String reason) {
             builder.addChecksum(
                 new DefaultModuleComponentArtifactIdentifier(
                     DefaultModuleComponentIdentifier.newId(

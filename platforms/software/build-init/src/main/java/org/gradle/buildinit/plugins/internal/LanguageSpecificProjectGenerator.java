@@ -39,9 +39,9 @@ public interface LanguageSpecificProjectGenerator {
 
     Optional<String> getFurtherReading(InitSettings settings);
 
-    Set<BuildInitTestFramework> getTestFrameworks();
+    Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption);
 
-    BuildInitTestFramework getDefaultTestFramework();
+    BuildInitTestFramework getDefaultTestFramework(ModularizationOption modularizationOption);
 
     boolean supportsPackage();
 

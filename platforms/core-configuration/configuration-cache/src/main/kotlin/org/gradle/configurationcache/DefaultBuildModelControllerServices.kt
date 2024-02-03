@@ -18,8 +18,6 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
@@ -113,10 +111,6 @@ class DefaultBuildModelControllerServices(
 
         fun createBuildLifecycleController(buildLifecycleControllerFactory: BuildLifecycleControllerFactory): BuildLifecycleController {
             return buildLifecycleControllerFactory.newInstance(buildDefinition, buildScopeServices)
-        }
-
-        fun createLocalComponentRegistry(currentBuild: BuildState, componentProvider: BuildTreeLocalComponentProvider): DefaultLocalComponentRegistry {
-            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, componentProvider)
         }
 
         fun createIntermediateToolingModelProvider(

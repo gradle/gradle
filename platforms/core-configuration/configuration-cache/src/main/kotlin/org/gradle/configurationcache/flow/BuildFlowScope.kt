@@ -177,6 +177,9 @@ open class DefaultFlowActionSpec<P : FlowParameters>(
     override fun getParameters(): P =
         parameters
 
+    override fun parameters(configureAction: Action<in P>) =
+        configureAction.execute(parameters)
+
     override fun toString(): String =
         "FlowActionSpec($parameters)"
 }

@@ -16,7 +16,6 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
@@ -62,10 +61,10 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         lock.lock();
         try {
-            return doOpen(cacheDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy);
+            return doOpen(cacheDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy);
         } finally {
             lock.unlock();
         }
@@ -91,7 +90,6 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         File cacheDir,
         String displayName,
         Map<String, ?> properties,
-        CacheBuilder.LockTarget lockTarget,
         LockOptions lockOptions,
         @Nullable Action<? super PersistentCache> initializer,
         @Nullable CacheCleanupStrategy cacheCleanupStrategy
@@ -101,19 +99,16 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;
             if (!properties.isEmpty() || initializer != null) {
-                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy, lockManager, executorFactory, progressLoggerFactory);
+                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy, lockManager, executorFactory, progressLoggerFactory);
             } else {
-                cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockTarget, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, progressLoggerFactory);
+                cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, progressLoggerFactory);
             }
             cache.open();
-            dirCacheReference = new DirCacheReference(cache, properties, lockTarget, lockOptions);
+            dirCacheReference = new DirCacheReference(cache, properties, lockOptions);
             dirCaches.put(canonicalDir, dirCacheReference);
         } else {
             if (!lockOptions.equals(dirCacheReference.lockOptions)) {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different lock options.", cacheDir));
-            }
-            if (lockTarget != dirCacheReference.lockTarget) {
-                throw new IllegalStateException(String.format("Cache '%s' is already open with different lock target.", cacheDir));
             }
             if (!properties.equals(dirCacheReference.properties)) {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different properties.", cacheDir));
@@ -124,15 +119,13 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
 
     private class DirCacheReference implements Closeable {
         private final Map<String, ?> properties;
-        private final CacheBuilder.LockTarget lockTarget;
         private final LockOptions lockOptions;
         private final ReferencablePersistentCache cache;
         private final Set<ReferenceTrackingCache> references = new HashSet<>();
 
-        DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions) {
+        DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, LockOptions lockOptions) {
             this.cache = cache;
             this.properties = properties;
-            this.lockTarget = lockTarget;
             this.lockOptions = lockOptions;
             onOpen(cache);
         }

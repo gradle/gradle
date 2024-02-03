@@ -22,6 +22,7 @@ import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
+import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemCategory;
@@ -43,8 +44,8 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     private final DocumentationLink documentationLink;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
-//    @Nullable
-//    private final ExceptionContainer exception;
+    @Nullable
+    private final FailureContainer exception;
 
     public DefaultProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
@@ -56,9 +57,8 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         List<Location> locations,
         @Nullable DocumentationLink documentationLink,
         List<Solution> solutions,
-        AdditionalData additionalData
-//        ,
-//        @Nullable ExceptionContainer exception
+        AdditionalData additionalData,
+        @Nullable FailureContainer exception
     ) {
         super(internalDescriptor, parent);
         this.category = category;
@@ -69,9 +69,10 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         this.documentationLink = documentationLink;
         this.solutions = solutions;
         this.additionalData = additionalData;
-//        this.exception = exception;
+        this.exception = exception;
     }
 
+    @Override
     public ProblemCategory getCategory() {
         return category;
     }
@@ -111,8 +112,9 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         return additionalData;
     }
 
-//    @Nullable
-//    public ExceptionContainer getException() {
-//        return exception;
-//    }
+    @Nullable
+    @Override
+    public FailureContainer getFailure() {
+        return exception;
+    }
 }

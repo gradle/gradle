@@ -44,9 +44,10 @@ fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
     actualType: Class<*>,
-    documentationSection: DocumentationSection = RequirementsDisallowedTypes
+    documentationSection: DocumentationSection = RequirementsDisallowedTypes,
+    appendix: StructuredMessageBuilder = {}
 ) {
-    logUnsupported(action, documentationSection) {
+    logUnsupported(action, documentationSection, appendix) {
         text(" object of type ")
         reference(GeneratedSubclasses.unpack(actualType))
         text(", a subtype of ")
@@ -60,9 +61,10 @@ internal
 fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
-    documentationSection: DocumentationSection = RequirementsDisallowedTypes
+    documentationSection: DocumentationSection = RequirementsDisallowedTypes,
+    appendix: StructuredMessageBuilder = {}
 ) {
-    logUnsupported(action, documentationSection) {
+    logUnsupported(action, documentationSection, appendix) {
         text(" object of type ")
         reference(baseType)
     }
@@ -73,6 +75,7 @@ internal
 fun IsolateContext.logUnsupported(
     action: String,
     documentationSection: DocumentationSection = RequirementsDisallowedTypes,
+    appendix: StructuredMessageBuilder = {},
     unsupportedThings: StructuredMessageBuilder
 ) {
     logPropertyProblem(
@@ -83,6 +86,7 @@ fun IsolateContext.logUnsupported(
         text(action)
         unsupportedThings()
         text(" as these are not supported with the configuration cache.")
+        appendix()
     }
 }
 
