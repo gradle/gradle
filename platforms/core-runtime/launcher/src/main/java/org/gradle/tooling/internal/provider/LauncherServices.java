@@ -238,7 +238,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             List<ProblemReporter> problemReporters,
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
-            ProblemDiagnosticsFactory problemDiagnosticsFactory,
             StartParameter startParameter,
             InternalProblems problemsService,
             ProblemStream problemStream
@@ -270,7 +269,6 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                     buildLoggerFactory),
                                 options),
                             gradleEnterprisePluginManager)),
-                    problemDiagnosticsFactory,
                     eventEmitter,
                     startParameter,
                     problemsService,
