@@ -38,6 +38,44 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
+/**
+ * The base class for collection properties.
+ * <p>
+ *     Value suppliers for collection properties are implementations of {@link CollectionSupplier}.
+ * </p>
+ * <p>
+ *     Elements stored in collection property values are implemented via various implementations of {@link Collector}.
+ * </p>
+ * <h3>Collection suppliers</h3>
+ * The value of a collection property is represented at any time as an instance of an implementation of {@link CollectionSupplier}, namely:
+ * <ul>
+ *     <li>{@link EmptySupplier}, the initial value of a collection (or after {@link #empty()} is invoked)</li>
+ *     <li>{@link NoValueSupplier}, when the collection value is unset (via {@link #set(Iterable)} or {@link #unset()}.</li>
+ *     <li>{@link FixedSupplier}, when the collection is finalized - in that case, the fixed supplier will wrap the realized
+ *     of the Java collection this collection property corresponds to</li>
+ *     <li>{@link CollectingSupplier}, when the collection is still being added to - in that case,
+ *     the collecting supplier will wrap a {@link Collector} that lazily represents the yet-to-be realized contents of the collection - see below for details</li>
+ * </ul>
+ *
+ * <h3>Collectors</h3>
+ * <p>
+ *     While a collection property's contents are being built up, its value is represented by a {@link CollectingSupplier}.
+ *     The collecting supplier will wrap a {@link Collector} instance that represents the various forms that elements can be added to a collection property (before the collection is finalized), namely:
+ * </p>
+ *     <ul>
+ *         <li>{@link SingleElement} to represent a single element addition
+ *         <li>{@link ElementFromProvider} to represent a single element added as a provider
+ *         <li>{@link ElementsFromArray} to represent a single element added as an array</li>
+ *         <li>{@link ElementsFromCollection} to represent a batch of elements added (or set wholesale) as an <code>Iterable</code>
+ *         <li>{@link ElementsFromCollectionProvider} to represent a batch of elements added (or set wholesale) as a provider of <code>Iterable</code>
+ *     </ul>
+ * <p>Also, if a collection is built up via multiple additions, which is quite common, after each addition operation, its value will be represented via a new {@link PlusCollector} instance
+ * that references the previous value as the {@link PlusCollector#left left side}, and the added element(s) as {@link PlusCollector#right right side} of the operation.
+ * </p>
+ *
+ * @param <T> the type of element this collection property can hold
+ * @param <C> the type of {@link Collection} (as returned by {@link ProviderInternal#getType()}) that corresponds to this collection property's realized value, for instance, when {@link Provider#get()} is invoked.
+ */
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C, CollectionSupplier<T, C>>
     implements CollectionPropertyInternal<T, C> {
 
