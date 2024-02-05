@@ -26,8 +26,8 @@ class NonInteractiveUserInputHandlerTest extends Specification {
 
     def "always returns null for yes/no question"() {
         expect:
-        !userInputHandler.askYesNoQuestion('Accept license?')
-        !userInputHandler.askUser { it.askYesNoQuestion('Accept license?') }.getOrNull()
+        userInputHandler.askYesNoQuestion('Accept license?') == null
+        userInputHandler.askUser { it.askYesNoQuestion('Accept license?') }.getOrNull() == null
     }
 
     def "always returns default for select question"() {
