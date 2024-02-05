@@ -23,7 +23,7 @@ The _Wrapper_ script invokes a declared version of Gradle, downloading it before
 
 image::wrapper-workflow.png[]
 
-The Wrapper is available as a `gradlew` or `gradle.bat` file.
+The Wrapper is available as a `gradlew` or `gradlew.bat` file.
 
 The Wrapper provides the following benefits:
 

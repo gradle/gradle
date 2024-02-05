@@ -560,5 +560,7 @@ plugins {
 }
 ----
 
+TIP: `jetbrains-intellij` is available as the Gradle generated safe accessor `jetbrains.intellij`.
+
 [.text-right]
 **Next Step:** <<writing_plugins.adoc#writing_plugins,Learn how to write Plugins>> >>

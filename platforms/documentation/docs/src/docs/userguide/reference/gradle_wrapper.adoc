@@ -240,7 +240,7 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 
 Once you have upgraded the wrapper, you can check that it's the version you expected by executing `./gradlew --version`.
 
-Don't forget to run the `wrapper` task again to download the Gradle distribution binaries (if needed) and update the `gradlew` and `gradle.bat` files.
+Don't forget to run the `wrapper` task again to download the Gradle distribution binaries (if needed) and update the `gradlew` and `gradlew.bat` files.
 
 [[customizing_wrapper]]
 == Customizing the Gradle Wrapper
