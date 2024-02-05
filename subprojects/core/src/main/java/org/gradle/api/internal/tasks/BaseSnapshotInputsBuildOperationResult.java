@@ -201,10 +201,8 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
     }
 
     private Optional<BuildCacheKey> getKey() {
-        return cachingState.fold(
-            enabled -> Optional.of(enabled.getKey()),
-            CachingState.Disabled::getKey
-        );
+        return cachingState.getCacheKeyCalculatedState()
+            .map(CachingState.CacheKeyCalculatedState::getKey);
     }
 
     @UsedByScanPlugin("The value names are used as part of build scan data and cannot be changed - new values can be added")

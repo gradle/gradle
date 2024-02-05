@@ -40,7 +40,10 @@ public class CachingState {
     }
 
     public static CachingState disabled(ImmutableList<CachingDisabledReason> disabledReasons, @Nullable BuildCacheKey key, @Nullable BeforeExecutionState beforeExecutionState) {
-        return new CachingState(Either.right(new Disabled(disabledReasons, key, beforeExecutionState)));
+        CacheKeyCalculatedState cacheKeyCalculatedState = (key != null && beforeExecutionState != null)
+            ? new CacheKeyCalculatedState(key, beforeExecutionState)
+            : null;
+        return new CachingState(Either.right(new Disabled(disabledReasons, cacheKeyCalculatedState)));
     }
 
     public static CachingState disabledWithoutInputs(CachingDisabledReason reason) {
@@ -63,18 +66,15 @@ public class CachingState {
         delegate.apply(enabled, disabled);
     }
 
-    public Optional<BeforeExecutionState> getBeforeExecutionState() {
-        return delegate.fold(enabled -> Optional.of(enabled.beforeExecutionState), Disabled::getBeforeExecutionState);
+    public Optional<CacheKeyCalculatedState> getCacheKeyCalculatedState() {
+        return delegate.fold(enabled -> Optional.of(enabled.getCacheKeyCalculatedState()), Disabled::getCacheKeyCalculated);
     }
 
-    /**
-     * Caching state when caching is enabled for the work.
-     */
-    public static class Enabled {
+    public static class CacheKeyCalculatedState {
         private final BuildCacheKey key;
         private final BeforeExecutionState beforeExecutionState;
 
-        private Enabled(BuildCacheKey key, BeforeExecutionState beforeExecutionState) {
+        private CacheKeyCalculatedState(BuildCacheKey key, BeforeExecutionState beforeExecutionState) {
             this.key = key;
             this.beforeExecutionState = beforeExecutionState;
         }
@@ -95,17 +95,38 @@ public class CachingState {
     }
 
     /**
+     * Caching state when caching is enabled for the work.
+     */
+    public static class Enabled {
+        private final CacheKeyCalculatedState cacheKeyCalculatedState;
+
+        private Enabled(BuildCacheKey key, BeforeExecutionState beforeExecutionState) {
+            this.cacheKeyCalculatedState = new CacheKeyCalculatedState(key, beforeExecutionState);
+        }
+
+        public CacheKeyCalculatedState getCacheKeyCalculatedState() {
+            return cacheKeyCalculatedState;
+        }
+
+        public BuildCacheKey getKey() {
+            return cacheKeyCalculatedState.getKey();
+        }
+
+        public BeforeExecutionState getBeforeExecutionState() {
+            return cacheKeyCalculatedState.getBeforeExecutionState();
+        }
+    }
+
+    /**
      * Caching state when caching is disabled for the work.
      */
     public static class Disabled {
         private final ImmutableList<CachingDisabledReason> disabledReasons;
-        private final BuildCacheKey key;
-        private final BeforeExecutionState beforeExecutionState;
+        private final CacheKeyCalculatedState cacheKeyCalculatedState;
 
-        private Disabled(ImmutableList<CachingDisabledReason> disabledReasons, @Nullable BuildCacheKey key, @Nullable BeforeExecutionState beforeExecutionState) {
+        private Disabled(ImmutableList<CachingDisabledReason> disabledReasons, @Nullable CacheKeyCalculatedState cacheKeyCalculatedState) {
             this.disabledReasons = disabledReasons;
-            this.key = key;
-            this.beforeExecutionState = beforeExecutionState;
+            this.cacheKeyCalculatedState = cacheKeyCalculatedState;
         }
 
         /**
@@ -115,20 +136,24 @@ public class CachingState {
             return disabledReasons;
         }
 
+        public Optional<CacheKeyCalculatedState> getCacheKeyCalculated() {
+            return Optional.ofNullable(cacheKeyCalculatedState);
+        }
+
         /**
          * The cache key if a valid cache key could be built.
          *
          * Might be present even when caching is disabled.
          */
         public Optional<BuildCacheKey> getKey() {
-            return Optional.ofNullable(key);
+            return getCacheKeyCalculated().map(CacheKeyCalculatedState::getKey);
         }
 
         /**
          * Individual fingerprints for each of the work's inputs, if they were tracked.
          */
         public Optional<BeforeExecutionState> getBeforeExecutionState() {
-            return Optional.ofNullable(beforeExecutionState);
+            return getCacheKeyCalculated().map(CacheKeyCalculatedState::getBeforeExecutionState);
         }
     }
 }

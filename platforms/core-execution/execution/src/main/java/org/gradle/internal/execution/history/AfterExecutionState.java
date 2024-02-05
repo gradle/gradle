@@ -18,6 +18,7 @@ package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.hash.HashCode;
 
 /**
  * Captures the state of a {@link org.gradle.internal.execution.UnitOfWork} after it has been executed.
@@ -27,4 +28,9 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 public interface AfterExecutionState extends ExecutionInputState, ExecutionOutputState {
     @Override
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
+
+    /**
+     * The cache key from the input state.
+     */
+    HashCode getCacheKey();
 }

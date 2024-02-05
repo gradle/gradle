@@ -21,13 +21,13 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -45,14 +45,17 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext & CachingC
     public R execute(UnitOfWork work, C context) {
         R result = delegate.execute(work, context);
         context.getHistory()
-            .ifPresent(history -> context.getCachingState().getBeforeExecutionState()
-                .flatMap(beforeExecutionState -> result.getAfterExecutionOutputState()
+            .ifPresent(history -> context.getCachingState().getCacheKeyCalculatedState()
+                .flatMap(cacheKeyCalculatedState -> result.getAfterExecutionOutputState()
                     .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
-                    .map(executionOutputState -> new DefaultAfterExecutionState(beforeExecutionState, executionOutputState)))
+                    .map(executionOutputState -> new DefaultAfterExecutionState(
+                        ((DefaultBuildCacheKey) cacheKeyCalculatedState.getKey()).getHashCodeInternal(),
+                        cacheKeyCalculatedState.getBeforeExecutionState(),
+                        executionOutputState
+                    )))
                 .ifPresent(afterExecutionState -> history.store(
                     context.getIdentity().getUniqueId(),
                     // TODO: Encode the "no cache key available" case in the context type hierarchy
-                    ((DefaultBuildCacheKey) context.getCachingState().fold(CachingState.Enabled::getKey, disabled -> disabled.getKey().get())).getHashCodeInternal(),
                     afterExecutionState)));
         return result;
     }
@@ -85,8 +88,10 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext & CachingC
     private static class DefaultAfterExecutionState implements AfterExecutionState {
         private final BeforeExecutionState beforeExecutionState;
         private final ExecutionOutputState afterExecutionOutputState;
+        private final HashCode cacheKey;
 
-        public DefaultAfterExecutionState(BeforeExecutionState beforeExecutionState, ExecutionOutputState afterExecutionOutputState) {
+        public DefaultAfterExecutionState(HashCode cacheKey, BeforeExecutionState beforeExecutionState, ExecutionOutputState afterExecutionOutputState) {
+            this.cacheKey = cacheKey;
             this.beforeExecutionState = beforeExecutionState;
             this.afterExecutionOutputState = afterExecutionOutputState;
         }
@@ -109,6 +114,11 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext & CachingC
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
             return beforeExecutionState.getInputFileProperties();
+        }
+
+        @Override
+        public HashCode getCacheKey() {
+            return cacheKey;
         }
 
         @Override
