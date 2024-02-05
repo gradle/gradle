@@ -16,6 +16,9 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+/**
+ * Settings used to generate a Gradle build.
+ */
 public class GenerationSettings {
     private final BuildInitializer initializer;
     private final InitSettings settings;

@@ -19,9 +19,12 @@ package org.gradle.api.internal.tasks.userinput;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
+/**
+ * Allows the user to be asked various questions, potentially interactively.
+ */
 public interface UserQuestions {
     /**
-     * Prompts the user with a yes/no question and returns the answer. Requires that the user explicitly type "yes" or "no".
+     * Asks the user a yes/no question and returns the answer. Requires that the user explicitly type "yes" or "no".
      *
      * @param question The text of the question.
      * @return the answer or {@code null} if not connected to a console.
@@ -30,7 +33,7 @@ public interface UserQuestions {
     Boolean askYesNoQuestion(String question);
 
     /**
-     * Prompts the user with a question that has a boolean result and returns the answer.
+     * Asks the user a question that has a boolean result and returns the answer.
      *
      * <p>The client UI is free to choose a convenient representation for boolean values, for example
      * allowing the user to type 'y' or 'n' or presenting a checkbox. The user is not required to answer 'true' or 'false'
@@ -42,7 +45,7 @@ public interface UserQuestions {
     boolean askBooleanQuestion(String question, boolean defaultValue);
 
     /**
-     * Prompts the user to select an option from the given list and returns the answer.
+     * Asks the user to select an option from the given list and returns the answer.
      * Uses the {@link Object#toString()} representation of the options to format the prompt.
      * Does not prompt the user when there is only one option in the given list.
      *
@@ -53,17 +56,17 @@ public interface UserQuestions {
     <T> T selectOption(String question, Collection<T> options, T defaultOption);
 
     /**
-     * Prompts the user to select an option from the given list and returns the answer.
-     * Uses the {@link Object#toString()} representation of the options to format the prompt, the returned builder can be used to change this.
+     * Creates a {@link ChoiceBuilder} that can ask the user to select an option from the given list and returns the answer.
+     * Uses the {@link Object#toString()} representation of the options to format the prompt, the returned {@link ChoiceBuilder} can be used to change this.
      * Does not prompt the user when there is only one option in the given list.
      *
      * @param question The text of the question.
-     * @return A builder that can be used to configure the choice and ask the user to select an option.
+     * @return A {@link ChoiceBuilder} that can be used to configure the choice and ask the user to select an option.
      */
     <T> ChoiceBuilder<T> choice(String question, Collection<T> options);
 
     /**
-     * Prompts the user with a question that has an integer result and returns the answer.
+     * Asks the user a question that has an integer result and returns the answer.
      *
      * @param question The text of the question.
      * @param defaultValue The option to present to the user as the default choice, and the value to use when not connected to a console
@@ -72,7 +75,7 @@ public interface UserQuestions {
     int askIntQuestion(String question, int minValue, int defaultValue);
 
     /**
-     * Prompts the user with a question that has a string result and returns the answer. The answer must not contain new lines.
+     * Asks the user a question that has a string result and returns the answer. The answer must not contain multiple lines.
      *
      * @param question The text of the question.
      * @param defaultValue The option to present to the user as the default choice, and the value to use when not connected to a console

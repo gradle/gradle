@@ -18,22 +18,33 @@ package org.gradle.api.internal.tasks.userinput;
 
 import java.util.function.Function;
 
+/**
+ * Asks the user to select an option from a list of options. Allows the choice to be configured in various ways.
+ *
+ * @param <T>
+ */
 public interface ChoiceBuilder<T> {
     /**
      * Specifies the option to present to the user as the default selection, and the option to use when not connected to a console.
      * Both of these values default to the first option.
      *
      * <p>Replaces any value set using {@link #whenNotConnected(Object)}.
+     *
+     * @return this
      */
     ChoiceBuilder<T> defaultOption(T defaultOption);
 
     /**
      * Specifies the option to use when not connected to a console. This can be different to the default option presented to the user.
+     *
+     * @return this
      */
     ChoiceBuilder<T> whenNotConnected(T defaultOption);
 
     /**
      * Specifies how to display each option.
+     *
+     * @return this
      */
     ChoiceBuilder<T> renderUsing(Function<T, String> renderer);
 
