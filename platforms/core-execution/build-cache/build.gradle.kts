@@ -7,9 +7,9 @@ plugins {
 description = "Implementation of build cache controller and factories"
 
 dependencies {
-    api(project(":base-annotations"))
     api(project(":build-cache-base"))
     api(project(":build-cache-packaging"))
+    api(project(":build-cache-spi"))
     api(project(":build-operations"))
     api(project(":enterprise-operations"))
     api(project(":files"))
@@ -18,15 +18,9 @@ dependencies {
 
     api(libs.jsr305)
 
+    implementation(project(":base-annotations"))
     implementation(libs.commonsIo)
     api(libs.guava)
-    implementation(libs.h2Database) {
-        because("Used in BuildCacheNG")
-    }
-    implementation(libs.hikariCP) {
-        because("Used in BuildCacheNG")
-    }
-    api(libs.inject)
     implementation(libs.slf4jApi)
 
     jmhImplementation(project(":base-services"))

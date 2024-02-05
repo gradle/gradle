@@ -84,6 +84,7 @@ dependencies {
     api(project(":build-cache-base"))
     api(project(":build-cache-local"))
     api(project(":build-cache-packaging"))
+    api(project(":build-cache-spi"))
     api(project(":build-operations"))
     api(project(":build-option"))
     api(project(":cli"))
