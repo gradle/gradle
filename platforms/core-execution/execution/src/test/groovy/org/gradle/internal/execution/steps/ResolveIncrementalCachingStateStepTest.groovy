@@ -40,9 +40,7 @@ class ResolveIncrementalCachingStateStepTest extends AbstractResolveCachingState
         _ * context.cacheKey >> Optional.of(cacheKey)
         _ * context.validationProblems >> ImmutableList.of()
         1 * delegate.execute(work, { CachingContext context ->
-            def buildCacheKey = buildCacheEnabled
-                ? context.cachingState.whenEnabled().get().key
-                : context.cachingState.whenDisabled().get().key.get()
+            def buildCacheKey = context.cachingState.cacheKeyCalculatedState.get().key
             buildCacheKey.hashCode == cacheKey.toString()
         }) >> delegateResult
 

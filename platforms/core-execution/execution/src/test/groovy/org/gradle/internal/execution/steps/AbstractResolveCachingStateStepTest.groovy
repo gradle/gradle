@@ -98,10 +98,7 @@ abstract class AbstractResolveCachingStateStepTest<C extends ValidationFinishedC
 
         _ * context.validationProblems >> ImmutableList.of()
         1 * delegate.execute(work, { CachingContext context ->
-            def buildCacheKey = buildCacheEnabled
-                ? context.cachingState.whenEnabled().get().key
-                : context.cachingState.whenDisabled().get().key.get()
-            buildCacheKey != null
+            context.cachingState.cacheKeyCalculatedState.isPresent()
         }) >> delegateResult
 
         where:

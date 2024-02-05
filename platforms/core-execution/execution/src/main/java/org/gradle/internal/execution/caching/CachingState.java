@@ -139,21 +139,5 @@ public class CachingState {
         public Optional<CacheKeyCalculatedState> getCacheKeyCalculated() {
             return Optional.ofNullable(cacheKeyCalculatedState);
         }
-
-        /**
-         * The cache key if a valid cache key could be built.
-         *
-         * Might be present even when caching is disabled.
-         */
-        public Optional<BuildCacheKey> getKey() {
-            return getCacheKeyCalculated().map(CacheKeyCalculatedState::getKey);
-        }
-
-        /**
-         * Individual fingerprints for each of the work's inputs, if they were tracked.
-         */
-        public Optional<BeforeExecutionState> getBeforeExecutionState() {
-            return getCacheKeyCalculated().map(CacheKeyCalculatedState::getBeforeExecutionState);
-        }
     }
 }
