@@ -81,9 +81,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         outputDoesNotContain("creating model")
 
         when:
-        buildFile << """
-            // some change
-        """
+        changeFile(buildFile)
 
         executer.withArguments(ENABLE_CLI)
         def models3 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())

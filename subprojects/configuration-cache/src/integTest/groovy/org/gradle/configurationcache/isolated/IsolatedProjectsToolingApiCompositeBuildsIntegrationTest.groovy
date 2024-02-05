@@ -27,9 +27,9 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
-        file("a/build.gradle") << """
+        changeFile("a/build.gradle", """
             plugins.apply(my.MyPlugin)
-        """
+        """)
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -61,10 +61,10 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         fixture.assertStateLoaded()
 
         when:
-        file("buildSrc/src/main/groovy/Thing.java") << """
+        changeFile("buildSrc/src/main/groovy/Thing.java", """
             // change source
             class Thing { }
-        """
+        """)
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())
@@ -133,10 +133,10 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         fixture.assertStateLoaded()
 
         when:
-        file("plugins/src/main/groovy/Thing.java") << """
+        changeFile("plugins/src/main/groovy/Thing.java", """
             // change source
             class Thing { }
-        """
+        """)
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())
@@ -208,9 +208,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         fixture.assertStateLoaded()
 
         when:
-        file("libs/build.gradle") << """
-            // some change
-        """
+        changeFile("libs/build.gradle")
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())

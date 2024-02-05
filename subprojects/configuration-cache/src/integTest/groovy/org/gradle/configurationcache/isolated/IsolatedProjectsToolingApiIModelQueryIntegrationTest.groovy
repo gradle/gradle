@@ -64,9 +64,9 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         outputDoesNotContain("creating model")
 
         when:
-        buildFile << """
+        changeFile(buildFile, """
             myExtension.message = 'this is the root project'
-        """
+        """)
 
         executer.withArguments(ENABLE_CLI)
         def model3 = fetchModel()

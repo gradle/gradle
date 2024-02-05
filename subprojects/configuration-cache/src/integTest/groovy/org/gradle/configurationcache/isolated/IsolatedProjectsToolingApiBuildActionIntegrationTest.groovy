@@ -71,9 +71,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         outputDoesNotContain("creating model")
 
         when:
-        buildFile << """
+        changeFile(buildFile, """
             myExtension.message = 'this is the root project'
-        """
+        """)
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
@@ -105,9 +105,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
 
         when:
-        file("a/build.gradle") << """
+        changeFile("a/build.gradle", """
             myExtension.message = 'this is project a'
-        """
+        """)
 
         executer.withArguments(ENABLE_CLI)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
@@ -138,9 +138,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
-        file("a/build.gradle") << """
+        changeFile("a/build.gradle", """
             plugins.apply(my.MyPlugin)
-        """
+        """)
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -172,9 +172,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
 
         when:
-        settingsFile << """
-            println("some new stuff")
-        """
+        changeFile(settingsFile)
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
@@ -220,9 +218,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
-        file("b/build.gradle") << """
+        changeFile("b/build.gradle", """
             plugins.apply(my.MyPlugin)
-        """
+        """)
 
         when:
         executer.withArguments(ENABLE_CLI, "-Pshared-input=12", "-Da-input=14")
@@ -343,9 +341,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
-        file("a/build.gradle") << """
+        changeFile("a/build.gradle", """
             plugins.apply(my.MyPlugin)
-        """
+        """)
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -380,9 +378,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         outputDoesNotContain("creating model")
 
         when:
-        buildFile << """
+        changeFile(buildFile, """
             myExtension.message = 'this is the root project'
-        """
+        """)
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
@@ -424,9 +422,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
-        file("a/build.gradle") << """
+        changeFile("a/build.gradle", """
             plugins.apply(my.MyPlugin)
-        """
+        """)
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -457,9 +455,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         outputDoesNotContain("creating model")
 
         when:
-        buildFile << """
-            println("changed")
-        """
+        changeFile(buildFile)
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())

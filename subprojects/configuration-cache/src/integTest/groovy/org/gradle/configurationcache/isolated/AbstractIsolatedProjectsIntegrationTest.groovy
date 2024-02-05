@@ -17,10 +17,11 @@
 package org.gradle.configurationcache.isolated
 
 import org.gradle.configurationcache.fixtures.AbstractOptInFeatureIntegrationTest
+import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 
 import static org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME
 
-abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractOptInFeatureIntegrationTest {
+abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractOptInFeatureIntegrationTest implements FileSystemWatchingFixture {
     public static final String ENABLE_CLI = "-D${PROPERTY_NAME}=true"
     final def fixture = new IsolatedProjectsFixture(this)
 
@@ -37,5 +38,11 @@ abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractOptInFeat
     @Override
     void configurationCacheFails(String... tasks) {
         fails(ENABLE_CLI, *tasks)
+    }
+
+    // waiting for changes to be propagated before validating the results
+    void changeFile(Object path, String contentToAppend = '\n//some change') {
+        file(path) << contentToAppend
+        waitForChangesToBePickedUp()
     }
 }
