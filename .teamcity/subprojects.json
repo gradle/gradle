@@ -65,7 +65,7 @@
   {
     "name": "build-cache-base",
     "path": "platforms/core-execution/build-cache-base",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
