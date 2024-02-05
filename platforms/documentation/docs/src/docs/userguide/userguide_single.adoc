@@ -40,20 +40,6 @@ include::installation.adoc[leveloffset=+2]
 include::compatibility.adoc[leveloffset=+2]
 include::feature_lifecycle.adoc[leveloffset=+2]
 
-[[part:upgrading_and_migrating]]
-== UPGRADING
-
-include::upgrading_version_8.adoc[leveloffset=+2]
-include::upgrading_version_7.adoc[leveloffset=+2]
-include::upgrading_version_6.adoc[leveloffset=+2]
-include::upgrading_version_5.adoc[leveloffset=+2]
-include::upgrading_version_4.adoc[leveloffset=+2]
-
-== MIGRATING
-
-include::migrating_from_maven.adoc[leveloffset=+2]
-include::migrating_from_ant.adoc[leveloffset=+2]
-
 [[part:running_builds]]
 == **RUNNING GRADLE BUILDS**
 
@@ -261,7 +247,6 @@ include::third_party_integration.adoc[leveloffset=2]
 
 include::groovy_build_script_primer.adoc[leveloffset=+2]
 include::kotlin_dsl.adoc[leveloffset=+2]
-include::migrating_from_groovy_to_kotlin_dsl.adoc[leveloffset=2]
 
 == **LICENSE INFORMATION**
 
