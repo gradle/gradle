@@ -38,6 +38,7 @@ jobs:
           stale-pr-message: >
             This pull request has been automatically marked as stale because it has not had recent activity.
             It will be closed in 14 days if no further activity occurs.
+            If you don't want the stale bot to close it, then set a milestone for it.
           days-before-pr-close: 14
           close-pr-message: >
             This pull request has been automatically closed due to inactivity.
