@@ -59,7 +59,7 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
                 : calculateCachingStateWithNoCapturedInputs(work));
 
         cachingState.apply(
-            enabled -> logCacheKey(enabled.getKey(), work),
+            enabled -> logCacheKey(enabled.getCacheKeyCalculatedState().getKey(), work),
             disabled -> logDisabledReasons(disabled.getDisabledReasons(), work)
         );
 

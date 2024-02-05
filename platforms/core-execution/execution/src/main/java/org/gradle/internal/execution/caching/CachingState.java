@@ -70,6 +70,12 @@ public class CachingState {
         return delegate.fold(enabled -> Optional.of(enabled.getCacheKeyCalculatedState()), Disabled::getCacheKeyCalculatedState);
     }
 
+    /**
+     * State when we calculated the cache key.
+     *
+     * We always calculate the cache key when we have a {@link BeforeExecutionState}.
+     * In some places we need to know that both are present or absent, we encode this here.
+     */
     public static class CacheKeyCalculatedState {
         private final BuildCacheKey key;
         private final BeforeExecutionState beforeExecutionState;
@@ -107,14 +113,6 @@ public class CachingState {
         public CacheKeyCalculatedState getCacheKeyCalculatedState() {
             return cacheKeyCalculatedState;
         }
-
-        public BuildCacheKey getKey() {
-            return cacheKeyCalculatedState.getKey();
-        }
-
-        public BeforeExecutionState getBeforeExecutionState() {
-            return cacheKeyCalculatedState.getBeforeExecutionState();
-        }
     }
 
     /**
@@ -136,6 +134,11 @@ public class CachingState {
             return disabledReasons;
         }
 
+        /**
+         * The cache key calculated state.
+         *
+         * Not available when we don't capture the before execution state.
+         */
         public Optional<CacheKeyCalculatedState> getCacheKeyCalculatedState() {
             return Optional.ofNullable(cacheKeyCalculatedState);
         }
