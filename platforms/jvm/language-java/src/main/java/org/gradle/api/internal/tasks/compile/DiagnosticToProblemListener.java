@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * A {@link DiagnosticListener} that consumes {@link Diagnostic} messages, and reports them as Gradle {@link Problems}.
@@ -41,7 +41,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     private final ProblemReporter problemReporter;
 
     /** A collection of filters that will serve as a predicate to determine if a diagnostic should be reported or not.*/
-    private final Collection<Function<Diagnostic<? extends JavaFileObject>, Boolean>> diagnosticFilters = new ArrayList<>();
+    private final Collection<Predicate<Diagnostic<? extends JavaFileObject>>> diagnosticFilters = new ArrayList<>();
 
     /**
      * A map of explicit overrides between {@link Diagnostic.Kind} and {@link Severity}.
@@ -55,7 +55,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         this.problemReporter = problemReporter;
     }
 
-    public void addDiagnosticFilter(Function<Diagnostic<? extends JavaFileObject>, Boolean> diagnosticFilter) {
+    public void addDiagnosticFilter(Predicate<Diagnostic<? extends JavaFileObject>> diagnosticFilter) {
         diagnosticFilters.add(diagnosticFilter);
     }
 
@@ -66,7 +66,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
         // If any of the filters return true, we should not report the diagnostic
-        if (diagnosticFilters.stream().anyMatch(filter -> filter.apply(diagnostic))) {
+        if (diagnosticFilters.stream().anyMatch(filter -> filter.test(diagnostic))) {
             return;
         }
 
