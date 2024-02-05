@@ -43,10 +43,6 @@ include::feature_lifecycle.adoc[leveloffset=+2]
 [[part:running_builds]]
 == **RUNNING GRADLE BUILDS**
 
-include::getting_started_eng.adoc[leveloffset=+2]
-include::gradle_ides.adoc[leveloffset=+2]
-include::continuous_builds.adoc[leveloffset=+2]
-
 == CORE CONCEPTS
 
 include::gradle_basics.adoc[leveloffset=+2]
@@ -60,11 +56,13 @@ include::plugin_basics.adoc[leveloffset=+2]
 include::gradle_optimizations.adoc[leveloffset=+2]
 include::build_scans.adoc[leveloffset=+2]
 
+== OTHER TOPICS
+
+include::gradle_ides.adoc[leveloffset=+2]
+include::continuous_builds.adoc[leveloffset=+2]
 
 [[part:authoring_builds]]
 == **AUTHORING GRADLE BUILDS**
-
-include::getting_started_dev.adoc[leveloffset=+2]
 
 == LEARNING THE BASICS
 
