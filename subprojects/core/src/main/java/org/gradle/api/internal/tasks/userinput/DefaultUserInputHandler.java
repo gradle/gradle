@@ -112,11 +112,11 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         }
 
         @Override
-        public <T> ChoiceBuilder<T> choice(String question, Collection<T> options) {
+        public <T> Choice<T> choice(String question, Collection<T> options) {
             if (options.isEmpty()) {
                 throw new IllegalArgumentException("No options provided.");
             }
-            return new DefaultChoiceBuilder<>(this, options, question);
+            return new InteractiveChoiceBuilder<>(this, options, question);
         }
 
         @Override
@@ -265,14 +265,14 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         }
     }
 
-    private static class DefaultChoiceBuilder<T> implements ChoiceBuilder<T> {
+    private static class InteractiveChoiceBuilder<T> implements Choice<T> {
         private final InteractiveUserQuestions owner;
         private final Collection<T> options;
         private final String question;
         private T defaultOption;
         private Function<T, String> renderer = Object::toString;
 
-        public DefaultChoiceBuilder(InteractiveUserQuestions owner, Collection<T> options, String question) {
+        public InteractiveChoiceBuilder(InteractiveUserQuestions owner, Collection<T> options, String question) {
             this.owner = owner;
             this.options = options;
             this.question = question;
@@ -280,19 +280,19 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         }
 
         @Override
-        public ChoiceBuilder<T> renderUsing(Function<T, String> renderer) {
+        public Choice<T> renderUsing(Function<T, String> renderer) {
             this.renderer = renderer;
             return this;
         }
 
         @Override
-        public ChoiceBuilder<T> defaultOption(T defaultOption) {
+        public Choice<T> defaultOption(T defaultOption) {
             this.defaultOption = defaultOption;
             return this;
         }
 
         @Override
-        public ChoiceBuilder<T> whenNotConnected(T defaultOption) {
+        public Choice<T> whenNotConnected(T defaultOption) {
             // Ignore
             return this;
         }

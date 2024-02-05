@@ -319,7 +319,7 @@ Enter selection (default: 11!) [1..3] """)
         choiceUsesDefault(choice, 11)
     }
 
-    <T> void choiceUsesDefault(ChoiceBuilder<T> choice, T expected) {
+    <T> void choiceUsesDefault(Choice<T> choice, T expected) {
         1 * userInputReader.readInput() >> null
         0 * userInputHandler._
 

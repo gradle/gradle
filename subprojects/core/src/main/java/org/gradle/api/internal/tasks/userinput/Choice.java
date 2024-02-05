@@ -23,7 +23,7 @@ import java.util.function.Function;
  *
  * @param <T>
  */
-public interface ChoiceBuilder<T> {
+public interface Choice<T> {
     /**
      * Specifies the option to present to the user as the default selection, and the option to use when not connected to a console.
      * Both of these values default to the first option.
@@ -32,21 +32,21 @@ public interface ChoiceBuilder<T> {
      *
      * @return this
      */
-    ChoiceBuilder<T> defaultOption(T defaultOption);
+    Choice<T> defaultOption(T defaultOption);
 
     /**
      * Specifies the option to use when not connected to a console. This can be different to the default option presented to the user.
      *
      * @return this
      */
-    ChoiceBuilder<T> whenNotConnected(T defaultOption);
+    Choice<T> whenNotConnected(T defaultOption);
 
     /**
      * Specifies how to display each option.
      *
      * @return this
      */
-    ChoiceBuilder<T> renderUsing(Function<T, String> renderer);
+    Choice<T> renderUsing(Function<T, String> renderer);
 
     /**
      * Prompts the user to select an option.

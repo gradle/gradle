@@ -56,14 +56,14 @@ public interface UserQuestions {
     <T> T selectOption(String question, Collection<T> options, T defaultOption);
 
     /**
-     * Creates a {@link ChoiceBuilder} that can ask the user to select an option from the given list and returns the answer.
-     * Uses the {@link Object#toString()} representation of the options to format the prompt, the returned {@link ChoiceBuilder} can be used to change this.
+     * Creates a {@link Choice} that can ask the user to select an option from the given list and returns the answer.
+     * Uses the {@link Object#toString()} representation of the options to format the prompt, the returned {@link Choice} can be used to change this.
      * Does not prompt the user when there is only one option in the given list.
      *
      * @param question The text of the question.
-     * @return A {@link ChoiceBuilder} that can be used to configure the choice and ask the user to select an option.
+     * @return A {@link Choice} that can be used to configure the choice and ask the user to select an option.
      */
-    <T> ChoiceBuilder<T> choice(String question, Collection<T> options);
+    <T> Choice<T> choice(String question, Collection<T> options);
 
     /**
      * Asks the user a question that has an integer result and returns the answer.
