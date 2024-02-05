@@ -24,7 +24,12 @@ import org.gradle.api.problems.Severity;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * A {@link DiagnosticListener} that consumes {@link Diagnostic} messages, and reports them as Gradle {@link Problems}.
@@ -35,20 +40,47 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private final ProblemReporter problemReporter;
 
+    /** A collection of filters that will serve as a predicate to determine if a diagnostic should be reported or not.*/
+    private final Collection<Function<Diagnostic<? extends JavaFileObject>, Boolean>> diagnosticFilters = new ArrayList<>();
+
+    /**
+     * A map of explicit overrides between {@link Diagnostic.Kind} and {@link Severity}.
+     * <p>
+     * This will take precedence over the default mapping defined in {@link #mapKindToSeverity(Diagnostic.Kind)}.
+     */
+    private final Map<Diagnostic.Kind, Diagnostic.Kind> severityOverrides = new HashMap<>();
+
+
     public DiagnosticToProblemListener(ProblemReporter problemReporter) {
         this.problemReporter = problemReporter;
     }
 
+    public void addDiagnosticFilter(Function<Diagnostic<? extends JavaFileObject>, Boolean> diagnosticFilter) {
+        diagnosticFilters.add(diagnosticFilter);
+    }
+
+    public void addSeverityOverride(Diagnostic.Kind fromKind, Diagnostic.Kind toKind) {
+        severityOverrides.put(fromKind, toKind);
+    }
+
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+        // If any of the filters return true, we should not report the diagnostic
+        if (diagnosticFilters.stream().anyMatch(filter -> filter.apply(diagnostic))) {
+            return;
+        }
+
         String message = diagnostic.getMessage(Locale.getDefault());
-        String label = mapKindToLabel(diagnostic.getKind());
+
+        // Apply any overrides or keep the value as is
+        Diagnostic.Kind kind = severityOverrides.computeIfAbsent(diagnostic.getKind(), key -> diagnostic.getKind());
+        String label = mapKindToLabel(kind);
+        Severity severity = mapKindToSeverity(kind);
 
         String resourceName = diagnostic.getSource() != null ? getPath(diagnostic.getSource()) : null;
         int line = Math.toIntExact(diagnostic.getLineNumber());
         int column = Math.toIntExact(diagnostic.getColumnNumber());
         int length = Math.toIntExact(diagnostic.getEndPosition() - diagnostic.getStartPosition());
-        Severity severity = mapKindToSeverity(diagnostic.getKind());
 
         problemReporter.reporting(problem -> {
             ProblemSpec spec = problem
@@ -100,6 +132,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
+        // Map the kind to a severity
         switch (kind) {
             case ERROR:
                 return Severity.ERROR;
@@ -112,5 +145,4 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 return Severity.ADVICE;
         }
     }
-
 }

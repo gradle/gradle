@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
@@ -36,18 +37,19 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
 
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
-    private final DiagnosticToProblemListener diagnosticToProblemListener;
+    private final InternalProblems problemsService;
 
     @Inject
     public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, InternalProblems problemsService) {
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
-        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter());
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -66,7 +68,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
         // We check here if the Problems API is used
         // If it's not used, the compiler interfaces interpret "null" as "use the default diagnostic listener"
-        DiagnosticListener<JavaFileObject> diagnosticListener = shouldUseProblemsApiReporting() ? diagnosticToProblemListener : null;
+        DiagnosticListener<JavaFileObject> diagnosticListener = shouldUseProblemsApiReporting() ? createDiagnosticToProblemListener(spec) : null;
 
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
@@ -90,6 +92,22 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
         task = new ResourceCleaningCompilationTask(task, fileManager);
         return task;
+    }
+
+    private DiagnosticToProblemListener createDiagnosticToProblemListener(JavaCompileSpec spec) {
+        DiagnosticToProblemListener diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter());
+
+        // If the "-Werror" flag is specified...
+        if (spec.getCompileOptions().getCompilerArgs().contains("-Werror")) {
+            // ... we filter out the warning that is emitted when -Werror is used, as it's not a real problem...
+            diagnosticToProblemListener.addDiagnosticFilter(
+                diagnostic -> "warnings found and -Werror specified".equals(diagnostic.getMessage(Locale.getDefault()))
+            );
+            // ... and instead we override the severity of all the warnings to be an error
+            diagnosticToProblemListener.addSeverityOverride(Diagnostic.Kind.WARNING, Diagnostic.Kind.ERROR);
+        }
+
+        return diagnosticToProblemListener;
     }
 
     private static boolean shouldUseProblemsApiReporting() {

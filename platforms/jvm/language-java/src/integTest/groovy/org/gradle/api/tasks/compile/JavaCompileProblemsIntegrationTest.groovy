@@ -184,33 +184,31 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     def "the compiler flag -Werror correctly reports"() {
         given:
         buildFile << "tasks.compileJava.options.compilerArgs += ['-Werror']"
-        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo"), 3)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationWarnings("Foo"), 2)
 
         when:
         fails("compileJava")
 
         then:
-        // 2 warnings + 1 special error
-        collectedProblems.size() == 3
+        // We should have 2 problems (2 warnings)
+        collectedProblems.size() == 2
 
-        // The two expected warnings are still reported as warnings
+        // With the -Werror flag, we should not receive any warnings, as they are treated as errors
         def warningProblems = collectedProblems.findAll {
             it["severity"] == "WARNING"
         }
-        warningProblems.size() == 2
-        for (def problem in warningProblems) {
-            assertProblem(problem, "WARNING") {details, taskLocation ->
-                assert details == "redundant cast to java.lang.String"
-            }
-        }
+        warningProblems.size() == 0
 
-        // The compiler will report a single error, implying that the warnings were treated as errors
+        // We test if the warnings are transformed into errors
+        // Also, we test if we filter off the diagnostic, which says "warnings found and -Werror specified":
         def errorProblems = collectedProblems.findAll {
             it["severity"] == "ERROR"
         }
-        errorProblems.size() == 1
-        assertProblem(errorProblems[0], "ERROR") {details, taskLocation ->
-            assert details == "warnings found and -Werror specified"
+        errorProblems.size() == 2
+        for (def problem in errorProblems) {
+            assertProblem(problem, "ERROR") { details, taskLocation ->
+                assert details == "redundant cast to java.lang.String"
+            }
         }
     }
 
