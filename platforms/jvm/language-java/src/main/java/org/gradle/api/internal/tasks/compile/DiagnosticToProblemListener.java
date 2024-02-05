@@ -25,8 +25,10 @@ import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -88,18 +90,18 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 .severity(severity)
                 .details(message);
 
+            // We make a subcategory prefixed with "java", and the rest by getting the compiler's error code
+            List<String> subcategories = new ArrayList<>();
+            subcategories.add("java");
+            // All codes are prefixed with "compiler", which we will omit, as it will be the main category
+            // You can verify this if you look at the "compiler.java" resource file, or CompilerProperties.java
+            String[] codeComponents = diagnostic.getCode().split("\\.");
+            subcategories.addAll(
+                Arrays.asList(codeComponents).subList(1, codeComponents.length)
+            );
+
             // The category of the problem depends on the severity
-            switch (severity) {
-                case ADVICE:
-                    spec.category("compilation", "java", "compilation-advice");
-                    break;
-                case WARNING:
-                    spec.category("compilation", "java", "compilation-warning");
-                    break;
-                case ERROR:
-                    spec.category("compilation", "java", "compilation-failed");
-                    break;
-            }
+            spec.category("compilation", subcategories.toArray(new String[0]));
 
             // We only set the location if we have a resource to point to
             if (resourceName != null) {
