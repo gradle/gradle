@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
@@ -33,11 +34,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
+import static org.gradle.internal.snapshot.impl.SerializedLambdaX.maybeSerializedLambdaFor;
 
 abstract class AbstractValueProcessor {
 
@@ -107,6 +111,9 @@ abstract class AbstractValueProcessor {
             ImplementationValue implementationValue = (ImplementationValue) value;
             return visitor.implementationValue(implementationValue.getImplementationClassIdentifier(), implementationValue.getValue());
         }
+        if (value instanceof IsolatedAction) {
+            return processIsolatedAction((IsolatedAction<?>) value, visitor);
+        }
 
         // Pluggable serialization
         for (ValueSnapshotterSerializerRegistry registry : valueSnapshotterSerializerRegistryList) {
@@ -117,6 +124,25 @@ abstract class AbstractValueProcessor {
 
         // Fall back to Java serialization
         return javaSerialization(value, visitor);
+    }
+
+    private <T> T processIsolatedAction(IsolatedAction<?> action, ValueVisitor<T> visitor) {
+        SerializedLambda serializedLambda = maybeSerializedLambdaFor(action)
+            .orElseThrow(() -> new UnsupportedOperationException("IsolatedAction must be provided as a lambda!"));
+        LambdaMetadata metadata = LambdaMetadata.from(serializedLambda, action.getClass().getClassLoader());
+        ImmutableList<T> isolatedArgs = isolatedArgumentsOf(serializedLambda, visitor);
+        return visitor.visitLambda(metadata, isolatedArgs);
+    }
+
+    private <T> ImmutableList<T> isolatedArgumentsOf(SerializedLambda serializedLambda, ValueVisitor<T> visitor) {
+        int capturedArgCount = serializedLambda.getCapturedArgCount();
+        ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(capturedArgCount);
+        for (int i = 0; i < capturedArgCount; i++) {
+            Object captureArg = serializedLambda.getCapturedArg(i);
+            T isolatedArg = processValue(captureArg, visitor);
+            builder.add(isolatedArg);
+        }
+        return builder.build();
     }
 
     private <T> T processManaged(Managed managed, ValueVisitor<T> visitor) {
@@ -274,5 +300,7 @@ abstract class AbstractValueProcessor {
         T gradleSerialized(Object value, byte[] serializedValue);
 
         T javaSerialized(Object value, byte[] serializedValue);
+
+        T visitLambda(LambdaMetadata metadata, ImmutableList<T> isolatedArgs);
     }
 }

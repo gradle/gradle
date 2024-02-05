@@ -19,6 +19,7 @@ package org.gradle.workers.internal
 import org.gradle.api.attributes.Attribute
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.instantiation.InstanceGenerator
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.isolation.IsolatableFactory
@@ -33,6 +34,8 @@ import org.gradle.internal.snapshot.impl.IsolatedManagedValue
 import org.gradle.util.TestUtil
 import org.gradle.workers.fixtures.TestManagedTypes
 import spock.lang.Specification
+
+import java.util.function.Consumer
 
 class IsolatableSerializerRegistryTest extends Specification {
     def managedFactoryRegistry = TestUtil.managedFactoryRegistry()
@@ -144,7 +147,7 @@ class IsolatableSerializerRegistryTest extends Specification {
     }
 
     def "can serialize/deserialize generated Managed values"() {
-        def instantiator = instantiatorFactory.decorate(services)
+        InstanceGenerator instantiator = newInstatiator()
         def managedValue1 = instantiator.newInstance(TestManagedTypes.ManagedThing)
         def managedValue2 = instantiator.newInstance(TestManagedTypes.ManagedThing)
 
@@ -166,6 +169,11 @@ class IsolatableSerializerRegistryTest extends Specification {
         and:
         newIsolatables[0].isolate().getFoo() == "bar"
         newIsolatables[1].isolate().getFoo() == "baz"
+    }
+
+    private InstanceGenerator newInstatiator() {
+        def instantiator = instantiatorFactory.decorate(services)
+        instantiator
     }
 
     def "can serialize/deserialize generated immutable Managed values"() {
@@ -253,8 +261,8 @@ class IsolatableSerializerRegistryTest extends Specification {
 
     def "can serialize/deserialize isolated Map"() {
         Map<String, String> map = [
-                "foo": "bar",
-                "baz": "buzz"
+            "foo": "bar",
+            "baz": "buzz"
         ]
 
         when:
@@ -340,6 +348,31 @@ class IsolatableSerializerRegistryTest extends Specification {
         newIsolatables[0].isolate() == list
     }
 
+    def "can isolate IsolatedAction"() {
+        given:
+        def instantiator = newInstatiator()
+        def originalThing = instantiator.newInstance(TestManagedTypes.ManagedThing)
+            .tap {
+                foo = "foo"
+            }
+        def originalAction = TestIsolatedActionFactory.echo(originalThing)
+
+        when:
+        def isolatedAction = isolatableFactory.isolate(originalAction)
+
+        and: 'changes to the original should no longer affect the isolated action'
+        originalThing.foo = "bar"
+
+        then:
+        TestManagedTypes.ManagedThing isolatedThing
+        isolatedAction.isolate().execute({
+            isolatedThing = it
+        } as Consumer)
+
+        then:
+        isolatedThing.foo == "foo"
+    }
+
     def serialize(Isolatable<?>... isolatables) {
         encoder.writeInt(isolatables.size())
         isolatables.each { serializer.writeIsolatable(encoder, it) }
@@ -356,7 +389,7 @@ class IsolatableSerializerRegistryTest extends Specification {
         return isolatables as Isolatable<?>[]
     }
 
-    static class SomeType { }
+    static class SomeType {}
 
     static class SerializableType implements Serializable {
         final String foo

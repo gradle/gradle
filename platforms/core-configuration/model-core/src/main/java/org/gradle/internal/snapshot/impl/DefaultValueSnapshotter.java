@@ -148,6 +148,11 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
         }
 
         @Override
+        public ValueSnapshot visitLambda(LambdaMetadata metadata, ImmutableList<ValueSnapshot> isolatedArgs) {
+            throw new UnsupportedOperationException("Lambdas are not supported");
+        }
+
+        @Override
         public ValueSnapshot emptyArray(Class<?> arrayType) {
             return ArrayValueSnapshot.EMPTY;
         }
