@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[plugins]]
+[[using_plugins]]
 = Using Plugins
 
 Many Gradle features, like the ability to compile Java code, are added by _plugins_.

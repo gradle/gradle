@@ -15,4 +15,4 @@
 [[configuration_and_execution]]
 = Configuration and Execution time
 
-This page has been removed.
+This page has been removed. See <<multi_project_builds.adoc#multi_project_builds,Multi-Project Builds>>.

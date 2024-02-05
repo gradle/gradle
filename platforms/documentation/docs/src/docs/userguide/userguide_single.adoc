@@ -78,45 +78,36 @@ include::build_scans.adoc[leveloffset=+2]
 [[part:authoring_builds]]
 == **AUTHORING GRADLE BUILDS**
 
+include::getting_started_dev.adoc[leveloffset=+2]
+
 == LEARNING THE BASICS
 
+include::gradle_directories.adoc[leveloffset=+2]
+include::intro_multi_project_builds.adoc[leveloffset=+2]
 include::build_lifecycle.adoc[leveloffset=+2]
-include::directory_layout.adoc[leveloffset=+2]
-include::tutorial_using_tasks.adoc[leveloffset=+2]
+include::writing_settings_files.adoc[leveloffset=+2]
 include::writing_build_scripts.adoc[leveloffset=+2]
+include::tutorial_using_tasks.adoc[leveloffset=+2]
+include::writing_tasks.adoc[leveloffset=+2]
 include::plugins.adoc[leveloffset=+2]
-include::working_with_files.adoc[leveloffset=+2]
-include::logging.adoc[leveloffset=+2]
-include::potential_traps.adoc[leveloffset=+2]
+include::writing_plugins.adoc[leveloffset=+2]
 
 == STRUCTURING BUILDS
 
 include::multi_project_builds.adoc[leveloffset=+2]
 include::declaring_dependencies_between_subprojects.adoc[leveloffset=+2]
 include::sharing_build_logic_between_subprojects.adoc[leveloffset=+2]
-include::fine_tuning_project_layout.adoc[leveloffset=+2]
-include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
-
-== STRUCTURING SOFTWARE PRODUCTS
-
-include::structuring_software_products.adoc[leveloffset=+2]
-include::structuring_software_products_details.adoc[leveloffset=+2]
 include::composite_builds.adoc[leveloffset=+2]
 
-== AUTHORING SUSTAINABLE BUILDS
-
-include::organizing_gradle_projects.adoc[leveloffset=+2]
-include::authoring_maintainable_build_scripts.adoc[leveloffset=+2]
-
-== DEVELOPING GRADLE TASKS
+== DEVELOPING TASKS
 
 include::more_about_tasks.adoc[leveloffset=+2]
-include::incremental_build.adoc[leveloffset=+2]
 include::custom_tasks.adoc[leveloffset=+2]
 include::lazy_configuration.adoc[leveloffset=+2]
+include::task_configuration_avoidance.adoc[leveloffset=+2]
 include::worker_api.adoc[leveloffset=+2]
 
-== DEVELOPING GRADLE PLUGINS
+== DEVELOPING PLUGINS
 
 include::custom_plugins.adoc[leveloffset=+2]
 include::designing_gradle_plugins.adoc[leveloffset=+2]
@@ -124,8 +115,19 @@ include::implementing_gradle_plugins.adoc[leveloffset=+2]
 include::testing_gradle_plugins.adoc[leveloffset=+2]
 include::publishing_gradle_plugins.adoc[leveloffset=+2]
 
-== OTHER DEVELOPING GRADLE TOPICS
+== BEST PRACTICES
 
+include::organizing_gradle_projects.adoc[leveloffset=+2]
+include::authoring_maintainable_build_scripts.adoc[leveloffset=+2]
+
+== OTHER TOPICS
+
+include::directory_layout.adoc[leveloffset=+2]
+include::working_with_files.adoc[leveloffset=+2]
+include::logging.adoc[leveloffset=+2]
+include::potential_traps.adoc[leveloffset=+2]
+include::build_environment.adoc[leveloffset=+2]
+include::init_scripts.adoc[leveloffset=+2]
 include::custom_gradle_types.adoc[leveloffset=+2]
 include::build_services.adoc[leveloffset=+2]
 include::dataflow_actions.adoc[leveloffset=+2]
@@ -204,11 +206,16 @@ include::publishing_maven.adoc[leveloffset=+2]
 include::publishing_ivy.adoc[leveloffset=+2]
 
 [[part:optimizing_build_times]]
-== **OPTIMIZING BUILD TIMES**
+== **OPTIMIZING BUILD PERFORMANCE**
 
 include::performance.adoc[leveloffset=+2]
+include::gradle_daemon.adoc[leveloffset=+2]
+include::file_system_watching.adoc[leveloffset=+2]
+include::incremental_build.adoc[leveloffset=+2]
 include::configuration_cache.adoc[leveloffset=+2]
 include::inspect.adoc[leveloffset=+2]
+include::project_properties.adoc[leveloffset=+2]
+include::networking.adoc[leveloffset=+2]
 
 == USING THE BUILD CACHE
 
@@ -245,11 +252,16 @@ include::travis-ci.adoc[leveloffset=+2]
 [[part:reference]]
 == **REFERENCE**
 
+include::command_line_interface.adoc[leveloffset=+2]
+include::gradle_wrapper.adoc[leveloffset=+2]
+include::plugin_reference.adoc[leveloffset=2]
+include::third_party_integration.adoc[leveloffset=2]
+
+== GRADLE DSLs and API
+
 include::groovy_build_script_primer.adoc[leveloffset=+2]
 include::kotlin_dsl.adoc[leveloffset=+2]
 include::migrating_from_groovy_to_kotlin_dsl.adoc[leveloffset=2]
-include::plugin_reference.adoc[leveloffset=2]
-include::third_party_integration.adoc[leveloffset=2]
 
 == **LICENSE INFORMATION**
 

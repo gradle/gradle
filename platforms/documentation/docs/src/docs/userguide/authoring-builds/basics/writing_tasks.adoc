@@ -187,4 +187,4 @@ HELLO FROM THE NAMED METHOD
 Consult the <<more_about_tasks.adoc#more_about_tasks,Developing Gradle Tasks chapter>> to learn more.
 
 [.text-right]
-**Next Step:** <<plugins.adoc#plugins,Learn how to use Plugins>> >>
+**Next Step:** <<plugins.adoc#using_plugins,Learn how to use Plugins>> >>

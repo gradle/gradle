@@ -118,4 +118,4 @@ $ gradle.bat build  // Windows
 ----
 
 [.text-right]
-**Next Step:** <<gradle_wrapper_basics.adoc#gradle_wrapper,Learn about the Gradle Wrapper>> >>
+**Next Step:** <<gradle_wrapper_basics.adoc#gradle_wrapper_basics,Learn about the Gradle Wrapper>> >>

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[gradle_wrapper]]
+[[gradle_wrapper_reference]]
 = Gradle Wrapper Reference
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").

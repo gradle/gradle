@@ -20,7 +20,7 @@ The command-line interface is the **primary method of interacting with Gradle**.
 The following is a reference for executing and customizing the Gradle command-line.
 It also serves as a reference when writing scripts or configuring continuous integration.
 
-**Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged**.
+**Use of the <<gradle_wrapper.adoc#gradle_wrapper_reference, Gradle Wrapper>> is highly encouraged**.
 Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
 
 Executing Gradle on the command-line conforms to the following structure:
@@ -183,7 +183,7 @@ include::{snippetsPath}/tutorial/excludeTasks/tests/excludeTask.out[]
 .Simple Task Graph
 image::commandLineTutorialTasks.png[]
 
-You can see that the `test` task is not executed, even though it is a dependency of the `dist` task. The `test` task’s dependencies, such as `compileTest`, are not executed either. 
+You can see that the `test` task is not executed, even though it is a dependency of the `dist` task. The `test` task’s dependencies, such as `compileTest`, are not executed either.
 The dependencies of `test` that other tasks depend on, such as `compile`, are still executed.
 
 [[sec:rerun_tasks]]
@@ -775,7 +775,7 @@ $ gradle wrapper --gradle-version=8.1
 ----
 
 You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. +
-Full details on using these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper section>>.
+Full details on using these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle wrapper section>>.
 
 [[sec:continuous_build]]
 == Continuous build
@@ -808,37 +808,7 @@ If Gradle is not attached to an interactive input source (e.g. is running as par
 
 If the build is being executed via the Tooling API, the build can be cancelled using the Tooling API's cancellation mechanism.
 
-[[continuous_build_limitations]]
-=== Limitations
-Under some circumstances, continuous build may not detect changes to inputs.
-
-[[sec:continuous_build_missing_files]]
-==== Creating input directories
-Sometimes, creating an input directory that was previously missing does not trigger a build, due to the way file system watching works.
-For example, creating the `src/main/java` directory may not trigger a build.
-Similarly, if the input is a <<working_with_files.adoc#filtering_files,filtered file tree>> and no files are matching the filter, the creation of matching files may not trigger a build.
-
-[[sec:continuous_build_untracked]]
-==== Inputs of untracked tasks
-Changes to the inputs of <<incremental_build.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
-
-[[sec:continuous_build_project_dir]]
-==== Changes to files outside of project directories
-Gradle only watches for changes to files inside the project directory.
-Changes to files outside of the project directory will go undetected and not trigger a build.
-
-[[sec:build_cycles]]
-==== Build cycles
-Gradle starts watching for changes just before a task executes.
-If a task modifies its own inputs while executing, Gradle will detect the change and trigger a new build.
-If every time the task executes, the inputs are modified again, the build will be triggered again.
-This isn't unique to continuous build.
-A task that modifies its own inputs will never be considered up-to-date when run "normally" without continuous build.
-
-If your build enters a build cycle like this, you can track down the task by looking at the list of files reported changed by Gradle.
-After identifying the file(s) that are changed during each build, you should look for a task that has that file as an input.
-In some cases, it may be obvious (e.g., a Java file is compiled with `compileJava`).
-In other cases, you can use `--info` logging to find the task that is out-of-date due to the identified files.
+Learn more in <<continuous_builds.adoc#continuous_builds>> Continuous Builds.
 
 [[sec:changes_to_symbolic_links]]
 ==== Changes to symbolic links
