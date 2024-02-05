@@ -128,20 +128,17 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(", default: ");
             builder.append(defaultValue);
             builder.append("): ");
-            return prompt(builder.toString(), defaultValue, new Transformer<Integer, String>() {
-                @Override
-                public Integer transform(String sanitizedValue) {
-                    try {
-                        int result = Integer.parseInt(sanitizedValue);
-                        if (result >= minValue) {
-                            return result;
-                        }
-                        sendPrompt("Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
-                        return null;
-                    } catch (NumberFormatException e) {
-                        sendPrompt("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
-                        return null;
+            return prompt(builder.toString(), defaultValue, sanitizedValue -> {
+                try {
+                    int result = Integer.parseInt(sanitizedValue);
+                    if (result >= minValue) {
+                        return result;
                     }
+                    sendPrompt("Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
+                    return null;
+                } catch (NumberFormatException e) {
+                    sendPrompt("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
+                    return null;
                 }
             });
         }
@@ -153,23 +150,15 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(" (default: ");
             builder.append(defaultValue);
             builder.append("): ");
-            return prompt(builder.toString(), defaultValue, new Transformer<String, String>() {
-                @Override
-                public String transform(String sanitizedValue) {
-                    return sanitizedValue;
-                }
-            });
+            return prompt(builder.toString(), defaultValue, sanitizedValue -> sanitizedValue);
         }
 
         private <T> T prompt(String prompt, final T defaultValue, final Transformer<T, String> parser) {
-            T result = prompt(prompt, new Transformer<T, String>() {
-                @Override
-                public T transform(String sanitizedInput) {
-                    if (sanitizedInput.isEmpty()) {
-                        return defaultValue;
-                    }
-                    return parser.transform(sanitizedInput);
+            T result = prompt(prompt, sanitizedInput -> {
+                if (sanitizedInput.isEmpty()) {
+                    return defaultValue;
                 }
+                return parser.transform(sanitizedInput);
             });
             if (result == null) {
                 return defaultValue;
@@ -242,18 +231,15 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(") [1..");
             builder.append(options.size());
             builder.append("] ");
-            return prompt(builder.toString(), defaultOption, new Transformer<T, String>() {
-                @Override
-                public T transform(String sanitizedInput) {
-                    if (sanitizedInput.matches("\\d+")) {
-                        int value = Integer.parseInt(sanitizedInput);
-                        if (value > 0 && value <= values.size()) {
-                            return values.get(value - 1);
-                        }
+            return prompt(builder.toString(), defaultOption, sanitizedInput -> {
+                if (sanitizedInput.matches("\\d+")) {
+                    int value = Integer.parseInt(sanitizedInput);
+                    if (value > 0 && value <= values.size()) {
+                        return values.get(value - 1);
                     }
-                    sendPrompt("Please enter a value between 1 and " + options.size() + ": ");
-                    return null;
                 }
+                sendPrompt("Please enter a value between 1 and " + options.size() + ": ");
+                return null;
             });
         }
 
