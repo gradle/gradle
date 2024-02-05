@@ -67,7 +67,7 @@ public class CachingState {
     }
 
     public Optional<CacheKeyCalculatedState> getCacheKeyCalculatedState() {
-        return delegate.fold(enabled -> Optional.of(enabled.getCacheKeyCalculatedState()), Disabled::getCacheKeyCalculated);
+        return delegate.fold(enabled -> Optional.of(enabled.getCacheKeyCalculatedState()), Disabled::getCacheKeyCalculatedState);
     }
 
     public static class CacheKeyCalculatedState {
@@ -136,7 +136,7 @@ public class CachingState {
             return disabledReasons;
         }
 
-        public Optional<CacheKeyCalculatedState> getCacheKeyCalculated() {
+        public Optional<CacheKeyCalculatedState> getCacheKeyCalculatedState() {
             return Optional.ofNullable(cacheKeyCalculatedState);
         }
     }

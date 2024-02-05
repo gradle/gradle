@@ -194,7 +194,8 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
     }
 
     protected Optional<BeforeExecutionState> getBeforeExecutionState() {
-        return cachingState.getCacheKeyCalculatedState().map(CachingState.CacheKeyCalculatedState::getBeforeExecutionState);
+        return cachingState.getCacheKeyCalculatedState()
+            .map(CachingState.CacheKeyCalculatedState::getBeforeExecutionState);
     }
 
     private Optional<BuildCacheKey> getKey() {

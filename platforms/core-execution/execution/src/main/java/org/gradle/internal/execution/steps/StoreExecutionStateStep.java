@@ -32,7 +32,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class StoreExecutionStateStep<C extends BeforeExecutionContext & CachingContext, R extends AfterExecutionResult> implements Step<C, R> {
+public class StoreExecutionStateStep<C extends PreviousExecutionContext & CachingContext, R extends AfterExecutionResult> implements Step<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
     public StoreExecutionStateStep(
@@ -60,7 +60,7 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext & CachingC
         return result;
     }
 
-    private static <C extends BeforeExecutionContext> boolean shouldPreserveFailedState(C context, ExecutionOutputState afterExecutionOutputState) {
+    private static <C extends PreviousExecutionContext> boolean shouldPreserveFailedState(C context, ExecutionOutputState afterExecutionOutputState) {
         // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
         // For example the current execution fails because of a compilation failure and for the next execution the source file is fixed,
         // so only the one changed source file needs to be compiled.

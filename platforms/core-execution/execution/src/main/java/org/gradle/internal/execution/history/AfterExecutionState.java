@@ -30,7 +30,7 @@ public interface AfterExecutionState extends ExecutionInputState, ExecutionOutpu
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
 
     /**
-     * The cache key from the input state.
+     * The cache key for the input state.
      */
     HashCode getCacheKey();
 }
