@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.hash.HashCode;
 
@@ -37,21 +36,11 @@ public class ResolveIncrementalCachingStateStep<C extends IncrementalChangesCont
     }
 
     @Override
-    protected Optional<CacheKeyWithBeforeExecutionState> determineCacheKeyWithBeforeExecutionState(C context) {
+    protected Optional<HashCode> getPreviousCacheKeyIfApplicable(C context) {
         return context.getChanges()
-            .map(changes -> new CacheKeyWithBeforeExecutionState() {
-                @Override
-                public Optional<HashCode> getCacheKey() {
-                    return context.getPreviousExecutionState()
-                        .filter(__ -> changes.getChangeDescriptions().isEmpty())
-                        .map(PreviousExecutionState::getCacheKey);
-                }
-
-                @Override
-                public BeforeExecutionState getBeforeExecutionState() {
-                    return changes.getBeforeExecutionState();
-                }
-            });
+            .flatMap(changes -> context.getPreviousExecutionState()
+                .filter(__ -> changes.getChangeDescriptions().isEmpty())
+                .map(PreviousExecutionState::getCacheKey));
     }
 
     @Override

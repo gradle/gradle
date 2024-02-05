@@ -41,7 +41,7 @@ class ResolveIncrementalCachingStateStepTest extends AbstractResolveCachingState
         then:
         _ * buildCache.enabled >> buildCacheEnabled
         _ * context.changes >> Optional.of(executionStateChanges)
-        1 * executionStateChanges.beforeExecutionState >> beforeExecutionState
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * executionStateChanges.changeDescriptions >> ImmutableList.of()
 
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
@@ -67,7 +67,7 @@ class ResolveIncrementalCachingStateStepTest extends AbstractResolveCachingState
         then:
         _ * buildCache.enabled >> buildCacheEnabled
         _ * context.changes >> Optional.of(executionStateChanges)
-        1 * executionStateChanges.beforeExecutionState >> beforeExecutionState
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * executionStateChanges.changeDescriptions >> ImmutableList.of("Out-of-date")
 
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
@@ -92,7 +92,7 @@ class ResolveIncrementalCachingStateStepTest extends AbstractResolveCachingState
         then:
         _ * buildCache.enabled >> buildCacheEnabled
         _ * context.changes >> Optional.of(executionStateChanges)
-        _ * executionStateChanges.beforeExecutionState >> beforeExecutionState
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.empty()
 
         _ * context.validationProblems >> ImmutableList.of()

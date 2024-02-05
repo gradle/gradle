@@ -20,7 +20,6 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.NoOpBuildCacheController;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Optional;
@@ -41,19 +40,8 @@ public class ResolveNonIncrementalCachingStateStep<C extends ValidationFinishedC
     }
 
     @Override
-    protected Optional<CacheKeyWithBeforeExecutionState> determineCacheKeyWithBeforeExecutionState(C context) {
-        return context.getBeforeExecutionState()
-            .map(beforeExecutionState -> new CacheKeyWithBeforeExecutionState() {
-                @Override
-                public Optional<HashCode> getCacheKey() {
-                    return Optional.empty();
-                }
-
-                @Override
-                public BeforeExecutionState getBeforeExecutionState() {
-                    return beforeExecutionState;
-                }
-            });
+    protected Optional<HashCode> getPreviousCacheKeyIfApplicable(C context) {
+        return Optional.empty();
     }
 
     @Override
