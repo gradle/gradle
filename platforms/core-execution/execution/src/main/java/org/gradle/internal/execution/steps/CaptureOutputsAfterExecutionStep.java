@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -41,17 +42,17 @@ import java.util.Optional;
  * All changes to the outputs must be done at this point, so this step needs to be around anything
  * which uses an {@link ChangingOutputsContext}.
  */
-public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & CachingContext, B> extends BuildOperationStep<C, AfterExecutionResult> {
+public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & CachingContext> extends BuildOperationStep<C, AfterExecutionResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
-    private final AfterExecutionOutputFilter<? super C, B> outputFilter;
+    private final AfterExecutionOutputFilter<? super C> outputFilter;
     private final Step<? super C, ? extends Result> delegate;
 
     public CaptureOutputsAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
-        AfterExecutionOutputFilter<? super C, B> outputFilter,
+        AfterExecutionOutputFilter<? super C> outputFilter,
         Step<? super C, ? extends Result> delegate
     ) {
         super(buildOperationExecutor);
@@ -64,40 +65,40 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
     @Override
     public AfterExecutionResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
-        Optional<ExecutionOutputState> afterExecutionOutputState = outputFilter.getBeforeExecutionState(context)
-            .map(beforeExecutionState -> captureOutputsAfterExecution(work, context, beforeExecutionState, result));
+        Optional<ExecutionOutputState> afterExecutionOutputState = context.getCachingState().getCacheKeyCalculatedState()
+            .map(cacheKeyCalculatedState -> captureOutputsAfterExecution(work, context, cacheKeyCalculatedState, result));
 
         return new AfterExecutionResult(result, afterExecutionOutputState.orElse(null));
     }
 
-    private ExecutionOutputState captureOutputsAfterExecution(UnitOfWork work, C context, B beforeExecutionState, Result result) {
+    private ExecutionOutputState captureOutputsAfterExecution(UnitOfWork work, C context, CachingState.CacheKeyCalculatedState cacheKeyCalculatedState, Result result) {
         return operation(
             operationContext -> {
                 Timer timer = Time.startTimer();
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
-                ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = outputFilter.filterOutputs(context, beforeExecutionState, unfilteredOutputSnapshotsAfterExecution);
-                long snapshotOutputDuration = timer.getElapsedMillis();
-
-                // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
-                // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
-                // which is currently the _only_ thing this value is used for.
-                Duration originExecutionTime = result.getDuration().plus(Duration.ofMillis(snapshotOutputDuration));
-                HashCode buildCacheKey = context.getCachingState()
-                    .fold(
-                        (CachingState.Enabled enabled) -> Optional.of(enabled.getKey()),
-                        CachingState.Disabled::getKey)
-                    .map(cacheKey -> HashCode.fromBytes(cacheKey.toByteArray()))
-                    .orElseThrow(() -> new IllegalStateException("No cache key even though we have a before execution state"));
-                OriginMetadata originMetadata = new OriginMetadata(
-                    buildInvocationScopeId.asString(),
-                    buildCacheKey,
-                    originExecutionTime);
+                ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = outputFilter.filterOutputs(context, cacheKeyCalculatedState.getBeforeExecutionState(), unfilteredOutputSnapshotsAfterExecution);
+                OriginMetadata originMetadata = createOriginMetadata(cacheKeyCalculatedState, result, timer);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return new DefaultExecutionOutputState(result.getExecution().isSuccessful(), outputsProducedByWork, originMetadata, false);
             },
             BuildOperationDescriptor
                 .displayName("Snapshot outputs after executing " + work.getDisplayName())
                 .details(Operation.Details.INSTANCE)
+        );
+    }
+
+    private OriginMetadata createOriginMetadata(CachingState.CacheKeyCalculatedState cacheKeyCalculatedState, Result result, Timer timer) {
+        long snapshotOutputDuration = timer.getElapsedMillis();
+
+        // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
+        // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
+        // which is currently the _only_ thing this value is used for.
+        Duration originExecutionTime = result.getDuration().plus(Duration.ofMillis(snapshotOutputDuration));
+        HashCode buildCacheKey = ((DefaultBuildCacheKey) cacheKeyCalculatedState.getKey()).getHashCodeInternal();
+        return new OriginMetadata(
+            buildInvocationScopeId.asString(),
+            buildCacheKey,
+            originExecutionTime
         );
     }
 
