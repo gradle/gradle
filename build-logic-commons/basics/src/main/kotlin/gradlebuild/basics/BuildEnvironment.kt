@@ -66,7 +66,7 @@ fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnv
 
 
 @Suppress("UnstableApiUsage")
-fun Project.git(vararg args: String): String {
+fun Project.git(vararg args: String): Provider<String> {
     val projectDir = layout.projectDirectory.asFile
     val execOutput = providers.exec {
         workingDir = projectDir
@@ -76,8 +76,10 @@ fun Project.git(vararg args: String): String {
             commandLine = listOf("cmd", "/c") + commandLine
         }
     }
-    return if (execOutput.result.get().exitValue == 0) execOutput.standardOutput.asText.get().trim()
-    else "<unknown>" // It's a source distribution, we don't know.
+    return execOutput.result.zip(execOutput.standardOutput.asText) { result, outputText ->
+        if (result.exitValue == 0) outputText.trim()
+        else "<unknown>" // It's a source distribution, we don't know.
+    }
 }
 
 
