@@ -19,14 +19,14 @@ package org.gradle.api.internal.tasks.userinput;
 import java.util.Collection;
 import java.util.function.Function;
 
-public class NonInteractiveUserInputHandler extends AbstractUserInputHandler implements AbstractUserInputHandler.CloseableUserQuestions {
+public class NonInteractiveUserInputHandler extends AbstractUserInputHandler implements AbstractUserInputHandler.UserInteraction {
     @Override
-    protected CloseableUserQuestions newInteraction() {
+    protected UserInteraction newInteraction() {
         return this;
     }
 
     @Override
-    public void close() {
+    public void finish() {
     }
 
     @Override

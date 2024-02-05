@@ -31,13 +31,16 @@ public abstract class AbstractUserInputHandler implements UserInputHandler {
             @Override
             public T call() {
                 if (result == null) {
+                    UserInteraction questions = newInteraction();
                     try {
-                        try (CloseableUserQuestions userQuestions = AbstractUserInputHandler.this.newInteraction()) {
-                            T interactionResult = interaction.apply(userQuestions);
+                        try {
+                            T interactionResult = interaction.apply(questions);
                             result = Try.successful(interactionResult);
+                        } catch (Throwable t) {
+                            result = Try.failure(t);
                         }
-                    } catch (Throwable t) {
-                        result = Try.failure(t);
+                    } finally {
+                        questions.finish();
                     }
                 }
                 return result.get();
@@ -45,8 +48,12 @@ public abstract class AbstractUserInputHandler implements UserInputHandler {
         });
     }
 
-    protected abstract CloseableUserQuestions newInteraction();
+    protected abstract UserInteraction newInteraction();
 
-    protected interface CloseableUserQuestions extends UserQuestions, AutoCloseable {
+    protected interface UserInteraction extends UserQuestions {
+        /**
+         * Notify the client that the interaction is complete.
+         */
+        void finish();
     }
 }

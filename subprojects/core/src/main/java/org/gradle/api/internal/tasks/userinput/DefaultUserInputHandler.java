@@ -51,8 +51,8 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
     }
 
     @Override
-    protected CloseableUserQuestions newInteraction() {
-        return new DefaultUserQuestions();
+    protected UserInteraction newInteraction() {
+        return new InteractiveUserQuestions();
     }
 
     @Override
@@ -68,7 +68,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         return CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(input));
     }
 
-    private class DefaultUserQuestions implements CloseableUserQuestions {
+    private class InteractiveUserQuestions implements UserInteraction {
         private boolean hasPrompted;
 
         @Override
@@ -258,7 +258,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         }
 
         @Override
-        public void close() {
+        public void finish() {
             if (hasPrompted) {
                 outputEventBroadcaster.onOutput(new UserInputResumeEvent());
             }
@@ -266,13 +266,13 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
     }
 
     private static class DefaultChoiceBuilder<T> implements ChoiceBuilder<T> {
-        private final DefaultUserQuestions owner;
+        private final InteractiveUserQuestions owner;
         private final Collection<T> options;
         private final String question;
         private T defaultOption;
         private Function<T, String> renderer = Object::toString;
 
-        public DefaultChoiceBuilder(DefaultUserQuestions owner, Collection<T> options, String question) {
+        public DefaultChoiceBuilder(InteractiveUserQuestions owner, Collection<T> options, String question) {
             this.owner = owner;
             this.options = options;
             this.question = question;
