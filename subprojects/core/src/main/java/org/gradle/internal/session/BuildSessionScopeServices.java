@@ -27,10 +27,6 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
-import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
-import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
-import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
-import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildOperationCleanupActionDecorator;
@@ -64,7 +60,6 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -220,14 +215,6 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         FileHasherStatistics.Collector statisticsCollector
     ) {
         return new DefaultChecksumService(stringInterner, crossBuildCache.delegate, fileSystem, inspector, statisticsCollector);
-    }
-
-    UserInputHandler createUserInputHandler(BuildRequestMetaData requestMetaData, OutputEventListenerManager outputEventListenerManager, Clock clock) {
-        if (!requestMetaData.isInteractive()) {
-            return new NonInteractiveUserInputHandler();
-        }
-
-        return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), clock, new DefaultUserInputReader());
     }
 
     // Wraps CrossBuildFileHashCache so that it doesn't conflict

@@ -16,12 +16,16 @@
 
 package org.gradle.api.internal.tasks.userinput
 
+import org.gradle.api.internal.provider.Providers
 import spock.lang.Specification
 import spock.lang.Subject
+
+import java.util.function.Function
 
 class DefaultBuildScanUserInputHandlerTest extends Specification {
 
     def userInputHandler = Mock(UserInputHandler)
+    def userQuestions = Mock(UserQuestions)
     @Subject def buildScanUserInputHandler = new DefaultBuildScanUserInputHandler(userInputHandler)
 
     def "can ask yes/no question and capture user input '#input'"() {
@@ -32,7 +36,8 @@ class DefaultBuildScanUserInputHandlerTest extends Specification {
         def answer = buildScanUserInputHandler.askYesNoQuestion(question)
 
         then:
-        1 * userInputHandler.askYesNoQuestion(question) >> input
+        1 * userInputHandler.askUser(_) >> { Function f -> Providers.ofNullable(f.apply(userQuestions)) }
+        1 * userQuestions.askYesNoQuestion(question) >> input
         answer == input
 
         where:
