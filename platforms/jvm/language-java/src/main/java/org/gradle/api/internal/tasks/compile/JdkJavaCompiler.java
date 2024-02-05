@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import com.sun.tools.javac.resources.CompilerProperties;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
@@ -37,7 +38,6 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
@@ -101,7 +101,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         if (spec.getCompileOptions().getCompilerArgs().contains("-Werror")) {
             // ... we filter out the warning that is emitted when -Werror is used, as it's not a real problem...
             diagnosticToProblemListener.addDiagnosticFilter(
-                diagnostic -> "warnings found and -Werror specified".equals(diagnostic.getMessage(Locale.getDefault()))
+                diagnostic -> CompilerProperties.Errors.WarningsAndWerror.key().equals(diagnostic.getCode())
             );
             // ... and instead we override the severity of all the warnings to be an error
             diagnosticToProblemListener.addSeverityOverride(Diagnostic.Kind.WARNING, Diagnostic.Kind.ERROR);
