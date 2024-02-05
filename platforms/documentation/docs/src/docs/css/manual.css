@@ -2437,6 +2437,18 @@ div.unbreakable {
 	text-decoration: line-through;
 }
 
+.green {
+    color: #006000;
+}
+
+.red {
+    color: #bf0000;
+}
+
+.yellow {
+    color: #bfbf00;
+}
+
 span.icon>.fa {
 	cursor: default;
 }
