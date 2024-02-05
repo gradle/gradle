@@ -25,8 +25,6 @@ import java.util.List;
  * Represents a list of aggregated problems. These are sent at the end of the build.
  * All Problems that occurred more than once during the build are aggregated and sent as a {@link ProblemAggregation}.
  * They won't be sent in between the build only the first one.
- * The aggregation happens based on the {@link ProblemCategory} and {@link Label}.
- * Therefore, the {@link ProblemCategory} and {@link Label} are the same for all aggregated problems and are also present in the this aggregation interface.
  *
  * @since 8.6
  */
