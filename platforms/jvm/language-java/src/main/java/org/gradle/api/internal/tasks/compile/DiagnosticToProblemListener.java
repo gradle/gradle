@@ -132,7 +132,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
-        // Map the kind to a severity
         switch (kind) {
             case ERROR:
                 return Severity.ERROR;
