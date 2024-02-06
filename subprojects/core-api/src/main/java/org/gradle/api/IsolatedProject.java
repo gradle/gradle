@@ -63,6 +63,7 @@ public interface IsolatedProject {
      * project.</p>
      *
      * @return The root directory. Never returns null.
+     * @since 8.7
      */
     @NotNull
     File getRootDirectory();
