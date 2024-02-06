@@ -115,7 +115,6 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
         List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
         List<File> kotlinImpl = kotlinImplFrom(apiClasspath);
-        List<File> declarativeDslImpl = declarativeDslImplFrom(apiClasspath);
         List<File> installationBeacon = classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles();
         apiClasspath.removeAll(groovyImpl);
         apiClasspath.removeAll(installationBeacon);
@@ -126,7 +125,6 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         builder.add(relocatedDepsJar(apiClasspath, RuntimeShadedJarType.API));
         builder.addAll(groovyImpl);
         builder.addAll(kotlinImpl);
-        builder.addAll(declarativeDslImpl);
         builder.addAll(installationBeacon);
         return builder.build();
     }
@@ -134,7 +132,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private void removeKotlin(Collection<File> apiClasspath) {
         for (File file : new ArrayList<>(apiClasspath)) {
             String name = file.getName();
-            if (file.getName().contains("kotlin")) {
+            if (name.contains("kotlin")) {
                 apiClasspath.remove(file);
             }
         }
@@ -145,18 +143,6 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         for (File file : classPath) {
             String name = file.getName();
             if (name.startsWith("kotlin-stdlib-") || name.startsWith("kotlin-reflect-")) {
-                files.add(file);
-            }
-        }
-        return files;
-    }
-
-
-    private List<File> declarativeDslImplFrom(Collection<File> classPath) {
-        ArrayList<File> files = new ArrayList<>();
-        for (File file : classPath) {
-            String name = file.getName();
-            if (name.startsWith("gradle-declarative-dsl-core-")) {
                 files.add(file);
             }
         }
