@@ -39,15 +39,7 @@ import java.util.function.Predicate;
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
 
     private final ProblemReporter problemReporter;
-
-    /** A collection of filters that will serve as a predicate to determine if a diagnostic should be reported or not.*/
     private final Collection<Predicate<Diagnostic<? extends JavaFileObject>>> diagnosticFilters = new ArrayList<>();
-
-    /**
-     * A map of explicit overrides between {@link Diagnostic.Kind} and {@link Severity}.
-     * <p>
-     * This will take precedence over the default mapping defined in {@link #mapKindToSeverity(Diagnostic.Kind)}.
-     */
     private final Map<Diagnostic.Kind, Diagnostic.Kind> severityOverrides = new HashMap<>();
 
 
@@ -55,10 +47,20 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         this.problemReporter = problemReporter;
     }
 
+    /**
+     * Adds a filter, which will serve as a predicate if a diagnostic should be reported or not.
+     * <p>
+     * Multiple filters can be added, and if any of them return {@code true}, the diagnostic will not be reported.
+     */
     public void addDiagnosticFilter(Predicate<Diagnostic<? extends JavaFileObject>> diagnosticFilter) {
         diagnosticFilters.add(diagnosticFilter);
     }
 
+    /**
+     * Adds an explicit override for a given {@link Diagnostic.Kind}
+     * <p>
+     * When reporting a diagnostic, the override will replace the {@link #mapKindToSeverity(Diagnostic.Kind)} of the original diagnostic.
+     */
     public void addSeverityOverride(Diagnostic.Kind fromKind, Diagnostic.Kind toKind) {
         severityOverrides.put(fromKind, toKind);
     }
