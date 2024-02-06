@@ -79,8 +79,8 @@ class ReadelfBinaryInfo implements BinaryInfo {
             def line = it.trim().split(/\s+/)
             if (line.length > 7 && line[3] == "FILE") {
                 def name = line[7]
-                // These are objects added by GCC
-                if (!(name in ["crt1.o", "crtstuff.c"])) {
+                // These are objects added by GCC or Swift toolchains
+                if (!(name in ["crt1.o", "crtstuff.c", "SwiftRT-ELF.cpp"])) {
                     def type = 'F' as char
                     symbols.add(new Symbol(name, type, false))
                 }
