@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl
+package org.gradle.declarative.dsl.model.annotations;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-annotation class Adding
-
-
-annotation class Restricted
-
-
-annotation class Configuring(val propertyName: String = "")
-
-
-annotation class HasDefaultValue
-
-
-annotation class Builder
-
-
-annotation class AccessFromCurrentReceiverOnly
-
-
-annotation class HiddenInDeclarativeDsl
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Adding {}

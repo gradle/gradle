@@ -16,11 +16,11 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
-import org.gradle.internal.declarativedsl.Adding
-import org.gradle.internal.declarativedsl.Builder
-import org.gradle.internal.declarativedsl.Configuring
-import org.gradle.internal.declarativedsl.HasDefaultValue
-import org.gradle.internal.declarativedsl.Restricted
+import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.model.annotations.Builder
+import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
+import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.FqName
 import kotlin.reflect.KCallable

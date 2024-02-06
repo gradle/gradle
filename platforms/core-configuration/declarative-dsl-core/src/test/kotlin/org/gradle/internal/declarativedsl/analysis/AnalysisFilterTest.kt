@@ -18,8 +18,8 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.Configuring
-import org.gradle.internal.declarativedsl.Restricted
+import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.FunctionCall
@@ -31,11 +31,11 @@ import kotlin.test.assertEquals
 
 private
 class TopLevelForAnalysisFilterTest {
-    @Restricted
+    @get:Restricted
     val n1: NestedForAnalysisFilterTest
         get() = TODO()
 
-    @Restricted
+    @get:Restricted
     val n2: NestedForAnalysisFilterTest
         get() = TODO()
 
@@ -49,7 +49,7 @@ class TopLevelForAnalysisFilterTest {
 
 private
 class NestedForAnalysisFilterTest {
-    @Restricted
+    @get:Restricted
     var x = 1
 }
 

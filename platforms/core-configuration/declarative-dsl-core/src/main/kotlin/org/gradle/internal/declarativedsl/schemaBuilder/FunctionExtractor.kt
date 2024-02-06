@@ -16,10 +16,10 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
-import org.gradle.internal.declarativedsl.AccessFromCurrentReceiverOnly
-import org.gradle.internal.declarativedsl.Adding
-import org.gradle.internal.declarativedsl.Builder
-import org.gradle.internal.declarativedsl.Configuring
+import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
+import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.model.annotations.Builder
+import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
 import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DataConstructor

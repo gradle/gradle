@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.internal.declarativedsl.Adding;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -25,6 +24,7 @@ import org.gradle.api.artifacts.repositories.ExclusiveContentRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;

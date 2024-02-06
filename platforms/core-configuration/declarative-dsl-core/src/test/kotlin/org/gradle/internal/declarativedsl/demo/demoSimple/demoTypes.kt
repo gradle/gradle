@@ -2,19 +2,19 @@
 
 package com.example
 
-import org.gradle.internal.declarativedsl.Adding
-import org.gradle.internal.declarativedsl.Builder
-import org.gradle.internal.declarativedsl.Restricted
+import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.model.annotations.Builder
+import org.gradle.declarative.dsl.model.annotations.Restricted
 
 
 class Abc {
-    @Restricted
+    @get:Restricted
     var a: Int = 0
 
     @Restricted
     fun b(): Int = 1
 
-    @Restricted
+    @get:Restricted
     var str: String = ""
 
     @Adding
@@ -37,10 +37,10 @@ class C(var x: Int = 0) {
         return this
     }
 
-    @Restricted
+    @get:Restricted
     var d: D = D()
 
-    @Restricted
+    @get:Restricted
     val y = "test"
 
     @Restricted
@@ -49,7 +49,7 @@ class C(var x: Int = 0) {
 
 
 class D {
-    @Restricted
+    @get:Restricted
     var id: String = "none"
 }
 

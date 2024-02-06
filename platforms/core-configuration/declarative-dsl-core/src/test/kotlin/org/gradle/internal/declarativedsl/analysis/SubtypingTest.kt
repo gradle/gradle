@@ -16,8 +16,8 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.Adding
-import org.gradle.internal.declarativedsl.Restricted
+import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Test
@@ -116,10 +116,10 @@ object SubtypingTest {
 
 private
 abstract class TopLevelForSubtyping {
-    @Restricted
+    @get:Restricted
     abstract var superClassProp: SuperClass
 
-    @Restricted
+    @get:Restricted
     abstract var superInterfaceProp: SuperInterface
 
     @Adding

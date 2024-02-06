@@ -15,7 +15,7 @@
  */
 package org.gradle.api.initialization;
 
-import org.gradle.internal.declarativedsl.Restricted;
+import org.gradle.declarative.dsl.model.annotations.Restricted;
 
 import javax.annotation.Nullable;
 import java.io.File;

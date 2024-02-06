@@ -16,8 +16,8 @@
 
 package org.gradle.plugin.use;
 
-import org.gradle.internal.declarativedsl.Builder;
 import org.gradle.api.provider.Provider;
+import org.gradle.declarative.dsl.model.annotations.Builder;
 
 import javax.annotation.Nullable;
 

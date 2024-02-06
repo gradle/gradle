@@ -16,8 +16,8 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.internal.declarativedsl.Configuring
-import org.gradle.internal.declarativedsl.Restricted
+import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
 import org.gradle.internal.declarativedsl.analysis.DataConstructor
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
@@ -150,10 +150,10 @@ object AccessorTest {
 
     internal
     class Configured {
-        @Restricted
+        @get:Restricted
         var x: Int = 0
 
-        @Restricted
+        @get:Restricted
         var y: String = ""
     }
 }

@@ -16,15 +16,15 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.internal.declarativedsl.Configuring
-import org.gradle.internal.declarativedsl.Restricted
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.Restricted
 
 
 internal
 interface ProjectTopLevelReceiver {
-    @Restricted
+    @get:Restricted
     val dependencies: RestrictedDependenciesHandler
 
     @Configuring

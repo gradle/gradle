@@ -16,8 +16,8 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.Adding
-import org.gradle.internal.declarativedsl.Restricted
+import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.FunctionArgument
@@ -133,7 +133,7 @@ object ResolutionTracerTest {
         @Adding
         fun f(@Suppress("UNUSED_PARAMETER") x: Int) = 0
 
-        @Restricted
+        @get:Restricted
         var s: String = ""
     }
 

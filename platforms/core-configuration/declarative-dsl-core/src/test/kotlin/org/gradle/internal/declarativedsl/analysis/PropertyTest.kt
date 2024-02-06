@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.Restricted
+import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
@@ -68,10 +68,10 @@ object PropertyTest {
 
     private
     interface MyReceiver {
-        @Restricted
+        @get:Restricted
         val x: Int
 
-        @Restricted
+        @get:Restricted
         var y: Int
     }
 

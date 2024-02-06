@@ -16,12 +16,12 @@
 
 package org.gradle.plugin.management;
 
-import org.gradle.internal.declarativedsl.Adding;
-import org.gradle.internal.declarativedsl.Configuring;
-import org.gradle.internal.declarativedsl.Restricted;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
+import org.gradle.declarative.dsl.model.annotations.Adding;
+import org.gradle.declarative.dsl.model.annotations.Configuring;
+import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 

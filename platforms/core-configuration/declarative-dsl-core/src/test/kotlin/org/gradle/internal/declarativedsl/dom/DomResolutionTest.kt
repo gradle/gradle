@@ -16,17 +16,17 @@
 
 package org.gradle.internal.declarativedsl.dom
 
-import org.gradle.internal.declarativedsl.Adding
-import org.gradle.internal.declarativedsl.Configuring
-import org.gradle.internal.declarativedsl.HiddenInDeclarativeDsl
-import org.gradle.internal.declarativedsl.Restricted
+import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.SchemaFunction
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
-import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
-import org.gradle.internal.declarativedsl.parsing.parse
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
+import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
+import org.gradle.internal.declarativedsl.parsing.parse
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
@@ -234,13 +234,13 @@ object DomResolutionTest {
             configure(it)
         }
 
-        @Restricted
+        @get:Restricted
         lateinit var complexValueOne: ComplexValueOne
 
-        @Restricted
+        @get:Restricted
         lateinit var complexValueOneFromUtils: ComplexValueOne
 
-        @Restricted
+        @get:Restricted
         lateinit var complexValueTwo: ComplexValueTwo
 
         @Adding
@@ -255,11 +255,11 @@ object DomResolutionTest {
         @Restricted
         fun two(name: String): ComplexValueTwo = ComplexValueTwo()
 
-        @Restricted
+        @get:Restricted
         val utils: Utils = Utils()
 
-        @Restricted
-        @HiddenInDeclarativeDsl
+        @get:Restricted
+        @get:HiddenInDeclarativeDsl
         val nested = NestedReceiver()
     }
 
@@ -271,17 +271,17 @@ object DomResolutionTest {
     @Suppress("unused")
     private
     class TopLevelElement {
-        @Restricted
+        @get:Restricted
         var name: String = ""
 
-        @Restricted
+        @get:Restricted
         var number: Int = 0
     }
 
     @Suppress("unused")
     private
     class NestedReceiver {
-        @Restricted
+        @get:Restricted
         var number: Int = 0
 
         @Adding

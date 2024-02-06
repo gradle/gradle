@@ -18,10 +18,10 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.AccessFromCurrentReceiverOnly
-import org.gradle.internal.declarativedsl.Adding
-import org.gradle.internal.declarativedsl.Configuring
-import org.gradle.internal.declarativedsl.Restricted
+import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
+import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Test
@@ -34,7 +34,7 @@ class TopLevelForTest {
     @Configuring
     fun inner(f: HasAnnotatedMembers.() -> Unit) = Unit
 
-    @Restricted
+    @get:Restricted
     val inner: HasAnnotatedMembers
         get() = TODO()
 }
@@ -42,11 +42,11 @@ class TopLevelForTest {
 
 private
 class HasAnnotatedMembers {
-    @Restricted
-    @AccessFromCurrentReceiverOnly
+    @get:Restricted
+    @get:AccessFromCurrentReceiverOnly
     var x: Int = 0
 
-    @Restricted
+    @get:Restricted
     var y: Int = 0
 
     @Adding
@@ -56,7 +56,7 @@ class HasAnnotatedMembers {
     @Configuring
     fun nested(fn: Nested.() -> Unit) = Unit
 
-    @Restricted
+    @get:Restricted
     val nested: Nested
         get() = TODO()
 }
@@ -64,7 +64,7 @@ class HasAnnotatedMembers {
 
 private
 class Nested {
-    @Restricted
+    @get:Restricted
     var n = 1
 }
 

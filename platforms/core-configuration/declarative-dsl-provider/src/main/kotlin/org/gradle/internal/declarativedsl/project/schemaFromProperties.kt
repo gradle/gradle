@@ -16,8 +16,6 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.internal.declarativedsl.AccessFromCurrentReceiverOnly
-import org.gradle.internal.declarativedsl.HiddenInDeclarativeDsl
 import org.gradle.internal.declarativedsl.analysis.DataProperty
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
@@ -26,6 +24,8 @@ import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
 import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRefOrError
 import org.gradle.api.provider.Property
+import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KType

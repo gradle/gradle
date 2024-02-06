@@ -1,11 +1,11 @@
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.Adding
-import org.gradle.internal.declarativedsl.Restricted
+import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.model.annotations.Restricted
 
 
 class MyClass {
-    @Restricted
+    @get:Restricted
     lateinit var my: MyClass
 }
 

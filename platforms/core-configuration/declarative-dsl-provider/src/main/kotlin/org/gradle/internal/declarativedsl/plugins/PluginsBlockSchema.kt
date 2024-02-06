@@ -32,11 +32,11 @@ package org.gradle.internal.declarativedsl.plugins
  * limitations under the License.
  */
 
-import org.gradle.internal.declarativedsl.AccessFromCurrentReceiverOnly
-import org.gradle.internal.declarativedsl.Adding
-import org.gradle.internal.declarativedsl.Builder
-import org.gradle.internal.declarativedsl.Configuring
-import org.gradle.internal.declarativedsl.Restricted
+import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
+import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.model.annotations.Builder
+import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
@@ -70,12 +70,12 @@ class PluginsCollectingPluginsBlock() : PluginDependenciesSpec {
 class MutablePluginDependencySpec(
     val id: String
 ) : PluginDependencySpec {
-    @Restricted
+    @get:Restricted
     var version: String? = null
         private
         set
 
-    @Restricted
+    @get:Restricted
     var apply: Boolean = true
         private
         set

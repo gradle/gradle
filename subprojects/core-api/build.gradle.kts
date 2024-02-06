@@ -20,7 +20,6 @@ errorprone {
 }
 
 dependencies {
-    compileOnly(project(":declarative-dsl-core"))
     compileOnly(libs.jetbrainsAnnotations)
 
     api(project(":process-services"))
@@ -30,13 +29,13 @@ dependencies {
     api(project(":files"))
     api(project(":resources"))
     api(project(":persistent-cache"))
+    api(project(":declarative-dsl-api"))
     api(libs.jsr305)
     api(libs.groovy)
     api(libs.groovyAnt)
     api(libs.guava)
     api(libs.ant)
     api(libs.inject)
-
 
     implementation(project(":base-services-groovy"))
     implementation(project(":logging"))

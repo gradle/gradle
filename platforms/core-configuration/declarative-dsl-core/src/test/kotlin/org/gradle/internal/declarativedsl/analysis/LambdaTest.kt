@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.internal.declarativedsl.Adding
+import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import kotlin.reflect.KClass

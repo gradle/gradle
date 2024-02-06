@@ -16,10 +16,10 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
+import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.reflection.reflect
-import org.gradle.internal.declarativedsl.Adding
-import org.gradle.internal.declarativedsl.Configuring
-import org.gradle.internal.declarativedsl.Restricted
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
@@ -73,14 +73,15 @@ class CustomLambdasTest {
 
 
 class Outer {
-    @Restricted
+    @get:Restricted
     val inner: Inner = Inner()
 
-    @Configuring("inner")
+    @Configuring(propertyName = "inner")
     fun configureInner(fn: Functional) {
         fn.configure(inner)
     }
-    @Configuring("inner")
+
+    @Configuring(propertyName = "inner")
     fun configureInnerWithGeneric(fn: GenericFunctional<Inner>) {
         fn.configure(inner)
     }
@@ -98,7 +99,7 @@ interface GenericFunctional<T> {
 
 
 class Inner {
-    @Restricted
+    @get:Restricted
     var x = 0
 
     @Adding
