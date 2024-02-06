@@ -370,9 +370,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ?
             resolveContext.getSyntheticDependencies() : Collections.emptyList();
 
-        // ResolveContext and ResolutionStrategy should not be passed into the dependency graph resolver.
-        // The resolver should be agnostic of these types so that it may be used to resolve
-        // non-Configuration types.
         dependencyGraphResolver.resolve(
             resolveContext.toRootComponent(),
             syntheticDependencies,

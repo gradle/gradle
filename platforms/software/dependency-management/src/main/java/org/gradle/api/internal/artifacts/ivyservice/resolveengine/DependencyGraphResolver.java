@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
@@ -55,8 +54,7 @@ import java.util.List;
 import static org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator.NO_OP;
 
 /**
- * Resolves a {@link ResolveContext} and visits the resulting graph. Essentially, this
- * class is a {@link DependencyGraphBuilder} executor.
+ * Resolves a dependency graph and visits it. Essentially, this class is a {@link DependencyGraphBuilder} executor.
  */
 public class DependencyGraphResolver {
     private final DependencyMetadataFactory dependencyMetadataFactory;
@@ -88,6 +86,11 @@ public class DependencyGraphResolver {
 
     /**
      * Perform a graph resolution, visiting the resolved graph with the provided visitor.
+     *
+     * <p>We should keep this class independent of
+     * {@link org.gradle.api.internal.artifacts.ResolveContext} and
+     * {@link org.gradle.api.artifacts.ResolutionStrategy}</p>, as those are tightly
+     * coupled to a Configuration, and this resolver should be able to resolve non-Configuration types.
      */
     public void resolve(
         RootComponentMetadataBuilder.RootComponentState rootComponent,
