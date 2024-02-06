@@ -78,16 +78,23 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             return;
         }
 
+        InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
+        if (getParameters().getAgentSupported().get()) {
+            // When agent is supported, we output an instrumented jar and an original jar,
+            // so we can then later reconstruct instrumented jars classpath and original jars classpath
+            doTransformForAgent(input, outputs, injectedServices);
+        } else {
+            doTransform(input, outputs, injectedServices);
+        }
+    }
+
+    private void doTransformForAgent(File input, TransformOutputs outputs, InjectedInstrumentationServices injectedServices) {
         // A marker file that indicates that the result is instrumented jar,
         // this is important so TransformedClassPath can correctly filter instrumented jars.
         createNewFile(outputs.file(INSTRUMENTED_MARKER_FILE_NAME));
 
         // Instrument jars
-        InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
-        File outputFile = outputs.file(INSTRUMENTED_JAR_DIR_NAME + "/" + input.getName());
-        ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(getParameters().getAgentSupported().get());
-        ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
-        transform.transform(outputFile);
+        doTransform(input, outputs, injectedServices);
 
         // Copy original jars after in case they are not in global cache
         if (input.isDirectory()) {
@@ -103,6 +110,13 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             File copyOfOriginalFile = outputs.file(ORIGINAL_JAR_DIR_NAME + "/" + input.getName());
             GFileUtils.copyFile(input, copyOfOriginalFile);
         }
+    }
+
+    private void doTransform(File input, TransformOutputs outputs, InjectedInstrumentationServices injectedServices) {
+        File outputFile = outputs.file(INSTRUMENTED_JAR_DIR_NAME + "/" + input.getName());
+        ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(getParameters().getAgentSupported().get());
+        ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
+        transform.transform(outputFile);
     }
 
     private boolean createNewFile(File file) {
