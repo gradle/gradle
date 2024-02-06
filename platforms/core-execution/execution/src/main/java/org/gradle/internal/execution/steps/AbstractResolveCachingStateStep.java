@@ -52,16 +52,14 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
     @Override
     public CachingResult execute(UnitOfWork work, C context) {
         CachingState cachingState;
-        if (!context.getValidationProblems().isEmpty()) {
-            cachingState = VALIDATION_FAILED_STATE;
-        } else {
-            cachingState = context.getBeforeExecutionState()
-                .map(beforeExecutionState -> calculateCachingState(work, context, beforeExecutionState))
-                .orElseGet(() -> calculateCachingStateWithNoCapturedInputs(work));
-        }
+        cachingState = context.getBeforeExecutionState()
+            .map(beforeExecutionState -> calculateCachingState(work, context, beforeExecutionState))
+            .orElseGet(() -> !context.getValidationProblems().isEmpty()
+                ? VALIDATION_FAILED_STATE
+                : calculateCachingStateWithNoCapturedInputs(work));
 
         cachingState.apply(
-            enabled -> logCacheKey(enabled.getKey(), work),
+            enabled -> logCacheKey(enabled.getCacheKeyCalculatedState().getKey(), work),
             disabled -> logDisabledReasons(disabled.getDisabledReasons(), work)
         );
 
@@ -74,9 +72,12 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
         CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(logger);
-        HashCode cacheKey = cacheKeyFromContext(context)
+        HashCode cacheKey = getPreviousCacheKeyIfApplicable(context)
             .orElseGet(() -> cachingStateFactory.calculateCacheKey(beforeExecutionState));
         ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder = ImmutableList.builder();
+        if (!context.getValidationProblems().isEmpty()) {
+            cachingDisabledReasonsBuilder.add(VALIDATION_FAILED_REASON);
+        }
         if (!buildCache.isEnabled()) {
             cachingDisabledReasonsBuilder.add(BUILD_CACHE_DISABLED_REASON);
         }
@@ -88,7 +89,10 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
         return cachingStateFactory.createCachingState(beforeExecutionState, cacheKey, cachingDisabledReasonsBuilder.build());
     }
 
-    protected abstract Optional<HashCode> cacheKeyFromContext(C context);
+    /**
+     * Return cache key from previous build if there are no changes.
+     */
+    protected abstract Optional<HashCode> getPreviousCacheKeyIfApplicable(C context);
 
     protected abstract UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState);
 

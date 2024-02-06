@@ -22,42 +22,31 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
-import org.gradle.internal.execution.caching.impl.DefaultCachingStateFactory;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.DefaultIncrementalInputProperties;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.IncrementalInputProperties;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.properties.InputBehavior;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.NOPLogger;
 
 import javax.annotation.Nonnull;
-import java.util.function.BooleanSupplier;
 
 import static org.gradle.internal.execution.history.changes.ExecutionStateChanges.nonIncremental;
 
 public class ResolveChangesStep<C extends ValidationFinishedContext, R extends Result> implements Step<C, R> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveChangesStep.class);
     private static final ImmutableList<String> NO_HISTORY = ImmutableList.of("No history is available.");
     private static final ImmutableList<String> UNTRACKED = ImmutableList.of("Change tracking is disabled.");
     private static final ImmutableList<String> VALIDATION_FAILED = ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.");
 
     private final ExecutionStateChangeDetector changeDetector;
-    private final BooleanSupplier emitBuildCacheDebugLogging;
 
     private final Step<? super IncrementalChangesContext, R> delegate;
 
     public ResolveChangesStep(
         ExecutionStateChangeDetector changeDetector,
-        BooleanSupplier emitBuildCacheDebugLogging,
         Step<? super IncrementalChangesContext, R> delegate
     ) {
         this.changeDetector = changeDetector;
-        this.emitBuildCacheDebugLogging = emitBuildCacheDebugLogging;
         this.delegate = delegate;
     }
 
@@ -65,28 +54,15 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
     public R execute(UnitOfWork work, C context) {
         IncrementalChangesContext delegateContext = context.getBeforeExecutionState()
             .map(beforeExecution -> resolveExecutionStateChanges(work, context, beforeExecution))
-            .map(changes -> {
-                HashCode cacheKey = context.getPreviousExecutionState()
-                    .filter(__ -> changes.getChangeDescriptions().isEmpty())
-                    .map(PreviousExecutionState::getCacheKey)
-                    .orElseGet(() -> calculateCacheKey(changes.getBeforeExecutionState()));
-                return new IncrementalChangesContext(context, changes.getChangeDescriptions(), changes, cacheKey);
-            })
+            .map(changes -> new IncrementalChangesContext(context, changes.getChangeDescriptions(), changes))
             .orElseGet(() -> {
                 ImmutableList<String> rebuildReason = context.getNonIncrementalReason()
                     .map(ImmutableList::of)
                     .orElse(UNTRACKED);
-                return new IncrementalChangesContext(context, rebuildReason, null, null);
+                return new IncrementalChangesContext(context, rebuildReason, null);
             });
 
         return delegate.execute(work, delegateContext);
-    }
-
-    private HashCode calculateCacheKey(BeforeExecutionState beforeExecutionState) {
-        Logger logger = emitBuildCacheDebugLogging.getAsBoolean()
-            ? LOGGER
-            : NOPLogger.NOP_LOGGER;
-        return new DefaultCachingStateFactory(logger).calculateCacheKey(beforeExecutionState);
     }
 
     @Nonnull

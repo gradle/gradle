@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
@@ -26,11 +27,12 @@ import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class StoreExecutionStateStep<C extends IncrementalChangesContext, R extends AfterExecutionResult> implements Step<C, R> {
+public class StoreExecutionStateStep<C extends PreviousExecutionContext & CachingContext, R extends AfterExecutionResult> implements Step<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
     public StoreExecutionStateStep(
@@ -43,19 +45,22 @@ public class StoreExecutionStateStep<C extends IncrementalChangesContext, R exte
     public R execute(UnitOfWork work, C context) {
         R result = delegate.execute(work, context);
         context.getHistory()
-            .ifPresent(history -> context.getBeforeExecutionState()
-                .flatMap(beforeExecutionState -> result.getAfterExecutionOutputState()
+            .ifPresent(history -> context.getCachingState().getCacheKeyCalculatedState()
+                .flatMap(cacheKeyCalculatedState -> result.getAfterExecutionOutputState()
                     .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
-                    .map(executionOutputState -> new DefaultAfterExecutionState(beforeExecutionState, executionOutputState)))
+                    .map(executionOutputState -> new DefaultAfterExecutionState(
+                        ((DefaultBuildCacheKey) cacheKeyCalculatedState.getKey()).getHashCodeInternal(),
+                        cacheKeyCalculatedState.getBeforeExecutionState(),
+                        executionOutputState
+                    )))
                 .ifPresent(afterExecutionState -> history.store(
                     context.getIdentity().getUniqueId(),
                     // TODO: Encode the "no cache key available" case in the context type hierarchy
-                    context.getCacheKey().orElseThrow(() -> new IllegalStateException("Cache key needs to be present when we store the execution history")),
                     afterExecutionState)));
         return result;
     }
 
-    private static <C extends BeforeExecutionContext> boolean shouldPreserveFailedState(C context, ExecutionOutputState afterExecutionOutputState) {
+    private static <C extends PreviousExecutionContext> boolean shouldPreserveFailedState(C context, ExecutionOutputState afterExecutionOutputState) {
         // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
         // For example the current execution fails because of a compilation failure and for the next execution the source file is fixed,
         // so only the one changed source file needs to be compiled.
@@ -83,8 +88,10 @@ public class StoreExecutionStateStep<C extends IncrementalChangesContext, R exte
     private static class DefaultAfterExecutionState implements AfterExecutionState {
         private final BeforeExecutionState beforeExecutionState;
         private final ExecutionOutputState afterExecutionOutputState;
+        private final HashCode cacheKey;
 
-        public DefaultAfterExecutionState(BeforeExecutionState beforeExecutionState, ExecutionOutputState afterExecutionOutputState) {
+        public DefaultAfterExecutionState(HashCode cacheKey, BeforeExecutionState beforeExecutionState, ExecutionOutputState afterExecutionOutputState) {
+            this.cacheKey = cacheKey;
             this.beforeExecutionState = beforeExecutionState;
             this.afterExecutionOutputState = afterExecutionOutputState;
         }
@@ -107,6 +114,11 @@ public class StoreExecutionStateStep<C extends IncrementalChangesContext, R exte
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
             return beforeExecutionState.getInputFileProperties();
+        }
+
+        @Override
+        public HashCode getCacheKey() {
+            return cacheKey;
         }
 
         @Override

@@ -17,10 +17,10 @@
 package org.gradle.integtests.fixtures
 
 import groovy.json.JsonSlurper
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UserInitScriptExecuterFixture
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
@@ -35,30 +35,29 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 
-import java.time.Duration
+class BuildCacheKeyFixture extends UserInitScriptExecuterFixture {
 
-class OriginFixture extends UserInitScriptExecuterFixture {
+    Map<String, HashCode> buildCacheKeys = [:]
 
-    Map<String, OriginMetadata> origins = [:]
-
-    OriginFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
+    BuildCacheKeyFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
         super(executer, testDir)
     }
 
     private TestFile getFile() {
-        testDir.testDirectory.file("outputOrigin.json")
+        testDir.testDirectory.file("outputBuildCacheKey.json")
     }
 
     @Override
     String initScriptContent() {
         """
-            interface OriginCollectorParams extends ${BuildServiceParameters.name} {
-                RegularFileProperty getOriginJson()
+            interface BuildCacheKeyCollectorParams extends ${BuildServiceParameters.name} {
+                RegularFileProperty getBuildCacheKeyJson()
             }
 
-            abstract class OriginCollector implements ${BuildService.name}<OriginCollectorParams>, ${BuildOperationListener.name}, AutoCloseable {
+            abstract class BuildCacheKeyCollector implements ${BuildService.name}<BuildCacheKeyCollectorParams>, ${BuildOperationListener.name}, AutoCloseable {
 
-                private final Map<String, Map<String, Object>> origins = [:]
+                private final Map<Long, byte[]> buildCacheKeysByParentId = [:]
+                private final Map<String, byte[]> buildCacheKeys = [:]
 
                 @Override
                 void started($BuildOperationDescriptor.name buildOperation, $OperationStartEvent.name startEvent) {}
@@ -66,22 +65,15 @@ class OriginFixture extends UserInitScriptExecuterFixture {
                 @Override
                 void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
                     if (finishEvent.result instanceof $ExecuteTaskBuildOperationType.Result.name) {
-                        def buildInvocationId = finishEvent.result.originBuildInvocationId
-                        def originBuildCacheKey = finishEvent.result.originBuildCacheKeyBytes
-                        def executionTime = finishEvent.result.originExecutionTime
-                        def entry = null
-                        if (buildInvocationId) {
-                            assert executionTime != null
-                            entry = [
-                                buildInvocationId: buildInvocationId,
-                                originBuildCacheKey: originBuildCacheKey,
-                                executionTime: executionTime
-                            ]
-                        } else {
-                            assert executionTime == null
-                            assert originBuildCacheKey == null
+                        def buildCacheKey = buildCacheKeysByParentId.remove(buildOperation.id.id)
+                        if (buildCacheKey != null) {
+                            buildCacheKeys.put(buildOperation.details.task.getIdentityPath(), buildCacheKey)
                         }
-                        origins[buildOperation.details.task.getIdentityPath()] = entry
+                    }
+                    if (finishEvent.result instanceof $SnapshotTaskInputsBuildOperationType.Result.name) {
+                        if (finishEvent.result.hashBytes != null) {
+                            buildCacheKeysByParentId.put(buildOperation.parentId.id, finishEvent.result.hashBytes)
+                        }
                     }
                 }
 
@@ -90,13 +82,13 @@ class OriginFixture extends UserInitScriptExecuterFixture {
 
                 @Override
                 void close() {
-                    parameters.originJson.get().asFile.text = groovy.json.JsonOutput.toJson(origins)
+                    parameters.buildCacheKeyJson.get().asFile.text = groovy.json.JsonOutput.toJson(buildCacheKeys)
                 }
             }
 
             if (gradle.parent == null) {
-                def collector = gradle.sharedServices.registerIfAbsent("originsCollector", OriginCollector) {
-                    parameters.originJson.fileValue(new File("${TextUtil.normaliseFileSeparators(file.absolutePath)}"))
+                def collector = gradle.sharedServices.registerIfAbsent("buildCacheKeyCollector", BuildCacheKeyCollector) {
+                    parameters.buildCacheKeyJson.fileValue(new File("${TextUtil.normaliseFileSeparators(file.absolutePath)}"))
                 }
                 gradle.services.get(${BuildEventListenerRegistryInternal.name}).onOperationCompletion(collector)
             }
@@ -105,25 +97,15 @@ class OriginFixture extends UserInitScriptExecuterFixture {
 
     @Override
     void afterBuild() {
-        def rawOrigins = (Map<String, Map<String, String>>) new JsonSlurper().parse(file)
-        origins.clear()
-        rawOrigins.each {
-            origins[it.key] = it.value == null ? null : new OriginMetadata(
-                it.value.buildInvocationId as String,
-                HashCode.fromBytes(it.value.originBuildCacheKey as byte[]),
-                Duration.ofMillis(it.value.executionTime as long)
-            )
+        def rawBuildCacheKeys = (Map<String, List<Integer>>) new JsonSlurper().parse(file)
+        buildCacheKeys.clear()
+        rawBuildCacheKeys.each {
+            buildCacheKeys[it.key] = HashCode.fromBytes(it.value as byte[])
         }
     }
 
-    String originId(String path) {
-        origin(path)?.buildInvocationId
-    }
-
-    OriginMetadata origin(String path) {
-        def tasks = origins.keySet()
-        assert path in tasks
-        origins[path]
+    HashCode buildCacheKey(String path) {
+        buildCacheKeys[path]
     }
 
 }
