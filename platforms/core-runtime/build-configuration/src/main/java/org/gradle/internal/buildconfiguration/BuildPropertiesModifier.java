@@ -23,7 +23,6 @@ import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
@@ -32,7 +31,7 @@ public abstract class BuildPropertiesModifier {
 
     protected File projectDir;
 
-    public BuildPropertiesModifier(@Nonnull File projectDir) {
+    public BuildPropertiesModifier(File projectDir) {
         this.projectDir = projectDir;
     }
 

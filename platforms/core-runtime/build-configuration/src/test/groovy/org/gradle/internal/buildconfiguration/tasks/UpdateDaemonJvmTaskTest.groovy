@@ -53,8 +53,8 @@ class UpdateDaemonJvmTaskTest extends AbstractTaskTest {
     def "When execute updateDaemonJvm with different options Then build file contains the specified jvm criteria"() {
         given:
         daemonJvmTask.toolchainVersion.set(11)
-        daemonJvmTask.setToolchainVendor(KnownJvmVendor.IBM)
-        daemonJvmTask.setToolchainImplementation(JvmImplementation.VENDOR_SPECIFIC)
+        daemonJvmTask.toolchainVendor.set(KnownJvmVendor.IBM)
+        daemonJvmTask.toolchainImplementation.set(JvmImplementation.VENDOR_SPECIFIC)
 
         when:
         execute(daemonJvmTask)
@@ -74,7 +74,7 @@ class UpdateDaemonJvmTaskTest extends AbstractTaskTest {
 
         when:
         daemonJvmTask.toolchainVersion.set(17)
-        daemonJvmTask.setToolchainVendor(KnownJvmVendor.ADOPTIUM)
+        daemonJvmTask.toolchainVendor.set(KnownJvmVendor.ADOPTIUM)
         execute(daemonJvmTask)
 
         then:
@@ -85,8 +85,8 @@ class UpdateDaemonJvmTaskTest extends AbstractTaskTest {
 
     private def assertDaemonJvmProperties(Integer version, KnownJvmVendor vendor = null, JvmImplementation implementation = null) {
         assertEquals(version, daemonJvmTask.toolchainVersion.get())
-        assertEquals(vendor, daemonJvmTask.toolchainVendor?.knownVendor)
-        assertEquals(implementation, daemonJvmTask.toolchainImplementation)
+        assertEquals(vendor, daemonJvmTask.toolchainVendor.getOrNull())
+        assertEquals(implementation, daemonJvmTask.toolchainImplementation.getOrNull())
 
         def properties = GUtil.loadProperties(expectedBuildGradleProperties)
         assertEquals(version.toString(), properties.getProperty(BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY))

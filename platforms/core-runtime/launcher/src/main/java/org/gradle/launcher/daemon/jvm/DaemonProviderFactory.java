@@ -21,7 +21,6 @@ import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,37 +39,31 @@ class DaemonProviderFactory extends DefaultProviderFactory {
     }
 
     @Override
-    @Nonnull
-    public Provider<String> environmentVariable(@Nonnull String variableName) {
+    public Provider<String> environmentVariable(String variableName) {
         return environmentVariable(Providers.of(variableName));
     }
 
     @Override
-    @Nonnull
     public Provider<String> environmentVariable(Provider<String> variableName) {
         return variableName.map(System::getenv);
     }
 
     @Override
-    @Nonnull
-    public Provider<String> systemProperty(@Nonnull String propertyName) {
+    public Provider<String> systemProperty(String propertyName) {
         return systemProperty(Providers.of(propertyName));
     }
 
     @Override
-    @Nonnull
     public Provider<String> systemProperty(Provider<String> propertyName) {
         return propertyName.map(this::getProperty);
     }
 
     @Override
-    @Nonnull
-    public Provider<String> gradleProperty(@Nonnull String propertyName) {
+    public Provider<String> gradleProperty(String propertyName) {
         return gradleProperty(Providers.of(propertyName));
     }
 
     @Override
-    @Nonnull
     public Provider<String> gradleProperty(Provider<String> propertyName) {
         return propertyName.map(this::getProperty);
     }

@@ -39,7 +39,6 @@ import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
 import org.gradle.process.internal.ExecFactory;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
 import static org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier.AUTO_DETECT;
@@ -62,7 +61,6 @@ public class DaemonJavaInstallationRegistryFactory implements JavaInstallationRe
     }
 
     @Override
-    @Nonnull
     public JavaInstallationRegistry getRegistry(StartParameter startParameter) {
         List<InstallationSupplier> installationSuppliers = getInstallationSuppliers(startParameter);
         return new JavaInstallationRegistry(installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory);

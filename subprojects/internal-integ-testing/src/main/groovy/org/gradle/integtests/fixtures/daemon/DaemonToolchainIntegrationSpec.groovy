@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.provider.Property
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -27,9 +26,10 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.jvm.toolchain.internal.JvmInstallationMetadataMatcher
+import org.gradle.util.TestUtil
 
 abstract class DaemonToolchainIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -93,7 +93,7 @@ abstract class DaemonToolchainIntegrationSpec extends AbstractIntegrationSpec {
 
     private JvmInstallationMetadata findMatchingToolchain(JavaVersion version, JvmVendor vendor) {
         def metadataComparator = new JvmInstallationMetadataComparator(Jvm.current().getJavaHome())
-        def toolchainSpec = mockToolchainSpec(version.majorVersion, vendor.rawVendor, null)
+        def toolchainSpec = createToolchainSpec(version.majorVersion, vendor.rawVendor)
         def matcher = new JvmInstallationMetadataMatcher(toolchainSpec)
 
         return AvailableJavaHomes.getAvailableJvms().collect { jvm ->
@@ -105,23 +105,10 @@ abstract class DaemonToolchainIntegrationSpec extends AbstractIntegrationSpec {
             .get()
     }
 
-    private JavaToolchainSpec mockToolchainSpec(String version, String vendor, String implementation) {
-        Property<JavaLanguageVersion> javaLanguageVersionProperty = mockProperty(JavaLanguageVersion.of(version))
-        Property<JvmImplementation> implementationProperty = mockProperty(implementation ?: JvmImplementation.VENDOR_SPECIFIC)
-        Property<JvmVendorSpec> vendorProperty = mockProperty(JvmVendorSpec.matching(vendor))
-
-        return Mock(JavaToolchainSpec) {
-            getLanguageVersion() >> javaLanguageVersionProperty
-            getImplementation() >> implementationProperty
-            getVendor() >> vendorProperty
-            getDisplayName() >> "mock spec"
-        }
-    }
-
-    private def mockProperty(value) {
-        return Mock(Property.class) {
-            get() >> value
-            getOrNull() >> value
-        }
+    private JavaToolchainSpec createToolchainSpec(String version, String vendor) {
+        DefaultToolchainSpec toolchainSpec = TestUtil.objectFactory().newInstance(DefaultToolchainSpec)
+        toolchainSpec.languageVersion.set(JavaLanguageVersion.of(version))
+        toolchainSpec.vendor.set(JvmVendorSpec.matching(vendor))
+        return toolchainSpec
     }
 }

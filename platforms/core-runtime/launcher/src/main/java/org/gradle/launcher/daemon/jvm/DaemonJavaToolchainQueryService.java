@@ -28,7 +28,6 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JvmInstallationMetadataMatcher;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Comparator;
 import java.util.Optional;
@@ -49,8 +48,7 @@ public class DaemonJavaToolchainQueryService {
         this.currentJavaHome = currentJavaHome;
     }
 
-    @Nonnull
-    public JvmInstallationMetadata findMatchingToolchain(@Nonnull JavaToolchainSpec toolchainSpec, @Nonnull StartParameter parameters) throws GradleException {
+    public JvmInstallationMetadata findMatchingToolchain(JavaToolchainSpec toolchainSpec, StartParameter parameters) throws GradleException {
         Optional<JvmToolchainMetadata> installation = locateToolchain(toolchainSpec, parameters);
         if (!installation.isPresent()) {
             String exceptionMessage = String.format(
@@ -61,7 +59,7 @@ public class DaemonJavaToolchainQueryService {
         return installation.get().metadata;
     }
 
-    private Optional<JvmToolchainMetadata> locateToolchain(@Nonnull JavaToolchainSpec toolchainSpec, @Nonnull StartParameter parameters) {
+    private Optional<JvmToolchainMetadata> locateToolchain(JavaToolchainSpec toolchainSpec, StartParameter parameters) {
         JavaInstallationRegistry registry = javaInstallationRegistryFactory.getRegistry(parameters);
         Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(toolchainSpec);
         JvmInstallationMetadataComparator metadataComparator = new JvmInstallationMetadataComparator(currentJavaHome);

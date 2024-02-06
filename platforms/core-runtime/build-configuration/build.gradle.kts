@@ -7,12 +7,13 @@ description = "The Build configuration properties modifiers and helpers."
 dependencies {
     api(libs.jsr305)
 
-    api(project(":base-annotations"))
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":jvm-services"))
     api(project(":toolchains-jvm-shared"))
+
+    implementation(project(":base-annotations"))
 
     testImplementation(testFixtures(project(":core")))
 

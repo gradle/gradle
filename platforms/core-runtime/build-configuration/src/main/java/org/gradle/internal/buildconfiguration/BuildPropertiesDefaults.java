@@ -17,9 +17,7 @@
 package org.gradle.internal.buildconfiguration;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
 
-@NonNullApi
 public class BuildPropertiesDefaults {
     public static final String TOOLCHAIN_VERSION_PROPERTY = "daemon.jvm.toolchain.version";
     public static final String TOOLCHAIN_VENDOR_PROPERTY = "daemon.jvm.toolchain.vendor";

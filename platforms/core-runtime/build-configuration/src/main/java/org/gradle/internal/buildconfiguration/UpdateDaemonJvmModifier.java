@@ -20,18 +20,17 @@ import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JvmImplementation;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 
 public class UpdateDaemonJvmModifier extends BuildPropertiesModifier {
 
-    public UpdateDaemonJvmModifier(@Nonnull File projectDir) {
+    public UpdateDaemonJvmModifier(File projectDir) {
         super(projectDir);
     }
 
     public void updateJvmCriteria(
-        @Nonnull Integer toolchainVersion,
+        Integer toolchainVersion,
         @Nullable JvmVendor toolchainVendor,
         @Nullable JvmImplementation toolchainImplementation
     ) {

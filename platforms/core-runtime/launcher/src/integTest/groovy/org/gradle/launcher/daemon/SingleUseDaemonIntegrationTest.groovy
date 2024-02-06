@@ -111,14 +111,13 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
             daemon.jvm.toolchain.vendor=$otherJdkMetadata.vendor.knownVendor
         """
 
-        file('build.gradle') << "println 'javaVersion=' + org.gradle.internal.jvm.Jvm.current().javaVersion"
+        file('build.gradle') << "assert org.gradle.internal.jvm.Jvm.current().javaVersion.toString() == '${otherJdk.javaVersion}'"
 
         when:
         succeeds()
 
         then:
         wasForked()
-        outputContains("javaVersion=$otherJdk.javaVersion")
         daemons.daemon.stops()
     }
 

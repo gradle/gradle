@@ -23,38 +23,29 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.buildconfiguration.UpdateDaemonJvmModifier;
-import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Generates or updates Daemon JVM criteria.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class UpdateDaemonJvmTask extends DefaultTask {
+public abstract class UpdateDaemonJvmTask extends DefaultTask {
 
     public static final String TASK_NAME = "updateDaemonJvm";
 
     private final UpdateDaemonJvmModifier updateDaemonJvmModifier = new UpdateDaemonJvmModifier(getProject().getProjectDir());
-    private final Property<Integer> toolchainVersion = getProject().getObjects().property(Integer.class);
-    private JvmVendor toolchainVendor;
-    private JvmImplementation toolchainImplementation;
 
     @TaskAction
     void generate() {
         updateDaemonJvmModifier.updateJvmCriteria(
-            toolchainVersion.get(),
-            toolchainVendor,
-            toolchainImplementation
+            getToolchainVersion().get(),
+            getToolchainVendor().isPresent() ? getToolchainVendor().get().asJvmVendor() : null,
+            getToolchainImplementation().getOrNull()
         );
     }
 
@@ -63,49 +54,18 @@ public class UpdateDaemonJvmTask extends DefaultTask {
         return updateDaemonJvmModifier.getPropertiesFile();
     }
 
-    @Nonnull
     @Input
     @Optional
     @Option(option = "toolchain-version", description = "The version of the toolchain required to set up Daemon JVM")
-    public Property<Integer> getToolchainVersion() {
-        return toolchainVersion;
-    }
+    public abstract Property<Integer> getToolchainVersion();
 
     @Input
     @Optional
-    public JvmVendor getToolchainVendor() {
-        return toolchainVendor;
-    }
-
     @Option(option = "toolchain-vendor", description = "The vendor of the toolchain required to set up Daemon JVM")
-    public void setToolchainVendor(KnownJvmVendor vendor) {
-        toolchainVendor = vendor.asJvmVendor();
-    }
-
-    /**
-     * The list of available toolchain vendors.
-     */
-    @OptionValues("toolchain-vendor")
-    public List<JvmVendor> getAvailableToolchainVendors() {
-        return Arrays.stream(KnownJvmVendor.values()).map(KnownJvmVendor::asJvmVendor).collect(Collectors.toList());
-    }
+    public abstract Property<KnownJvmVendor> getToolchainVendor();
 
     @Input
     @Optional
-    public JvmImplementation getToolchainImplementation() {
-        return toolchainImplementation;
-    }
-
     @Option(option = "toolchain-implementation", description = "The virtual machine implementation of the toolchain required to set up Daemon JVM")
-    public void setToolchainImplementation(JvmImplementation implementation) {
-        toolchainImplementation = implementation;
-    }
-
-    /**
-     * The list of available toolchain implementations.
-     */
-    @OptionValues("toolchain-implementation")
-    public List<JvmImplementation> getAvailableToolchainImplementations() {
-        return Arrays.asList(JvmImplementation.values());
-    }
+    public abstract Property<JvmImplementation> getToolchainImplementation();
 }

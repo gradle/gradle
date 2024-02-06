@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.provider.DefaultPropertyFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
@@ -120,11 +119,6 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     Deleter createDeleter(Clock clock, FileSystem fileSystem, OperatingSystem os) {
         return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
-    }
-
-    @Override
-    PropertyFactory createPropertyFactory(PropertyHost propertyHost) {
-        return new DefaultPropertyFactory(propertyHost);
     }
 
     ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, InstantiatorFactory instantiatorFactory, PropertyFactory propertyFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory, FilePropertyFactory filePropertyFactory) {

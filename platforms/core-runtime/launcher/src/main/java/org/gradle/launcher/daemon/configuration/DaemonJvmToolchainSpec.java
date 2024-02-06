@@ -24,34 +24,29 @@ import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
-import javax.annotation.Nonnull;
-
 public class DaemonJvmToolchainSpec implements JavaToolchainSpec {
 
     private final Property<JavaLanguageVersion> version;
     private final Property<JvmVendorSpec> vendor;
     private final Property<JvmImplementation> implementation;
 
-    public DaemonJvmToolchainSpec(@Nonnull PropertyFactory propertyFactory) {
+    public DaemonJvmToolchainSpec(PropertyFactory propertyFactory) {
         this.version = propertyFactory.property(JavaLanguageVersion.class);
         this.vendor = propertyFactory.property(JvmVendorSpec.class).convention(DefaultJvmVendorSpec.any());
         this.implementation = propertyFactory.property(JvmImplementation.class).convention(JvmImplementation.VENDOR_SPECIFIC);
     }
 
     @Override
-    @Nonnull
     public Property<JavaLanguageVersion> getLanguageVersion() {
         return version;
     }
 
     @Override
-    @Nonnull
     public Property<JvmVendorSpec> getVendor() {
         return vendor;
     }
 
     @Override
-    @Nonnull
     public Property<JvmImplementation> getImplementation() {
         return implementation;
     }
