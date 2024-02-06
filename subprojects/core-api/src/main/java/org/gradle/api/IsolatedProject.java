@@ -44,6 +44,7 @@ public interface IsolatedProject {
      * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
      *
      * @return The path. Never returns null.
+     * @since 8.7
      */
     @NotNull
     String getPath();
