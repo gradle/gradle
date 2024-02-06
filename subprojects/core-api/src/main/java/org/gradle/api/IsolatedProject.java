@@ -53,6 +53,7 @@ public interface IsolatedProject {
      * <p>The directory containing the project build file.</p>
      *
      * @return The project directory. Never returns null.
+     * @since 8.7
      */
     @NotNull
     File getProjectDirectory();
