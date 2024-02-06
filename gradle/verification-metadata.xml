@@ -1623,11 +1623,6 @@
             </sha256>
          </artifact>
       </component>
-      <component group="software.amazon.ion" name="ion-java" version="1.0.2">
-         <artifact name="ion-java-1.0.2.jar">
-            <pgp value="218ACA639352F40D3E49818BE4FBF7179D65E94D"/>
-         </artifact>
-      </component>
       <component group="xalan" name="serializer" version="2.7.1">
          <artifact name="serializer-2.7.1.jar">
             <sha256 value="a15078d243d4a20b6b4e8ae2f61ed4655e352054e121aada6f7441f1ed445a3c" origin="Verified" reason="Artifact is not signed"/>
