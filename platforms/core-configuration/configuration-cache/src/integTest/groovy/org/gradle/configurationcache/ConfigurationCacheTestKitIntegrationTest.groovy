@@ -25,6 +25,7 @@ import spock.lang.Issue
 
 @Requires(UnitTestPreconditions.NotWindows)
 class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
     def "reports when a TestKit build runs with a Java agent and configuration caching enabled"() {
         def builder = artifactBuilder()
         builder.sourceFile("TestAgent.java") << """
@@ -100,12 +101,15 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
 
         when:
         executer.inDirectory(file("included")).withTasks("jar").run()
-        def result = GradleRunner.create()
+        def runner = GradleRunner.create()
             .withDebug(true)
             .withArguments("--configuration-cache", "-Dmy.property=my.value", "-i")
             .forwardOutput()
             .withProjectDir(testDirectory)
-            .build()
+        if (!GradleContextualExecuter.embedded) {
+            runner.withGradleInstallation(buildContext.gradleHomeDir)
+        }
+        def result = runner.build()
 
         then:
         def output = result.output
