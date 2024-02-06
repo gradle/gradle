@@ -4301,62 +4301,17 @@ code[data-lang="text"] .fun {
 }
 
 .dark-mode {
-	.pln {
-		color: #fff !important;
-	}
+    .com       { color: #909090 !important; }
+    .str, .tag { color: #90a959 !important; }
+    .kwd, .atv { color: #d28445 !important; }
+    .typ       { color: #f4bf75 !important; }
+    .lit, .atn { color: #6a9fb5 !important; }
+    .pun, .pln,
+    .opn, .clo { color: #d0d0d0 !important; }
+    .dec, .var { color: #aa759f !important; }
 }
 
 .dark-mode {
-	.str {
-		color: #f7f !important;
-	}
-
-	.kwd {
-		color: #ff7 !important;
-	}
-
-	.com {
-		color: #7ff !important;
-	}
-
-	.typ {
-		color: #9f9 !important;
-	}
-
-	.lit {
-		color: #f99 !important;
-	}
-
-	.pun,
-	.opn,
-	.clo {
-		color: #99f !important;
-	}
-
-	.tag {
-		color: #ff7 !important;
-	}
-
-	.atn {
-		color: #9f9 !important;
-	}
-
-	.atv {
-		color: #f7f !important;
-	}
-
-	.dec,
-	.var {
-		color: #9f9 !important;
-	}
-
-	.fun {
-		color: green !important;
-	}
-}
-
-.dark-mode {
-
 	li.L1,
 	li.L3,
 	li.L5,
