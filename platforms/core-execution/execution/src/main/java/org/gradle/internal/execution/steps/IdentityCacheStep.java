@@ -17,11 +17,17 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.cache.Cache;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
+import org.gradle.internal.execution.history.ExecutionOutputState;
+
+import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceResult> implements DeferredExecutionAwareStep<C, R> {
 
@@ -37,17 +43,49 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
     }
 
     @Override
-    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<T>> cache) {
+    public <T> Deferrable<ExecutionEngine.CacheResult<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, ExecutionEngine.CacheResult<T>> cache) {
         Identity identity = context.getIdentity();
-        Try<T> cachedOutput = cache.getIfPresent(identity);
+        ExecutionEngine.CacheResult<T> cachedOutput = cache.getIfPresent(identity);
         if (cachedOutput != null) {
             return Deferrable.completed(cachedOutput);
         } else {
             return Deferrable.deferred(() -> cache.get(
                 identity,
-                () -> execute(work, context)
-                    .getOutputAs(Object.class)
-                    .map(Cast::<T>uncheckedNonnullCast)));
+                () -> executeInCache(work, context)));
+        }
+    }
+
+    private <T> ExecutionEngine.CacheResult<T> executeInCache(UnitOfWork work, C context) {
+        R result = execute(work, context);
+        return new DefaultCacheResult<>(
+            result
+                .getOutputAs(Object.class)
+                .map(Cast::<T>uncheckedNonnullCast),
+            result
+                .getReusedOutputOriginMetadata()
+                .orElseGet(() -> result.getAfterExecutionOutputState()
+                    .map(ExecutionOutputState::getOriginMetadata)
+                    .orElse(null))
+        );
+    }
+
+    private static class DefaultCacheResult<T> implements ExecutionEngine.CacheResult<T> {
+        private final Try<T> result;
+        private final OriginMetadata originMetadata;
+
+        public DefaultCacheResult(Try<T> result, @Nullable OriginMetadata originMetadata) {
+            this.result = result;
+            this.originMetadata = originMetadata;
+        }
+
+        @Override
+        public Try<T> getResult() {
+            return result;
+        }
+
+        @Override
+        public Optional<OriginMetadata> getOriginMetadata() {
+            return Optional.ofNullable(originMetadata);
         }
     }
 }

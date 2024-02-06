@@ -58,7 +58,7 @@ public interface ExecutionEngine {
          * Otherwise, the execution is wrapped in a not-yet-complete {@link Deferrable} to be evaluated later.
          * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
          */
-        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, Try<T>> cache);
+        <T> Deferrable<CacheResult<T>> executeDeferred(Cache<Identity, CacheResult<T>> cache);
     }
 
     interface Result {
@@ -88,6 +88,15 @@ public interface ExecutionEngine {
          */
         @VisibleForTesting
         Optional<ExecutionOutputState> getAfterExecutionOutputState();
+    }
+
+    interface CacheResult<T> {
+
+        Try<T> getResult();
+        /**
+         * If a previously produced output was reused in some way, the reused output's origin metadata is returned.
+         */
+        Optional<OriginMetadata> getOriginMetadata();
     }
 
     interface Execution {

@@ -18,33 +18,90 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
+import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
+import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.ExecutionOutputState
 
 class IdentityCacheStepTest extends StepSpec<IdentityContext> {
-    Cache<UnitOfWork.Identity, Try<Object>> cache = new ManualEvictionInMemoryCache<>()
+    Cache<UnitOfWork.Identity, ExecutionEngine.CacheResult<Object>> cache = new ManualEvictionInMemoryCache<>()
 
     def step = new IdentityCacheStep<>(delegate)
 
     def "executes when no cached output exists"() {
         def delegateOutput = Mock(Object)
         def delegateResult = Mock(WorkspaceResult)
+        def originMetadata = Mock(OriginMetadata)
 
         def execution = step.executeDeferred(work, context, cache)
 
         when:
-        def actualResult = execution.completeAndGet()
+        def cacheResult = execution.completeAndGet()
+        def actualResult = cacheResult.getResult()
 
         then:
         actualResult.get() == delegateOutput
+        cacheResult.originMetadata.get() == originMetadata
+
         delegateResult.getOutputAs(_ as Class) >> Try.successful(delegateOutput)
+        delegateResult.reusedOutputOriginMetadata >> Optional.of(originMetadata)
+
+        1 * delegate.execute(work, context) >> delegateResult
+        0 * _
+    }
+
+    def "returns origin metadata of current build when not re-used"() {
+        def delegateOutput = Mock(Object)
+        def delegateResult = Mock(WorkspaceResult)
+        def originMetadata = Mock(OriginMetadata)
+        def executionOutputState = Mock(ExecutionOutputState)
+
+        def execution = step.executeDeferred(work, context, cache)
+
+        when:
+        def cacheResult = execution.completeAndGet()
+        def actualResult = cacheResult.getResult()
+
+        then:
+        actualResult.get() == delegateOutput
+        cacheResult.originMetadata.get() == originMetadata
+
+        delegateResult.getOutputAs(_ as Class) >> Try.successful(delegateOutput)
+        delegateResult.reusedOutputOriginMetadata >> Optional.empty()
+        delegateResult.afterExecutionOutputState >> Optional.of(executionOutputState)
+        executionOutputState.originMetadata >> originMetadata
+
+        1 * delegate.execute(work, context) >> delegateResult
+        0 * _
+    }
+
+    def "returns no origin metadata when execution has no output state"() {
+        def delegateOutput = Mock(Object)
+        def delegateResult = Mock(WorkspaceResult)
+        def originMetadata = Mock(OriginMetadata)
+        def executionOutputState = Mock(ExecutionOutputState)
+
+        def execution = step.executeDeferred(work, context, cache)
+
+        when:
+        def cacheResult = execution.completeAndGet()
+        def actualResult = cacheResult.getResult()
+
+        then:
+        actualResult.get() == delegateOutput
+        !cacheResult.originMetadata.present
+
+        delegateResult.getOutputAs(_ as Class) >> Try.successful(delegateOutput)
+        delegateResult.reusedOutputOriginMetadata >> Optional.empty()
+        delegateResult.afterExecutionOutputState >> Optional.empty()
 
         1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
     def "returns cached output when exists"() {
-        def cachedResult = Try.successful(Mock(Object))
+        def cachedResult = Mock(ExecutionEngine.CacheResult)
         cache.put(identity, cachedResult)
 
         def execution = step.executeDeferred(work, context, cache)

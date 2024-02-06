@@ -33,8 +33,8 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
-import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider;
@@ -91,7 +91,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CacheBuilder cacheBuilder = unscopedCacheBuilderFactory
             .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
             .withDisplayName("Artifact transforms cache");
-        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful);
+        CrossBuildInMemoryCache<UnitOfWork.Identity, ExecutionEngine.CacheResult<TransformExecutionResult.TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result.getResult().isSuccessful());
         CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations);
         return new ImmutableTransformWorkspaceServices() {
             @Override
@@ -100,7 +100,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             }
 
             @Override
-            public Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache() {
+            public Cache<UnitOfWork.Identity, ExecutionEngine.CacheResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache() {
                 return identityCache;
             }
 

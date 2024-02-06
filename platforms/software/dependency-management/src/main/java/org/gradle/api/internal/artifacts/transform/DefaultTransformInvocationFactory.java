@@ -76,7 +76,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
 
-        Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> identityCache;
+        Cache<UnitOfWork.Identity, ExecutionEngine.CacheResult<TransformExecutionResult.TransformWorkspaceResult>> identityCache;
         UnitOfWork execution;
 
         // TODO This is a workaround for script compilation that is triggered via the "early" execution
@@ -143,7 +143,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         }
         return effectiveEngine.createRequest(execution)
             .executeDeferred(identityCache)
-            .map(result -> result
+            .map(result -> result.getResult()
                 .map(successfulResult -> successfulResult.resolveForInputArtifact(inputArtifact))
                 .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
     }
