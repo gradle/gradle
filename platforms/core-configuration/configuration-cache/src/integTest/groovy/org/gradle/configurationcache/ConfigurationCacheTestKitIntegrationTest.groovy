@@ -24,7 +24,7 @@ import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Issue
 
 @Requires(UnitTestPreconditions.NotWindows)
-class ConfigurationCacheTestkitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "reports when a TestKit build runs with a Java agent and configuration caching enabled"() {
         def builder = artifactBuilder()
         builder.sourceFile("TestAgent.java") << """
