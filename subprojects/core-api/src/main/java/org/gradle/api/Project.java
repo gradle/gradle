@@ -433,6 +433,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return This project as an {@link IsolatedProject}. Never returns null.
      * @since 8.7
      */
+    @Incubating
     IsolatedProject getIsolated();
 
     /**
