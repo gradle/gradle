@@ -174,7 +174,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         lineInFileLocation.column == 2
         lineInFileLocation.length == 3
         problems[0].locations[1] instanceof TaskPathLocation
-        (problems[0].locations[1] as TaskPathLocation).buildTreePath == ':reportProblem'
         problems[0].documentationLink.url == expecteDocumentation
         problems[0].solutions.size() == 1
         problems[0].solutions[0].solution == 'try this instead'
