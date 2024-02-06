@@ -61,6 +61,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
             result
                 .getOutputAs(Object.class)
                 .map(Cast::<T>uncheckedNonnullCast),
+            context.getIdentity(),
             result
                 .getReusedOutputOriginMetadata()
                 .orElseGet(() -> result.getAfterExecutionOutputState()
@@ -71,16 +72,23 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
 
     private static class DefaultCacheResult<T> implements ExecutionEngine.CacheResult<T> {
         private final Try<T> result;
+        private final Identity identity;
         private final OriginMetadata originMetadata;
 
-        public DefaultCacheResult(Try<T> result, @Nullable OriginMetadata originMetadata) {
+        public DefaultCacheResult(Try<T> result, Identity identity, @Nullable OriginMetadata originMetadata) {
             this.result = result;
+            this.identity = identity;
             this.originMetadata = originMetadata;
         }
 
         @Override
         public Try<T> getResult() {
             return result;
+        }
+
+        @Override
+        public Identity getIdentity() {
+            return identity;
         }
 
         @Override

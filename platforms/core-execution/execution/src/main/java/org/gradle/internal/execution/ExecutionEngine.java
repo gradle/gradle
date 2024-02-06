@@ -93,6 +93,9 @@ public interface ExecutionEngine {
     interface CacheResult<T> {
 
         Try<T> getResult();
+
+        Identity getIdentity();
+
         /**
          * If a previously produced output was reused in some way, the reused output's origin metadata is returned.
          */

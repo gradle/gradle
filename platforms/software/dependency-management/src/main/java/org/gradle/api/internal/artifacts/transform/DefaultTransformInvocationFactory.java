@@ -19,18 +19,23 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.transform.TransformExecutionResult.TransformWorkspaceResult;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.cache.Cache;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionEngine.CacheResult;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.operations.dependencies.transforms.SkippedTransformExecutionProgressDetails;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -76,7 +81,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
 
-        Cache<UnitOfWork.Identity, ExecutionEngine.CacheResult<TransformExecutionResult.TransformWorkspaceResult>> identityCache;
+        Cache<Identity, CacheResult<TransformWorkspaceResult>> identityCache;
         UnitOfWork execution;
 
         // TODO This is a workaround for script compilation that is triggered via the "early" execution
@@ -141,8 +146,14 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 );
             }
         }
-        return effectiveEngine.createRequest(execution)
-            .executeDeferred(identityCache)
+        Deferrable<CacheResult<TransformWorkspaceResult>> deferredResult = effectiveEngine.createRequest(execution)
+            .executeDeferred(identityCache);
+        deferredResult.getCompleted()
+            .ifPresent(cacheResult -> cacheResult.getOriginMetadata()
+                .ifPresent(originMetadata -> progressEventEmitter.emitNowIfCurrent(
+                    new DefaultSkippedTransformExecutionProgressDetails(cacheResult, originMetadata))
+                ));
+        return deferredResult
             .map(result -> result.getResult()
                 .map(successfulResult -> successfulResult.resolveForInputArtifact(inputArtifact))
                 .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
@@ -155,6 +166,36 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             return projectStateRegistry.stateFor((ProjectComponentIdentifier) componentIdentifier).getMutableModel();
         } else {
             return null;
+        }
+    }
+
+    private static class DefaultSkippedTransformExecutionProgressDetails implements SkippedTransformExecutionProgressDetails {
+        private final CacheResult<TransformWorkspaceResult> cacheResult;
+        private final OriginMetadata originMetadata;
+
+        public DefaultSkippedTransformExecutionProgressDetails(CacheResult<TransformWorkspaceResult> cacheResult, OriginMetadata originMetadata) {
+            this.cacheResult = cacheResult;
+            this.originMetadata = originMetadata;
+        }
+
+        @Override
+        public String getIdentity() {
+            return cacheResult.getIdentity().getUniqueId();
+        }
+
+        @Override
+        public String getOriginBuildInvocationId() {
+            return originMetadata.getBuildInvocationId();
+        }
+
+        @Override
+        public byte[] getOriginBuildCacheKeyBytes() {
+            return originMetadata.getBuildCacheKey().toByteArray();
+        }
+
+        @Override
+        public long getOriginExecutionTime() {
+            return originMetadata.getExecutionTime().toMillis();
         }
     }
 }
