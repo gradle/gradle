@@ -84,6 +84,35 @@ println(files.elements.get()) // [.../dir2]
 This feature caters to plugin developers.
 It is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Property.html#convention-T-) methods that have been available on lazy properties since Gradle 5.1.
 
+<a name="update-api"></a>
+#### New `update()` API allows safe self-referencing lazy properties
+
+[Lazy configuration](userguide/lazy_configuration.html) delays calculating a property’s value until it is required for the build.
+This can lead to accidental recursions when assigning property values of an object to itself:
+
+```
+var property = objects.property<String>()
+property.set("some value")
+property.set(property.map { "$it and more" })
+
+// Circular evaluation detected (or StackOverflowError, before 8.6)
+println(property.get()) // "some value and more"
+```
+
+Previously, Gradle did not support circular references when evaluating lazy properties.
+
+[`Property`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) now provide their respective `update(Transformer<...>)` methods which allow self-referencing updates safely:
+
+```
+var property = objects.property<String>()
+property.set("some value")
+property.update { it.map { "$it and more" } }
+
+println(property.get()) // "some value and more"
+```
+
+Refer to the javadoc for [`Property.update(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#update-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.update(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#update-org.gradle.api.Transformer-) for more details, including limitations.
+
 #### Improved error handling for toolchain resolvers
 
 When attempting to download Java toolchains from the configured resolvers, errors will be better handled now, and all resolvers will be tried.
