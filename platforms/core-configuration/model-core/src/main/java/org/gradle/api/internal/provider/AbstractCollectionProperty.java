@@ -295,6 +295,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
         }
+
+        @Override
+        public String toString() {
+            return value.toString();
+        }
     }
 
     private class EmptySupplier implements CollectionSupplier<T, C> {
@@ -322,6 +327,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public ValueProducer getProducer() {
             return ValueProducer.noProducer();
+        }
+
+        @Override
+        public String toString() {
+            return "[]";
         }
     }
 
@@ -357,6 +367,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
+        }
+
+        @Override
+        public String toString() {
+            return value.toString();
         }
     }
 
@@ -432,6 +447,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public ValueProducer getProducer() {
             return value.getProducer();
+        }
+
+        @Override
+        public String toString() {
+            return value.toString();
         }
     }
 
@@ -519,6 +539,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public ValueProducer getProducer() {
             return left.getProducer().plus(right.getProducer());
+        }
+
+        @Override
+        public String toString() {
+            return left + " + " + right;
         }
     }
 

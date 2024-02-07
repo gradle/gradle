@@ -385,6 +385,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
         }
+
+        @Override
+        public String toString() {
+            return value.toString();
+        }
     }
 
     private class EmptySupplier implements MapSupplier<K, V> {
@@ -417,6 +422,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public ValueProducer getProducer() {
             return ValueProducer.noProducer();
+        }
+
+        @Override
+        public String toString() {
+            return "{}";
         }
     }
 
@@ -457,6 +467,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
+        }
+
+        @Override
+        public String toString() {
+            return entries.toString();
         }
     }
 
@@ -559,6 +574,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public ValueProducer getProducer() {
             return collector.getProducer();
+        }
+
+        @Override
+        public String toString() {
+            return collector.toString();
         }
     }
 
@@ -686,6 +706,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public ValueProducer getProducer() {
             return left.getProducer().plus(right.getProducer());
+        }
+
+        @Override
+        public String toString() {
+            return left + " + " + right;
         }
     }
 }
