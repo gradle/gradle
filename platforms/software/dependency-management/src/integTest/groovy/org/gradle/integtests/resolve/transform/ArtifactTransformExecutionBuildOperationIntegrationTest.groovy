@@ -334,8 +334,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         executionIdentifications.size() == 2
         def projectTransformIdentification = executionIdentifications.find { it.artifactName == 'producer.jar' }
         def externalTransformIdentification = executionIdentifications.find { it.artifactName == 'test-4.2.jar' }
-        List<BuildOperationRecord> executions = getTransformExecutions()
-        executions.size() == 2
+        transformExecutions.size() == 2
         def projectTransformBuildCacheKey = buildCacheKeyFor(projectTransformIdentification.identity)
         def externalTransformBuildCacheKey = buildCacheKeyFor(externalTransformIdentification.identity)
 
@@ -344,20 +343,16 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         // prime in-memory cache
         run ":consumer:resolve"
         then:
-        transformExecutions.size() == 2
-        transformExecutions*.result.each {
-            assert it.skipMessage == 'UP-TO-DATE'
-        }
+        transformExecutions.result.skipMessage == ['UP-TO-DATE'] * 2
 
         when:
         run ":consumer:resolve"
-        executions = getTransformExecutions()
 
         then:
         skipped(":producer:producer")
 
         scopeIds.buildInvocationId != firstBuildInvocationId
-        executions.size() == 0
+        transformExecutions.empty
         def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
         skippedTransformExecutions.size() == 2
         def skippedProjectTransformExecution = skippedTransformExecutions.find { it.identity == projectTransformIdentification.identity }
@@ -411,23 +406,18 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         executionIdentifications.size() == 2
         def projectTransformIdentification = executionIdentifications.find { it.artifactName == 'producer.jar' }
         def externalTransformIdentification = executionIdentifications.find { it.artifactName == 'test-4.2.jar' }
-        List<BuildOperationRecord> executions = getTransformExecutions()
-        executions.size() == 2
-        transformExecutions*.result.each {
-            assert it.skipMessage == null
-        }
+        transformExecutions.result.skipMessage == [null, null]
         def projectTransformBuildCacheKey = buildCacheKeyFor(projectTransformIdentification.identity)
         def externalTransformBuildCacheKey = buildCacheKeyFor(externalTransformIdentification.identity)
 
         when:
         run ":consumer:resolve"
-        executions = getTransformExecutions()
 
         then:
         skipped(":producer:producer")
 
         scopeIds.buildInvocationId != firstBuildInvocationId
-        executions.size() == 0
+        transformExecutions.empty
         def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
         skippedTransformExecutions.size() == 2
         def skippedProjectTransformExecution = skippedTransformExecutions.find { it.identity == projectTransformIdentification.identity }
@@ -497,11 +487,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         def externalTransformIdentifications = executionIdentifications.findAll { it.artifactName == 'test-4.2.jar' }
         externalTransformIdentifications.size() == 2
         def externalTransformIdentification = externalTransformIdentifications.first()
-        List<BuildOperationRecord> executions = getTransformExecutions()
-        executions.size() == 2
-        transformExecutions*.result.each {
-            assert it.skipMessage == null
-        }
+        transformExecutions.result.skipMessage == [null, null]
         def externalTransformBuildCacheKey = buildCacheKeyFor(externalTransformIdentification.identity)
 
         and:
@@ -567,11 +553,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         def projectTransformIdentifications = executionIdentifications.findAll { it.artifactName == 'producer.jar' }
         projectTransformIdentifications.size() == 2
         def projectTransformIdentification = projectTransformIdentifications.first()
-        List<BuildOperationRecord> executions = getTransformExecutions()
-        executions.size() == 1
-        transformExecutions*.result.each {
-            assert it.skipMessage == null
-        }
+        transformExecutions.result.skipMessage == [null]
         def projectTransformBuildCacheKey = buildCacheKeyFor(projectTransformIdentification.identity)
 
         and:
@@ -628,24 +610,16 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         run ":consumer2:resolve"
         def firstBuildInvocationId = scopeIds.buildInvocationId
         then:
-        List<BuildOperationRecord> executions = getTransformExecutions()
-        executions.size() == 1
-        transformExecutions*.result.each {
-            assert it.skipMessage == null
-        }
+        transformExecutions.result.skipMessage == [null]
 
         when:
         // Limit workers so the project transforms run sequentially
         run ":consumer2:resolve", "--max-workers=1"
-        executions = getTransformExecutions()
 
         then:
         executedAndNotSkipped(":consumer1:resolve", ":consumer2:resolve")
 
-        executions.size() == 1
-        transformExecutions*.result.each {
-            assert it.skipMessage == 'UP-TO-DATE'
-        }
+        transformExecutions.result.skipMessage == ['UP-TO-DATE']
 
         def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
         executionIdentifications.size() == 2
