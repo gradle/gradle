@@ -29,6 +29,8 @@ import org.junit.Rule
 
 class InstrumentationTypeRegistryTest extends ConcurrentSpec {
 
+    private static final THIS_CLASS_NAME = InstrumentationTypeRegistryTest.class.name.replace(".", "/")
+
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     def testDir = testDirectoryProvider.testDirectory
@@ -40,8 +42,8 @@ class InstrumentationTypeRegistryTest extends ConcurrentSpec {
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def parallelExecutorFactory = new DefaultCachedClasspathTransformer.ParallelTransformExecutor(cache, executorFactory.create("test"))
     def gradleCoreRegistry = new TestGradleCoreInstrumentationTypeRegistry([
-        "org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest\$DefaultTask": ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set,
-        "org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest\$VerificationTask": ["org/gradle/api/VerificationTask"] as Set
+        ("$THIS_CLASS_NAME\$DefaultTask".toString()): ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set,
+        ("$THIS_CLASS_NAME\$VerificationTask".toString()): ["org/gradle/api/VerificationTask"] as Set
     ])
 
     def "should collect instrumented types"() {
@@ -65,13 +67,13 @@ class InstrumentationTypeRegistryTest extends ConcurrentSpec {
         superTypes ==~ [
             'org/gradle/api/Task',
             'org/gradle/api/internal/TaskInternal',
-            'org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest$DefaultTask',
+            "$THIS_CLASS_NAME\$DefaultTask",
             "org/gradle/api/VerificationTask",
-            "org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest\$VerificationTask",
-            'org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest$B',
-            'org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest$C',
-            'org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest$D'
-        ]
+            "$THIS_CLASS_NAME\$VerificationTask",
+            "$THIS_CLASS_NAME\$B",
+            "$THIS_CLASS_NAME\$C",
+            "$THIS_CLASS_NAME\$D"
+        ].collect { it.toString() }
     }
 
     def createClasses(TestFile dir) {
