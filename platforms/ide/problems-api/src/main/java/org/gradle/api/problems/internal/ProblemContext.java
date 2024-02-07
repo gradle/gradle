@@ -26,6 +26,19 @@ import java.util.Map;
 public interface ProblemContext {
 
     /**
+     * Returns a short summary for a problem.
+     * <p>
+     * Unlike {@link ProblemDefinition#getLabel()}, the content of the returned string is expected to contain context-sensitive data, e.g. the message contains references to variables, locations, etc.
+     */
+    @Nullable
+    String getContextualLabel();
+
+    /**
+     * Returns solutions and advice that contain context-sensitive data, e.g. the message contains references to variables, locations, etc.
+     */
+    List<String> getContextualSolutions();
+
+    /**
      * A long description detailing the problem.
      * <p>
      * Details can elaborate on the problem, and provide more information about the problem.

@@ -172,7 +172,8 @@ public class MissingTaskDependencyDetector {
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
             problem.typeIsIrrelevantInErrorMessage()
-                .label("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
+                .label("Property has implicit dependency ")
+                .contextualLabel("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
                 .documentedAt(userManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase()))
                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY))
                 .severity(Severity.ERROR)
@@ -181,9 +182,9 @@ public class MissingTaskDependencyDetector {
                     consumer,
                     producer
                 ))
-                .solution("Declare task '" + producer + "' as an input of '" + consumer + "'")
-                .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
-                .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
+                .contextualSolution("Declare task '" + producer + "' as an input of '" + consumer + "'")
+                .contextualSolution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
+                .contextualSolution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
         );
     }
 

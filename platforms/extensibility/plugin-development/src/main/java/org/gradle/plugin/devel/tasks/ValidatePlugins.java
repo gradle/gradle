@@ -137,8 +137,7 @@ public abstract class ValidatePlugins extends DefaultTask {
         InternalProblemReporter reporter = getServices().get(InternalProblems.class).getInternalReporter();
         problems.stream()
             .map(ProblemReport.class::cast)
-            .map(problem -> problem.toBuilder()
-                .label(introductionFor(problem.getContext().getAdditionalData()) + problem.getDefinition().getLabel()).build())
+            .map(problem -> problem.toBuilder().label("validation problem").contextualLabel(introductionFor(problem.getContext().getAdditionalData()) + problem.getDefinition().getLabel()).build())
             .forEach(reporter::report);
     }
 

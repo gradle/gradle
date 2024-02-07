@@ -34,6 +34,9 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder label(String label);
 
     @Override
+    InternalProblemBuilder contextualLabel(String contextualLabel);
+
+    @Override
     InternalProblemBuilder category(String category, String... details);
 
     @Override

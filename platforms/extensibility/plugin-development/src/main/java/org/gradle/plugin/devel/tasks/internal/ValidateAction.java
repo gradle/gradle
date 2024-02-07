@@ -182,13 +182,14 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 validationContext.visitTypeProblem(problem -> {
                         ProblemSpec builder = problem
                             .withAnnotationType(topLevelBean)
-                            .label("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
+                            .label("annotation missing")
+                            .contextualLabel("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                             .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
                             .category(DefaultProblemCategory.VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON))
                             .severity(WARNING)
                             .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")
-                            .solution("Add " + disableCachingAnnotation + "(because = ...)")
-                            .solution("Add " + cacheableAnnotation);
+                            .contextualSolution("Add " + disableCachingAnnotation + "(because = ...)")
+                            .contextualSolution("Add " + cacheableAnnotation);
                         if (isTask) {
                             builder.solution("Add " + untrackedTaskAnnotation + "(because = ...)");
                         }

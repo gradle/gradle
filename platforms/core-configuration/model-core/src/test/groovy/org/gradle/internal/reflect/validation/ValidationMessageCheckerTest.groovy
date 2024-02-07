@@ -663,6 +663,7 @@ Possible solution: Remove the annotation.
 
 ${validationMessage("invalid_use_of_cacheable_annotation")}
 """
+
     }
 
     def "tests output of optionalOnPrimitive"() {

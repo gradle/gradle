@@ -47,7 +47,8 @@ public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHan
     ) {
         visitor.visitTypeProblem(problem ->
             problem.withAnnotationType(classWithAnnotationAttached)
-                .label("is incorrectly annotated with @" + annotationType.getSimpleName())
+                .label("is incorrectly annotated")
+                .contextualLabel("is incorrectly annotated with @" + annotationType.getSimpleName())
                 .documentedAt(Documentation.userManual("validation_problems", "invalid_use_of_cacheable_annotation"))
                 .category(DefaultProblemCategory.VALIDATION, "type", "invalid-use-of-type-annotation")
                 .severity(Severity.ERROR)

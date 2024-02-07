@@ -19,8 +19,10 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.util.Optional.ofNullable;
@@ -44,13 +46,16 @@ public class TypeValidationProblemRenderer {
 
     public static String renderMinimalInformationAbout(ProblemReport problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getContext().getAdditionalData()) + endLineWithDot(problem.getDefinition().getLabel()));
+        formatter.node(introductionFor(problem.getContext().getAdditionalData()) + endLineWithDot(Optional.ofNullable(problem.getContext().getContextualLabel()).orElseGet(() -> problem.getDefinition().getLabel())));
         ofNullable(problem.getContext().getDetails()).ifPresent(reason -> {
             formatter.blankLine();
             formatter.node("Reason: " + capitalize(endLineWithDot(problem.getContext().getDetails())));
         });
         if (renderSolutions) {
-            renderSolutions(formatter, problem.getDefinition().getSolutions());
+            List<String> allSolutions = new ArrayList<>(problem.getDefinition().getSolutions().size() + problem.getContext().getContextualSolutions().size());
+            allSolutions.addAll(problem.getContext().getContextualSolutions());
+            allSolutions.addAll(problem.getDefinition().getSolutions());
+            renderSolutions(formatter, allSolutions);
         }
         if (renderDocLink) {
             ofNullable(problem.getDefinition().getDocumentationLink()).ifPresent(docLink -> {

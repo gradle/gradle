@@ -215,6 +215,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
         throw ((InternalProblems) getProblemsService()).getInternalReporter().throwing(builder -> builder
+            .label("Groovy DSL script compilation problem")
             .label(message)
             .lineInFileLocation(source.getFileName(), lineNumber)
             .category("compilation", "groovy-dsl", "compilation-failed")
