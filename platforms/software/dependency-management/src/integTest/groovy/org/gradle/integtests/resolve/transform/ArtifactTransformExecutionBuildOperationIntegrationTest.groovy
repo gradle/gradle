@@ -17,22 +17,33 @@
 package org.gradle.integtests.resolve.transform
 
 import com.google.common.collect.Iterables
+import groovy.transform.NamedVariant
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.FromString
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails
+import org.gradle.operations.dependencies.transforms.SkippedTransformExecutionProgressDetails
 import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.junit.Rule
+
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 
 class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
 
     def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
+    @Rule
+    public final ScopeIdsFixture scopeIds = new ScopeIdsFixture(executer, temporaryFolder)
 
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -42,6 +53,13 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             allprojects {
                 apply plugin: 'base'
                 group = "colored"
+            }
+            subprojects {
+                tasks.withType(DefaultTask) {
+                    if (name != "collectScopeIds") {
+                        dependsOn(":collectScopeIds")
+                    }
+                }
             }
         """
 
@@ -194,8 +212,8 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         when:
         withBuildCache().run ":consumer:resolve"
         executions = getTransformExecutions()
-        executions.size() == 1
-        projectExecution = executions.first()
+        assert executions.size() == 2
+        projectExecution = executions.find { it.details.identity == projectTransformIdentification.identity }
 
         then:
         skipped(":producer:producer")
@@ -214,34 +232,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
     def "cacheability information for #type artifact transform executions is captured"() {
         setupBuildWithColorTransform()
         setupExternalDependency()
-        buildFile << """
-            @CacheableTransform
-            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
-                @PathSensitive(PathSensitivity.RELATIVE)
-                @IgnoreEmptyDirectories
-                @NormalizeLineEndings
-                @InputArtifact
-                abstract Provider<FileSystemLocation> getInputArtifact()
-
-                $inputChanges
-
-                @Classpath
-                @InputArtifactDependencies
-                abstract FileCollection getInputArtifactDependencies()
-
-                void transform(TransformOutputs outputs) {
-                    def input = inputArtifact.get().asFile
-                    println "processing [\${input.name}]"
-                    assert input.file
-                    def output = outputs.file(input.name + ".green")
-                    if (input.file) {
-                        output.text = input.text + ".green"
-                    } else {
-                        output.text = "missing.green"
-                    }
-                }
-            }
-        """
+        buildFile << cacheableMakeGreenTransform(useInputChanges: inputChanges)
 
         buildFile << """
             project(":consumer") {
@@ -302,9 +293,227 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         }
 
         where:
-        type              | inputChanges                                      | expectedSkipMessage | expectedCachingDisabledReasonMessage | expecteCachingDisabledReasonCategory
-        "incremental"     | "@Inject abstract InputChanges getInputChanges()" | "FROM-CACHE"        | null                                 | null
-        "non-incremental" | ""                                                | "UP-TO-DATE"        | "Cacheability was not determined"    | "UNKNOWN"
+        type              | inputChanges | expectedSkipMessage | expectedCachingDisabledReasonMessage | expecteCachingDisabledReasonCategory
+        "incremental"     | true         | "FROM-CACHE"        | null                                 | null
+        "non-incremental" | false        | "UP-TO-DATE"        | "Cacheability was not determined"    | "UNKNOWN"
+    }
+
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Identity cache is off for embedded executor due to file locking issues")
+    @LeaksFileHandles
+    def "emits origin metadata for skipped transform executions"() {
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+
+        setupBuildWithColorTransform()
+        buildFile << cacheableMakeGreenTransform(useInputChanges: false, sleep: 10)
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+
+                    artifactTypes {
+                        jar {
+                            attributes.attribute(color, 'blue')
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        run ":consumer:resolve"
+
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        def firstBuildInvocationId = scopeIds.buildInvocationId
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
+        executionIdentifications.size() == 2
+        def projectTransformIdentification = executionIdentifications.find { it.artifactName == 'producer.jar' }
+        def externalTransformIdentification = executionIdentifications.find { it.artifactName == 'test-4.2.jar' }
+        List<BuildOperationRecord> executions = getTransformExecutions()
+        executions.size() == 2
+        def projectTransformBuildCacheKey = buildCacheKeyFor(projectTransformIdentification.identity)
+        def externalTransformBuildCacheKey = buildCacheKeyFor(externalTransformIdentification.identity)
+
+        when:
+        enableIdentityCache()
+        // prime in-memory cache
+        run ":consumer:resolve"
+        then:
+        transformExecutions.size() == 2
+        transformExecutions*.result.each {
+            assert it.skipMessage == 'UP-TO-DATE'
+        }
+
+        when:
+        run ":consumer:resolve"
+        executions = getTransformExecutions()
+
+        then:
+        skipped(":producer:producer")
+
+        scopeIds.buildInvocationId != firstBuildInvocationId
+        executions.size() == 0
+        def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
+        skippedTransformExecutions.size() == 2
+        def skippedProjectTransformExecution = skippedTransformExecutions.find { it.identity == projectTransformIdentification.identity }
+        def skippedExternalTransformExecution = skippedTransformExecutions.find { it.identity == externalTransformIdentification.identity }
+        with(skippedProjectTransformExecution) {
+            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+            originBuildInvocationId == firstBuildInvocationId.asString()
+            originExecutionTime > 0
+        }
+        with(skippedExternalTransformExecution) {
+            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
+            originBuildInvocationId == firstBuildInvocationId.asString()
+            originExecutionTime > 0
+        }
+    }
+
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Identity cache is off for embedded executor due to file locking issues")
+    @LeaksFileHandles
+    def "emits origin metadata when executed in first identity cached build"() {
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+
+        setupBuildWithColorTransform()
+        buildFile << cacheableMakeGreenTransform(useInputChanges: false, sleep: 10)
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+
+                    artifactTypes {
+                        jar {
+                            attributes.attribute(color, 'blue')
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        enableIdentityCache()
+        run ":consumer:resolve"
+
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        def firstBuildInvocationId = scopeIds.buildInvocationId
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
+        executionIdentifications.size() == 2
+        def projectTransformIdentification = executionIdentifications.find { it.artifactName == 'producer.jar' }
+        def externalTransformIdentification = executionIdentifications.find { it.artifactName == 'test-4.2.jar' }
+        List<BuildOperationRecord> executions = getTransformExecutions()
+        executions.size() == 2
+        transformExecutions*.result.each {
+            assert it.skipMessage == null
+        }
+        def projectTransformBuildCacheKey = buildCacheKeyFor(projectTransformIdentification.identity)
+        def externalTransformBuildCacheKey = buildCacheKeyFor(externalTransformIdentification.identity)
+
+        when:
+        run ":consumer:resolve"
+        executions = getTransformExecutions()
+
+        then:
+        skipped(":producer:producer")
+
+        scopeIds.buildInvocationId != firstBuildInvocationId
+        executions.size() == 0
+        def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
+        skippedTransformExecutions.size() == 2
+        def skippedProjectTransformExecution = skippedTransformExecutions.find { it.identity == projectTransformIdentification.identity }
+        def skippedExternalTransformExecution = skippedTransformExecutions.find { it.identity == externalTransformIdentification.identity }
+        with(skippedProjectTransformExecution) {
+            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+            originBuildInvocationId == firstBuildInvocationId.asString()
+            originExecutionTime > 0
+        }
+        with(skippedExternalTransformExecution) {
+            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
+            originBuildInvocationId == firstBuildInvocationId.asString()
+            originExecutionTime > 0
+        }
+    }
+
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Identity cache is off for embedded executor due to file locking issues")
+    @LeaksFileHandles
+    def "emits origin metadata when re-used in same build"() {
+        settingsFile << """
+            include 'producer', 'consumer1', 'consumer2'
+        """
+        createDirs("consumer1", "consumer2")
+
+        setupBuildWithColorTransform()
+        buildFile << cacheableMakeGreenTransform(useInputChanges: false, sleep: 10)
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer1") {
+                dependencies {
+                    implementation project(":producer")
+
+                    artifactTypes {
+                        jar {
+                            attributes.attribute(color, 'blue')
+                        }
+                    }
+                }
+            }
+            project(":consumer2") {
+                dependencies {
+                    implementation project(":producer")
+
+                    artifactTypes {
+                        jar {
+                            attributes.attribute(color, 'blue')
+                        }
+                    }
+                }
+                resolve.dependsOn(':consumer1:resolve')
+            }
+        """
+
+        when:
+        enableIdentityCache()
+        run ":consumer2:resolve"
+
+        then:
+        executedAndNotSkipped(":consumer1:resolve", ":consumer2:resolve")
+
+        def buildInvocationId = scopeIds.buildInvocationId
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
+        executionIdentifications.size() == 4
+        def projectTransformIdentifications = executionIdentifications.findAll { it.artifactName == 'producer.jar' }
+        projectTransformIdentifications.size() == 2
+        def externalTransformIdentifications = executionIdentifications.findAll { it.artifactName == 'test-4.2.jar' }
+        externalTransformIdentifications.size() == 2
+        def externalTransformIdentification = externalTransformIdentifications.first()
+        List<BuildOperationRecord> executions = getTransformExecutions()
+        executions.size() == 2
+        transformExecutions*.result.each {
+            assert it.skipMessage == null
+        }
+        def externalTransformBuildCacheKey = buildCacheKeyFor(externalTransformIdentification.identity)
+
+        and:
+        def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
+        // Only the external transform is skipped, the project transforms would run in parallel and wait for each other.
+        skippedTransformExecutions.size() == 1
+        def skippedExternalTransformExecution = skippedTransformExecutions.find { it.identity == externalTransformIdentification.identity }
+        with(skippedExternalTransformExecution) {
+            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
+            originBuildInvocationId == buildInvocationId.asString()
+            originExecutionTime > 0
+        }
     }
 
     def "captures all information on failure"() {
@@ -583,7 +792,55 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         return actionExecution.empty ? null : Iterables.getOnlyElement(actionExecution)
     }
 
+    String buildCacheKeyFor(String identity) {
+        def execution = transformExecutions.find { it.details.identity == identity }
+        def snapshotExecution = snapshotInputsOperation(execution).result
+        return snapshotExecution.hash as String
+    }
+
+    void enableIdentityCache() {
+        executer.beforeExecute {
+            executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
+        }
+    }
+
     List<BuildOperationRecord> getTransformExecutions() {
         buildOperations.all(ExecuteWorkBuildOperationType)
+    }
+
+    @NamedVariant
+    String cacheableMakeGreenTransform(boolean useInputChanges, long sleep = 0) {
+        def inputChanges = useInputChanges
+            ? '@Inject abstract InputChanges getInputChanges()'
+            : ''
+        """
+            @CacheableTransform
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @PathSensitive(PathSensitivity.RELATIVE)
+                @IgnoreEmptyDirectories
+                @NormalizeLineEndings
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                $inputChanges
+
+                @Classpath
+                @InputArtifactDependencies
+                abstract FileCollection getInputArtifactDependencies()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    assert input.file
+                    ${sleep > 0 ? "Thread.sleep($sleep)" : ""}
+                    def output = outputs.file(input.name + ".green")
+                    if (input.file) {
+                        output.text = input.text + ".green"
+                    } else {
+                        output.text = "missing.green"
+                    }
+                }
+            }
+        """
     }
 }
