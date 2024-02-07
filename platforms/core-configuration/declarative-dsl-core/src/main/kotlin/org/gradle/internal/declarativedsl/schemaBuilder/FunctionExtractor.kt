@@ -174,7 +174,7 @@ class DefaultFunctionExtractor(
         }.map { dataParameter(function, it, function.returnType.toKClass(), semanticsFromSignature, preIndex) }
 
         return DataTopLevelFunction(
-            function.javaMethod!!.declaringClass.packageName,
+            function.javaMethod!!.declaringClass.`package`.name,
             function.name,
             params,
             semanticsFromSignature
