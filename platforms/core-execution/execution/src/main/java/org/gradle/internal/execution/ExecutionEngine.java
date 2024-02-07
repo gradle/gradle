@@ -97,7 +97,10 @@ public interface ExecutionEngine {
         Identity getIdentity();
 
         /**
+         * The origin metadata of the result.
+         *
          * If a previously produced output was reused in some way, the reused output's origin metadata is returned.
+         * If the output was produced in this request, then the current execution's origin metadata is returned.
          */
         Optional<OriginMetadata> getOriginMetadata();
     }
