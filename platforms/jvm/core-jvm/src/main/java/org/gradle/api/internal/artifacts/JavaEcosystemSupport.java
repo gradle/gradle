@@ -30,6 +30,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.CompileView;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
@@ -89,6 +90,7 @@ public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
+        configureCompileView(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
@@ -96,6 +98,7 @@ public abstract class JavaEcosystemSupport {
         attributesSchema.attributeDisambiguationPrecedence(
                 Category.CATEGORY_ATTRIBUTE,
                 Usage.USAGE_ATTRIBUTE,
+                CompileView.VIEW_ATTRIBUTE,
                 TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
                 LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
                 Bundling.BUNDLING_ATTRIBUTE,
@@ -146,6 +149,81 @@ public abstract class JavaEcosystemSupport {
             actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         });
     }
+
+    private static void configureCompileView(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
+        AttributeMatchingStrategy<CompileView> viewSchema = attributesSchema.attribute(CompileView.VIEW_ATTRIBUTE);
+        viewSchema.getCompatibilityRules().add(CompileViewCompatibilityRules.class);
+        viewSchema.getDisambiguationRules().add(CompileViewDisambiguationRules.class, actionConfiguration -> {
+            actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_API));
+            actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_IMPLEMENTATION));
+        });
+    }
+
+    @VisibleForTesting
+    public static class CompileViewCompatibilityRules implements AttributeCompatibilityRule<CompileView>, ReusableAction {
+        @Override
+        public void execute(CompatibilityCheckDetails<CompileView> details) {
+            CompileView consumerValue = details.getConsumerValue();
+            CompileView producerValue = details.getProducerValue();
+
+            if (consumerValue == null) {
+                // The consumer didn't express any preferences, so everything is compatible.
+                details.compatible();
+                return;
+            }
+            if (consumerValue.getName().equals(producerValue.getName())) {
+                // The consumer and producer values are the same, so they are compatible.
+                details.compatible();
+                return;
+            }
+
+            if (consumerValue.getName().equals(CompileView.JAVA_API)) {
+                // The user requested the API. The implementation is a superset of the API, so it is compatible.
+                if (CompileView.JAVA_API.equals(producerValue.getName()) ||
+                    CompileView.JAVA_IMPLEMENTATION.equals(producerValue.getName())
+                ) {
+                    details.compatible();
+                }
+            } else if (consumerValue.getName().equals(CompileView.JAVA_IMPLEMENTATION)) {
+                // The user requested the implementation. The API is a subset of the implementation, so it is not compatible.
+                if (CompileView.JAVA_IMPLEMENTATION.equals(producerValue.getName())) {
+                    details.compatible();
+                }
+            }
+        }
+    }
+
+    @VisibleForTesting
+    static class CompileViewDisambiguationRules implements AttributeDisambiguationRule<CompileView>, ReusableAction {
+
+        final CompileView javaApi;
+        final CompileView javaImplementation;
+
+        @Inject
+        public CompileViewDisambiguationRules(
+            CompileView javaApi,
+            CompileView javaImplementation
+        ) {
+            this.javaApi = javaApi;
+            this.javaImplementation = javaImplementation;
+        }
+
+        @Override
+        public void execute(MultipleCandidatesDetails<CompileView> details) {
+            Set<CompileView> candidateValues = details.getCandidateValues();
+            CompileView consumerValue = details.getConsumerValue();
+            if (consumerValue == null) {
+                if (candidateValues.contains(javaApi)) {
+                    // Use the api when nothing has been requested.
+                    details.closestMatch(javaApi);
+                }
+            } else if (candidateValues.contains(consumerValue)) {
+                // Use what they requested, if available.
+                details.closestMatch(consumerValue);
+            }
+        }
+    }
+
     @VisibleForTesting
     public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
         final Usage javaApi;

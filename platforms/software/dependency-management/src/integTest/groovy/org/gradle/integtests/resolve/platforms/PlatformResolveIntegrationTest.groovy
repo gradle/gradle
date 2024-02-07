@@ -184,7 +184,8 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                                             'org.gradle.dependency.bundling': 'external',
                                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
                                             'org.gradle.usage': 'java-api',
-                                            'org.gradle.libraryelements': 'jar'])
+                                            'org.gradle.libraryelements': 'jar',
+                                            'org.gradle.compile-view': 'java-api'])
                     constraint("org:platform:1.0", "org:platform:1.0") {
                         variant("platform-compile", [
                             'org.gradle.usage': 'java-api',

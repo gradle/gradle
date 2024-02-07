@@ -16,7 +16,9 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -205,6 +207,15 @@ public interface JvmFeatureInternal extends Named {
      * @return The {@code apiElements} configuration.
      */
     Configuration getApiElementsConfiguration();
+
+    /**
+     * Get the consumable configuration which produces the {@code implementationCompileElements} variant of this feature.
+     * This configuration includes all implementation compilation dependencies as well as the feature's
+     * compilation outputs, but does not include {@code runtimeOnly} dependencies.
+     *
+     * @return The {@code implementationCompileElements} configuration.
+     */
+    NamedDomainObjectProvider<ConsumableConfiguration> getImplementationCompileElementsConfiguration();
 
     /**
      * Get the consumable configuration which produces the {@code runtimeElements} variant of this feature.

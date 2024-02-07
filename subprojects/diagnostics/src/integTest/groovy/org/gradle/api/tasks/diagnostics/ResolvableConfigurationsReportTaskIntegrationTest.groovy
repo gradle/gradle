@@ -238,12 +238,13 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration compileClasspath
+Configuration compileClasspath (i)
 --------------------------------------------------
 Compile classpath for source set 'main'.
 
 Attributes
     - org.gradle.category            = library
+    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -282,12 +283,13 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration testCompileClasspath
+Configuration testCompileClasspath (i)
 --------------------------------------------------
 Compile classpath for source set 'test'.
 
 Attributes
     - org.gradle.category            = library
+    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -362,12 +364,13 @@ Configuration archiveLegacy (l)
 Example legacy configuration.
 
 --------------------------------------------------
-Configuration compileClasspath
+Configuration compileClasspath (i)
 --------------------------------------------------
 Compile classpath for source set 'main'.
 
 Attributes
     - org.gradle.category            = library
+    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -406,12 +409,13 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration testCompileClasspath
+Configuration testCompileClasspath (i)
 --------------------------------------------------
 Compile classpath for source set 'test'.
 
 Attributes
     - org.gradle.category            = library
+    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -636,6 +640,7 @@ The following Attributes have disambiguation rules defined.
 
     - flavor (1)
     - org.gradle.category
+    - org.gradle.compile-view
     - org.gradle.dependency.bundling
     - org.gradle.jvm.environment
     - org.gradle.jvm.version
@@ -696,10 +701,11 @@ The following Attributes have disambiguation rules defined.
 
     - flavor
     - org.gradle.category (1)
-    - org.gradle.dependency.bundling (5)
-    - org.gradle.jvm.environment (6)
-    - org.gradle.jvm.version (3)
-    - org.gradle.libraryelements (4)
+    - org.gradle.compile-view (3)
+    - org.gradle.dependency.bundling (6)
+    - org.gradle.jvm.environment (7)
+    - org.gradle.jvm.version (4)
+    - org.gradle.libraryelements (5)
     - org.gradle.plugin.api-version
     - org.gradle.usage (2)
 

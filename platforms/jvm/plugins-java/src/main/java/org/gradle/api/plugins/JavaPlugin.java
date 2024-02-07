@@ -307,6 +307,10 @@ public abstract class JavaPlugin implements Plugin<Project> {
         component.addVariantsFromConfiguration(mainFeature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", false, mainFeature.getCompileClasspathConfiguration()));
         component.addVariantsFromConfiguration(mainFeature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", false, mainFeature.getRuntimeClasspathConfiguration()));
 
+        // Note: `implementationCompileElements` is intentionally not published!
+        // It is an internal detail of the component and should only be accessible within the component.
+        // Until we implement some variant visibility model, we should not publish this variant.
+
         // Create the default test suite
         JvmTestSuite defaultTestSuite = createDefaultTestSuite(mainFeature, project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getObjects());
         component.getTestSuites().add(defaultTestSuite);

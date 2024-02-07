@@ -17,6 +17,7 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -105,6 +106,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     // Outgoing variants
     private final Configuration apiElements;
     private final Configuration runtimeElements;
+    private final NamedDomainObjectProvider<ConsumableConfiguration> implementationCompileElements;
 
     // Configurable outgoing variants
     private Configuration javadocElements;
@@ -156,6 +158,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         PublishArtifact jarArtifact = new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory());
         this.apiElements = createApiElements(configurations, jarArtifact, compileJava, useMigrationRoleForElementsConfigurations);
         this.runtimeElements = createRuntimeElements(configurations, jarArtifact, compileJava, useMigrationRoleForElementsConfigurations);
+        this.implementationCompileElements = createImplementationCompileElements(configurations, jarArtifact);
 
         if (extendProductionCode) {
             doExtendProductionCode();
@@ -231,7 +234,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         jvmLanguageUtilities.useDefaultTargetPlatformInference(apiElements, compileJava);
         jvmPluginServices.configureAsApiElements(apiElements);
         capabilities.forEach(apiElements.getOutgoing()::capability);
-        apiElements.setDescription("API elements for the '" + name + "' feature.");
+        apiElements.setDescription("API compile elements for the '" + name + "' feature.");
 
         // Configure variants
         addJarArtifactToConfiguration(apiElements, jarArtifact);
@@ -262,6 +265,25 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         jvmPluginServices.configureResourcesDirectoryVariant(runtimeElements, sourceSet);
 
         return runtimeElements;
+    }
+
+    private NamedDomainObjectProvider<ConsumableConfiguration> createImplementationCompileElements(
+        RoleBasedConfigurationContainerInternal configurations,
+        PublishArtifact jarArtifact
+    ) {
+         String configName = getConfigurationName(JvmConstants.IMPLEMENTATION_COMPILE_ELEMENTS_CONFIGURATION_NAME);
+         return configurations.consumable(configName, conf -> {
+            jvmLanguageUtilities.useDefaultTargetPlatformInference(conf, compileJava);
+            jvmPluginServices.configureAsImplementationCompileElements(conf);
+            capabilities.forEach(conf.getOutgoing()::capability);
+            conf.setDescription("Implementation compile elements for the '" + name + "' feature.");
+
+            conf.extendsFrom(implementation, compileOnly);
+
+            // Configure variants
+            addJarArtifactToConfiguration(conf, jarArtifact);
+            jvmPluginServices.configureClassesDirectoryVariant(conf, sourceSet);
+        });
     }
 
     private static Configuration maybeCreateElementsConfiguration(
@@ -439,6 +461,11 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     @Override
     public Configuration getApiElementsConfiguration() {
         return apiElements;
+    }
+
+    @Override
+    public NamedDomainObjectProvider<ConsumableConfiguration> getImplementationCompileElementsConfiguration() {
+        return implementationCompileElements;
     }
 
     @Override

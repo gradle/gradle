@@ -229,14 +229,15 @@ Attributes
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         result.groupedOutput.task(":outgoingVariants").assertOutputContains """--------------------------------------------------
-Variant apiElements
+Variant apiElements (i)
 --------------------------------------------------
-API elements for the 'main' feature.
+API compile elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
     - org.gradle.category            = library
+    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
@@ -247,12 +248,13 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes
+    Secondary Variant classes (i)
     --------------------------------------------------
     Directories containing compiled class files for main.
 
     Attributes
         - org.gradle.category            = library
+        - org.gradle.compile-view        = java-api
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
         - org.gradle.libraryelements     = classes
@@ -279,6 +281,40 @@ Capabilities
     - org:myLib:1.0 (default capability)
 Artifacts
     - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant implementationCompileElements (i)
+--------------------------------------------------
+Implementation compile elements for the 'main' feature.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.compile-view        = java-implementation
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-api
+Artifacts
+    - $jarPath (artifactType = jar)
+
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes (i)
+    --------------------------------------------------
+    Directories containing compiled class files for main.
+
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.compile-view        = java-implementation
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
@@ -387,14 +423,15 @@ Artifacts
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
-Variant apiElements
+Variant apiElements (i)
 --------------------------------------------------
-API elements for the 'main' feature.
+API compile elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
     - org.gradle.category            = library
+    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
@@ -405,12 +442,13 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes
+    Secondary Variant classes (i)
     --------------------------------------------------
     Directories containing compiled class files for main.
 
     Attributes
         - org.gradle.category            = library
+        - org.gradle.compile-view        = java-api
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
         - org.gradle.libraryelements     = classes
@@ -437,6 +475,40 @@ Capabilities
     - org:myLib:1.0 (default capability)
 Artifacts
     - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant implementationCompileElements (i)
+--------------------------------------------------
+Implementation compile elements for the 'main' feature.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.compile-view        = java-implementation
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-api
+Artifacts
+    - $jarPath (artifactType = jar)
+
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes (i)
+    --------------------------------------------------
+    Directories containing compiled class files for main.
+
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.compile-view        = java-implementation
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant javadocElements
@@ -574,14 +646,15 @@ Artifacts
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
-Variant apiElements
+Variant apiElements (i)
 --------------------------------------------------
-API elements for the 'main' feature.
+API compile elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
     - org.gradle.category            = library
+    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
@@ -592,12 +665,13 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes
+    Secondary Variant classes (i)
     --------------------------------------------------
     Directories containing compiled class files for main.
 
     Attributes
         - org.gradle.category            = library
+        - org.gradle.compile-view        = java-api
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
         - org.gradle.libraryelements     = classes
@@ -624,6 +698,40 @@ Capabilities
     - org:myLib:1.0 (default capability)
 Artifacts
     - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant implementationCompileElements (i)
+--------------------------------------------------
+Implementation compile elements for the 'main' feature.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.compile-view        = java-implementation
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-api
+Artifacts
+    - $jarPath (artifactType = jar)
+
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes (i)
+    --------------------------------------------------
+    Directories containing compiled class files for main.
+
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.compile-view        = java-implementation
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant javadocElements
@@ -824,14 +932,15 @@ Secondary Variants (*)
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
 
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
-Variant apiElements
+Variant apiElements (i)
 --------------------------------------------------
-API elements for the 'main' feature.
+API compile elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
     - org.gradle.category            = library
+    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
@@ -842,12 +951,13 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes
+    Secondary Variant classes (i)
     --------------------------------------------------
     Directories containing compiled class files for main.
 
     Attributes
         - org.gradle.category            = library
+        - org.gradle.compile-view        = java-api
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
         - org.gradle.libraryelements     = classes
@@ -874,6 +984,40 @@ Capabilities
     - org:myLib:1.0 (default capability)
 Artifacts
     - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant implementationCompileElements (i)
+--------------------------------------------------
+Implementation compile elements for the 'main' feature.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.compile-view        = java-implementation
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-api
+Artifacts
+    - $jarPath (artifactType = jar)
+
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes (i)
+    --------------------------------------------------
+    Directories containing compiled class files for main.
+
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.compile-view        = java-implementation
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
@@ -976,14 +1120,15 @@ Artifacts
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
-Variant apiElements
+Variant apiElements (i)
 --------------------------------------------------
-API elements for the 'main' feature.
+API compile elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
     - org.gradle.category            = library
+    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
@@ -994,12 +1139,13 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes
+    Secondary Variant classes (i)
     --------------------------------------------------
     Directories containing compiled class files for main.
 
     Attributes
         - org.gradle.category            = library
+        - org.gradle.compile-view        = java-api
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
         - org.gradle.libraryelements     = classes
@@ -1026,6 +1172,40 @@ Capabilities
     - org:myLib:1.0 (default capability)
 Artifacts
     - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant implementationCompileElements (i)
+--------------------------------------------------
+Implementation compile elements for the 'main' feature.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.compile-view        = java-implementation
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-api
+Artifacts
+    - $jarPath (artifactType = jar)
+
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes (i)
+    --------------------------------------------------
+    Directories containing compiled class files for main.
+
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.compile-view        = java-implementation
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
@@ -1238,14 +1418,15 @@ Secondary Variants (*)
         def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
-Variant apiElements
+Variant apiElements (i)
 --------------------------------------------------
-API elements for the 'main' feature.
+API compile elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
     - org.gradle.category            = library
+    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
@@ -1256,12 +1437,13 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes
+    Secondary Variant classes (i)
     --------------------------------------------------
     Directories containing compiled class files for main.
 
     Attributes
         - org.gradle.category            = library
+        - org.gradle.compile-view        = java-api
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
         - org.gradle.libraryelements     = classes
@@ -1288,6 +1470,40 @@ Capabilities
     - org:myLib:1.0 (default capability)
 Artifacts
     - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant implementationCompileElements (i)
+--------------------------------------------------
+Implementation compile elements for the 'main' feature.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.compile-view        = java-implementation
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-api
+Artifacts
+    - $jarPath (artifactType = jar)
+
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes (i)
+    --------------------------------------------------
+    Directories containing compiled class files for main.
+
+    Attributes
+        - org.gradle.category            = library
+        - org.gradle.compile-view        = java-implementation
+        - org.gradle.dependency.bundling = external
+        - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+        - org.gradle.libraryelements     = classes
+        - org.gradle.usage               = java-api
+    Artifacts
+        - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
