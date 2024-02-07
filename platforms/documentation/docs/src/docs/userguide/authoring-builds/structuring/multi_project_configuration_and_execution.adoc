@@ -64,7 +64,7 @@ As Gradle evolves, it aims to provide features that leverage decoupled projects 
 [[sec:parallel_execution]]
 == Parallel projects
 
-Gradle's parallel execution feature maximizes CPU resources to speed up builds, especially for multi-project setups and small projects.
+Gradle's parallel execution feature optimizes CPU utilization to accelerate builds by concurrently executing tasks from different projects.
 
 To enable parallel execution, use the `--parallel` <<command_line_interface.adoc#sec:command_line_performance,command-line argument>> or configure your <<build_environment.adoc#sec:gradle_configuration_properties,build environment>>.
 Gradle automatically determines the optimal number of parallel threads based on CPU cores.
