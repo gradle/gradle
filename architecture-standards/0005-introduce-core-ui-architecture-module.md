@@ -6,7 +6,7 @@
 
 ## Context
 
-The Gradle core platform provides many services to the Gradle platforms and build logic. One such group of services allow logic to interact with the build user to provide diagnostics, progress information, prompt for questions, and so on. Currently, these services are part of the core platform runtime architecture module.
+The Gradle core platform provides many services to the Gradle platforms and build logic. One such group of services allow logic to interact with the build user, to provide diagnostics, progress information, prompt for questions, and so on. Currently, these services are part of the core platform runtime architecture module.
 
 A downside of this structure is that it is difficult to do focussed work on the Gradle UI.
 
@@ -14,7 +14,7 @@ A downside of this structure is that it is difficult to do focussed work on the 
 
 Introduce a "UI" architecture module to the core platform, and move the user interaction services to this new module.
 
-This would include:
+This includes:
 
 - Logging and progress services.
 - Problem generation services (aka the "problems API").
