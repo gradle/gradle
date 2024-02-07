@@ -236,6 +236,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(javaModuleDetector.inferClasspath(isModule, getClasspath())));
         spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, getClasspath())));
+
         if (isModule && !isSourcepathUserDefined) {
             compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
         }
@@ -334,6 +335,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      * @return The compilation options.
      */
     @Nested
+    @Override
     public CompileOptions getOptions() {
         return compileOptions;
     }

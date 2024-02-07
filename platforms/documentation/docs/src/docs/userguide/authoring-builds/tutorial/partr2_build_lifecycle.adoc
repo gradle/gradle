@@ -97,7 +97,7 @@ tasks.named("task2"){
 
 Run the `task1` task that you registered and configured in Step 3:
 
-[source]
+[source,text]
 ----
 $ ./gradlew task1
 

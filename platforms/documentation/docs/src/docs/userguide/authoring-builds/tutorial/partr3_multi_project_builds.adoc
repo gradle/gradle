@@ -43,7 +43,7 @@ In Gradle, a multi-project build consists of:
 
 Our build currently consists of a root project called `authoring-tutorial`, which has a single `app` subproject:
 
-[source]
+[source,text]
 ----
 .                           // <1>
 ├── app                     // <2>
@@ -63,12 +63,12 @@ Imagine that our project is growing and requires a custom library to function.
 Let's create this imaginary `lib`.
 First, create a `lib` folder:
 
-[source]
+[source,text]
 ----
 mkdir lib
 ----
 
-[source]
+[source,text]
 ----
 cd lib
 ----
@@ -128,7 +128,7 @@ Your project should look like this:
 Let's add some code to the `lib` subproject.
 Create a new directory:
 
-[source]
+[source,text]
 ----
 mkdir -p lib/src/main/java/com/gradle
 ----

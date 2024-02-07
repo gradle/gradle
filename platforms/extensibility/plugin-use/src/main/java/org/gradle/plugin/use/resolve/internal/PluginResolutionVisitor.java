@@ -17,6 +17,7 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleIdentifier;
 
 /**
  * Visits resolved plugins.
@@ -27,6 +28,11 @@ public interface PluginResolutionVisitor {
      * Visit a dependency that is required for the plugin.
      */
     void visitDependency(Dependency dependency);
+
+    /**
+     * Visit a module replacement that will be applied to the script classpath resolution.
+     */
+    void visitReplacement(ModuleIdentifier original, ModuleIdentifier replacement);
 
     /**
      * Visit a classloader that provides classes for the plugin.

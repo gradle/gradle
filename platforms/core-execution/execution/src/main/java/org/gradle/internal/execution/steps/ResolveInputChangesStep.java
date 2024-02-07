@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 
 import static org.gradle.internal.execution.UnitOfWork.ExecutionBehavior.NON_INCREMENTAL;
 
-public class ResolveInputChangesStep<C extends IncrementalChangesContext, R extends Result> implements Step<C, R> {
+public class ResolveInputChangesStep<C extends IncrementalCachingContext, R extends Result> implements Step<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveInputChangesStep.class);
 
     private final Step<? super InputChangesContext, ? extends R> delegate;
@@ -37,7 +37,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext, R exte
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        return delegate.execute(work, new InputChangesContext(context, determineInputChanges(work, context)));
+        return delegate.execute(work, new InputChangesContext(context, determineInputChanges(work, context), context.getCachingState()));
     }
 
     @Nullable

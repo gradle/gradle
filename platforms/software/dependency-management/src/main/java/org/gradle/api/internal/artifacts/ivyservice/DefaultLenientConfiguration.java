@@ -17,53 +17,43 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
-import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultSelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
-import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -71,97 +61,72 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultLenientConfiguration implements LenientConfiguration, VisitedArtifactSet {
-
-    private final static ResolveArtifactsBuildOperationType.Result RESULT = new ResolveArtifactsBuildOperationType.Result() {
-    };
+public class DefaultLenientConfiguration implements LenientConfigurationInternal {
 
     private final ResolutionHost resolutionHost;
-    private final ImmutableAttributes implicitAttributes;
     private final VisitedGraphResults graphResults;
-    private final VisitedArtifactsResults artifactResults;
+    private final VisitedArtifactResults artifactResults;
     private final VisitedFileDependencyResults fileDependencyResults;
     private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final DependencyVerificationOverride dependencyVerificationOverride;
-    private final WorkerLeaseService workerLeaseService;
+    private final ResolvedArtifactSetResolver artifactSetResolver;
     private final ArtifactVariantSelector artifactVariantSelector;
+    private final ArtifactSelectionSpec implicitSelectionSpec;
 
     // Selected for the configuration
     private SelectedArtifactResults artifactsForThisConfiguration;
-    private DependencyVerificationException dependencyVerificationException;
 
     public DefaultLenientConfiguration(
         ResolutionHost resolutionHost,
-        ImmutableAttributes implicitAttributes,
         VisitedGraphResults graphResults,
-        VisitedArtifactsResults artifactResults,
+        VisitedArtifactResults artifactResults,
         VisitedFileDependencyResults fileDependencyResults,
         TransientConfigurationResultsLoader transientConfigurationResultsLoader,
-        BuildOperationExecutor buildOperationExecutor,
-        DependencyVerificationOverride dependencyVerificationOverride,
-        WorkerLeaseService workerLeaseService,
-        ArtifactVariantSelector artifactVariantSelector
+        ResolvedArtifactSetResolver artifactSetResolver,
+        ArtifactVariantSelector artifactVariantSelector,
+        ArtifactSelectionSpec implicitSelectionSpec
     ) {
         this.resolutionHost = resolutionHost;
-        this.implicitAttributes = implicitAttributes;
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
-        this.buildOperationExecutor = buildOperationExecutor;
-        this.dependencyVerificationOverride = dependencyVerificationOverride;
-        this.workerLeaseService = workerLeaseService;
+        this.artifactSetResolver = artifactSetResolver;
         this.artifactVariantSelector = artifactVariantSelector;
+        this.implicitSelectionSpec = implicitSelectionSpec;
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.selectLenient(artifactVariantSelector, getImplicitSelectionSpec());
+            artifactsForThisConfiguration = artifactResults.select(artifactVariantSelector, implicitSelectionSpec, true);
         }
         return artifactsForThisConfiguration;
     }
 
-    public SelectedArtifactSet select() {
-        return select(Specs.satisfyAll(), getImplicitSelectionSpec());
-    }
-
-    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec) {
-        return select(dependencySpec, getImplicitSelectionSpec());
-    }
-
-    private ArtifactSelectionSpec getImplicitSelectionSpec() {
-        return new ArtifactSelectionSpec(implicitAttributes, Specs.satisfyAll(), false, false);
-    }
-
     @Override
-    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, ArtifactSelectionSpec spec) {
-        SelectedArtifactResults artifactResults = this.artifactResults.select(artifactVariantSelector, spec);
+    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec) {
+        SelectedArtifactResults artifactResults = this.artifactResults.select(artifactVariantSelector, implicitSelectionSpec, false);
 
         return new SelectedArtifactSet() {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                graphResults.visitFailures(context::visitFailure);
-                context.add(artifactResults.getArtifacts());
+                getDelegate(artifactResults.getArtifacts()).visitDependencies(context);
             }
 
             @Override
             public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
-                if (graphResults.hasAnyFailure()) {
-                    graphResults.visitFailures(visitor::visitFailure);
-                    if (!continueOnSelectionFailure) {
-                        return;
-                    }
-                }
-                // This may be called from an unmanaged thread, so temporarily enlist the current thread as a worker if it is not already so that it can visit the results
-                // It would be better to instead to memoize the results on the first visit so that this is not required
-                workerLeaseService.runAsUnmanagedWorkerThread(() -> visitArtifactsWithBuildOperation(dependencySpec, artifactResults, fileDependencyResults, visitor));
+                ResolvedArtifactSet filteredArtifacts = resolveFilteredArtifacts(dependencySpec, artifactResults);
+                getDelegate(filteredArtifacts).visitArtifacts(visitor, continueOnSelectionFailure);
+            }
+
+            private DefaultSelectedArtifactSet getDelegate(ResolvedArtifactSet filteredArtifacts) {
+                return new DefaultSelectedArtifactSet(artifactSetResolver, graphResults, filteredArtifacts, resolutionHost);
             }
         };
     }
 
-    public VisitedGraphResults getGraphResults() {
-        return graphResults;
+    @Override
+    public ArtifactSelectionSpec getImplicitSelectionSpec() {
+        return implicitSelectionSpec;
     }
 
     @Override
@@ -171,6 +136,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private TransientConfigurationResults loadTransientGraphResults(SelectedArtifactResults artifactResults) {
         return transientConfigurationResultsFactory.create(artifactResults);
+    }
+
+    @Override
+    public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+        return getFirstLevelModuleDependencies(Specs.SATISFIES_ALL);
     }
 
     @Override
@@ -209,91 +179,43 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     @Override
     public Set<File> getFiles() {
-        return getFiles(Specs.satisfyAll());
+        LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
+        artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
+        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        return visitor.files;
     }
 
-    /**
-     * Recursive but excludes unsuccessfully resolved artifacts.
-     */
     @Override
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
-        visitArtifactsWithBuildOperation(dependencySpec, getSelectedArtifacts(), fileDependencyResults, visitor);
+        ResolvedArtifactSet filteredArtifacts = resolveFilteredArtifacts(dependencySpec, getSelectedArtifacts());
+        artifactSetResolver.visitArtifacts(filteredArtifacts, visitor, resolutionHost);
+        resolutionHost.rethrowFailure("files", visitor.getFailures());
         return visitor.files;
     }
 
     @Override
     public Set<ResolvedArtifact> getArtifacts() {
-        return getArtifacts(Specs.satisfyAll());
-    }
-
-    /**
-     * Recursive but excludes unsuccessfully resolved artifacts.
-     */
-    @Override
-    public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
-        visitArtifactsWithBuildOperation(dependencySpec, getSelectedArtifacts(), fileDependencyResults, visitor);
+        artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
+        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
         return visitor.artifacts;
     }
 
-    private void visitArtifactsWithBuildOperation(final Spec<? super Dependency> dependencySpec, final SelectedArtifactResults artifactResults, final VisitedFileDependencyResults fileDependencyResults, final ArtifactVisitor visitor) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
-            @Override
-            public void run(BuildOperationContext context) {
-                visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
-                // With input validation, we sometimes may suppress this exception and not see it on second time
-                // Caching it takes care of this
-                if (dependencyVerificationException != null) {
-                    throw dependencyVerificationException;
-                } else {
-                    try {
-                        dependencyVerificationOverride.artifactsAccessed(resolutionHost.getDisplayName());
-                    } catch (DependencyVerificationException e) {
-                        dependencyVerificationException = e;
-                        throw e;
-                    }
-                }
-                context.setResult(RESULT);
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                String displayName = "Resolve files of " + resolutionHost.getDisplayName();
-                return BuildOperationDescriptor
-                    .displayName(displayName)
-                    .progressDisplayName(displayName)
-                    .details(new ResolveArtifactsDetails());
-            }
-        });
-    }
-
-    private static class ResolveArtifactsDetails implements ResolveArtifactsBuildOperationType.Details {
-
-        @Override
-        @Deprecated
-        public String getConfigurationPath() {
-            return "";
-        }
-
+    @Override
+    public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
+        LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
+        ResolvedArtifactSet filteredArtifacts = resolveFilteredArtifacts(dependencySpec, getSelectedArtifacts());
+        artifactSetResolver.visitArtifacts(filteredArtifacts, visitor, resolutionHost);
+        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
+        return visitor.artifacts;
     }
 
     /**
-     * Recursive, includes unsuccessfully resolved artifacts
-     *
-     * @param dependencySpec dependency spec
+     * Returns a subset of {@code artifactResults} accessible from dependencies matching {@code dependencySpec}.
      */
-    private void visitArtifacts(Spec<? super Dependency> dependencySpec, SelectedArtifactResults artifactResults, VisitedFileDependencyResults fileDependencyResults, ArtifactVisitor visitor) {
-
-        //this is not very nice might be good enough until we get rid of ResolvedConfiguration and friends
-        //avoid traversing the graph causing the full ResolvedDependency graph to be loaded for the most typical scenario
-        if (dependencySpec == Specs.SATISFIES_ALL) {
-            ParallelResolveArtifactSet.wrap(artifactResults.getArtifacts(), buildOperationExecutor).visit(visitor);
-            return;
-        }
-
+    private ResolvedArtifactSet resolveFilteredArtifacts(Spec<? super Dependency> dependencySpec, SelectedArtifactResults artifactResults) {
         List<ResolvedArtifactSet> artifactSets = new ArrayList<>();
-
         for (Map.Entry<FileCollectionDependency, Integer> entry : fileDependencyResults.getFirstLevelFiles().entrySet()) {
             if (dependencySpec.isSatisfiedBy(entry.getKey())) {
                 artifactSets.add(artifactResults.getArtifactsWithId(entry.getValue()));
@@ -305,21 +227,13 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             walker.add(node);
         }
         walker.findValues();
-        ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
-    }
-
-    public String getDisplayName() {
-        return resolutionHost.getDisplayName();
-    }
-
-    @Override
-    public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-        return getFirstLevelModuleDependencies(Specs.SATISFIES_ALL);
+        return CompositeResolvedArtifactSet.of(artifactSets);
     }
 
     private static class LenientArtifactCollectingVisitor implements ArtifactVisitor {
         final Set<ResolvedArtifact> artifacts = new LinkedHashSet<>();
         final Set<File> files = new LinkedHashSet<>();
+        List<Throwable> failures;
 
         @Override
         public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
@@ -329,6 +243,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 artifacts.add(resolvedArtifact);
             } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
                 //ignore
+            } catch (Exception e) {
+                visitFailure(e);
             }
         }
 
@@ -342,12 +258,20 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
         @Override
         public boolean requireArtifactFiles() {
+            // This is false so that we can download the artifact in `visitArtifact` and ignore missing files
             return false;
         }
 
         @Override
         public void visitFailure(Throwable failure) {
-            throw UncheckedException.throwAsUncheckedException(failure);
+            if (failures == null) {
+                failures = new ArrayList<>();
+            }
+            failures.add(failure);
+        }
+
+        public List<Throwable> getFailures() {
+            return failures != null ? failures : Collections.emptyList();
         }
     }
 

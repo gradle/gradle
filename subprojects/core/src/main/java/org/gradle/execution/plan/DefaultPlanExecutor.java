@@ -704,6 +704,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             startTime = System.nanoTime();
         }
 
+        @Override
         public void finish() {
             finishTime = System.nanoTime();
             owner.workerFinished(this);

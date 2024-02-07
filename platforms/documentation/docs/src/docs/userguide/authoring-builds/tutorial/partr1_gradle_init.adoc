@@ -39,17 +39,17 @@ The Community Edition is a free version of IntelliJ IDEA.
 
 Create a new directory called `authoring-tutorial` and `cd` into it:
 
-[source]
+[source,text]
 ----
 $ mkdir authoring-tutorial
 ----
-[source]
+[source,text]
 ----
 $ cd authoring-tutorial
 ----
 
 Run `gradle init` with parameters to generate a Java application:
-[source]
+[source,text]
 ----
 $ gradle init --use-defaults --type java-application
 ----
@@ -214,7 +214,7 @@ Applying the Application plugin implicitly applies the Java plugin and adds task
 Thanks to the `application` plugin, you can run the application directly from the command line.
 The `run` task tells Gradle to execute the `main` method in the class assigned to the `mainClass` property.
 
-[source]
+[source,text]
 ----
 $ ./gradlew run
 
@@ -232,7 +232,7 @@ The archive will also contain a script to start the application with a single co
 
 Run `./gradlew build`:
 
-[source]
+[source,text]
 ----
 $ ./gradlew build
 

@@ -61,7 +61,7 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
         return buildQueue.build(
             currentBuild,
             taskIdentifiersForBuildDependenciesOf(classpathConfiguration),
-            () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration, dependencyHandler, configContainer)
+            () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration)
         );
     }
 

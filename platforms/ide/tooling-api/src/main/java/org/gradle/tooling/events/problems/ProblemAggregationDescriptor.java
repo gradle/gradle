@@ -22,7 +22,6 @@ import java.util.List;
 
 /**
  * Describes the problem aggregations sent at the end of the build.
- * Note: They can also be sent during the build if the total number of problems exceeds 10,000.
  *
  * @since 8.6
  */

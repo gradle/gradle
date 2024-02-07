@@ -52,11 +52,14 @@ public interface ProjectDetails {
             description = project.getDescription();
         }
 
+        @Override
         public String getDisplayName() {
             return displayName;
         }
 
         @Nullable
+        @Override
+
         public String getDescription() {
             return description;
         }

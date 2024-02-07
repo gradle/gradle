@@ -156,9 +156,10 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         setupLockOwner() { requestReceived = true }
 
         when:
-        def build1 = executer.withArguments("-d").withTasks("lock").start()
-        def build2 = executer.withArguments("-d").withTasks("lock").start()
-        def build3 = executer.withArguments("-d").withTasks("lock").start()
+        // Debug logging might have logged exceptions from other Gradle systems, e.g. execution engine, so we disable stacktrace checks
+        def build1 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
+        def build2 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
+        def build3 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
         poll(120) {
             assert requestReceived
             assertConfirmationCount(build1)
@@ -185,9 +186,10 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         }
 
         when:
-        def build1 = executer.withArguments("-d").withTasks("lock").start()
-        def build2 = executer.withArguments("-d").withTasks("lock").start()
-        def build3 = executer.withArguments("-d").withTasks("lock").start()
+        // Debug logging might have logged exceptions from other Gradle systems, e.g. execution engine, so we disable stacktrace checks
+        def build1 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
+        def build2 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
+        def build3 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
 
         then:
         poll(120) {

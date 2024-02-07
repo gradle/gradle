@@ -151,6 +151,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return false;
     }
 
+    @Override
     public void setComponentResolvers(ComponentResolvers resolver) {
         this.componentResolvers = resolver;
     }
@@ -164,6 +165,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return local;
     }
 
+    @Override
     public Instantiator getComponentMetadataInstantiator() {
         return injector;
     }

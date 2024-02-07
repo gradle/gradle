@@ -71,6 +71,7 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
     @Override
     BuildCacheConfigurationInternal getBuildCache();
 
+    @Override
     DependencyResolutionManagementInternal getDependencyResolutionManagement();
 
     @Override

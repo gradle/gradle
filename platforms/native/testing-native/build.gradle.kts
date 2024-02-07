@@ -4,6 +4,14 @@ plugins {
 
 description = "Plugins, tasks and domain objects for testing native code"
 
+errorprone {
+    disabledChecks.addAll(
+        "MixedMutabilityReturnType", // 1 occurrences
+        "StringSplitter", // 1 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":native"))

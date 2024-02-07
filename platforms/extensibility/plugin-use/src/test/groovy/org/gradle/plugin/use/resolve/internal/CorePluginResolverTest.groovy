@@ -54,7 +54,7 @@ class CorePluginResolverTest extends Specification {
 
         when:
         def result = resolver.resolve(request)
-        result.assertSuccess(request)
+        result.getFound(request)
 
         then:
         def e = thrown(LocationAwareException)
@@ -63,8 +63,9 @@ class CorePluginResolverTest extends Specification {
 
     def "can resolve unqualified"() {
         when:
-        def result = resolver.resolve(request("foo"))
-        result.found.applyTo(pluginManager)
+        def request = request("foo")
+        def result = resolver.resolve(request)
+        result.getFound(request).applyTo(pluginManager)
 
         then:
         1 * pluginManager.apply(impl)
@@ -73,8 +74,9 @@ class CorePluginResolverTest extends Specification {
 
     def "can resolve qualified"() {
         when:
-        def result = resolver.resolve(request("org.gradle.foo"))
-        result.found.applyTo(pluginManager)
+        def request = request("org.gradle.foo")
+        def result = resolver.resolve(request)
+        result.getFound(request).applyTo(pluginManager)
 
         then:
         1 * pluginManager.apply(impl)
@@ -109,7 +111,7 @@ class CorePluginResolverTest extends Specification {
 
         when:
         def resolved = resolver.resolve(request)
-        resolved.assertSuccess(request)
+        resolved.getFound(request)
 
         then:
         1 * pluginRegistry.lookup(DefaultPluginId.of("org.gradle.foo")) >> null

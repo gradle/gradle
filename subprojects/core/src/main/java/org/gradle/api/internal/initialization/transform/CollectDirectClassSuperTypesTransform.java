@@ -64,6 +64,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
     @InputArtifact
     public abstract Provider<FileSystemLocation> getInput();
 
+    @Override
     public void transform(TransformOutputs outputs) {
         try {
             InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);

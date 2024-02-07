@@ -97,6 +97,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return this;
     }
 
+    @Override
     public void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         artifactResolver.resolveArtifactsWithType(getResolveMetadata(), artifactType, result);
     }

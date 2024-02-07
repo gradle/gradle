@@ -36,6 +36,9 @@ class KnownCategories {
 
     private static final def KNOWN_CATEGORIES = [
         [namespace: "org.gradle", category: "compilation", subcategories: ["groovy-dsl", "compilation-failed"]],
+        [namespace: "org.gradle", category: "compilation", subcategories: ["java", "compilation-failed"]],
+        [namespace: "org.gradle", category: "compilation", subcategories: ["java", "compilation-warning"]],
+        [namespace: "org.gradle", category: "compilation", subcategories: ["java", "compilation-advice"]],
         [namespace: "org.gradle", category: "dependency-version-catalog", subcategories: ["alias-not-finished"]],
         [namespace: "org.gradle", category: "dependency-version-catalog", subcategories: ["reserved-alias-name"]],
         [namespace: "org.gradle", category: "dependency-version-catalog", subcategories: ["catalog-file-does-not-exist"]],

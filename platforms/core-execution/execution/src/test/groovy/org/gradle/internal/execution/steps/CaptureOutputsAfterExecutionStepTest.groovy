@@ -17,23 +17,31 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.caching.internal.DefaultBuildCacheKey
 import org.gradle.internal.execution.OutputSnapshotter
+import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
+import org.gradle.internal.execution.caching.CachingState
+import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.snapshot.FileSystemSnapshot
 
 import java.time.Duration
 
-class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionContext> {
+import static org.gradle.internal.hash.TestHashCodes.hashCodeFrom
+
+class CaptureOutputsAfterExecutionStepTest extends StepSpec<TestCachingContext> {
 
     def buildInvocationScopeId = UniqueId.generate()
-    def beforeExecutionState = Mock(Object)
+    def beforeExecutionState = Mock(BeforeExecutionState)
     def outputSnapshotter = Mock(OutputSnapshotter)
     def outputFilter = Mock(AfterExecutionOutputFilter)
     def delegateResult = Stub(Result)
 
     def step = new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, outputFilter, delegate)
 
-    def "no state is captured if before execution state is unavailable"() {
+    def "no state is captured if cache key calculated state is unavailable"() {
         def delegateDuration = Duration.ofMillis(123)
         delegateResult.duration >> delegateDuration
 
@@ -45,7 +53,7 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionConte
         assertNoOperation()
 
         1 * delegate.execute(work, _) >> delegateResult
-        1 * outputFilter.getBeforeExecutionState(context) >> Optional.empty()
+        _ * context.cachingState >> CachingState.disabledWithoutInputs(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
         0 * _
     }
 
@@ -65,7 +73,7 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionConte
         1 * delegate.execute(work, _) >> delegateResult
 
         then:
-        1 * outputFilter.getBeforeExecutionState(context) >> Optional.of(beforeExecutionState)
+        _ * context.cachingState >> CachingState.enabled(new DefaultBuildCacheKey(hashCodeFrom(1234)), beforeExecutionState)
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
         0 * _
     }
@@ -79,6 +87,7 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionConte
         def filteredOutputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of(
             "outputDir", Mock(FileSystemSnapshot)
         )
+        def buildCacheKey = HashCode.fromString("0123456789abcdef")
         delegateResult.duration >> delegateDuration
 
         when:
@@ -87,6 +96,7 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionConte
         result.afterExecutionOutputState.get().outputFilesProducedByWork == filteredOutputSnapshots
         result.duration == delegateDuration
         result.afterExecutionOutputState.get().originMetadata.buildInvocationId == buildInvocationScopeId.asString()
+        result.afterExecutionOutputState.get().originMetadata.buildCacheKey == buildCacheKey
         result.afterExecutionOutputState.get().originMetadata.executionTime >= result.duration
         !result.afterExecutionOutputState.get().reused
         assertOperation()
@@ -94,9 +104,9 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionConte
         1 * delegate.execute(work, _) >> delegateResult
 
         then:
-        1 * outputFilter.getBeforeExecutionState(context) >> Optional.of(beforeExecutionState)
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
         1 * outputFilter.filterOutputs(context, beforeExecutionState, outputSnapshots) >> filteredOutputSnapshots
+        _ * context.cachingState >> CachingState.enabled(new DefaultBuildCacheKey(buildCacheKey), beforeExecutionState)
         0 * _
     }
 

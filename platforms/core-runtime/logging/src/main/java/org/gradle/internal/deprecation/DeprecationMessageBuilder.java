@@ -495,6 +495,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         /**
          * Output: This behavior is scheduled to be removed in Gradle 9.0.
          */
+        @Override
         public WithDeprecationTimeline willBeRemovedInGradle9() {
             setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(GRADLE9));
             return new WithDeprecationTimeline(this);

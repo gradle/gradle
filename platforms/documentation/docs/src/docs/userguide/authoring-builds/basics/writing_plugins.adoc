@@ -86,7 +86,7 @@ apply<MyPlugin>()                                                               
 === Subclass `DefaultTask()`
 First, build a task by subclassing `DefaultTask()`.
 
-[source]
+[source,kotlin]
 ----
 abstract class CreateFileTask : DefaultTask() { }
 ----

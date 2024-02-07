@@ -17,9 +17,10 @@
 package org.gradle.buildinit.tasks
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.userinput.UserInputHandler
+import org.gradle.api.internal.tasks.userinput.UserQuestions
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.BuildConverter
+import org.gradle.buildinit.plugins.internal.BuildGenerator
 import org.gradle.buildinit.plugins.internal.BuildInitializer
 import org.gradle.buildinit.plugins.internal.InitSettings
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
@@ -50,13 +51,13 @@ class InitBuildSpec extends Specification {
 
     ProjectLayoutSetupRegistry projectLayoutRegistry
 
-    BuildInitializer projectSetupDescriptor
+    BuildGenerator defaultGenerator
     BuildConverter buildConverter
 
     def setup() {
         init = TestUtil.create(testDir.testDirectory).task(InitBuild)
         projectLayoutRegistry = Mock()
-        projectSetupDescriptor = Mock()
+        defaultGenerator = Mock()
         buildConverter = Mock()
         init.projectLayoutRegistry = projectLayoutRegistry
         init.insecureProtocol.convention(InsecureProtocolOption.WARN)
@@ -68,32 +69,34 @@ class InitBuildSpec extends Specification {
         given:
         projectLayoutRegistry.buildConverter >> buildConverter
         buildConverter.canApplyToCurrentDirectory() >> false
-        projectLayoutRegistry.default >> projectSetupDescriptor
-        projectLayoutRegistry.getLanguagesFor(ComponentType.BASIC) >> [Language.NONE]
-        projectLayoutRegistry.get(ComponentType.BASIC, Language.NONE) >> projectSetupDescriptor
-        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        projectSetupDescriptor.componentType >> ComponentType.BASIC
-        projectSetupDescriptor.dsls >> [KOTLIN]
-        projectSetupDescriptor.defaultDsl >> KOTLIN
-        projectSetupDescriptor.testFrameworks >> [NONE]
-        projectSetupDescriptor.defaultTestFramework >> NONE
-        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> empty()
+        projectLayoutRegistry.componentTypes >> ComponentType.values().toList()
+        projectLayoutRegistry.defaultComponentType >> ComponentType.values().first()
+        projectLayoutRegistry.default >> defaultGenerator
+        projectLayoutRegistry.getGeneratorsFor(_) >> [defaultGenerator]
+        defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
+        defaultGenerator.dsls >> [KOTLIN]
+        defaultGenerator.defaultDsl >> KOTLIN
+        defaultGenerator.getTestFrameworks(_) >> [NONE]
+        defaultGenerator.getDefaultTestFramework(_) >> NONE
+        defaultGenerator.defaultProjectNames >> ["thing"]
+        defaultGenerator.getFurtherReading(_ as InitSettings) >> empty()
 
         when:
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate({ it.dsl == KOTLIN && it.testFramework == NONE })
+        1 * defaultGenerator.generate({ it.dsl == KOTLIN && it.testFramework == NONE })
     }
 
     def "creates project with specified type and dsl and test framework"() {
         given:
-        projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
-        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        projectSetupDescriptor.testFrameworks >> [SPOCK]
-        projectSetupDescriptor.dsls >> [GROOVY, KOTLIN]
-        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> empty()
-        projectSetupDescriptor.componentType >> ComponentType.LIBRARY
+        projectLayoutRegistry.get("java-library") >> defaultGenerator
+        defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
+        defaultGenerator.getTestFrameworks(_) >> [SPOCK]
+        defaultGenerator.dsls >> [GROOVY, KOTLIN]
+        defaultGenerator.defaultProjectNames >> ["thing"]
+        defaultGenerator.getFurtherReading(_ as InitSettings) >> empty()
+        defaultGenerator.componentType >> ComponentType.LIBRARY
         init.type = "java-library"
         init.dsl = "kotlin"
         init.testFramework = "spock"
@@ -102,16 +105,16 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate({ it.dsl == KOTLIN && it.testFramework == SPOCK })
+        1 * defaultGenerator.generate({ it.dsl == KOTLIN && it.testFramework == SPOCK })
     }
 
     def "should throw exception if requested test framework is not supported for the specified type"() {
         given:
-        projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
-        projectSetupDescriptor.id >> "some-type"
-        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        projectSetupDescriptor.dsls >> [KOTLIN]
-        projectSetupDescriptor.testFrameworks >> [NONE, JUNIT]
+        projectLayoutRegistry.get("some-type") >> defaultGenerator
+        defaultGenerator.id >> "some-type"
+        defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
+        defaultGenerator.dsls >> [KOTLIN]
+        defaultGenerator.getTestFrameworks(_) >> [NONE, JUNIT]
         init.type = "some-type"
         init.testFramework = "spock"
 
@@ -127,10 +130,10 @@ class InitBuildSpec extends Specification {
 
     def "should throw exception if requested DSL is not supported for the specified type"() {
         given:
-        projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
-        projectSetupDescriptor.id >> "some-type"
-        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        projectSetupDescriptor.dsls >> [GROOVY]
+        projectLayoutRegistry.get("some-type") >> defaultGenerator
+        defaultGenerator.id >> "some-type"
+        defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
+        defaultGenerator.dsls >> [GROOVY]
         init.type = "some-type"
         init.dsl = "kotlin"
 
@@ -144,11 +147,11 @@ class InitBuildSpec extends Specification {
 
     def "should use project name as specified"() {
         given:
-        projectSetupDescriptor.supportsProjectName() >> true
+        defaultGenerator.supportsProjectName() >> true
         init.projectName = "other"
 
         when:
-        def projectName = init.getEffectiveProjectName(Mock(UserInputHandler), projectSetupDescriptor)
+        def projectName = init.getEffectiveProjectName(Mock(UserQuestions), defaultGenerator)
 
         then:
         projectName == "other"
@@ -156,13 +159,13 @@ class InitBuildSpec extends Specification {
 
     def "should use project name from user input"() {
         given:
-        projectSetupDescriptor.supportsProjectName() >> true
-        def userInputHandler = Mock(UserInputHandler)
-        userInputHandler.askQuestion("Project name", _ as String) >> "newProjectName"
+        defaultGenerator.supportsProjectName() >> true
+        def userQuestions = Mock(UserQuestions)
+        userQuestions.askQuestion("Project name", _ as String) >> "newProjectName"
 
 
         when:
-        def projectName = init.getEffectiveProjectName(userInputHandler, projectSetupDescriptor)
+        def projectName = init.getEffectiveProjectName(userQuestions, defaultGenerator)
 
         then:
         projectName == "newProjectName"
@@ -171,11 +174,11 @@ class InitBuildSpec extends Specification {
 
     def "should throw exception if project name is not supported for the specified type"() {
         given:
-        projectSetupDescriptor.id >> "some-type"
+        defaultGenerator.id >> "some-type"
         init.projectName = "invalidProjectName"
 
         when:
-        init.getEffectiveProjectName(Mock(UserInputHandler), projectSetupDescriptor)
+        init.getEffectiveProjectName(Mock(UserQuestions), defaultGenerator)
 
         then:
         GradleException e = thrown()
@@ -184,11 +187,11 @@ class InitBuildSpec extends Specification {
 
     def "should throw exception if package name is not supported for the specified type"() {
         given:
-        projectSetupDescriptor.id >> "some-type"
+        defaultGenerator.id >> "some-type"
         init.packageName = "other"
 
         when:
-        init.getEffectivePackageName(projectSetupDescriptor)
+        init.getEffectivePackageName(defaultGenerator)
 
         then:
         GradleException e = thrown()
@@ -197,11 +200,11 @@ class InitBuildSpec extends Specification {
 
     def "should use default package name if not specified"() {
         given:
-        projectSetupDescriptor.id >> "some-type"
-        projectSetupDescriptor.supportsPackage() >> true
+        defaultGenerator.id >> "some-type"
+        defaultGenerator.supportsPackage() >> true
 
         when:
-        def packageName = init.getEffectivePackageName(projectSetupDescriptor)
+        def packageName = init.getEffectivePackageName(defaultGenerator)
 
         then:
         packageName == "org.example"
@@ -209,11 +212,11 @@ class InitBuildSpec extends Specification {
 
     def "should use package name as specified"() {
         given:
-        projectSetupDescriptor.id >> "some-type"
-        projectSetupDescriptor.supportsPackage() >> true
+        defaultGenerator.id >> "some-type"
+        defaultGenerator.supportsPackage() >> true
         init.packageName = "myPackageName"
         when:
-        def packageName = init.getEffectivePackageName(projectSetupDescriptor)
+        def packageName = init.getEffectivePackageName(defaultGenerator)
 
         then:
         packageName == "myPackageName"
@@ -221,13 +224,13 @@ class InitBuildSpec extends Specification {
 
     def "get java language version for #language"() {
         given:
-        def inputHandler = Mock(UserInputHandler)
-        inputHandler.askQuestion(_ as String, _ as String) >> "11"
+        def userQuestions = Mock(UserQuestions)
+        userQuestions.askIntQuestion(_ as String, InitBuild.MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API, InitBuild.DEFAULT_JAVA_VERSION) >> 11
         def buildInitializer = Mock(BuildInitializer)
         buildInitializer.supportsJavaTargets() >> isJvmLanguage
 
         when:
-        def languageVersion = init.getJavaLanguageVersion(inputHandler, buildInitializer)
+        def languageVersion = init.getJavaLanguageVersion(userQuestions, buildInitializer)
 
         then:
         languageVersion == result
@@ -244,13 +247,13 @@ class InitBuildSpec extends Specification {
 
     def "gets java-version from property"() {
         given:
-        def inputHandler = Mock(UserInputHandler)
+        def userQuestions = Mock(UserQuestions)
         def buildInitializer = Mock(BuildInitializer)
         buildInitializer.supportsJavaTargets() >> true
         init.javaVersion = "11"
 
         when:
-        def version = init.getJavaLanguageVersion(inputHandler, buildInitializer)
+        def version = init.getJavaLanguageVersion(userQuestions, buildInitializer)
 
         then:
         version.asInt() == 11
@@ -258,41 +261,43 @@ class InitBuildSpec extends Specification {
 
     def "gets useful error when requesting invalid Java target"() {
         given:
-        def inputHandler = Mock(UserInputHandler)
-        inputHandler.askQuestion(_ as String, _ as String) >> "invalid"
+        def userQuestions = Mock(UserQuestions)
         def buildInitializer = Mock(BuildInitializer)
         buildInitializer.supportsJavaTargets() >> true
 
+        init.getJavaVersion().set("invalid")
+
         when:
-        init.getJavaLanguageVersion(inputHandler, buildInitializer)
+        init.getJavaLanguageVersion(userQuestions, buildInitializer)
 
         then:
         def e = thrown(GradleException)
-        e.message == "Invalid Java target version 'invalid'. The version must be an integer."
+        e.message == "Invalid target Java version 'invalid'. The version must be an integer."
     }
 
     def "gets useful error when requesting Java target below minimum"() {
         given:
-        def inputHandler = Mock(UserInputHandler)
-        inputHandler.askQuestion(_ as String, _ as String) >> "5"
+        def userQuestions = Mock(UserQuestions)
         def buildInitializer = Mock(BuildInitializer)
         buildInitializer.supportsJavaTargets() >> true
 
+        init.getJavaVersion().set("5")
+
         when:
-        init.getJavaLanguageVersion(inputHandler, buildInitializer)
+        init.getJavaLanguageVersion(userQuestions, buildInitializer)
 
         then:
         def e = thrown(GradleException)
-        e.message == "Java target version: '5' is not a supported target version. It must be equal to or greater than 7"
+        e.message == "Target Java version: '5' is not a supported target version. It must be equal to or greater than 7"
     }
 
     def "should reject invalid package name: #invalidPackageName"() {
         given:
-        projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
-        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        projectSetupDescriptor.testFrameworks >> [SPOCK]
-        projectSetupDescriptor.dsls >> [GROOVY]
-        projectSetupDescriptor.supportsPackage() >> true
+        projectLayoutRegistry.get("java-library") >> defaultGenerator
+        defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
+        defaultGenerator.testFrameworks >> [SPOCK]
+        defaultGenerator.dsls >> [GROOVY]
+        defaultGenerator.supportsPackage() >> true
         init.type = "java-library"
         init.packageName = invalidPackageName
 
@@ -319,13 +324,13 @@ class InitBuildSpec extends Specification {
 
     def "should allow unusual but valid package name: #validPackageName"() {
         given:
-        projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
-        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        projectSetupDescriptor.testFrameworks >> [SPOCK]
-        projectSetupDescriptor.dsls >> [GROOVY]
-        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> empty()
-        projectSetupDescriptor.componentType >> ComponentType.LIBRARY
-        projectSetupDescriptor.supportsPackage() >> true
+        projectLayoutRegistry.get("java-library") >> defaultGenerator
+        defaultGenerator.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
+        defaultGenerator.getTestFrameworks(_) >> [SPOCK]
+        defaultGenerator.dsls >> [GROOVY]
+        defaultGenerator.getFurtherReading(_ as InitSettings) >> empty()
+        defaultGenerator.getDefaultProjectNames() >> ["thing"]
+        defaultGenerator.supportsPackage() >> true
         init.type = "java-library"
         init.dsl = "groovy"
         init.testFramework = "spock"
@@ -335,7 +340,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate({ it.dsl == GROOVY && it.testFramework == SPOCK })
+        1 * defaultGenerator.generate({ it.dsl == GROOVY && it.testFramework == SPOCK })
 
         where:
         validPackageName << [

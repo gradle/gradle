@@ -6,7 +6,7 @@ plugins {
 description = "Common shared build cache classes"
 
 dependencies {
-    api(project(":files"))
-
-    implementation(project(":base-annotations"))
+    implementation(projects.baseAnnotations)
+    implementation(projects.hashing)
+    implementation(projects.files)
 }

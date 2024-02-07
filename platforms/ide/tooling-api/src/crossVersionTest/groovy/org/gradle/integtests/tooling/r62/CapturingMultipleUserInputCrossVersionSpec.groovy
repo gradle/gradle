@@ -20,14 +20,12 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 
-@TargetGradleVersion(">=6.2")
+@TargetGradleVersion(">=8.7")
 class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification {
     private static final String DUMMY_TASK_NAME = 'doSomething'
 
     private static final QuestionAndAnswerSpec FOO = askQuestion('Foo?', 'yes')
     private static final QuestionAndAnswerSpec BAR = askQuestion('Bar?', 'no')
-
-    def outputStream = new ByteArrayOutputStream()
 
     def setup() {
         file('buildSrc/src/main/java/MultipleUserInputPlugin.java') << """
@@ -41,10 +39,10 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
                 @Override
                 public void apply(Project project) {
                     UserInputHandler userInputHandler = ((ProjectInternal) project).getServices().get(UserInputHandler.class);
-                    String fooAnswer = userInputHandler.askQuestion("${FOO.question}", "${FOO.defaultAnswer}");
+                    String fooAnswer = userInputHandler.askUser(it -> it.askQuestion("${FOO.question}", "${FOO.defaultAnswer}")).get();
                     System.out.println("${FOO.answerPrefix} " + fooAnswer);
 
-                    String barAnswer = userInputHandler.askQuestion("${BAR.question}", "${BAR.defaultAnswer}");
+                    String barAnswer = userInputHandler.askUser(it -> it.askQuestion("${BAR.question}", "${BAR.defaultAnswer}")).get();
                     System.out.println("${BAR.answerPrefix} " + barAnswer);
                 }
             }
@@ -52,7 +50,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
         file('build.gradle') << """
             apply plugin: MultipleUserInputPlugin
-            
+
             task $DUMMY_TASK_NAME
         """
     }
@@ -98,7 +96,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
 
     private void runBuildWithStandardInput(ProjectConnection connection, String answers) {
         def build = connection.newBuild()
-        build.standardOutput = outputStream
+        collectOutputs(build)
         build.forTasks(DUMMY_TASK_NAME)
         build.standardInput = new ByteArrayInputStream(answers.bytes)
         build.run()
@@ -109,7 +107,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
     }
 
     private String getOutput() {
-        outputStream.toString()
+        stdout.toString()
     }
 
     private static QuestionAndAnswerSpec askQuestion(String question, String defaultAnswer) {

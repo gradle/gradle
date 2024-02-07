@@ -73,7 +73,7 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
         def result = resolver.resolve(request)
 
         when:
-        result.assertSuccess(request)
+        result.getFound(request)
 
         then:
         def e = thrown(LocationAwareException)
@@ -82,17 +82,19 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
 
     def "succeed pluginRequests with SNAPSHOT versions"() {
         when:
-        def result = resolver.resolve(request("plugin", "1.1-SNAPSHOT"))
+        def request = request("plugin", "1.1-SNAPSHOT")
+        def result = resolver.resolve(request)
 
         then:
-        result.found
+        result.getFound(request)
     }
 
     def "accept pluginRequests with dynamic versions"() {
         when:
-        def result = resolver.resolve(request("plugin", "latest.revision"))
+        def request = this.request("plugin", "latest.revision")
+        def result = resolver.resolve(request)
 
         then:
-        result.found
+        result.getFound(request)
     }
 }

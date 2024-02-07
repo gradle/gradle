@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -148,7 +147,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     @Override
-    public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
+    public ClassPath resolveClassPath(Configuration classpathConfiguration) {
         // Clear build service data after resolution so content can be garbage collected
         return runAndClearBuildServiceAfter(() -> {
             // We resolve class hierarchy before instrumentation, otherwise the resolution can block the whole build

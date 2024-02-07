@@ -47,8 +47,8 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepository
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -108,14 +108,10 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
-import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
-import org.gradle.internal.execution.steps.CachingContext;
-import org.gradle.internal.execution.steps.CachingResult;
 import org.gradle.internal.execution.steps.CaptureNonIncrementalStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
@@ -124,11 +120,9 @@ import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.NeverUpToDateStep;
 import org.gradle.internal.execution.steps.NoInputChangesStep;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
-import org.gradle.internal.execution.steps.Step;
+import org.gradle.internal.execution.steps.ResolveNonIncrementalCachingStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
-import org.gradle.internal.execution.steps.UpToDateResult;
 import org.gradle.internal.execution.steps.ValidateStep;
-import org.gradle.internal.execution.steps.ValidationFinishedContext;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
@@ -180,9 +174,8 @@ class DependencyManagementBuildScopeServices {
         registration.add(TransformStepNodeDependencyResolver.class);
         registration.add(DefaultProjectPublicationRegistry.class);
         registration.add(FileResourceConnector.class);
-        registration.add(DefaultComponentSelectorConverter.class);
-        registration.add(ProjectDependencyResolver.class);
         registration.add(DependencyGraphResolver.class);
+        registration.add(ResolvedArtifactSetResolver.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(
@@ -496,7 +489,7 @@ class DependencyManagementBuildScopeServices {
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new NoOpCachingStateStep<>(
+            new ResolveNonIncrementalCachingStateStep<>(
             new NeverUpToDateStep<>(
             new NoInputChangesStep<>(
             new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, NO_FILTER,
@@ -507,19 +500,5 @@ class DependencyManagementBuildScopeServices {
             new ExecuteStep<>(buildOperationExecutor
         ))))))))))))));
         // @formatter:on
-    }
-
-    private static class NoOpCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
-        private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
-
-        public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public CachingResult execute(UnitOfWork work, ValidationFinishedContext context) {
-            UpToDateResult result = delegate.execute(work, new CachingContext(context, CachingState.NOT_DETERMINED));
-            return new CachingResult(result, CachingState.NOT_DETERMINED);
-        }
     }
 }

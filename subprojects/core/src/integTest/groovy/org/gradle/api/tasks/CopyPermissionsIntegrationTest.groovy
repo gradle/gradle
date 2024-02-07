@@ -495,40 +495,14 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         assertDestinationFilePermissions("r-xr-xrw-")
 
         where:
-        description        | setting
-        "permissions"      | """
+        description         | setting
+        "permissions"       | """
                                 eachFile {
                                     permissions = p
                                 }
                               """
-        "file mode"        | "fileMode = p.toUnixNumeric()"
-        "file permissions" | "filePermissions.set(p)"
-    }
-
-    @Requires(UnitTestPreconditions.FilePermissions)
-    def "permissions are set correctly for intermediate directories"() {
-        given:
-        withSourceFiles("r--------")
-
-        buildFile.delete()
-        buildKotlinFile.text = '''
-            tasks.register<Copy>("copy") {
-               into("dest")
-               into("prefix1/prefix2") {
-                 from("files")
-               }
-               dirPermissions {
-                  unix("rwxr-x---")
-               }
-            }
-        '''.stripIndent()
-
-        when:
-        run 'copy'
-
-        then:
-        file("dest/prefix1").permissions == "rwxr-x---"
-        file("dest/prefix1/prefix2").permissions == "rwxr-x---"
+        "file mode"         | "fileMode = p.toUnixNumeric()"
+        "file permissions"  | "filePermissions.set(p)"
     }
 
     private def withSourceFiles(String permissions) {

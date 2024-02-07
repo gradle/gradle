@@ -175,7 +175,7 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("testSourceFile", testSourceFile)
             .withBinding("sourceFileTree", sourceFileTree)
             .withBinding("testSourceFileTree", testSourceFileTree)
-            .withBinding("testFramework", if (descriptor.defaultTestFramework == null) "" else "_" + descriptor.defaultTestFramework.toString() + "_")
+            .withBinding("testFramework", "_" + descriptor.defaultTestFramework.toString() + "_")
             .withBinding("buildFileComments", buildFileComments)
             .withBinding("testFrameworkChoice", testFrameworkChoice)
             .withBinding("tasksExecuted", "" + tasksExecuted(descriptor))
@@ -222,7 +222,7 @@ Enter selection (default: JUnit 4) [1..4]
 
     private
     fun tasksExecuted(descriptor: CompositeProjectInitDescriptor): Int {
-        var tasksExecuted = if (descriptor.componentType === ComponentType.LIBRARY) 4 else 7
+        val tasksExecuted = if (descriptor.componentType === ComponentType.LIBRARY) 4 else 7
         return tasksExecuted + if (descriptor.language === Language.KOTLIN) 1 else 0
     }
 

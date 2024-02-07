@@ -51,7 +51,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSu
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
@@ -60,11 +59,13 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultComponentResolversFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentDetailsSerializer;
@@ -151,7 +152,6 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
-import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.internal.SimpleMapInterner;
 
 import java.io.File;
@@ -213,10 +213,13 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
             registration.add(ResolveExceptionContextualizer.class);
             registration.add(ResolutionStrategyFactory.class);
+            registration.add(DefaultLocalComponentRegistry.class);
+            registration.add(ProjectDependencyResolver.class);
             registration.add(DefaultComponentResolversFactory.class);
             registration.add(ConsumerProvidedVariantFinder.class);
             registration.add(DefaultVariantSelectorFactory.class);
             registration.add(DefaultConfigurationFactory.class);
+            registration.add(DefaultComponentSelectorConverter.class);
         }
 
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
@@ -515,15 +518,15 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ComponentSelectorConverter componentSelectorConverter,
             AttributeContainerSerializer attributeContainerSerializer,
             BuildState currentBuild,
-            DependencyVerificationOverride dependencyVerificationOverride,
             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+            ResolvedArtifactSetResolver artifactSetResolver,
             AttributeDesugaring attributeDesugaring,
-            WorkerLeaseService workerLeaseService,
             ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
             SelectedVariantSerializer selectedVariantSerializer,
             ResolvedVariantCache resolvedVariantCache,
-            GraphVariantSelector graphVariantSelector
+            GraphVariantSelector graphVariantSelector,
+            ProjectStateRegistry projectStateRegistry
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 componentResolversFactory,
@@ -542,24 +545,21 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 attributeContainerSerializer,
                 currentBuild.getBuildIdentifier(),
                 attributeDesugaring,
-                dependencyVerificationOverride,
+                artifactSetResolver,
                 componentSelectionDescriptorFactory,
-                workerLeaseService,
                 resolveExceptionContextualizer,
                 componentDetailsSerializer,
                 selectedVariantSerializer,
                 resolvedVariantCache,
-                graphVariantSelector
+                graphVariantSelector,
+                projectStateRegistry
             );
 
-            return new ErrorHandlingConfigurationResolver(
-                new ShortCircuitEmptyConfigurationResolver(
-                    defaultResolver,
-                    componentIdentifierFactory,
-                    moduleIdentifierFactory,
-                    currentBuild.getBuildIdentifier()
-                ),
-                resolveExceptionContextualizer
+            return new ShortCircuitEmptyConfigurationResolver(
+                defaultResolver,
+                componentIdentifierFactory,
+                moduleIdentifierFactory,
+                currentBuild.getBuildIdentifier()
             );
         }
 
