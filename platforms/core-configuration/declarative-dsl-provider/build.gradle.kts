@@ -22,6 +22,7 @@ dependencies {
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
+    api(project(":declarative-dsl-api"))
     api(project(":declarative-dsl-core"))
     api(libs.futureKotlin("stdlib"))
     api(libs.inject)
