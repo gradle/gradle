@@ -34,7 +34,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class CacheInstrumentationTypeRegistryBuildService implements BuildService<CacheInstrumentationTypeRegistryBuildService.Parameters> {
 
@@ -42,26 +41,24 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
         ConfigurableFileCollection getClassHierarchy();
     }
 
-    private final AtomicReference<InstrumentationTypeRegistry> instrumentingTypeRegistry = new AtomicReference<>();
+    private volatile InstrumentationTypeRegistry instrumentingTypeRegistry;
 
     public InstrumentationTypeRegistry getInstrumentingTypeRegistry(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
         if (gradleCoreInstrumentationTypeRegistry.isEmpty()) {
+            // In case core types registry is empty, it means we don't have any upgrades
+            // in Gradle core, so we can return empty registry
             return InstrumentationTypeRegistry.empty();
         }
-        if (instrumentingTypeRegistry.get() != null) {
-            return instrumentingTypeRegistry.get();
-        }
-        return newInstrumentationTypeRegistry(gradleCoreInstrumentationTypeRegistry);
-    }
 
-    private synchronized InstrumentationTypeRegistry newInstrumentationTypeRegistry(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
-        if (instrumentingTypeRegistry.get() != null) {
-            return instrumentingTypeRegistry.get();
+        if (instrumentingTypeRegistry == null) {
+            synchronized (this) {
+                if (instrumentingTypeRegistry == null) {
+                    Map<String, Set<String>> classHierarchy = readClassHierarchy();
+                    instrumentingTypeRegistry = new ExternalPluginsInstrumentationTypeRegistry(classHierarchy, gradleCoreInstrumentationTypeRegistry);
+                }
+            }
         }
-        Map<String, Set<String>> classHierarchy = readClassHierarchy();
-        ExternalPluginsInstrumentationTypeRegistry registry = new ExternalPluginsInstrumentationTypeRegistry(classHierarchy, gradleCoreInstrumentationTypeRegistry);
-        instrumentingTypeRegistry.set(registry);
-        return registry;
+        return instrumentingTypeRegistry;
     }
 
     private Map<String, Set<String>> readClassHierarchy() {
@@ -85,6 +82,6 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
     public void clear() {
         // Remove the reference to the registry, so that it can be garbage collected,
         // since build service instance is not deregistered
-        instrumentingTypeRegistry.set(null);
+        instrumentingTypeRegistry = null;
     }
 }

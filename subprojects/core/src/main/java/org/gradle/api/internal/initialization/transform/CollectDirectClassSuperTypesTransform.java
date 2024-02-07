@@ -58,7 +58,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
     private static final String FILE_SUFFIX = ".super-types";
 
     @Inject
-    public abstract ObjectFactory getObjects();
+    protected abstract ObjectFactory getObjects();
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputArtifact
@@ -67,6 +67,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
     @Override
     public void transform(TransformOutputs outputs) {
         try {
+            // We cannot inject internal services in to the transform directly, but we can create them via object factory
             InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
             ClasspathWalker walker = services.getClasspathWalker();
             File inputFile = getInput().get().getAsFile();
@@ -82,7 +83,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
                         }
                     }
                 });
-            } catch (FileException zipException) {
+            } catch (FileException ignored) {
                 // We support badly formatted jars on the build classpath
                 // see: https://github.com/gradle/gradle/issues/13816
                 return;
