@@ -21,7 +21,7 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionEngine.CacheResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.history.ExecutionOutputState;
@@ -43,9 +43,9 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
     }
 
     @Override
-    public <T> Deferrable<ExecutionEngine.CacheResult<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, ExecutionEngine.CacheResult<T>> cache) {
+    public <T> Deferrable<CacheResult<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, CacheResult<T>> cache) {
         Identity identity = context.getIdentity();
-        ExecutionEngine.CacheResult<T> cachedOutput = cache.getIfPresent(identity);
+        CacheResult<T> cachedOutput = cache.getIfPresent(identity);
         if (cachedOutput != null) {
             return Deferrable.completed(cachedOutput);
         } else {
@@ -55,7 +55,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
         }
     }
 
-    private <T> ExecutionEngine.CacheResult<T> executeInCache(UnitOfWork work, C context) {
+    private <T> CacheResult<T> executeInCache(UnitOfWork work, C context) {
         R result = execute(work, context);
         return new DefaultCacheResult<>(
             result
@@ -70,7 +70,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
         );
     }
 
-    private static class DefaultCacheResult<T> implements ExecutionEngine.CacheResult<T> {
+    private static class DefaultCacheResult<T> implements CacheResult<T> {
         private final Try<T> result;
         private final Identity identity;
         private final OriginMetadata originMetadata;

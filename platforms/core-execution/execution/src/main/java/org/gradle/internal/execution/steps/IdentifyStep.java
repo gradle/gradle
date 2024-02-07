@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
-import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionEngine.CacheResult;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
@@ -48,7 +48,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
     }
 
     @Override
-    public <T> Deferrable<ExecutionEngine.CacheResult<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, ExecutionEngine.CacheResult<T>> cache) {
+    public <T> Deferrable<CacheResult<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, CacheResult<T>> cache) {
         return delegate.executeDeferred(work, createIdentityContext(work, context), cache);
     }
 
