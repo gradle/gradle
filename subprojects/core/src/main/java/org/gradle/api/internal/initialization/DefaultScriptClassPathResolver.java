@@ -36,14 +36,14 @@ import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
+import org.gradle.api.internal.initialization.transform.CacheInstrumentationTypeRegistryBuildService;
 import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.ExternalDependencyInstrumentingArtifactTransform;
-import org.gradle.api.internal.initialization.transform.CacheInstrumentationTypeRegistryBuildService;
 import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -72,18 +72,18 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private final NamedObjectInstantiator instantiator;
     private final AgentStatus agentStatus;
     private final ConfigurableFileCollection classHierarchy;
-    private final BuildServiceRegistry buildServiceRegistry;
+    private final Gradle gradle;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
         AgentStatus agentStatus,
         FileCollectionFactory fileCollectionFactory,
-        BuildServiceRegistry buildServiceRegistry
+        Gradle gradle
     ) {
         this.instantiator = instantiator;
         this.agentStatus = agentStatus;
         this.classHierarchy = fileCollectionFactory.configurableFiles();
-        this.buildServiceRegistry = buildServiceRegistry;
+        this.gradle = gradle;
     }
 
     @Override
@@ -121,7 +121,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     private Provider<CacheInstrumentationTypeRegistryBuildService> getOrRegisterNewService() {
-        return buildServiceRegistry.registerIfAbsent(
+        return gradle.getSharedServices().registerIfAbsent(
             CacheInstrumentationTypeRegistryBuildService.class.getName() + "@" + System.identityHashCode(this),
             CacheInstrumentationTypeRegistryBuildService.class,
             spec -> spec.getParameters().getClassHierarchy().setFrom(classHierarchy)
