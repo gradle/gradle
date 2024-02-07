@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.attributes;
 
-import org.gradle.api.attributes.AttributesSchema;
-
-import java.util.List;
-
-public interface DescribableAttributesSchema extends AttributesSchema {
-
-    List<AttributeDescriber> getConsumerDescribers();
-
-    void addConsumerDescriber(AttributeDescriber describer);
-
-}
+/**
+ * This package contains {@link org.gradle.internal.component.resolution.failure.type.ResolutionFailure ResolutionFailure}s types
+ * that exist to categorize types of failure conditions that can occur during dependency resolution and package contexual information
+ * specific to each type of failure.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.internal.component.resolution.failure.type;

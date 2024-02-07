@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component;
+package org.gradle.internal.component.resolution.failure;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
@@ -23,11 +23,13 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.Map;
 
-class StyledDescriber implements AttributeDescriber {
-
+/**
+ * An {@link AttributeDescriber} decorator that styles the output of a delegate for the console.
+ */
+public final class StyledAttributeDescriber implements AttributeDescriber {
     private final AttributeDescriber delegate;
 
-    StyledDescriber(AttributeDescriber delegate) {
+    public StyledAttributeDescriber(AttributeDescriber delegate) {
         this.delegate = delegate;
     }
 
@@ -50,5 +52,4 @@ class StyledDescriber implements AttributeDescriber {
     public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
         return StyledException.style(StyledTextOutput.Style.Info, delegate.describeExtraAttribute(attribute, producerValue));
     }
-
 }

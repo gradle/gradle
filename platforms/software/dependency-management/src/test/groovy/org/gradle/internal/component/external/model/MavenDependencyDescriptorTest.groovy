@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
@@ -198,7 +199,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "fails when compile configuration is not defined in target component"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
+        def resolutionFailureHandler = new ResolutionFailureHandler(DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry())
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromCompile = Stub(ConfigurationMetadata)
@@ -215,7 +216,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "fails when runtime configuration is not defined in target component"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
+        def resolutionFailureHandler = new ResolutionFailureHandler(DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry())
         def fromComponent = Stub(ComponentIdentifier)
         def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ConfigurationMetadata)

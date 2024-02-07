@@ -697,8 +697,8 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("No matching configuration of project :buildC was found. The consumer was configured to find a library for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally but:\n" +
-            "  - None of the consumable configurations have attributes.")
+        failure.assertHasCause("No matching variant of project :buildC was found. The consumer was configured to find a library for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally but:\n" +
+            "  - None of the variants have attributes.")
     }
 
     public static final REPOSITORY_HINT = repositoryHint("Maven POM")
