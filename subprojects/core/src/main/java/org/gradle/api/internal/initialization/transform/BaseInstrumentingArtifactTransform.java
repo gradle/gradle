@@ -79,11 +79,12 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         }
 
         InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
-        if (getParameters().getAgentSupported().get()) {
+        if (isAgentSupported()) {
             // When agent is supported, we output an instrumented jar and an original jar,
             // so we can then later reconstruct instrumented jars classpath and original jars classpath
             doTransformForAgent(input, outputs, injectedServices);
         } else {
+            // When agent is not supported, we have only one classpath so we output just an instrumented jar
             doTransform(input, outputs, injectedServices);
         }
     }
@@ -114,9 +115,13 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
 
     private void doTransform(File input, TransformOutputs outputs, InjectedInstrumentationServices injectedServices) {
         File outputFile = outputs.file(INSTRUMENTED_JAR_DIR_NAME + "/" + input.getName());
-        ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(getParameters().getAgentSupported().get());
+        ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(isAgentSupported());
         ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
         transform.transform(outputFile);
+    }
+
+    private boolean isAgentSupported() {
+        return getParameters().getAgentSupported().get();
     }
 
     private boolean createNewFile(File file) {
