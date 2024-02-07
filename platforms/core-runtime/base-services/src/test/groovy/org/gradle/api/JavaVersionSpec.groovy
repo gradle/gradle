@@ -60,7 +60,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_23.toString() == "23"
         JavaVersion.VERSION_24.toString() == "24"
         JavaVersion.VERSION_25.toString() == "25"
-        JavaVersion.VERSION_26.toString() == "25"
+        JavaVersion.VERSION_26.toString() == "26"
         JavaVersion.VERSION_HIGHER.toString() == "27"
     }
 
