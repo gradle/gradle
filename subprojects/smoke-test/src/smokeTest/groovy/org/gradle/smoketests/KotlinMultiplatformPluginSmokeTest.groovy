@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 import spock.lang.Issue
 import org.gradle.smoketests.WithKotlinDeprecations.ProjectTypes
 
@@ -91,6 +92,9 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
     @Issue("https://github.com/gradle/gradle/issues/22952")
     def "kotlin project can consume kotlin multiplatform java project"() {
+        Assume.assumeTrue("This results in ambiguous variant errors in versions below Kotlin 1.9.20",
+            VersionNumber.parse(kotlinVersion) >= VersionNumber.parse("1.9.20"))
+
         given:
         buildFile << """
             plugins {
