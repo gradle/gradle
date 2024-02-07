@@ -516,6 +516,156 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         }
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Identity cache is off for embedded executor due to file locking issues")
+    @LeaksFileHandles
+    def "emits origin metadata when incremental transform is re-used in same build"() {
+        settingsFile << """
+            include 'producer', 'consumer1', 'consumer2'
+        """
+        createDirs("consumer1", "consumer2")
+
+        setupBuildWithColorTransform()
+        buildFile << cacheableMakeGreenTransform(useInputChanges: true, sleep: 10)
+
+        buildFile << """
+            project(":consumer1") {
+                dependencies {
+                    implementation project(":producer")
+
+                    artifactTypes {
+                        jar {
+                            attributes.attribute(color, 'blue')
+                        }
+                    }
+                }
+            }
+            project(":consumer2") {
+                dependencies {
+                    implementation project(":producer")
+
+                    artifactTypes {
+                        jar {
+                            attributes.attribute(color, 'blue')
+                        }
+                    }
+                }
+                resolve.dependsOn(':consumer1:resolve')
+            }
+        """
+
+        when:
+        enableIdentityCache()
+        // Limit workers so the project transforms run sequentially
+        run ":consumer2:resolve", "--max-workers=1"
+
+        then:
+        executedAndNotSkipped(":consumer1:resolve", ":consumer2:resolve")
+
+        def buildInvocationId = scopeIds.buildInvocationId
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
+        executionIdentifications.size() == 2
+        def projectTransformIdentifications = executionIdentifications.findAll { it.artifactName == 'producer.jar' }
+        projectTransformIdentifications.size() == 2
+        def projectTransformIdentification = projectTransformIdentifications.first()
+        List<BuildOperationRecord> executions = getTransformExecutions()
+        executions.size() == 1
+        transformExecutions*.result.each {
+            assert it.skipMessage == null
+        }
+        def projectTransformBuildCacheKey = buildCacheKeyFor(projectTransformIdentification.identity)
+
+        and:
+        def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
+        // Only one of the two project transforms is skipped
+        skippedTransformExecutions.size() == 1
+        def skippedExternalTransformExecution = skippedTransformExecutions.find { it.identity == projectTransformIdentification.identity }
+        with(skippedExternalTransformExecution) {
+            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+            originBuildInvocationId == buildInvocationId.asString()
+            originExecutionTime > 0
+        }
+    }
+
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Identity cache is off for embedded executor due to file locking issues")
+    @LeaksFileHandles
+    def "emits origin metadata when incremental transform is re-used from other build"() {
+        settingsFile << """
+            include 'producer', 'consumer1', 'consumer2'
+        """
+        createDirs("consumer1", "consumer2")
+
+        setupBuildWithColorTransform()
+        buildFile << cacheableMakeGreenTransform(useInputChanges: true, sleep: 10)
+
+        buildFile << """
+            project(":consumer1") {
+                dependencies {
+                    implementation project(":producer")
+
+                    artifactTypes {
+                        jar {
+                            attributes.attribute(color, 'blue')
+                        }
+                    }
+                }
+            }
+            project(":consumer2") {
+                dependencies {
+                    implementation project(":producer")
+
+                    artifactTypes {
+                        jar {
+                            attributes.attribute(color, 'blue')
+                        }
+                    }
+                }
+                resolve.dependsOn(':consumer1:resolve')
+            }
+        """
+
+        when:
+        enableIdentityCache()
+        run ":consumer2:resolve"
+        def firstBuildInvocationId = scopeIds.buildInvocationId
+        then:
+        List<BuildOperationRecord> executions = getTransformExecutions()
+        executions.size() == 1
+        transformExecutions*.result.each {
+            assert it.skipMessage == null
+        }
+
+        when:
+        // Limit workers so the project transforms run sequentially
+        run ":consumer2:resolve", "--max-workers=1"
+        executions = getTransformExecutions()
+
+        then:
+        executedAndNotSkipped(":consumer1:resolve", ":consumer2:resolve")
+
+        executions.size() == 1
+        transformExecutions*.result.each {
+            assert it.skipMessage == 'UP-TO-DATE'
+        }
+
+        def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details
+        executionIdentifications.size() == 2
+        def projectTransformIdentifications = executionIdentifications.findAll { it.artifactName == 'producer.jar' }
+        projectTransformIdentifications.size() == 2
+        def projectTransformIdentification = projectTransformIdentifications.first()
+        def projectTransformBuildCacheKey = buildCacheKeyFor(projectTransformIdentification.identity)
+
+        and:
+        def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
+        // Only one of the two project transforms is skipped
+        skippedTransformExecutions.size() == 1
+        def skippedExternalTransformExecution = skippedTransformExecutions.find { it.identity == projectTransformIdentification.identity }
+        with(skippedExternalTransformExecution) {
+            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+            originBuildInvocationId == firstBuildInvocationId.asString()
+            originExecutionTime > 0
+        }
+    }
+
     def "captures all information on failure"() {
         setupBuildWithColorTransform()
         setupExternalDependency()
