@@ -312,6 +312,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         return new KeySetProvider();
     }
 
+    @Override
     public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transform) {
         Provider<? extends Map<? extends K, ? extends V>> newValue = transform.transform(shallowCopy());
         if (newValue != null) {

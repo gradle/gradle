@@ -173,6 +173,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         return String.format("property(%s, %s)", type.getName(), describeValue());
     }
 
+    @Override
     public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends T>, ? super Provider<T>> transform) {
         Provider<? extends T> newValue = transform.transform(shallowCopy());
         if (newValue != null) {
