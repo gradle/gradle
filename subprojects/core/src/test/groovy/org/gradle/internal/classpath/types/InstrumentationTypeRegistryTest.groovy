@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 import org.junit.Rule
 
-class InstrumentingTypeRegistryTest extends ConcurrentSpec {
+class InstrumentationTypeRegistryTest extends ConcurrentSpec {
 
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
@@ -39,7 +39,7 @@ class InstrumentingTypeRegistryTest extends ConcurrentSpec {
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def parallelExecutorFactory = new DefaultCachedClasspathTransformer.ParallelTransformExecutor(cache, executorFactory.create("test"))
-    def gradleCoreRegistry = new TestGradleCoreInstrumentingTypeRegistry([
+    def gradleCoreRegistry = new TestGradleCoreInstrumentationTypeRegistry([
         "org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest\$DefaultTask": ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set,
         "org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest\$VerificationTask": ["org/gradle/api/VerificationTask"] as Set
     ])
@@ -48,7 +48,7 @@ class InstrumentingTypeRegistryTest extends ConcurrentSpec {
         given:
         def dir = testDir.file("thing.dir")
         createClasses(dir)
-        def factory = new DefaultInstrumentingTypeRegistryFactory(
+        def factory = new DefaultInstrumentationTypeRegistryFactory(
             gradleCoreRegistry,
             cache,
             parallelExecutorFactory,
@@ -105,11 +105,11 @@ class InstrumentingTypeRegistryTest extends ConcurrentSpec {
         return clazz.classLoader.getResource(clazz.name.replace('.', '/') + ".class").bytes
     }
 
-    private static class TestGradleCoreInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
+    private static class TestGradleCoreInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
 
         private final Map<String, Set<String>> instrumentedSuperTypes
 
-        TestGradleCoreInstrumentingTypeRegistry(Map<String, Set<String>> instrumentedSuperTypes) {
+        TestGradleCoreInstrumentationTypeRegistry(Map<String, Set<String>> instrumentedSuperTypes) {
             this.instrumentedSuperTypes = instrumentedSuperTypes
         }
 

@@ -22,8 +22,8 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -49,7 +49,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         ClasspathFileHasher classpathFileHasher,
         ClasspathElementTransformFactory classpathElementTransformFactory,
         ClassTransform transform,
-        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry
+        GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry
     ) {
         this.fileLockManager = fileLockManager;
 
@@ -60,7 +60,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         this.transform = transform;
     }
 
-    private static HashCode configHashFor(ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform, GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+    private static HashCode configHashFor(ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform, GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
         hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
@@ -81,7 +81,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     }
 
     @Override
-    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry) {
+    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentationTypeRegistry typeRegistry) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
         String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
@@ -132,7 +132,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         return fileHasher.hashOf(sourceSnapshot).toString();
     }
 
-    private void transform(File source, File dest, InstrumentingTypeRegistry typeRegistry) {
+    private void transform(File source, File dest, InstrumentationTypeRegistry typeRegistry) {
         classpathElementTransformFactory.createTransformer(source, this.transform, typeRegistry).transform(dest);
     }
 }

@@ -26,8 +26,8 @@ import org.gradle.internal.classpath.transforms.ClassTransform
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
-import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -58,11 +58,11 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
     def classpathBuilder = new DefaultClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(testDirectoryProvider.createDir("tmp")))
     def fileLockManager = Stub(FileLockManager)
     def fileSystemAccess = TestFiles.fileSystemAccess()
-    def gradleCoreInstrumentingRegistry = Stub(GradleCoreInstrumentingTypeRegistry) {
+    def gradleCoreInstrumentingRegistry = Stub(GradleCoreInstrumentationTypeRegistry) {
         getInstrumentedTypesHash() >> Optional.empty()
         getUpgradedPropertiesHash() >> Optional.empty()
     }
-    def typeRegistry = Stub(InstrumentingTypeRegistry)
+    def typeRegistry = Stub(InstrumentationTypeRegistry)
     def transformTransformFactoryForAgent = new ClasspathElementTransformFactoryForAgent(classpathBuilder, classpathWalker)
     def jarTransformFactoryForLegacy = new ClasspathElementTransformFactoryForLegacy(classpathBuilder, classpathWalker)
 

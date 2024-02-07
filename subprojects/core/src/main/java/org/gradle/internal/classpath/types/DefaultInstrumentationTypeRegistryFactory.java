@@ -32,20 +32,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DefaultInstrumentingTypeRegistryFactory implements InstrumentingTypeRegistryFactory {
+public class DefaultInstrumentationTypeRegistryFactory implements InstrumentingTypeRegistryFactory {
 
-    private final InstrumentingTypeRegistry gradleCoreInstrumentingRegistry;
+    private final InstrumentationTypeRegistry gradleCoreInstrumentingRegistry;
     private final InstrumentingDirectSuperTypesCollector directSuperTypesCollector;
 
-    public DefaultInstrumentingTypeRegistryFactory(InstrumentingTypeRegistry gradleCoreInstrumentingRegistry, PersistentCache cache, ParallelTransformExecutor parallelTransformExecutor, ClasspathWalker classpathWalker, FileSystemAccess fileSystemAccess) {
+    public DefaultInstrumentationTypeRegistryFactory(InstrumentationTypeRegistry gradleCoreInstrumentingRegistry, PersistentCache cache, ParallelTransformExecutor parallelTransformExecutor, ClasspathWalker classpathWalker, FileSystemAccess fileSystemAccess) {
         this.gradleCoreInstrumentingRegistry = gradleCoreInstrumentingRegistry;
         this.directSuperTypesCollector = new DefaultInstrumentingDirectSuperTypesCollector(cache, parallelTransformExecutor, classpathWalker, fileSystemAccess);
     }
 
     @Override
-    public InstrumentingTypeRegistry createFor(Collection<URL> urls, ClasspathFileTransformer transformer) {
+    public InstrumentationTypeRegistry createFor(Collection<URL> urls, ClasspathFileTransformer transformer) {
         if (shouldReturnEmptyRegistry(transformer)) {
-            return InstrumentingTypeRegistry.empty();
+            return InstrumentationTypeRegistry.empty();
         }
         List<File> files = urls.stream()
             .filter(url -> url.getProtocol().equals("file"))
@@ -55,12 +55,12 @@ public class DefaultInstrumentingTypeRegistryFactory implements InstrumentingTyp
     }
 
     @Override
-    public InstrumentingTypeRegistry createFor(List<File> files, ClasspathFileTransformer transformer) {
+    public InstrumentationTypeRegistry createFor(List<File> files, ClasspathFileTransformer transformer) {
         if (shouldReturnEmptyRegistry(transformer)) {
-            return InstrumentingTypeRegistry.empty();
+            return InstrumentationTypeRegistry.empty();
         }
         Map<String, Set<String>> directSuperTypes = directSuperTypesCollector.visit(files, transformer.getFileHasher());
-        return new ExternalPluginsInstrumentingTypeRegistry(directSuperTypes, gradleCoreInstrumentingRegistry);
+        return new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentingRegistry);
     }
 
     private boolean shouldReturnEmptyRegistry(ClasspathFileTransformer transformer) {

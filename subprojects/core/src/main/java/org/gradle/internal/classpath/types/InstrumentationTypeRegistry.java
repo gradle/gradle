@@ -22,9 +22,9 @@ import java.util.Set;
 /**
  * Provides information about types that are visited during instrumentation.
  */
-public interface InstrumentingTypeRegistry {
+public interface InstrumentationTypeRegistry {
 
-    InstrumentingTypeRegistry EMPTY = new EmptyInstrumentingTypeRegistry();
+    InstrumentationTypeRegistry EMPTY = new EmptyInstrumentationTypeRegistry();
 
     /**
      * Returns super types for a given type.
@@ -35,11 +35,11 @@ public interface InstrumentingTypeRegistry {
 
     boolean isEmpty();
 
-    static InstrumentingTypeRegistry empty() {
+    static InstrumentationTypeRegistry empty() {
         return EMPTY;
     }
 
-    class EmptyInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
+    class EmptyInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
         @Override
         public Set<String> getSuperTypes(String type) {
             return Collections.emptySet();

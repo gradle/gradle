@@ -36,8 +36,8 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.util.internal.GFileUtils;
@@ -61,7 +61,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
 
     public interface InstrumentArtifactTransformParameters extends TransformParameters {
         @Internal
-        Property<InstrumentingBuildService> getBuildService();
+        Property<CacheInstrumentationTypeRegistryBuildService> getBuildService();
         @Input
         Property<Boolean> getAgentSupported();
     }
@@ -91,9 +91,9 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
 
         // Instrument jars
         InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
-        InstrumentingTypeRegistry typeRegistry = getParameters().getBuildService().isPresent()
+        InstrumentationTypeRegistry typeRegistry = getParameters().getBuildService().isPresent()
             ? getParameters().getBuildService().get().getInstrumentingTypeRegistry(injectedServices.getGradleCoreInstrumentingTypeRegistry())
-            : InstrumentingTypeRegistry.empty();
+            : InstrumentationTypeRegistry.empty();
         File outputFile = outputs.file(INSTRUMENTED_JAR_DIR_NAME + "/" + input.getName());
         ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(getParameters().getAgentSupported().get());
         ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(provideInterceptorFilter()), typeRegistry);
@@ -128,10 +128,10 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         private final ClasspathElementTransformFactoryForAgent transformFactory;
         private final ClasspathElementTransformFactoryForLegacy legacyTransformFactory;
         private final GlobalCacheLocations globalCacheLocations;
-        private final GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry;
+        private final GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry;
 
         @Inject
-        public InjectedInstrumentationServices(Stat stat, GlobalCacheLocations globalCacheLocations, GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+        public InjectedInstrumentationServices(Stat stat, GlobalCacheLocations globalCacheLocations, GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry) {
             this.transformFactory = new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
             this.legacyTransformFactory = new ClasspathElementTransformFactoryForLegacy(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
             this.globalCacheLocations = globalCacheLocations;
@@ -146,7 +146,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             return globalCacheLocations;
         }
 
-        public GradleCoreInstrumentingTypeRegistry getGradleCoreInstrumentingTypeRegistry() {
+        public GradleCoreInstrumentationTypeRegistry getGradleCoreInstrumentingTypeRegistry() {
             return gradleCoreInstrumentingTypeRegistry;
         }
     }

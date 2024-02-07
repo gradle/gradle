@@ -24,7 +24,7 @@ import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.util.internal.JarUtil;
 import org.objectweb.asm.ClassReader;
@@ -42,7 +42,7 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
     private static final Logger LOGGER = Logging.getLogger(BaseClasspathElementTransform.class);
 
     protected final File source;
-    private final InstrumentingTypeRegistry typeRegistry;
+    private final InstrumentationTypeRegistry typeRegistry;
     private final ClasspathBuilder classpathBuilder;
     private final ClasspathWalker classpathWalker;
     private final ClassTransform transform;
@@ -51,7 +51,7 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
         File source,
         ClasspathBuilder classpathBuilder,
         ClasspathWalker classpathWalker,
-        InstrumentingTypeRegistry typeRegistry,
+        InstrumentationTypeRegistry typeRegistry,
         ClassTransform transform
     ) {
         this.classpathBuilder = classpathBuilder;

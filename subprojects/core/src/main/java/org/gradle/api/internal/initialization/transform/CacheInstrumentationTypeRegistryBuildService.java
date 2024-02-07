@@ -19,9 +19,9 @@ package org.gradle.api.internal.initialization.transform;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
-import org.gradle.internal.classpath.types.ExternalPluginsInstrumentingTypeRegistry;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.ExternalPluginsInstrumentationTypeRegistry;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,30 +36,30 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-public abstract class InstrumentingBuildService implements BuildService<InstrumentingBuildService.InstrumentBuildServiceParameters> {
+public abstract class CacheInstrumentationTypeRegistryBuildService implements BuildService<CacheInstrumentationTypeRegistryBuildService.Parameters> {
 
-    public interface InstrumentBuildServiceParameters extends BuildServiceParameters {
+    public interface Parameters extends BuildServiceParameters {
         ConfigurableFileCollection getClassHierarchy();
     }
 
-    private final AtomicReference<InstrumentingTypeRegistry> instrumentingTypeRegistry = new AtomicReference<>();
+    private final AtomicReference<InstrumentationTypeRegistry> instrumentingTypeRegistry = new AtomicReference<>();
 
-    public InstrumentingTypeRegistry getInstrumentingTypeRegistry(GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
-        if (gradleCoreInstrumentingTypeRegistry.isEmpty()) {
-            return InstrumentingTypeRegistry.empty();
+    public InstrumentationTypeRegistry getInstrumentingTypeRegistry(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
+        if (gradleCoreInstrumentationTypeRegistry.isEmpty()) {
+            return InstrumentationTypeRegistry.empty();
         }
         if (instrumentingTypeRegistry.get() != null) {
             return instrumentingTypeRegistry.get();
         }
-        return newInstrumentingTypeRegistry(gradleCoreInstrumentingTypeRegistry);
+        return newInstrumentationTypeRegistry(gradleCoreInstrumentationTypeRegistry);
     }
 
-    private synchronized InstrumentingTypeRegistry newInstrumentingTypeRegistry(GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+    private synchronized InstrumentationTypeRegistry newInstrumentationTypeRegistry(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
         if (instrumentingTypeRegistry.get() != null) {
             return instrumentingTypeRegistry.get();
         }
         Map<String, Set<String>> classHierarchy = readClassHierarchy();
-        ExternalPluginsInstrumentingTypeRegistry registry = new ExternalPluginsInstrumentingTypeRegistry(classHierarchy, gradleCoreInstrumentingTypeRegistry);
+        ExternalPluginsInstrumentationTypeRegistry registry = new ExternalPluginsInstrumentationTypeRegistry(classHierarchy, gradleCoreInstrumentationTypeRegistry);
         instrumentingTypeRegistry.set(registry);
         return registry;
     }

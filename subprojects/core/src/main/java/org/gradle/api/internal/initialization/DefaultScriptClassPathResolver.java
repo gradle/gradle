@@ -38,7 +38,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
 import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.ExternalDependencyInstrumentingArtifactTransform;
-import org.gradle.api.internal.initialization.transform.InstrumentingBuildService;
+import org.gradle.api.internal.initialization.transform.CacheInstrumentationTypeRegistryBuildService;
 import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.Providers;
@@ -101,12 +101,12 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             }
         );
 
-        Provider<InstrumentingBuildService> service = getOrRegisterNewService();
+        Provider<CacheInstrumentationTypeRegistryBuildService> service = getOrRegisterNewService();
         registerTransform(dependencyHandler, ExternalDependencyInstrumentingArtifactTransform.class, service, INSTRUMENTED_EXTERNAL_DEPENDENCY_ATTRIBUTE);
         registerTransform(dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, Providers.notDefined(), INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE);
     }
 
-    private void registerTransform(DependencyHandler dependencyHandler, Class<? extends BaseInstrumentingArtifactTransform> transform, Provider<InstrumentingBuildService> service, String instrumentedAttribute) {
+    private void registerTransform(DependencyHandler dependencyHandler, Class<? extends BaseInstrumentingArtifactTransform> transform, Provider<CacheInstrumentationTypeRegistryBuildService> service, String instrumentedAttribute) {
         dependencyHandler.registerTransform(
             transform,
             spec -> {
@@ -120,10 +120,10 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         );
     }
 
-    private Provider<InstrumentingBuildService> getOrRegisterNewService() {
+    private Provider<CacheInstrumentationTypeRegistryBuildService> getOrRegisterNewService() {
         return buildServiceRegistry.registerIfAbsent(
-            InstrumentingBuildService.class.getName() + "@" + System.identityHashCode(this),
-            InstrumentingBuildService.class,
+            CacheInstrumentationTypeRegistryBuildService.class.getName() + "@" + System.identityHashCode(this),
+            CacheInstrumentationTypeRegistryBuildService.class,
             spec -> spec.getParameters().getClassHierarchy().setFrom(classHierarchy)
         );
     }

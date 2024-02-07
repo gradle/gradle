@@ -30,15 +30,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * InstrumentingTypeRegistry for checking type information for external plugins.
  * It combines data of direct super types that when visiting external plugins classes and Gradle core types data, to calculated final information for external types.
  */
-public class ExternalPluginsInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
+public class ExternalPluginsInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
 
-    private final InstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry;
+    private final InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry;
     private final Map<String, Set<String>> directSuperTypes;
     private final Map<String, Set<String>> superTypes = new ConcurrentHashMap<>();
 
-    public ExternalPluginsInstrumentingTypeRegistry(Map<String, Set<String>> directSuperTypes, InstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+    public ExternalPluginsInstrumentationTypeRegistry(Map<String, Set<String>> directSuperTypes, InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
         this.directSuperTypes = ImmutableMap.copyOf(directSuperTypes);
-        this.gradleCoreInstrumentingTypeRegistry = gradleCoreInstrumentingTypeRegistry;
+        this.gradleCoreInstrumentationTypeRegistry = gradleCoreInstrumentationTypeRegistry;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class ExternalPluginsInstrumentingTypeRegistry implements InstrumentingTy
         // TODO: This can probably be optimized: optimize it if it has performance impact
         Set<String> superTypes = Collections.emptySet();
         if (type.startsWith("org/gradle")) {
-            superTypes = gradleCoreInstrumentingTypeRegistry.getSuperTypes(type);
+            superTypes = gradleCoreInstrumentationTypeRegistry.getSuperTypes(type);
         }
         return !superTypes.isEmpty() ? superTypes : computeAndCacheSuperTypesForExternalType(type);
     }
@@ -73,11 +73,11 @@ public class ExternalPluginsInstrumentingTypeRegistry implements InstrumentingTy
         if (!superTypes.isEmpty() || !type.startsWith("org/gradle")) {
             return superTypes;
         }
-        return gradleCoreInstrumentingTypeRegistry.getSuperTypes(type);
+        return gradleCoreInstrumentationTypeRegistry.getSuperTypes(type);
     }
 
     @Override
     public boolean isEmpty() {
-        return directSuperTypes.isEmpty() && gradleCoreInstrumentingTypeRegistry.isEmpty();
+        return directSuperTypes.isEmpty() && gradleCoreInstrumentationTypeRegistry.isEmpty();
     }
 }
