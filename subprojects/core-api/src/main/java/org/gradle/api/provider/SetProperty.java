@@ -85,7 +85,7 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
     SetProperty<T> unsetConvention();
 
     /**
-     * Applies an eager transformation to the current value of the property "in place", without explicitly obtaining it.
+     * Replaces the current value of this property with a one computed by the provided transform.
      * The provided transformer is applied to the provider of the current value, and the returned provider is used as a new value.
      * The provider of the value can be used to derive the new value, but doesn't have to.
      * Returning null from the transformer unsets the property.
@@ -93,14 +93,14 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
      * <pre class='autoTested'>
      *     def property = objects.setProperty(String).value(["a", "b"])
      *
-     *     property.update { it.map { value -&gt; value - ["a", "e", "i", "o", "u"] } }
+     *     property.replace { it.map { value -&gt; value - ["a", "e", "i", "o", "u"] } }
      *
      *     println(property.get()) // ["b"]
      * </pre>
      * <p>
      * Note that simply writing {@code property.set(property.map { ... } } doesn't work and will cause an exception because of a circular reference evaluation at runtime.
      * <p>
-     * <b>Further changes to the value of the property, such as calls to {@link #set(Iterable)}, are not transformed, and override the update instead</b>.
+     * <b>Further changes to the value of the property, such as calls to {@link #set(Iterable)}, are not transformed, and override the replacement instead</b>.
      * Because of this, this method inherently depends on the order of property changes, and therefore must be used sparingly.
      * <p>
      * If the value of the property is specified via a provider, then the current value provider tracks that provider.
@@ -109,7 +109,7 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
      *     def upstream = objects.setProperty(String).value(["a", "b"])
      *     def property = objects.setProperty(String).value(upstream)
      *
-     *     property.update { it.map { value -&gt; value - ["a", "e", "i", "o", "u"] } }
+     *     property.replace { it.map { value -&gt; value - ["a", "e", "i", "o", "u"] } }
      *     upstream.set(["e", "f"])
      *
      *     println(property.get()) // ["f"]
@@ -120,11 +120,11 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
      * If the property has no explicit value set, then the current value comes from the convention.
      * Changes to convention of this property do not affect the current value provider in this case, though upstream changes are still visible if the convention was set to a provider.
      * If there is no convention too, then the current value is a provider without a value.
-     * The updated value becomes the explicit value of the property.
+     * The replacement value becomes the explicit value of the property.
 
      * @param transform the transformation to apply to the current value. May return null, which unsets the property.
-     * @since 8.6
+     * @since 8.8
      */
     @Incubating
-    void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<Set<T>>> transform);
+    void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<Set<T>>> transform);
 }

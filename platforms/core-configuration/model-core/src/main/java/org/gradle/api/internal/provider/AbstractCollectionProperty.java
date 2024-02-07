@@ -739,7 +739,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<C>> transform) {
+    public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<C>> transform) {
         Provider<? extends Iterable<? extends T>> newValue = transform.transform(shallowCopy());
         if (newValue != null) {
             set(newValue);
