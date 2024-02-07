@@ -923,6 +923,8 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
     }
 
     void enableIdentityCache() {
+        // So we don't get a daemon from another test
+        executer.requireIsolatedDaemons()
         executer.beforeExecute {
             executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
         }
