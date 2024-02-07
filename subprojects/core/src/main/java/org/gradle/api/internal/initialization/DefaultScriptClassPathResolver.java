@@ -42,8 +42,8 @@ import org.gradle.api.internal.initialization.transform.InstrumentingBuildServic
 import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -71,19 +71,19 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static final String INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE = "instrumented-project-dependency";
     private final NamedObjectInstantiator instantiator;
     private final AgentStatus agentStatus;
-    private final Gradle gradle;
     private final ConfigurableFileCollection classHierarchy;
+    private final BuildServiceRegistry buildServiceRegistry;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
         AgentStatus agentStatus,
         FileCollectionFactory fileCollectionFactory,
-        Gradle gradle
+        BuildServiceRegistry buildServiceRegistry
     ) {
         this.instantiator = instantiator;
         this.agentStatus = agentStatus;
-        this.gradle = gradle;
         this.classHierarchy = fileCollectionFactory.configurableFiles();
+        this.buildServiceRegistry = buildServiceRegistry;
     }
 
     @Override
@@ -121,7 +121,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     private Provider<InstrumentingBuildService> getOrRegisterNewService() {
-        return gradle.getSharedServices().registerIfAbsent(
+        return buildServiceRegistry.registerIfAbsent(
             InstrumentingBuildService.class.getName() + "@" + System.identityHashCode(this),
             InstrumentingBuildService.class,
             spec -> spec.getParameters().getClassHierarchy().setFrom(classHierarchy)
