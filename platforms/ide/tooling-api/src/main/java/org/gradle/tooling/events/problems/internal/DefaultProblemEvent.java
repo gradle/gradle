@@ -19,17 +19,86 @@ package org.gradle.tooling.events.problems.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.internal.BaseProgressEvent;
 import org.gradle.tooling.events.problems.BaseProblemDescriptor;
+import org.gradle.tooling.events.problems.Details;
+import org.gradle.tooling.events.problems.DocumentationLink;
+import org.gradle.tooling.events.problems.FailureContainer;
+import org.gradle.tooling.events.problems.Label;
+import org.gradle.tooling.events.problems.Location;
+import org.gradle.tooling.events.problems.ProblemCategory;
 import org.gradle.tooling.events.problems.ProblemEvent;
+import org.gradle.tooling.events.problems.Severity;
+import org.gradle.tooling.events.problems.Solution;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 @NonNullApi
 public class DefaultProblemEvent extends BaseProgressEvent implements ProblemEvent {
-    public DefaultProblemEvent(long eventTime, BaseProblemDescriptor problemDescriptor) {
+    private final ProblemCategory category;
+    private final Severity severity;
+    private final Label label;
+    private final Details details;
+    private final List<Location> locations;
+    private final DocumentationLink documentationLink;
+    private final List<Solution> solutions;
+    private final FailureContainer failure;
+
+    public DefaultProblemEvent(long eventTime, BaseProblemDescriptor problemDescriptor, ProblemCategory category, Severity severity, Label label, Details details, List<Location> locations, DocumentationLink documentationLink, List<Solution> solutions, FailureContainer failure) {
         super(eventTime, problemDescriptor.getDisplayName(), problemDescriptor);
+        this.category = category;
+        this.severity = severity;
+        this.label = label;
+        this.details = details;
+        this.locations = locations;
+        this.documentationLink = documentationLink;
+        this.solutions = solutions;
+        this.failure = failure;
     }
 
     @Override
     public BaseProblemDescriptor getDescriptor() {
         return (BaseProblemDescriptor) super.getDescriptor();
+    }
+
+    @Override
+    public ProblemCategory getCategory() {
+        return category;
+    }
+
+    @Override
+    public Label getLabel() {
+        return label;
+    }
+
+    @Override
+    public Details getDetails() {
+        return details;
+    }
+
+    @Override
+    public Severity getSeverity() {
+        return severity;
+    }
+
+    @Override
+    public List<Location> getLocations() {
+        return locations;
+    }
+
+    @Override
+    public DocumentationLink getDocumentationLink() {
+        return documentationLink;
+    }
+
+    @Override
+    public List<Solution> getSolutions() {
+        return solutions;
+    }
+
+    @Nullable
+    @Override
+    public FailureContainer getFailure() {
+        return failure;
     }
 
 }
