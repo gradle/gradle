@@ -34,7 +34,7 @@ class DeclarativeDslServiceRegistry : AbstractPluginServiceRegistry() {
 internal
 object BuildServices {
     @Suppress("unused")
-    fun createRestrictedKotlinScriptEvaluator(): DeclarativeKotlinScriptEvaluator {
+    fun createDeclarativeKotlinScriptEvaluator(): DeclarativeKotlinScriptEvaluator {
         val schemaBuilder = StoringInterpretationSchemaBuilder(DefaultInterpretationSchemaBuilder())
         return DefaultDeclarativeKotlinScriptEvaluator(schemaBuilder)
     }
