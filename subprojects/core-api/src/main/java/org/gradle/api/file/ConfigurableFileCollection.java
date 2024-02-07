@@ -116,10 +116,10 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
     ConfigurableFileCollection builtBy(Object... tasks);
 
     /**
-     * Replaces the current contents of this file collection with a one computed by the provided transform.
-     * The provided transformer is applied to the file collection representing the current contents, and the returned collection is used as a new content.
+     * Replaces the current contents of this file collection with a one computed by the provided transformation.
+     * The transformation is applied to the file collection representing the current contents, and the returned collection is used as a new content.
      * The current contents collection can be used to derive the new value, but doesn't have to.
-     * Returning null from the transformer empties this collection.
+     * Returning null from the transformation empties this collection.
      * For example, it is possible to filter out all text files from the collection:
      * <pre class='autoTested'>
      *     def collection = files("a.txt", "b.md")
@@ -132,7 +132,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * <b>Further changes to this file collection, such as calls to {@link #setFrom(Object...)} or {@link #from(Object...)}, are not transformed, and override the replacement instead</b>.
      * Because of this, this method inherently depends on the order of changes, and therefore must be used sparingly.
      * <p>
-     * If this file collection consists of other mutable sources, then the current contents collection tracks the changes to these sources.
+     * If this file collection consists of other mutable sources, then the current contents collection tracks changes to these sources.
      * For example, changes to the upstream collection are visible:
      * <pre class='autoTested'>
      *     def upstream = files("a.txt", "b.md")
@@ -148,9 +148,9 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * <p>
      * The current contents collection inherits dependencies of this collection specified by {@link #builtBy(Object...)}.
      *
-     * @param transform the transformation to apply to the current value. May return null, which empties this collection.
+     * @param transformation the transformation to apply to the current value. May return null, which empties this collection.
      * @since 8.8
      */
     @Incubating
-    void replace(Transformer<? extends @org.jetbrains.annotations.Nullable FileCollection, ? super FileCollection> transform);
+    void replace(Transformer<? extends @org.jetbrains.annotations.Nullable FileCollection, ? super FileCollection> transformation);
 }

@@ -464,8 +464,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable FileCollection, ? super FileCollection> transform) {
-        FileCollection newValue = transform.transform(shallowCopy());
+    public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable FileCollection, ? super FileCollection> transformation) {
+        FileCollection newValue = transformation.transform(shallowCopy());
         if (newValue != null) {
             setFrom(newValue);
         } else {

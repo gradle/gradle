@@ -201,10 +201,10 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
     void finalizeValue();
 
     /**
-     * Replaces the current value of this property with a one computed by the provided transform.
-     * The provided transformer is applied to the provider of the current value, and the returned provider is used as a new value.
+     * Replaces the current value of this property with a one computed by the provided transformation.
+     * The transformation is applied to the provider of the current value, and the returned provider is used as a new value.
      * The provider of the value can be used to derive the new value, but doesn't have to.
-     * Returning null from the transformer unsets the property.
+     * Returning null from the transformation unsets the property.
      * For example, the current value of a string property can be reversed:
      * <pre class='autoTested'>
      *     def property = objects.property(String).value("value")
@@ -237,9 +237,9 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      * If there is no convention too, then the current value is a provider without a value.
      * The replacement value becomes the explicit value of the property.
      *
-     * @param transform the transformation to apply to the current value. May return null, which unsets the property.
+     * @param transformation the transformation to apply to the current value. May return null, which unsets the property.
      * @since 8.8
      */
     @Incubating
-    void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends T>, ? super Provider<T>> transform);
+    void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends T>, ? super Provider<T>> transformation);
 }

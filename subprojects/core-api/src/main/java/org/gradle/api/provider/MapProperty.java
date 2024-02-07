@@ -291,10 +291,10 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     MapProperty<K, V> unsetConvention();
 
     /**
-     * Replaces the current value of this property with a one computed by the provided transform.
-     * The provided transformer is applied to the provider of the current value, and the returned provider is used as a new value.
+     * Replaces the current value of this property with a one computed by the provided transformation.
+     * The transformation is applied to the provider of the current value, and the returned provider is used as a new value.
      * The provider of the value can be used to derive the new value, but doesn't have to.
-     * Returning null from the transformer unsets the property.
+     * Returning null from the transformation unsets the property.
      * For example, the current value of a string map property can be filtered to retain only vowel keys:
      * <pre class='autoTested'>
      *     def property = objects.mapProperty(String, String).value(a: "a", b: "b")
@@ -327,11 +327,11 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * If there is no convention too, then the current value is a provider without a value.
      * The replacement value becomes the explicit value of the property.
 
-     * @param transform the transformation to apply to the current value. May return null, which unsets the property.
+     * @param transformation the transformation to apply to the current value. May return null, which unsets the property.
      * @since 8.8
      */
     @Incubating
-    void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transform);
+    void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transformation);
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Map)} or {@link #put(Object, Object)} will fail.
