@@ -22,8 +22,10 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.operations.lifecycle.ExecuteRootBuildTreeBuildOperationType;
 
 public class BuildOperationFiringBuildTreeWorkExecutor implements BuildTreeWorkExecutor {
+    private static final ExecuteRootBuildTreeBuildOperationType.Details EXECUTE_ROOT_BUILD_DETAILS = new ExecuteRootBuildTreeBuildOperationType.Details() {};
     private final BuildTreeWorkExecutor delegate;
     private final BuildOperationExecutor executor;
 
@@ -43,6 +45,7 @@ public class BuildOperationFiringBuildTreeWorkExecutor implements BuildTreeWorkE
             @Override
             public BuildOperationDescriptor.Builder description() {
                 BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName("Run main tasks");
+                builder.details(EXECUTE_ROOT_BUILD_DETAILS);
                 builder.metadata(BuildOperationCategory.RUN_MAIN_TASKS);
                 return builder;
             }
