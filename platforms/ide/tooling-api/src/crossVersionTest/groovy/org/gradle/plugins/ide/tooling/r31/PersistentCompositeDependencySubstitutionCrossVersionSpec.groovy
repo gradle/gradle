@@ -190,17 +190,16 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
             }
 """
         def buildD = multiProjectBuildInSubFolder("buildD", ["b1", "buildC"]) {
+            group = 'org.buildD'
             buildFile << """
                 allprojects {
                     apply plugin: 'java-library'
-
-                    group = 'org.buildD'
                 }
-"""
+            """
         }
         settingsFile << """
             includeBuild 'buildD'
-"""
+        """
 
         when:
         def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }

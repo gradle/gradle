@@ -128,6 +128,13 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 dependencies {
                     implementation project(':a')
                 }
+                configurations {
+                    compileClasspath {
+                        attributes {
+                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+                        }
+                    }
+                }
             }
         """
 

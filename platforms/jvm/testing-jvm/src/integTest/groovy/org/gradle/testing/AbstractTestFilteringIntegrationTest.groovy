@@ -84,10 +84,6 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
             }
         """.stripIndent()
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

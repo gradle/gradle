@@ -43,7 +43,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def setup() {
-        buildFile << "apply plugin: 'base'\n"
         // When adding support for a new JDK version, the previous release might not work with it yet.
         Assume.assumeTrue(releasedVersionDistributions.mostRecentRelease.worksWith(Jvm.current()))
     }
@@ -185,6 +184,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/821")
     def "production class files are removed in a multi-project build executed #description"(String[] arguments, String description) {
         given:
+        buildFile << """
+            plugins {
+                id("base")
+            }
+        """
+
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
             def projectName = createProjectName(it)
@@ -234,6 +239,12 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/821")
     def "production class files are removed in a multi-project build executed when a single project is built #description"(String singleTask, List arguments, String description) {
         given:
+        buildFile << """
+            plugins {
+                id("base")
+            }
+        """
+
         def projectCount = 3
         def javaProjects = (1..projectCount).collect {
             def projectName = createProjectName(it)
@@ -337,6 +348,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':copyAll'
 
         buildFile << """
+            plugins {
+                id("base")
+            }
+
             task copy1(type: Copy) {
                 from file('source1')
                 into file('target')
@@ -381,6 +396,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':copy'
 
         buildFile << """
+            plugins {
+                id("base")
+            }
+
             task copy(type: Copy) {
                 from file('source')
                 into file('target')
@@ -418,6 +437,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':customCopy'
 
         buildFile << """
+            plugins {
+                id("base")
+            }
+
             task customCopy(type: CustomCopy) {
                 sourceDir = file('source')
                 targetDir = file('target')
@@ -476,6 +499,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':copyAll'
 
         buildFile << """
+            plugins {
+                id("base")
+            }
+
             task copy1(type: Copy) {
                 from file('source1')
                 into file('target1')
@@ -524,6 +551,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':customCopy'
 
         buildFile << """
+            plugins {
+                id("base")
+            }
+
             task customCopy(type: CustomCopy) {
                 sourceDir = fileTree('source')
                 targetDir = file('build/target')
@@ -578,6 +609,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':copy'
 
         buildFile << """
+            plugins {
+                id("base")
+            }
+
             tasks.register("copy", Copy) {
                 from file('source')
                 into 'build/target'

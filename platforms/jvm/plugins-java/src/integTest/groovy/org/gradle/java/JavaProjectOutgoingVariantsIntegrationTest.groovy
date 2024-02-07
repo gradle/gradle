@@ -46,7 +46,7 @@ allprojects {
 }
 
 project(':other-java') {
-    apply plugin: 'java-library'
+    apply plugin: 'java'
     java {
         withJavadocJar()
         withSourcesJar()
@@ -54,7 +54,7 @@ project(':other-java') {
 }
 
 project(':java') {
-    apply plugin: 'java-library'
+    apply plugin: 'java'
     java {
         withJavadocJar()
         withSourcesJar()

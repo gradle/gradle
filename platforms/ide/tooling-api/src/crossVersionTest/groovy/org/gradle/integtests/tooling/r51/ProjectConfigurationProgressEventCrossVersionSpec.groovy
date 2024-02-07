@@ -213,7 +213,8 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
             assert plugins == [
                 "org.gradle.help-tasks", "org.gradle.build-init", "org.gradle.wrapper",
                 "build.gradle", "script.gradle",
-                "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
+                "org.gradle.java-library", "org.gradle.api.plugins.JavaPlugin",
+                "org.gradle.api.plugins.JavaBasePlugin",
                 "org.gradle.api.plugins.BasePlugin",
                 "org.gradle.language.base.plugins.LifecycleBasePlugin",
                 "org.gradle.api.plugins.JvmEcosystemPlugin",
@@ -226,7 +227,8 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
             assert plugins == [
                 "org.gradle.help-tasks", "org.gradle.build-init", "org.gradle.wrapper",
                 "build.gradle", "script.gradle",
-                "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
+                "org.gradle.java-library", "org.gradle.api.plugins.JavaPlugin",
+                "org.gradle.api.plugins.JavaBasePlugin",
                 "org.gradle.api.plugins.BasePlugin",
                 "org.gradle.language.base.plugins.LifecycleBasePlugin",
                 "org.gradle.api.plugins.JvmEcosystemPlugin",
@@ -423,9 +425,13 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     ProjectConfigurationOperationResult containsPluginApplicationResultsForJavaPlugin(String displayName) {
         def result = getPluginConfigurationOperationResult(displayName)
         with(result) {
+            def javaLibraryPluginResult = pluginApplicationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.JavaLibraryPlugin" }
+            assert javaLibraryPluginResult.plugin.pluginId == "org.gradle.java-library"
+            assert javaLibraryPluginResult.plugin.displayName == "org.gradle.java-library"
+            assert javaLibraryPluginResult.totalConfigurationTime >= Duration.ZERO
             def javaPluginResult = pluginApplicationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.JavaPlugin" }
-            assert javaPluginResult.plugin.pluginId == "org.gradle.java"
-            assert javaPluginResult.plugin.displayName == "org.gradle.java"
+            assert javaPluginResult.plugin.pluginId == null
+            assert javaPluginResult.plugin.displayName == "org.gradle.api.plugins.JavaPlugin"
             assert javaPluginResult.totalConfigurationTime >= Duration.ZERO
             def basePluginResult = pluginApplicationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.BasePlugin" }
             assert basePluginResult.plugin.pluginId == null

@@ -348,7 +348,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
                 project(":c2") {
                     apply plugin: 'idea'
                 }
-"""
+            """
         }
 
         includeBuild buildC
@@ -370,24 +370,24 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         dependency "org.buildD:b1:1.0"
 
         def buildC = multiProjectBuild("buildC", ['b1']) {
+            group = "org.buildC"
             buildFile << """
                 allprojects {
                     apply plugin: 'java-library'
                     apply plugin: 'idea'
-                    group = 'org.buildC'
                 }
-"""
+            """
         }
         includeBuild buildC
 
         def buildD = singleProjectBuild("b1") {
+            group = "org.buildD"
             buildFile << """
                 plugins {
                     id("java-library")
                     id("idea")
                 }
-                group = 'org.buildD'
-"""
+            """
         }
         includeBuild buildD
 
@@ -415,12 +415,12 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
                 implementation project(':b1')
                 implementation 'org.test:b1:1.0'
             }
-"""
+        """
 
         buildA.addChildDir("b1")
         buildA.settingsFile << """
             include 'b1'
-"""
+        """
         buildA.buildFile << """
             subprojects {
                 apply plugin: 'idea'
@@ -428,17 +428,16 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
 
                 group = 'org.buildA'
             }
-"""
+        """
 
         def buildC = multiProjectBuild("buildC", ["buildA"]) {
+            group = "org.buildC"
             buildFile << """
                 allprojects {
                     apply plugin: 'java-library'
                     apply plugin: 'idea'
-
-                    group = 'org.buildC'
                 }
-"""
+            """
         }
         includeBuild buildC
 
@@ -467,25 +466,25 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         dependency "org.buildD:b1:1.0"
 
         def buildC = multiProjectBuild("buildC", ['b1']) {
+            group = "org.buildC"
             buildFile << """
                 // Idea plugin only applied to root
                 apply plugin: 'idea'
 
                 allprojects {
                     apply plugin: 'java-library'
-                    group = 'org.buildC'
                 }
-"""
+            """
         }
         includeBuild buildC
 
         def buildD = singleProjectBuild("b1") {
+            group = "org.buildD"
             buildFile << """
                 plugins {
                     id("java-library")
                 }
-                group = 'org.buildD'
-"""
+            """
         }
         includeBuild buildD
 

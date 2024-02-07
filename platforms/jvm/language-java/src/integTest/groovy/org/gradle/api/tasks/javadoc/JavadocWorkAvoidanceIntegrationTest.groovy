@@ -35,7 +35,12 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
 
         file('a/build.gradle') << '''
             dependencies {
-                implementation project(':b')
+                implementation(project(':b')) {
+                    attributes {
+                        // Ensure we build the jar of :b when building :a
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+                    }
+                }
             }
         '''
 

@@ -30,7 +30,6 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = 'test'
         """
         resolve.expectDefaultConfiguration("runtime")
-        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void "strict conflict resolution should fail due to conflict"() {

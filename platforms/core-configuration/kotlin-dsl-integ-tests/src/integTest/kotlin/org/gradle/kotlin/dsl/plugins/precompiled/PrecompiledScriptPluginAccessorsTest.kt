@@ -619,7 +619,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         )
 
         inOrder(pluginManager) {
-            verify(pluginManager).apply("org.gradle.java")
+            verify(pluginManager).apply("java-library")
             verifyNoMoreInteractions()
         }
     }

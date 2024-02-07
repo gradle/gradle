@@ -56,14 +56,14 @@ class IdeaCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         """
         buildTestFixture.withBuildInSubDir()
         singleProjectBuild("util") {
+            group = "test"
+            version = "1.3"
             settingsFile << "rootProject.name = '${rootProjectName}'"
             buildFile << """
                 plugins {
                     id("java-library")
                     id("idea")
                 }
-                group = 'test'
-                version = '1.3'
             """
         }
         singleProjectBuild("other") {

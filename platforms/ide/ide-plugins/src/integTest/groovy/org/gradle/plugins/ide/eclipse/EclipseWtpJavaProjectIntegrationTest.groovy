@@ -28,8 +28,8 @@ class EclipseWtpJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpe
 
         buildFile <<"""
             plugins {
-                id("java-library")
                 id("eclipse-wtp")
+                id("java-library")
             }
 
             ${mavenCentralRepository()}

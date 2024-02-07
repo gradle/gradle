@@ -40,8 +40,9 @@ class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseInteg
 
         buildFile << """
             plugins {
-                id("ear")
                 id("eclipse-wtp")
+                id("ear")
+                id("java")
             }
 
             repositories { $localMaven }
@@ -88,8 +89,9 @@ class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseInteg
 
         buildFile << """
             plugins {
-                id("ear")
                 id("eclipse-wtp")
+                id("ear")
+                id("java")
             }
 
             repositories { $localMaven }

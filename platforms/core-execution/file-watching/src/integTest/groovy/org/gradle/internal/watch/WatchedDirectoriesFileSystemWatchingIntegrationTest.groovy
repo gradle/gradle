@@ -107,13 +107,13 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         when:
         withWatchFs().run "assemble", "--info"
         then:
-        executedAndNotSkipped(":includedBuild:jar")
+        executedAndNotSkipped(":includedBuild:compileJava")
         assertWatchableHierarchies(expectedWatchableHierarchies)
 
         when:
         withWatchFs().run("assemble", "--info")
         then:
-        skipped(":includedBuild:jar")
+        skipped(":includedBuild:compileJava")
         // configuration cache registers all build directories at startup so the cache fingerprint can be checked
         def expectedWatchableCount = GradleContextualExecuter.isConfigCache() ? 4 : 2
         assertWatchableHierarchies([ImmutableSet.of(consumer, includedBuild)] * expectedWatchableCount)
@@ -121,7 +121,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         includedBuild.file("src/main/java/NewClass.java")  << "public class NewClass {}"
         withWatchFs().run("assemble")
         then:
-        executedAndNotSkipped(":includedBuild:jar")
+        executedAndNotSkipped(":includedBuild:compileJava")
     }
 
     def "works with GradleBuild task"() {
@@ -348,7 +348,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         when:
         withWatchFs().run "assemble", "--info"
         then:
-        executedAndNotSkipped(":includedBuild:jar")
+        executedAndNotSkipped(":includedBuild:compileJava")
         assertWatchedHierarchies([includedBuild])
         postBuildOutputContains("Watching too many directories in the file system (watching 2, limit 1), dropping some state from the virtual file system")
     }

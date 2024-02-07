@@ -204,10 +204,8 @@ include 'projectB'
 """
         buildFile << """
         subprojects {
-            plugins {
-                id("java-library")
-                id("ivy-publish")
-            }
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java-library'
 
             group = 'org.example'
             version = '1.0'

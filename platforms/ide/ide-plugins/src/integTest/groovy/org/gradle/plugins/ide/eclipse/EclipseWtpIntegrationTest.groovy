@@ -153,6 +153,7 @@ dependencies {
     private createRootProject() {
         file("build.gradle.kts") << """
             plugins {
+                id("java-library")
                 id("eclipse")
                 id("ear")
             }
@@ -223,10 +224,10 @@ dependencies {
         def java1BuildFile = getFile(project: "java1", "build.gradle")
         createJavaSourceDirs(java1BuildFile)
 
-        java1BuildFile << """
+        java1BuildFile.text = """
 plugins {
-    id("java-library")
     id("eclipse-wtp")
+    id("java-library")
 }
 
 repositories {
@@ -242,10 +243,10 @@ dependencies {
         def java2BuildFile = getFile(project: "java2", "build.gradle")
         createJavaSourceDirs(java2BuildFile)
 
-        java2BuildFile << """
+        java2BuildFile.text = """
 plugins {
-    id("java-library")
     id("eclipse-wtp")
+    id("java-library")
 }
 
 repositories {
@@ -261,9 +262,11 @@ dependencies {
         createJavaSourceDirs(groovyBuildFile)
         groovyBuildFile.parentFile.file("src/main/groovy").createDir()
 
-        groovyBuildFile << """
-apply plugin: "eclipse-wtp"
-apply plugin: "groovy"
+        groovyBuildFile.text = """
+plugins {
+    id("eclipse-wtp")
+    id("groovy")
+}
         """
 
         executer.withTasks("eclipse").run()

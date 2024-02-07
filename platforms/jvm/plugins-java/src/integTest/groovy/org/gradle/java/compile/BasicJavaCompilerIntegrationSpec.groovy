@@ -529,10 +529,6 @@ class Main {
     def "can use annotation processor"() {
         when:
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
             dependencies {
                 compileOnly project(":processor")
                 annotationProcessor project(":processor")

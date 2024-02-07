@@ -73,7 +73,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
             task broken {
                 doLast { throw new RuntimeException("broken") }
             }
-            jar.finalizedBy(broken)
+            compileJava.finalizedBy(broken)
         """
 
         when:
@@ -120,7 +120,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
                     throw new RuntimeException("broken")
                 }
             }
-            processResources.dependsOn(broken)
+            compileJava.dependsOn(broken)
         """
         dependency("org.test:buildB:1.0")
         buildB.buildFile << """
@@ -130,7 +130,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
                     throw new RuntimeException("broken")
                 }
             }
-            processResources.dependsOn(broken)
+            compileJava.dependsOn(broken)
         """
         server.expectConcurrent("buildA", "buildB")
 

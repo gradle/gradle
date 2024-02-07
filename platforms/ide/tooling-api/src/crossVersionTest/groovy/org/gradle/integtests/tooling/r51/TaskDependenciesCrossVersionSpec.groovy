@@ -152,7 +152,7 @@ class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
         runBuild(':compileJava')
 
         then:
-        task(':compileJava').dependencies == tasks(':included:jar')
+        task(':compileJava').dependencies == tasks(':included:compileJava')
     }
 
     @TargetGradleVersion('>=3.0 <5.1')

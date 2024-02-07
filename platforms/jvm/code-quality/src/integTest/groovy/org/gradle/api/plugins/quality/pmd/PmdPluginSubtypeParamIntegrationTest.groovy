@@ -28,7 +28,7 @@ class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionInteg
     def setup() {
         buildFile << """
             plugins {
-                id("java-libary")
+                id("java-library")
                 id("pmd")
             }
 

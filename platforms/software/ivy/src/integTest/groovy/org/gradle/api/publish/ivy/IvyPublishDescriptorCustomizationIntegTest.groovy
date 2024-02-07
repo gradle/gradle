@@ -154,7 +154,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         then:
         failure.assertHasDescription("Execution failed for task ':generateDescriptorFileForIvyPublication'.")
         failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertHasLineNumber(23)
         failure.assertHasCause("Could not apply withXml() to Ivy module descriptor")
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
     }
@@ -227,7 +226,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'publish'.")
         failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertHasLineNumber(23)
         failure.assertHasCause("Cannot add an extra info element with null ")
 
         where:

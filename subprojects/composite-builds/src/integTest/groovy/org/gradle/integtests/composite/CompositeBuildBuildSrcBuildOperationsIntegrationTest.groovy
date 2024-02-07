@@ -57,7 +57,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         execute(buildA, ":jar", [])
 
         then:
-        executed ":buildB:jar"
+        executed ":buildB:compileJava"
 
         and:
         def root = operations.root(RunBuildBuildOperationType)
@@ -162,7 +162,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         execute(buildA, ":jar", [])
 
         then:
-        executed ":buildB:jar"
+        executed ":buildB:compileJava"
 
         and:
         def root = operations.root(RunBuildBuildOperationType)

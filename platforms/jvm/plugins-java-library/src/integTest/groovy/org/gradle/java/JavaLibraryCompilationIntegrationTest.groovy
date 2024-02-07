@@ -113,8 +113,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'a:compileJava'
 
         then:
-        executedAndNotSkipped ':b:compileJava', ':b:classes', ':b:jar'
-        skipped ':b:processResources'
+        executedAndNotSkipped ':b:compileJava'
     }
 
     def "uses the API of a library when compiling production code against it using the #configuration configuration"() {

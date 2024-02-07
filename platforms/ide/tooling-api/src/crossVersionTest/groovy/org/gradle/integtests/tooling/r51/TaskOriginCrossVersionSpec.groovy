@@ -64,13 +64,13 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         task(':classes').originPlugin.displayName == "org.gradle.api.plugins.JavaBasePlugin"
-        task(':jar').originPlugin.displayName == "org.gradle.java"
+        task(':jar').originPlugin.displayName == "org.gradle.api.plugins.JavaPlugin"
         task(':assemble').originPlugin.displayName == "org.gradle.language.base.plugins.LifecycleBasePlugin"
         with(task(':test')) {
             if (targetVersion > GradleVersion.version("7.2")) {
                 originPlugin.displayName == "org.gradle.jvm-test-suite"
             } else {
-                originPlugin.displayName == "org.gradle.java"
+                originPlugin.displayName == "org.gradle.api.plugins.JavaPlugin"
             }
         }
         task(':check').originPlugin.displayName == "org.gradle.language.base.plugins.LifecycleBasePlugin"

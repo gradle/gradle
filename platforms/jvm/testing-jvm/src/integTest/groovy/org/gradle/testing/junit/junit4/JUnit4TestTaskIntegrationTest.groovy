@@ -29,10 +29,6 @@ class JUnit4TestTaskIntegrationTest extends AbstractJUnit4TestTaskIntegrationTes
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
             test {
                 options {
                     excludeCategories = ["Slow"]

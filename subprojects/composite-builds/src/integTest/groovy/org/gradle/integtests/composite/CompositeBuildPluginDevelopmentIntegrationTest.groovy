@@ -33,9 +33,9 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         enableProblemsApiCheck()
 
         pluginDependencyA = singleProjectBuild("pluginDependencyA") {
+            version = "2.0"
             buildFile << """
                 apply plugin: 'java-library'
-                version "2.0"
             """
         }
 
@@ -191,18 +191,16 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         execute(buildA, "assemble")
 
         then:
-        executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":buildB:jar", ":jar"
+        executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":buildB:compileJava", ":jar"
     }
 
     @IntegrationTestTimeout(value = 30, onlyIf = { GradleContextualExecuter.embedded })
     def "can co-develop plugin and multiple consumers as included builds with transitive plugin library dependency using library included build and 'apply plugin'"() {
         given:
         def buildB = singleProjectBuild("buildB") {
+            version = "2.0"
             buildFile << """
-                plugins {
-                    id("java-library")
-                }
-                version "2.0"
+                apply plugin: 'java-library'
             """
         }
         applyPlugin(buildA, false)
@@ -217,7 +215,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         execute(buildA, "assemble")
 
         then:
-        executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":buildB:jar", ":jar"
+        executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":buildB:compileJava", ":jar"
     }
 
     def "can co-develop plugin and consumer where plugin uses previous version of itself to build"() {
@@ -383,7 +381,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         execute(buildA, "jar")
 
         then:
-        executed ":buildB:b1:jar", ":buildB:b2:jar", ":jar"
+        executed ":buildB:b1:jar", ":buildB:b2:compileJava", ":jar"
     }
 
     def "can develop a transitive plugin dependency as included build when plugin itself is not included"() {
@@ -468,11 +466,8 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         failure.assertHasCause("""
 Circular dependency between the following tasks:
 :pluginDependencyA:compileJava
-\\--- :pluginDependencyB:jar
-     +--- :pluginDependencyB:classes
-     |    \\--- :pluginDependencyB:compileJava
-     |         \\--- :pluginDependencyA:compileJava (*)
-     \\--- :pluginDependencyB:compileJava (*)
+\\--- :pluginDependencyB:compileJava
+     \\--- :pluginDependencyA:compileJava (*)
 
 (*) - details omitted (listed previously)
 """.trim())
@@ -718,12 +713,12 @@ task resolve {
             """
         }
         def pluginBuild = multiProjectBuild("build-logic", ["plugin"]) {
+            group = "org.test.plugin"
             buildFile.text = """
                 plugins {
                     id("java-library")
                 }
                 allprojects {
-                    group = "org.test.plugin"
                 }
             """
             def subproject = project("plugin")

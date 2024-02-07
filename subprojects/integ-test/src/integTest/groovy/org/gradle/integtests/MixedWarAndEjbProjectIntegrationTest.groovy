@@ -34,7 +34,7 @@ project(":b") {
         implementation project(":a")
     }
     compileJava.doFirst {
-        assert classpath.collect { it.name } == ['a.jar']
+        assert classpath.collect { it.name } == ['main']
     }
 }
 """

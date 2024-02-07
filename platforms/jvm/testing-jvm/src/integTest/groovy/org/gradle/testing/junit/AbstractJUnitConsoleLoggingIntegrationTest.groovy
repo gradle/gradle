@@ -61,7 +61,9 @@ abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestin
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: "groovy"
+            plugins {
+                id("groovy")
+            }
 
             ${mavenCentralRepository()}
 
@@ -173,17 +175,6 @@ abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestin
     }
 
     def "test logging is included in XML results"() {
-        file("build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenCentralRepository()}
-            dependencies {
-                ${testFrameworkDependencies}
-            }
-        """.stripIndent()
-
         file("src/test/java/EncodingTest.java") << """
             ${testFrameworkImports}
 

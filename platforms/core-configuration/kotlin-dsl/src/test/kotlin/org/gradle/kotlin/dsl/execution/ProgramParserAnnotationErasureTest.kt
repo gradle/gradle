@@ -74,7 +74,7 @@ class ProgramParserAnnotationErasureTest {
             @Suppress("whatever")
 
             plugins {
-                id("java-library")
+              java
             }
             @Suppress("nothing_really")
             println("Stage 2")

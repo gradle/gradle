@@ -171,20 +171,20 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
                     def files = compile.files
 
                     assert files.size() == 3
-                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'main', 'rock-1.0.jar']
 
                     files = compile.getFiles { true }
 
-                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'main', 'rock-1.0.jar']
 
                     def artifacts = compile.artifacts
 
                     assert artifacts.size() == 3
-                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'main', 'rock-1.0.jar']
 
                     artifacts = compile.getArtifacts { true }
 
-                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar', 'rock-1.0.jar']
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'main', 'rock-1.0.jar']
 
                     def unresolved = compile.unresolvedModuleDependencies
                     assert unresolved.size() == 2
@@ -317,20 +317,20 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
                     def files = compile.files
 
                     assert files.size() == 2
-                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar']
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'main']
 
                     files = compile.getFiles { true }
 
-                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'child.jar']
+                    assert files.collect { it.name } == ['hiphop-1.0.jar', 'main']
 
                     def artifacts = compile.artifacts
 
                     assert artifacts.size() == 2
-                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar']
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'main']
 
                     artifacts = compile.getArtifacts { true }
 
-                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'child.jar']
+                    assert artifacts.collect { it.file.name } == ['hiphop-1.0.jar', 'main']
 
                     def unresolved = compile.unresolvedModuleDependencies
                     assert unresolved.size() == 2

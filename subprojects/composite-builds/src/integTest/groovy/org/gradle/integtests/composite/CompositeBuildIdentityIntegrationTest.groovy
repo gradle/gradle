@@ -38,8 +38,8 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
         buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
             println "configuring \$project.path"
-            classes.doLast { t ->
-                println "classes of \$t.path"
+            compileJava.doLast { t ->
+                println "compileJava for \$t.path"
             }
         """
 
@@ -48,7 +48,7 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
 
         then:
         outputContains("> Configure project :${buildName}")
-        result.groupedOutput.task(":${buildName}:classes").output.contains("classes of :classes")
+        result.groupedOutput.task(":${buildName}:compileJava").output.contains("compileJava for :compileJava")
 
         where:
         settings                     | buildName | dependencyName | display
@@ -109,7 +109,7 @@ Required by:
 
         buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
-            classes.doLast {
+            compileJava.doLast {
                 throw new RuntimeException("broken")
             }
         """
@@ -118,7 +118,7 @@ Required by:
         fails(buildA, ":assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':${buildName}:classes'.")
+        failure.assertHasDescription("Execution failed for task ':${buildName}:compileJava'.")
         failure.assertHasCause("broken")
 
         where:

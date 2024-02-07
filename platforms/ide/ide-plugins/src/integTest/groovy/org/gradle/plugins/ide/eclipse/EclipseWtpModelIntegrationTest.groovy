@@ -400,6 +400,7 @@ project(':contrib') {
         //when
         runEclipseTask """
             plugins {
+                id("java-library")
                 id("ear")
                 id("eclipse-wtp")
             }
@@ -434,6 +435,7 @@ project(':contrib') {
         //when
         runEclipseTask """
             plugins {
+                id("java-library")
                 id("ear")
                 id("eclipse-wtp")
             }

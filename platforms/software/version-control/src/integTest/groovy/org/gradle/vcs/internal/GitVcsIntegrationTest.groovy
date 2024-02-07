@@ -262,10 +262,6 @@ The following types/formats are supported:
         """
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
             group = 'org.gradle'
             version = '2.0'
 

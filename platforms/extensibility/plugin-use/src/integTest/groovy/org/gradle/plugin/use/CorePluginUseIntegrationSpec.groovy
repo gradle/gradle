@@ -22,8 +22,8 @@ import static org.hamcrest.CoreMatchers.startsWith
 
 class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
-    public static final String QUALIFIED_JAVA = "org.gradle.java"
-    public static final String UNQUALIFIED_JAVA = "java"
+    public static final String QUALIFIED_JAVA = "org.gradle.java-library"
+    public static final String UNQUALIFIED_JAVA = "java-library"
 
     void "can resolve core plugins"() {
         when:
@@ -62,7 +62,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Error resolving plugin [id: 'java-library', version: '1.0']")
-        failure.assertHasCause("Plugin 'java' is a core Gradle plugin, which cannot be specified with a version number")
+        failure.assertHasCause("Plugin 'java-library' is a core Gradle plugin, which cannot be specified with a version number")
         failure.assertHasFileName("Build file '$buildFile.absolutePath'")
         failure.assertHasLineNumber(3)
     }
@@ -79,8 +79,8 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         then:
-        failure.assertHasDescription("Error resolving plugin [id: 'org.gradle.java', version: '1.0']")
-        failure.assertHasCause("Plugin 'org.gradle.java' is a core Gradle plugin, which cannot be specified with a version number")
+        failure.assertHasDescription("Error resolving plugin [id: 'org.gradle.java-library', version: '1.0']")
+        failure.assertHasCause("Plugin 'org.gradle.java-library' is a core Gradle plugin, which cannot be specified with a version number")
         failure.assertHasFileName("Build file '$buildFile.absolutePath'")
         failure.assertHasLineNumber(3)
     }
@@ -98,7 +98,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Error resolving plugin [id: 'java-library', apply: false]")
-        failure.assertHasCause("Plugin 'java' is a core Gradle plugin, which is already on the classpath")
+        failure.assertHasCause("Plugin 'java-library' is a core Gradle plugin, which is already on the classpath")
         failure.assertHasFileName("Build file '$buildFile.absolutePath'")
         failure.assertHasLineNumber(3)
     }

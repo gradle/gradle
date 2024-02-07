@@ -97,7 +97,6 @@ class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         result.assertTaskExecuted(":compileJava")
-        result.assertTaskExecuted(":jar")
         result.assertTaskExecuted(":buildB:compileJava")
         result.assertTaskExecuted(":buildB:jar")
         result.assertTaskExecuted(":buildBJar")

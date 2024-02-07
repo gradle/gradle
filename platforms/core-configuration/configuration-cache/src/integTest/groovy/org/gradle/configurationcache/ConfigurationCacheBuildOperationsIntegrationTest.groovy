@@ -208,7 +208,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         storeOp.failure == """org.gradle.configurationcache.ConfigurationCacheProblemsException: Configuration cache problems found in this build.
 
 1 problem was found storing the configuration cache.
-- Build file 'build.gradle': line 6: registration of listener on 'Gradle.buildFinished' is unsupported
+- Build file 'build.gradle': line 8: registration of listener on 'Gradle.buildFinished' is unsupported
   See https://docs.gradle.org/${GradleVersion.current().version}/userguide/configuration_cache.html#config_cache:requirements:build_listeners
 """
     }

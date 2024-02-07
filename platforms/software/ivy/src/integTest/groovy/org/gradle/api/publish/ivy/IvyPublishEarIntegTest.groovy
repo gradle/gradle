@@ -24,7 +24,6 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
         and:
         buildFile << """
             plugins {
-                id("java-library")
                 id("war")
                 id("ear")
                 id("ivy-publish")

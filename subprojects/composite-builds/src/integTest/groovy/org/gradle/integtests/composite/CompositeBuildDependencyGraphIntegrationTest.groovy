@@ -41,10 +41,10 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         resolve = new ResolveTestFixture(buildA.buildFile).expectDefaultConfiguration("runtime")
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
+            version = "2.0"
             buildFile << """
                 allprojects {
                     apply plugin: 'java-library'
-                    version "2.0"
 
                     repositories {
                         maven { url "${mavenRepo.uri}" }

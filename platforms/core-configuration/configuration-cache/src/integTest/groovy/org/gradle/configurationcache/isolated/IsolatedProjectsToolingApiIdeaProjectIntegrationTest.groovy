@@ -398,11 +398,11 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         }
 
         multiProjectBuildInSubDir("buildD", ["b1", "buildC"]) {
+            group = "org.buildD"
             buildFile << """
                 plugins {
                     id("java-library")
                 }
-                group = 'org.buildD'
             """
 
             ["b1", "buildC"].each {
@@ -410,7 +410,6 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
                     plugins {
                         id("java-library")
                     }
-                    group = 'org.buildD'
                 """
             }
         }

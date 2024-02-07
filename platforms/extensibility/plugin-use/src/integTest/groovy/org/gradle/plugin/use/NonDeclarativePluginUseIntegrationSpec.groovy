@@ -32,12 +32,10 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
     def "non declarative plugin implementation can access core plugins and not core impl"() {
         given:
         publishPlugin """
-            plugins {
-                id("java-library")
-            }
+            project.apply plugin: 'java-library'
 
             // Can see plugin classes
-            getClass().classLoader.loadClass('org.gradle.api.plugins.JavaPlugin')
+            getClass().classLoader.loadClass('org.gradle.api.plugins.JavaLibraryPlugin')
 
             // Can't see core impl classes
             def implClassName = 'com.google.common.collect.Multimap'

@@ -422,7 +422,7 @@ subprojects {
         buildKotlinFile << """
              plugins {
                 id("java-library")
-                id("maven-publish")
+                id("ivy-publish")
                 kotlin("jvm") version "1.9.22"
             }
             repositories {

@@ -30,7 +30,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         when:
         buildScript """
           plugins {
-            id("java-library"
+            id("java-library")
             id("noop") version "1.0"
           }
         """

@@ -314,10 +314,7 @@ include 'consumer', 'producer'
     includeBuild '${producer.toURI()}'
 """
         buildFile << """
-    plugins {
-        id("java-library")
-    }
-
+    apply plugin: 'java-library'
     repositories {
         maven { url '${mavenRepo.uri}' }
     }

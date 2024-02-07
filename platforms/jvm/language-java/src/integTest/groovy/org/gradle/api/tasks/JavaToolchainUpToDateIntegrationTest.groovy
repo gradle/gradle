@@ -19,13 +19,12 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.fixtures.file.TestFile
 
 class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     def "compile and test reacting to toolchains are up-to-date without changes"() {
         def someJdk = AvailableJavaHomes.differentJdk
-        buildscriptWithToolchain(someJdk)
+        buildFile << buildscriptWithToolchain(someJdk)
 
         file("src/main/java/Foo.java") << "public class Foo {}"
         file("src/test/java/FooTest.java") << testClass("FooTest")
@@ -42,7 +41,7 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     def "compile and test not up-to-date once toolchain changed"() {
         def someJdk = AvailableJavaHomes.differentVersion
-        buildscriptWithToolchain(someJdk)
+        buildFile << buildscriptWithToolchain(someJdk)
         file("src/main/java/Foo.java") << """
             /** foo */
             public class Foo {
@@ -62,7 +61,7 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Task :javadoc UP-TO-DATE")
 
         when:
-        buildscriptWithToolchain(Jvm.current())
+        buildFile.text = buildscriptWithToolchain(Jvm.current())
         runWithToolchainConfigured(Jvm.current())
 
 
@@ -74,8 +73,8 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("UnsupportedClassVersionError")
     }
 
-    private TestFile buildscriptWithToolchain(Jvm someJdk) {
-        buildFile << """
+    private String buildscriptWithToolchain(Jvm someJdk) {
+        """
             plugins {
                 id("java-library")
             }

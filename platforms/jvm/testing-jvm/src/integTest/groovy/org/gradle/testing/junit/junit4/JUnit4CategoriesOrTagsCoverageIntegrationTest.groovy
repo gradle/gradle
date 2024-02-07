@@ -47,10 +47,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         }
         testSourceGenerator.writeAllSources(testSources)
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -114,10 +110,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
 
         """
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -158,10 +150,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
             }
         """.stripIndent()
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
             ${mavenCentralRepository()}
 
             dependencies {
@@ -197,10 +185,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         }
         testSourceGenerator.writeAllSources(testSources)
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
             testing {
                ${mavenCentralRepository()}
                suites {
@@ -227,11 +211,7 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         executedAndNotSkipped ":$task"
 
         when:
-        buildFile.text = """
-            plugins {
-                id("java-library")
-            }
-
+        buildFile << """
             ${mavenCentralRepository()}
             testing {
                suites {
@@ -276,10 +256,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         }
         testSourceGenerator.writeAllSources(testSources)
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
             ${mavenCentralRepository()}
             testing {
                suites {

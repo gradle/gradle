@@ -49,8 +49,8 @@ class BuildTestFixture {
         this
     }
 
-    def populate(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl) {
-        def project = buildInRootDir ? new BuildTestFile(getRootDir(), projectName) : new BuildTestFile(getRootDir().file(projectName), projectName)
+    RootBuildTestFile populate(String projectName, @DelegatesTo(value = RootBuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl) {
+        def project = buildInRootDir ? new RootBuildTestFile(getRootDir(), projectName) : new RootBuildTestFile(getRootDir().file(projectName), projectName)
         project.settingsFile << """
                     rootProject.name = '${projectName}'
                 """
@@ -58,62 +58,63 @@ class BuildTestFixture {
         project
     }
 
-    def singleProjectBuild(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    RootBuildTestFile singleProjectBuild(String projectName, @DelegatesTo(value = RootBuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         def project = populate(projectName) {
-            buildFile << """
-                    group = 'org.test'
-                    version = '1.0'
-                """
-            file('src/main/java/Dummy.java') << "public class Dummy {}"
+            file("src/main/java/${projectName}.java") << "public class ${projectName} {}"
         }
         project.with(cl)
+        project.buildFile << """
+            group = '${project.group}'
+            version = '${project.version}'
+        """
         return project
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    RootBuildTestFile multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(value = RootBuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         multiProjectBuild(projectName, subprojects, CompiledLanguage.JAVA, cl)
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    RootBuildTestFile multiProjectBuild(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(value = RootBuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         def rootMulti = populate(projectName) {
             subprojects.each {
                 settingsFile << "include '$it'\n"
             }
-
-            buildFile << """
-                    allprojects {
-                        group = 'org.test'
-                        version = '1.0'
-                    }
-                """
         }
         rootMulti.with(cl)
+        rootMulti.buildFile << """
+            allprojects {
+                group = '${rootMulti.group}'
+                version = '${rootMulti.version}'
+            }
+        """
         addSourceToAllProjects(rootMulti, language, subprojects)
         return rootMulti
     }
 
-    def multiProjectBuildWithIsolatedProjects(String projectName, List<String> subprojects, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    RootBuildTestFile multiProjectBuildWithIsolatedProjects(String projectName, List<String> subprojects, @DelegatesTo(value = RootBuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         multiProjectBuildWithIsolatedProjects(projectName, subprojects, CompiledLanguage.JAVA, cl)
     }
 
-    def multiProjectBuildWithIsolatedProjects(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    RootBuildTestFile multiProjectBuildWithIsolatedProjects(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(value = RootBuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         def rootMulti = populate(projectName) {
             subprojects.each {
                 settingsFile << "include '$it'\n"
-
-                project(it).buildFile << """
-                    group = 'org.test'
-                    version = '1.0'
-                """
             }
-
-            buildFile << """
-                group = 'org.test'
-                version = '1.0'
-            """
         }
 
         rootMulti.with(cl)
+
+        rootMulti.buildFile << """
+            group = '${rootMulti.group}'
+            version = '${rootMulti.version}'
+        """
+        subprojects.each {
+            rootMulti.project(it).buildFile << """
+                group = '${rootMulti.group}'
+                version = '${rootMulti.version}'
+            """
+        }
+
         addSourceToAllProjects(rootMulti, language, subprojects)
         return rootMulti
     }

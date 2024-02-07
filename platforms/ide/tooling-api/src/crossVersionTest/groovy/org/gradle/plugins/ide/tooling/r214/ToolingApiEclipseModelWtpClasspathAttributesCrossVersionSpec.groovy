@@ -211,6 +211,7 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         buildFile << """
             plugins {
                 id("ear")
+                id("java-library")
                 id("eclipse")
             }
 

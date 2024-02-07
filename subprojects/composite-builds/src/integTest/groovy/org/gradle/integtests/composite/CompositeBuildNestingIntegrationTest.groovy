@@ -48,8 +48,8 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildB:jar")
+        result.assertTaskExecuted(":buildC:compileJava")
+        result.assertTaskExecuted(":buildB:compileJava")
         result.assertTaskExecuted(":jar")
     }
 
@@ -94,9 +94,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildD:jar")
-        result.assertTaskExecuted(":buildB:jar")
+        result.assertTaskExecuted(":buildC:compileJava")
+        result.assertTaskExecuted(":buildD:compileJava")
+        result.assertTaskExecuted(":buildB:compileJava")
         result.assertTaskExecuted(":jar")
     }
 
@@ -129,8 +129,8 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildB:jar")
+        result.assertTaskExecuted(":buildC:compileJava")
+        result.assertTaskExecuted(":buildB:compileJava")
         result.assertTaskExecuted(":jar")
     }
 
