@@ -47,21 +47,6 @@ public class InitSettings {
     private final JavaLanguageVersion javaLanguageVersion;
     private final boolean comments;
 
-    /**
-     * Temporary constructor until we upgrade gradle/gradle to a nightly.
-     *
-     * This constructor needs to be left as-is because it's used in the gradle/gradle build to generate samples.
-     * Changing it will break the Gradleception build (where we try to build Gradle with the latest version of Gradle).
-     *
-     * @see "/build-logic/build-init-samples/src/main/kotlin/gradlebuild/samples/SamplesGenerator.kt"
-     */
-    public InitSettings(
-        String projectName, List<String> subprojects, ModularizationOption modularizationOption,
-        BuildInitDsl dsl, @Nullable String packageName, BuildInitTestFramework testFramework, Directory target
-    ) {
-        this(projectName, false, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target, null, true);
-    }
-
     public InitSettings(
         String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
         BuildInitDsl dsl, @Nullable String packageName, BuildInitTestFramework testFramework, Directory target
