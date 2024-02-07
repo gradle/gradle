@@ -22,6 +22,22 @@ import org.gradle.api.problems.Severity;
 public interface InternalProblemSpec extends ProblemSpec {
 
     /**
+     * Declares a short, but context-dependent message for this problem.
+     *
+     * @param contextualLabel the short message
+     * @return this
+     */
+    InternalProblemSpec contextualLabel(String contextualLabel);
+
+    /**
+     * A context-sensitive description of how to solve this problem.
+     *
+     * @param contextualSolution the solution.
+     * @return this
+     */
+    InternalProblemSpec contextualSolution(String contextualSolution);
+
+    /**
      * Specifies arbitrary data associated with this problem.
      * <p>
      * The only supported value type is {@link String}. Future Gradle versions may support additional types.

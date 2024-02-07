@@ -140,11 +140,12 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             workValidationContext.visitPropertyProblem(problem -> problem
                 .forProperty(propertyName)
                 .typeIsIrrelevantInErrorMessage()
-                .label(unknownImplSnapshot.getProblemDescription())
+                .label("Nested input problem for property")
+                .contextualLabel(unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
                 .details(unknownImplSnapshot.getReasonDescription())
-                .solution(unknownImplSnapshot.getSolutionDescription())
+                .contextualSolution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
             );
         }
@@ -155,11 +156,12 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
             workValidationContext.visitPropertyProblem(problem -> problem
                 .typeIsIrrelevantInErrorMessage()
-                .label(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
+                .label("Problem with property")
+                .contextualLabel(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
                 .details(unknownImplSnapshot.getReasonDescription())
-                .solution(unknownImplSnapshot.getSolutionDescription())
+                .contextualSolution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
             );
         }

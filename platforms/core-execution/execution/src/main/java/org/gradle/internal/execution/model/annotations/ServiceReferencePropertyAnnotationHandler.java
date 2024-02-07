@@ -66,13 +66,14 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .label(String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", typeVariables.get(0).getName()))
+                    .label(String.format("has @ServiceReference annotation used on property"))
+                    .contextualLabel(String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", typeVariables.get(0).getName()))
                     .documentedAt(userManual("validation_problems", SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE.toLowerCase()))
                     .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE))
                     .severity(Severity.ERROR)
                     .details(String.format("A property annotated with @ServiceReference must be of a type that implements '%s'", BuildService.class.getName()))
-                    .solution(String.format("Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))
-                    .solution(String.format("Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly", propertyMetadata.getPropertyName(), typeVariables.get(0).getName()))
+                    .contextualSolution(String.format("Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))
+                    .contextualSolution(String.format("Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly", propertyMetadata.getPropertyName(), typeVariables.get(0).getName()))
             );
         }
     }

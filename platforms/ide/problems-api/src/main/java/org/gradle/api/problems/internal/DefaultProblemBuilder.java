@@ -29,6 +29,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     private final String namespace;
     private String label;
+    private String contextualLabel;
+    private List<String> contextualSolutions;
     private ProblemCategory category;
     private Severity severity;
     private final List<ProblemLocation> locations;
@@ -41,6 +43,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     public DefaultProblemBuilder(ProblemReport problem) {
         this.label = problem.getDefinition().getLabel();
+        this.contextualLabel = problem.getContext().getContextualLabel();
+        this.contextualSolutions = new ArrayList<String>(problem.getContext().getContextualSolutions());
         this.category = problem.getDefinition().getCategory();
         this.severity = problem.getDefinition().getSeverity();
         this.locations = new ArrayList<ProblemLocation>(problem.getContext().getLocations());
@@ -55,6 +59,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     public DefaultProblemBuilder(String namespace) {
         this.namespace = namespace;
         this.locations = new ArrayList<ProblemLocation>();
+        this.contextualSolutions = new ArrayList<String>();
         this.additionalData = new HashMap<String, Object>();
     }
 
@@ -78,7 +83,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, getSeverity(), docLink, solutions, category);
-        ProblemContext problemContext = new DefaultProblemContext(locations, details, getExceptionForProblemInstantiation(), additionalData);
+        ProblemContext problemContext = new DefaultProblemContext(contextualLabel, contextualSolutions, locations, details, getExceptionForProblemInstantiation(), additionalData);
         return new DefaultProblemReport(problemDefinition, problemContext);
     }
 
@@ -93,7 +98,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private ProblemReport invalidProblem(String label, String subcategory) {
         category("validation", "problems-api", subcategory).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, Severity.WARNING, null, null, category);
-        ProblemContext problemContext = new DefaultProblemContext(Collections.<ProblemLocation>emptyList(), null, getExceptionForProblemInstantiation(), Collections.<String, Object>emptyMap());
+        ProblemContext problemContext = new DefaultProblemContext(null, null, Collections.<ProblemLocation>emptyList(), null, getExceptionForProblemInstantiation(), Collections.<String, Object>emptyMap());
         return new DefaultProblemReport(problemDefinition, problemContext);
     }
 
@@ -111,6 +116,18 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     public InternalProblemBuilder label(String label) {
         this.label = label;
+        return this;
+    }
+
+    @Override
+    public InternalProblemBuilder contextualLabel(String contextualLabel) {
+        this.contextualLabel = contextualLabel;
+        return this;
+    }
+
+    @Override
+    public InternalProblemSpec contextualSolution(String contextualSolution) {
+        this.contextualSolutions.add(contextualSolution);
         return this;
     }
 

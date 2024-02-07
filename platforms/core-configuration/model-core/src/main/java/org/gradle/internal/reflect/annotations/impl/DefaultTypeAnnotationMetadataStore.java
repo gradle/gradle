@@ -280,7 +280,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 previouslySeenBuilder.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .label(
+                        .label("has redundant getters")
+                        .contextualLabel(
                             String.format(
                                 "has redundant getters: '%s()' and '%s()'",
                                 previouslySeenBuilder.getter.getName(),
@@ -346,7 +347,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     validationContext.visitTypeProblem(problem ->
                         problem
                             .withAnnotationType(type)
-                            .label(
+                            .label("field without corresponding getter has been annotated with a wrong annotation")
+                            .contextualLabel(
                                 String.format(
                                     "field '%s' without corresponding getter has been annotated with %s",
                                     fieldName,
@@ -357,8 +359,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             .category(DefaultProblemCategory.VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_FIELD))
                             .severity(ERROR)
                             .details("Annotations on fields are only used if there's a corresponding getter for the field")
-                            .solution("Add a getter for field '" + fieldName + "'")
-                            .solution("Remove the annotations on '" + fieldName + "'")
+                            .contextualSolution("Add a getter for field '" + fieldName + "'")
+                            .contextualSolution("Remove the annotations on '" + fieldName + "'")
                     );
                 });
         }
@@ -439,7 +441,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             metadataBuilder.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .label(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
+                    .label("is private and with wrong annotation")
+                    .contextualLabel(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                     .documentedAt(userManual("validation_problems", PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED.toLowerCase()))
                     .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED))
                     .severity(ERROR)
@@ -462,12 +465,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .label(String.format("of mutable type '%s' is writable", setterType.getName()))
+                    .label("mutable type is writeable")
+                    .contextualLabel(String.format("of mutable type '%s' is writable", setterType.getName()))
                     .documentedAt(userManual("validation_problems", MUTABLE_TYPE_WITH_SETTER.toLowerCase()))
                     .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER))
                     .severity(ERROR)
                     .details("Properties of type '" + setterType.getName() + "' are already mutable")
-                    .solution("Remove the '" + setterMethod.getName() + "' method")
+                    .contextualSolution("Remove the '" + setterMethod.getName() + "' method")
             );
         }
     }
@@ -497,7 +501,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
-                    .label(
+                    .label(methodKind.getDisplayName()  + " has wrong annotation")
+                    .contextualLabel(
                         String.format(
                             "%s '%s()' should not be annotated with: %s",
                             methodKind.getDisplayName(), method.getName(),
@@ -602,7 +607,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         visitPropertyProblem(problem ->
                             problem
                                 .forProperty(propertyName)
-                                .label(
+                                .label("has wrong combination of annotations")
+                                .contextualLabel(
                                     String.format(
                                         "annotated with @%s should not be also annotated with %s",
                                         ignoredMethodAnnotation.getSimpleName(),
@@ -616,7 +622,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                 .severity(ERROR)
                                 .details("A property is ignored but also has input annotations")
                                 .solution("Remove the input annotations")
-                                .solution("Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
+                                .contextualSolution("Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
                         );
                     }
                     return ImmutableMap.of(TYPE, declaredType);
@@ -661,7 +667,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .label(
+                        .label(category.getDisplayName() + " has conflicting annotation")
+                        .contextualLabel(
                             String.format(
                                 "has conflicting %s annotations %s: %s",
                                 category.getDisplayName(),

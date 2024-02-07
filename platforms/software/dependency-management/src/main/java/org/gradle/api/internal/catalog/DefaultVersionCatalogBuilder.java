@@ -213,7 +213,9 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     }
 
     private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
-        return builder.label(message)
+        return builder.
+            label("version catalog error")
+            .contextualLabel(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .category("dependency-version-catalog", TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()))
             .severity(ERROR);

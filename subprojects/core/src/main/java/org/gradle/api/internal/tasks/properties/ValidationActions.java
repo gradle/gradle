@@ -159,13 +159,14 @@ public enum ValidationActions implements ValidationAction {
             String lowerKind = kind.toLowerCase();
             problem
                 .forProperty(propertyName)
-                .label("specifies " + lowerKind + " '" + input + "' which doesn't exist")
+                .label("property has missing input")
+                .contextualLabel("specifies " + lowerKind + " '" + input + "' which doesn't exist")
                 .documentedAt(userManual("validation_problems", INPUT_FILE_DOES_NOT_EXIST.toLowerCase()))
                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(INPUT_FILE_DOES_NOT_EXIST))
                 .severity(Severity.ERROR)
                 .details("An input file was expected to be present but it doesn't exist")
-                .solution("Make sure the " + lowerKind + " exists before the task is called")
-                .solution("Make sure that the task which produces the " + lowerKind + " is declared as an input");
+                .contextualSolution("Make sure the " + lowerKind + " exists before the task is called")
+                .contextualSolution("Make sure that the task which produces the " + lowerKind + " is declared as an input");
         });
     }
 
@@ -176,13 +177,14 @@ public enum ValidationActions implements ValidationAction {
             String lowerKind = kind.toLowerCase();
             problem
                 .forProperty(propertyName)
-                .label(lowerKind + " '" + input + "' is not a " + lowerKind)
+                .label("input not allowed for property")
+                .contextualLabel(lowerKind + " '" + input + "' is not a " + lowerKind)
                 .documentedAt(userManual("validation_problems", "unexpected_input_file_type"))
                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNEXPECTED_INPUT_FILE_TYPE))
                 .severity(Severity.ERROR)
                 .details("Expected an input to be a " + lowerKind + " but it was a " + actualKindOf(input))
-                .solution("Use a " + lowerKind + " as an input")
-                .solution("Declare the input as a " + actualKindOf(input) + " instead");
+                .contextualSolution("Use a " + lowerKind + " as an input")
+                .contextualSolution("Declare the input as a " + actualKindOf(input) + " instead");
         });
     }
 
@@ -192,12 +194,13 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyName)
-                .label("is not writable because " + cause)
+                .label("property not writeable")
+                .contextualLabel("is not writable because " + cause)
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase()))
                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CANNOT_WRITE_OUTPUT))
                 .severity(Severity.ERROR)
                 .details("Expected '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
-                .solution("Make sure that the '" + propertyName + "' is configured to a directory")
+                .contextualSolution("Make sure that the '" + propertyName + "' is configured to a directory")
         );
     }
 
@@ -205,12 +208,13 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyName)
-                .label("is not writable because '" + directory + "' is not a directory")
+                .label("property is not writable")
+                .contextualLabel("is not writable because '" + directory + "' is not a directory")
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase()))
                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CANNOT_WRITE_OUTPUT))
                 .severity(Severity.ERROR)
                 .details("Expected the root of the file tree '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
-                .solution("Make sure that the root of the file tree '" + propertyName + "' is configured to a directory")
+                .contextualSolution("Make sure that the root of the file tree '" + propertyName + "' is configured to a directory")
         );
     }
 
@@ -218,13 +222,14 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyName)
-                .label("is not writable because '" + file + "' is not a file")
+                .label("property is not writable")
+                .contextualLabel("is not writable because '" + file + "' is not a file")
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase()))
                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CANNOT_WRITE_OUTPUT))
                 .details("Cannot write a file to a location pointing at a directory")
                 .severity(Severity.ERROR)
-                .solution("Configure '" + propertyName + "' to point to a file, not a directory")
-                .solution("Annotate '" + propertyName + "' with @OutputDirectory instead of @OutputFiles")
+                .contextualSolution("Configure '" + propertyName + "' to point to a file, not a directory")
+                .contextualSolution("Annotate '" + propertyName + "' with @OutputDirectory instead of @OutputFiles")
         );
     }
 
@@ -232,12 +237,13 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyName)
-                .label("is not writable because '" + file + "' ancestor '" + ancestor + "' is not a directory")
+                .label("property is not writable")
+                .contextualLabel("is not writable because '" + file + "' ancestor '" + ancestor + "' is not a directory")
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase()))
                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CANNOT_WRITE_OUTPUT))
                 .severity(Severity.ERROR)
                 .details("Cannot create parent directories that are existing as file")
-                .solution("Configure '" + propertyName + "' to point to the correct location")
+                .contextualSolution("Configure '" + propertyName + "' to point to the correct location")
         );
     }
 
@@ -258,12 +264,13 @@ public enum ValidationActions implements ValidationAction {
             context.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .label("points to '" + location + "' which is managed by Gradle")
+                    .label("points to a location which is managed by Gradle")
+                    .contextualLabel("points to '" + location + "' which is managed by Gradle")
                     .documentedAt(userManual("validation_problems", CANNOT_WRITE_TO_RESERVED_LOCATION.toLowerCase()))
                     .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CANNOT_WRITE_TO_RESERVED_LOCATION))
                     .severity(Severity.ERROR)
                     .details("Trying to write an output to a read-only location which is for Gradle internal use only")
-                    .solution("Select a different output location")
+                    .contextualSolution("Select a different output location")
             );
         }
     }
@@ -291,7 +298,8 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyProblem(problem -> {
                 ProblemSpec describedProblem = problem
                     .forProperty(propertyName)
-                    .label("has unsupported value '" + value + "'")
+                    .label("property has unsupported value")
+                    .contextualLabel("has unsupported value '" + value + "'")
                     .documentedAt(userManual("validation_problems", UNSUPPORTED_NOTATION.toLowerCase()))
                     .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_NOTATION))
                     .severity(Severity.ERROR)

@@ -92,8 +92,8 @@ trait ValidationMessageChecker {
         def config = display(IgnoredAnnotationPropertyMessage, 'ignored_property_must_not_be_annotated', spec)
         config.description("annotated with @${config.ignoringAnnotation} should not be also annotated with ${config.alsoAnnotatedWith.collect { "@$it" }.join(", ")}")
             .reason("A property is ignored but also has input annotations")
-            .solution("Remove the input annotations")
             .solution("Remove the @${config.ignoringAnnotation} annotation")
+            .solution("Remove the input annotations")
     }
 
     String conflictingAnnotationsMessage(@DelegatesTo(value = ConflictingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -118,8 +118,8 @@ trait ValidationMessageChecker {
         def config = display(AnnotationContext, 'annotation_invalid_in_context', spec)
         config.description("is annotated with invalid property type @${config.annotation}")
             .reason("The '@${config.annotation}' annotation cannot be used in this context")
-            .solution("Remove the property")
             .solution("Use a different annotation, e.g one of ${config.validAnnotations}")
+            .solution("Remove the property")
     }
 
     String modifierAnnotationInvalidInContext(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -305,8 +305,8 @@ trait ValidationMessageChecker {
         def config = display(OptionalOnPrimitive, 'cannot_use_optional_on_primitive_types', spec)
         config.description("of type ${config.primitiveType.name} shouldn't be annotated with @Optional")
             .reason("Properties of primitive type cannot be optional")
-            .solution("Remove the @Optional annotation")
             .solution("Use the ${config.wrapperType.name} type instead")
+            .solution("Remove the @Optional annotation")
     }
 
     String redundantGetters(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {

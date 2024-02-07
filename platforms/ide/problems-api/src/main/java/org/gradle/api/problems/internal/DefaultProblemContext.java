@@ -28,21 +28,37 @@ import java.util.Map;
 
 @NonNullApi
 public class DefaultProblemContext implements Serializable, ProblemContext {
+    private final String contextualLabel;
+    private final List<String> contextualSolutions;
     private final List<ProblemLocation> locations;
     private final String description;
     private final RuntimeException cause;
     private final Map<String, Object> additionalData;
 
     protected DefaultProblemContext(
+        @Nullable String contextualLabel,
+        List<String> contextualSolutions,
         List<ProblemLocation> locations,
         @Nullable String description,
         @Nullable RuntimeException cause,
         Map<String, Object> additionalData
     ) {
+        this.contextualLabel = contextualLabel;
+        this.contextualSolutions = contextualSolutions;
         this.locations = ImmutableList.copyOf(locations);
         this.description = description;
         this.cause = cause;
         this.additionalData = ImmutableMap.copyOf(additionalData);
+    }
+
+    @Override
+    public String getContextualLabel() {
+        return contextualLabel;
+    }
+
+    @Override
+    public List<String> getContextualSolutions() {
+        return contextualSolutions;
     }
 
     @Override
@@ -78,7 +94,9 @@ public class DefaultProblemContext implements Serializable, ProblemContext {
             return false;
         }
         DefaultProblemContext that = (DefaultProblemContext) o;
-        return equals(locations, that.locations) &&
+        return equals(contextualLabel, that.contextualLabel) &&
+            equals(contextualSolutions, that.contextualSolutions) &&
+            equals(locations, that.locations) &&
             equals(description, that.description) &&
             equals(cause, that.cause) &&
             equals(additionalData, that.additionalData);
@@ -86,7 +104,7 @@ public class DefaultProblemContext implements Serializable, ProblemContext {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{locations, description, cause, additionalData});
+        return Arrays.hashCode(new Object[]{contextualLabel, contextualSolutions, locations, description, cause, additionalData});
     }
 
 }
