@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r33
+package org.gradle.integtests.tooling.r34
 
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -31,6 +31,7 @@ import spock.lang.Ignore
     reason = "tests against old Gradle version that can only work with Java versions up to 8"
 )
 @ToolingApiVersion("current")
+@TargetGradleVersion(">=3.4")
 class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
     def buildPluginWith(String gradleVersion) {
         buildPluginWith(buildContext.distribution(gradleVersion))
@@ -69,40 +70,9 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    @TargetGradleVersion(">=3.3")
-    def "can use plugin built with Gradle 3.0 with"() {
+    def "can use plugin built with Gradle 3.4 with"() {
         expect:
-        buildPluginWith("3.0")
-        assertWorks()
-    }
-
-    // Gradle 3.2 and 3.2.1 leaked internal types that fail when used with
-    // newer versions of Gradle.
-    @Ignore
-    @TargetGradleVersion(">=3.3")
-    def "can use plugin built with Gradle 3.2.1 with"() {
-        expect:
-        buildPluginWith("3.2.1")
-        assertWorks()
-    }
-
-    // Gradle 3.2 and 3.2.1 leaked internal types that fail when used with
-    // older versions of Gradle.
-    @Ignore
-    @TargetGradleVersion("=3.0")
-    def "can use plugin built with Gradle 3.2.1 with old version"() {
-        expect:
-        buildPluginWith("3.2.1")
-        assertWorks()
-    }
-
-    // Gradle 3.x leaked internal types that fail when used with older
-    // versions of Gradle.
-    @Ignore
-    @TargetGradleVersion("=2.10")
-    def "can use plugin built with current Gradle with old version"() {
-        expect:
-        buildPluginWith(dist) // this is the "client-side" Gradle version, which is pegged to current.
+        buildPluginWith("3.4") // First version with java-library plugin
         assertWorks()
     }
 
