@@ -16,6 +16,7 @@ dependencies {
     api(project(":persistent-cache"))
 
     implementation(libs.guava)
+    implementation(libs.commonsIo)
 
     testImplementation(project(":model-core"))
     testImplementation(project(":file-collections"))
