@@ -64,6 +64,8 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
@@ -93,6 +95,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final CrossProjectConfigurator crossProjectConfigurator;
     private List<IncludedBuildInternal> includedBuilds;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
+    private final IsolatedProjectActions isolatedProjectActions = new IsolatedProjectActions(new IsolatedProjectActionsHost());
     private boolean projectsLoaded;
     private Path identityPath;
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
@@ -111,6 +114,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             public void projectsLoaded(Gradle gradle) {
                 if (!rootProjectActions.isEmpty()) {
                     services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
+                }
+                if (!isolatedProjectActions.isEmpty()) {
+                    projectEvaluationListenerBroadcast.add(isolatedProjectActions.isolate());
                 }
                 projectsLoaded = true;
             }
@@ -341,6 +347,8 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         if (projectsLoaded) {
             throw new IllegalStateException("Gradle#onBeforeProject cannot be called after settings have been evaluated.");
         }
+        // TODO:isolated how should decoration work for isolated actions? Should we just capture the current UserCodeApplication?
+        isolatedProjectActions.onBeforeProject(action);
     }
 
     @Override
@@ -577,4 +585,17 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     @Inject
     public abstract PublicBuildPath getPublicBuildPath();
+
+    private class IsolatedProjectActionsHost implements IsolatedProjectActions.Host {
+        @Override
+        public <T> ImmutableList<Isolatable<T>> isolateAll(Collection<T> actions) {
+            return actions.stream()
+                .map(getIsolatableFactory()::isolate)
+                .collect(ImmutableList.toImmutableList());
+        }
+
+        private IsolatableFactory getIsolatableFactory() {
+            return getServices().get(IsolatableFactory.class);
+        }
+    }
 }
