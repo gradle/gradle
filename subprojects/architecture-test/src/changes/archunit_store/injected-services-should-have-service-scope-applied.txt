@@ -78,7 +78,6 @@ Class <org.gradle.internal.resource.TextUriResourceLoader$Factory> is not annota
 Class <org.gradle.internal.time.Clock> is not annotated with @ServiceScope in (Clock.java:0)
 Class <org.gradle.jvm.toolchain.JavaToolchainService> is not annotated with @ServiceScope in (JavaToolchainService.java:0)
 Class <org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement> is not annotated with @ServiceScope in (DefaultJvmToolchainManagement.java:0)
-Class <org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider> is not annotated with @ServiceScope in (ProjectSchemaProvider.kt:0)
 Class <org.gradle.language.cpp.internal.NativeDependencyCache> is not annotated with @ServiceScope in (NativeDependencyCache.java:0)
 Class <org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder> is not annotated with @ServiceScope in (IncrementalCompilerBuilder.java:0)
 Class <org.gradle.model.internal.registry.ModelRegistry> is not annotated with @ServiceScope in (ModelRegistry.java:0)
