@@ -58,7 +58,7 @@ public interface ExecutionEngine {
          * Otherwise, the execution is wrapped in a not-yet-complete {@link Deferrable} to be evaluated later.
          * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
          */
-        <T> Deferrable<IdentityCacheResult<T>> executeDeferred(Cache<Identity, IdentityCacheResult<T>> cache);
+        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, IdentityCacheResult<T>> cache);
     }
 
     interface Result {
@@ -93,8 +93,6 @@ public interface ExecutionEngine {
     interface IdentityCacheResult<T> {
 
         Try<T> getResult();
-
-        Identity getIdentity();
 
         /**
          * The origin metadata of the result.

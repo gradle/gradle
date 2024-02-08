@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.operations.dependencies.transforms;
+package org.gradle.operations.execution;
 
-import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
+import javax.annotation.Nullable;
 
 /**
- * Fired each time a transform execution request is obtained directly from the identity cache.
- * <p>
- * The transform execution will not happen at a later time.
+ * Fired when a deferred work execution finishes.
  *
  * @since 8.7
  */
-public interface SkippedTransformExecutionProgressDetails {
+public interface ExecuteDeferredWorkProgressDetails {
+
+    /**
+     * Type of work being executed.
+     * <p>
+     * @since 8.7
+     * @see ExecuteWorkBuildOperationType.Details#getWorkType()
+     */
+    @Nullable
+    String getWorkType();
+
     /**
      * The opaque identity of the transform execution.
      * <p>

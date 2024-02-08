@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.cache.Cache;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
@@ -35,7 +34,6 @@ import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.vfs.FileSystemAccess;
-import org.gradle.operations.dependencies.transforms.SkippedTransformExecutionProgressDetails;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -146,15 +144,9 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 );
             }
         }
-        Deferrable<IdentityCacheResult<TransformWorkspaceResult>> deferredResult = effectiveEngine.createRequest(execution)
-            .executeDeferred(identityCache);
-        deferredResult.getCompleted()
-            .ifPresent(cacheResult -> cacheResult.getOriginMetadata()
-                .ifPresent(originMetadata -> progressEventEmitter.emitNowIfCurrent(
-                    new DefaultSkippedTransformExecutionProgressDetails(cacheResult, originMetadata))
-                ));
-        return deferredResult
-            .map(result -> result.getResult()
+        return effectiveEngine.createRequest(execution)
+            .executeDeferred(identityCache)
+            .map(result -> result
                 .map(successfulResult -> successfulResult.resolveForInputArtifact(inputArtifact))
                 .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
     }
@@ -166,36 +158,6 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             return projectStateRegistry.stateFor((ProjectComponentIdentifier) componentIdentifier).getMutableModel();
         } else {
             return null;
-        }
-    }
-
-    private static class DefaultSkippedTransformExecutionProgressDetails implements SkippedTransformExecutionProgressDetails {
-        private final IdentityCacheResult<TransformWorkspaceResult> identityCacheResult;
-        private final OriginMetadata originMetadata;
-
-        public DefaultSkippedTransformExecutionProgressDetails(IdentityCacheResult<TransformWorkspaceResult> identityCacheResult, OriginMetadata originMetadata) {
-            this.identityCacheResult = identityCacheResult;
-            this.originMetadata = originMetadata;
-        }
-
-        @Override
-        public String getIdentity() {
-            return identityCacheResult.getIdentity().getUniqueId();
-        }
-
-        @Override
-        public String getOriginBuildInvocationId() {
-            return originMetadata.getBuildInvocationId();
-        }
-
-        @Override
-        public byte[] getOriginBuildCacheKeyBytes() {
-            return originMetadata.getBuildCacheKey().toByteArray();
-        }
-
-        @Override
-        public long getOriginExecutionTime() {
-            return originMetadata.getExecutionTime().toMillis();
         }
     }
 }

@@ -28,8 +28,8 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails
-import org.gradle.operations.dependencies.transforms.SkippedTransformExecutionProgressDetails
 import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType
+import org.gradle.operations.execution.ExecuteDeferredWorkProgressDetails
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
@@ -353,19 +353,21 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         scopeIds.buildInvocationId != firstBuildInvocationId
         transformExecutions.empty
-        def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
+        def skippedTransformExecutions = buildOperations.progress(ExecuteDeferredWorkProgressDetails)*.details
         skippedTransformExecutions.size() == 2
-        def skippedProjectTransformExecution = skippedTransformExecutions.find { it.identity == projectTransformIdentification.identity }
-        def skippedExternalTransformExecution = skippedTransformExecutions.find { it.identity == externalTransformIdentification.identity }
-        with(skippedProjectTransformExecution) {
-            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
-            originBuildInvocationId == firstBuildInvocationId.asString()
-            originExecutionTime > 0
+        skippedTransformExecutions.findAll { it.identity == projectTransformIdentification.identity }.each {
+            with(it) {
+                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+                originBuildInvocationId == firstBuildInvocationId.asString()
+                originExecutionTime > 0
+            }
         }
-        with(skippedExternalTransformExecution) {
-            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
-            originBuildInvocationId == firstBuildInvocationId.asString()
-            originExecutionTime > 0
+        skippedTransformExecutions.findAll { it.identity == externalTransformIdentification.identity }.each {
+            with(it) {
+                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
+                originBuildInvocationId == firstBuildInvocationId.asString()
+                originExecutionTime > 0
+            }
         }
     }
 
@@ -418,19 +420,21 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         scopeIds.buildInvocationId != firstBuildInvocationId
         transformExecutions.empty
-        def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
+        def skippedTransformExecutions = buildOperations.progress(ExecuteDeferredWorkProgressDetails)*.details
         skippedTransformExecutions.size() == 2
-        def skippedProjectTransformExecution = skippedTransformExecutions.find { it.identity == projectTransformIdentification.identity }
-        def skippedExternalTransformExecution = skippedTransformExecutions.find { it.identity == externalTransformIdentification.identity }
-        with(skippedProjectTransformExecution) {
-            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
-            originBuildInvocationId == firstBuildInvocationId.asString()
-            originExecutionTime > 0
+        skippedTransformExecutions.findAll { it.identity == projectTransformIdentification.identity }.each {
+            with(it) {
+                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+                originBuildInvocationId == firstBuildInvocationId.asString()
+                originExecutionTime > 0
+            }
         }
-        with(skippedExternalTransformExecution) {
-            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
-            originBuildInvocationId == firstBuildInvocationId.asString()
-            originExecutionTime > 0
+        skippedTransformExecutions.findAll { it.identity == externalTransformIdentification.identity }.each {
+            with(it) {
+                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
+                originBuildInvocationId == firstBuildInvocationId.asString()
+                originExecutionTime > 0
+            }
         }
     }
 
@@ -491,14 +495,15 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         def externalTransformBuildCacheKey = buildCacheKeyFor(externalTransformIdentification.identity)
 
         and:
-        def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
+        def skippedTransformExecutions = buildOperations.progress(ExecuteDeferredWorkProgressDetails)*.details
         // Only the external transform is skipped, the project transforms would run in parallel and wait for each other.
-        skippedTransformExecutions.size() == 1
-        def skippedExternalTransformExecution = skippedTransformExecutions.find { it.identity == externalTransformIdentification.identity }
-        with(skippedExternalTransformExecution) {
-            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
-            originBuildInvocationId == buildInvocationId.asString()
-            originExecutionTime > 0
+        skippedTransformExecutions.size() == 4
+        skippedTransformExecutions.findAll { it.identity == externalTransformIdentification.identity }.each {
+            with(it) {
+                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
+                originBuildInvocationId == buildInvocationId.asString()
+                originExecutionTime > 0
+            }
         }
     }
 
@@ -557,14 +562,15 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         def projectTransformBuildCacheKey = buildCacheKeyFor(projectTransformIdentification.identity)
 
         and:
-        def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
+        def skippedTransformExecutions = buildOperations.progress(ExecuteDeferredWorkProgressDetails)*.details
         // Only one of the two project transforms is skipped
-        skippedTransformExecutions.size() == 1
-        def skippedExternalTransformExecution = skippedTransformExecutions.find { it.identity == projectTransformIdentification.identity }
-        with(skippedExternalTransformExecution) {
-            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
-            originBuildInvocationId == buildInvocationId.asString()
-            originExecutionTime > 0
+        skippedTransformExecutions.size() == 2
+        skippedTransformExecutions.each {
+            with(it) {
+                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+                originBuildInvocationId == buildInvocationId.asString()
+                originExecutionTime > 0
+            }
         }
     }
 
@@ -629,14 +635,14 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         def projectTransformBuildCacheKey = buildCacheKeyFor(projectTransformIdentification.identity)
 
         and:
-        def skippedTransformExecutions = buildOperations.progress(SkippedTransformExecutionProgressDetails)*.details
-        // Only one of the two project transforms is skipped
-        skippedTransformExecutions.size() == 1
-        def skippedExternalTransformExecution = skippedTransformExecutions.find { it.identity == projectTransformIdentification.identity }
-        with(skippedExternalTransformExecution) {
-            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
-            originBuildInvocationId == firstBuildInvocationId.asString()
-            originExecutionTime > 0
+        def skippedTransformExecutions = buildOperations.progress(ExecuteDeferredWorkProgressDetails)*.details
+        skippedTransformExecutions.size() == 2
+        skippedTransformExecutions.findAll { it.identity == projectTransformIdentification.identity }.each {
+            with(it) {
+                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+                originBuildInvocationId == firstBuildInvocationId.asString()
+                originExecutionTime > 0
+            }
         }
     }
 

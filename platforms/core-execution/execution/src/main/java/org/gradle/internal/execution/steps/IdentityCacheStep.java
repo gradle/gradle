@@ -25,15 +25,19 @@ import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.history.ExecutionOutputState;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.operations.execution.ExecuteDeferredWorkProgressDetails;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceResult> implements DeferredExecutionAwareStep<C, R> {
 
+    private final BuildOperationProgressEventEmitter progressEventEmitter;
     private final Step<? super IdentityContext, ? extends R> delegate;
 
-    public IdentityCacheStep(Step<? super IdentityContext, ? extends R> delegate) {
+    public IdentityCacheStep(BuildOperationProgressEventEmitter progressEventEmitter, Step<? super IdentityContext, ? extends R> delegate) {
+        this.progressEventEmitter = progressEventEmitter;
         this.delegate = delegate;
     }
 
@@ -43,16 +47,32 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
     }
 
     @Override
-    public <T> Deferrable<IdentityCacheResult<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, IdentityCacheResult<T>> cache) {
+    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, IdentityCacheResult<T>> cache) {
         Identity identity = context.getIdentity();
-        IdentityCacheResult<T> cachedOutput = cache.getIfPresent(identity);
-        if (cachedOutput != null) {
-            return Deferrable.completed(cachedOutput);
+        IdentityCacheResult<T> cacheResult = cache.getIfPresent(identity);
+        if (cacheResult != null) {
+            emitExecuteDeferredProgressDetails(work, context.getIdentity(), cacheResult);
+            return Deferrable.completed(cacheResult.getResult());
         } else {
-            return Deferrable.deferred(() -> cache.get(
-                identity,
-                () -> executeInCache(work, context)));
+            return Deferrable.deferred(() -> {
+                IdentityCacheResult<T> maybeExecutedResult = cache.get(
+                    identity,
+                    () -> executeInCache(work, context)
+                );
+                emitExecuteDeferredProgressDetails(work, context.getIdentity(), maybeExecutedResult);
+                return maybeExecutedResult.getResult();
+            });
         }
+    }
+
+    private <T> void emitExecuteDeferredProgressDetails(UnitOfWork work, Identity identity, IdentityCacheResult<T> cacheResult) {
+        cacheResult.getOriginMetadata().ifPresent(originMetadata ->
+            progressEventEmitter.emitNowIfCurrent(new DefaultExecuteDeferredWorkProgressDetails(
+                work.getBuildOperationWorkType().orElse(null),
+                identity,
+                originMetadata
+            ))
+        );
     }
 
     private <T> IdentityCacheResult<T> executeInCache(UnitOfWork work, C context) {
@@ -61,7 +81,6 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
             result
                 .getOutputAs(Object.class)
                 .map(Cast::<T>uncheckedNonnullCast),
-            context.getIdentity(),
             result
                 .getReusedOutputOriginMetadata()
                 .orElseGet(() -> result.getAfterExecutionOutputState()
@@ -72,12 +91,10 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
 
     private static class DefaultIdentityCacheResult<T> implements IdentityCacheResult<T> {
         private final Try<T> result;
-        private final Identity identity;
         private final OriginMetadata originMetadata;
 
-        public DefaultIdentityCacheResult(Try<T> result, Identity identity, @Nullable OriginMetadata originMetadata) {
+        public DefaultIdentityCacheResult(Try<T> result, @Nullable OriginMetadata originMetadata) {
             this.result = result;
-            this.identity = identity;
             this.originMetadata = originMetadata;
         }
 
@@ -87,13 +104,50 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
         }
 
         @Override
-        public Identity getIdentity() {
-            return identity;
+        public Optional<OriginMetadata> getOriginMetadata() {
+            return Optional.ofNullable(originMetadata);
+        }
+    }
+
+    private static class DefaultExecuteDeferredWorkProgressDetails implements ExecuteDeferredWorkProgressDetails {
+        private final String workType;
+        private final Identity identity;
+        private final OriginMetadata originMetadata;
+
+        public DefaultExecuteDeferredWorkProgressDetails(
+            @Nullable String workType,
+            Identity identity,
+            OriginMetadata originMetadata
+        ) {
+            this.workType = workType;
+            this.identity = identity;
+            this.originMetadata = originMetadata;
+        }
+
+        @Nullable
+        @Override
+        public String getWorkType() {
+            return workType;
         }
 
         @Override
-        public Optional<OriginMetadata> getOriginMetadata() {
-            return Optional.ofNullable(originMetadata);
+        public String getIdentity() {
+            return identity.getUniqueId();
+        }
+
+        @Override
+        public String getOriginBuildInvocationId() {
+            return originMetadata.getBuildInvocationId();
+        }
+
+        @Override
+        public byte[] getOriginBuildCacheKeyBytes() {
+            return originMetadata.getBuildCacheKey().toByteArray();
+        }
+
+        @Override
+        public long getOriginExecutionTime() {
+            return originMetadata.getExecutionTime().toMillis();
         }
     }
 }

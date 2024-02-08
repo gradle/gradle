@@ -135,6 +135,7 @@ import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -469,6 +470,7 @@ class DependencyManagementBuildScopeServices {
     ExecutionEngine createExecutionEngine(
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CurrentBuildOperationRef currentBuildOperationRef,
         Deleter deleter,
@@ -485,7 +487,7 @@ class DependencyManagementBuildScopeServices {
         // @formatter:off
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationExecutor,
-            new IdentityCacheStep<>(
+            new IdentityCacheStep<>(buildOperationProgressEventEmitter,
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,

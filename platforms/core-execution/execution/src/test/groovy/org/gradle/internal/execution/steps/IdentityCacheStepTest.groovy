@@ -23,49 +23,54 @@ import org.gradle.internal.Try
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.ExecutionOutputState
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 
 class IdentityCacheStepTest extends StepSpec<IdentityContext> {
     Cache<UnitOfWork.Identity, ExecutionEngine.IdentityCacheResult<Object>> cache = new ManualEvictionInMemoryCache<>()
+    def progressEventEmitter = Mock(BuildOperationProgressEventEmitter)
 
-    def step = new IdentityCacheStep<>(delegate)
+    def step = new IdentityCacheStep<>(progressEventEmitter, delegate)
 
     def "executes when no cached output exists"() {
         def delegateOutput = Mock(Object)
         def delegateResult = Mock(WorkspaceResult)
-        def originMetadata = Mock(OriginMetadata)
+        def originMetadata = Stub(OriginMetadata) {
+            buildInvocationId >> "123245"
+        }
 
         def execution = step.executeDeferred(work, context, cache)
 
         when:
         def cacheResult = execution.completeAndGet()
-        def actualResult = cacheResult.getResult()
 
         then:
-        actualResult.get() == delegateOutput
-        cacheResult.originMetadata.get() == originMetadata
+        cacheResult.get() == delegateOutput
 
         delegateResult.getOutputAs(_ as Class) >> Try.successful(delegateOutput)
         delegateResult.reusedOutputOriginMetadata >> Optional.of(originMetadata)
 
         1 * delegate.execute(work, context) >> delegateResult
+        1 * progressEventEmitter.emitNowIfCurrent({ it ->
+            it.originBuildInvocationId == originMetadata.buildInvocationId
+        })
         0 * _
     }
 
     def "returns origin metadata of current build when not re-used"() {
         def delegateOutput = Mock(Object)
         def delegateResult = Mock(WorkspaceResult)
-        def originMetadata = Mock(OriginMetadata)
+        def originMetadata = Stub(OriginMetadata) {
+            buildInvocationId >> "12345"
+        }
         def executionOutputState = Mock(ExecutionOutputState)
 
         def execution = step.executeDeferred(work, context, cache)
 
         when:
         def cacheResult = execution.completeAndGet()
-        def actualResult = cacheResult.getResult()
 
         then:
-        actualResult.get() == delegateOutput
-        cacheResult.originMetadata.get() == originMetadata
+        cacheResult.get() == delegateOutput
 
         delegateResult.getOutputAs(_ as Class) >> Try.successful(delegateOutput)
         delegateResult.reusedOutputOriginMetadata >> Optional.empty()
@@ -73,24 +78,21 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
         executionOutputState.originMetadata >> originMetadata
 
         1 * delegate.execute(work, context) >> delegateResult
+        1 * progressEventEmitter.emitNowIfCurrent({ it.originBuildInvocationId == originMetadata.buildInvocationId })
         0 * _
     }
 
     def "returns no origin metadata when execution has no output state"() {
         def delegateOutput = Mock(Object)
         def delegateResult = Mock(WorkspaceResult)
-        def originMetadata = Mock(OriginMetadata)
-        def executionOutputState = Mock(ExecutionOutputState)
 
         def execution = step.executeDeferred(work, context, cache)
 
         when:
         def cacheResult = execution.completeAndGet()
-        def actualResult = cacheResult.getResult()
 
         then:
-        actualResult.get() == delegateOutput
-        !cacheResult.originMetadata.present
+        cacheResult.get() == delegateOutput
 
         delegateResult.getOutputAs(_ as Class) >> Try.successful(delegateOutput)
         delegateResult.reusedOutputOriginMetadata >> Optional.empty()
@@ -101,8 +103,15 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
     }
 
     def "returns cached output when exists"() {
-        def cachedResult = Mock(ExecutionEngine.IdentityCacheResult)
-        cache.put(identity, cachedResult)
+        def cachedResult = Try.successful(Mock(Object))
+        def returnedOriginMetadata = Stub(OriginMetadata) {
+            buildInvocationId >> "12345"
+        }
+        def identityCacheResult = Stub(ExecutionEngine.IdentityCacheResult) {
+            result >> cachedResult
+            originMetadata >> Optional.of(returnedOriginMetadata)
+        }
+        cache.put(identity, identityCacheResult)
 
         def execution = step.executeDeferred(work, context, cache)
 

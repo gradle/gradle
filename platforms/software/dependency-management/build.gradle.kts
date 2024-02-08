@@ -86,9 +86,6 @@ dependencies {
     implementation(project(":base-services-groovy"))
     implementation(project(":logging-api"))
     implementation(project(":resources-http"))
-    implementation(project(":build-cache-base")) {
-        because("We use OriginMetadata for transforms")
-    }
 
     implementation(libs.ant)
     implementation(libs.asm)

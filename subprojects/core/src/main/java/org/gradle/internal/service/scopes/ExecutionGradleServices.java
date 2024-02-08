@@ -81,6 +81,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -130,6 +131,7 @@ public class ExecutionGradleServices {
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         BuildOutputCleanupRegistry buildOutputCleanupRegistry,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CurrentBuildOperationRef currentBuildOperationRef,
@@ -196,7 +198,7 @@ public class ExecutionGradleServices {
 
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationExecutor,
-            new IdentityCacheStep<>(
+            new IdentityCacheStep<>(buildOperationProgressEventEmitter,
             new ExecuteWorkBuildOperationFiringStep<>(buildOperationExecutor,
             new ChoosePipelineStep<>(
                 immutablePipeline,
