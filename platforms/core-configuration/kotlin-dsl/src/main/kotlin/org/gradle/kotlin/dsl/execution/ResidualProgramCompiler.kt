@@ -485,7 +485,8 @@ class ResidualProgramCompiler(
         LDC(programTarget.name + "/" + programKind.name + "/stage2")
         // Move HashCode value to a static field so it's cached across invocations
         loadHashCode(originalSourceHash)
-        if (requiresSecondStageAccessors(programTarget, programKind)) emitAccessorsClassPathForScriptHost()
+        if (requiresSecondStageAccessors(programTarget, programKind))
+            emitAccessorsClassPathForScriptHost()
         else GETSTATIC(ClassPath::EMPTY)
         invokeHost(
             ExecutableProgram.Host::evaluateSecondStageOf.name,
@@ -501,7 +502,7 @@ class ResidualProgramCompiler(
 
     private
     fun requiresSecondStageAccessors(programTarget: ProgramTarget, programKind: ProgramKind) =
-        programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel
+        programKind == ProgramKind.TopLevel && (programTarget == ProgramTarget.Project || programTarget == ProgramTarget.Settings)
 
     private
     val stagedProgram = Type.getType(ExecutableProgram.StagedProgram::class.java)

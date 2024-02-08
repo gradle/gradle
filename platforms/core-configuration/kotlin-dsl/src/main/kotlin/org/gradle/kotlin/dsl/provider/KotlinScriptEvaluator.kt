@@ -23,6 +23,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
@@ -46,7 +47,6 @@ import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
-import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
@@ -156,18 +156,20 @@ class StandardKotlinScriptEvaluator(
             kotlinCompilerOptions(gradleProperties)
 
         override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
-            (scriptHost.target as? ProjectInternal)?.let {
-                val stage1BlocksAccessorClassPathGenerator = it.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
-                stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(it).bin
-            } ?: ClassPath.EMPTY
+            (scriptHost.target as? ProjectInternal)
+                ?.let {
+                    val stage1BlocksAccessorClassPathGenerator = it.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
+                    stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(it).bin
+                } ?: ClassPath.EMPTY
 
         override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath {
-            val project = scriptHost.target as Project
-            val projectAccessorsClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
-            return projectAccessorsClassPathGenerator.projectAccessorsClassPath(
-                project,
-                compilationClassPathOf(scriptHost.targetScope)
-            ).bin
+            return (scriptHost.target as? ExtensionAware)
+                ?.let { scriptTarget ->
+                    scriptHost.projectAccessorsClassPathGenerator.projectAccessorsClassPath(
+                        scriptTarget,
+                        compilationClassPathOf(scriptHost.targetScope)
+                    ).bin
+                } ?: ClassPath.EMPTY
         }
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
