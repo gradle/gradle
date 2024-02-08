@@ -22,7 +22,7 @@ import org.gradle.internal.remote.internal.Connection;
 import org.gradle.launcher.daemon.protocol.Command;
 import org.gradle.launcher.daemon.protocol.Failure;
 import org.gradle.launcher.daemon.protocol.Finished;
-import org.gradle.launcher.daemon.protocol.InvalidateVirtualFileSystem;
+import org.gradle.launcher.daemon.protocol.InvalidateVirtualFileSystemAfterChange;
 import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
@@ -59,7 +59,7 @@ public class NotifyDaemonAboutChangedPathsClient {
                 if (connection == null) {
                     continue;
                 }
-                dispatch(connection, new InvalidateVirtualFileSystem(changedPaths, idGenerator.generateId(), connection.getDaemon().getToken()));
+                dispatch(connection, new InvalidateVirtualFileSystemAfterChange(changedPaths, idGenerator.generateId(), connection.getDaemon().getToken()));
             }
         }
     }

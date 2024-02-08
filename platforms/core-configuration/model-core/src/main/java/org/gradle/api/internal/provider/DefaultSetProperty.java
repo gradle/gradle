@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
 import org.gradle.api.provider.CollectionPropertyConfigurer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
@@ -26,17 +27,12 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>> implements SetProperty<T> {
-    private static final Supplier<ImmutableCollection.Builder<Object>> FACTORY = new Supplier<ImmutableCollection.Builder<Object>>() {
-        @Override
-        public ImmutableCollection.Builder<Object> get() {
-            return ImmutableSet.builder();
-        }
-    };
+    private static final SerializableSupplier<ImmutableCollection.Builder<Object>> FACTORY = ImmutableSet::builder;
+
     public DefaultSetProperty(PropertyHost host, Class<T> elementType) {
         super(host, Set.class, elementType, Cast.uncheckedNonnullCast(FACTORY));
     }

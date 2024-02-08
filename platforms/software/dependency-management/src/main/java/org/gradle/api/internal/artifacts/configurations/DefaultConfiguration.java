@@ -295,7 +295,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
         this.configurationAttributes = new FreezableAttributeContainer(attributesFactory.mutable(), this.displayName);
 
-        this.intrinsicFiles = newFileCollection(false, this::getImplicitSelectionSpec);
+        this.intrinsicFiles = newFileCollection(false, () ->
+            new ArtifactSelectionSpec(configurationAttributes.asImmutable(), Specs.satisfyAll(), false, false, getResolutionStrategy().getSortOrder())
+        );
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         this.ownDependencies = (DefaultDomainObjectSet<Dependency>) domainObjectCollectionFactory.newDomainObjectSet(Dependency.class);
@@ -582,16 +584,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         warnOnDeprecatedUsage("fileCollection(Spec)", ProperMethodUsage.RESOLVABLE);
         return new ResolutionBackedFileCollection(
             new ResolverResultsResolutionResultProvider(false).map(resolverResults ->
-                resolverResults.getVisitedArtifacts().select(dependencySpec, getImplicitSelectionSpec())
+                resolverResults.getLegacyResults().getLegacyVisitedArtifactSet().select(dependencySpec)
             ),
             false,
             getResolutionHost(),
             taskDependencyFactory
         );
-    }
-
-    private ArtifactSelectionSpec getImplicitSelectionSpec() {
-        return new ArtifactSelectionSpec(configurationAttributes.asImmutable(), Specs.satisfyAll(), false, false, getResolutionStrategy().getSortOrder());
     }
 
     @Override
@@ -622,7 +620,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
         warnOnDeprecatedUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
-        return new ResolverResultsResolutionResultProvider(false).map(ResolverResults::getResolvedConfiguration).getValue();
+        return new ResolverResultsResolutionResultProvider(false).getValue().getLegacyResults().getResolvedConfiguration();
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
@@ -639,7 +637,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private ResolutionBackedFileCollection newFileCollection(boolean lenient, Supplier<ArtifactSelectionSpec> spec) {
         return new ResolutionBackedFileCollection(
             new ResolverResultsResolutionResultProvider(false).map(resolverResults ->
-                resolverResults.getVisitedArtifacts().select(Specs.satisfyAll(), spec.get())
+                resolverResults.getVisitedArtifacts().select(spec.get())
             ),
             lenient,
             getResolutionHost(),

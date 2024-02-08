@@ -16,20 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.specs.Spec;
-
 /**
  * A container of the artifacts visited during graph traversal.
  */
 public interface VisitedArtifactSet {
     /**
-     * Creates a set that selects the artifacts from this set that match the given criteria. Implementations are lazy, so that the selection happens only when the contents are queried.
+     * Creates a set that selects the artifacts from this set that match the given criteria.
+     * Implementations are lazy, so that the selection happens only when the contents are queried.
      *
-     * Not every query is available on the value returned from this method. Details are progressively refined during resolution and more queries become available.
-     *
-     * @param dependencySpec Select only those artifacts reachable from first level dependencies that match the given spec.
      * @param spec Parameters controlling the artifact selection process
      */
-    SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, ArtifactSelectionSpec spec);
+    SelectedArtifactSet select(ArtifactSelectionSpec spec);
 }

@@ -24,6 +24,7 @@ import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.KOTLIN_1_8_0
 import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.KOTLIN_2_0_0
+import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.hasConfigurationCacheWarnings
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 /**
@@ -36,10 +37,13 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
     abstract String getSampleName()
     abstract GradleDsl getDSL()
 
+    VersionNumber kotlinPluginVersion
+
     def "kotlin android on android-kotlin-example using #dsl DSL (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#parallelTasksInProject)"(String kotlinPluginVersion, String androidPluginVersion, ParallelTasksInProject parallelTasksInProject) {
         given:
         AndroidHome.assertIsSet()
         AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidPluginVersion, kotlinPluginVersion)
+        this.kotlinPluginVersion = VersionNumber.parse(kotlinPluginVersion)
         useSample(getSampleName())
 
         def buildFileName = getDSL().fileNameFor("build")
@@ -91,5 +95,10 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
         ].combinations()
 
         dsl = getDSL().name()
+    }
+
+    @Override
+    protected int maxConfigurationCacheProblems() {
+        return hasConfigurationCacheWarnings(kotlinPluginVersion) ? 2 : 0
     }
 }

@@ -40,7 +40,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scopes.Project.class)
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
     private final ProjectArtifactResolver artifactResolver;

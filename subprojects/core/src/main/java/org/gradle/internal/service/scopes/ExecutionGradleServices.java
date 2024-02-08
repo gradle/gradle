@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service.scopes;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.api.problems.Problems;
@@ -24,7 +25,6 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
@@ -63,12 +63,12 @@ import org.gradle.internal.execution.steps.NoInputChangesStep;
 import org.gradle.internal.execution.steps.OverlappingOutputsFilter;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
-import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
+import org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
+import org.gradle.internal.execution.steps.ResolveNonIncrementalCachingStateStep;
 import org.gradle.internal.execution.steps.Result;
 import org.gradle.internal.execution.steps.SkipEmptyIncrementalWorkStep;
-import org.gradle.internal.execution.steps.SkipEmptyNonIncrementalWorkStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.Step;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
@@ -132,7 +132,6 @@ public class ExecutionGradleServices {
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
         BuildOutputCleanupRegistry buildOutputCleanupRegistry,
-        GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CurrentBuildOperationRef currentBuildOperationRef,
         Deleter deleter,
@@ -143,6 +142,7 @@ public class ExecutionGradleServices {
         WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
+        StartParameter startParameter,
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
         VirtualFileSystem virtualFileSystem,
@@ -150,6 +150,7 @@ public class ExecutionGradleServices {
     ) {
         UniqueId buildId = buildInvocationScopeId.getId();
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
+        boolean emitBuildCacheDebugLogging = startParameter.isBuildCacheDebugLogging();
 
         // @formatter:off
         // CHECKSTYLE:OFF
@@ -163,19 +164,17 @@ public class ExecutionGradleServices {
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
-            // TODO Consider not supporting skip-when-empty for immutable work entirely
-            new SkipEmptyNonIncrementalWorkStep(buildId, workInputListeners,
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
+            new ResolveNonIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
-            new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
+            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
             new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, NO_FILTER,
             new NoInputChangesStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             sharedExecutionPipeline
-        ))))))))))));
+        )))))))))));
 
         Step<IdentityContext,WorkspaceResult> mutablePipeline =
             new AssignMutableWorkspaceStep<>(
@@ -185,12 +184,12 @@ public class ExecutionGradleServices {
             new SkipEmptyIncrementalWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
-            new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,
+            new ResolveIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
+            new MarkSnapshottingInputsFinishedStep<>(
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
-            new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
+            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
             new ResolveInputChangesStep<>(
             new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, new OverlappingOutputsFilter(),
             new BroadcastChangingOutputsStep<>(outputChangeListener,

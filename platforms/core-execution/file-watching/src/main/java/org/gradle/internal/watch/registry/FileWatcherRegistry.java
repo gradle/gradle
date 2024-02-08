@@ -72,15 +72,25 @@ public interface FileWatcherRegistry extends Closeable {
     SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
 
     /**
-     * Updates the VFS and the watchers when the build finished.
-
+     * Updates the VFS and the watchers before the build finishes.
+     *
      * For example, this removes everything from the root which can't be kept after the current build finished.
      * This is anything which is not within a watchable hierarchy or in a cache directory.
      *
      * @return the snapshot hierarchy without snapshots which can't be kept till the next build.
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
+    SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
+
+    /**
+     * Updates the VFS and the watchers after the build finished.
+     *
+     * This removes content we can't track using file system events, i.e. stuff accessed via symlinks.
+     *
+     * @return the snapshot hierarchy without snapshots which can't be kept till the next build.
+     */
+    @CheckReturnValue
+    SnapshotHierarchy updateVfsAfterBuildFinished(SnapshotHierarchy root);
 
     /**
      * Get statistics about the received changes.

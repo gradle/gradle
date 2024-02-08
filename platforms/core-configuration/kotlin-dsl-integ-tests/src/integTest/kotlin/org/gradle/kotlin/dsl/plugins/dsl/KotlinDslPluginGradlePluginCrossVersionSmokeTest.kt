@@ -16,7 +16,10 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
@@ -54,6 +57,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         IntegTestPreconditions.NotEmbeddedExecutor::class,
         reason = "newer Kotlin version always leaks on the classpath when running embedded"
     )
+    @UnsupportedWithConfigurationCache(because = "See KotlinGradlePluginVersions#hasConfigurationCacheWarnings()", iterationMatchers = [""".*\[1\.6\.21\]""", """.*\[1\.7\.0\]""", """.*\[1\.7\.22\]"""])
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
@@ -151,8 +155,13 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation")
         }
+        val extraParameters = if (KotlinGradlePluginVersions.hasConfigurationCacheWarnings(kotlinVersion))
+            arrayOf("--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn", "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=2")
+        else
+            emptyArray()
 
-        build("classes").apply {
+
+        build("classes", *extraParameters).apply {
             assertThat(
                 output,
                 allOf(

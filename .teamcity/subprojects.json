@@ -77,6 +77,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "build-cache-local",
+    "path": "platforms/core-execution/build-cache-local",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-cache-packaging",
     "path": "platforms/core-execution/build-cache-packaging",
     "unitTests": true,
@@ -87,6 +94,13 @@
     "name": "build-configuration",
     "path": "platforms/core-runtime/build-configuration",
     "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "build-cache-spi",
+    "path": "platforms/core-execution/build-cache-spi",
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
