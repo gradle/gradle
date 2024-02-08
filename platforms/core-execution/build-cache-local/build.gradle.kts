@@ -6,9 +6,9 @@ plugins {
 description = "Local build cache implementation"
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
     api(project(":build-cache"))
+
+    api(project(":base-annotations"))
     api(project(":build-cache-spi"))
     api(project(":files"))
     api(project(":functional"))
