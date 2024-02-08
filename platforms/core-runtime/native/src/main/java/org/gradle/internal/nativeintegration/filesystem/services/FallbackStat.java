@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-class FallbackStat implements FileModeAccessor {
+public class FallbackStat implements FileModeAccessor {
     @Override
     public int getUnixMode(File f) throws IOException {
         if (f.isDirectory()) {

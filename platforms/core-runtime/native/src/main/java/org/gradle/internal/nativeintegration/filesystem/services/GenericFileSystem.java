@@ -36,7 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-class GenericFileSystem implements FileSystem {
+public class GenericFileSystem implements FileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
 
     private Boolean caseSensitive;
@@ -168,7 +168,7 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
-    static final class Factory {
+    public static final class Factory {
         private final FileMetadataAccessor fileMetadataAccessor;
         private final StatStatistics.Collector statisticsCollector;
         private final TemporaryFileProvider temporaryFileProvider;
@@ -180,7 +180,7 @@ class GenericFileSystem implements FileSystem {
             this.temporaryFileProvider = temporaryFileProvider;
         }
 
-        GenericFileSystem create(FileModeMutator chmod, FileModeAccessor stat, Symlink symlink) {
+        public GenericFileSystem create(FileModeMutator chmod, FileModeAccessor stat, Symlink symlink) {
             return new GenericFileSystem(chmod, stat, symlink, fileMetadataAccessor, statisticsCollector, temporaryFileProvider);
         }
     }
