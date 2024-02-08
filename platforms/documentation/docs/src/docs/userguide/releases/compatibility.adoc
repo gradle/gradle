@@ -90,5 +90,5 @@ Gradle is tested with Groovy 1.5.8 through 4.0.0.
 Gradle plugins written in Groovy must use Groovy 3.x for compatibility with Gradle and Groovy DSL build scripts.
 
 == Android
-Gradle is tested with Android Gradle Plugin 7.3 through 8.2.
+Gradle is tested with Android Gradle Plugin 7.3 through 8.3.
 Alpha and beta versions may or may not work.
