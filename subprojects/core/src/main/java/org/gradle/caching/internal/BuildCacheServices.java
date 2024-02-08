@@ -178,7 +178,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
         });
     }
 
-    private static final class FilePermissionsAccessAdapter implements FilePermissionAccess {
+    public static final class FilePermissionsAccessAdapter implements FilePermissionAccess {
 
         private final FileSystem fileSystem;
 
