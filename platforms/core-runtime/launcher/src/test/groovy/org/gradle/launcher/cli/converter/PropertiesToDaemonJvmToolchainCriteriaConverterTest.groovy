@@ -90,7 +90,7 @@ class PropertiesToDaemonJvmToolchainCriteriaConverterTest extends Specification 
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message == "Option daemon.jvm.toolchain.version undefined on Build properties. Add it manually or execute 'updateDaemonJvm' task with desired criteria to fix it."
+        exception.message == "Option daemon.jvm.toolchain.version undefined on Build properties. Execute 'updateDaemonJvm' task with desired criteria to fix it."
     }
 
     def "allows vendor with different formats"() {
@@ -129,7 +129,7 @@ class PropertiesToDaemonJvmToolchainCriteriaConverterTest extends Specification 
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message == "Option daemon.jvm.toolchain.version undefined on Build properties. Add it manually or execute 'updateDaemonJvm' task with desired criteria to fix it."
+        exception.message == "Option daemon.jvm.toolchain.version undefined on Build properties. Execute 'updateDaemonJvm' task with desired criteria to fix it."
     }
 
     def "allows implementation with different formats"() {

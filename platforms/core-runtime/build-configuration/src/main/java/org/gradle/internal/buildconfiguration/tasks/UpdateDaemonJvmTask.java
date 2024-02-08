@@ -17,6 +17,7 @@
 package org.gradle.internal.buildconfiguration.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -28,6 +29,7 @@ import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -38,7 +40,12 @@ public abstract class UpdateDaemonJvmTask extends DefaultTask {
 
     public static final String TASK_NAME = "updateDaemonJvm";
 
-    private final UpdateDaemonJvmModifier updateDaemonJvmModifier = new UpdateDaemonJvmModifier(getProject().getProjectDir());
+    private final UpdateDaemonJvmModifier updateDaemonJvmModifier;
+
+    @Inject
+    public UpdateDaemonJvmTask(ProjectLayout projectLayout) {
+        updateDaemonJvmModifier = new UpdateDaemonJvmModifier(projectLayout.getProjectDirectory().getAsFile());
+    }
 
     @TaskAction
     void generate() {

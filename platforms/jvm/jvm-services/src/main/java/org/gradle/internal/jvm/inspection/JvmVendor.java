@@ -16,10 +16,9 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import java.io.Serializable;
 import java.util.regex.Pattern;
 
-public interface JvmVendor extends Serializable {
+public interface JvmVendor {
 
     enum KnownJvmVendor {
         ADOPTIUM("adoptium", "temurin|adoptium|eclipse foundation", "Eclipse Temurin"),

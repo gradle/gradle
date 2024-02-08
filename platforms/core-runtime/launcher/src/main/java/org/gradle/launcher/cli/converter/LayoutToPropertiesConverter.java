@@ -56,8 +56,8 @@ public class LayoutToPropertiesConverter {
         allBuildOptions.addAll(new StartParameterBuildOptions().getAllOptions());
         allBuildOptions.addAll(new LoggingConfigurationBuildOptions().getAllOptions()); // TODO maybe a new converter also here
         allBuildOptions.addAll(new WelcomeMessageBuildOptions().getAllOptions()); // TODO maybe a new converter also here
-        allBuildOptions.addAll(new DaemonBuildOptions().getAllOptions());
-        allBuildOptions.addAll(new DaemonJvmToolchainCriteriaOptions().getAllOptions());
+        allBuildOptions.addAll(DaemonBuildOptions.get());
+        allBuildOptions.addAll(DaemonJvmToolchainCriteriaOptions.get());
         allBuildOptions.addAll(new ParallelismBuildOptions().getAllOptions());
     }
 

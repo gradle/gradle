@@ -5,6 +5,7 @@ plugins {
 description = "The Build configuration properties modifiers and helpers."
 
 dependencies {
+    api(libs.inject)
     api(libs.jsr305)
 
     api(project(":base-services"))

@@ -81,4 +81,21 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends DaemonTool
         expect:
         succeedsSimpleTaskWithDaemonJvm(currentJvm)
     }
+
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "Given defined org.gradle.java.home under Build properties When executing any task Then this is ignored since isn't defined on gradle properties file"() {
+        def currentJvm = Jvm.current()
+        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherJvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
+
+        given:
+        createDir("gradle")
+        file("gradle/gradle-build.properties")
+            .writeProperties(
+                "org.gradle.java.home": otherJvmMetadata.javaVersion,
+            )
+
+        expect:
+        succeedsSimpleTaskWithDaemonJvm(currentJvm)
+    }
 }

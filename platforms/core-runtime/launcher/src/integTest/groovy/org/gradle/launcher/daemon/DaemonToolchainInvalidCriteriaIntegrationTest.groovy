@@ -64,7 +64,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends DaemonToolchainInteg
         fails 'help'
 
         then:
-        failureDescriptionContains("Option daemon.jvm.toolchain.version undefined on Build properties. Add it manually or execute 'updateDaemonJvm' task with desired criteria to fix it.")
+        failureDescriptionContains("Option daemon.jvm.toolchain.version undefined on Build properties. Execute 'updateDaemonJvm' task with desired criteria to fix it.")
     }
 
     def "Given unexpected toolchain vendor When execute any task Then fails with expected exception message"() {

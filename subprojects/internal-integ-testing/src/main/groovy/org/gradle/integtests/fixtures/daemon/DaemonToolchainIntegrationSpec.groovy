@@ -81,13 +81,9 @@ abstract class DaemonToolchainIntegrationSpec extends AbstractIntegrationSpec {
             expectedVersion = detectedMatchingToolchain.javaVersion
         }
         buildFile << """
-            tasks.all {
-                doLast {
-                    assert System.getProperty("java.version").equals("$expectedVersion")
-                    assert System.getProperty("java.vendor").equals("$expectedVendor.rawVendor")
-                    assert System.getProperty("java.home").equals("$expectedJavaHome")
-                }
-            }
+            assert System.getProperty("java.version").equals("$expectedVersion")
+            assert System.getProperty("java.vendor").equals("$expectedVendor.rawVendor")
+            assert System.getProperty("java.home").equals("$expectedJavaHome")
         """
     }
 
@@ -96,9 +92,7 @@ abstract class DaemonToolchainIntegrationSpec extends AbstractIntegrationSpec {
         def toolchainSpec = createToolchainSpec(version.majorVersion, vendor.rawVendor)
         def matcher = new JvmInstallationMetadataMatcher(toolchainSpec)
 
-        return AvailableJavaHomes.getAvailableJvms().collect { jvm ->
-            AvailableJavaHomes.getJvmInstallationMetadata(jvm)
-        }.stream()
+        return AvailableJavaHomes.getAvailableJvmMetadatas().stream()
             .filter(metadata -> metadata.isValidInstallation())
             .filter(metadata -> matcher.test(metadata))
             .min(Comparator.comparing(metadata -> metadata, metadataComparator))

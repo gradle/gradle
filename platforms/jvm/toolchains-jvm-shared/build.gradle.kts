@@ -20,13 +20,6 @@ plugins {
 
 description = "Declarations to define JVM toolchains shared between launcher and daemon"
 
-errorprone {
-    disabledChecks.addAll(
-        "StringCaseLocaleUsage", // 2 occurrences
-        "UnnecessaryLambda", // 2 occurrences
-    )
-}
-
 dependencies {
     implementation(project(":core"))
 

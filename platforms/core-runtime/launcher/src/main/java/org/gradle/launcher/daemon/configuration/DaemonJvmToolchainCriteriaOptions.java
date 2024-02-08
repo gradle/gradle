@@ -96,7 +96,7 @@ public class DaemonJvmToolchainCriteriaOptions extends BuildOptionSet<DaemonJvmT
     private static void assertJvmToolchainVersion(DaemonJvmToolchainSpec settings) {
         if (!settings.getLanguageVersion().isPresent()) {
             String exceptionMessage = String.format("Option %s undefined on Build properties. " +
-                "Add it manually or execute 'updateDaemonJvm' task with desired criteria to fix it.", BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
+                "Execute 'updateDaemonJvm' task with desired criteria to fix it.", BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
             throw new IllegalArgumentException(exceptionMessage);
         }
     }

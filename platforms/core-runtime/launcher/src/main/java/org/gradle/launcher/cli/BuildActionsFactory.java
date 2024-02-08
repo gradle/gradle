@@ -17,7 +17,6 @@
 package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
-import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.StartParameter;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Action;
@@ -25,12 +24,10 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.cache.FileLockManager;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.SystemProperties;
@@ -42,21 +39,15 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
-import org.gradle.internal.logging.services.ProgressLoggingBridge;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.time.Clock;
-import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -65,6 +56,7 @@ import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
 import org.gradle.launcher.daemon.configuration.BuildProcess;
+import org.gradle.launcher.daemon.configuration.DaemonConfigurationServices;
 import org.gradle.launcher.daemon.jvm.DaemonJavaInstallationRegistryFactory;
 import org.gradle.launcher.daemon.jvm.DaemonJavaToolchainQueryService;
 import org.gradle.launcher.daemon.configuration.DaemonJvmToolchainSpec;
@@ -74,7 +66,6 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.process.internal.ExecFactory;
 
 import java.lang.management.ManagementFactory;
 import java.util.List;
@@ -95,6 +86,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
             .provider(new BasicGlobalScopeServices())
+            .provider(new DaemonConfigurationServices())
             .build();
         this.loggingServices = loggingServices;
         fileCollectionFactory = basicServices.get(FileCollectionFactory.class);
@@ -105,22 +97,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         );
         jvmVersionDetector = basicServices.get(JvmVersionDetector.class);
         daemonJavaToolchainQueryService = new DaemonJavaToolchainQueryService(
-            new DaemonJavaInstallationRegistryFactory(
-                new JdkCacheDirectory(
-                    basicServices.get(GradleUserHomeDirProvider.class),
-                    null,
-                    basicServices.get(FileLockManager.class),
-                    basicServices.get(JvmMetadataDetector.class)
-                ),
-                basicServices.get(JvmMetadataDetector.class),
-                basicServices.get(ExecFactory.class),
-                new DefaultProgressLoggerFactory(
-                    new ProgressLoggingBridge(basicServices.get(OutputEventListener.class)),
-                    basicServices.get(Clock.class),
-                    new DefaultBuildOperationIdFactory()
-                ),
-                basicServices.get(WindowsRegistry.class)
-            )
+            basicServices.get(DaemonJavaInstallationRegistryFactory.class)
         );
     }
 
