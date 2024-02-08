@@ -265,7 +265,16 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     def "cannot use plugin #version"() {
         when:
-        usePluginVersion version
+        buildFile << """
+            plugins {
+                id "com.gradle.build-scan" version "$version"
+            }
+
+            buildScan {
+                termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+                termsOfServiceAgree = 'yes'
+            }
+        """
 
         and:
         def output = runner("--stacktrace")
@@ -338,32 +347,18 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     }
 
     void usePluginVersion(String version) {
-        def gradleEnterprisePlugin = VersionNumber.parse(version) >= VersionNumber.parse("3.0")
-        if (gradleEnterprisePlugin) {
-            settingsFile << """
-                plugins {
-                    id "com.gradle.enterprise" version "$version"
-                }
+        settingsFile << """
+            plugins {
+                id "com.gradle.enterprise" version "$version"
+            }
 
-                gradleEnterprise {
-                    buildScan {
-                        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-                        termsOfServiceAgree = 'yes'
-                    }
-                }
-            """
-        } else {
-            buildFile << """
-                plugins {
-                    id "com.gradle.build-scan" version "$version"
-                }
-
+            gradleEnterprise {
                 buildScan {
                     termsOfServiceUrl = 'https://gradle.com/terms-of-service'
                     termsOfServiceAgree = 'yes'
                 }
-            """
-        }
+            }
+        """
 
         setupLocalBuildCache()
         setupJavaProject()
