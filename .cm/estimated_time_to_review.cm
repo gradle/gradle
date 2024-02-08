@@ -9,10 +9,16 @@ manifest:
 # the conditions on each line).  Each condition is specified as a Jinja expression.  You
 # can also use the constant `true` if you want to always run the actions.
 
-# Each automation is independent of the others.  Every time a PR is opened or changed,
-# the conditions are evaluated and the actions are executed one by one in order
-# if all the conditions pass.  You can define multiple automations in a .cm file, but
-# each automation name should be unique within the file.
+# Each automation is independent of the others.  Every time one of the `on` conditions match for
+# this PR, this automations will have its `if` checked to run.  In a way, the `on` conditions
+# function as an implicit first `if` for every automation in the file.
+
+# You can define multiple automations in a .cm file, but each automation name should be unique
+# within the file.  We keep each automation (or very closely related group of automations) in
+# its own file.
+
+on:
+  - pr_created
 
 automations:
 
