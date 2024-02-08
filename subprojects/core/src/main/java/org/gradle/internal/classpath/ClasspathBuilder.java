@@ -29,6 +29,7 @@ public interface ClasspathBuilder {
      */
     void jar(File destinationFile, Action action);
 
+    @FunctionalInterface
     interface Action {
         void execute(EntryBuilder builder) throws IOException;
     }

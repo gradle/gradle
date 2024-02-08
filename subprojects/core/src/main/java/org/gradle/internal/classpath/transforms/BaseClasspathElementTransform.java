@@ -42,9 +42,9 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
     private static final Logger LOGGER = Logging.getLogger(BaseClasspathElementTransform.class);
 
     protected final File source;
-    private final InstrumentingTypeRegistry typeRegistry;
     private final ClasspathBuilder classpathBuilder;
     private final ClasspathWalker classpathWalker;
+    private final InstrumentingTypeRegistry typeRegistry;
     private final ClassTransform transform;
 
     BaseClasspathElementTransform(
@@ -54,9 +54,9 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
         InstrumentingTypeRegistry typeRegistry,
         ClassTransform transform
     ) {
+        this.source = source;
         this.classpathBuilder = classpathBuilder;
         this.classpathWalker = classpathWalker;
-        this.source = source;
         this.typeRegistry = typeRegistry;
         this.transform = transform;
     }
