@@ -419,7 +419,9 @@ post build
 
         then:
         def e3 = thrown(AssertionError)
-        e3.message.startsWith(":a does not occur in expected order (expected: exact([:b, :a]), actual [:a, :b])")
+        e3.message.startsWith(""":a does not occur in expected order.
+Expected: exact([:b, :a])
+Actual [":a", ":b"]""")
 
         when:
         result.assertTasksExecutedInOrder(":a")

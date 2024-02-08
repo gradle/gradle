@@ -50,12 +50,12 @@ class VisualStudioCompositeBuildIntegrationTest extends AbstractVisualStudioInte
 
         buildTestFixture.withBuildInSubDir()
         singleProjectBuild("util") {
+            group = "test"
+            version = "1.3"
             settingsFile << "rootProject.name = 'util'"
             buildFile << """
                 apply plugin: 'cpp-library'
                 apply plugin: 'visual-studio'
-                group = 'test'
-                version = '1.3'
             """
         }
         singleProjectBuild("other") {
