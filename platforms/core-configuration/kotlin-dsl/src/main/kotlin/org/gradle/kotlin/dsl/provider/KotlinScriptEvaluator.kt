@@ -162,15 +162,14 @@ class StandardKotlinScriptEvaluator(
                     stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(it).bin
                 } ?: ClassPath.EMPTY
 
-        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath {
-            return (scriptHost.target as? ExtensionAware)
+        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+            (scriptHost.target as? ExtensionAware)
                 ?.let { scriptTarget ->
                     scriptHost.projectAccessorsClassPathGenerator.projectAccessorsClassPath(
                         scriptTarget,
                         compilationClassPathOf(scriptHost.targetScope)
                     ).bin
                 } ?: ClassPath.EMPTY
-        }
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
 
