@@ -60,7 +60,7 @@ class BuildTestFixture {
 
     RootBuildTestFile singleProjectBuild(String projectName, @DelegatesTo(value = RootBuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         def project = populate(projectName) {
-            file("src/main/java/${projectName}.java") << "public class ${projectName} {}"
+            file("src/main/java/${projectName}DummyClass.java") << "public class ${projectName}DummyClass {}"
         }
         project.with(cl)
         project.buildFile << """

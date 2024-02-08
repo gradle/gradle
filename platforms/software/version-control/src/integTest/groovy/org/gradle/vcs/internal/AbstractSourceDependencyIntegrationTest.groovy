@@ -59,7 +59,6 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
             buildFile << """
                 allprojects {
                     apply plugin: 'java-library'
-                    group = 'org.test'
                 }
             """
             file("src/main/java/Dep.java") << "public class Dep {}"
