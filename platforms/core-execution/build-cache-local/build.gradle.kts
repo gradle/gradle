@@ -16,12 +16,6 @@ dependencies {
     api(project(":persistent-cache"))
 
     implementation(libs.guava)
-    implementation(libs.h2Database) {
-        because("Used in BuildCacheNG")
-    }
-    implementation(libs.hikariCP) {
-        because("Used in BuildCacheNG")
-    }
 
     testImplementation(project(":model-core"))
     testImplementation(project(":file-collections"))
