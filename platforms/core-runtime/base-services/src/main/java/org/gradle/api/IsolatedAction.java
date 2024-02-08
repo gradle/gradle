@@ -30,6 +30,7 @@ import java.io.Serializable;
  */
 @HasImplicitReceiver
 @Incubating
+@FunctionalInterface
 public interface IsolatedAction<T> extends Serializable {
     /**
      * Performs this action against the given object.
