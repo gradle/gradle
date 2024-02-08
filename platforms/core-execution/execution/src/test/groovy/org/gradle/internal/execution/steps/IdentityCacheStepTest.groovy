@@ -25,7 +25,7 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.ExecutionOutputState
 
 class IdentityCacheStepTest extends StepSpec<IdentityContext> {
-    Cache<UnitOfWork.Identity, ExecutionEngine.CacheResult<Object>> cache = new ManualEvictionInMemoryCache<>()
+    Cache<UnitOfWork.Identity, ExecutionEngine.IdentityCacheResult<Object>> cache = new ManualEvictionInMemoryCache<>()
 
     def step = new IdentityCacheStep<>(delegate)
 
@@ -101,7 +101,7 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
     }
 
     def "returns cached output when exists"() {
-        def cachedResult = Mock(ExecutionEngine.CacheResult)
+        def cachedResult = Mock(ExecutionEngine.IdentityCacheResult)
         cache.put(identity, cachedResult)
 
         def execution = step.executeDeferred(work, context, cache)

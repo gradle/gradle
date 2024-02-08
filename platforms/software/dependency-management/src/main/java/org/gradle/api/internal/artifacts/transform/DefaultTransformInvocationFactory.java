@@ -28,7 +28,7 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionEngine.CacheResult;
+import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
@@ -81,7 +81,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
 
-        Cache<Identity, CacheResult<TransformWorkspaceResult>> identityCache;
+        Cache<Identity, IdentityCacheResult<TransformWorkspaceResult>> identityCache;
         UnitOfWork execution;
 
         // TODO This is a workaround for script compilation that is triggered via the "early" execution
@@ -146,7 +146,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 );
             }
         }
-        Deferrable<CacheResult<TransformWorkspaceResult>> deferredResult = effectiveEngine.createRequest(execution)
+        Deferrable<IdentityCacheResult<TransformWorkspaceResult>> deferredResult = effectiveEngine.createRequest(execution)
             .executeDeferred(identityCache);
         deferredResult.getCompleted()
             .ifPresent(cacheResult -> cacheResult.getOriginMetadata()
@@ -170,17 +170,17 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     }
 
     private static class DefaultSkippedTransformExecutionProgressDetails implements SkippedTransformExecutionProgressDetails {
-        private final CacheResult<TransformWorkspaceResult> cacheResult;
+        private final IdentityCacheResult<TransformWorkspaceResult> identityCacheResult;
         private final OriginMetadata originMetadata;
 
-        public DefaultSkippedTransformExecutionProgressDetails(CacheResult<TransformWorkspaceResult> cacheResult, OriginMetadata originMetadata) {
-            this.cacheResult = cacheResult;
+        public DefaultSkippedTransformExecutionProgressDetails(IdentityCacheResult<TransformWorkspaceResult> identityCacheResult, OriginMetadata originMetadata) {
+            this.identityCacheResult = identityCacheResult;
             this.originMetadata = originMetadata;
         }
 
         @Override
         public String getIdentity() {
-            return cacheResult.getIdentity().getUniqueId();
+            return identityCacheResult.getIdentity().getUniqueId();
         }
 
         @Override

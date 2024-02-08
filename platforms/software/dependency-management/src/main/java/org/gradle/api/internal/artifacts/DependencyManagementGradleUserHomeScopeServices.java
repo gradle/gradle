@@ -91,7 +91,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CacheBuilder cacheBuilder = unscopedCacheBuilderFactory
             .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
             .withDisplayName("Artifact transforms cache");
-        CrossBuildInMemoryCache<UnitOfWork.Identity, ExecutionEngine.CacheResult<TransformExecutionResult.TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result.getResult().isSuccessful());
+        CrossBuildInMemoryCache<UnitOfWork.Identity, ExecutionEngine.IdentityCacheResult<TransformExecutionResult.TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result.getResult().isSuccessful());
         CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations);
         return new ImmutableTransformWorkspaceServices() {
             @Override
@@ -100,7 +100,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             }
 
             @Override
-            public Cache<UnitOfWork.Identity, ExecutionEngine.CacheResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache() {
+            public Cache<UnitOfWork.Identity, ExecutionEngine.IdentityCacheResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache() {
                 return identityCache;
             }
 

@@ -21,7 +21,7 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine.CacheResult;
+import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.history.ExecutionOutputState;
@@ -43,9 +43,9 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
     }
 
     @Override
-    public <T> Deferrable<CacheResult<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, CacheResult<T>> cache) {
+    public <T> Deferrable<IdentityCacheResult<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, IdentityCacheResult<T>> cache) {
         Identity identity = context.getIdentity();
-        CacheResult<T> cachedOutput = cache.getIfPresent(identity);
+        IdentityCacheResult<T> cachedOutput = cache.getIfPresent(identity);
         if (cachedOutput != null) {
             return Deferrable.completed(cachedOutput);
         } else {
@@ -55,9 +55,9 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
         }
     }
 
-    private <T> CacheResult<T> executeInCache(UnitOfWork work, C context) {
+    private <T> IdentityCacheResult<T> executeInCache(UnitOfWork work, C context) {
         R result = execute(work, context);
-        return new DefaultCacheResult<>(
+        return new DefaultIdentityCacheResult<>(
             result
                 .getOutputAs(Object.class)
                 .map(Cast::<T>uncheckedNonnullCast),
@@ -70,12 +70,12 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
         );
     }
 
-    private static class DefaultCacheResult<T> implements CacheResult<T> {
+    private static class DefaultIdentityCacheResult<T> implements IdentityCacheResult<T> {
         private final Try<T> result;
         private final Identity identity;
         private final OriginMetadata originMetadata;
 
-        public DefaultCacheResult(Try<T> result, Identity identity, @Nullable OriginMetadata originMetadata) {
+        public DefaultIdentityCacheResult(Try<T> result, Identity identity, @Nullable OriginMetadata originMetadata) {
             this.result = result;
             this.identity = identity;
             this.originMetadata = originMetadata;

@@ -18,10 +18,10 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
-import org.gradle.internal.execution.ExecutionEngine.CacheResult;
+import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 
 public interface DeferredExecutionAwareStep<C extends Context, R extends Result> extends Step<C, R> {
-    <T> Deferrable<CacheResult<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, CacheResult<T>> cache);
+    <T> Deferrable<IdentityCacheResult<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, IdentityCacheResult<T>> cache);
 }

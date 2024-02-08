@@ -26,5 +26,5 @@ import java.io.Closeable;
 public interface ImmutableTransformWorkspaceServices extends Closeable {
     ImmutableWorkspaceProvider getWorkspaceProvider();
 
-    Cache<UnitOfWork.Identity, ExecutionEngine.CacheResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache();
+    Cache<UnitOfWork.Identity, ExecutionEngine.IdentityCacheResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache();
 }
