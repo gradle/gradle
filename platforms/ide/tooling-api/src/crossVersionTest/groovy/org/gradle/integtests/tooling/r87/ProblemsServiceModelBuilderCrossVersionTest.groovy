@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
 import org.gradle.integtests.tooling.r85.ProblemProgressEventCrossVersionTest.ProblemProgressListener
-import org.gradle.tooling.events.problems.ProblemDescriptor
+import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -46,7 +46,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
                 .addProgressListener(listener)
                 .get()
         }
-        def problems = listener.problems.collect { it as ProblemDescriptor }
+        def problems = listener.problems.collect { it as SingleProblemEvent }
 
         then:
         problems.size() == 1

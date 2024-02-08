@@ -19,89 +19,14 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.ProgressEvent;
 
-import javax.annotation.Nullable;
-import java.util.List;
-
 /**
- * An event holding a {@link BaseProblemDescriptor}.
  *
- * There are 2 sub types of a @link BaseProblemDescriptor}:
- *<pre>
- *  - {@link ProblemDescriptor} - describes a single problem that occurred during the build
- *  - {@link ProblemAggregationDescriptor} - describes aggregated problems that happened more than once during the build
- *</pre>
+ * An event representing a problem.
+ *
  * @since 8.4
  */
 @NonNullApi
 @Incubating
 public interface ProblemEvent extends ProgressEvent {
-    @Override
-    BaseProblemDescriptor getDescriptor();
 
-    /**
-     * Returns the problem category.
-     *
-     * @return the problem category
-     * @since 8.6
-     */
-    ProblemCategory getCategory();
-
-    /**
-     * Returns the problem label.
-     *
-     * @return the problem label
-     * @since 8.6
-     */
-    Label getLabel();
-
-    /**
-     * Returns the details string.
-     *
-     * @return the problem details
-     * @since 8.6
-     */
-    Details getDetails();
-
-    /**
-     * Returns the problem severity.
-     *
-     * @return the problem severity
-     * @since 8.6
-     */
-    Severity getSeverity();
-
-    /**
-     * Returns the locations associated with this problem.
-     *
-     * @return the locations
-     * @since 8.6
-     */
-    List<Location> getLocations();
-
-    /**
-     * Returns the link to the documentation
-     *
-     * @return the locations
-     * @since 8.6
-     */
-    DocumentationLink getDocumentationLink();
-
-    /**
-     * Returns the list of solutions.
-     *
-     * @return the solutions
-     * @since 8.6
-     */
-    List<Solution> getSolutions();
-
-    /**
-     * Returns the failure associated with this problem.
-     * <br>
-     * <code>null</code> if run against a Gradle version prior to 8.7
-     *
-     * @return the failure
-     * @since 8.7
-     */
-    @Nullable
-    FailureContainer getFailure();
 }

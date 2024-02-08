@@ -17,23 +17,24 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.BaseProgressEvent;
-import org.gradle.tooling.events.problems.BaseProblemDescriptor;
+import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemCategory;
-import org.gradle.tooling.events.problems.ProblemEvent;
 import org.gradle.tooling.events.problems.Severity;
+import org.gradle.tooling.events.problems.SingleProblemEvent;
 import org.gradle.tooling.events.problems.Solution;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultProblemEvent extends BaseProgressEvent implements ProblemEvent {
+public class DefaultSingleProblemEvent extends BaseProgressEvent implements SingleProblemEvent {
     private final ProblemCategory category;
     private final Severity severity;
     private final Label label;
@@ -41,10 +42,22 @@ public class DefaultProblemEvent extends BaseProgressEvent implements ProblemEve
     private final List<Location> locations;
     private final DocumentationLink documentationLink;
     private final List<Solution> solutions;
+    private final AdditionalData additionalData;
     private final FailureContainer failure;
 
-    public DefaultProblemEvent(long eventTime, BaseProblemDescriptor problemDescriptor, ProblemCategory category, Severity severity, Label label, Details details, List<Location> locations, DocumentationLink documentationLink, List<Solution> solutions, FailureContainer failure) {
-        super(eventTime, problemDescriptor.getDisplayName(), problemDescriptor);
+    public DefaultSingleProblemEvent(
+        long eventTime,
+        @Nullable OperationDescriptor problemDescriptor,
+        ProblemCategory category,
+        Severity severity,
+        Label label,
+        Details details,
+        List<Location> locations,
+        DocumentationLink documentationLink,
+        List<Solution> solutions,
+        AdditionalData additionalData,
+        @Nullable FailureContainer failure) {
+        super(eventTime, problemDescriptor == null ? "<null>" : problemDescriptor.getDisplayName(), problemDescriptor);
         this.category = category;
         this.severity = severity;
         this.label = label;
@@ -52,12 +65,8 @@ public class DefaultProblemEvent extends BaseProgressEvent implements ProblemEve
         this.locations = locations;
         this.documentationLink = documentationLink;
         this.solutions = solutions;
+        this.additionalData = additionalData;
         this.failure = failure;
-    }
-
-    @Override
-    public BaseProblemDescriptor getDescriptor() {
-        return (BaseProblemDescriptor) super.getDescriptor();
     }
 
     @Override
@@ -101,4 +110,7 @@ public class DefaultProblemEvent extends BaseProgressEvent implements ProblemEve
         return failure;
     }
 
+    public AdditionalData getAdditionalData() {
+        return additionalData;
+    }
 }
