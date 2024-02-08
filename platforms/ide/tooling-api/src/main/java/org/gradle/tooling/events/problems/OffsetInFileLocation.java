@@ -34,7 +34,7 @@ public interface OffsetInFileLocation extends FileLocation {
      * @return the zero-indexed offset
      * @since 8.6
      */
-    int getOffset();
+    long getOffset();
 
     /**
      * The length of the content starting from {@link #getOffset()}.
@@ -42,5 +42,5 @@ public interface OffsetInFileLocation extends FileLocation {
      * @return the length
      * @since 8.6
      */
-    int getLength();
+    long getLength();
 }

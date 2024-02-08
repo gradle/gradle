@@ -25,13 +25,6 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import org.gradle.api.problems.internal.DocLink;
-import org.gradle.api.problems.internal.FileLocation;
-import org.gradle.api.problems.internal.LineInFileLocation;
-import org.gradle.api.problems.internal.OffsetInFileLocation;
-import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.ProblemCategory;
-import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.api.problems.internal.DefaultFileLocation;
 import org.gradle.api.problems.internal.DefaultLineInFileLocation;
 import org.gradle.api.problems.internal.DefaultOffsetInFileLocation;
@@ -39,6 +32,13 @@ import org.gradle.api.problems.internal.DefaultPluginIdLocation;
 import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.internal.DefaultTaskPathLocation;
+import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.internal.FileLocation;
+import org.gradle.api.problems.internal.LineInFileLocation;
+import org.gradle.api.problems.internal.OffsetInFileLocation;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemCategory;
+import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nonnull;
@@ -243,10 +243,10 @@ public class ValidationProblemSerialization {
         private static FileLocation readObject(JsonReader in) throws IOException {
             String subtype = null;
             String path = null;
-            Integer offset = null;
-            Integer line = null;
-            Integer column = null;
-            Integer length = null;
+            Long offset = null;
+            Long line = null;
+            Long column = null;
+            Long length = null;
             while (in.hasNext()) {
                 String name = in.nextName();
                 switch (name) {
@@ -259,19 +259,19 @@ public class ValidationProblemSerialization {
                         break;
                     }
                     case "offset": {
-                        offset = in.nextInt();
+                        offset = in.nextLong();
                         break;
                     }
                     case "line": {
-                        line = in.nextInt();
+                        line = in.nextLong();
                         break;
                     }
                     case "column": {
-                        column = in.nextInt();
+                        column = in.nextLong();
                         break;
                     }
                     case "length": {
-                        length = in.nextInt();
+                        length = in.nextLong();
                         break;
                     }
                     default:

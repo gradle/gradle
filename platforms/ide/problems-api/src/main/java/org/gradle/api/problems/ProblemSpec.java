@@ -109,9 +109,9 @@ public interface ProblemSpec {
      * @param path the file location
      * @param line the one-indexed line number
      * @return this
-     * @since 8.6
+     * @since 8.7
      */
-    ProblemSpec lineInFileLocation(String path, int line);
+    ProblemSpec lineInFileLocation(String path, long line);
 
     /**
      * Declares that this problem is in a file with on a line at a certain position.
@@ -121,9 +121,9 @@ public interface ProblemSpec {
      * @param line the one-indexed line number
      * @param column the one-indexed column
      * @return this
-     * @since 8.6
+     * @since 8.7
      */
-    ProblemSpec lineInFileLocation(String path, int line, int column);
+    ProblemSpec lineInFileLocation(String path, long line, long column);
 
     /**
      * Declares that this problem is in a file with on a line at a certain position.
@@ -133,9 +133,9 @@ public interface ProblemSpec {
      * @param column the one-indexed column
      * @param length the length of the text
      * @return this
-     * @since 8.6
+     * @since 8.7
      */
-    ProblemSpec lineInFileLocation(String path, int line, int column, int length);
+    ProblemSpec lineInFileLocation(String path, long line, long column, long length);
 
     /**
      * Declares that this problem is in a file at a certain global position with a given length.
@@ -144,9 +144,9 @@ public interface ProblemSpec {
      * @param offset the zero-indexed global offset from the beginning of the file
      * @param length the length of the text
      * @return this
-     * @since 8.6
+     * @since 8.7
      */
-    ProblemSpec offsetInFileLocation(String path, int offset, int length);
+    ProblemSpec offsetInFileLocation(String path, long offset, long length);
 
     /**
      * Declares that this problem is emitted while applying a plugin.

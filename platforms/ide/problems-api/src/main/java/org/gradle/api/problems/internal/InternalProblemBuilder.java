@@ -46,13 +46,13 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder fileLocation(String path);
 
     @Override
-    InternalProblemBuilder lineInFileLocation(String path, int line);
+    InternalProblemBuilder lineInFileLocation(String path, long line);
 
     @Override
-    InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length);
+    InternalProblemBuilder lineInFileLocation(String path, long line, long column, long length);
 
     @Override
-    InternalProblemBuilder offsetInFileLocation(String path, int offset, int length);
+    InternalProblemBuilder offsetInFileLocation(String path, long offset, long length);
 
     @Override
     InternalProblemBuilder pluginLocation(String pluginId);

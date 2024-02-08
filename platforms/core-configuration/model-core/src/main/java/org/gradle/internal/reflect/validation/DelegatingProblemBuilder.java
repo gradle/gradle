@@ -17,10 +17,10 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.DocLink;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
+import org.gradle.api.problems.internal.Problem;
 
 import javax.annotation.Nullable;
 
@@ -59,22 +59,22 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line) {
+    public InternalProblemBuilder lineInFileLocation(String path, long line) {
         return validateDelegate(delegate.lineInFileLocation(path, line));
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line, int column) {
+    public InternalProblemBuilder lineInFileLocation(String path, long line, long column) {
         return validateDelegate(delegate.offsetInFileLocation(path, line, column));
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length) {
+    public InternalProblemBuilder lineInFileLocation(String path, long line, long column, long length) {
         return validateDelegate(delegate.lineInFileLocation(path, line, column, length));
     }
 
     @Override
-    public InternalProblemBuilder offsetInFileLocation(String path, int offset, int length) {
+    public InternalProblemBuilder offsetInFileLocation(String path, long offset, long length) {
         return validateDelegate(delegate.offsetInFileLocation(path, offset, length));
     }
 

@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.protocol.problem;
 
 public interface InternalOffsetInFileLocation extends InternalFileLocation {
 
-    int getOffset();
+    long getOffset();
 
-    int getLength();
+    long getLength();
 }

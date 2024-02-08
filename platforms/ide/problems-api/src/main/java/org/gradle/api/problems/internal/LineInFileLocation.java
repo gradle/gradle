@@ -31,7 +31,7 @@ public interface LineInFileLocation extends FileLocation {
      *
      * @return the line number
      */
-    int getLine();
+    long getLine();
 
     /**
      * The starting column on the selected line.
@@ -41,7 +41,7 @@ public interface LineInFileLocation extends FileLocation {
      *
      * @return the column
      */
-    int getColumn();
+    long getColumn();
 
     /**
      * The length of the selected content starting from specified column.
@@ -49,5 +49,5 @@ public interface LineInFileLocation extends FileLocation {
      *
      * @return the length
      */
-    int getLength();
+    long getLength();
 }

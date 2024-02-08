@@ -28,12 +28,12 @@ public interface OffsetInFileLocation extends FileLocation {
      *
      * @return the zero-indexed the offset
      */
-    int getOffset();
+    long getOffset();
 
     /**
      * The content of the content starting from {@link #getOffset()}.
      *
      * @return the length
      */
-    int getLength();
+    long getLength();
 }
