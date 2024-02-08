@@ -16,7 +16,6 @@
 
 package org.gradle.caching.local.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.cache.PersistentCache;
 import org.gradle.caching.BuildCacheEntryReader;
@@ -24,7 +23,7 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.internal.DefaultBuildCacheKey;
+import org.gradle.caching.internal.BuildCacheKeyInternal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.PathKeyFileStore;
@@ -44,22 +43,22 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        return cache.load(((DefaultBuildCacheKey) key).getHashCodeInternal(), reader::readFrom);
+        return cache.load(((BuildCacheKeyInternal) key).getHashCodeInternal(), reader::readFrom);
     }
 
     @Override
-    public void loadLocally(BuildCacheKey key, Action<? super File> reader) {
-        cache.loadLocally(((DefaultBuildCacheKey) key).getHashCodeInternal(), reader::execute);
+    public void loadLocally(BuildCacheKey key, Consumer<? super File> reader) {
+        cache.loadLocally(((BuildCacheKeyInternal) key).getHashCodeInternal(), reader);
     }
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter result) throws BuildCacheException {
-        cache.store(((DefaultBuildCacheKey) key).getHashCodeInternal(), result::writeTo);
+        cache.store(((BuildCacheKeyInternal) key).getHashCodeInternal(), result::writeTo);
     }
 
     @Override
     public void storeLocally(BuildCacheKey key, File file) {
-        cache.storeLocally(((DefaultBuildCacheKey) key).getHashCodeInternal(), file);
+        cache.storeLocally(((BuildCacheKeyInternal) key).getHashCodeInternal(), file);
     }
 
     @Override

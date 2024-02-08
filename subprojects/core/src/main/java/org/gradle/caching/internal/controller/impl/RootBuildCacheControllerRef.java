@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller;
+package org.gradle.caching.internal.controller.impl;
 
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
@@ -58,11 +59,6 @@ public class RootBuildCacheControllerRef {
         @Override
         public boolean isEnabled() {
             return delegate.isEnabled();
-        }
-
-        @Override
-        public boolean isEmitDebugLogging() {
-            return delegate.isEmitDebugLogging();
         }
 
         @Override

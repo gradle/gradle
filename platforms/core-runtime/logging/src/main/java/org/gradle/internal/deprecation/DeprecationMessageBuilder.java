@@ -244,6 +244,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             /**
              * Output: See DSL_REFERENCE_URL for more details.
              */
+            @CheckReturnValue
             public WithDocumentation withDslReference() {
                 setDocumentation(Documentation.dslReference(propertyClass, property));
                 return new WithDocumentation(builder);

@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal;
+package org.gradle.internal.execution.caching.impl;
 
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.BuildCacheKeyInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.hash.HashCode;
 
-public class DefaultBuildCacheKey implements BuildCacheKey {
+public class DefaultBuildCacheKey implements BuildCacheKeyInternal {
     private final HashCode hashCode;
 
     public DefaultBuildCacheKey(HashCode hashCode) {
@@ -31,6 +33,7 @@ public class DefaultBuildCacheKey implements BuildCacheKey {
         return hashCode.toString();
     }
 
+    @Override
     public HashCode getHashCodeInternal() {
         return hashCode;
     }
@@ -40,8 +43,14 @@ public class DefaultBuildCacheKey implements BuildCacheKey {
         return hashCode.toByteArray();
     }
 
+    @Deprecated
     @Override
     public String getDisplayName() {
+        DeprecationLogger.deprecateMethod(BuildCacheKey.class, "getDisplayName()")
+            .replaceWith("getHashCode()")
+            .willBeRemovedInGradle9()
+            .undocumented()
+            .nagUser();
         return getHashCode();
     }
 

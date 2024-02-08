@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
  *
  * TODO: Extract H2 specific code to a generic "H2Cache" class
  */
-public class H2BuildCacheService implements StatefulNextGenBuildCacheService {
+public class H2BuildCacheService implements StatefulNextGenBuildCacheService, HasCleanupAction {
 
     private static final String DATABASE_NAME = "filestore";
 

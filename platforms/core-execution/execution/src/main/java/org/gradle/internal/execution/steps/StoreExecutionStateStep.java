@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.internal.DefaultBuildCacheKey;
+import org.gradle.caching.internal.BuildCacheKeyInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
@@ -49,7 +49,7 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext & Cachin
                 .flatMap(cacheKeyCalculatedState -> result.getAfterExecutionOutputState()
                     .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
                     .map(executionOutputState -> new DefaultAfterExecutionState(
-                        ((DefaultBuildCacheKey) cacheKeyCalculatedState.getKey()).getHashCodeInternal(),
+                        ((BuildCacheKeyInternal) cacheKeyCalculatedState.getKey()).getHashCodeInternal(),
                         cacheKeyCalculatedState.getBeforeExecutionState(),
                         executionOutputState
                     )))

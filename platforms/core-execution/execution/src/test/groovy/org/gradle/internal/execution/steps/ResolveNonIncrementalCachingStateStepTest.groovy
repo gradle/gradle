@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList
 class ResolveNonIncrementalCachingStateStepTest extends AbstractResolveCachingStateStepTest<ValidationFinishedContext, ResolveNonIncrementalCachingStateStep<ValidationFinishedContext>> {
     @Override
     ResolveNonIncrementalCachingStateStep<ValidationFinishedContext> createStep() {
-        return new ResolveNonIncrementalCachingStateStep<>(buildCache, delegate)
+        return new ResolveNonIncrementalCachingStateStep<>(buildCache, false, delegate)
     }
 
     def "calculates cache key when execution state is available"() {

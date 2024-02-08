@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.internal.DefaultBuildCacheKey;
+import org.gradle.caching.internal.BuildCacheKeyInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -94,7 +94,7 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
         // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
         // which is currently the _only_ thing this value is used for.
         Duration originExecutionTime = result.getDuration().plus(Duration.ofMillis(snapshotOutputDuration));
-        HashCode buildCacheKey = ((DefaultBuildCacheKey) cacheKeyCalculatedState.getKey()).getHashCodeInternal();
+        HashCode buildCacheKey = ((BuildCacheKeyInternal) cacheKeyCalculatedState.getKey()).getHashCodeInternal();
         return new OriginMetadata(
             buildInvocationScopeId.asString(),
             buildCacheKey,

@@ -27,6 +27,7 @@ dependencies {
     api(project(":base-services"))
     api(project(":build-cache"))
     api(project(":build-cache-base"))
+    api(project(":build-cache-spi"))
     api(project(":build-operations"))
     api(project(":core-api"))
     api(project(":files"))
