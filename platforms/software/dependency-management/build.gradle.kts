@@ -50,28 +50,28 @@ errorprone {
 
 
 dependencies {
-    api(projects.baseAnnotations)
-    api(projects.baseServices)
-    api(projects.buildOperations)
-    api(projects.buildOption)
-    api(projects.core)
-    api(projects.coreApi)
-    api(projects.enterpriseLogging)
-    api(projects.enterpriseOperations)
-    api(projects.execution)
-    api(projects.fileCollections)
-    api(projects.fileTemp)
-    api(projects.files)
-    api(projects.functional)
-    api(projects.hashing)
-    api(projects.logging)
-    api(projects.messaging)
-    api(projects.modelCore)
-    api(projects.persistentCache)
-    api(projects.problemsApi)
-    api(projects.resources)
-    api(projects.security)
-    api(projects.snapshots)
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":build-operations"))
+    api(project(":build-option"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":enterprise-logging"))
+    api(project(":enterprise-operations"))
+    api(project(":execution"))
+    api(project(":file-collections"))
+    api(project(":file-temp"))
+    api(project(":files"))
+    api(project(":functional"))
+    api(project(":hashing"))
+    api(project(":logging"))
+    api(project(":messaging"))
+    api(project(":model-core"))
+    api(project(":persistent-cache"))
+    api(project(":problems-api"))
+    api(project(":resources"))
+    api(project(":security"))
+    api(project(":snapshots"))
 
     api(libs.bouncycastlePgp)
     api(libs.groovy)
@@ -83,10 +83,10 @@ dependencies {
     api(libs.maven3SettingsBuilder)
     api(libs.slf4jApi)
 
-    implementation(projects.baseServicesGroovy)
-    implementation(projects.loggingApi)
-    implementation(projects.resourcesHttp)
-    implementation(projects.buildCacheBase) {
+    implementation(project(":base-services-groovy"))
+    implementation(project(":logging-api"))
+    implementation(project(":resources-http"))
+    implementation(project(":build-cache-base")) {
         because("We use OriginMetadata for transforms")
     }
 
@@ -99,46 +99,46 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.httpcore)
 
-    testImplementation(projects.buildCachePackaging)
-    testImplementation(projects.diagnostics)
-    testImplementation(projects.processServices)
+    testImplementation(project(":build-cache-packaging"))
+    testImplementation(project(":diagnostics"))
+    testImplementation(project(":process-services"))
     testImplementation(libs.asmUtil)
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.groovyXml)
     testImplementation(libs.jsoup)
-    testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.coreApi))
-    testImplementation(testFixtures(projects.execution))
-    testImplementation(testFixtures(projects.messaging))
-    testImplementation(testFixtures(projects.resourcesHttp))
-    testImplementation(testFixtures(projects.snapshots))
-    testImplementation(testFixtures(projects.versionControl))
+    testImplementation(testFixtures(project(":base-services")))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":core-api")))
+    testImplementation(testFixtures(project(":execution")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":resources-http")))
+    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(testFixtures(project(":version-control")))
 
-    integTestImplementation(projects.buildOption)
+    integTestImplementation(project(":build-option"))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.ansiControlSequenceUtil)
     integTestImplementation(libs.groovyJson)
     integTestImplementation(libs.socksProxy) {
         because("SOCKS proxy not part of internal-integ-testing api, since it has limited usefulness, so must be explicitly depended upon")
     }
-    integTestImplementation(testFixtures(projects.security))
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(project(":security")))
+    integTestImplementation(testFixtures(project(":model-core")))
 
-    testFixturesApi(projects.baseServices) {
+    testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
     }
-    testFixturesApi(projects.persistentCache) {
+    testFixturesApi(project(":persistent-cache")) {
         because("Test fixtures export the CacheAccess class")
     }
 
     testFixturesApi(libs.jetty)
-    testFixturesImplementation(projects.core)
-    testFixturesImplementation(testFixtures(projects.core))
-    testFixturesImplementation(testFixtures(projects.resourcesHttp))
-    testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.messaging)
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(testFixtures(project(":resources-http")))
+    testFixturesImplementation(project(":core-api"))
+    testFixturesImplementation(project(":messaging"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.inject)
     testFixturesImplementation(libs.groovyJson)
@@ -149,23 +149,23 @@ dependencies {
     testFixturesApi(libs.testcontainersSpock) {
         because("API because of Groovy compiler bug leaking internals")
     }
-    testFixturesImplementation(projects.jvmServices) {
+    testFixturesImplementation(project(":jvm-services")) {
         because("Groovy compiler bug leaks internals")
     }
     testFixturesImplementation(libs.jettyWebApp) {
         because("Groovy compiler bug leaks internals")
     }
 
-    testRuntimeOnly(projects.distributionsCore) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestImplementation(projects.launcher) {
+    integTestImplementation(project(":launcher")) {
         because("Daemon fixtures need DaemonRegistry")
     }
-    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
         because("Need access to java platforms")
     }
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
     crossVersionTestImplementation(libs.jettyWebApp)
 }
 
