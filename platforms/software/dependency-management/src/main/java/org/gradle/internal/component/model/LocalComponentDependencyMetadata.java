@@ -128,10 +128,10 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         String targetConfiguration = getDependencyConfiguration();
         ConfigurationGraphResolveState toConfiguration = targetComponentState.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {
-            throw variantSelector.getFailureProcessor().configurationNotFoundFailure(consumerSchema, targetConfiguration, targetComponent.getId());
+            throw variantSelector.getFailureProcessor().configurationNotFoundFailure(targetComponent.getId(), targetConfiguration);
         }
 
-        verifyConsumability(consumerSchema, variantSelector, targetComponent, toConfiguration);
+        verifyConsumability(variantSelector, targetComponent, toConfiguration);
         verifyAttributeCompatibility(variantSelector, consumerAttributes, consumerSchema, targetComponent, consumerHasAttributes, toConfiguration);
 
         return toConfiguration;
@@ -143,15 +143,15 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
             AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), consumerAttributes)) {
-                throw variantSelector.getFailureProcessor().incompatibleGraphVariantsFailure(consumerSchema, consumerSchema.withProducer(producerAttributeSchema), consumerAttributes, targetComponent, toConfiguration, false);
+                throw variantSelector.getFailureProcessor().incompatibleRequestedConfigurationFailure(consumerSchema, consumerSchema.withProducer(producerAttributeSchema), consumerAttributes, targetComponent, toConfiguration);
             }
         }
     }
 
-    private void verifyConsumability(AttributesSchemaInternal schema, GraphVariantSelector variantSelector, ComponentGraphResolveMetadata targetComponent, ConfigurationGraphResolveState toConfiguration) {
+    private void verifyConsumability(GraphVariantSelector variantSelector, ComponentGraphResolveMetadata targetComponent, ConfigurationGraphResolveState toConfiguration) {
         ConfigurationGraphResolveMetadata metadata = toConfiguration.getMetadata();
         if (!metadata.isCanBeConsumed()) {
-            throw variantSelector.getFailureProcessor().configurationNotConsumableFailure(schema, targetComponent.getId().getDisplayName(), toConfiguration.getName());
+            throw variantSelector.getFailureProcessor().configurationNotConsumableFailure(targetComponent.getId(), toConfiguration.getName());
         }
 
         if (metadata.isDeprecatedForConsumption()) {

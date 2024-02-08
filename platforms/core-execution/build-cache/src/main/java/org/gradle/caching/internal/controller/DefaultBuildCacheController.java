@@ -48,6 +48,7 @@ import org.gradle.caching.local.internal.TemporaryFileFactory;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -250,7 +251,8 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 @Override
                 public void run(BuildOperationContext context) throws IOException {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                        OriginWriter originWriter = originMetadataFactory.createWriter(entity.getIdentity(), entity.getType(), executionTime);
+                        HashCode cacheKey = ((BuildCacheKeyInternal) key).getHashCodeInternal();
+                        OriginWriter originWriter = originMetadataFactory.createWriter(entity.getIdentity(), entity.getType(), cacheKey, executionTime);
                         BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, fileOutputStream, originWriter);
                         long entryCount = packResult.getEntries();
                         context.setResult(new PackOperationResult(entryCount, file.length()));

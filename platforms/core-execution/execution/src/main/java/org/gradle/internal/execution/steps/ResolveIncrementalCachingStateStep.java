@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Optional;
@@ -36,12 +37,15 @@ public class ResolveIncrementalCachingStateStep<C extends IncrementalChangesCont
     }
 
     @Override
-    protected UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState) {
-        return delegate.execute(work, new IncrementalCachingContext(context, cachingState));
+    protected Optional<HashCode> getPreviousCacheKeyIfApplicable(C context) {
+        return context.getChanges()
+            .flatMap(changes -> context.getPreviousExecutionState()
+                .filter(__ -> changes.getChangeDescriptions().isEmpty())
+                .map(PreviousExecutionState::getCacheKey));
     }
 
     @Override
-    protected Optional<HashCode> cacheKeyFromContext(C context) {
-        return context.getCacheKey();
+    protected UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState) {
+        return delegate.execute(work, new IncrementalCachingContext(context, cachingState));
     }
 }

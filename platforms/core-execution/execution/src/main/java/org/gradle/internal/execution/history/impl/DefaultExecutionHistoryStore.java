@@ -29,7 +29,6 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.util.Optional;
@@ -68,10 +67,10 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     }
 
     @Override
-    public void store(String key, HashCode cacheKey, AfterExecutionState executionState) {
+    public void store(String key, AfterExecutionState executionState) {
         store.put(key, new DefaultPreviousExecutionState(
             executionState.getOriginMetadata(),
-            cacheKey,
+            executionState.getCacheKey(),
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
             executionState.getInputProperties(),

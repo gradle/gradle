@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
@@ -72,12 +72,7 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
     }
 
     private static Provider<Boolean> getCommentsProperty(Project project) {
-        return project.getProviders().gradleProperty(COMMENTS_PROPERTY).map(new Transformer<Boolean, String>() {
-            @Override
-            public Boolean transform(String s) {
-                return Boolean.parseBoolean(s);
-            }
-        });
+        return project.getProviders().gradleProperty(COMMENTS_PROPERTY).map(SerializableLambdas.transformer(Boolean::parseBoolean));
     }
 
     private static class InitBuildOnlyIfSpec implements Spec<Task> {

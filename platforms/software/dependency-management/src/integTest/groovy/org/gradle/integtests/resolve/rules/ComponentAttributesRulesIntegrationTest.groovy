@@ -82,7 +82,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("No matching ${variantTerm()} of org.test:module:1.0 was found. The consumer was configured to find attribute 'quality' with value 'qa' but:")
+            failure.assertHasCause("No matching variant of org.test:module:1.0 was found. The consumer was configured to find attribute 'quality' with value 'qa' but:")
             failure.assertThatCause(containsNormalizedString("Incompatible because this component declares attribute 'quality' with value 'canary' and the consumer needed attribute 'quality' with value 'qa'"))
         }
 
@@ -477,15 +477,5 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         }
         variant
-    }
-
-    static String variantTerm() {
-        if (GradleMetadataResolveRunner.gradleMetadataPublished) {
-            return "variant"
-        }
-        if (!GradleMetadataResolveRunner.useIvy()) {
-            return "variant"
-        }
-        return "configuration"
     }
 }

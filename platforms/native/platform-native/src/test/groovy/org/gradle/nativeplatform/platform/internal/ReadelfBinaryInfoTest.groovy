@@ -22,47 +22,71 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class ReadelfBinaryInfoTest extends Specification {
-    def "reads symbols from readelf from clang 14"() {
+    def "read list of files from readelf"() {
         when:
         def input = """
-Contents of the .debug_info section:
-
-  Compilation Unit @ offset 0x0:
-   Length:        0x81 (32-bit)
-   Version:       5
-   Unit Type:     DW_UT_compile (1)
-   Abbrev Offset: 0x0
-   Pointer Size:  8
- <0><c>: Abbrev Number: 1 (DW_TAG_compile_unit)
-    <d>   DW_AT_producer    : (indexed string: 0x0): Ubuntu clang version 14.0.0-1ubuntu1.1
-    <e>   DW_AT_language    : 33        (C++14)
-    <10>   DW_AT_name        : (indexed string: 0x1): /opt/gradle_gradle/platforms/native/platform-native/build/tmp/teŝt files/ExtractSymb.Test/ljhaq/src/main/cpp/sum.cpp
-    <11>   DW_AT_str_offsets_base: 0x8
-    <15>   DW_AT_stmt_list   : 0x0
-    <19>   DW_AT_comp_dir    : (indexed string: 0x2): /opt/gradle_gradle/platforms/native/platform-native/build/tmp/teŝt files/ExtractSymb.Test/ljhaq/build/obj/main/debug
-    <1a>   DW_AT_low_pc      : (addr_index: 0x0): 1200
-    <1b>   DW_AT_high_pc     : 0x16
-    <1f>   DW_AT_addr_base   : 0x8
- <1><23>: Abbrev Number: 2 (DW_TAG_class_type)
-    <24>   DW_AT_calling_convention: 5  (pass by value)
-    <25>   DW_AT_name        : (indexed string: 0x6): Sum
-    <26>   DW_AT_byte_size   : 1
-    <27>   DW_AT_decl_file   : 2
-    <28>   DW_AT_decl_line   : 8
- <2><29>: Abbrev Number: 3 (DW_TAG_subprogram)
-    <2a>   DW_AT_linkage_name: (indexed string: 0x3): _ZN3Sum3sumEii
-    <2b>   DW_AT_name        : (indexed string: 0x4): sum
-    <2c>   DW_AT_decl_file   : 2
-    <2d>   DW_AT_decl_line   : 10
-    <2e>   DW_AT_type        : <0x44>
-    <32>   DW_AT_declaration : 1
-    <32>   DW_AT_external    : 1
-    <32>   DW_AT_accessibility: 1       (public)
+Symbol table '.symtab' contains 53 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS crt1.o
+     2: 000000000040037c    32 OBJECT  LOCAL  DEFAULT    4 __abi_tag
+     3: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS greeter.cpp
+     4: 00000000004010e0    11 FUNC    LOCAL  DEFAULT   15 _GLOBAL__sub_I_g[...]
+     5: 0000000000404191     1 OBJECT  LOCAL  DEFAULT   26 _ZStL8__ioinit
+     6: 00000000004010a0    59 FUNC    LOCAL  DEFAULT   15 __cxx_global_var_init
+     7: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS main.cpp
+     8: 0000000000401130    11 FUNC    LOCAL  DEFAULT   15 _GLOBAL__sub_I_m[...]
+     9: 0000000000404192     1 OBJECT  LOCAL  DEFAULT   26 _ZStL8__ioinit
+    10: 00000000004010f0    59 FUNC    LOCAL  DEFAULT   15 __cxx_global_var_init
+    11: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS crtstuff.c
+    12: 0000000000401180     0 FUNC    LOCAL  DEFAULT   15 deregister_tm_clones
+    13: 00000000004011b0     0 FUNC    LOCAL  DEFAULT   15 register_tm_clones
+    14: 00000000004011f0     0 FUNC    LOCAL  DEFAULT   15 __do_global_dtors_aux
+    15: 0000000000404190     1 OBJECT  LOCAL  DEFAULT   26 completed.0
+    16: 0000000000403dd8     0 OBJECT  LOCAL  DEFAULT   21 __do_global_dtor[...]
+    17: 0000000000401220     0 FUNC    LOCAL  DEFAULT   15 frame_dummy
+    18: 0000000000403dc0     0 OBJECT  LOCAL  DEFAULT   20 __frame_dummy_in[...]
+    19: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS sum.cpp
+    20: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS multiply.cpp
+    21: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS crtstuff.c
+    22: 00000000004021e0     0 OBJECT  LOCAL  DEFAULT   19 __FRAME_END__
+    23: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS
+    24: 0000000000402014     0 NOTYPE  LOCAL  DEFAULT   18 __GNU_EH_FRAME_HDR
+    25: 0000000000403de0     0 OBJECT  LOCAL  DEFAULT   22 _DYNAMIC
+    26: 0000000000404000     0 OBJECT  LOCAL  DEFAULT   24 _GLOBAL_OFFSET_TABLE_
+    27: 0000000000401300    23 FUNC    GLOBAL DEFAULT   15 _ZN8Multiply8mul[...]
+    28: 0000000000404060     0 NOTYPE  GLOBAL DEFAULT   25 _edata
+    29: 0000000000404050     0 NOTYPE  WEAK   DEFAULT   25 data_start
+    30: 0000000000402000     4 OBJECT  GLOBAL DEFAULT   17 _IO_stdin_used
+    31: 0000000000401290    99 FUNC    GLOBAL DEFAULT   15 main
+    32: 0000000000401030     0 FUNC    GLOBAL DEFAULT  UND _ZSt4endlIcSt11c[...]
+    33: 0000000000401230    22 FUNC    GLOBAL DEFAULT   15 _ZN3Sum3sumEii
+    34: 0000000000404058     0 OBJECT  GLOBAL HIDDEN    25 __dso_handle
+    35: 0000000000401318     0 FUNC    GLOBAL HIDDEN    16 _fini
+    36: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __libc_start_mai[...]
+    37: 0000000000401170     5 FUNC    GLOBAL HIDDEN    15 _dl_relocate_sta[...]
+    38: 0000000000401250    61 FUNC    GLOBAL DEFAULT   15 _ZN7Greeter8sayH[...]
+    39: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __cxa_atexit@GLI[...]
+    40: 0000000000401140    38 FUNC    GLOBAL DEFAULT   15 _start
+    41: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND _ZStlsISt11char_[...]
+    42: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND _ZNSolsEPFRSoS_E[...]
+    43: 0000000000401000     0 FUNC    GLOBAL HIDDEN    13 _init
+    44: 0000000000404060     0 OBJECT  GLOBAL HIDDEN    25 __TMC_END__
+    45: 0000000000404080   272 OBJECT  GLOBAL DEFAULT   26 _ZSt4cout@GLIBCXX_3.4
+    46: 0000000000404050     0 NOTYPE  GLOBAL DEFAULT   25 __data_start
+    47: 0000000000404198     0 NOTYPE  GLOBAL DEFAULT   26 _end
+    48: 0000000000404060     0 NOTYPE  GLOBAL DEFAULT   26 __bss_start
+    49: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND _ZNSt8ios_base4I[...]
+    50: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND _ZNSolsEi@GLIBCXX_3.4
+    51: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND __gmon_start__
+    52: 0000000000401090     0 FUNC    GLOBAL DEFAULT  UND _ZNSt8ios_base4I[...]
 """
         def inputLines = input.readLines()
+        def symbols = ReadelfBinaryInfo.readSymbols(inputLines)
 
         then:
-        ReadelfBinaryInfo.readSymbols(inputLines)*.name == ['sum.cpp']
+        symbols.size() == 4
+        symbols*.name.containsAll(['multiply.cpp', 'sum.cpp', 'greeter.cpp', 'main.cpp'])
     }
 
     @Unroll("reads soname value with #language readelf output")

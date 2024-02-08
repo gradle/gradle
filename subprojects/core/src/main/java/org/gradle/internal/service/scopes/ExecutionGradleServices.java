@@ -69,7 +69,6 @@ import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.ResolveNonIncrementalCachingStateStep;
 import org.gradle.internal.execution.steps.Result;
 import org.gradle.internal.execution.steps.SkipEmptyIncrementalWorkStep;
-import org.gradle.internal.execution.steps.SkipEmptyNonIncrementalWorkStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.Step;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
@@ -165,8 +164,6 @@ public class ExecutionGradleServices {
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
-            // TODO Consider not supporting skip-when-empty for immutable work entirely
-            new SkipEmptyNonIncrementalWorkStep(buildId, workInputListeners,
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new ResolveNonIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
@@ -177,7 +174,7 @@ public class ExecutionGradleServices {
             new NoInputChangesStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             sharedExecutionPipeline
-        ))))))))))));
+        )))))))))));
 
         Step<IdentityContext,WorkspaceResult> mutablePipeline =
             new AssignMutableWorkspaceStep<>(
@@ -187,7 +184,7 @@ public class ExecutionGradleServices {
             new SkipEmptyIncrementalWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveChangesStep<>(changeDetector, emitBuildCacheDebugLogging,
+            new ResolveChangesStep<>(changeDetector,
             new ResolveIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new SkipUpToDateStep<>(

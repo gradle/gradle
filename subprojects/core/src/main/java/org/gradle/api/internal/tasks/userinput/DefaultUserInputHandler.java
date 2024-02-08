@@ -35,7 +35,7 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
-public class DefaultUserInputHandler implements UserInputHandler {
+public class DefaultUserInputHandler extends AbstractUserInputHandler {
     private static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
     private static final List<String> LENIENT_YES_NO_CHOICES = Lists.newArrayList("yes", "no", "y", "n");
     private final OutputEventListener outputEventBroadcaster;
@@ -51,106 +51,84 @@ public class DefaultUserInputHandler implements UserInputHandler {
     }
 
     @Override
-    public Boolean askYesNoQuestion(String question) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(question);
-        builder.append(" [");
-        builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
-        builder.append("] ");
-        return prompt(builder.toString(), value -> {
-            if (YES_NO_CHOICES.contains(value)) {
-                return BooleanUtils.toBoolean(value);
-            }
-            sendPrompt("Please enter 'yes' or 'no': ");
-            return null;
-        });
+    protected UserInteraction newInteraction() {
+        return new InteractiveUserQuestions();
     }
 
     @Override
-    public boolean askBooleanQuestion(String question, final boolean defaultValue) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(question);
-        builder.append(" (default: ");
-        String defaultString = defaultValue ? "yes" : "no";
-        builder.append(defaultString);
-        builder.append(") [");
-        builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
-        builder.append("] ");
-        return prompt(builder.toString(), defaultValue, value -> {
-            if (LENIENT_YES_NO_CHOICES.contains(value.toLowerCase(Locale.US))) {
-                return BooleanUtils.toBoolean(value);
-            }
-            sendPrompt("Please enter 'yes' or 'no' (default: '" + defaultString + "'): ");
-            return null;
-        });
+    public boolean interrupted() {
+        return interrupted.get();
     }
 
-    private <T> T selectOption(String question, Collection<T> options, T defaultOption, Function<T, String> renderer) {
-        if (!options.contains(defaultOption)) {
-            throw new IllegalArgumentException("Default value is not one of the provided options.");
-        }
-        if (options.size() == 1) {
-            return defaultOption;
-        }
+    private void sendPrompt(String prompt) {
+        outputEventBroadcaster.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt));
+    }
 
-        final List<T> values = new ArrayList<T>(options);
-        StringBuilder builder = new StringBuilder();
-        builder.append(question);
-        builder.append(":");
-        builder.append(TextUtil.getPlatformLineSeparator());
-        for (int i = 0; i < options.size(); i++) {
-            T option = values.get(i);
-            builder.append("  ");
-            builder.append(i + 1);
-            builder.append(": ");
-            builder.append(renderer.apply(option));
-            builder.append(TextUtil.getPlatformLineSeparator());
-        }
-        builder.append("Enter selection (default: ");
-        builder.append(renderer.apply(defaultOption));
-        builder.append(") [1..");
-        builder.append(options.size());
-        builder.append("] ");
-        return prompt(builder.toString(), defaultOption, new Transformer<T, String>() {
-            @Override
-            public T transform(String sanitizedInput) {
-                if (sanitizedInput.matches("\\d+")) {
-                    int value = Integer.parseInt(sanitizedInput);
-                    if (value > 0 && value <= values.size()) {
-                        return values.get(value - 1);
-                    }
+    private String sanitizeInput(String input) {
+        return CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(input));
+    }
+
+    private class InteractiveUserQuestions implements UserInteraction {
+        private boolean hasPrompted;
+
+        @Override
+        public Boolean askYesNoQuestion(String question) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(question);
+            builder.append(" [");
+            builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
+            builder.append("] ");
+            return prompt(builder.toString(), value -> {
+                if (YES_NO_CHOICES.contains(value)) {
+                    return BooleanUtils.toBoolean(value);
                 }
-                sendPrompt("Please enter a value between 1 and " + options.size() + ": ");
+                sendPrompt("Please enter 'yes' or 'no': ");
                 return null;
-            }
-        });
-    }
-
-    @Override
-    public <T> T selectOption(String question, final Collection<T> options, final T defaultOption) {
-        return choice(question, options).defaultOption(defaultOption).ask();
-    }
-
-    @Override
-    public <T> ChoiceBuilder<T> choice(String question, Collection<T> options) {
-        if (options.isEmpty()) {
-            throw new IllegalArgumentException("No options provided.");
+            });
         }
-        return new DefaultChoiceBuilder<>(options, question);
-    }
 
-    @Override
-    public int askIntQuestion(String question, int minValue, int defaultValue) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(question);
-        builder.append(" (min: ");
-        builder.append(minValue);
-        builder.append(", default: ");
-        builder.append(defaultValue);
-        builder.append("): ");
-        return prompt(builder.toString(), defaultValue, new Transformer<Integer, String>() {
-            @Override
-            public Integer transform(String sanitizedValue) {
+        @Override
+        public boolean askBooleanQuestion(String question, final boolean defaultValue) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(question);
+            builder.append(" (default: ");
+            String defaultString = defaultValue ? "yes" : "no";
+            builder.append(defaultString);
+            builder.append(") [");
+            builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
+            builder.append("] ");
+            return prompt(builder.toString(), defaultValue, value -> {
+                if (LENIENT_YES_NO_CHOICES.contains(value.toLowerCase(Locale.US))) {
+                    return BooleanUtils.toBoolean(value);
+                }
+                sendPrompt("Please enter 'yes' or 'no' (default: '" + defaultString + "'): ");
+                return null;
+            });
+        }
+
+        @Override
+        public <T> T selectOption(String question, final Collection<T> options, final T defaultOption) {
+            return choice(question, options).defaultOption(defaultOption).ask();
+        }
+
+        @Override
+        public <T> Choice<T> choice(String question, Collection<T> options) {
+            if (options.isEmpty()) {
+                throw new IllegalArgumentException("No options provided.");
+            }
+            return new InteractiveChoiceBuilder<>(this, options, question);
+        }
+
+        @Override
+        public int askIntQuestion(String question, int minValue, int defaultValue) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(question);
+            builder.append(" (min: ");
+            builder.append(minValue);
+            builder.append(", default: ");
+            builder.append(defaultValue);
+            builder.append("): ");
+            return prompt(builder.toString(), defaultValue, sanitizedValue -> {
                 try {
                     int result = Integer.parseInt(sanitizedValue);
                     if (result >= minValue) {
@@ -162,123 +140,152 @@ public class DefaultUserInputHandler implements UserInputHandler {
                     sendPrompt("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
                     return null;
                 }
-            }
-        });
-    }
+            });
+        }
 
-    @Override
-    public String askQuestion(String question, final String defaultValue) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(question);
-        builder.append(" (default: ");
-        builder.append(defaultValue);
-        builder.append("): ");
-        return prompt(builder.toString(), defaultValue, new Transformer<String, String>() {
-            @Override
-            public String transform(String sanitizedValue) {
-                return sanitizedValue;
-            }
-        });
-    }
+        @Override
+        public String askQuestion(String question, final String defaultValue) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(question);
+            builder.append(" (default: ");
+            builder.append(defaultValue);
+            builder.append("): ");
+            return prompt(builder.toString(), defaultValue, sanitizedValue -> sanitizedValue);
+        }
 
-    @Override
-    public boolean interrupted() {
-        return interrupted.get();
-    }
-
-    private <T> T prompt(String prompt, final T defaultValue, final Transformer<T, String> parser) {
-        T result = prompt(prompt, new Transformer<T, String>() {
-            @Override
-            public T transform(String sanitizedInput) {
+        private <T> T prompt(String prompt, final T defaultValue, final Transformer<T, String> parser) {
+            T result = prompt(prompt, sanitizedInput -> {
                 if (sanitizedInput.isEmpty()) {
                     return defaultValue;
                 }
                 return parser.transform(sanitizedInput);
+            });
+            if (result == null) {
+                return defaultValue;
             }
-        });
-        if (result == null) {
-            return defaultValue;
-        }
-        return result;
-    }
-
-    @Nullable
-    private <T> T prompt(String prompt, Transformer<T, String> parser) {
-        if (interrupted.get()) {
-            return null;
+            return result;
         }
 
-        outputEventBroadcaster.onOutput(new UserInputRequestEvent());
-        try {
-            // Add a line before the first question that has been asked of the user
-            // This makes the assumption that all questions happen together, which is ok for now
-            // It would be better to allow this handler to ask the output renderers to show a blank line before the prompt, if not already present
-            if (hasAsked.compareAndSet(false, true)) {
+        @Nullable
+        private <T> T prompt(String prompt, Transformer<T, String> parser) {
+            if (interrupted.get()) {
+                return null;
+            }
+
+            if (!hasPrompted) {
+                outputEventBroadcaster.onOutput(new UserInputRequestEvent());
+                hasPrompted = true;
+            }
+
+            try {
+                // Add a line before the first question that has been asked of the user
+                // This makes the assumption that all questions happen together, which is ok for now
+                // It would be better to allow this handler to ask the output renderers to show a blank line before the prompt, if not already present
+                if (hasAsked.compareAndSet(false, true)) {
+                    sendPrompt(TextUtil.getPlatformLineSeparator());
+                }
+                sendPrompt(prompt);
+                while (true) {
+                    String input = userInputReader.readInput();
+                    if (input == null) {
+                        interrupted.set(true);
+                        return null;
+                    }
+
+                    String sanitizedInput = sanitizeInput(input);
+                    T result = parser.transform(sanitizedInput);
+                    if (result != null) {
+                        return result;
+                    }
+                }
+            } finally {
+                // Send an end-of-line. This is a workaround to convince the console that the cursor is at the start of the line to avoid indenting the next line of text that is displayed
+                // It would be better for the console to listen for stuff read from stdin that would also be echoed to the output and update its state based on this
                 sendPrompt(TextUtil.getPlatformLineSeparator());
             }
-            sendPrompt(prompt);
-            while (true) {
-                String input = userInputReader.readInput();
-                if (input == null) {
-                    interrupted.set(true);
-                    return null;
-                }
+        }
 
-                String sanitizedInput = sanitizeInput(input);
-                T result = parser.transform(sanitizedInput);
-                if (result != null) {
-                    return result;
-                }
+        private <T> T selectOption(String question, Collection<T> options, T defaultOption, Function<T, String> renderer) {
+            if (!options.contains(defaultOption)) {
+                throw new IllegalArgumentException("Default value is not one of the provided options.");
             }
-        } finally {
-            // Send an end-of-line. This is a workaround to convince the console that the cursor is at the start of the line to avoid indenting the next line of text that is displayed
-            // It would be better for the console to listen for stuff read from stdin that would also be echoed to the output and update its state based on this
-            sendPrompt(TextUtil.getPlatformLineSeparator());
-            outputEventBroadcaster.onOutput(new UserInputResumeEvent());
+            if (options.size() == 1) {
+                return defaultOption;
+            }
+
+            final List<T> values = new ArrayList<>(options);
+            StringBuilder builder = new StringBuilder();
+            builder.append(question);
+            builder.append(":");
+            builder.append(TextUtil.getPlatformLineSeparator());
+            for (int i = 0; i < options.size(); i++) {
+                T option = values.get(i);
+                builder.append("  ");
+                builder.append(i + 1);
+                builder.append(": ");
+                builder.append(renderer.apply(option));
+                builder.append(TextUtil.getPlatformLineSeparator());
+            }
+            builder.append("Enter selection (default: ");
+            builder.append(renderer.apply(defaultOption));
+            builder.append(") [1..");
+            builder.append(options.size());
+            builder.append("] ");
+            return prompt(builder.toString(), defaultOption, sanitizedInput -> {
+                if (sanitizedInput.matches("\\d+")) {
+                    int value = Integer.parseInt(sanitizedInput);
+                    if (value > 0 && value <= values.size()) {
+                        return values.get(value - 1);
+                    }
+                }
+                sendPrompt("Please enter a value between 1 and " + options.size() + ": ");
+                return null;
+            });
+        }
+
+        @Override
+        public void finish() {
+            if (hasPrompted) {
+                outputEventBroadcaster.onOutput(new UserInputResumeEvent());
+            }
         }
     }
 
-    private void sendPrompt(String prompt) {
-        outputEventBroadcaster.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt));
-    }
-
-    private String sanitizeInput(String input) {
-        return CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(input));
-    }
-
-    private class DefaultChoiceBuilder<T> implements ChoiceBuilder<T> {
+    private static class InteractiveChoiceBuilder<T> implements Choice<T> {
+        private final InteractiveUserQuestions owner;
         private final Collection<T> options;
         private final String question;
         private T defaultOption;
         private Function<T, String> renderer = Object::toString;
 
-        public DefaultChoiceBuilder(Collection<T> options, String question) {
+        public InteractiveChoiceBuilder(InteractiveUserQuestions owner, Collection<T> options, String question) {
+            this.owner = owner;
             this.options = options;
             this.question = question;
             defaultOption = options.iterator().next();
         }
 
         @Override
-        public ChoiceBuilder<T> renderUsing(Function<T, String> renderer) {
+        public Choice<T> renderUsing(Function<T, String> renderer) {
             this.renderer = renderer;
             return this;
         }
 
         @Override
-        public ChoiceBuilder<T> defaultOption(T defaultOption) {
+        public Choice<T> defaultOption(T defaultOption) {
             this.defaultOption = defaultOption;
             return this;
         }
 
         @Override
-        public ChoiceBuilder<T> whenNotConnected(T defaultOption) {
+        public Choice<T> whenNotConnected(T defaultOption) {
             // Ignore
             return this;
         }
 
         @Override
         public T ask() {
-            return selectOption(question, options, defaultOption, renderer);
+            return owner.selectOption(question, options, defaultOption, renderer);
         }
     }
 }

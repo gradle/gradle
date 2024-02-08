@@ -84,27 +84,4 @@ abstract class AbstractResolveCachingStateStepTest<C extends ValidationFinishedC
             context.cachingState.whenDisabled().map { it.disabledReasons }.get() as List == [disabledReason]
         }) >> delegateResult
     }
-
-    def "calculates cache key when execution state is available"() {
-        delegateResult.executionReasons >> ImmutableList.of()
-        delegateResult.reusedOutputOriginMetadata >> Optional.empty()
-        delegateResult.afterExecutionOutputState >> Optional.empty()
-
-        when:
-        step.execute(work, context)
-        then:
-        _ * buildCache.enabled >> buildCacheEnabled
-        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-
-        _ * context.validationProblems >> ImmutableList.of()
-        1 * delegate.execute(work, { CachingContext context ->
-            def buildCacheKey = buildCacheEnabled
-                ? context.cachingState.whenEnabled().get().key
-                : context.cachingState.whenDisabled().get().key.get()
-            buildCacheKey != null
-        }) >> delegateResult
-
-        where:
-        buildCacheEnabled << [true, false]
-    }
 }

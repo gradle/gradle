@@ -17,12 +17,15 @@
 package org.gradle.configurationcache
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.GradleRunner
+import spock.lang.Issue
 
 @Requires(UnitTestPreconditions.NotWindows)
-class ConfigurationCacheTestkitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
     def "reports when a TestKit build runs with a Java agent and configuration caching enabled"() {
         def builder = artifactBuilder()
         builder.sourceFile("TestAgent.java") << """
@@ -68,5 +71,52 @@ class ConfigurationCacheTestkitIntegrationTest extends AbstractConfigurationCach
 
         then:
         !output.contains("configuration cache")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27956")
+    def "dependencies of builds tested with TestKit in debug mode are instrumented and violations are reported"() {
+        given:
+        file("included/src/main/java/MyPlugin.java") << """
+            import org.gradle.api.*;
+
+            public class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    String returned = System.getProperty("my.property");
+                    System.out.println("returned = " + returned);
+                }
+            }
+        """
+        file("included/build.gradle") << """plugins { id("java-gradle-plugin") }"""
+        file("included/settings.gradle") << "rootProject.name = 'included'"
+        buildFile.text = """
+            buildscript {
+                dependencies {
+                    classpath(files("./included/build/libs/included.jar"))
+                }
+            }
+            apply plugin: MyPlugin
+        """
+        settingsFile << """rootProject.name = 'root'"""
+
+        when:
+        executer.inDirectory(file("included")).withTasks("jar").run()
+        def runner = GradleRunner.create()
+            .withDebug(true)
+            .withArguments("--configuration-cache", "-Dmy.property=my.value", "-i")
+            .forwardOutput()
+            .withProjectDir(testDirectory)
+        if (!GradleContextualExecuter.embedded) {
+            runner.withGradleInstallation(buildContext.gradleHomeDir)
+        }
+        def result = runner.build()
+
+        then:
+        def output = result.output
+        problems.assertResultHasProblems(OutputScrapingExecutionResult.from(output, "")) {
+            withInput("Plugin class 'MyPlugin': system property 'my.property'")
+            ignoringUnexpectedInputs()
+        }
+        output.contains("Configuration cache entry stored.")
     }
 }

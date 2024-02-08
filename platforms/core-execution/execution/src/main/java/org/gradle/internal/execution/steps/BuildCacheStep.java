@@ -71,7 +71,7 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
     @Override
     public AfterExecutionResult execute(UnitOfWork work, C context) {
         return context.getCachingState().fold(
-            cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey()),
+            cachingEnabled -> executeWithCache(work, context, cachingEnabled.getCacheKeyCalculatedState().getKey()),
             cachingDisabled -> executeWithoutCache(work, context)
         );
     }

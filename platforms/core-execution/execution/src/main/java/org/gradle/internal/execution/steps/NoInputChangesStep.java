@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.UnitOfWork;
 
-public class NoInputChangesStep<C extends ValidationFinishedContext, R extends Result> implements Step<C, R> {
+public class NoInputChangesStep<C extends ValidationFinishedContext & CachingContext, R extends Result> implements Step<C, R> {
     private final Step<? super InputChangesContext, ? extends R> delegate;
 
     public NoInputChangesStep(Step<? super InputChangesContext, ? extends R> delegate) {
@@ -27,6 +27,6 @@ public class NoInputChangesStep<C extends ValidationFinishedContext, R extends R
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        return delegate.execute(work, new InputChangesContext(context, null));
+        return delegate.execute(work, new InputChangesContext(context, null, context.getCachingState()));
     }
 }

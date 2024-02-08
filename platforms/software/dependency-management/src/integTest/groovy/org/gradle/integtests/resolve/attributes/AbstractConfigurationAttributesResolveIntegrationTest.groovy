@@ -552,11 +552,11 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("""No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
-  - Variant 'bar' capability test:b:unspecified:
+  - Variant 'bar':
       - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'
       - Other compatible attribute:
           - Doesn't say anything about flavor (required 'free')
-  - Variant 'foo' capability test:b:unspecified declares attribute 'flavor' with value 'free':
+  - Variant 'foo' declares attribute 'flavor' with value 'free':
       - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'""")
     }
 
@@ -648,19 +648,8 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """No matching configuration of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
-  - Configuration 'archives':
-      - Other compatible attributes:
-          - Doesn't say anything about buildType (required 'debug')
-          - Doesn't say anything about flavor (required 'free')
-  - Configuration 'bar':
-      - Other compatible attributes:
-          - Doesn't say anything about buildType (required 'debug')
-          - Doesn't say anything about flavor (required 'free')
-  - Configuration 'foo':
-      - Other compatible attributes:
-          - Doesn't say anything about buildType (required 'debug')
-          - Doesn't say anything about flavor (required 'free')"""
+        failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
+  - None of the variants have attributes."""
     }
 
     def "does not select explicit configuration when it's not consumable"() {
@@ -743,9 +732,9 @@ All of them match the consumer attributes:
 
         then:
         failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
-  - Variant 'bar' capability test:b:unspecified:
+  - Variant 'bar':
       - Incompatible because this component declares attribute 'buildType' with value 'release', attribute 'flavor' with value 'paid' and the consumer needed attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'
-  - Variant 'foo' capability test:b:unspecified declares attribute 'flavor' with value 'free':
+  - Variant 'foo' declares attribute 'flavor' with value 'free':
       - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
 
     }
@@ -1436,12 +1425,7 @@ All of them match the consumer attributes:
           - Provides extra 'extra' but the consumer didn't ask for it
   - Variant 'foo2' capability test:c:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free':
       - Unmatched attribute:
-          - Provides extra 'extra 2' but the consumer didn't ask for it
-The following variants were also considered but didn't match the requested attributes:
-  - Variant 'bar' capability test:c:unspecified declares attribute 'flavor' with value 'free':
-      - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'
-  - Variant 'bar2' capability test:c:unspecified declares attribute 'flavor' with value 'free':
-      - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
+          - Provides extra 'extra 2' but the consumer didn't ask for it"""
 
         when:
         fails ':a:checkRelease'
@@ -1456,13 +1440,7 @@ All of them match the consumer attributes:
           - Provides extra 'extra' but the consumer didn't ask for it
   - Variant 'bar2' capability test:c:unspecified declares attribute 'buildType' with value 'release', attribute 'flavor' with value 'free':
       - Unmatched attribute:
-          - Provides extra 'extra 2' but the consumer didn't ask for it
-The following variants were also considered but didn't match the requested attributes:
-  - Variant 'foo' capability test:c:unspecified declares attribute 'flavor' with value 'free':
-      - Incompatible because this component declares attribute 'buildType' with value 'debug' and the consumer needed attribute 'buildType' with value 'release'
-  - Variant 'foo2' capability test:c:unspecified declares attribute 'flavor' with value 'free':
-      - Incompatible because this component declares attribute 'buildType' with value 'debug' and the consumer needed attribute 'buildType' with value 'release'"""
-
+          - Provides extra 'extra 2' but the consumer didn't ask for it"""
     }
 
     def "context travels down to transitive dependencies with external dependencies in graph"() {
