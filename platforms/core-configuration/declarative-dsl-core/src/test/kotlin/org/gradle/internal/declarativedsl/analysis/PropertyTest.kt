@@ -75,7 +75,7 @@ object PropertyTest {
         var y: Int
     }
 
-    private
+    // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
     val writeOnlyPropertyContributor = object : PropertyExtractor {
         override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> {
             return if (kClass == MyReceiver::class) {

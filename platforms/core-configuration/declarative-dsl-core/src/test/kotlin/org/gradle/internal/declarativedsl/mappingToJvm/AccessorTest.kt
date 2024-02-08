@@ -91,7 +91,7 @@ object AccessorTest {
         return runtimeInstance
     }
 
-    private
+    // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
     val runtimeCustomAccessors = object : RuntimeCustomAccessors {
         override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
             if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
@@ -99,7 +99,7 @@ object AccessorTest {
             else null
     }
 
-    private
+    // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
     val functionContributorWithCustomAccessor = object : FunctionExtractor {
         override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
             if (kClass == MyReceiver::class) {
