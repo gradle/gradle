@@ -4,7 +4,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     embeddedKotlin("plugin.serialization")
+    id("gradlebuild.publish-public-libraries")
 }
+
+description = "Common shared classes used by the Declarative DSL"
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
@@ -16,10 +19,10 @@ tasks.withType<KotlinCompile>().configureEach {
 dependencies {
     api(libs.futureKotlin("compiler-embeddable"))
     api(libs.futureKotlin("stdlib"))
-    api("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
 
     implementation(project(":declarative-dsl-api"))
     implementation(libs.futureKotlin("reflect"))
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 
     testImplementation(libs.futureKotlin("test-junit5"))
