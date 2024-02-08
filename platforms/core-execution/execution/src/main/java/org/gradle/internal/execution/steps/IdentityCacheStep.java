@@ -65,6 +65,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
         }
     }
 
+    // TODO: Move this logic in a step around IdentityCacheStep
     private <T> void emitExecuteDeferredProgressDetails(UnitOfWork work, Identity identity, IdentityCacheResult<T> cacheResult) {
         cacheResult.getOriginMetadata().ifPresent(originMetadata ->
             progressEventEmitter.emitNowIfCurrent(new DefaultExecuteDeferredWorkProgressDetails(
