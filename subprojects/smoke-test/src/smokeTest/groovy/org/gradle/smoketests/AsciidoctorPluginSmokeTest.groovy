@@ -57,19 +57,27 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         TestedVersions.asciidoctor.collectEntries([:]) { version ->
-            [
-                "org.asciidoctor.decktape",
+            def base = [
                 "org.asciidoctor.editorconfig",
                 "org.asciidoctor.js.convert",
                 "org.asciidoctor.jvm.convert",
                 "org.asciidoctor.jvm.epub",
                 "org.asciidoctor.jvm.gems",
-                "org.asciidoctor.jvm.leanpub",
-                "org.asciidoctor.jvm.leanpub.dropbox-copy",
                 "org.asciidoctor.jvm.pdf",
-                "org.asciidoctor.jvm.revealjs",
             ].collectEntries { plugin ->
                 [(plugin): Versions.of(version)]
+            }
+            if(version.startsWith("3")) {
+                base + [
+                    "org.asciidoctor.decktape",
+                    "org.asciidoctor.jvm.leanpub",
+                    "org.asciidoctor.jvm.leanpub.dropbox-copy",
+                    "org.asciidoctor.jvm.revealjs",
+                ].collectEntries { plugin ->
+                    [(plugin): Versions.of(version)]
+                }
+            } else {
+                base
             }
         }
     }
