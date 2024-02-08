@@ -19,13 +19,14 @@ package org.gradle.operations.lifecycle;
 import org.gradle.internal.operations.BuildOperationType;
 
 /**
- * A build operation around running the root build.
+ * A build operation around running the main work of the build.
  * <p>
  * This is the execution phase.
+ * The build operation is only fired when you request building tasks.
  *
  * @since 8.7
  */
-public final class ExecuteRootBuildTreeBuildOperationType implements BuildOperationType<ExecuteRootBuildTreeBuildOperationType.Details, ExecuteRootBuildTreeBuildOperationType.Result> {
+public final class RunMainWorkBuildOperationType implements BuildOperationType<RunMainWorkBuildOperationType.Details, RunMainWorkBuildOperationType.Result> {
     public interface Details {
     }
 
