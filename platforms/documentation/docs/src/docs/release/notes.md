@@ -52,7 +52,7 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="java-21"></a>
+<a name="java-22"></a>
 ### Support for building projects with Java 22
 
 Gradle now supports [using Java 22](userguide/compatibility.html#java) for compiling, testing, and starting other Java programs.
