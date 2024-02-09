@@ -112,7 +112,9 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
      * </p>
      *
      * @param elements The elements to add
+     * @since 4.10
      */
+    @SuppressWarnings("unchecked")
     void addAll(T... elements);
 
     /**
@@ -125,6 +127,7 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
      * </p>
      *
      * @param elements The elements to add.
+     * @since 4.10
      */
     void addAll(Iterable<? extends T> elements);
 
