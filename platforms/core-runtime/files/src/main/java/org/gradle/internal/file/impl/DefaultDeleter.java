@@ -213,22 +213,22 @@ public class DefaultDeleter implements Deleter {
     // NOTE: THere is another implementation in core modules, but adding it leads to IDE crash
     private static final class OSDetails {
 
-        private static String OS_NAME;
+        private static String osName;
 
-        private static Boolean IS_WINDOWS;
+        private static Boolean isWindows;
 
         public static boolean runsOnWindows() {
-            if (IS_WINDOWS == null) {
-                IS_WINDOWS = getOSName().startsWith("Windows");
+            if (isWindows == null) {
+                isWindows = getOSName().startsWith("Windows");
             }
-            return IS_WINDOWS;
+            return isWindows;
         }
 
         public static String getOSName() {
-            if (OS_NAME == null) {
-                OS_NAME = System.getProperty("os.name", "Unknown");
+            if (osName == null) {
+                osName = System.getProperty("os.name", "Unknown");
             }
-            return OS_NAME;
+            return osName;
         }
     }
 
