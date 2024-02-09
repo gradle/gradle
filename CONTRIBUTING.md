@@ -1,6 +1,12 @@
-# Contributing to Gradle
+# Contributing to the Gradle Build Tool
 
-Thank you for contributing to Gradle! This guide explains how to:
+Thank you for your interest in contributing to Gradle!
+This guide explains how to contribute to the core Gradle components, 
+extensions and documentation located in this repository.
+For other extensions and components, see the 
+[Gradle Community Resources](https://gradle.org/resources/).
+
+This guide will help you to...
 
 * maximize the chance of your changes being accepted
 * work on the Gradle code base
@@ -32,6 +38,8 @@ Contributors must follow the Code of Conduct outlined at [https://gradle.org/con
 ### Additional help
 
 If you run into any trouble, please reach out to us on the issue you are working on.
+There is a `#contributing` channel on the community Slack which you can use
+to ask any questions.
 
 ## Setting up your development environment
 
@@ -117,6 +125,13 @@ After making changes, you can test your code in 2 ways:
 - Use: `/any/path/bin/gradle taskName`.
 
 It's also a good idea to run `./gradlew sanityCheck` before submitting your change because this will help catch code style issues.
+
+> **NOTE:** Do **NOT** run `gradle build` on the local development environment,
+> even if you have Gradle or Develocity build caching enabled for the project.
+> The Gradle Build Tool repository is massive, and it will take ages to build on
+> a local machine without necessary parallelization and caching.
+> The full test suites are executed on the CI instance for multiple configurations,
+> and you can rely on it after doing initial sanity check and targeted local testing.
 
 ### Submitting Your Change
 
