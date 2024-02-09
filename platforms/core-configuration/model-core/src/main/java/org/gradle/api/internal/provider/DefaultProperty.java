@@ -125,7 +125,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
 
     @Override
     public Property<T> unset() {
-        discardValue();
+        super.unset();
         return this;
     }
 

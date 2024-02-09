@@ -17,8 +17,13 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
+import org.gradle.internal.Cast;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,4 +36,63 @@ public interface MapCollector<K, V> extends ValueSupplier {
     Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest);
 
     void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor);
+
+    /**
+     * Returns a collector that never returns a missing value.
+     */
+    default MapCollector<K, V> absentIgnoring() {
+        MapCollector<K, V> delegate = this;
+        return new MapCollector<K, V>() {
+            @Override
+            public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+                Map<K, V> batch = new LinkedHashMap<>();
+                Value<Void> result = delegate.collectEntries(consumer, collector, batch);
+                if (result.isMissing()) {
+                    return Value.present();
+                }
+                dest.putAll(batch);
+                return result;
+            }
+
+            @Override
+            public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+                ImmutableCollection.Builder<K> batch = ImmutableSet.builder();
+                Value<Void> result = delegate.collectKeys(consumer, collector, batch);
+                if (result.isMissing()) {
+                    return Value.present();
+                }
+                dest.addAll(batch.build());
+                return result;
+            }
+
+            @Override
+            public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+                List<ExecutionTimeValue> values = new LinkedList<>();
+                delegate.calculateExecutionTimeValue(it -> collectIfPresent(values, it));
+                values.forEach(it -> visitor.execute(Cast.uncheckedNonnullCast(it)));
+            }
+
+            private void collectIfPresent(List<ExecutionTimeValue> values, ExecutionTimeValue<? extends Map<? extends K, ? extends V>> it) {
+                if (!it.isMissing()) {
+                    values.add(it);
+                }
+            }
+
+            @Override
+            public ValueProducer getProducer() {
+                return delegate.getProducer();
+            }
+
+            @Override
+            public boolean calculatePresence(ValueConsumer consumer) {
+                // always present
+                return true;
+            }
+
+            @Override
+            public MapCollector<K, V> absentIgnoring() {
+                return this;
+            }
+        };
+    }
 }
