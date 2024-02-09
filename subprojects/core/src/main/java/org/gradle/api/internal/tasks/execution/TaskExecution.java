@@ -98,7 +98,6 @@ public class TaskExecution implements MutableUnitOfWork {
 
     private final TaskInternal task;
     private final TaskExecutionContext context;
-    private final boolean emitLegacySnapshottingOperations;
 
     private final org.gradle.api.execution.TaskActionListener actionListener;
     private final AsyncWorkTracker asyncWorkTracker;
@@ -116,7 +115,6 @@ public class TaskExecution implements MutableUnitOfWork {
     public TaskExecution(
         TaskInternal task,
         TaskExecutionContext context,
-        boolean emitLegacySnapshottingOperations,
 
         org.gradle.api.execution.TaskActionListener actionListener,
         AsyncWorkTracker asyncWorkTracker,
@@ -133,7 +131,6 @@ public class TaskExecution implements MutableUnitOfWork {
     ) {
         this.task = task;
         this.context = context;
-        this.emitLegacySnapshottingOperations = emitLegacySnapshottingOperations;
 
         this.actionListener = actionListener;
         this.asyncWorkTracker = asyncWorkTracker;
@@ -439,13 +436,11 @@ public class TaskExecution implements MutableUnitOfWork {
     public void markLegacySnapshottingInputsStarted() {
         // Note: this operation should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
         //   expects it to be added also when the build cache is enabled (but not the scan plugin)
-        if (emitLegacySnapshottingOperations) {
-            BuildOperationContext operationContext = buildOperationExecutor.start(BuildOperationDescriptor
-                .displayName("Snapshot task inputs for " + task.getIdentityPath())
-                .name("Snapshot task inputs")
-                .details(SNAPSHOT_TASK_INPUTS_DETAILS));
-            context.setSnapshotTaskInputsBuildOperationContext(operationContext);
-        }
+        BuildOperationContext operationContext = buildOperationExecutor.start(BuildOperationDescriptor
+            .displayName("Snapshot task inputs for " + task.getIdentityPath())
+            .name("Snapshot task inputs")
+            .details(SNAPSHOT_TASK_INPUTS_DETAILS));
+        context.setSnapshotTaskInputsBuildOperationContext(operationContext);
     }
 
     @Override

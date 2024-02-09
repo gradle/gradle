@@ -24,6 +24,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
@@ -118,6 +119,15 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         @Override
         public String getOriginBuildInvocationId() {
             return originMetadata.map(OriginMetadata::getBuildInvocationId).orElse(null);
+        }
+
+        @Nullable
+        @Override
+        public byte[] getOriginBuildCacheKeyBytes() {
+            return originMetadata
+                .map(OriginMetadata::getBuildCacheKey)
+                .map(HashCode::toByteArray)
+                .orElse(null);
         }
 
         @Nullable

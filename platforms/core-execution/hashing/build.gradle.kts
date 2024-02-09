@@ -7,6 +7,12 @@ description = "Tools for creating secure hashes for files and other content"
 
 gradlebuildJava.usedInWorkers() // org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
 
+errorprone {
+    disabledChecks.addAll(
+        "ReturnValueIgnored", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-annotations"))
 

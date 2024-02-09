@@ -50,6 +50,7 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
         this.fileOperations = fileOperations;
     }
 
+    @Override
     public ClassSetAnalysisData analyzeClasspathEntry(File classpathEntry) {
         return analyze(classpathEntry, true);
     }

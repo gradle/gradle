@@ -235,6 +235,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             return variantResolver.resolveAdhocVariant(new LocalComponentArtifactResolveMetadata(component), artifacts.build());
         }
 
+        @Override
         public Set<? extends VariantResolveMetadata> getArtifactVariants() {
             return variants;
         }

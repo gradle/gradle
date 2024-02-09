@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -113,7 +112,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     @Override
-    public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
+    public ClassPath resolveClassPath(Configuration classpathConfiguration) {
         FileCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
         FileCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
         return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedExternalDependencies.plus(instrumentedProjectDependencies)));

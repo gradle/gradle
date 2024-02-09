@@ -22,8 +22,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollectionConfigurer;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileCollectionConfigurer;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -146,10 +146,12 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         valueState.finalizeOnNextGet();
     }
 
+    @Override
     public void disallowUnsafeRead() {
         valueState.disallowUnsafeRead();
     }
 
+    @Override
     public int getFactoryId() {
         return ManagedFactories.ConfigurableFileCollectionManagedFactory.FACTORY_ID;
     }

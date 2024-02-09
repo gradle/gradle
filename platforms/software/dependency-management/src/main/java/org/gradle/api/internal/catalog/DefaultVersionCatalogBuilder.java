@@ -166,6 +166,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return model.get();
     }
 
+    @Override
     public void withContext(String context, Runnable action) {
         String oldContext = currentContext;
         currentContext = intern(context);

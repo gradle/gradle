@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r87
 
+
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -110,9 +111,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion("=8.5")
-    def "failure always null in older version"() {
-        buildFile """
-            tasks.register("foo) {
+    def "No problem for exceptions in 8.5"() {
+        // serialization of exceptions is not working in 8.5 (Gson().toJson() fails)
+        withReportProblemTask """
+            throw new RuntimeException("boom")
         """
 
         given:
@@ -128,11 +130,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        def problems = listener.problems.collect { it as ProblemDescriptor }
-        problems.size() == 1
-        problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
-        problems[0].category.category == 'compilation'
-        problems[0].failure == null
+        listener.problems.size() == 0
     }
 
     @TargetGradleVersion(">=8.7")

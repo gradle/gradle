@@ -99,12 +99,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                   - Provides org.gradle.dependency.bundling 'external' but the consumer didn't ask for it
                   - Provides org.gradle.docstype 'sources' but the consumer didn't ask for it
                   - Provides org.gradle.status 'release' but the consumer didn't ask for it
-                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it
-        The following variants were also considered but didn't match the requested attributes:
-          - Variant 'apiElements' capability com.squareup.okhttp3:okhttp:4.4.0:
-              - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'documentation'
-          - Variant 'runtimeElements' capability com.squareup.okhttp3:okhttp:4.4.0:
-              - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'documentation'""")
+                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -125,7 +120,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
      Required by:
          project :
       > No matching variant of project : was found. The consumer was configured to find attribute 'color' with value 'green' but:
-          - Variant 'default' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified:
+          - Variant 'default':
               - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'""")
 
         and: "Helpful resolutions are provided"
@@ -145,13 +140,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("""      > No matching variant of com.squareup.okhttp3:okhttp:4.4.0 was found. The consumer was configured to find attribute 'org.gradle.category' with value 'non-existent-format' but:
-          - Variant 'apiElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+          - Variant 'apiElements':
               - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
-          - Variant 'javadocElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+          - Variant 'javadocElements':
               - Incompatible because this component declares attribute 'org.gradle.category' with value 'documentation' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
-          - Variant 'runtimeElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+          - Variant 'runtimeElements':
               - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
-          - Variant 'sourcesElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+          - Variant 'sourcesElements':
               - Incompatible because this component declares attribute 'org.gradle.category' with value 'documentation' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'""")
 
         and: "Helpful resolutions are provided"
@@ -159,11 +154,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
     }
 
-    def "demonstrate incompatible graph variants selection failure"() {
-        incompatibleGraphVariants.prepare()
+    def 'demonstrate incompatible requested configuration failure'() {
+        incompatibleRequestedConfiguration.prepare()
 
         expect:
-        assertResolutionFailsWithException(incompatibleGraphVariants.exception)
+        assertResolutionFailsWithException(incompatibleRequestedConfiguration.exception)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
@@ -236,8 +231,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertFullMessageCorrect("""     Required by:
          project :
       > Multiple incompatible variants of org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 were selected:
-           - Variant org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 variant blueElementsCapability1 has attributes {color=blue}
-           - Variant org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 variant greenElementsCapability2 has attributes {color=green}""")
+           - Variant blueElementsCapability1 has attributes {color=blue}
+           - Variant greenElementsCapability2 has attributes {color=green}""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -332,13 +327,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
       - Could not resolve com.google.code.gson:gson:2.8.5."""
         String fullOutput = """          - Unable to find a variant of com.google.code.gson:gson:2.8.5 providing the requested capability com.google.code.gson:gson-test-fixtures:
                - Variant compile provides com.google.code.gson:gson:2.8.5
-               - Variant runtime provides com.google.code.gson:gson:2.8.5
-               - Variant sources provides com.google.code.gson:gson:2.8.5
+               - Variant enforced-platform-compile provides com.google.code.gson:gson-derived-enforced-platform:2.8.5
+               - Variant enforced-platform-runtime provides com.google.code.gson:gson-derived-enforced-platform:2.8.5
                - Variant javadoc provides com.google.code.gson:gson:2.8.5
                - Variant platform-compile provides com.google.code.gson:gson-derived-platform:2.8.5
                - Variant platform-runtime provides com.google.code.gson:gson-derived-platform:2.8.5
-               - Variant enforced-platform-compile provides com.google.code.gson:gson-derived-enforced-platform:2.8.5
-               - Variant enforced-platform-runtime provides com.google.code.gson:gson-derived-enforced-platform:2.8.5"""
+               - Variant runtime provides com.google.code.gson:gson:2.8.5
+               - Variant sources provides com.google.code.gson:gson:2.8.5"""
 
         outputContains(basicOutput)
         outputContains(fullOutput)
@@ -406,7 +401,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", AmbiguousGraphVariantsException.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
     private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", NoMatchingGraphVariantsException.class, this.&setupNoMatchingGraphVariantsFailureForProject)
     private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", NoMatchingGraphVariantsException.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
-    private final Demonstration incompatibleGraphVariants = new Demonstration("Incompatible graph variants", IncompatibleGraphVariantsException.class, this.&setupIncompatibleGraphVariantsFailureForProject)
+
+    private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", IncompatibleGraphVariantsException.class, this.&setupIncompatibleRequestedConfigurationFailureForProject)
 
     private final Demonstration configurationNotFound = new Demonstration("Configuration not found", ConfigurationNotFoundException.class, this.&setupConfigurationNotFound)
     private final Demonstration externalConfigurationNotFound = new Demonstration("External configuration not found", ExternalConfigurationNotFoundException.class, this.&setupExternalConfigurationNotFound)
@@ -421,7 +417,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousGraphVariantForExternalDep,
         noMatchingGraphVariantsForProject,
         noMatchingGraphVariantsForExternalDep,
-        incompatibleGraphVariants,
+        incompatibleRequestedConfiguration,
         incompatibleArtifactVariants,
         noMatchingArtifactVariants,
         ambiguousArtifactTransforms,
@@ -707,7 +703,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private void setupIncompatibleGraphVariantsFailureForProject() {
+    private void setupIncompatibleRequestedConfigurationFailureForProject() {
         buildKotlinFile <<  """
             plugins {
                 id("base")

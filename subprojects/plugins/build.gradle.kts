@@ -2,6 +2,14 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+errorprone {
+    disabledChecks.addAll(
+        "InlineMeSuggester", // 7 occurrences
+        "UnusedMethod", // 7 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

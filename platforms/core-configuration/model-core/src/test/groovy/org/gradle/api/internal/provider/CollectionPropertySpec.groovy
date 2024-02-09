@@ -62,6 +62,8 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     abstract AbstractCollectionProperty<String, C> property()
 
+    abstract String getCollectionName()
+
     @Override
     protected void setToNull(Object property) {
         property.set((Iterable) null)
@@ -1301,5 +1303,27 @@ The value of this property is derived from: <source>""")
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
         property.explicit
+    }
+
+    def "has meaningful toString for #valueDescription"(Closure<AbstractCollectionProperty<String, C>> initializer, String stringValue) {
+        given:
+        def p = initializer.call()
+
+        expect:
+        p.toString() == stringValue
+
+        where:
+        valueDescription      | initializer                                    || stringValue
+        "default"             | { propertyWithDefaultValue() }                 || "$collectionName(class ${String.name}, [])"
+        "empty"               | { property().value([]) }                       || "$collectionName(class ${String.name}, [])"
+        "unset"               | { propertyWithNoValue() }                      || "$collectionName(class ${String.name}, missing)"
+        "s1"                  | { property().tap { add("s1") } }               || "$collectionName(class ${String.name}, [s1])"
+        "[s1, s2]"            | { property().value(["s1, s2"]) }               || "$collectionName(class ${String.name}, [s1, s2])"
+        "s1 + s2"             | { property().tap { add("s1"); add("s2") } }    || "$collectionName(class ${String.name}, [s1] + [s2])"
+        "provider {s1}"       | { property().tap { add(Providers.of("s1")) } } || "$collectionName(class ${String.name}, item(fixed(class ${String.name}, s1)))"
+        "provider {[s1, s2]}" | { property().value(Providers.of(["s1, s2"])) } || "$collectionName(class ${String.name}, fixed(class ${ArrayList.name}, [s1, s2]))"
+
+        // The following case abuses Groovy lax type-checking to put an invalid value into the property.
+        "[provider {s1}]"     | { property().value([Providers.of("s1")]) }     || "$collectionName(class ${String.name}, [fixed(class ${String.name}, s1)])"
     }
 }

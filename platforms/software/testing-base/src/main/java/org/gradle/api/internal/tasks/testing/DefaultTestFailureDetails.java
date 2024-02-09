@@ -45,6 +45,7 @@ public class DefaultTestFailureDetails implements TestFailureDetails {
         this.actualContent = actualContent;
     }
 
+    @Override
     public String getMessage() {
         return message;
     }

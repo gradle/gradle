@@ -44,7 +44,7 @@ import org.gradle.internal.session.BuildSessionContext
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.time.Time
 import org.gradle.internal.watch.registry.FileWatcherRegistry
-import org.gradle.internal.watch.vfs.FileSystemWatchingInformation
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.internal.DisconnectableInputStream
 import spock.lang.Timeout
@@ -82,7 +82,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     def textOutputFactory = new TestStyledTextOutputFactory()
     def executorService = Executors.newCachedThreadPool()
     def fileSystemIsWatchingAnyLocations = true
-    def fileSystemWatchingInformation = Stub(FileSystemWatchingInformation) {
+    def virtualFileSystem = Stub(BuildLifecycleAwareVirtualFileSystem) {
         isWatchingAnyLocations() >> {
             fileSystemIsWatchingAnyLocations
         }
@@ -409,7 +409,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
             Time.clock(),
             TestFiles.fileSystem(),
             CaseSensitivity.CASE_SENSITIVE,
-            fileSystemWatchingInformation,
+            virtualFileSystem,
             delegate)
     }
 }

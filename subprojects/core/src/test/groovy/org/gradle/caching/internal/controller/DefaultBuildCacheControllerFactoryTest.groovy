@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal.controller
 
-import org.gradle.api.Action
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
@@ -55,8 +54,6 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         new DefaultBuildCacheServiceRegistration(TestRemoteBuildCache, TestRemoteBuildCacheServiceFactory),
     ])
 
-    boolean emitDebugLogging
-
     private DefaultBuildCacheController createController() {
         createController(DefaultBuildCacheController)
     }
@@ -65,7 +62,6 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         def controller = new DefaultBuildCacheControllerFactory(
             Stub(StartParameterInternal) {
                 isBuildCacheEnabled() >> buildCacheEnabled
-                isBuildCacheDebugLogging() >> emitDebugLogging
             },
             buildOperationExecuter,
             buildOperationProgressEmitter,
@@ -146,19 +142,6 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         }
     }
 
-    def "respects debug logging setting - #setting"() {
-        when:
-        emitDebugLogging = setting
-        config.remote(TestRemoteBuildCache)
-        def c = createController()
-
-        then:
-        c.emitDebugLogging == setting
-
-        where:
-        setting << [true, false]
-    }
-
     def 'when caching is disabled no services are created'() {
         buildCacheEnabled = false
 
@@ -237,8 +220,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         }
 
         @Override
-        void loadLocally(BuildCacheKey key, Action<? super File> reader) {
-
+        void loadLocally(BuildCacheKey key, Consumer<? super File> reader) {
         }
 
         @Override
@@ -248,7 +230,6 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
 
         @Override
         void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-
         }
 
         @Override
@@ -258,7 +239,6 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
 
         @Override
         void withTempFile(HashCode key, Consumer<? super File> action) {
-
         }
     }
 }

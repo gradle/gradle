@@ -49,6 +49,7 @@ public class DefaultProblemCategory implements ProblemCategory, Serializable {
         return new DefaultProblemCategory(namespace, category, subcategories);
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(namespace);

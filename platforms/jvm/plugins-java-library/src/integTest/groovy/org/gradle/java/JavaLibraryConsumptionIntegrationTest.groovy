@@ -103,11 +103,6 @@ All of them match the consumer attributes:
           - Doesn't say anything about its target Java version (required compatibility with Java 7)
           - Provides documentation but the consumer didn't ask for it
           - Provides release status but the consumer didn't ask for it
-          - Provides sources but the consumer didn't ask for it
-The following variants were also considered but didn't match the requested attributes:
-  - Variant 'apiElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a component, and its dependencies declared externally:
-      - Incompatible because this component declares a component for use during compile-time, compatible with Java 8 and the consumer needed a component for use during runtime, compatible with Java 7
-  - Variant 'runtimeElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a component for use during runtime, and its dependencies declared externally:
-      - Incompatible because this component declares a component, compatible with Java 8 and the consumer needed a component, compatible with Java 7"""
+          - Provides sources but the consumer didn't ask for it"""
     }
 }

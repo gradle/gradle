@@ -693,9 +693,9 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         then:
         failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
         failure.assertHasCause("""No matching variant of project :includedBuild was found. The consumer was configured to find attribute 'flavor' with value 'free' but:
-  - Variant 'bar' capability com.acme.external:external:2.0-SNAPSHOT:
+  - Variant 'bar':
       - Incompatible because this component declares attribute 'flavor' with value 'blue' and the consumer needed attribute 'flavor' with value 'free'
-  - Variant 'foo' capability com.acme.external:external:2.0-SNAPSHOT:
+  - Variant 'foo':
       - Incompatible because this component declares attribute 'flavor' with value 'red' and the consumer needed attribute 'flavor' with value 'free'""")
 
         when:

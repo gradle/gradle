@@ -70,7 +70,6 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
                 "The org.gradle.util.VersionNumber type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations",
                 "https://github.com/gretty-gradle-plugin/gretty/issues/297"
             )
-            .expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
             .build()
 
         then:

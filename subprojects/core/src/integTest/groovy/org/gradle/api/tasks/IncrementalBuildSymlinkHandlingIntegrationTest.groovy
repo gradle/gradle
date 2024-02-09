@@ -28,6 +28,11 @@ import java.nio.file.StandardCopyOption
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()
+
+        // Must run on isolated daemons so that symlink data can be properly cleaned up between builds
+        executer.requireDaemon()
+        executer.requireIsolatedDaemons()
+
         buildFile << """
 // This is a workaround to bust the JVM's file canonicalization cache
 def f = file("delete-me")

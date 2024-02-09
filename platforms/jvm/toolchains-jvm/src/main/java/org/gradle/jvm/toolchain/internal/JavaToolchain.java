@@ -75,6 +75,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     }
 
     @Internal
+    @Override
     public Directory getInstallationPath() {
         return javaHome;
     }
