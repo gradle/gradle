@@ -264,7 +264,8 @@ fun functionalTestParameters(os: Os): List<String> {
     return listOf(
         "-PteamCityBuildId=%teamcity.build.id%",
         os.javaInstallationLocations(),
-        "-Porg.gradle.java.installations.auto-download=false"
+        "-Porg.gradle.java.installations.auto-download=false",
+        "-Porg.gradle.java.installations.auto-detect=false",
     )
 }
 
