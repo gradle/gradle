@@ -89,4 +89,18 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
     public String getTaskPath() {
         return taskPath;
     }
+
+    // for backward compatibility
+    @Override
+    public String toString() {
+        if (methodName != null) {
+            return "Test method " + getName() + "(" + getClassName() + ")";
+        } else if (className != null) {
+            return "Test class " + getClassName();
+        } else if (suiteName != null) {
+            return "Test suite '" + getName() + "'";
+        } else {
+            return displayName;
+        }
+    }
 }

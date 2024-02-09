@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r25
 
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.file.TestFile
@@ -115,6 +116,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         assertHasBuildSuccessfulLogging()
     }
 
+    @TargetGradleVersion(">8.6")
     def "receive test progress events for successful test run"() {
         given:
         buildFile << """
@@ -163,25 +165,26 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         workerSuite.descriptor.methodName == null
         workerSuite.descriptor.parent == rootSuite.descriptor
 
-        def testClass = events.operation("Test class example.MyTest")
+        def testClass = events.operation("MyTest")
         testClass.descriptor.jvmTestKind == JvmTestKind.SUITE
         testClass.descriptor.name == 'example.MyTest'
-        testClass.descriptor.displayName == 'Test class example.MyTest'
+        testClass.descriptor.displayName == 'MyTest'
         testClass.descriptor.suiteName == 'example.MyTest'
         testClass.descriptor.className == 'example.MyTest'
         testClass.descriptor.methodName == null
         testClass.descriptor.parent == workerSuite.descriptor
 
-        def testMethod = events.operation("Test foo(example.MyTest)")
+        def testMethod = events.operation("foo")
         testMethod.descriptor.jvmTestKind == JvmTestKind.ATOMIC
         testMethod.descriptor.name == 'foo'
-        testMethod.descriptor.displayName == 'Test foo(example.MyTest)'
+        testMethod.descriptor.displayName == 'foo'
         testMethod.descriptor.suiteName == null
         testMethod.descriptor.className == 'example.MyTest'
         testMethod.descriptor.methodName == 'foo'
         testMethod.descriptor.parent == testClass.descriptor
     }
 
+    @TargetGradleVersion(">8.6")
     def "receive test progress events for failed test run"() {
         given:
         buildFile << """
@@ -234,10 +237,10 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         workerSuite.result instanceof TestFailureResult
         workerSuite.result.failures.size() == 0
 
-        def testClass = events.operation("Test class example.MyTest")
+        def testClass = events.operation("MyTest")
         testClass.descriptor.jvmTestKind == JvmTestKind.SUITE
         testClass.descriptor.name == 'example.MyTest'
-        testClass.descriptor.displayName == 'Test class example.MyTest'
+        testClass.descriptor.displayName == 'MyTest'
         testClass.descriptor.suiteName == 'example.MyTest'
         testClass.descriptor.className == 'example.MyTest'
         testClass.descriptor.methodName == null
@@ -245,10 +248,10 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         testClass.result instanceof TestFailureResult
         testClass.result.failures.size() == 0
 
-        def testMethod = events.operation("Test foo(example.MyTest)")
+        def testMethod = events.operation("foo")
         testMethod.descriptor.jvmTestKind == JvmTestKind.ATOMIC
         testMethod.descriptor.name == 'foo'
-        testMethod.descriptor.displayName == 'Test foo(example.MyTest)'
+        testMethod.descriptor.displayName == 'foo'
         testMethod.descriptor.suiteName == null
         testMethod.descriptor.className == 'example.MyTest'
         testMethod.descriptor.methodName == 'foo'
@@ -263,6 +266,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         testMethod.result.failures[0].causes[0].causes.empty
     }
 
+    @TargetGradleVersion(">8.6")
     def "receive test progress events for skipped test run"() {
         given:
         buildFile << """
@@ -291,7 +295,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
 
         then:
         events.tests.size() == 4
-        def testMethod = events.operation("Test foo(example.MyTest)")
+        def testMethod = events.operation("foo")
         testMethod.result instanceof TestSkippedResult
     }
 

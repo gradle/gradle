@@ -325,6 +325,8 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         void testClass(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
 
         void test(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
+
+        void generatedTest(String name, String className, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
     }
 
     class DefaultTestEventsSpec implements TestEventsSpec {
@@ -381,7 +383,14 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
 
         @Override
         void suite(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-            def child = testEvents.find { it.parent == parent && it.jvmTestKind == JvmTestKind.SUITE && normalizeExecutor(it.suiteName) == name }
+            def child = testEvents.find {
+                it.parent == parent &&
+                    it.jvmTestKind == JvmTestKind.SUITE &&
+                    normalizeExecutor(it.suiteName) == name &&
+                    it.className == null &&
+                    it.methodName == null &&
+                    normalizeExecutor(it.name) == name
+            }
             if (child == null) {
                 failWith("test suite", name)
             }
@@ -393,8 +402,10 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
             def child = testEvents.find {
                 it.parent == parent &&
                     it.jvmTestKind == JvmTestKind.SUITE &&
-                    it.suiteName == null &&
-                    it.className == name
+                    it.suiteName == name &&
+                    it.className == name &&
+                    it.methodName == null &&
+                    it.name == name
             }
             if (child == null) {
                 failWith("test class", name)
@@ -408,6 +419,8 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
                 it.parent == parent &&
                     it.jvmTestKind == JvmTestKind.ATOMIC &&
                     it.suiteName == null &&
+                    it.className == parent.name &&
+                    it.methodName == name &&
                     it.name == name
             }
             if (child == null) {
@@ -416,16 +429,33 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
             assertSpec(child, testEvents, verifiedEvents, spec)
         }
 
+        @Override
+        void generatedTest(String name, String className = null, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+            def expectedClassName = className ?: parent.parent.name
+            def child = testEvents.find {
+                it.parent == parent &&
+                    it.jvmTestKind == JvmTestKind.ATOMIC &&
+                    it.suiteName == null &&
+                    it.className == expectedClassName &&
+                    it.methodName == name &&
+                    it.name == name
+            }
+            if (child == null) {
+                failWith("generated test", name)
+            }
+            assertSpec(child, testEvents, verifiedEvents, spec)
+        }
+
         private void failWith(String what, String name) {
             ErrorMessageBuilder err = new ErrorMessageBuilder()
             def remaining = testEvents.findAll { it.parent == parent && !verifiedEvents.contains(it) }
             if (remaining) {
-                err.title("Expected to find a $what named $name under ${parent.displayName} and none was found. Possible events are:")
+                err.title("Expected to find a '$what' named '$name' under '${parent.displayName}' and none was found. Possible events are:")
                 remaining.each {
                     err.candidate("${it} : Kind=${it.jvmTestKind} suiteName=${it.suiteName} className=${it.className} methodName=${it.methodName} displayName=${it.displayName}")
                 }
             } else {
-                err.title("Expected to find a $what named $name under ${parent.displayName} and none was found. There are no more events available for this parent.")
+                err.title("Expected to find a '$what' named '$name' under '${parent.displayName}' and none was found. There are no more events available for this parent.")
             }
             throw err.build()
         }

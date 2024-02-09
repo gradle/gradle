@@ -47,7 +47,7 @@ class CustomTestTaskProgressEventCrossVersionTest extends ToolingApiSpecificatio
 
         @Override
         void statusChanged(ProgressEvent event) {
-            if (event.descriptor.displayName == "Test suite 'MyCustomTestRoot'") {
+            if (event.descriptor.name == "MyCustomTestRoot") {
                 suiteEvent = event
             } else if (event.descriptor.displayName == 'org.my.MyClass descriptor') {
                 testEvent = event

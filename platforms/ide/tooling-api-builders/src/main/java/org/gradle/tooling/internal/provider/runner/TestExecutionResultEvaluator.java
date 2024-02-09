@@ -123,7 +123,7 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
     private String formatInternalTestExecutionRequest() {
         StringBuilder requestDetails = new StringBuilder(INDENT).append("Requested tests:");
         for (InternalTestDescriptor internalTestDescriptor : internalTestExecutionRequest.getTestExecutionDescriptors()) {
-            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append(internalTestDescriptor.getDisplayName());
+            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append(internalTestDescriptor.toString());
             requestDetails.append(" (Task: '").append(((DefaultTestDescriptor) internalTestDescriptor).getTaskPath()).append("')");
         }
         final Collection<InternalJvmTestRequest> internalJvmTestRequests = internalTestExecutionRequest.getInternalJvmTestRequests();
