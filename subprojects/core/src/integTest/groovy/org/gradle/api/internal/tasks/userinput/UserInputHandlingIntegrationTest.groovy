@@ -437,6 +437,31 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         result.assertTaskSkipped(":generate")
     }
 
+    def "can use askYesNoQuestion"() {
+        buildFile << """
+        task askYesNoQuestion {
+                def result = handler.askYesNoQuestion("thing?")
+                doLast {
+                    println "result = " + result
+                }
+            }
+        """
+
+        when:
+        runWithInput("askYesNoQuestion", input)
+
+        then:
+        result.output.count(YES_NO_PROMPT) == 1
+        outputContains("result = $booleanValue")
+
+        where:
+        input  | booleanValue
+        YES    | true
+        NO     | false
+        "What" | null
+        ""     | null
+    }
+
     void runWithInput(String task, String input) {
         interactiveExecution()
         def gradleHandle = executer.withTasks(task).start()
