@@ -35,7 +35,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
-import org.gradle.operations.lifecycle.RunMainWorkBuildOperationType
+import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 
 class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -228,8 +228,8 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == treeGraphOps[1].id
         notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == treeGraphOps[0].id
 
-        notifications.op(RunRootBuildWorkBuildOperationType.Details).parentId == notifications.op(RunMainWorkBuildOperationType.Details).id
-        notifications.op(RunMainWorkBuildOperationType.Details).parentId == notifications.op(RunBuildBuildOperationType.Details).id
+        notifications.op(RunRootBuildWorkBuildOperationType.Details).parentId == notifications.op(RunRequestedWorkBuildOperationType.Details).id
+        notifications.op(RunRequestedWorkBuildOperationType.Details).parentId == notifications.op(RunBuildBuildOperationType.Details).id
     }
 
     def "emits for GradleBuild tasks"() {

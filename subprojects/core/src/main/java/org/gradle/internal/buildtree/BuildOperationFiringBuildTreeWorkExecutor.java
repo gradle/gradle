@@ -22,10 +22,10 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.operations.lifecycle.RunMainWorkBuildOperationType;
+import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType;
 
 public class BuildOperationFiringBuildTreeWorkExecutor implements BuildTreeWorkExecutor {
-    private static final RunMainWorkBuildOperationType.Details DETAILS = new RunMainWorkBuildOperationType.Details() {};
+    private static final RunRequestedWorkBuildOperationType.Details DETAILS = new RunRequestedWorkBuildOperationType.Details() {};
     private final BuildTreeWorkExecutor delegate;
     private final BuildOperationExecutor executor;
 
