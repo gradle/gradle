@@ -29,7 +29,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
-import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
@@ -84,7 +83,6 @@ class DependencyManagementProjectScopeServices {
         return new DefaultDependencyFactory(
                 instantiator,
                 DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
-                DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
                 new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
                 capabilityNotationParser,
                 objectFactory,

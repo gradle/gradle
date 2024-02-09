@@ -65,6 +65,22 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invokeConstraint(org.gradle.api.artifacts.dsl.DependencyCollector,org.gradle.api.provider.Provider)",
+            "acceptation": "Kotlin name matching is wrong -- this method is annotated",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invokeConstraint(org.gradle.api.artifacts.dsl.DependencyCollector,org.gradle.api.provider.Provider,org.gradle.api.Action)",
+            "acceptation": "Kotlin name matching is wrong -- this method is annotated",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt",
             "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt.registerIfAbsent(org.gradle.api.services.BuildServiceRegistry,java.lang.String,kotlin.reflect.KClass)",
             "acceptation": "Add new default method without action",
