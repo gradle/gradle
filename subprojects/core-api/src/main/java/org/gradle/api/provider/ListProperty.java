@@ -16,8 +16,6 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Action;
-
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -83,10 +81,4 @@ public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T>
      */
     @Override
     ListProperty<T> unsetConvention();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    ListProperty<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action);
 }

@@ -3,91 +3,31 @@
         {
             "type": "org.gradle.api.file.ConfigurableFileCollection",
             "member": "Class org.gradle.api.file.ConfigurableFileCollection",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
+            "acceptation": "Introduce SupportsConvention",
             "changes": [
-                "org.gradle.api.file.FileCollectionConfigurer",
-                "org.gradle.api.provider.ConfigurableValue",
                 "org.gradle.api.provider.SupportsConvention"
             ]
         },
         {
-            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
-            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.add(java.lang.Object)",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
-            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.add(org.gradle.api.provider.Provider)",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
-            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.addAll(java.lang.Iterable)",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
-            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.addAll(java.lang.Object[])",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.provider.CollectionPropertyConfigurer",
-            "member": "Method org.gradle.api.provider.CollectionPropertyConfigurer.addAll(org.gradle.api.provider.Provider)",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
-            "changes": []
-        },
-        {
             "type": "org.gradle.api.provider.HasMultipleValues",
             "member": "Class org.gradle.api.provider.HasMultipleValues",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
+            "acceptation": "Introduce SupportsConvention",
             "changes": [
-                "org.gradle.api.provider.CollectionPropertyConfigurer",
-                "org.gradle.api.provider.ConfigurableValue",
                 "org.gradle.api.provider.SupportsConvention"
             ]
         },
         {
             "type": "org.gradle.api.provider.MapProperty",
             "member": "Class org.gradle.api.provider.MapProperty",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
+            "acceptation": "Introduce SupportsConvention",
             "changes": [
-                "org.gradle.api.provider.ConfigurableValue",
-                "org.gradle.api.provider.MapPropertyConfigurer",
                 "org.gradle.api.provider.SupportsConvention"
             ]
         },
         {
-            "type": "org.gradle.api.provider.MapPropertyConfigurer",
-            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.put(java.lang.Object,java.lang.Object)",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.provider.MapPropertyConfigurer",
-            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.put(java.lang.Object,org.gradle.api.provider.Provider)",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.provider.MapPropertyConfigurer",
-            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.putAll(java.util.Map)",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.provider.MapPropertyConfigurer",
-            "member": "Method org.gradle.api.provider.MapPropertyConfigurer.putAll(org.gradle.api.provider.Provider)",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
-            "changes": []
-        },
-        {
             "type": "org.gradle.api.provider.Property",
             "member": "Class org.gradle.api.provider.Property",
-            "acceptation": "Introduce SupportsConvention/ConfigurableValue to collection properties",
+            "acceptation": "Introduce SupportsConvention",
             "changes": [
                 "org.gradle.api.provider.SupportsConvention"
             ]
