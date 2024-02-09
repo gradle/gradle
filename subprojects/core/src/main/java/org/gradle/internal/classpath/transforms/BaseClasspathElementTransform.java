@@ -33,6 +33,7 @@ import org.objectweb.asm.ClassWriter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.BiConsumer;
 
 /**
  * Base class for the transformations. Note that the order in which entries are visited is not defined.
@@ -63,7 +64,7 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
 
     @Override
     public final void transform(File destination) {
-        classpathBuilder.jar(destination, builder -> {
+        resultBuilder().accept(destination, builder -> {
             try {
                 visitEntries(builder);
             } catch (FileException e) {
@@ -71,6 +72,13 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
                 LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
             }
         });
+    }
+
+    private BiConsumer<File, ClasspathBuilder.Action> resultBuilder() {
+        if (source.isDirectory()) {
+            return classpathBuilder::directory;
+        }
+        return classpathBuilder::jar;
     }
 
     private void visitEntries(ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {

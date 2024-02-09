@@ -114,10 +114,15 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     }
 
     private void doTransform(File input, TransformOutputs outputs, InjectedInstrumentationServices injectedServices) {
-        File outputFile = outputs.file(INSTRUMENTED_JAR_DIR_NAME + "/" + input.getName());
+        String outputPath = getOutputPath(input);
+        File output = input.isDirectory() ? outputs.dir(outputPath) : outputs.file(outputPath);
         ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(isAgentSupported());
         ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
-        transform.transform(outputFile);
+        transform.transform(output);
+    }
+
+    private static String getOutputPath(File input) {
+        return INSTRUMENTED_JAR_DIR_NAME + "/" + input.getName();
     }
 
     private boolean isAgentSupported() {

@@ -30,6 +30,7 @@ import org.gradle.internal.classpath.SystemPropertyAccessingThing
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
 import org.gradle.internal.hash.Hasher
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.objectweb.asm.ClassVisitor
@@ -295,6 +296,22 @@ class ClasspathElementTransformTest extends Specification {
         }
     }
 
+    def "instrumentation for #factory converts directories to directories"() {
+        given:
+        def testDirectory = testDir.createDir("classes").create {
+            file("Foo.class").bytes = classOne()
+        }
+
+        expect:
+        with(transformDirectory(factory, testDirectory)) {
+            assertIsDir()
+            assertHasDescendants("Foo.class")
+        }
+
+        where:
+        factory << [AGENT, LEGACY]
+    }
+
     private enum TransformFactoryType {
         AGENT(ClasspathElementTransformFactoryForAgent::new),
         LEGACY(ClasspathElementTransformFactoryForLegacy::new);
@@ -317,8 +334,17 @@ class ClasspathElementTransformTest extends Specification {
 
     private JarTestFixture transformJar(TransformFactoryType factory, File originalJar) {
         def outputJar = testDir.file("transformed.jar")
-        factory.createFactory(classpathBuilder, classpathWalker).createTransformer(originalJar, new NoOpTransformer(), gradleCoreInstrumentingRegistry).transform(outputJar)
-        return new JarTestFixture(outputJar, 'UTF-8', null, /* checkManifest */ false)
+        return new JarTestFixture(transform(factory, originalJar, outputJar), 'UTF-8', null, /* checkManifest */ false)
+    }
+
+    private TestFile transformDirectory(TransformFactoryType factory, File originalDir) {
+        def outputDir = testDir.file("transformed")
+        return new TestFile(transform(factory, originalDir, outputDir))
+    }
+
+    private File transform(TransformFactoryType factory, File original, File target) {
+        factory.createFactory(classpathBuilder, classpathWalker).createTransformer(original, new NoOpTransformer(), gradleCoreInstrumentingRegistry).transform(target)
+        return target
     }
 
     private static class NoOpTransformer implements ClassTransform {

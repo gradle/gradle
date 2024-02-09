@@ -29,6 +29,14 @@ public interface ClasspathBuilder {
      */
     void jar(File destinationFile, Action action);
 
+    /**
+     * Creates a directory using the given action to add entries to it. If the directory already exists, it will be cleared first.
+     *
+     * @param destinationDir the directory to place entries into
+     * @param action the action to populate the directory
+     */
+    void directory(File destinationDir, Action action);
+
     @FunctionalInterface
     interface Action {
         void execute(EntryBuilder builder) throws IOException;
