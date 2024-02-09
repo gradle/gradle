@@ -229,7 +229,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
-    def "cleans up unused cached JARs in the Jars cache"() {
+    def "cleans up unused cached entries in the Jars cache"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal

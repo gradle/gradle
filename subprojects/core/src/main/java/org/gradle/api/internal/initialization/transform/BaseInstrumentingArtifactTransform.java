@@ -46,9 +46,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 
 import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.InstrumentArtifactTransformParameters;
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_JAR_DIR_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_MARKER_FILE_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_JAR_DIR_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NAME;
 
 /**
  * Base artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
@@ -108,7 +108,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         } else {
             // Jars that are in some mutable location (e.g. build/ directory) need to be copied to the global cache,
             // since daemon keeps them locked when loading them to a classloader, which prevents e.g. deleting the build directory on windows
-            File copyOfOriginalFile = outputs.file(ORIGINAL_JAR_DIR_NAME + "/" + input.getName());
+            File copyOfOriginalFile = outputs.file(ORIGINAL_DIR_NAME + "/" + input.getName());
             GFileUtils.copyFile(input, copyOfOriginalFile);
         }
     }
@@ -122,7 +122,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     }
 
     private static String getOutputPath(File input) {
-        return INSTRUMENTED_JAR_DIR_NAME + "/" + input.getName();
+        return INSTRUMENTED_DIR_NAME + "/" + input.getName();
     }
 
     private boolean isAgentSupported() {

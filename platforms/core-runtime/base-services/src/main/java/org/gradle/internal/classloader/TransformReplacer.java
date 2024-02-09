@@ -100,12 +100,12 @@ public class TransformReplacer implements Closeable {
     }
 
     private Loader createLoaderForDomain(ProtectionDomain domain) {
-        File originalJarPath = getOriginalFile(domain);
-        File transformedPath = originalJarPath != null ? classPath.findTransformedJarFor(originalJarPath) : null;
+        File originalPath = getOriginalFile(domain);
+        File transformedPath = originalPath != null ? classPath.findTransformedEntryFor(originalPath) : null;
         if (transformedPath == null) {
             return SKIP_INSTRUMENTATION;
         } else if (transformedPath.isFile()) {
-            return new JarLoader(originalJarPath, transformedPath);
+            return new JarLoader(originalPath, transformedPath);
         } else if (transformedPath.isDirectory()) {
             return new DirectoryLoader(transformedPath);
         }
