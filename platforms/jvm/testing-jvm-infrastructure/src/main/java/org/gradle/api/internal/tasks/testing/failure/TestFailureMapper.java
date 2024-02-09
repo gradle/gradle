@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.failure;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestFailure;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -80,6 +81,7 @@ public abstract class TestFailureMapper {
     /**
      * Utility method to invoke a method on an object by reflective means.
      */
+    @Nullable
     protected static <T> T invokeMethod(Object obj, String methodName, Class<T> targetClass) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Method method = obj.getClass().getMethod(methodName);
         return targetClass.cast(method.invoke(obj));
