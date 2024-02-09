@@ -37,7 +37,6 @@ import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.ide.AndroidStudioProvisioningExtension
 import gradlebuild.integrationtests.ide.AndroidStudioProvisioningPlugin
 import gradlebuild.performance.Config.performanceTestAndroidStudioJvmArgs
-import gradlebuild.performance.Config.performanceTestAndroidStudioVersion
 import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.ProjectGeneratorTask
@@ -82,11 +81,6 @@ object Config {
     const val performanceTestReportsDir = "performance-tests/report"
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
-
-    // Android Studio Iguana 2023.2.1.16 Canary 16
-    // Find all references here https://developer.android.com/studio/archive
-    // Update verification-medata.xml
-    const val performanceTestAndroidStudioVersion = "2023.2.1.16"
     val performanceTestAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
@@ -109,9 +103,6 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.configureAndroidStudioProvisioning() {
         pluginManager.apply(AndroidStudioProvisioningPlugin::class)
-        extensions.configure(AndroidStudioProvisioningExtension::class) {
-            androidStudioVersion.set(performanceTestAndroidStudioVersion)
-        }
     }
 
     private
