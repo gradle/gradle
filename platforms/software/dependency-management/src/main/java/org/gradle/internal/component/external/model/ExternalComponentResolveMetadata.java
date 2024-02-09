@@ -20,5 +20,6 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 
 public interface ExternalComponentResolveMetadata extends ComponentResolveMetadata {
+    @Override
     ModuleSources getSources();
 }

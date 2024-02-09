@@ -23,6 +23,32 @@ tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
 
 moduleIdentity.createBuildReceipt()
 
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 4 occurrences
+        "EmptyBlockTag", // 2 occurrences
+        "EscapedEntity", // 1 occurrences
+        "FutureReturnValueIgnored", // 1 occurrences
+        "ImmutableEnumChecker", // 1 occurrences
+        "InlineFormatString", // 2 occurrences
+        "InlineMeSuggester", // 1 occurrences
+        "JavaLangClash", // 1 occurrences
+        "MissingCasesInEnumSwitch", // 1 occurrences
+        "MixedMutabilityReturnType", // 3 occurrences
+        "NonAtomicVolatileUpdate", // 2 occurrences
+        "ReturnValueIgnored", // 1 occurrences
+        "StringCaseLocaleUsage", // 8 occurrences
+        "StringSplitter", // 3 occurrences
+        "ThreadLocalUsage", // 4 occurrences
+        "TypeParameterUnusedInFormals", // 5 occurrences
+        "URLEqualsHashCode", // 1 occurrences
+        "UnnecessaryParentheses", // 2 occurrences
+        "UnsynchronizedOverridesSynchronized", // 2 occurrences
+        "UnusedMethod", // 2 occurrences
+        "UnusedVariable", // 3 occurrences
+    )
+}
+
 dependencies {
     api(project(":base-annotations"))
     api(project(":hashing"))
@@ -56,4 +82,3 @@ packageCycles {
 }
 
 jmh.includes = listOf("HashingAlgorithmsBenchmark")
-

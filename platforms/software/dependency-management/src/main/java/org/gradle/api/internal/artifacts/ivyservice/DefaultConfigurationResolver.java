@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -25,7 +27,6 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.ComponentResolversFactory;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
@@ -37,13 +38,14 @@ import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
-import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolversFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
@@ -52,6 +54,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.FailOnVersionConflictGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
@@ -80,7 +83,7 @@ import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -88,7 +91,6 @@ import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.locking.DependencyLockingGraphVisitor;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -127,7 +129,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ResolvedVariantCache resolvedVariantCache;
     private final GraphVariantSelector graphVariantSelector;
     private final ProjectStateRegistry projectStateRegistry;
-    private final ListenerManager listenerManager;
 
     public DefaultConfigurationResolver(
         ComponentResolversFactory componentResolversFactory,
@@ -152,8 +153,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         SelectedVariantSerializer selectedVariantSerializer,
         ResolvedVariantCache resolvedVariantCache,
         GraphVariantSelector graphVariantSelector,
-        ProjectStateRegistry projectStateRegistry,
-        ListenerManager listenerManager
+        ProjectStateRegistry projectStateRegistry
     ) {
         this.componentResolversFactory = componentResolversFactory;
         this.dependencyGraphResolver = dependencyGraphResolver;
@@ -179,39 +179,38 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.resolvedVariantCache = resolvedVariantCache;
         this.graphVariantSelector = graphVariantSelector;
         this.projectStateRegistry = projectStateRegistry;
-        this.listenerManager = listenerManager;
     }
 
     @Override
     public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
         InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder();
-        ProjectComponentObservationListener projectObservationListener = listenerManager.getBroadcaster(ProjectComponentObservationListener.class);
-        ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, getConsumingProjectIdentityPath(resolveContext), projectStateRegistry, projectObservationListener);
-        DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
+        ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
+        DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
 
         ComponentResolvers resolvers = componentResolversFactory.create(resolveContext, ImmutableList.of(), consumerSchema);
-
-        DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(
-            artifactsVisitor,
-            artifactTypeRegistry,
-            calculatedValueContainerFactory,
-            resolvers.getArtifactResolver(),
-            resolvedVariantCache,
-            graphVariantSelector,
-            consumerSchema
-        );
+        DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder, resolvers);
 
         ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, localComponentsVisitor, artifactsGraphVisitor);
-        dependencyGraphResolver.resolveGraph(resolveContext, resolvers, consumerSchema, metadataHandler, IS_LOCAL_EDGE, false, visitors);
+        doResolve(resolveContext, resolvers, false, IS_LOCAL_EDGE, visitors);
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED);
 
         Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, null);
 
+        ResolutionHost resolutionHost = resolveContext.getResolutionHost();
         ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
-        VisitedArtifactSet artifacts = new BuildDependenciesOnlyVisitedArtifactSet(graphResults, artifactsVisitor.complete(), artifactVariantSelector);
-        return DefaultResolverResults.buildDependenciesResolved(graphResults, artifacts);
+        VisitedArtifactSet visitedArtifacts = new DefaultVisitedArtifactSet(graphResults, resolutionHost, artifactsBuilder.complete(), artifactSetResolver, artifactVariantSelector);
+
+        ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(
+            // When resolving build dependencies, we ignore the dependencySpec, potentially capturing a greater
+            // set of build dependencies than actually required. This is because it takes a lot of extra information
+            // from the visited graph to properly filter artifacts by dependencySpec, and we don't want capture that when
+            // calculating build dependencies.
+            dependencySpec -> visitedArtifacts.select(getImplicitSelectionSpec(resolveContext))
+        );
+
+        return DefaultResolverResults.buildDependenciesResolved(graphResults, visitedArtifacts, legacyResolverResults);
     }
 
     @Override
@@ -229,8 +228,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
         StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, attributeContainerSerializer, componentDetailsSerializer, selectedVariantSerializer, attributeDesugaring, componentSelectionDescriptorFactory, resolutionStrategy.getReturnAllVariants());
 
-        ProjectComponentObservationListener projectObservationListener = listenerManager.getBroadcaster(ProjectComponentObservationListener.class);
-        ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, getConsumingProjectIdentityPath(resolveContext), projectStateRegistry, projectObservationListener);
+        ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
 
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
         FileDependencyCollectingGraphVisitor fileDependencyVisitor = new FileDependencyCollectingGraphVisitor();
@@ -259,19 +257,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
 
         ComponentResolvers resolvers = componentResolversFactory.create(resolveContext, getFilteredRepositories(resolveContext), consumerSchema);
-
-        List<DependencyArtifactsVisitor> artifactVisitors = ImmutableList.of(oldModelVisitor, fileDependencyVisitor, artifactsBuilder);
-        graphVisitors.add(new ResolvedArtifactsGraphVisitor(
-            new CompositeDependencyArtifactsVisitor(artifactVisitors),
-            artifactTypeRegistry,
-            calculatedValueContainerFactory,
-            resolvers.getArtifactResolver(),
-            resolvedVariantCache,
-            graphVariantSelector,
-            consumerSchema
+        CompositeDependencyArtifactsVisitor artifactVisitors = new CompositeDependencyArtifactsVisitor(ImmutableList.of(
+            oldModelVisitor, fileDependencyVisitor, artifactsBuilder
         ));
+        graphVisitors.add(artifactVisitorFor(artifactVisitors, resolvers));
 
-        dependencyGraphResolver.resolveGraph(resolveContext, resolvers, consumerSchema, metadataHandler, Specs.satisfyAll(), true, graphVisitors.build());
+        doResolve(resolveContext, resolvers, true, Specs.satisfyAll(), graphVisitors.build());
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.GRAPH_RESOLVED);
 
         VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
@@ -303,24 +294,44 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             lockingVisitor.writeLocks();
         }
 
-        TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(oldTransientModelBuilder, legacyGraphResults);
         ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
+        VisitedArtifactSet visitedArtifacts = new DefaultVisitedArtifactSet(graphResults, resolutionHost, artifactsResults, artifactSetResolver, artifactVariantSelector);
+
+        // Legacy results
+        TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(oldTransientModelBuilder, legacyGraphResults);
         DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(
             resolutionHost,
-            resolveContext.getAttributes().asImmutable(),
-            resolutionStrategy.getSortOrder(),
             graphResults,
             artifactsResults,
             fileDependencyResults,
             transientConfigurationResultsFactory,
             artifactSetResolver,
-            artifactVariantSelector
+            artifactVariantSelector,
+            getImplicitSelectionSpec(resolveContext)
+        );
+        ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
+            lenientConfiguration,
+            new DefaultResolvedConfiguration(graphResults, resolutionHost, visitedArtifacts, lenientConfiguration)
         );
 
-        return DefaultResolverResults.graphResolved(
-            graphResults,
-            new DefaultResolvedConfiguration(lenientConfiguration),
-            lenientConfiguration
+        return DefaultResolverResults.graphResolved(graphResults, visitedArtifacts, legacyResolverResults);
+    }
+
+    private static ArtifactSelectionSpec getImplicitSelectionSpec(ResolveContext resolveContext) {
+        ImmutableAttributes requestAttributes = resolveContext.getAttributes().asImmutable();
+        ResolutionStrategy.SortOrder sortOrder = resolveContext.getResolutionStrategy().getSortOrder();
+        return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), false, false, sortOrder);
+    }
+
+    private ResolvedArtifactsGraphVisitor artifactVisitorFor(DependencyArtifactsVisitor artifactsVisitor, ComponentResolvers resolvers) {
+        return new ResolvedArtifactsGraphVisitor(
+            artifactsVisitor,
+            artifactTypeRegistry,
+            calculatedValueContainerFactory,
+            resolvers.getArtifactResolver(),
+            resolvedVariantCache,
+            graphVariantSelector,
+            consumerSchema
         );
     }
 
@@ -329,13 +340,52 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         return repositoriesSupplier.get();
     }
 
-    @Nullable
-    private static Path getConsumingProjectIdentityPath(ResolveContext resolveContext) {
-        ProjectInternal project = resolveContext.getDomainObjectContext().getProject();
-        if (project != null) {
-            return project.getIdentityPath();
+    /**
+     * Perform dependency resolution and visit the results.
+     */
+    private void doResolve(
+        ResolveContext resolveContext,
+        ComponentResolvers resolvers,
+        boolean includeSyntheticDependencies,
+        Spec<DependencyMetadata> edgeFilter,
+        ImmutableList<DependencyGraphVisitor> visitors
+    ) {
+        ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
+
+        if (resolutionStrategy.isDependencyLockingEnabled()) {
+            if (resolutionStrategy.isFailingOnDynamicVersions()) {
+                throw new InvalidUserCodeException(
+                    "Resolution strategy has both dependency locking and fail on dynamic versions enabled. " +
+                        "You must choose between the two modes."
+                );
+            } else if (resolutionStrategy.isFailingOnChangingVersions()) {
+                throw new InvalidUserCodeException(
+                    "Resolution strategy has both dependency locking and fail on changing versions enabled. " +
+                        "You must choose between the two modes."
+                );
+            }
         }
-        return null;
+
+        // TODO: These dependencies should not be provided separately, but should be part of the root variant.
+        List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ?
+            resolveContext.getSyntheticDependencies() : Collections.emptyList();
+
+        dependencyGraphResolver.resolve(
+            resolveContext.toRootComponent(),
+            syntheticDependencies,
+            edgeFilter,
+            consumerSchema,
+            componentSelectorConverter,
+            resolvers.getComponentIdResolver(),
+            resolvers.getComponentResolver(),
+            metadataHandler.getModuleMetadataProcessor().getModuleReplacements(),
+            resolutionStrategy.getDependencySubstitutionRule(),
+            resolutionStrategy.getConflictResolution(),
+            resolutionStrategy.getCapabilitiesResolutionRules(),
+            resolutionStrategy.isFailingOnDynamicVersions(),
+            resolutionStrategy.isFailingOnChangingVersions(),
+            new CompositeDependencyGraphVisitor(visitors)
+        );
     }
 
     private List<ResolutionAwareRepository> getFilteredRepositories(ResolveContext resolveContext) {

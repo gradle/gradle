@@ -106,13 +106,6 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         )
     }
 
-    void expectProjectConventionDeprecation(VersionNumber versionNumber) {
-        runner.expectLegacyDeprecationWarningIf(
-            versionNumber < VersionNumber.parse("1.7.22"),
-            PROJECT_CONVENTION_DEPRECATION
-        )
-    }
-
     void expectBasePluginConventionDeprecation(VersionNumber versionNumber) {
         runner.expectLegacyDeprecationWarningIf(
             versionNumber < VersionNumber.parse("1.7.0"),
@@ -134,13 +127,6 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         )
     }
 
-    void expectProjectConventionDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber) {
-        runner.expectLegacyDeprecationWarningIf(
-            agpVersionNumber < VersionNumber.parse("7.4.0") || (agpVersionNumber >= VersionNumber.parse("7.4.0") && kotlinVersionNumber < VersionNumber.parse("1.7.0")),
-            PROJECT_CONVENTION_DEPRECATION
-        )
-    }
-
     void expectConventionTypeDeprecation(VersionNumber versionNumber) {
         runner.expectLegacyDeprecationWarningIf(
             shouldExpectConventionTypeDeprecation(versionNumber),
@@ -156,12 +142,12 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
     }
 
     private boolean shouldExpectConventionTypeDeprecation(VersionNumber versionNumber) {
-        versionNumber < VersionNumber.parse("1.7.22")
+        versionNumber < VersionNumber.parse("1.9.0")
     }
 
     void expectConventionTypeDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber) {
         runner.expectLegacyDeprecationWarningIf(
-            agpVersionNumber < VersionNumber.parse("7.4.0") || (agpVersionNumber >= VersionNumber.parse("7.4.0") && kotlinVersionNumber < VersionNumber.parse("1.7.22")),
+            agpVersionNumber < VersionNumber.parse("7.4.0") || kotlinVersionNumber <= VersionNumber.parse("1.9.0"),
             CONVENTION_TYPE_DEPRECATION
         )
     }
@@ -200,7 +186,6 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
         expectConventionTypeDeprecation(versionNumber)
         expectJavaPluginConventionDeprecation(versionNumber)
-        expectProjectConventionDeprecation(versionNumber)
         expectTestReportReportOnDeprecation(versionNumber)
         expectTestReportDestinationDirOnDeprecation(versionNumber)
         expectBuildIdentifierNameDeprecation(versionNumber)

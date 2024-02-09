@@ -37,7 +37,9 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.internal.vfs.FileSystemAccess
+import spock.lang.Issue
 
+import java.nio.file.AccessDeniedException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Duration
@@ -47,11 +49,18 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_
 class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
     def immutableWorkspace = file("immutable-workspace")
     def temporaryWorkspace = file("temporary-workspace")
+    def duplicateTemporaryWorkspace = file("duplicate-temporary-workspace")
     def workspace = Stub(ImmutableWorkspace) {
         immutableLocation >> immutableWorkspace
-        withTemporaryWorkspace(_ as TemporaryWorkspaceAction) >> { TemporaryWorkspaceAction action ->
-            action.executeInTemporaryWorkspace(temporaryWorkspace)
-        }
+        withTemporaryWorkspace(_ as TemporaryWorkspaceAction)
+            >>
+            { TemporaryWorkspaceAction action ->
+                action.executeInTemporaryWorkspace(temporaryWorkspace)
+            }
+            >>
+            { TemporaryWorkspaceAction action ->
+                action.executeInTemporaryWorkspace(duplicateTemporaryWorkspace)
+            }
     }
 
     def deleter = Mock(Deleter)
@@ -163,6 +172,59 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         0 * _
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/27844")
+    def "falls back to duplicating temporary workspace when the original cannot be moved atomically"() {
+        def delegateExecution = Mock(ExecutionEngine.Execution)
+        def delegateDuration = Duration.ofSeconds(1)
+        def delegateOriginMetadata = Stub(OriginMetadata)
+        def delegateOutputFiles = ImmutableSortedMap.of()
+        def delegateOutputState = Stub(ExecutionOutputState) {
+            getOriginMetadata() >> delegateOriginMetadata
+            getOutputFilesProducedByWork() >> delegateOutputFiles
+        }
+        def delegateResult = Stub(CachingResult) {
+            getExecution() >> Try.successful(delegateExecution)
+            getDuration() >> delegateDuration
+            getAfterExecutionOutputState() >> Optional.of(delegateOutputState)
+        }
+
+        when:
+        step.execute(work, context)
+
+        then:
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> Stub(MissingFileSnapshot) {
+            type >> FileType.Missing
+        }
+
+        then:
+        1 * fileSystemAccess.invalidate([temporaryWorkspace.absolutePath])
+
+        then:
+        1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext delegateContext ->
+            assert delegateContext.workspace == temporaryWorkspace
+            temporaryWorkspace.file("output.txt").text = "output"
+            return delegateResult
+        }
+
+        then:
+        1 * immutableWorkspaceMetadataStore.storeWorkspaceMetadata(temporaryWorkspace, _)
+        1 * fileSystemAccess.moveAtomically(temporaryWorkspace.absolutePath, immutableWorkspace.absolutePath) >> { String from, String to ->
+            throw new AccessDeniedException("Simulate Windows keeping file locks open")
+        }
+
+        then:
+        1 * fileSystemAccess.moveAtomically(duplicateTemporaryWorkspace.absolutePath, immutableWorkspace.absolutePath) >>{ String from, String to ->
+            Files.move(Paths.get(from), Paths.get(to))
+        }
+
+        then:
+        1 * deleter.deleteRecursively(temporaryWorkspace)
+
+        then:
+        immutableWorkspace.file("output.txt").text == "output"
+        0 * _
+    }
+
     def "keeps failed outputs in temporary workspace"() {
         def delegateFailure = Mock(Exception)
         def delegateDuration = Duration.ofSeconds(1)
@@ -213,9 +275,6 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
             type >> FileType.Directory
         }
 
-        def originalOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
-            "output", originalOutputFileSnapshot
-        )
         def changedOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
             "output", changedOutputFileSnapshot
         )
@@ -235,7 +294,9 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
 
         then:
         def ex = thrown IllegalStateException
-        ex.message.startsWith("Workspace has been changed")
+        ex.message == "Immutable workspace contents have been modified: ${immutableWorkspace.absolutePath}. " +
+            "These workspace directories are not supposed to be modified once they are created. " +
+            "Deleting the directory in question can allow the content to be recreated."
         0 * _
     }
 }

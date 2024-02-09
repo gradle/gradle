@@ -65,7 +65,7 @@
   {
     "name": "build-cache-base",
     "path": "platforms/core-execution/build-cache-base",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -77,10 +77,24 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-cache-local",
+    "path": "platforms/core-execution/build-cache-local",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-cache-packaging",
     "path": "platforms/core-execution/build-cache-packaging",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "build-cache-spi",
+    "path": "platforms/core-execution/build-cache-spi",
+    "unitTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

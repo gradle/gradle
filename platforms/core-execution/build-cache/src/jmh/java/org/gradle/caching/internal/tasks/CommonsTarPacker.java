@@ -48,7 +48,7 @@ public class CommonsTarPacker implements Packer {
     public void unpack(DataSource input, DataTargetFactory targetFactory) throws IOException {
         TarArchiveInputStream tarInput = new TarArchiveInputStream(input.openInput());
         while (true) {
-            TarArchiveEntry entry = tarInput.getNextTarEntry();
+            TarArchiveEntry entry = tarInput.getNextEntry();
             if (entry == null) {
                 break;
             }

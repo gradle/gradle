@@ -29,6 +29,7 @@ import spock.lang.Issue
 
 import java.util.concurrent.TimeUnit
 
+import static org.gradle.api.internal.artifacts.verification.DependencyVerificationFixture.getChecksum
 import static org.gradle.security.fixtures.SigningFixtures.getValidPublicKeyLongIdHexString
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
 import static org.gradle.security.fixtures.SigningFixtures.validPublicKeyHexString
@@ -76,7 +77,7 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
         given:
         terseConsoleOutput(terse)
         javaLibrary()
-        uncheckedModule("org", "foo", "1.0") {
+        def foo = uncheckedModule("org", "foo", "1.0") {
             withSignature {
                 signAsciiArmored(it)
             }
@@ -99,7 +100,7 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha256' checksum of 'invalid' but was 'f46001e8577ce4fdaf4d1f9aed03311c581b08f9e82bf2406e70553101680212'
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha256' checksum of 'invalid' but was '${getChecksum(foo, "sha256")}'
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }
@@ -855,7 +856,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         given:
         terseConsoleOutput(terse)
         javaLibrary()
-        uncheckedModule("org", "foo", "1.0") {
+        def foo = uncheckedModule("org", "foo", "1.0") {
             withSignature {
                 signAsciiArmored(it)
             }
@@ -876,7 +877,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
         def module = new File(group, "foo")
         def version = new File(module, "1.0")
-        def originHash = new File(version, "d48c8da6999eb2191744f01691f84675e7ff520b")
+        def originHash = new File(version, getChecksum(foo, "sha1"))
         def artifactFile = new File(originHash, "foo-1.0.jar")
         artifactFile.text = "tampered"
         fails ":compileJava"
@@ -959,7 +960,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         given:
         terseConsoleOutput(terse)
         javaLibrary()
-        uncheckedModule("org", "foo", "1.0")
+        def foo = uncheckedModule("org", "foo", "1.0")
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
@@ -980,10 +981,10 @@ This can indicate that a dependency has been compromised. Please carefully verif
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact is not signed
-      - in repository 'maven': expected a 'sha256' checksum of 'nope' but was 'f46001e8577ce4fdaf4d1f9aed03311c581b08f9e82bf2406e70553101680212'
+      - in repository 'maven': expected a 'sha256' checksum of 'nope' but was '${getChecksum(foo, "sha256")}'
   - On artifact foo-1.0.pom (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact is not signed
-      - in repository 'maven': expected a 'sha256' checksum of 'nope' but was 'f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481'
+      - in repository 'maven': expected a 'sha256' checksum of 'nope' but was '${getChecksum(foo, "sha256", "pom")}'
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }

@@ -20,6 +20,7 @@ dependencies {
 
     implementation(project(":basics"))
     implementation(project(":module-identity"))
+    implementation("net.ltgt.gradle:gradle-errorprone-plugin:3.1.0")
 
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.3.0")
     // This Kotlin version should only be updated when updating the above kotlin-dsl version

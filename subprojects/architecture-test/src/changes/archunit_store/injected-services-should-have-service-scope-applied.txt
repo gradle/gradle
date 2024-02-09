@@ -34,7 +34,6 @@ Class <org.gradle.api.internal.properties.GradleProperties> is not annotated wit
 Class <org.gradle.api.internal.tasks.compile.GroovyCompilerFactory> is not annotated with @ServiceScope in (GroovyCompilerFactory.java:0)
 Class <org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory> is not annotated with @ServiceScope in (IncrementalCompilerFactory.java:0)
 Class <org.gradle.api.internal.tasks.options.OptionReader> is not annotated with @ServiceScope in (OptionReader.java:0)
-Class <org.gradle.api.internal.tasks.userinput.UserInputHandler> is not annotated with @ServiceScope in (UserInputHandler.java:0)
 Class <org.gradle.api.logging.LoggingManager> is not annotated with @ServiceScope in (LoggingManager.java:0)
 Class <org.gradle.api.plugins.PluginManager> is not annotated with @ServiceScope in (PluginManager.java:0)
 Class <org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities> is not annotated with @ServiceScope in (JvmLanguageUtilities.java:0)

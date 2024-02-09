@@ -70,6 +70,7 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
         return problems.build();
     }
 
+    @Override
     public ImmutableSortedSet<Class<?>> getValidatedTypes() {
         return ImmutableSortedSet.copyOf(Comparator.comparing(Class::getName), types);
     }

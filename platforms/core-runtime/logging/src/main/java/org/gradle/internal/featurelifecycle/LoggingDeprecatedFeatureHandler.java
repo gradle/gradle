@@ -20,13 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -34,7 +34,6 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
-import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.util.internal.DefaultGradleVersion;
 import org.gradle.util.internal.TextUtil;
@@ -68,11 +67,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private Problems problemsService;
     private GradleException error;
 
-    public void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter, Problems problemsService) {
+    public void init(WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter, Problems problemsService, ProblemStream problemStream) {
         this.warningMode = warningMode;
-        this.problemStream = warningMode.shouldDisplayMessages()
-            ? problemDiagnosticsFactory.newUnlimitedStream()
-            : problemDiagnosticsFactory.newStream();
+        this.problemStream = problemStream;
         this.progressEventEmitter = progressEventEmitter;
         this.problemsService = problemsService;
     }

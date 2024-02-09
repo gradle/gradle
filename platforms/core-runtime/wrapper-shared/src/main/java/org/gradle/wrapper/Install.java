@@ -68,6 +68,7 @@ public class Install {
         final File localZipFile = localDistribution.getZipFile();
 
         return exclusiveFileAccessManager.access(localZipFile, new Callable<File>() {
+            @Override
             public File call() throws Exception {
                 final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
                 if (distDir.isDirectory() && markerFile.isFile()) {

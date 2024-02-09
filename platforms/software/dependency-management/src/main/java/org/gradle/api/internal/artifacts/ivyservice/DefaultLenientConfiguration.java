@@ -17,8 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.artifacts.LenientConfiguration;
-import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -37,20 +35,17 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
@@ -58,6 +53,7 @@ import org.gradle.internal.graph.DirectedGraphWithEdgeValues;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -65,7 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultLenientConfiguration implements LenientConfiguration, VisitedArtifactSet {
+public class DefaultLenientConfiguration implements LenientConfigurationInternal {
 
     private final ResolutionHost resolutionHost;
     private final VisitedGraphResults graphResults;
@@ -81,14 +77,13 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     public DefaultLenientConfiguration(
         ResolutionHost resolutionHost,
-        ImmutableAttributes implicitAttributes,
-        ResolutionStrategy.SortOrder sortOrder,
         VisitedGraphResults graphResults,
         VisitedArtifactResults artifactResults,
         VisitedFileDependencyResults fileDependencyResults,
         TransientConfigurationResultsLoader transientConfigurationResultsLoader,
         ResolvedArtifactSetResolver artifactSetResolver,
-        ArtifactVariantSelector artifactVariantSelector
+        ArtifactVariantSelector artifactVariantSelector,
+        ArtifactSelectionSpec implicitSelectionSpec
     ) {
         this.resolutionHost = resolutionHost;
         this.graphResults = graphResults;
@@ -97,7 +92,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactSetResolver = artifactSetResolver;
         this.artifactVariantSelector = artifactVariantSelector;
-        this.implicitSelectionSpec = new ArtifactSelectionSpec(implicitAttributes, Specs.satisfyAll(), false, false, sortOrder);
+        this.implicitSelectionSpec = implicitSelectionSpec;
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {
@@ -107,27 +102,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return artifactsForThisConfiguration;
     }
 
-    /**
-     * Selects artifacts non-leniently using the implicit selection spec, without filtering.
-     */
-    public SelectedArtifactSet select() {
-        return select(Specs.satisfyAll(), implicitSelectionSpec);
-    }
-
-    /**
-     * Selects artifacts non-leniently using the implicit selection spec, with filtering by first-level dependency.
-     */
-    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec) {
-        return select(dependencySpec, implicitSelectionSpec);
-    }
-
     @Override
-    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, ArtifactSelectionSpec spec) {
-        SelectedArtifactResults artifactResults = this.artifactResults.select(artifactVariantSelector, spec, false);
-
-        if (dependencySpec == Specs.SATISFIES_ALL) {
-            return new DefaultSelectedArtifactSet(artifactSetResolver, graphResults, artifactResults.getArtifacts(), resolutionHost);
-        }
+    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec) {
+        SelectedArtifactResults artifactResults = this.artifactResults.select(artifactVariantSelector, implicitSelectionSpec, false);
 
         return new SelectedArtifactSet() {
             @Override
@@ -147,8 +124,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         };
     }
 
-    public VisitedGraphResults getGraphResults() {
-        return graphResults;
+    @Override
+    public ArtifactSelectionSpec getImplicitSelectionSpec() {
+        return implicitSelectionSpec;
     }
 
     @Override
@@ -158,6 +136,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private TransientConfigurationResults loadTransientGraphResults(SelectedArtifactResults artifactResults) {
         return transientConfigurationResultsFactory.create(artifactResults);
+    }
+
+    @Override
+    public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+        return getFirstLevelModuleDependencies(Specs.SATISFIES_ALL);
     }
 
     @Override
@@ -198,6 +181,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<File> getFiles() {
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
+        resolutionHost.rethrowFailure("files", visitor.getFailures());
         return visitor.files;
     }
 
@@ -206,6 +190,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         ResolvedArtifactSet filteredArtifacts = resolveFilteredArtifacts(dependencySpec, getSelectedArtifacts());
         artifactSetResolver.visitArtifacts(filteredArtifacts, visitor, resolutionHost);
+        resolutionHost.rethrowFailure("files", visitor.getFailures());
         return visitor.files;
     }
 
@@ -213,6 +198,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     public Set<ResolvedArtifact> getArtifacts() {
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
+        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
         return visitor.artifacts;
     }
 
@@ -221,6 +207,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
         ResolvedArtifactSet filteredArtifacts = resolveFilteredArtifacts(dependencySpec, getSelectedArtifacts());
         artifactSetResolver.visitArtifacts(filteredArtifacts, visitor, resolutionHost);
+        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
         return visitor.artifacts;
     }
 
@@ -243,18 +230,10 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return CompositeResolvedArtifactSet.of(artifactSets);
     }
 
-    public String getDisplayName() {
-        return resolutionHost.getDisplayName();
-    }
-
-    @Override
-    public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-        return getFirstLevelModuleDependencies(Specs.SATISFIES_ALL);
-    }
-
     private static class LenientArtifactCollectingVisitor implements ArtifactVisitor {
         final Set<ResolvedArtifact> artifacts = new LinkedHashSet<>();
         final Set<File> files = new LinkedHashSet<>();
+        List<Throwable> failures;
 
         @Override
         public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
@@ -264,6 +243,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 artifacts.add(resolvedArtifact);
             } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
                 //ignore
+            } catch (Exception e) {
+                visitFailure(e);
             }
         }
 
@@ -277,12 +258,20 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
         @Override
         public boolean requireArtifactFiles() {
+            // This is false so that we can download the artifact in `visitArtifact` and ignore missing files
             return false;
         }
 
         @Override
         public void visitFailure(Throwable failure) {
-            throw UncheckedException.throwAsUncheckedException(failure);
+            if (failures == null) {
+                failures = new ArrayList<>();
+            }
+            failures.add(failure);
+        }
+
+        public List<Throwable> getFailures() {
+            return failures != null ? failures : Collections.emptyList();
         }
     }
 

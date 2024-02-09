@@ -17,7 +17,6 @@
 package org.gradle.caching.internal;
 
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
-import org.gradle.cache.HasCleanupAction;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
@@ -31,7 +30,7 @@ import java.io.OutputStream;
 /**
  * Left to keep H2BuildCacheService logic
  */
-public interface StatefulNextGenBuildCacheService extends BuildCacheService, HasCleanupAction, Closeable {
+public interface StatefulNextGenBuildCacheService extends BuildCacheService, Closeable {
     /**
      * Returns whether the given entry exists in the cache.
      *

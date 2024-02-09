@@ -1227,6 +1227,76 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/27844")
+    def "non-incremental transform succeeds even if file handle leaks"() {
+        given:
+        buildFile << declareAttributes() << duplicatorTransform(incremental: false, normalization: "@Classpath") << """
+            class TestState {
+                static OutputStream fileKeptOpen = null
+            }
+
+            abstract class FileLeaker implements TransformAction<TransformParameters.None> {
+
+                @InputArtifact
+                @PathSensitive(PathSensitivity.NONE)
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Override
+                void transform(TransformOutputs outputs) {
+                    // Simulate transform leaving file open
+                    def output = outputs.file("output.txt")
+                    output.createNewFile()
+                    TestState.fileKeptOpen = output.newOutputStream()
+                    TestState.fileKeptOpen << "output"
+                    TestState.fileKeptOpen.flush()
+                }
+            }
+
+            project(':lib') {
+                task jar1(type: Jar) {
+                    archiveFileName = 'lib1.jar'
+                }
+                tasks.withType(Jar) {
+                    destinationDirectory = buildDir
+                }
+                artifacts {
+                    compile jar1
+                }
+            }
+
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            allprojects {
+                dependencies {
+                    registerTransform(FileLeaker) {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "green")
+                    }
+                }
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'green') }
+                    }.artifacts
+                    doLast {
+                        def artifactFiles = artifacts.get().artifactFiles
+                        assert artifactFiles.size() == 1
+                        assert artifactFiles[0].text == "output"
+
+                        // Cleanup
+                        TestState.fileKeptOpen.close()
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds ":util:resolve"
+    }
+
     def "long transformation chain works"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4") << duplicatorTransform() << """

@@ -32,13 +32,59 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
 
+errorprone {
+    disabledChecks.addAll(
+        "BadImport", // 3 occurrences
+        "BadInstanceof", // 6 occurrences (this is from generated code)
+        "BoxedPrimitiveEquality", // 3 occurrences
+        "DefaultCharset", // 4 occurrences
+        "EmptyBlockTag", // 4 occurrences
+        "Finally", // 1 occurrences
+        "HidingField", // 1 occurrences
+        "IdentityHashMapUsage", // 1 occurrences
+        "ImmutableEnumChecker", // 2 occurrences
+        "InconsistentCapitalization", // 2 occurrences
+        "InlineFormatString", // 2 occurrences
+        "InlineMeSuggester", // 1 occurrences
+        "InvalidBlockTag", // 1 occurrences
+        "InvalidInlineTag", // 1 occurrences
+        "InvalidLink", // 2 occurrences
+        "MissingCasesInEnumSwitch", // 1 occurrences
+        "MixedMutabilityReturnType", // 1 occurrences
+        "ModifyCollectionInEnhancedForLoop", // 1 occurrences
+        "MutablePublicArray", // 2 occurrences
+        "NonApiType", // 1 occurrences
+        "NonCanonicalType", // 16 occurrences
+        "NotJavadoc", // 1 occurrences
+        "OperatorPrecedence", // 5 occurrences
+        "OptionalMapUnusedValue", // 1 occurrences
+        "ProtectedMembersInFinalClass", // 1 occurrences
+        "ReferenceEquality", // 2 occurrences
+        "ReturnValueIgnored", // 1 occurrences
+        "SameNameButDifferent", // 11 occurrences
+        "StreamResourceLeak", // 6 occurrences
+        "StringCaseLocaleUsage", // 11 occurrences
+        "StringSplitter", // 2 occurrences
+        "TypeParameterShadowing", // 1 occurrences
+        "TypeParameterUnusedInFormals", // 2 occurrences
+        "UndefinedEquals", // 1 occurrences
+        "UnnecessaryLambda", // 1 occurrences
+        "UnnecessaryParentheses", // 1 occurrences
+        "UnrecognisedJavadocTag", // 1 occurrences
+        "UnusedMethod", // 18 occurrences
+        "UnusedVariable", // 8 occurrences
+    )
+}
+
 dependencies {
     api(project(":base-annotations"))
     api(project(":base-services"))
     api(project(":base-services-groovy"))
     api(project(":build-cache"))
     api(project(":build-cache-base"))
+    api(project(":build-cache-local"))
     api(project(":build-cache-packaging"))
+    api(project(":build-cache-spi"))
     api(project(":build-operations"))
     api(project(":build-option"))
     api(project(":cli"))
@@ -89,7 +135,10 @@ dependencies {
     implementation(libs.groovyTemplates)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
-    implementation(libs.tomlj)
+    implementation(libs.tomlj) {
+        // Used for its nullability annotations, not needed at runtime
+        exclude("org.checkerframework", "checker-qual")
+    }
     implementation(libs.xmlApis)
 
     compileOnly(libs.futureKotlin("stdlib")) {

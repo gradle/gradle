@@ -4,6 +4,12 @@ plugins {
 
 description = "Plugins for building Scala code with Gradle."
 
+errorprone {
+    disabledChecks.addAll(
+        "UnusedMethod", // 2 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

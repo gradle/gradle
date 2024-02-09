@@ -24,7 +24,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.capabilities.Capability
-import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -113,9 +113,9 @@ All of them match the consumer attributes:
         then:
         NoMatchingGraphVariantsException e = thrown()
         failsWith(e, '''No matching variant of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
-  - Variant 'api' capability org:lib:1.0:
+  - Variant 'api':
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-api' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'
-  - Variant 'runtime' capability org:lib:1.0:
+  - Variant 'runtime':
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-runtime' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'''')
     }
 
@@ -146,8 +146,9 @@ All of them match the consumer attributes:
 
         then:
         NoMatchingGraphVariantsException e = thrown()
-        failsWith(e, '''No matching configuration of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
-  - None of the consumable configurations have attributes.''')
+        failsWith(e, '''No matching variant of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
+  - Variant 'default':
+      - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-api' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'''')
     }
 
     def "can select a variant thanks to the capabilities"() {
@@ -462,7 +463,8 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(new DocumentationRegistry()))
+        def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
+        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
         selected = variantSelector.selectVariants(
             consumerAttributes,
             requestedCapabilities,
@@ -499,9 +501,14 @@ All of them match the consumer attributes:
     private void defaultConfiguration(ImmutableAttributes attrs = attributes([:])) {
         def variant = Stub(VariantGraphResolveState) {
             getName() >> 'default'
+            getCapabilities() >> ImmutableCapabilities.of(capability('org', 'lib'))
+            getAttributes() >> attrs
         }
         def metadata = Stub(ConfigurationGraphResolveMetadata) {
             isCanBeConsumed() >> true
+            getName() >> variant.getName()
+            getAttributes() >> attrs
+            getCapabilities() >> variant.getCapabilities()
         }
         defaultConfiguration = Stub(ConfigurationGraphResolveState) {
             getName() >> 'default'
@@ -531,6 +538,7 @@ All of them match the consumer attributes:
             isUseVariants() >> { variants.isPresent() }
             getVariants() >> { variants.get() }
             getLegacyConfiguration() >> { defaultConfiguration }
+            getCandidateConfigurations() >> { [defaultConfiguration.getMetadata()] }
         }
         targetState = Stub(ComponentGraphResolveState) {
             getMetadata() >> targetComponent

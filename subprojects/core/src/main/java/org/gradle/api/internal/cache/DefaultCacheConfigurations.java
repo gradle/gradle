@@ -151,6 +151,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         persistentCacheConfigurations.getMarkingStrategy().value(getMarkingStrategy());
     }
 
+    @Override
     public void finalizeConfiguration(Gradle gradle) {
         finalizeConfigurationValues();
         markCacheDirectories(gradle);

@@ -704,10 +704,10 @@ ${showFailuresTask(expression)}
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
         failure.assertHasCause("""No matching variant of project :a was found. The consumer was configured to find attribute 'volume' with value '11' but:
-  - Variant 'compile' capability test:a:unspecified:
+  - Variant 'compile':
       - Incompatible because this component declares attribute 'volume' with value '8' and the consumer needed attribute 'volume' with value '11'""")
         failure.assertHasCause("""No matching variant of project :b was found. The consumer was configured to find attribute 'volume' with value '11' but:
-  - Variant 'compile' capability test:b:unspecified:
+  - Variant 'compile':
       - Incompatible because this component declares attribute 'volume' with value '9' and the consumer needed attribute 'volume' with value '11'""")
 
         where:

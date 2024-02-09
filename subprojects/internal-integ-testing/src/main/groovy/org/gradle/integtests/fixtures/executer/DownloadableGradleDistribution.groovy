@@ -42,16 +42,21 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
     private downloadIfNecessary() {
         def distributionZip = super.getBinDistribution()
         def gradleHomeDir = super.getGradleHomeDir()
+        def markerFile = distributionZip.withExtension("ok")
         def versionDir = this.versionDir
         fileAccessManager.access(distributionZip) {
-            if (!distributionZip.exists()) {
+            if (!markerFile.exists()) {
+                distributionZip.delete()
+                gradleHomeDir.deleteDir()
+
                 URL url = getDownloadURL();
                 System.out.println("downloading $url")
                 distributionZip.copyFrom(url)
-            }
-            if (!gradleHomeDir.exists()) {
+
                 System.out.println("unzipping ${distributionZip} to ${gradleHomeDir}")
                 distributionZip.usingNativeTools().unzipTo(versionDir)
+
+                markerFile.createFile()
             }
         }
 

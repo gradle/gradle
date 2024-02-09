@@ -23,6 +23,7 @@ import com.google.common.collect.LinkedHashMultimap
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
@@ -419,7 +420,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "fails when target component does not have matching configurations"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
+        def resolutionFailureHandler = new ResolutionFailureHandler(DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry())
         def fromComponent = Stub(ComponentIdentifier) {
             getDisplayName() >> "thing a"
         }

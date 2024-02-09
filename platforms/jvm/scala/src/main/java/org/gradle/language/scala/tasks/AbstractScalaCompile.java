@@ -114,6 +114,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      * Returns the Java compilation options.
      */
     @Nested
+    @Override
     public CompileOptions getOptions() {
         return compileOptions;
     }

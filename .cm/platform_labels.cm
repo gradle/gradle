@@ -9,10 +9,17 @@ manifest:
 # the conditions on each line).  Each condition is specified as a Jinja expression.  You
 # can also use the constant `true` if you want to always run the actions.
 
-# Each automation is independent of the others.  Every time a PR is opened or changed,
-# the conditions are evaluated and the actions are executed one by one in order
-# if all the conditions pass.  You can define multiple automations in a .cm file, but
-# each automation name should be unique within the file.
+# Each automation is independent of the others.  Every time one of the `on` conditions match for
+# this PR, this automations will have its `if` checked to run.  In a way, the `on` conditions
+# function as an implicit first `if` for every automation in the file.
+
+# You can define multiple automations in a .cm file, but each automation name should be unique
+# within the file.  We keep each automation (or very closely related group of automations) in
+# its own file.
+
+on:
+  - pr_created
+  - commit
 
 automations:
 
@@ -88,7 +95,9 @@ platforms:
       - 'platforms/core-execution/build-cache/'
       - 'platforms/core-execution/build-cache-base/'
       - 'platforms/core-execution/build-cache-http/'
+      - 'platforms/core-execution/build-cache-local/'
       - 'platforms/core-execution/build-cache-packaging/'
+      - 'platforms/core-execution/build-cache-spi/'
       - 'platforms/core-runtime/build-operations/'
       - 'platforms/core-runtime/files/'
       - 'platforms/core-execution/hashing/'
@@ -172,31 +181,4 @@ platforms:
       - 'platforms/software/'
 
 author:
-  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.configuration.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
-
-teams:
-  build_scan:
-    members:
-      - 'wolfs'
-  configuration:
-    members:
-      - 'alllex'
-  dev_prod:
-    members:
-      - 'blindpirate'
-  execution:
-    members:
-      - 'asodja-DISABLED'
-      - 'lptr-DISABLED'
-  ide:
-    members:
-      - 'hegyibalint'
-      - 'donat'
-      - 'reinsch82'
-  jvm:
-    members:
-      - 'big-guy'
-      - 'ghale'
-      - 'jvandort'
-      - 'octylFractal'
-      - 'tresat'
+  using_gitstream: {{ (pr.author | isEnabledUser ) }}

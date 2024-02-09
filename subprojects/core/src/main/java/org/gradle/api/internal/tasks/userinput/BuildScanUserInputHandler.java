@@ -18,8 +18,10 @@ package org.gradle.api.internal.tasks.userinput;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
+
 @UsedByScanPlugin
 public interface BuildScanUserInputHandler {
-
+    @Nullable
     Boolean askYesNoQuestion(String question);
 }

@@ -191,6 +191,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
             return variantResolver.resolveAdhocVariant(new ExternalArtifactResolveMetadata(artifactMetadata), artifacts.build());
         }
 
+        @Override
         public Set<? extends VariantResolveMetadata> getArtifactVariants() {
             return variants;
         }

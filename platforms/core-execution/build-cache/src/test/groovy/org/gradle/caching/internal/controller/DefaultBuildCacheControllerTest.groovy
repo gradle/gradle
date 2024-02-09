@@ -16,21 +16,19 @@
 
 package org.gradle.caching.internal.controller
 
-import org.gradle.api.Action
-import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.file.TestFiles
+import com.google.common.collect.Interner
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.internal.CacheableEntity
-import org.gradle.caching.internal.DefaultBuildCacheKey
+import org.gradle.caching.internal.TestBuildCacheKey
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration
 import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.caching.local.internal.LocalBuildCacheService
+import org.gradle.caching.local.internal.TemporaryFileFactory
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -39,12 +37,13 @@ import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.nio.file.Files
 import java.time.Duration
 import java.util.function.Consumer
 
 class DefaultBuildCacheControllerTest extends Specification {
 
-    def key = new DefaultBuildCacheKey(TestHashCodes.hashCodeFrom(12345678))
+    def key = new TestBuildCacheKey(0x12345678)
 
     CacheableEntity cacheableEntity = Stub(CacheableEntity) {
         identity >> ":test"
@@ -63,7 +62,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     def remotePush = true
     BuildCacheEntryPacker packer = Stub(BuildCacheEntryPacker)
     OriginMetadataFactory originMetadataFactory = Stub(OriginMetadataFactory)
-    StringInterner stringInterner = Stub(StringInterner)
+    Interner<String> stringInterner = Stub(Interner)
 
     def operations = new TestBuildOperationExecutor()
     def buildOperationProgressEmitter = new NoOpBuildOperationProgressEventEmitter()
@@ -84,8 +83,7 @@ class DefaultBuildCacheControllerTest extends Specification {
             ),
             operations,
             buildOperationProgressEmitter,
-            TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory),
-            false,
+            { prefix, suffix -> Files.createTempFile(tmpDir.testDirectory.toPath(), prefix, suffix).toFile() } as TemporaryFileFactory,
             false,
             disableRemoteOnError,
             packer,
@@ -144,10 +142,10 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def "local load does not stores to local"() {
         given:
-        1 * local.loadLocally(key, _) >> { BuildCacheKey key, Action<File> action ->
+        1 * local.loadLocally(key, _) >> { BuildCacheKey key, Consumer<File> action ->
             def file = tmpDir.file("file")
             file.text = "alma"
-            action.execute(file)
+            action.accept(file)
         }
 
         when:

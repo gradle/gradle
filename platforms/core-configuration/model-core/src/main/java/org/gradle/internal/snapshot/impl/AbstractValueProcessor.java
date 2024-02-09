@@ -185,7 +185,7 @@ abstract class AbstractValueProcessor {
         return builder.build();
     }
 
-    private <T> T gradleSerialization(Object value, Serializer<?> serializer, ValueVisitor<T> visitor) {
+    private static <T> T gradleSerialization(Object value, Serializer<?> serializer, ValueVisitor<T> visitor) {
         return visitor.gradleSerialized(value, gradleSerialized(value, serializer));
     }
 
@@ -201,7 +201,7 @@ abstract class AbstractValueProcessor {
         return outputStream.toByteArray();
     }
 
-    private <T> T javaSerialization(Object value, ValueVisitor<T> visitor) {
+    private static <T> T javaSerialization(Object value, ValueVisitor<T> visitor) {
         return visitor.javaSerialized(value, javaSerialized(value));
     }
 
@@ -221,13 +221,6 @@ abstract class AbstractValueProcessor {
         formatter.node("Could not serialize value of type ");
         formatter.appendType(valueType);
         return new ValueSnapshottingException(formatter.toString(), cause);
-    }
-
-    private static ValueSnapshottingException cantSerializePrimitiveArray(Class<?> arrayType) {
-        TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Cannot serialize primitive arrays of type ");
-        formatter.appendType(arrayType);
-        return new ValueSnapshottingException(formatter.toString());
     }
 
     protected interface ValueVisitor<T> {

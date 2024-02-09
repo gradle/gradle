@@ -10,6 +10,7 @@ dependencies {
     api(libs.jsr305)
 
     api(project(":base-services"))
+    api(project(":build-cache-spi"))
     api(project(":core-api"))
     api(project(":resources-http"))
 
@@ -26,6 +27,7 @@ dependencies {
     testImplementation(libs.servletApi)
 
     integTestImplementation(project(":enterprise-operations"))
+    integTestImplementation(testFixtures(project(":build-cache")))
     integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
