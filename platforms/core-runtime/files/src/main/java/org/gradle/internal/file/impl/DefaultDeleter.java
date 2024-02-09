@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -195,7 +196,15 @@ public class DefaultDeleter implements Deleter {
 
     protected FileDeletionResult deleteFile(final File file) {
         try {
-            return FileDeletionResult.withoutException(Files.deleteIfExists(file.toPath()) && !file.exists());
+            final Path toDelete = file.toPath();
+            if (!Files.isWritable(toDelete)) {
+                // Windows' default FS does not let you to delete files marked read-only
+                boolean canSetWritable = file.setWritable(true);
+                if (!canSetWritable) {
+                    throw new IOException("Cannot make file Writable for deletion: " + file);
+                }
+            }
+            return FileDeletionResult.withoutException(Files.deleteIfExists(toDelete) && !file.exists());
         } catch (IOException e) {
             return FileDeletionResult.withException(e);
         }
