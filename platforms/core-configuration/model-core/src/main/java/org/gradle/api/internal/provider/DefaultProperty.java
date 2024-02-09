@@ -24,6 +24,12 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
+/**
+ * The implementation for general-purpose (atomic, non-composite) properties, where
+ * the value is supplied by some provider.
+ *
+ * @param <T>
+ */
 public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;

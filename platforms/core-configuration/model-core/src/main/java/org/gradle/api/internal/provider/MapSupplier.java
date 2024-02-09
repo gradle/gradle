@@ -19,6 +19,12 @@ package org.gradle.api.internal.provider;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * <code>MapSupplier</code> is for {@link DefaultMapProperty} what {@link CollectionSupplier} is for {@link AbstractCollectionProperty}.
+ *
+ * @param <K> the type of map entry key
+ * @param <V> the type of map entry value
+ */
 interface MapSupplier<K, V> extends ValueSupplier {
     Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer);
 

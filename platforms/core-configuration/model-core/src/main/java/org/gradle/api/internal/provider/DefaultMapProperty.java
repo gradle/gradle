@@ -39,6 +39,21 @@ import java.util.Set;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
+/**
+ * The implementation for {@link MapProperty}.
+ * <p>
+ *     Value suppliers for map properties are implementations of {@link MapSupplier}.
+ * </p>
+ * <p>
+ *     Increments to map property values are implementations of {@link MapCollector}.
+ * </p>
+ *
+ * This class mimics much of the behavior {@link AbstractCollectionProperty} provides for regular collections
+ * but for maps. Read that class' documentation to better understand the roles of {@link MapSupplier} and {@link MapCollector}.
+ *
+ * @param <K> the type of entry key
+ * @param <V> the type of entry value
+ */
 public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());

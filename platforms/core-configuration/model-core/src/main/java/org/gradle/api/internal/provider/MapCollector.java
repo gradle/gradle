@@ -28,6 +28,10 @@ import java.util.Map;
 
 /**
  * A supplier of zero or more mappings from value of type {@link K} to value of type {@link V}.
+ *
+ * <p>
+ *     A <code>MapCollector</code> is for {@link DefaultMapProperty} and {@link MapSupplier} what {@link Collector} is for {@link AbstractCollectionProperty} and {@link CollectionSupplier}.
+ * </p>
  */
 public interface MapCollector<K, V> extends ValueSupplier {
 
