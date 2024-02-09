@@ -19,16 +19,20 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
 
-    implementation(libs.groovy)
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(project(":file-collections"))
+    implementation(project(":logging"))
+    implementation(project(":model-core"))
+
     implementation(libs.guava)
-    implementation(libs.inject)
     implementation(libs.jatl)
 
     implementationResources("jquery:jquery.min:3.5.1@js")
