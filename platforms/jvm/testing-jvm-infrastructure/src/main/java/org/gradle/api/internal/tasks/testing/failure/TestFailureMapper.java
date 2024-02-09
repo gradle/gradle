@@ -82,9 +82,28 @@ public abstract class TestFailureMapper {
      * Utility method to invoke a method on an object by reflective means.
      */
     @Nullable
-    protected static <T> T invokeMethod(Object obj, String methodName, Class<T> targetClass) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    protected static <T> T invokeMethod(@Nullable Object obj, String methodName, Class<T> targetClass) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        if (obj == null) {
+            return null;
+        }
+
         Method method = obj.getClass().getMethod(methodName);
-        return targetClass.cast(method.invoke(obj));
+        Object result = method.invoke(obj);
+        if (result == null) {
+            return null;
+        } else {
+            return targetClass.cast(result);
+        }
     }
 
+    /**
+     * Utility method to invoke a method on an object by reflective means.
+     *
+     * @return the result of the method invocation as an {@link Object}
+     * @see #invokeMethod(Object, String, Class) for the generic version of this method
+     */
+    @Nullable
+    protected static Object invokeMethod(@Nullable Object obj, String methodName) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        return invokeMethod(obj, methodName, Object.class);
+    }
 }
