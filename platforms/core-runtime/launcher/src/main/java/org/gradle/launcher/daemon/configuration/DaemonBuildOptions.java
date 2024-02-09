@@ -52,7 +52,9 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         new ForegroundOption(),
         new StopOption(),
         new StatusOption(),
-        new PriorityOption());
+        new PriorityOption(),
+        new NativeServicesOption()
+    );
 
     public static List<BuildOption<DaemonParameters>> get() {
         return options;
@@ -235,6 +237,19 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setApplyInstrumentationAgent(value);
+        }
+    }
+
+    public static class NativeServicesOption extends BooleanBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.native";
+
+        public NativeServicesOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
+            settings.setUseNativeServices(value);
         }
     }
 

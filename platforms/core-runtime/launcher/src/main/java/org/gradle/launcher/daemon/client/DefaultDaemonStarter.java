@@ -36,6 +36,7 @@ import org.gradle.internal.time.Timer;
 import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions.NativeServicesOption;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
@@ -106,6 +107,9 @@ public class DefaultDaemonStarter implements DaemonStarter {
         if (Boolean.getBoolean("org.gradle.daemon.debug")) {
             daemonArgs.add(JvmOptions.getDebugArgument(true, true, "5005"));
         }
+
+        // Native services are initialized before any system property is set by Gradle process, so we pass option directly to the process
+        daemonArgs.add("-D" + NativeServicesOption.GRADLE_PROPERTY + "=" + daemonParameters.isUseNativeServices());
 
         ClassPath agentClasspath = registry.getModule(AgentUtils.AGENT_MODULE_NAME).getImplementationClasspath();
         if (daemonParameters.shouldApplyInstrumentationAgent()) {
