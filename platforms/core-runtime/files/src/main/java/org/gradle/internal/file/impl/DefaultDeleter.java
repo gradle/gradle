@@ -197,8 +197,8 @@ public class DefaultDeleter implements Deleter {
     protected FileDeletionResult deleteFile(final File file) {
         try {
             final Path toDelete = file.toPath();
-            if (!Files.isWritable(toDelete)) {
-                // Windows' default FS does not let you to delete files marked read-only
+            if (OSDetails.runsOnWindows() && !Files.isWritable(toDelete)) {
+                // Windows' default FS does not let you delete files marked read-only
                 boolean canSetWritable = file.setWritable(true);
                 if (!canSetWritable) {
                     throw new IOException("Cannot make file Writable for deletion: " + file);
@@ -207,6 +207,28 @@ public class DefaultDeleter implements Deleter {
             return FileDeletionResult.withoutException(Files.deleteIfExists(toDelete) && !file.exists());
         } catch (IOException e) {
             return FileDeletionResult.withException(e);
+        }
+    }
+
+    // NOTE: THere is another implementation in core modules, but adding it leads to IDE crash
+    private static final class OSDetails {
+
+        private static String OS_NAME;
+
+        private static Boolean IS_WINDOWS;
+
+        public static boolean runsOnWindows() {
+            if (IS_WINDOWS == null) {
+                IS_WINDOWS = getOSName().startsWith("Windows");
+            }
+            return IS_WINDOWS;
+        }
+
+        public static String getOSName() {
+            if (OS_NAME == null) {
+                OS_NAME = System.getProperty("os.name", "Unknown");
+            }
+            return OS_NAME;
         }
     }
 
