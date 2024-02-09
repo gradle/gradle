@@ -25,7 +25,6 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
-import org.gradle.api.provider.CollectionPropertyConfigurer;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SupportsConvention;
@@ -74,15 +73,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     protected abstract C emptyCollection();
 
-    public CollectionPropertyConfigurer<T> getExplicitValue(boolean ignoreAbsent) {
-        return new ExplicitValueConfigurer(ignoreAbsent);
+    protected Configurer getConfigurer(boolean ignoreAbsent) {
+        return new Configurer(ignoreAbsent);
     }
 
-    @Override
-    public HasMultipleValues<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action) {
+    protected void withActualValue(Action<Configurer> action) {
         setToConventionIfUnset();
-        action.execute(getExplicitValue(true));
-        return this;
+        action.execute(getConfigurer(true));
     }
 
     @Override
@@ -96,29 +93,29 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void add(final T element) {
-        getExplicitValue(false).add(element);
+        getConfigurer(false).add(element);
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        getExplicitValue(false).add(providerOfElement);
+        getConfigurer(false).add(providerOfElement);
     }
 
     @Override
     @SafeVarargs
     @SuppressWarnings("varargs")
     public final void addAll(T... elements) {
-        getExplicitValue(false).addAll(elements);
+        getConfigurer(false).addAll(elements);
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        getExplicitValue(false).addAll(elements);
+        getConfigurer(false).addAll(elements);
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        getExplicitValue(false).addAll(provider);
+        getConfigurer(false).addAll(provider);
     }
 
     @Override
@@ -650,74 +647,39 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    private abstract class Configurer implements CollectionPropertyConfigurer<T> {
-        protected abstract void addCollector(Collector<T> collector);
+    private class Configurer {
+        private final boolean ignoreAbsent;
 
-        @Override
+        public Configurer(boolean ignoreAbsent) {
+            this.ignoreAbsent = ignoreAbsent;
+        }
+
+        protected void addCollector(Collector<T> collector) {
+            addExplicitCollector(collector, ignoreAbsent);
+        }
+
         public void add(final T element) {
             Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
             addCollector(new SingleElement<>(element));
         }
 
-        @Override
         public void add(final Provider<? extends T> providerOfElement) {
             addCollector(new ElementFromProvider<>(Providers.internal(providerOfElement)));
         }
 
-        @Override
         @SafeVarargs
         @SuppressWarnings("varargs")
         public final void addAll(T... elements) {
             addCollector(new ElementsFromArray<>(elements));
         }
 
-        @Override
         public void addAll(Iterable<? extends T> elements) {
             addCollector(new ElementsFromCollection<>(elements));
         }
 
-        @Override
         public void addAll(Provider<? extends Iterable<? extends T>> provider) {
             addCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
         }
 
-        @Override
-        public void append(Provider<? extends T> provider) {
-            add(provider);
-        }
-
-        @Override
-        public void append(T element) {
-            add(element);
-        }
-
-        @Override
-        @SafeVarargs
-        public final void appendAll(T... elements) {
-            addAll(elements);
-        }
-
-        @Override
-        public void appendAll(Provider<? extends Iterable<? extends T>> provider) {
-            addAll(provider);
-        }
-
-        @Override
-        public void appendAll(Iterable<? extends T> elements) {
-            addAll(elements);
-        }
-    }
-
-    private class ExplicitValueConfigurer extends Configurer {
-        private final boolean ignoreAbsent;
-
-        public ExplicitValueConfigurer(boolean ignoreAbsent) {
-            this.ignoreAbsent = ignoreAbsent;
-        }
-
-        @Override
-        protected void addCollector(Collector<T> collector) {
-            addExplicitCollector(collector, ignoreAbsent);
-        }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 
@@ -38,7 +37,7 @@ import java.util.Set;
  * @since 5.1
  */
 @SupportsKotlinAssignmentOverloading
-public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue, MapPropertyConfigurer<K, V>, ConfigurableValue<MapPropertyConfigurer<K, V>>, SupportsConvention {
+public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue, SupportsConvention {
 
     /**
      * Sets the value of this property to an empty map, and replaces any existing value.
@@ -113,6 +112,129 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     MapProperty<K, V> value(Provider<? extends Map<? extends K, ? extends V>> provider);
 
     /**
+     * Adds a map entry to the property value.
+     *
+     * <p>
+     * Contrary to {@link #insert(Object, Object)}, if this property has no value, this operation has no effect on the value of this property.
+     * </p>
+     *
+     * @param key the key
+     * @param value the value
+     */
+    void put(K key, V value);
+
+    /**
+     * Adds a map entry to the property value.
+     *
+     * <p>The given provider will be queried when the value of this property is queried.
+     * <p>
+     * Contrary to {@link #insert(Object, Provider)}, if this property has no value, this operation has no effect on the value of this property.
+     * </p>
+     * <p>
+     * Also contrary to {@link #insert(Object, Provider)}, this property will have no value when the given provider has no value.
+     * </p>
+     *
+     * @param key the key
+     * @param providerOfValue the provider of the value
+     */
+    void put(K key, Provider<? extends V> providerOfValue);
+
+    /**
+     * Adds all entries from another {@link Map} to the property value.
+     *
+     * <p>
+     * Contrary to {@link #insertAll(Map)}, if this property has no value, this operation has no effect on the value of this property.
+     * </p>
+     *
+     * @param entries a {@link Map} containing the entries to add
+     */
+    void putAll(Map<? extends K, ? extends V> entries);
+
+    /**
+     * Adds all entries from another {@link Map} to the property value.
+     *
+     * <p>The given provider will be queried when the value of this property is queried.
+     * <p>
+     * Contrary to {@link #insertAll(Provider)}, if this property has no value, this operation has no effect on the value of this property.
+     * </p>
+     * <p>
+     * Also contrary to {@link #insertAll(Provider)}, this property will have no value when the given provider has no value.
+     * </p>
+     *
+     * @param provider the provider of the entries
+     */
+    void putAll(Provider<? extends Map<? extends K, ? extends V>> provider);
+
+    /**
+     * Adds a map entry to the property value.
+     *
+     * <p>
+     * When invoked on a property with no value, this method first sets the value
+     * of the property to its current convention value, if set, or an empty map.
+     * </p>
+     *
+     * @param key the key
+     * @param value the value
+     *
+     * @since 8.7
+     */
+    @Incubating
+    void insert(K key, V value);
+
+    /**
+     * Adds a map entry to the property value.
+     *
+     * <p>The given provider will be queried when the value of this property is queried.
+     * <p>
+     * When invoked on a property with no value, this method first sets the value
+     * of the property to its current convention value, if set, or an empty map.
+     * </p>
+     * <p>Even if the given provider has no value, after this method is invoked,
+     * the actual value of this property is guaranteed to be present.</p>
+     *
+     * @param key the key
+     * @param providerOfValue the provider of the value
+     *
+     * @since 8.7
+     */
+    @Incubating
+    void insert(K key, Provider<? extends V> providerOfValue);
+
+    /**
+     * Adds all entries from another {@link Map} to the property value.
+     *
+     * <p>
+     * When invoked on a property with no value, this method first sets the value
+     * of the property to its current convention value, if set, or an empty map.
+     * </p>
+     *
+     * @param entries a {@link Map} containing the entries to add
+     *
+     * @since 8.7
+     */
+    @Incubating
+    void insertAll(Map<? extends K, ? extends V> entries);
+
+    /**
+     * Adds all entries from another {@link Map} to the property value.
+     *
+     * <p>The given provider will be queried when the value of this property is queried.
+     *
+     * <p>
+     * When invoked on a property with no value, this method first sets the value
+     * of the property to its current convention value, if set, or an empty map.
+     * </p>
+     * <p>Even if the given provider has no value, after this method is invoked,
+     * the actual value of this property is guaranteed to be present.</p>
+     *
+     * @param provider the provider of the entries
+     *
+     * @since 8.7
+     */
+    @Incubating
+    void insertAll(Provider<? extends Map<? extends K, ? extends V>> provider);
+
+    /**
      * Returns a {@link Provider} that returns the set of keys for the map that is the property value.
      *
      * <p>The returned provider will track the value of this property and query its value when it is queried.</p>
@@ -128,20 +250,6 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * @return a {@link Provider} that provides the set of keys for the map
      */
     Provider<Set<K>> keySet();
-
-    /**
-     * Performs incremental updates to the actual value of this property.
-     *
-     * {@inheritDoc}
-     *
-     * For wholesale updates to the explicit value, use
-     * {@link #set(Map)} or {@link #set(Provider)}.
-     *
-     * For wholesale updates to the convention value, use
-     * {@link #convention(Map)} or {@link #convention(Provider)}.
-     */
-    @Override
-    MapProperty<K, V> withActualValue(Action<MapPropertyConfigurer<K, V>> action);
 
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.

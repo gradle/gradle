@@ -18,9 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
 import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
-import org.gradle.api.provider.CollectionPropertyConfigurer;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -80,11 +78,6 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     public ListProperty<T> convention(Provider<? extends Iterable<? extends T>> provider) {
         super.convention(provider);
         return this;
-    }
-
-    @Override
-    public ListProperty<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action) {
-        return uncheckedNonnullCast(super.withActualValue(action));
     }
 
     @Override

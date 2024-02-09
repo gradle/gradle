@@ -27,7 +27,6 @@ import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
 import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider;
 import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
-import org.gradle.api.provider.MapPropertyConfigurer;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -158,22 +157,22 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public void put(K key, V value) {
-        getExplicitValue().put(key, value);
+        getConfigurer().put(key, value);
     }
 
     @Override
     public void put(K key, Provider<? extends V> providerOfValue) {
-        getExplicitValue().put(key, providerOfValue);
+        getConfigurer().put(key, providerOfValue);
     }
 
     @Override
     public void putAll(Map<? extends K, ? extends V> entries) {
-        getExplicitValue().putAll(entries);
+        getConfigurer().putAll(entries);
     }
 
     @Override
     public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        getExplicitValue().putAll(provider);
+        getConfigurer().putAll(provider);
     }
 
     @Override
@@ -205,19 +204,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         setSupplier(explicitValue.plus(collector));
     }
 
-    private MapPropertyConfigurer<K, V> getExplicitValue() {
-        return getExplicitValue(false);
+    private Configurer getConfigurer() {
+        return getConfigurer(false);
     }
 
-    private MapPropertyConfigurer<K, V> getExplicitValue(boolean ignoreAbsent) {
-        return new ExplicitConfigurer(ignoreAbsent);
+    private Configurer getConfigurer(boolean ignoreAbsent) {
+        return new Configurer(ignoreAbsent);
     }
 
-    @Override
-    public MapProperty<K, V> withActualValue(Action<MapPropertyConfigurer<K, V>> action) {
+    protected void withActualValue(Action<Configurer> action) {
         setToConventionIfUnset();
-        action.execute(getExplicitValue(true));
-        return this;
+        action.execute(getConfigurer(true));
     }
 
     private boolean isNoValueSupplier(MapSupplier<K, V> valueSupplier) {
@@ -684,17 +681,23 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    private abstract class Configurer implements MapPropertyConfigurer<K, V> {
-        abstract void addCollector(MapCollector<K, V> collector);
+    private class Configurer {
+        private final boolean ignoreAbsent;
 
-        @Override
+        public Configurer(boolean ignoreAbsent) {
+            this.ignoreAbsent = ignoreAbsent;
+        }
+
+        void addCollector(MapCollector<K, V> collector) {
+            addExplicitCollector(collector, ignoreAbsent);
+        }
+
         public void put(K key, V value) {
             Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
             Preconditions.checkNotNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
             addCollector(new SingleEntry<>(key, value));
         }
 
-        @Override
         public void put(K key, Provider<? extends V> providerOfValue) {
             Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
             Preconditions.checkNotNull(providerOfValue, NULL_VALUE_FORBIDDEN_MESSAGE);
@@ -706,47 +709,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             addCollector(new EntryWithValueFromProvider<>(key, Providers.internal(providerOfValue)));
         }
 
-        @Override
         public void putAll(Map<? extends K, ? extends V> entries) {
             addCollector(new EntriesFromMap<>(entries));
         }
 
-        @Override
         public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
             addCollector(new EntriesFromMapProvider<>(checkMapProvider(provider)));
-        }
-
-        @Override
-        public void insert(K key, V value) {
-            put(key, value);
-        }
-
-        @Override
-        public void insert(K key, Provider<? extends V> providerOfValue) {
-            put(key, providerOfValue);
-        }
-
-        @Override
-        public void insertAll(Map<? extends K, ? extends V> entries) {
-            putAll(entries);
-        }
-
-        @Override
-        public void insertAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-            putAll(provider);
-        }
-    }
-
-    private class ExplicitConfigurer extends Configurer {
-        private final boolean ignoreAbsent;
-
-        public ExplicitConfigurer(boolean ignoreAbsent) {
-            this.ignoreAbsent = ignoreAbsent;
-        }
-
-        @Override
-        void addCollector(MapCollector<K, V> collector) {
-            addExplicitCollector(collector, ignoreAbsent);
         }
     }
 
