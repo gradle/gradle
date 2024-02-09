@@ -27,11 +27,6 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
  */
 public class ProblemsServices extends AbstractPluginServiceRegistry {
     @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new ProblemsGlobalServices());
-    }
-
-    @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new ProblemsBuildTreeServices());
     }
