@@ -191,6 +191,13 @@ tasks.register("resolveReplacement") {
 ======
 =====
 
+[[org_gradle_util_reports_deprecations]]
+==== Deprecated members of the `org.gradle.util` package now report their deprecation
+
+These members will be removed in Gradle 9.0.
+
+* `Collection.stringize(Collection)`
+
 [[changes_8.6]]
 == Upgrading from 8.5 and earlier
 

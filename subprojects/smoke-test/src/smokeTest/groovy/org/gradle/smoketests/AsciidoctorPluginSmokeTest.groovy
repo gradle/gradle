@@ -57,19 +57,27 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         TestedVersions.asciidoctor.collectEntries([:]) { version ->
-            [
-                "org.asciidoctor.decktape",
+            def base = [
                 "org.asciidoctor.editorconfig",
                 "org.asciidoctor.js.convert",
                 "org.asciidoctor.jvm.convert",
                 "org.asciidoctor.jvm.epub",
                 "org.asciidoctor.jvm.gems",
-                "org.asciidoctor.jvm.leanpub",
-                "org.asciidoctor.jvm.leanpub.dropbox-copy",
                 "org.asciidoctor.jvm.pdf",
-                "org.asciidoctor.jvm.revealjs",
             ].collectEntries { plugin ->
                 [(plugin): Versions.of(version)]
+            }
+            if(version.startsWith("3")) {
+                base + [
+                    "org.asciidoctor.decktape",
+                    "org.asciidoctor.jvm.leanpub",
+                    "org.asciidoctor.jvm.leanpub.dropbox-copy",
+                    "org.asciidoctor.jvm.revealjs",
+                ].collectEntries { plugin ->
+                    [(plugin): Versions.of(version)]
+                }
+            } else {
+                base
             }
         }
     }
@@ -87,18 +95,20 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         }
 
         void expectAsciiDocDeprecationWarnings(String asciidoctorVersion) {
+            def versionNumber = VersionNumber.parse(asciidoctorVersion)
             runner.expectLegacyDeprecationWarningIf(
-                VersionNumber.parse(asciidoctorVersion).major < 4,
+                versionNumber.major < 4,
+                "The org.gradle.util.CollectionUtils type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations"
+            )
+
+            runner.expectLegacyDeprecationWarningIf(
+                versionNumber.major < 4,
                 "The JavaExecSpec.main property has been deprecated." +
                     " This is scheduled to be removed in Gradle 9.0." +
                     " Please use the mainClass property instead." +
                     " ${String.format(DocumentationRegistry.RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.process.JavaExecSpec.html#org.gradle.process.JavaExecSpec:main")}"
-            )
-
-            runner.expectDeprecationWarningIf(
-                VersionNumber.parse(asciidoctorVersion).major >= 4,
-                FOR_USE_AT_CONFIGURATION_TIME_DEPRECATION,
-                "Seems to be fixed in main branch, but no releases with a fix"
             )
         }
     }
