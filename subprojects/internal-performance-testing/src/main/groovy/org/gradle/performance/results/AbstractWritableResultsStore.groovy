@@ -45,6 +45,7 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
             from testExecution
            where startTime > ?
              and (channel in (?, ?))
+              or channel like ?
              and testProject is not null
            group by testClass, testId, testProject
            """ }.join("UNION") }
@@ -84,6 +85,7 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
                         .collect { channel -> "${channel}${os.channelSuffix}-master".toString() }
                     statement.setString(++idx, channels.get(0))
                     statement.setString(++idx, channels.get(1))
+                    statement.setString(++idx, "commits${os.channelSuffix}-gh-readonly-queue/master/%")
                 }
                 statement.executeQuery().withCloseable { experimentTimes ->
                     while (experimentTimes.next()) {
