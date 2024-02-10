@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,7 @@
  * limitations under the License.
  */
 
+@NonNullApi
 package org.gradle.internal.buildtree;
 
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.problems.buildtree.ProblemReporter;
-
-import java.io.File;
-
-public class DeprecationsReporter implements ProblemReporter {
-    @Override
-    public String getId() {
-        return "deprecations";
-    }
-
-    @Override
-    public void report(File reportDir, ProblemConsumer validationFailures) {
-        Throwable failure = DeprecationLogger.getDeprecationFailure();
-        if (failure != null) {
-            validationFailures.accept(failure);
-        }
-    }
-}
+import org.gradle.api.NonNullApi;
