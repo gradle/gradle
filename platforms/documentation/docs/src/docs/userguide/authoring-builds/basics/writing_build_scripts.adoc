@@ -23,7 +23,6 @@ Then, for each project included in the settings file, Gradle creates a link:{jav
 
 Gradle then looks for a corresponding build script file, which is used in the configuration phase.
 
-[[tutorial_using_tasks]]
 == Build Scripts
 
 Every Gradle build comprises one or more *projects*; a _root_ project and _subprojects_.

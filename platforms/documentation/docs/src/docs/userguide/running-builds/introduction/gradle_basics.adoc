@@ -55,7 +55,7 @@ Plugins are used to *extend Gradle's capability* and optionally contribute *task
 
 Many developers will interact with Gradle for the first time through an existing project.
 
-The presence of the `gradlew` and `gradle.bat` files in the root directory of a project is a clear indicator that Gradle is used.
+The presence of the `gradlew` and `gradlew.bat` files in the root directory of a project is a clear indicator that Gradle is used.
 
 A Gradle project will look similar to the following:
 
@@ -109,13 +109,13 @@ NOTE: Most projects do not use the installed version of Gradle.
 === Gradle Wrapper
 
 The Wrapper is a script that invokes a declared version of Gradle and is *the recommended way to execute a Gradle build*.
-It is found in the project root directory as a `gradlew` or `gradle.bat` file:
+It is found in the project root directory as a `gradlew` or `gradlew.bat` file:
 
 [source,text]
 ----
 $ gradlew build     // Linux or OSX
-$ gradle.bat build  // Windows
+$ gradlew.bat build  // Windows
 ----
 
 [.text-right]
-**Next Step:** <<gradle_wrapper_basics.adoc#gradle_wrapper,Learn about the Gradle Wrapper>> >>
+**Next Step:** <<gradle_wrapper_basics.adoc#gradle_wrapper_basics,Learn about the Gradle Wrapper>> >>

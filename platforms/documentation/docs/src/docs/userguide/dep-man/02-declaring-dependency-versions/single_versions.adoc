@@ -28,7 +28,7 @@ This means that `[1.0, 2.0[` will also exclude all versions starting with `2.0` 
 For example versions like `2.0-dev1` or `2.0-SNAPSHOT` are no longer included in the range.
 * A _prefix_ version range: e.g. `1.+`, `1.3.+`
 ** Only versions exactly matching the portion before the `+` are included.
-** The range `+` on it's own will include any version.
+** The range `+` on its own will include any version.
 * A `latest-status` version: e.g. `latest.integration`, `latest.release`
 ** Will match the highest versioned module with the specified status. See link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html#getStatus--[ComponentMetadata.getStatus()].
 * A Maven `SNAPSHOT` version identifier: e.g. `1.0-SNAPSHOT`, `1.4.9-beta1-SNAPSHOT`

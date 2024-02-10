@@ -15,4 +15,4 @@
 [[structure_large_projects]]
 = Structuring Large Projects
 
-This page has been removed.
+This page has been removed. See <<multi_project_builds.adoc#multi_project_builds,Multi-Project Builds>>.

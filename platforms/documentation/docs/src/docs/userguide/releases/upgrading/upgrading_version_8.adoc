@@ -2067,7 +2067,7 @@ plugins {
 The Java Toolchains plugin is applied automatically by the <<java_library_plugin#java_library_plugin,Java library plugin>> or other JVM plugins.
 So you can apply any of them to your project and it will fix the warning.
 
-[[org_gradle_util_reports_deprecations]]
+[[org_gradle_util_reports_deprecations_80]]
 ==== Deprecated members of the `org.gradle.util` package now report their deprecation
 
 These members will be removed in Gradle 9.0.
@@ -2087,7 +2087,7 @@ Please replace it by its equivalent `JvmVendorSpec.IBM` to avoid warnings and po
 [[configuring_custom_build_layout]]
 ==== Setting custom build layout on `StartParameter` and `GradleBuild`
 
-Following the <<upgrading_version_7.adoc#configuring_custom_build_layout, related previous deprecation>> of the behaviour in Gradle 7.1, it is now also deprecated to use related link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] and link:{javadocPath}/org/gradle/api/tasks/GradleBuild.html[GradleBuild] properties.
+Following the <<upgrading_version_7.adoc#configuring_custom_build_layout_7,related previous deprecation>> of the behaviour in Gradle 7.1, it is now also deprecated to use related link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] and link:{javadocPath}/org/gradle/api/tasks/GradleBuild.html[GradleBuild] properties.
 These properties will be removed in Gradle 9.0.
 
 Setting custom build file using link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:buildFile[buildFile] property in link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task has been deprecated.

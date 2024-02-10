@@ -180,7 +180,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",fil
 
 The semantics are again equivalent: adding a single bundle is equivalent to adding all dependencies which are part of the bundle individually.
 
-[[sec:plugins]]
+[[sec:plugins_ver]]
 ==== Plugins
 
 In addition to libraries, version catalog supports declaring plugin versions.

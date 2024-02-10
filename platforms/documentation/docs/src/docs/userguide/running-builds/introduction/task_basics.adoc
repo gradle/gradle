@@ -19,7 +19,7 @@ A task represents some *independent unit of work* that a build performs, such as
 
 image::gradle-basic-5.png[]
 
-You run a Gradle `build` task using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew` or `gradle.bat`) in your project directory:
+You run a Gradle `build` task using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew` or `gradlew.bat`) in your project directory:
 
 [source,text]
 ----
