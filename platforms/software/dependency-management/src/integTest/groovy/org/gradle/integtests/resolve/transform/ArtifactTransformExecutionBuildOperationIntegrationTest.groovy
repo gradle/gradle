@@ -298,7 +298,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         "non-incremental" | false        | "UP-TO-DATE"        | "Cacheability was not determined"    | "UNKNOWN"
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Identity cache is off for embedded executor due to file locking issues")
+    @Requires(value = [IntegTestPreconditions.NotEmbeddedExecutor, IntegTestPreconditions.NotNoDaemonExecutor], reason = "Identity cache is off for embedded executor due to file locking issues")
     @LeaksFileHandles
     def "emits origin metadata for skipped transform executions"() {
         settingsFile << """
@@ -371,7 +371,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         }
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Identity cache is off for embedded executor due to file locking issues")
+    @Requires(value = [IntegTestPreconditions.NotEmbeddedExecutor, IntegTestPreconditions.NotNoDaemonExecutor], reason = "Identity cache is off for embedded executor due to file locking issues")
     @LeaksFileHandles
     def "emits origin metadata when executed in first identity cached build"() {
         settingsFile << """
@@ -438,8 +438,6 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         }
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Identity cache is off for embedded executor due to file locking issues")
-    @LeaksFileHandles
     def "emits origin metadata when re-used in same build"() {
         settingsFile << """
             include 'producer', 'consumer1', 'consumer2'
@@ -477,7 +475,6 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         """
 
         when:
-        enableIdentityCache()
         run ":consumer2:resolve"
 
         then:
@@ -507,8 +504,6 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         }
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Identity cache is off for embedded executor due to file locking issues")
-    @LeaksFileHandles
     def "emits origin metadata when incremental transform is re-used in same build"() {
         settingsFile << """
             include 'producer', 'consumer1', 'consumer2'
@@ -545,7 +540,6 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         """
 
         when:
-        enableIdentityCache()
         // Limit workers so the project transforms run sequentially
         run ":consumer2:resolve", "--max-workers=1"
 
@@ -574,8 +568,6 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         }
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Identity cache is off for embedded executor due to file locking issues")
-    @LeaksFileHandles
     def "emits origin metadata when incremental transform is re-used from other build"() {
         settingsFile << """
             include 'producer', 'consumer1', 'consumer2'
@@ -612,15 +604,13 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         """
 
         when:
-        enableIdentityCache()
         run ":consumer2:resolve"
         def firstBuildInvocationId = scopeIds.buildInvocationId
         then:
         transformExecutions.result.skipMessage == [null]
 
         when:
-        // Limit workers so the project transforms run sequentially
-        run ":consumer2:resolve", "--max-workers=1"
+        run ":consumer2:resolve"
 
         then:
         executedAndNotSkipped(":consumer1:resolve", ":consumer2:resolve")
