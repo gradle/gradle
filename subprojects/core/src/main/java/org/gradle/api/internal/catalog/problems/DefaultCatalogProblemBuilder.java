@@ -20,6 +20,8 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemContext;
+import org.gradle.api.problems.internal.ProblemDefinition;
 import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -55,7 +57,11 @@ public class DefaultCatalogProblemBuilder {
     }
 
     public static String getProblemString(ProblemReport problem) {
-        return getProblemString(problem.getDefinition().getLabel(), problem.getContext().getDetails(), problem.getDefinition().getSolutions(), problem.getDefinition().getDocumentationLink());
+        ProblemDefinition definition = problem.getDefinition();
+        ProblemContext context = problem.getContext();
+        String contextualLabel = context.getContextualLabel();
+        String renderedLabel = contextualLabel == null ? definition.getLabel() : contextualLabel;
+        return getProblemString(renderedLabel, context.getDetails(), definition.getSolutions(), definition.getDocumentationLink());
     }
 
     public static String getProblemString(String label, String details, List<String> solutions, DocLink documentationLink) {
