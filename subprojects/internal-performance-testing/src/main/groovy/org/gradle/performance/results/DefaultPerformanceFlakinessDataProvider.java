@@ -27,9 +27,9 @@ public class DefaultPerformanceFlakinessDataProvider implements PerformanceFlaki
     private final Map<PerformanceExperiment, BigDecimal> flakinessRates;
     private final Map<PerformanceExperiment, BigDecimal> failureThresholds;
 
-    public DefaultPerformanceFlakinessDataProvider(CrossVersionResultsStore crossVersionResultsStore) {
-        flakinessRates = crossVersionResultsStore.getFlakinessRates();
-        failureThresholds = crossVersionResultsStore.getFailureThresholds();
+    public DefaultPerformanceFlakinessDataProvider(CrossVersionResultsStore crossVersionResultsStore, OperatingSystem os) {
+        flakinessRates = crossVersionResultsStore.getFlakinessRates(os);
+        failureThresholds = crossVersionResultsStore.getFailureThresholds(os);
     }
 
     @Override
