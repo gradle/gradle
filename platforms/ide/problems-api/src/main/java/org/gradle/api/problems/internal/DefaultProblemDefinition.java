@@ -37,7 +37,7 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
         String label,
         Severity severity,
         @Nullable DocLink documentationUrl,
-        @Nullable List<String> solutions,
+        @Nullable List<String> solutions, // TODO (donat) this should not be nullable
         ProblemCategory problemCategory
     ) {
         this.label = label;

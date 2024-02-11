@@ -97,8 +97,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     private ProblemReport invalidProblem(String label, String subcategory) {
         category("validation", "problems-api", subcategory).stackLocation();
-        ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, Severity.WARNING, null, null, category);
-        ProblemContext problemContext = new DefaultProblemContext(null, null, Collections.<ProblemLocation>emptyList(), null, getExceptionForProblemInstantiation(), Collections.<String, Object>emptyMap());
+        ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, Severity.WARNING, null, Collections.<String>emptyList(), category);
+        ProblemContext problemContext = new DefaultProblemContext(null, Collections.<String>emptyList(), Collections.<ProblemLocation>emptyList(), null, getExceptionForProblemInstantiation(), Collections.<String, Object>emptyMap());
         return new DefaultProblemReport(problemDefinition, problemContext);
     }
 

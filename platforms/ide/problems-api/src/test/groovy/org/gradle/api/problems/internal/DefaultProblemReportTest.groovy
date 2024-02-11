@@ -83,7 +83,7 @@ class DefaultProblemReportTest extends Specification {
             ),
             new DefaultProblemContext(
                 null,
-                null,
+                [],
                 [],
                 'description',
                 new RuntimeException('cause'),
