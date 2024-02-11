@@ -33,15 +33,13 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
 
     private static final int LATEST_EXECUTION_TIMES_DAYS = 14
     private static final String SELECT_LATEST_EXECUTION_TIMES = """
-        with last as
-        (
            ${ OperatingSystem.values().collect { os -> """
             select
                testClass,
                testId,
                testProject,
                '${os.name()}' as os,
-               max(id) as lastId
+               avg(TIMESTAMPDIFF(SECOND, testExecution.startTime, testExecution.endTime)) as duration
             from testExecution
            where startTime > ?
              and (channel in (?, ?))
@@ -49,17 +47,8 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
              and testProject is not null
            group by testClass, testId, testProject
            """ }.join("UNION") }
-        )
-        select
-        last.testClass,
-        last.testId,
-        last.testProject,
-        last.os,
-        testExecution.startTime,
-        testExecution.endTime
-        from last
-        join testExecution on testExecution.id = last.lastId
-        order by last.testClass, last.testId, last.testProject, last.os
+         order by testClass, testId, testProject, os
+
     """
 
     @Nonnull
@@ -94,11 +83,10 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
                         String testName = experimentTimes.getString(++resultIdx)
                         String testProject = experimentTimes.getString(++resultIdx)
                         OperatingSystem os = OperatingSystem.valueOf(experimentTimes.getString(++resultIdx))
-                        long startTime = experimentTimes.getTimestamp(++resultIdx).getTime()
-                        long endTime = experimentTimes.getTimestamp(++resultIdx).getTime()
+                        long avgDuration = experimentTimes.getLong(++resultIdx)
                         if (testProject != null && testClass != null) {
                             PerformanceExperiment performanceExperiment = new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testName))
-                            builder.put(new PerformanceExperimentOnOs(performanceExperiment, os), endTime - startTime)
+                            builder.put(new PerformanceExperimentOnOs(performanceExperiment, os), avgDuration)
                         }
                     }
                     return builder.build()
