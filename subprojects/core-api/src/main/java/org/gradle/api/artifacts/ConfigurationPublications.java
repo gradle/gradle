@@ -27,7 +27,7 @@ import java.util.Collection;
 /**
  * Represents the outgoing artifacts associated with a configuration. These artifacts are used when the configuration is referenced during dependency resolution.
  *
- * <p>You can use this interface associate artifacts with a configuration using the {@link #artifact(Object)} methods. You can also define several <em>variants</em> of the configuration's artifacts. Each variant represents a set of artifacts that form some mutually exclusive usage of the component.</p>
+ * <p>You can use this interface to associate artifacts with a configuration using the {@link #artifact(Object)} methods. You can also define several <em>variants</em> of the configuration's artifacts. Each variant represents a set of artifacts that form some mutually exclusive usage of the component.</p>
  *
  * <p>An implicit variant is defined for a configuration whenever any artifacts are attached directly to this object or inherited from another configuration.</p>
  *
@@ -85,7 +85,7 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      * @param notation the notation
      *
      * Valid notations are a <i>group:name:version</i> string (e.g: <i>org.test:capability:1.0</i>, or a map
-     * with keys <i>group</i>, <i>name</i> and <i>version</i>.
+     * with keys <i>group</i>, <i>name</i> and <i>version</i>. {@linkplain Provider Providers} of any notation are also accepted
      *
      * @since 4.7.
      */

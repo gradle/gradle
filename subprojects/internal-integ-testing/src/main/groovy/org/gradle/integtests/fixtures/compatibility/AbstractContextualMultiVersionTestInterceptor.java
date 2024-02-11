@@ -17,12 +17,12 @@
 package org.gradle.integtests.fixtures.compatibility;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.integtests.fixtures.VersionedTool;
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -62,7 +62,7 @@ public abstract class AbstractContextualMultiVersionTestInterceptor<T extends Ve
 
     protected Collection<T> getPartialVersions() {
         Collection<T> allVersions = getAllVersions();
-        Set<T> partialVersions = Sets.newHashSet();
+        Set<T> partialVersions = new HashSet<>();
         T firstAvailable = getFirstAvailable(allVersions);
         if (firstAvailable != null) {
             partialVersions.add(firstAvailable);
@@ -120,7 +120,7 @@ public abstract class AbstractContextualMultiVersionTestInterceptor<T extends Ve
     }
 
     protected void createExecutionsForContext(CoverageContext coverageContext) {
-        Set<T> versionsUnderTest = Sets.newHashSet();
+        Set<T> versionsUnderTest = new HashSet<>();
         switch(coverageContext) {
             case DEFAULT:
             case LATEST:
@@ -145,7 +145,7 @@ public abstract class AbstractContextualMultiVersionTestInterceptor<T extends Ve
 
     private void createSelectedExecutions(List<String> selectionCriteria) {
         Collection<T> possibleVersions = getAllVersions();
-        Set<T> versionsUnderTest = Sets.newHashSet();
+        Set<T> versionsUnderTest = new HashSet<>();
 
         for (String criteria : selectionCriteria) {
             if (CoverageContext.LATEST.selector.equals(criteria)) {

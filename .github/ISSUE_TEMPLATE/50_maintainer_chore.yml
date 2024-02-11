@@ -1,0 +1,33 @@
+name: Chore
+description: Minor issue without significant impact
+labels: [ "a:chore", "to-triage" ]
+assignees: [ ]
+body:
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue type
+      options:
+        - Polishing
+        - Deprecation
+        - Refactoring
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem description
+      description: |
+        Please describe the problem as concisely as possible.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context (optional)
+      description: |
+        How has this issue affected you? What are you trying to accomplish?
+        Providing context helps us come up with a solution that is most useful in the real world
+    validations:
+      required: false

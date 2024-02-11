@@ -16,11 +16,9 @@
 
 package org.gradle.execution.plan
 
-
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.specs.Spec
@@ -43,7 +41,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultFinalizedExecutionPlan finalizedPlan
 
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
-    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
 
     def setup() {
@@ -457,7 +455,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         orderingRule << ['dependsOn', 'mustRunAfter', 'shouldRunAfter']
     }
 
-    def "finalizer groups that finalize each other form a cycle"() {
+    def "finalizer groups that finalize each other do not form a cycle"() {
         given:
         TaskInternal finalizerA = createTask("finalizerA")
         TaskInternal finalizerB = createTask("finalizerB")
@@ -952,12 +950,41 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         continueOnFailure << [true, false]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22853")
+    def "builds graph for finalizer whose dependency was executed in a previous plan"() {
+        given:
+        Task dep = task("dep")
+        Task finalizer1 = task("f1", dependsOn: [dep])
+        Task finalizer2 = task("f2", dependsOn: [dep])
+        Task finalizer3 = task("f3", dependsOn: [dep])
+        Task a = task("a", finalizedBy: [finalizer1])
+        Task b = task("b", finalizedBy: [finalizer2])
+        Task c = task("c", finalizedBy: [finalizer3])
+        addToGraphAndPopulate([a])
+        executes(a, dep, finalizer1)
+
+        when:
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([b])
+
+        then:
+        executes(b, finalizer2)
+
+        when:
+        // Need to run 3 times to trigger the issue
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([c])
+
+        then:
+        executes(c, finalizer3)
+    }
+
     def "required nodes added to the graph are executed in dependency order"() {
         given:
         def node1 = requiredNode()
         def node2 = requiredNode(node1)
         def node3 = requiredNode(node2)
-        executionPlan.setScheduledNodes([node3, node1, node2])
+        executionPlan.setScheduledWork(scheduledWork(node3, node1, node2))
 
         when:
         populateGraph()
@@ -1153,5 +1180,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         task.getShouldRunAfter() >> brokenDependencies()
         task.getFinalizedBy() >> taskDependencyResolvingTo(task, [])
         return task
+    }
+
+    private ScheduledWork scheduledWork(Node... nodes) {
+        return new ScheduledWork(nodes as List<Node>, nodes as List<Node>)
     }
 }

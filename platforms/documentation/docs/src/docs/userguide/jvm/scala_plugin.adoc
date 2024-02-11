@@ -1,0 +1,309 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[scala_plugin]]
+= The Scala Plugin
+
+The Scala plugin extends the <<java_plugin.adoc#java_plugin,Java plugin>> to add support for https://www.scala-lang.org/[Scala] projects.
+The plugin also supports _joint compilation_, which allows you to freely mix and match Scala and Java code with dependencies in both directions.
+For example, a Scala class can extend a Java class that in turn extends a Scala class.
+This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
+
+Note that if you want to benefit from the <<java_library_plugin.adoc#sec:java_library_separation,API / implementation separation>>, you can also apply the `java-library` plugin to your Scala project.
+
+
+[[sec:scala_usage]]
+== Usage
+
+To use the Scala plugin, include the following in your build script:
+
+.Using the Scala plugin
+====
+include::sample[dir="snippets/scala/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/scala/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+====
+
+[[sec:scala_tasks]]
+== Tasks
+
+The Scala plugin adds the following tasks to the project.
+Information about altering the dependencies to Java compile tasks are found <<building_java_projects.adoc#sec:building_jvm_lang,here>>.
+
+`compileScala` — link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
+_Depends on_: `compileJava`
++
+Compiles production Scala source files.
+
+`compileTestScala` — link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
+_Depends on_: `compileTestJava`
++
+Compiles test Scala source files.
+
+`compile__SourceSet__Scala` — link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile]::
+_Depends on_: `compile__SourceSet__Java`
++
+Compiles the given source set's Scala source files.
+
+`scaladoc` — link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaDoc.html[ScalaDoc]::
++
+Generates API documentation for the production Scala source files.
+
+The `ScalaCompile` and `ScalaDoc` tasks support <<toolchains.adoc#toolchains,Java toolchains>> out of the box.
+
+The Scala plugin adds the following dependencies to tasks added by the Java plugin.
+
+.Scala plugin - additional task dependencies
+[cols="a,a", options="header"]
+|===
+| Task name
+| Depends on
+|  `classes`
+|  `compileScala`
+
+|  `testClasses`
+|  `compileTestScala`
+
+|  `__sourceSet__Classes`
+|  `compile__SourceSet__Scala`
+|===
+
+.Scala plugin - tasks
+image::scalaPluginTasks.png[]
+
+
+[[sec:scala_project_layout]]
+== Project layout
+
+The Scala plugin assumes the project layout shown below. All the Scala source directories can contain Scala _and_ Java code. The Java source directories may only contain Java source code. None of these directories need to exist or have anything in them; the Scala plugin will simply compile whatever it finds.
+
+[[scalalayout]]
+include::javaProjectMainLayout.adoc[]
+
+`src/main/scala`::
+Production Scala source. May also contain Java source files for joint compilation.
+
+include::javaProjectTestLayout.adoc[]
+
+`src/test/scala`::
+Test Scala source. May also contain Java source files for joint compilation.
+
+include::javaProjectGenericLayout.adoc[]
+
+`src/__sourceSet__/scala`::
+Scala source files for the given source set. May also contain Java source files for joint compilation.
+
+
+[[sec:changing_scala_project_layout]]
+=== Changing the project layout
+
+Just like the Java plugin, the Scala plugin allows you to configure custom locations for Scala production and test source files.
+
+.Custom Scala source layout
+====
+include::sample[dir="snippets/scala/customizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
+include::sample[dir="snippets/scala/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
+====
+
+[[sec:scala_dependency_management]]
+== Dependency management
+
+Scala projects need to declare a `scala-library` dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Scala compiler and Scaladoc tool, respectively.footnote:[See <<#sec:configure_scala_classpath,Automatic configuration of Scala classpath>>.]
+
+If Scala is used for production code, the `scala-library` dependency should be added to the `implementation` configuration:
+
+.Declaring a Scala dependency for production code
+====
+include::sample[dir="snippets/scala/quickstart/kotlin",files="build.gradle.kts[tags=scala-dependency]"]
+include::sample[dir="snippets/scala/quickstart/groovy",files="build.gradle[tags=scala-dependency]"]
+====
+
+If you want to use Scala 3 instead of the `scala-library` dependency you should add the `scala3-library_3` dependency:
+
+.Declaring a Scala 3 dependency for production code
+====
+include::sample[dir="snippets/scala/scala3/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/scala/scala3/groovy",files="build.gradle"]
+====
+
+If Scala is only used for test code, the `scala-library` dependency should be added to the `testImplementation` configuration:
+
+.Declaring a Scala dependency for test code
+====
+include::sample[dir="snippets/scala/scalaDependency/kotlin",files="build.gradle.kts[tags=scala-test-dependency]"]
+include::sample[dir="snippets/scala/scalaDependency/groovy",files="build.gradle[tags=scala-test-dependency]"]
+====
+
+[[sec:configure_scala_classpath]]
+== Automatic configuration of scalaClasspath
+
+The `ScalaCompile` and `ScalaDoc` tasks consume Scala code in two ways: on their `classpath`, and on their `scalaClasspath`. The former is used to locate classes referenced by the source code, and will typically contain `scala-library` along with other libraries. The latter is used to load and execute the Scala compiler and Scaladoc tool, respectively, and should only contain the `scala-compiler` library and its dependencies.
+
+Unless a task's `scalaClasspath` is configured explicitly, the Scala (base) plugin will try to infer it from the task's `classpath`. This is done as follows:
+
+* If a `scala-library` jar is found on `classpath`, and the project has at least one repository declared, a corresponding `scala-compiler` repository dependency will be added to `scalaClasspath`.
+* Otherwise, execution of the task will fail with a message saying that `scalaClasspath` could not be inferred.
+
+
+[[sec:configure_zinc_compiler]]
+== Configuring the Zinc compiler
+
+The Scala plugin uses a configuration named `zinc` to resolve the https://github.com/sbt/zinc[Zinc compiler] and its dependencies.
+Gradle will provide a default version of Zinc, but if you need to use a particular Zinc version, you can change it.
+Gradle supports version 1.6.0 of Zinc and above.
+
+.Declaring a version of the Zinc compiler to use
+====
+include::sample[dir="snippets/scala/zincDependency/kotlin",files="build.gradle.kts[tags=zinc-dependency]"]
+include::sample[dir="snippets/scala/zincDependency/groovy",files="build.gradle[tags=zinc-dependency]"]
+====
+
+The Zinc compiler itself needs a compatible version of `scala-library` that may be different from the version required by your application.
+Gradle takes care of specifying a compatible version of `scala-library` for you.
+
+You can diagnose problems with the version of the Zinc compiler selected by running <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,dependencyInsight>> for the `zinc` configuration.
+
+.Zinc compatibility table
+[%header%autowidth,compact]
+|===
+| Gradle version    | Supported Zinc versions | Zinc coordinates | Required Scala version | Supported Scala compilation version
+
+| 7.5 and newer     | link:https://github.com/sbt/zinc[SBT Zinc]. Versions 1.6.0 and above. | `org.scala-sbt:zinc_2.13` | Scala `2.13.x` is required for _running_ Zinc. | Scala `2.10.x` through `3.x` can be compiled.
+| 6.0 to 7.5        | link:https://github.com/sbt/zinc[SBT Zinc]. Versions 1.2.0 and above. | `org.scala-sbt:zinc_2.12` | Scala `2.12.x` is required for _running_ Zinc. | Scala `2.10.x` through `2.13.x` can be compiled.
+| 1.x through 5.x   | link:https://github.com/typesafehub/zinc[**Deprecated** Typesafe Zinc compiler.] Versions 0.3.0 and above, except for 0.3.2 through 0.3.5.2. | `com.typesafe.zinc:zinc` | Scala `2.10.x` is required for _running_ Zinc. | Scala `2.9.x` through `2.12.x` can be compiled.
+
+|===
+
+[[sec:scala_compiler_plugins]]
+== Adding plugins to the Scala compiler
+
+The Scala plugin adds a configuration named `scalaCompilerPlugins` which is used to declare and resolve optional compiler plugins.
+
+.Adding a dependency on a Scala compiler plugin
+====
+include::sample[dir="snippets/scala/compilerPlugin/kotlin",files="build.gradle.kts[tags=compiler-plugin]"]
+include::sample[dir="snippets/scala/compilerPlugin/groovy",files="build.gradle[tags=compiler-plugin]"]
+====
+
+[[sec:scala_convention_properties]]
+== Convention properties
+
+The Scala plugin does not add any convention properties to the project.
+
+[[sec:scala_source_set_properties]]
+== Source set properties
+
+The Scala plugin adds the following extensions to each source set in the project. You can use these  in your build script as though they were properties of the source set object.
+
+`scala` — link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet] (read-only)::
+The Scala source files of this source set. Contains all `.scala` and `.java` files found in the Scala source directories, and excludes all other types of files. _Default value:_ non-null.
+
+`scala.srcDirs` — `Set&lt;File&gt;`::
+The source directories containing the Scala source files of this source set. May also contain Java source files for joint compilation.
+Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
+_Default value:_ `[__projectDir__/src/__name__/scala]`.
+
+`allScala` — link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
+All Scala source files of this source set. Contains only the `.scala` files found in the Scala source directories. _Default value:_ non-null.
+
+These extensions are backed by an object of type link:{groovyDslPath}/org.gradle.api.plugins.scala.ScalaSourceSet.html[ScalaSourceSet].
+
+The Scala plugin also modifies some source set properties:
+
+.Scala plugin - source set properties
+[%header%autowidth,compact]
+|===
+| Property name | Change
+| `allJava` | Adds all `.java` files found in the Scala source directories.
+| `allSource` | Adds all source files found in the Scala source directories.
+|===
+
+[[sec:scala_target]]
+== Target bytecode level and Java APIs version
+
+When running the Scala compile task, Gradle will always add a parameter to configure the Java target for the Scala compiler that is derived from the Gradle configuration:
+
+* When using toolchains, the `-release` option, or `target` for older Scala versions, is selected, with a version matching the Java language level of the toolchain configured.
+* When not using toolchains, Gradle will always pass a `target` flag -- with exact value dependent on the Scala version -- to compile to Java 8 bytecode.
+
+NOTE: This means that using toolchains with a recent Java version and an old Scala version can result in failures because Scala only supported Java 8 bytecode for some time.
+The solution is then to either use the right Java version in the toolchain or explicitly downgrade the target when needed.
+
+The following table explains the values computed by Gradle:
+
+.Scala target parameter based on project configuration
+[%header%autowidth,compact]
+|===
+| Scala version | Toolchain in use | Parameter value
+.2+| version < `2.13.1`                 | yes   | `-target:jvm-1.<java_version>`
+                                        | no    | `-target:jvm-1.8`
+.2+| `2.13.1` \<= version < `2.13.9`    | yes   | `-target:<java_version>`
+                                        | no    | `-target:8`
+.2+| `2.13.9` \<= version < `3.0`       | yes   | `-release:<java_version>`
+                                        | no    | `-target:8`
+.2+| `3.0` \<= version                  | yes   | `-release:<java_version>`
+                                        | no    | `-Xtarget:8`
+|===
+
+Setting any of these flags explicitly, or using flags containing `java-output-version`, on link:{groovyDslPath}/org.gradle.language.scala.tasks.BaseScalaCompileOptions.html#org.gradle.language.scala.tasks.BaseScalaCompileOptions:additionalParameters[`ScalaCompile.scalaCompileOptions.additionalParameters`] disables that logic in favor of the explicit flag.
+
+[[sec:scala_compiling_in_external_process]]
+== Compiling in external process
+
+Scala compilation takes place in an external process.
+
+Memory settings for the external process default to the defaults of the JVM. To adjust memory settings, configure the `scalaCompileOptions.forkOptions` property as needed:
+
+.Adjusting memory settings
+====
+include::sample[dir="snippets/scala/zinc/kotlin",files="build.gradle.kts[tags=adjust-memory]"]
+include::sample[dir="snippets/scala/zinc/groovy",files="build.gradle[tags=adjust-memory]"]
+====
+
+[[sec:scala_incremental_compilation]]
+== Incremental compilation
+
+By compiling only classes whose source code has changed since the previous compilation, and classes affected by these changes, incremental compilation can significantly reduce Scala compilation time. It is particularly effective when frequently compiling small code increments, as is often done at development time.
+
+The Scala plugin defaults to incremental compilation by integrating with https://github.com/typesafehub/zinc[Zinc], a standalone version of https://github.com/harrah/xsbt[sbt]'s incremental Scala compiler. If you want to disable the incremental compilation, set `force = true` in your build file:
+
+.Forcing all code to be compiled
+====
+include::sample[dir="snippets/scala/force/kotlin",files="build.gradle.kts[tags=force-compilation]"]
+include::sample[dir="snippets/scala/force/groovy",files="build.gradle[tags=force-compilation]"]
+====
+
+_Note:_ This will only cause all classes to be recompiled if at least one input source file has changed. If there are no changes to the source files, the `compileScala` task will still be considered `UP-TO-DATE` as usual.
+
+The Zinc-based Scala Compiler supports joint compilation of Java and Scala code. By default, all Java and Scala code under `src/main/scala` will participate in joint compilation. Even Java code will be compiled incrementally.
+
+Incremental compilation requires dependency analysis of the source code. The results of this analysis are stored in the file designated by `scalaCompileOptions.incrementalOptions.analysisFile` (which has a sensible default). In a multi-project build, analysis files are passed on to downstream `ScalaCompile` tasks to enable incremental compilation across project boundaries. For `ScalaCompile` tasks added by the Scala plugin, no configuration is necessary to make this work. For other `ScalaCompile` tasks that you might add, the property `scalaCompileOptions.incrementalOptions.publishedCode` needs to be configured to point to the classes folder or Jar archive by which the code is passed on to compile class paths of downstream `ScalaCompile` tasks. Note that if `publishedCode` is not set correctly, downstream tasks may not recompile code affected by upstream changes, leading to incorrect compilation results.
+
+Note that Zinc's Nailgun based daemon mode is not supported. Instead, we plan to enhance Gradle's own compiler daemon to stay alive across Gradle invocations, reusing the same Scala compiler. This is expected to yield another significant speedup for Scala compilation.
+
+[[sec:eclipse_integration]]
+== Eclipse Integration
+
+When the Eclipse plugin encounters a Scala project, it adds additional configuration to make the project work with Scala IDE out of the box. Specifically, the plugin adds a Scala nature and dependency container.
+
+[[sec:intellij_idea_integration]]
+== IntelliJ IDEA Integration
+
+When the IDEA plugin encounters a Scala project, it adds additional configuration to make the project work with IDEA out of the box. Specifically, the plugin adds a Scala SDK (IntelliJ IDEA 14+) and a Scala compiler library that matches the Scala version on the project's class path. The Scala plugin is backwards compatible with earlier versions of IntelliJ IDEA and it is possible to add a Scala facet instead of the default Scala SDK by configuring `targetVersion` on link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaModel.html[IdeaModel].
+
+.Explicitly specify a target IntelliJ IDEA version
+====
+include::sample[dir="snippets/scala/ideaTargetVersion/kotlin",files="build.gradle.kts[tags=scala-idea-target-version]"]
+include::sample[dir="snippets/scala/ideaTargetVersion/groovy",files="build.gradle[tags=scala-idea-target-version]"]
+====
+

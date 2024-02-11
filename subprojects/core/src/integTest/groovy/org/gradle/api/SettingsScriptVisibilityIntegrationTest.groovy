@@ -17,14 +17,14 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle-private/issues/3247")
-@IgnoreIf({OperatingSystem.current().macOsX && JavaVersion.current() == JavaVersion.VERSION_1_8})
+@Requires(UnitTestPreconditions.NotJava8OnMacOs)
 class SettingsScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
 
     @org.junit.Rule
@@ -109,7 +109,7 @@ class SettingsScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
+        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
         succeeds("help", "-b", "other-build.gradle")
 
         then:

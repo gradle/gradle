@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
@@ -50,8 +51,8 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "deleted files show up in task destroys"() {
         buildFile << """
-            import org.gradle.api.internal.tasks.properties.PropertyVisitor
-            import org.gradle.api.internal.tasks.properties.PropertyWalker
+            import org.gradle.internal.properties.PropertyVisitor
+            import org.gradle.internal.properties.bean.PropertyWalker
             import org.gradle.api.internal.tasks.TaskPropertyUtils
 
             task clean(type: Delete) {
@@ -63,7 +64,8 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     def destroyablePaths = []
                     def propertyWalker = services.get(PropertyWalker)
-                    TaskPropertyUtils.visitProperties(propertyWalker, it, new PropertyVisitor.Adapter() {
+                    TaskPropertyUtils.visitProperties(propertyWalker, it, new PropertyVisitor() {
+                        @Override
                         void visitDestroyableProperty(Object value) {
                             destroyablePaths << value
                         }
@@ -142,10 +144,19 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds "clean"
         then: "clean is marked as UP-TO-DATE"
         result.groupedOutput.task(":clean").outcome == "UP-TO-DATE"
+
+        // A first CC build may produce build/reports, which renders `clean` out-of-date
+        if (GradleContextualExecuter.isConfigCache()) {
+            def build = testDirectory.file("build")
+            assert build.listFiles().size() == 1 && build.file("reports").exists()
+            build.deleteDir()
+        }
+
         when: "clean is executed again without any changes"
         succeeds "clean"
         then: "clean is still marked UP-TO-DATE"
         result.groupedOutput.task(":clean").outcome == "UP-TO-DATE"
+
         when: "the kotlin script compiler is invoked due to a script change"
         buildKotlinFile << "\n"
         succeeds "clean"

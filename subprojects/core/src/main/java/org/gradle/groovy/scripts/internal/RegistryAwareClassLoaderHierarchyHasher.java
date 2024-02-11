@@ -16,13 +16,13 @@
 
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.collect.Maps;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Map;
 
 public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLoaderHierarchyHasher {
@@ -31,7 +31,7 @@ public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLo
     }
 
     private static Map<ClassLoader, String> collectKnownClassLoaders(ClassLoaderRegistry registry) {
-        Map<ClassLoader, String> knownClassLoaders = Maps.newHashMap();
+        Map<ClassLoader, String> knownClassLoaders = new HashMap<>();
 
         String gradleVersion = GradleVersion.current().getVersion();
 

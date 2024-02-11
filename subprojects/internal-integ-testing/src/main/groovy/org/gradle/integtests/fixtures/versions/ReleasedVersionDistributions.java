@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.fixtures.versions;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.internal.Factory;
-import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -87,12 +86,10 @@ public class ReleasedVersionDistributions {
 
     public List<GradleDistribution> getAll() {
         if (distributions == null) {
-            distributions = CollectionUtils.collect(getProperties().getProperty("versions").split("\\s+"), new Transformer<GradleDistribution, String>() {
-                @Override
-                public GradleDistribution transform(String version) {
-                    return buildContext.distribution(version);
-                }
-            });
+            distributions = CollectionUtils.collect(
+                getProperties().getProperty("versions").split("\\s+"),
+                buildContext::distribution
+            );
         }
         return distributions;
     }

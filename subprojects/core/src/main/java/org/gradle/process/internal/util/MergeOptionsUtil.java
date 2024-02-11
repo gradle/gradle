@@ -16,11 +16,11 @@
 
 package org.gradle.process.internal.util;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -68,7 +68,7 @@ public class MergeOptionsUtil {
     }
 
     public static Set<String> normalized(@Nullable Iterable<String> strings) {
-        Set<String> normalized = Sets.newLinkedHashSet();
+        Set<String> normalized = new LinkedHashSet<>();
         if (strings != null) {
             for (String string : strings) {
                 normalized.add(normalized(string));

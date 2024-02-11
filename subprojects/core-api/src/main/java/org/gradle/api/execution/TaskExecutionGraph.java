@@ -155,7 +155,6 @@ public interface TaskExecutionGraph {
      * </p>
      *
      * @return The tasks. Returns an empty list if no tasks are to be executed.
-     * @throws IllegalStateException When this graph has not been populated.
      */
     List<Task> getAllTasks();
 

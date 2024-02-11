@@ -17,6 +17,7 @@
 package org.gradle.api.file;
 
 import org.junit.Test;
+import spock.lang.Issue;
 
 import java.io.File;
 
@@ -114,6 +115,76 @@ public class RelativePathTest {
 
         path = RelativePath.parse(true, "/one/two");
         assertPathContains(path, true, "one", "two");
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5748")
+    @Test
+    public void ignoresSingleDotSegments() {
+        RelativePath path;
+
+        path = new RelativePath(false, "one", ".");
+        assertPathContains(path, false, "one");
+
+        path = new RelativePath(true, ".", "one");
+        assertPathContains(path, true, "one");
+
+        path = new RelativePath(true, "one", ".", ".", "two");
+        assertPathContains(path, true, "one", "two");
+
+        path = new RelativePath(false, ".");
+        assertPathContains(path, false);
+
+        // Test with append()
+        path = new RelativePath(false, "one").append(false, ".");
+        assertPathContains(path, false, "one");
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5748")
+    @Test
+    public void canonicalizesDoubleDotSegments() {
+        RelativePath path;
+
+        // Leading ".." entries are left intact
+        path = new RelativePath(false, "..");
+        assertPathContains(path, false, "..");
+
+        path = new RelativePath(false, "..", "one");
+        assertPathContains(path, false, "..", "one");
+
+        path = new RelativePath(false, "..", "..");
+        assertPathContains(path, false, "..", "..");
+
+        // Non-leading ".." entries "cancel out" parent directories
+        path = new RelativePath(false, "one", "..");
+        assertPathContains(path, false);
+
+        path = new RelativePath(false, "..", "one", "..", "..");
+        assertPathContains(path, false, "..", "..");
+
+        path = new RelativePath(false, "one", "..", "two");
+        assertPathContains(path, false, "two");
+
+        path = new RelativePath(false, "one", "two", "..");
+        assertPathContains(path, false, "one");
+
+        path = new RelativePath(false, "one", "..", "..", "two");
+        assertPathContains(path, false, "..", "two");
+
+        path = new RelativePath(false, "..", "one", "two", "..");
+        assertPathContains(path, false, "..", "one");
+
+        path = new RelativePath(false, "one", "two", "three", "..", "four", "..", "..", "five");
+        assertPathContains(path, false, "one", "five");
+
+        path = new RelativePath(false, "one", ".", "..", "two");
+        assertPathContains(path, false, "two");
+
+        path = new RelativePath(false, ".", "..", "one");
+        assertPathContains(path, false, "..", "one");
+
+        // Test with append()
+        path = new RelativePath(false, "one", "two").append(false, "..");
+        assertPathContains(path, false, "one");
     }
 
     @Test

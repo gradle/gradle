@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 /**
  * <p>Descriptor of a repository content, used to avoid reaching to
@@ -39,11 +40,28 @@ public interface InclusiveRepositoryContentDescriptor {
     void includeGroup(String group);
 
     /**
+     * Declares that an entire group and its subgroups should be searched for in this repository.
+     *
+     * <p>
+     * A subgroup is a group that starts with the given prefix and has a dot immediately after the prefix.
+     * For example, if the prefix is {@code org.gradle}, then {@code org.gradle} is matched as a group,
+     * and {@code org.gradle.foo} and {@code org.gradle.foo.bar} are matched as subgroups. {@code org.gradlefoo}
+     * is not matched as a subgroup.
+     * </p>
+     *
+     * @param groupPrefix the group prefix to include
+     * @since 8.1
+     */
+    @Incubating
+    void includeGroupAndSubgroups(String groupPrefix);
+
+    /**
      * Declares that an entire group should be searched for in this repository.
      *
      * @param groupRegex a regular expression of the group name
      */
     void includeGroupByRegex(String groupRegex);
+
 
     /**
      * Declares that an entire module should be searched for in this repository.

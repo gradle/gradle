@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,30 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
+import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
 
-public interface ResponseProtocol extends WorkerLoggingProtocol {
+/**
+ * Protocol for sending information back from a worker process to the daemon.
+ * <p>
+ * This protocol is extended with the {@link WorkerLoggingProtocol} (for sending log messages)
+ * and {@link WorkerProblemProtocol} (for sending {@link org.gradle.api.problems.Problem}s through).
+ * <p>
+ * Bundling these protocols together will use a single connection for all communication,
+ * which means that messages are guaranteed to be delivered <b>in-order</b> (i.e. log and problem messages are delivered before the completion/failed message).
+ */
+public interface ResponseProtocol extends WorkerLoggingProtocol, WorkerProblemProtocol {
+    /**
+     Called when the method completes successfully
+     */
     void completed(Object result);
 
-    // Called when the method throws an exception
+    /**
+     Called when the method throws an exception
+     */
     void failed(Throwable failure);
 
-    // Called when some other problem occurs
+    /**
+     * Called when some other problem occurs
+     */
     void infrastructureFailed(Throwable failure);
 }

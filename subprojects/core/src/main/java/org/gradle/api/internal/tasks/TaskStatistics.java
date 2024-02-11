@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.IoActions;
@@ -27,6 +26,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,8 +38,8 @@ public class TaskStatistics implements Closeable {
     private final AtomicInteger eagerTasks = new AtomicInteger();
     private final AtomicInteger lazyTasks = new AtomicInteger();
     private final AtomicInteger lazyRealizedTasks = new AtomicInteger();
-    private final Map<Class, Integer> typeCounts = Maps.newHashMap();
-    private final Map<Class, Integer> realizedTypeCounts = Maps.newHashMap();
+    private final Map<Class, Integer> typeCounts = new HashMap<>();
+    private final Map<Class, Integer> realizedTypeCounts = new HashMap<>();
     private final boolean collectStatistics;
 
     private PrintWriter lazyTaskLog;

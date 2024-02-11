@@ -70,6 +70,7 @@ public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
     /**
      * Notified when a node that is potentially a member of this set has completed.
      */
+    @Override
     public void onNodeComplete(Node node, Node dependency) {
         if (waitingFor != null) {
             if (waitingFor.remove(dependency)) {
@@ -81,6 +82,7 @@ public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
         }
     }
 
+    @Override
     public Node.DependenciesState getState(Node node) {
         if (!pruned) {
             // See the comment in addDependency() above
@@ -96,6 +98,15 @@ public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
         } else {
             return Node.DependenciesState.NOT_COMPLETE;
         }
+    }
+
+    @Override
+    public void healthDiagnostics(StringBuilder builder) {
+        builder.append("dependencies=").append(Node.formatNodes(orderedDependencies));
+        if (waitingFor != null && !waitingFor.isEmpty()) {
+            builder.append(", waiting-for=").append(Node.formatNodes(waitingFor));
+        }
+        builder.append(", has-failed-dependency=").append(nodeCannotStart);
     }
 
     private void discardCompletedNodes(Node node) {

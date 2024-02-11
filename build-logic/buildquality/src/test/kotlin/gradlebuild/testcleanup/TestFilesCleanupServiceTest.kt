@@ -105,7 +105,7 @@ class TestFilesCleanupServiceTest {
                     this.ignoreFailures = ignoreFailures
                     if (hasLeftover) {
                         doFirst {
-                            project.layout.buildDirectory.file("tmp/test files/leftover/leftover").get().asFile.apply {
+                            project.layout.buildDirectory.file("tmp/teŝt files/leftover/leftover").get().asFile.apply {
                                 parentFile.mkdirs()
                                 createNewFile()
                             }
@@ -133,7 +133,7 @@ class TestFilesCleanupServiceTest {
                     project.touchInBuildDir( "reports/report.html")
 
                     if (project.name == "failed-report-with-leftover") {
-                        project.touchInBuildDir("tmp/test files/leftover/leftover")
+                        project.touchInBuildDir("tmp/teŝt files/leftover/leftover")
                         throw IllegalStateException()
                     }
                 }
@@ -186,9 +186,9 @@ class TestFilesCleanupServiceTest {
 
         assertEquals(1, StringUtils.countMatches(result.output, "Found non-empty test files dir"))
         assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupBuildService'"))
-        result.output.assertContains("successful-test-with-leftover/build/tmp/test files/leftover")
+        result.output.assertContains("successful-test-with-leftover/build/tmp/teŝt files/leftover")
 
-        assertLeftoverFilesCleanedUpEventually("successful-test-with-leftover/build/tmp/test files")
+        assertLeftoverFilesCleanedUpEventually("successful-test-with-leftover/build/tmp/teŝt files")
     }
 
     @Test
@@ -215,8 +215,8 @@ class TestFilesCleanupServiceTest {
         // leftover files failed tests are reported but not counted as an exception, but cleaned up eventually
         assertEquals(1, StringUtils.countMatches(result.output, "Found non-empty test files dir"))
         assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupBuildService'"))
-        result.output.assertContains("failed-report-with-leftover/build/tmp/test files/leftover")
-        result.output.assertContains("failed-test-with-leftover/build/tmp/test files/leftover")
+        result.output.assertContains("failed-report-with-leftover/build/tmp/teŝt files/leftover")
+        result.output.assertContains("failed-test-with-leftover/build/tmp/teŝt files/leftover")
 
         assertArchivedFilesSeen(
             "report-failed-test-with-leftover-test.zip",
@@ -225,9 +225,9 @@ class TestFilesCleanupServiceTest {
             "report-successful-report-reports.zip"
         )
         assertLeftoverFilesCleanedUpEventually(
-            "failed-report-with-leftover/build/tmp/test files",
-            "successful-report/build/tmp/test files",
-            "failed-test-with-leftover/build/tmp/test files"
+            "failed-report-with-leftover/build/tmp/teŝt files",
+            "successful-report/build/tmp/teŝt files",
+            "failed-test-with-leftover/build/tmp/teŝt files"
         )
     }
 
@@ -237,14 +237,14 @@ class TestFilesCleanupServiceTest {
 
         // leftover files failed tests are reported but not counted as an exception, but cleaned up eventually
         assertEquals(1, StringUtils.countMatches(result.output, "Leftover files"))
-        result.output.assertContains("flaky-test-with-leftover/build/tmp/test files/leftover")
+        result.output.assertContains("flaky-test-with-leftover/build/tmp/teŝt files/leftover")
 
         assertArchivedFilesSeen(
             "report-flaky-test-with-leftover-test.zip",
             "report-flaky-test-with-leftover-leftover.zip"
         )
 
-        assertLeftoverFilesCleanedUpEventually("flaky-test-with-leftover/build/tmp/test files")
+        assertLeftoverFilesCleanedUpEventually("flaky-test-with-leftover/build/tmp/teŝt files")
     }
 
     private

@@ -39,6 +39,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
@@ -123,8 +124,10 @@ public class BasicGlobalScopeServices {
         return new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem);
     }
 
-    PatternSpecFactory createPatternSpecFactory() {
-        return PatternSpecFactory.INSTANCE;
+    PatternSpecFactory createPatternSpecFactory(ListenerManager listenerManager) {
+        PatternSpecFactory patternSpecFactory = PatternSpecFactory.INSTANCE;
+        listenerManager.addListener(patternSpecFactory);
+        return patternSpecFactory;
     }
 
     protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {

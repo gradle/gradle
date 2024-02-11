@@ -20,17 +20,10 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskAction
 import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.specs.AndSpec
 import spock.lang.Specification
-
-import static org.gradle.api.internal.changedetection.TaskExecutionMode.INCREMENTAL
-import static org.gradle.api.internal.changedetection.TaskExecutionMode.NO_OUTPUTS
-import static org.gradle.api.internal.changedetection.TaskExecutionMode.RERUN_TASKS_ENABLED
-import static org.gradle.api.internal.changedetection.TaskExecutionMode.UNTRACKED
-import static org.gradle.api.internal.changedetection.TaskExecutionMode.UP_TO_DATE_WHEN_FALSE
 
 class DefaultTaskExecutionModeResolverTest extends Specification {
 
@@ -50,20 +43,20 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
     def "untracked"() {
         when:
-        TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
+        def state = repository.getExecutionMode(task, taskProperties)
 
         then:
-        state == UNTRACKED
+        state == DefaultTaskExecutionMode.untracked("For testing")
         _ * task.getReasonNotToTrackState() >> Optional.of("For testing")
         0 * _
     }
 
     def "no outputs"() {
         when:
-        TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
+        def state = repository.getExecutionMode(task, taskProperties)
 
         then:
-        state == NO_OUTPUTS
+        state == DefaultTaskExecutionMode.noOutputs()
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * upToDateSpec.isEmpty() >> true
         _ * task.getTaskActions() >> []
@@ -72,10 +65,10 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
     def "default"() {
         when:
-        TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
+        def state = repository.getExecutionMode(task, taskProperties)
 
         then:
-        state == INCREMENTAL
+        state == DefaultTaskExecutionMode.incremental()
         1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> true
         0 * _
@@ -87,7 +80,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
         def state = repository.getExecutionMode(task, taskProperties)
 
         then:
-        state == RERUN_TASKS_ENABLED
+        state == DefaultTaskExecutionMode.rerunTasksEnabled()
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * upToDateSpec.empty >> false
         0 * _
@@ -98,7 +91,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
         def state = repository.getExecutionMode(task, taskProperties)
 
         then:
-        state == UP_TO_DATE_WHEN_FALSE
+        state == DefaultTaskExecutionMode.upToDateWhenFalse()
         1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> false
         0 * _

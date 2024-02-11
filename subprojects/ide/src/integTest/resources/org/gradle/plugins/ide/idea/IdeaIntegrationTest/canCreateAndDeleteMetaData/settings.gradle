@@ -1,4 +1,0 @@
-include "api", "webservice"
-
-rootProject.name = 'root'
-

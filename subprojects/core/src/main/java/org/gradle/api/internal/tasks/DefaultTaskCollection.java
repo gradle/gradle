@@ -62,14 +62,31 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         this.parentMutationGuard = parentMutationGuard;
     }
 
+    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
+        super(collection, nameFilter, elementFilter, instantiator, NAMER);
+        this.project = project;
+        this.parentMutationGuard = parentMutationGuard;
+    }
+
     @Override
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {
         return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, parentMutationGuard));
     }
 
     @Override
+    protected <S extends T> DefaultTaskCollection<S> filtered(Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
+        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultTaskCollection.class, this, nameFilter, elementFilter, getInstantiator(), project, parentMutationGuard));
+    }
+
+    @Override
     public <S extends T> TaskCollection<S> withType(Class<S> type) {
         return filtered(createFilter(type));
+    }
+
+    @Override
+    public TaskCollection<T> named(Spec<String> nameFilter) {
+        Spec<T> spec = convertNameToElementFilter(nameFilter);
+        return filtered(nameFilter, createFilter(spec));
     }
 
     @Override

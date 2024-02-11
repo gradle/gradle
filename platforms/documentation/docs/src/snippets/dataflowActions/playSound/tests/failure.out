@@ -1,0 +1,7 @@
+Playing sound sad-trombone.mp3
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':failure'.
+> This task failed

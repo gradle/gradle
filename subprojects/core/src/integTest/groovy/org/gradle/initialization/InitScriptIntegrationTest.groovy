@@ -16,7 +16,7 @@
 
 package org.gradle.initialization
 
-import groovy.test.NotYetImplemented
+
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -48,7 +48,6 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @NotYetImplemented
     @Issue(['GRADLE-1457', 'GRADLE-3197'])
     def 'init scripts passed on the command line are applied to buildSrc'() {
         given:
@@ -83,6 +82,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
     def 'init script can contribute to settings - before and after'() {
         given:
+        createDirs("sub1", "sub2")
         file("init.gradle") << """
             beforeSettings {
                 it.ext.addedInInit = ["beforeSettings"]
@@ -118,6 +118,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
     def "can apply settings plugin from init script"() {
         given:
+        createDirs("sub1", "sub2")
         def pluginBuilder = new PluginBuilder(file("plugin"))
         pluginBuilder.addPluginSource("settings-test", "test.SettingsPlugin", """
             package test

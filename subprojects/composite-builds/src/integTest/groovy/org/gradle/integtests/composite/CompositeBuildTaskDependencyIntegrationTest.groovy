@@ -122,6 +122,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
     def "can depend on task from subproject of composing build"() {
         given:
+        createDirs("buildA", "buildA/a1")
         buildA.settingsFile << """
     include 'a1'
 """

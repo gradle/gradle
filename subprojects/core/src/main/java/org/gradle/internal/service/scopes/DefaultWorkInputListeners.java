@@ -19,9 +19,9 @@ package org.gradle.internal.service.scopes;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.execution.WorkInputListener;
 import org.gradle.internal.execution.WorkInputListeners;
+import org.gradle.internal.properties.InputBehavior;
 
 import java.util.EnumSet;
 

@@ -16,8 +16,10 @@
 
 package org.gradle.configuration;
 
-import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.configuration.internal.UserCodeApplicationId;
+import org.gradle.internal.code.DefaultUserCodeSource;
+import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationId;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -59,7 +61,8 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             //no operation, if there is no script code provided
             decorated.apply(target);
         } else {
-            userCodeApplicationContext.apply(getSource().getShortDisplayName(), userCodeApplicationId -> buildOperationExecutor.run(new RunnableBuildOperation() {
+            UserCodeSource source = new DefaultUserCodeSource(getSource().getShortDisplayName(), null);
+            userCodeApplicationContext.apply(source, userCodeApplicationId -> buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
                     decorated.apply(target);

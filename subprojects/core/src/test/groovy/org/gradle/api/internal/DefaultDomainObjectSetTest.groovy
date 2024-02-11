@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.Action
+import org.gradle.util.TestUtil
 
 import static org.gradle.util.internal.WrapUtil.toList
 
@@ -192,4 +194,55 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
         1 * action.execute(null)
         0 * _
     }
+
+    def "withType works with addLater"() {
+        given:
+        def value = Mock(Subtype)
+
+        when:
+        container.addLater(TestUtil.providerFactory().provider { value })
+        def result = collect(container.withType(Subtype))
+
+        then:
+        result == [value]
+    }
+
+    @NotYetImplemented
+    def "withType works with addAllLater for list"() {
+        given:
+        def value = Mock(Subtype)
+
+        when:
+        container.addAllLater(TestUtil.providerFactory().provider { [value] })
+        def result = collect(container.withType(Subtype))
+
+        then:
+        result == [value]
+    }
+
+    @NotYetImplemented
+    def "withType works for addAllLater and set property"() {
+        def value = Mock(Subtype)
+        def property = TestUtil.objectFactory().setProperty(CharSequence)
+        property.add(value)
+
+        when:
+        container.addAllLater(property)
+        def result = collect(container.withType(Subtype))
+
+        then:
+        result == [value]
+    }
+
+    interface Subtype extends CharSequence {}
+
+    static <T> Collection<T> collect(Iterable<T> iterable) {
+        def result = []
+        Iterator it = iterable.iterator()
+        while (it.hasNext()) {
+            result.add(it.next())
+        }
+        result
+    }
+
 }

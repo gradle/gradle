@@ -27,6 +27,7 @@ import java.util.Map;
  */
 public abstract class AbstractAttributeContainer implements AttributeContainerInternal {
 
+    @Override
     public Map<Attribute<?>, ?> asMap() {
         return asImmutable().asMap();
     }

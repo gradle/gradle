@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -126,18 +127,25 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/21000")
+    @Issue(value = ["https://github.com/gradle/gradle/issues/21000", "https://github.com/gradle/gradle/issues/22734"])
     def "finalizer task can depend on finalized task that is not an entry point task"() {
         given:
         buildFile '''
             task finalizer(type: BreakingTask) {
-                dependsOn 'finalizerDep'
+                dependsOn 'finalizerDep1'
+                dependsOn 'finalizerDep2'
             }
-            task finalizerDep(type: BreakingTask) {
-                dependsOn 'finalizerDepDep'
+            task finalizerDep1(type: BreakingTask) {
+                dependsOn 'finalizerDepDep1'
                 finalizedBy 'finalizer'
             }
-            task finalizerDepDep(type: BreakingTask) {
+            task finalizerDepDep1(type: BreakingTask) {
+            }
+            task finalizerDep2(type: BreakingTask) {
+                dependsOn 'finalizerDepDep2'
+                finalizedBy 'finalizer'
+            }
+            task finalizerDepDep2(type: BreakingTask) {
             }
             task entryPoint(type: BreakingTask) {
                 finalizedBy 'finalizer'
@@ -147,24 +155,29 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'entryPoint'
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep1', ':finalizerDep1', ':finalizer'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep2', ':finalizerDep2', ':finalizer'
         }
         2.times {
             fails 'entryPoint', '-PentryPoint.broken'
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep1', ':finalizerDep1', ':finalizer'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep2', ':finalizerDep2', ':finalizer'
         }
         2.times {
-            fails 'entryPoint', '-PfinalizerDepDep.broken'
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep'
+            fails 'entryPoint', '-PfinalizerDepDep1.broken', '--continue'
+            result.assertTasksExecuted(':entryPoint', ':finalizerDepDep1', ':finalizerDepDep2', ':finalizerDep2')
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep1'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep2', ':finalizerDep2'
         }
         2.times {
-            fails 'entryPoint', '-PfinalizerDep.broken'
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
+            fails 'entryPoint', '-PfinalizerDep1.broken', '--continue'
+            result.assertTasksExecuted(':entryPoint', ':finalizerDepDep1', ':finalizerDep1', ':finalizerDepDep2', ':finalizerDep2')
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep1', ':finalizerDep1'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep2', ':finalizerDep2'
         }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21000")
-    @Ignore("https://github.com/gradle/gradle-private/issues/3574")
     def "finalizer task can depend on finalized tasks where one is an entry point task and one is not"() {
         given:
         buildFile '''
@@ -806,6 +819,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/5415")
     void 'finalizers are executed after the last task to be finalized'() {
+        createDirs("a", "b")
         settingsFile << """
             include "a"
             include "b"
@@ -843,8 +857,9 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/10549")
+    @Issue("https://github.com/gradle/gradle/issues/10549")
     def "mustRunAfter is respected for finalizer without direct dependency"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a'
             include 'b'
@@ -879,9 +894,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             run("work", "--parallel")
-            // TODO: Should be:
-            // result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
-            result.assertTaskOrder(any(exact(":a:work", ":a:finalizer"), ":b:work"))
+            result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
         }
 
         and: "Apply workaround"
@@ -893,6 +906,49 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             run("work", "--parallel")
             result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25951")
+    def "finalizer is run after last finalized task"() {
+        buildFile """
+            def finalizer = tasks.register("finalizer") {
+            }
+
+            def test = tasks.register("test") {
+              finalizedBy finalizer
+            }
+
+            def cleanZip = tasks.register("cleanZip", Delete) {
+              delete layout.buildDirectory.file("zip.txt")
+            }
+
+            def zip = tasks.register("zip") {
+              def zipFile = layout.buildDirectory.file("zip.txt")
+              outputs.file zipFile
+              doLast { zipFile.get().asFile.text = "bar" }
+              dependsOn cleanZip
+            }
+
+            def integTest = tasks.register("integTest") {
+              finalizedBy finalizer
+            }
+
+            tasks.register("publish") {
+              inputs.files zip
+            }
+        """
+
+        expect:
+        2.times {
+            run(":test",  ":publish", ":integTest")
+            if (GradleContextualExecuter.isConfigCache()) {
+                // With configuration cache tasks can run in parallel
+                result.assertTaskOrder(exact(any(":test", ":integTest"), ":finalizer"))
+                result.assertTaskOrder(exact(":cleanZip", ":zip", ":publish"))
+            } else {
+                result.assertTaskOrder(":test", ":cleanZip", ":zip", ":publish", ":integTest", ":finalizer")
+            }
         }
     }
 
@@ -913,6 +969,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupMultipleProjects() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """

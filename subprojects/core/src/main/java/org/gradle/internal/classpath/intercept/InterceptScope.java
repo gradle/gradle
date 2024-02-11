@@ -27,6 +27,7 @@ public abstract class InterceptScope {
     private enum CallType {
         METHOD("call method"),
         GET_PROPERTY("get property"),
+        SET_PROPERTY("set property"),
         CONSTRUCTOR("call constructor");
 
         final String descriptorStringPrefix;
@@ -72,6 +73,18 @@ public abstract class InterceptScope {
      */
     public static InterceptScope readsOfPropertiesNamed(String propertyName) {
         return new NamedMemberScope(CallType.GET_PROPERTY, propertyName);
+    }
+
+    /**
+     * The returned scope includes writes of all properties named {@code propertyName}.
+     * This scope doesn't include calls to the setter method corresponding to this property,
+     * use additional explicit {@link #methodsNamed(String)} scope to intercept that.
+     *
+     * @param propertyName the name of the property to intercept reads of
+     * @return the scope object
+     */
+    public static InterceptScope writesOfPropertiesNamed(String propertyName) {
+        return new NamedMemberScope(CallType.SET_PROPERTY, propertyName);
     }
 
     abstract String getCallSiteName();

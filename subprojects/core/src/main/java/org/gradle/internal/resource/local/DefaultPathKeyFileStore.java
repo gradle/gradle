@@ -24,14 +24,18 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.file.PathTraversalChecker;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.RelativePathUtil;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -72,12 +76,18 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
     }
 
     private File getFile(String... path) {
-        File result = baseDir;
-        for (String p : path) {
-            result = new File(result, p);
+        String composedPath;
+        if (path.length == 1) {
+            composedPath = path[0];
+        } else {
+            // We need to ignore empty Strings as this is what "new File(parent, path)" was doing for "path" empty.
+            composedPath = Arrays.stream(path)
+                .filter(((Predicate<String>) String::isEmpty).negate())
+                .collect(Collectors.joining(File.separator));
         }
-        return result;
+        return new File(baseDir, PathTraversalChecker.safePathName(trimLeadingSlash(composedPath)));
     }
+
 
     private File getFileWhileCleaningInProgress(String... path) {
         File file = getFile(path);
@@ -212,4 +222,10 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
     private static void deleteFileQuietly(File file) {
         file.delete();
     }
-}
+
+    private static String trimLeadingSlash(String composedPath) {
+        if (!composedPath.isEmpty() && composedPath.charAt(0) == '/') {
+            return composedPath.substring(1);
+        }
+        return composedPath;
+    }}

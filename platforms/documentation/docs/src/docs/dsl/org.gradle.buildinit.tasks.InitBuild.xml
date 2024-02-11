@@ -1,0 +1,83 @@
+<!--
+  ~ Copyright 2013 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>dsl</td>
+                <td><literal>defaults to 'groovy'</literal></td>
+            </tr>
+            <tr>
+                <td>useIncubating</td>
+                <td><literal>defaults to 'false'</literal></td>
+            </tr>
+            <tr>
+                <td>insecureProtocol</td>
+                <td><literal>defaults to 'warn'</literal></td>
+            </tr>
+            <tr>
+                <td>packageName</td>
+                <td />
+            </tr>
+            <tr>
+                <td>projectName</td>
+                <td><literal>defaults to project directory name</literal></td>
+            </tr>
+            <tr>
+                <td>splitProject</td>
+                <td />
+            </tr>
+            <tr>
+                <td>type</td>
+                <td><literal><replaceable>empty</replaceable> (or <replaceable>pom</replaceable> if a pom.xml file exists in the project directory)</literal></td>
+            </tr>
+            <tr>
+                <td>testFramework</td>
+                <td><literal><replaceable>empty</replaceable> (default test framework depends on the requested <replaceable>type</replaceable>)</literal></td>
+            </tr>
+            <tr>
+                <td>javaVersion</td>
+                <td>the Java version running Gradle</td>
+            </tr>
+            <tr>
+                <td>useDefaults</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>comments</td>
+                <td><literal>true</literal></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

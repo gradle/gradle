@@ -63,7 +63,7 @@ task text(type: TextTask)
         fails("text")
 
         def file = file('no-such-file')
-        failure.assertHasCause("Could not read '${file}' as it does not exist.")
+        failure.assertHasCause("Cannot expand TAR '${file}' as it does not exist.")
     }
 
     def "reports read of missing archive entry"() {

@@ -31,6 +31,7 @@ import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -121,7 +122,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
             includes = null;
             excludes = null;
-            includeSpecs = Sets.newLinkedHashSet();
+            includeSpecs = new LinkedHashSet<>();
             includeSpecs.add(intersectCopy.getAsSpec());
             excludeSpecs = null;
         } else {
@@ -176,14 +177,14 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     @Override
     public Set<String> getIncludes() {
         if (includes == null) {
-            includes = Sets.newLinkedHashSet();
+            includes = new LinkedHashSet<>();
         }
         return includes;
     }
 
     public Set<Spec<FileTreeElement>> getIncludeSpecs() {
         if (includeSpecs == null) {
-            includeSpecs = Sets.newLinkedHashSet();
+            includeSpecs = new LinkedHashSet<>();
         }
         return includeSpecs;
     }
@@ -217,14 +218,14 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     @Override
     public Set<String> getExcludes() {
         if (excludes == null) {
-            excludes = Sets.newLinkedHashSet();
+            excludes = new LinkedHashSet<>();
         }
         return excludes;
     }
 
     public Set<Spec<FileTreeElement>> getExcludeSpecs() {
         if (excludeSpecs == null) {
-            excludeSpecs = Sets.newLinkedHashSet();
+            excludeSpecs = new LinkedHashSet<>();
         }
         return excludeSpecs;
     }

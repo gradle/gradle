@@ -1,0 +1,119 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+= Caching Java projects
+
+As of Gradle 4.0, the build tool fully supports caching plain Java projects.
+Built-in tasks for compiling, testing, documenting and checking the quality of Java code support the build cache out of the box.
+
+[[java_compilation]]
+== Java compilation
+
+Caching Java compilation makes use of Gradle's deep understanding of compile classpaths.
+The mechanism <<build_cache_concepts.adoc#compile_avoidance,avoids recompilation>> when dependencies change in a way that doesn't affect their application binary interfaces (ABI).
+Since the cache key is only influenced by the ABI of dependencies (and not by their implementation details like private types and method bodies), task output caching can also reuse compiled classes if they were produced by the same sources and ABI-equivalent dependencies.
+
+For example, take a project with two modules: an application depending on a library.
+Suppose the latest version is already built by CI and uploaded to the shared cache.
+If a developer now modifies a method's body in the library, the library will need to be rebuilt on their computer. But they will be able to load the compiled classes for the application from the shared cache. Gradle can do this because the library used to compile the application on CI, and the modified library available locally share the same ABI.
+
+[[annotation_processors]]
+=== Annotation processors
+
+Compile avoidance works out of the box.
+There is one caveat though: when using annotation processors, Gradle uses the annotation processor classpath as an input.
+Unlike most compile dependencies, in which only the ABI influences compilation, the _implementation_ of annotation processors must be considered as an input to the compiler. For this reason Gradle will treat annotation processors as a _runtime_ classpath, meaning less <<build_cache_concepts.adoc#runtime_classpath,input normalization>> is taking place there.
+If Gradle detects an annotation processor on the compile classpath, the annotation processor classpath defaults to the compile classpath when not explicitly set, which in turn means the entire compile classpath is treated as a runtime classpath input.
+
+For the example above this would mean the ABI extracted from the compile classpath would be unchanged, but the annotation processor classpath (because it's not treated with compile avoidance) would be different. Ultimately, the developer would end up having to recompile the application.
+
+The easiest way to avoid this performance penalty is to not use annotation processors.
+However, if you need to use them, make sure you set the annotation processor classpath explicitly to include only the libraries needed for annotation processing.
+The <<java_plugin.adoc#sec:java_compile_avoidance,section on Java compile avoidance>> describes how to do this.
+
+[NOTE]
+====
+Some common Java dependencies (such as Log4j 2.x) come bundled with annotation processors.
+If you use these dependencies, but do not leverage the features of the bundled annotation processors, it's best to disable annotation processing entirely.
+This can be done by setting the annotation processor classpath to an empty set.
+====
+
+== Unit test execution
+
+The `Test` task used for test execution for JVM languages employs <<build_cache_concepts.adoc#runtime_classpath,runtime classpath normalization>> for its classpath.
+This means that changes to order and timestamps in jars on the test classpath will not cause the task to be out-of-date or change the build cache key.
+For achieving <<build_cache_concepts.adoc#stable_task_inputs,stable task inputs>> you can also wield the power of <<build_cache_concepts.adoc#filter_runtime_classpath,filtering the runtime classpath>>.
+
+== Integration test execution
+
+Unit tests are easy to cache as they normally have no external dependencies.
+For integration tests the situation can be quite different, as they can depend on a variety of inputs outside of the test and production code.
+These external factors can be for example:
+
+  * operating system type and version,
+  * external tools being installed for the tests,
+  * environment variables and Java system properties,
+  * other services being up and running,
+  * a distribution of the software under test.
+
+You need to be careful to declare these additional inputs for your integration test in order to avoid incorrect cache hits.
+For example, declaring the operating system in use by Gradle as an input to a `Test` task called `integTest` would work as follows:
+
+====
+include::sample[dir="snippets/buildCache/integration-tests/kotlin",files="build.gradle.kts[tags=integTest]"]
+include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=integTest]"]
+====
+
+=== Archives as inputs
+
+It is common for the integration tests to depend on your packaged application.
+If this happens to be a zip or tar archive, then adding it as an input to the integration test task may lead to cache misses.
+This is because, as described in <<build_cache_concepts.adoc#concepts_repeatable_task_outputs,repeatable task outputs>>, rebuilding an archive often changes the metadata in the archive.
+You can depend on the exploded contents of the archive instead.
+See also the section on dealing with <<common_caching_problems.adoc#volatile_outputs,non-repeatable outputs>>.
+
+=== Dealing with file paths
+
+You will probably pass some information from the build environment to your integration test tasks by using system properties.
+Passing absolute paths will break <<build_cache_concepts.adoc#relocatability,relocatability>> of the integration test task.
+
+====
+include::sample[dir="snippets/buildCache/integration-tests/kotlin",files="build.gradle.kts[tags=distributionPathInput]"]
+include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=distributionPathInput]"]
+====
+
+Instead of adding the absolute path directly as a system property, it is possible to add an
+annotated link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[CommandLineArgumentProvider] to the `integTest` task:
+
+====
+include::sample[dir="snippets/buildCache/integration-tests/kotlin",files="build.gradle.kts[tags=distributionDirInput]"]
+include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=distributionDirInput]"]
+====
+<1> Create a class implementing link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[`CommandLineArgumentProvider`].
+<2> Declare the inputs and outputs with the corresponding path sensitivity.
+<3> `asArguments` needs to return the JVM arguments passing the desired system properties to the test JVM.
+<4> Add an instance of the newly created class as JVM argument provider to the integration test task.footnote:managedTypes[The `CommandLineArgumentProvider` in this example is implemented as a <<custom_gradle_types.adoc#custom_gradle_types,managed type>>.]
+
+=== Ignoring system properties
+
+It may be necessary to ignore some system properties as inputs as they do not influence the outcome of the integration tests.
+In order to do so, add a link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[CommandLineArgumentProvider] to the `integTest` task:
+
+====
+include::sample[dir="snippets/buildCache/integration-tests/kotlin",files="build.gradle.kts[tags=ignoreSystemProperties]"]
+include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=ignoreSystemProperties]"]
+====
+<1> `@Internal` means that this property does not influence the output of the integration tests.
+<2> The system properties for the actual test execution.
+<3> Add an instance of the newly created class as JVM argument provider to the integration test task.footnote:managedTypes[]

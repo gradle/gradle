@@ -1,0 +1,48 @@
+rootProject.name = 'component-metadata-rules'
+
+// tag::rule-in-settings[]
+dependencyResolutionManagement {
+    components {
+        withModule("com.google.guava:guava", GuavaRule)
+    }
+}
+// end::rule-in-settings[]
+
+// tag::prefer-settings[]
+dependencyResolutionManagement {
+    rulesMode = RulesMode.PREFER_SETTINGS
+}
+// end::prefer-settings[]
+
+// tag::enforce-settings[]
+dependencyResolutionManagement {
+    rulesMode = RulesMode.FAIL_ON_PROJECT_RULES
+}
+// end::enforce-settings[]
+
+// tag::prefer-projects[]
+dependencyResolutionManagement {
+    rulesMode = RulesMode.PREFER_PROJECT
+}
+// end::prefer-projects[]
+
+@CacheableRule
+abstract class GuavaRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext context) {
+        def variantVersion = context.details.id.version
+        def version = variantVersion.substring(0, variantVersion.indexOf("-"))
+        ["compile", "runtime"].each { base ->
+            [6: "android", 8: "jre"].each { targetJvmVersion, jarName ->
+                context.details.addVariant("jdk$targetJvmVersion${base.capitalize()}", base) {
+                    attributes {
+                        attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, targetJvmVersion)
+                    }
+                    withFiles {
+                        removeAllFiles()
+                        addFile("guava-$version-${jarName}.jar", "../$version-$jarName/guava-$version-${jarName}.jar")
+                    }
+                }
+            }
+        }
+    }
+}

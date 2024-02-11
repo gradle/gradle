@@ -18,8 +18,8 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationSpec {
@@ -61,7 +61,7 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
         out.toString() == TextUtil.toPlatformLineSeparators("all good\n")
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "can configure using project extension for main class and main module"() {
         settingsFile << """
             rootProject.name = 'test'

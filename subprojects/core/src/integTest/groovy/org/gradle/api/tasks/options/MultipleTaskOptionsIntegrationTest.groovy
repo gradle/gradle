@@ -24,6 +24,7 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
 
     def "can configure tasks from command line in multiple projects"() {
         given:
+        createDirs("project2")
         settingsFile << "include 'project2'"
         buildFile << """
             allprojects {
@@ -51,6 +52,7 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
 
     def "tasks can be configured with different options"() {
         given:
+        createDirs("project2")
         settingsFile << "include 'project2'"
         buildFile << """
             allprojects {
@@ -71,6 +73,7 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
 
     def "tasks are configured exclusively with their options"() {
         given:
+        createDirs("project2")
         settingsFile << "include 'project2'"
         buildFile << """
             allprojects {

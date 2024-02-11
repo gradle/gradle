@@ -45,8 +45,8 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
         }
 
         @Override
-        public <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, CompileOperation<M> extractingTransformer, ClassLoaderScope targetScope, Action<? super ClassNode> verifier) {
-            CompiledScript<T, M> compiledScript = scriptClassCompiler.compile(source, targetScope, extractingTransformer, scriptType, verifier);
+        public <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, Object target, ClassLoaderScope targetScope, CompileOperation<M> extractingTransformer, Action<? super ClassNode> verifier) {
+            CompiledScript<T, M> compiledScript = scriptClassCompiler.compile(source, scriptType, target, targetScope, extractingTransformer, verifier);
             return scriptRunnerFactory.create(compiledScript, source, targetScope.getExportClassLoader());
         }
     }

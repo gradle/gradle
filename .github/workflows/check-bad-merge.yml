@@ -1,0 +1,58 @@
+# See .github/workflows/CheckBadMerge.groovy for explanation
+name: Check bad merge commit
+on:
+  pull_request:
+    types:
+     - opened
+     - synchronize
+
+jobs:
+  check_pr_commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+      - name: Install Groovy
+        run: sudo apt-get install groovy
+      - name: List PR commits
+        run: |
+          git log --pretty=format:"%H" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} > pr_commits.txt
+      - name: Check PR commits
+        id: run_check
+        run: |
+          groovy .github/workflows/CheckBadMerge.groovy $(<pr_commits.txt) > output.txt 2>&1
+      - name: Read output file
+        id: read_output
+        if: ${{ always() }}
+        run: |
+          cat output.txt
+          OUTPUT=$(cat output.txt)
+          echo "OUTPUT<<EOF" >> $GITHUB_ENV
+          echo "$OUTPUT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      - name: Comment on PR if check failed
+        if: ${{ failure() }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `
+            Some bad merge is found:
+            \`\`\`
+            ${{ env.OUTPUT }}
+            \`\`\`
+            `;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })

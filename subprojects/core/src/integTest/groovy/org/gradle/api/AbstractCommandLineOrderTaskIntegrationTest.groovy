@@ -80,6 +80,7 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
         }
 
         void writeFiles() {
+            buildDir.createDirs(projects.keySet().collect { it.tokenize(':').join('/') } as String[])
             buildDir.file('settings.gradle') << """
                 rootProject.name = ${quote(name)}
                 include ${projects.keySet().collect { quote(it) }.join(', ')}
@@ -137,6 +138,7 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
         final Set<String> localState = []
         final Set<String> inputFiles = []
         boolean shouldBlock
+        String failMessage
 
         TaskFixture(ProjectFixture project, String path) {
             this.project = project
@@ -206,6 +208,11 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
             return this
         }
 
+        TaskFixture fail(String message = 'BOOM') {
+            failMessage = message
+            return this
+        }
+
         String getConfig() {
             return """
                 tasks.register('${name}') {
@@ -219,6 +226,7 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
                     ${inputFiles.collect { 'inputs.files ' + it }.join('\n\t\t\t\t')}
                     doLast {
                         ${shouldBlock ? server.callFromTaskAction(path) : ''}
+                        ${failMessage ? "throw new RuntimeException('$failMessage')" : ''}
                     }
                 }
             """.stripIndent()

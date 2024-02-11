@@ -66,7 +66,7 @@ public class FileCopier {
     }
 
     private DestinationRootCopySpec createCopySpec(Action<? super SyncSpec> action) {
-        DefaultCopySpec copySpec = new DefaultCopySpec(fileCollectionFactory, instantiator, patternSetFactory);
+        DefaultCopySpec copySpec = new DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, patternSetFactory);
         DestinationRootCopySpec destinationRootCopySpec = new DestinationRootCopySpec(fileResolver, copySpec);
         SyncSpec wrapped = instantiator.newInstance(CopySpecWrapper.class, destinationRootCopySpec);
         action.execute(wrapped);

@@ -32,6 +32,7 @@ import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName
 import com.github.javaparser.javadoc.Javadoc
 import com.github.javaparser.javadoc.description.JavadocSnippet
 import com.github.javaparser.symbolsolver.JavaSymbolSolver
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver
@@ -47,28 +48,32 @@ import java.io.File
 abstract class IncubatingApiReportWorkAction : WorkAction<IncubatingApiReportParameter> {
 
     override fun execute() {
-        val versionToIncubating = mutableMapOf<Version, MutableSet<IncubatingDescription>>()
-        parameters.srcDirs.forEach { srcDir ->
-            if (srcDir.exists()) {
-                val collector = CompositeVersionsToIncubatingCollector(
-                    listOf(
-                        JavaVersionsToIncubatingCollector(srcDir),
-                        KotlinVersionsToIncubatingCollector()
+        try {
+            val versionToIncubating = mutableMapOf<Version, MutableSet<IncubatingDescription>>()
+            parameters.srcDirs.forEach { srcDir ->
+                if (srcDir.exists()) {
+                    val collector = CompositeVersionsToIncubatingCollector(
+                        listOf(
+                            JavaVersionsToIncubatingCollector(srcDir),
+                            KotlinVersionsToIncubatingCollector()
+                        )
                     )
-                )
-                srcDir.walkTopDown().forEach { sourceFile ->
-                    try {
-                        collector.collectFrom(sourceFile).forEach { (version, incubating) ->
-                            versionToIncubating.getOrPut(version) { mutableSetOf() }.addAll(incubating)
+                    srcDir.walkTopDown().forEach { sourceFile ->
+                        try {
+                            collector.collectFrom(sourceFile).forEach { (version, incubating) ->
+                                versionToIncubating.getOrPut(version) { mutableSetOf() }.addAll(incubating)
+                            }
+                        } catch (e: Exception) {
+                            throw Exception("Unable to parse $sourceFile", e)
                         }
-                    } catch (e: Exception) {
-                        throw Exception("Unable to parse $sourceFile", e)
                     }
                 }
             }
+            generateTextReport(versionToIncubating)
+            generateHtmlReport(versionToIncubating)
+        } finally {
+            JavaParserFacade.clearInstances()
         }
-        generateTextReport(versionToIncubating)
-        generateHtmlReport(versionToIncubating)
     }
 
     private

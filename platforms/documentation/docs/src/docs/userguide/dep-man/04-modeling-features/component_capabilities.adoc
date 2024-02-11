@@ -1,0 +1,113 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[declaring-component-capabilities]]
+= Declaring Capabilities of a Library
+
+== Capabilities as first-level concept
+
+Components provide a number of features which are often orthogonal to the software architecture used to provide those features.
+For example, a library may include several features in a single artifact.
+However, such a library would be published at single GAV (group, artifact and version) coordinates.
+This means that, at single coordinates, potentially co-exist different "features" of a component.
+
+With Gradle it becomes interesting to explicitly declare what features a component provides.
+For this, Gradle provides the concept of <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,capability>>.
+
+A feature is often built by combining different _capabilities_.
+
+In an ideal world, components shouldn't declare dependencies on explicit GAVs, but rather express their requirements in terms of capabilities:
+
+- "give me a component which provides logging"
+- "give me a scripting engine"
+- "give me a scripting engine that supports Groovy"
+
+By modeling _capabilities_, the dependency management engine can be smarter and tell you whenever you have _incompatible capabilities_ in a dependency graph, or ask you to choose whenever different modules in a graph provide the same _capability_.
+
+[[sec:declaring-capabilities-external-modules]]
+== Declaring capabilities for external modules
+
+It's worth noting that Gradle supports declaring capabilities for components you build, but also for external components in case they didn't.
+
+For example, if your build file contains the following dependencies:
+
+.A build file with an implicit conflict of logging frameworks
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=dependencies]"]
+====
+
+As is, it's pretty hard to figure out that you will end up with two logging frameworks on the classpath.
+In fact, `zookeeper` will bring in `log4j`, where what we want to use is `log4j-over-slf4j`.
+We can preemptively detect the conflict by adding a rule which will declare that both logging frameworks provide the same capability:
+
+.A build file with an implicit conflict of logging frameworks
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=declare_capability]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=declare_capability]"]
+====
+
+By adding this rule, we will make sure that Gradle _will_ detect conflicts and properly fail:
+
+
+----
+> Could not resolve all files for configuration ':compileClasspath'.
+   > Could not resolve org.slf4j:log4j-over-slf4j:1.7.10.
+     Required by:
+         project :
+      > Module 'org.slf4j:log4j-over-slf4j' has been rejected:
+           Cannot select module with conflict on capability 'log4j:log4j:1.7.10' also provided by [log4j:log4j:1.2.16(compile)]
+   > Could not resolve log4j:log4j:1.2.16.
+     Required by:
+         project : > org.apache.zookeeper:zookeeper:3.4.9
+      > Module 'log4j:log4j' has been rejected:
+           Cannot select module with conflict on capability 'log4j:log4j:1.2.16' also provided by [org.slf4j:log4j-over-slf4j:1.7.10(compile)]
+----
+
+See the <<dependency_capability_conflict.adoc#sub:selecting-between-candidates, capabilities section of the documentation>> to figure out how to fix capability conflicts.
+
+[[sec:declaring-additional-capabilities-for-a-local-component]]
+== Declaring additional capabilities for a local component
+
+All components have an _implicit capability_ corresponding to the same GAV coordinates as the component.
+However, it is also possible to declare additional _explicit capabilities_ for a component.
+This is convenient whenever a library published at different GAV coordinates is an _alternate implementation_ of the same API:
+
+.Declaring capabilities of a component
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/kotlin",files="build.gradle.kts[tags=declare-outgoing-capabilities]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/groovy",files="build.gradle[tags=declare-outgoing-capabilities]"]
+====
+
+Capabilities must be attached to _outgoing configurations_, which are <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>> of a component.
+
+This example shows that we declare two capabilities:
+
+1. `com.acme:my-library:1.0`, which corresponds to the _implicit capability_ of the library
+2. `com.other:module:1.1`, which corresponds to another capability of this library
+
+It's worth noting we need to do 1. because as soon as you start declaring _explicit_ capabilities, then _all_ capabilities need to be declared, including the _implicit_ one.
+
+The second capability can be specific to this library, or it can correspond to a capability provided by an external component.
+In that case, if `com.other:module` appears in the same dependency graph, the build will fail and consumers <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,will have to choose what module to use>>.
+
+Capabilities are published to Gradle Module Metadata.
+However, they have _no equivalent_ in POM or Ivy metadata files.
+As a consequence, when publishing such a component, Gradle will warn you that this feature is only for Gradle consumers:
+
+----
+Maven publication 'maven' contains dependencies that cannot be represented in a published pom file.
+  - Declares capability com.acme:my-library:1.0
+  - Declares capability com.other:module:1.1
+----

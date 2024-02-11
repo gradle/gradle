@@ -32,7 +32,7 @@ import javax.inject.Inject;
 import java.util.Collection;
 
 @DisableCachingByDefault(because = "Produces no cacheable output")
-public class RunApplication extends DefaultTask {
+public abstract class RunApplication extends DefaultTask {
     private String mainClassName;
     private Collection<String> arguments;
     private FileCollection classpath;

@@ -1,0 +1,131 @@
+// tag::apply-java-plugin[]
+plugins {
+    id 'java-library'
+}
+
+// tag::java-extension[]
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+// end::java-extension[]
+
+version = '1.2.1'
+// end::apply-java-plugin[]
+
+// tag::java-dependency-mgmt[]
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.hibernate:hibernate-core:3.6.7.Final'
+}
+// end::java-dependency-mgmt[]
+
+// tag::java-basic-test-config[]
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+
+    maxHeapSize = '1G'
+
+    testLogging {
+        events "passed"
+    }
+}
+// end::java-basic-test-config[]
+
+// tag::practical-integ-test-source-set[]
+sourceSets {
+    intTest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+configurations {
+    intTestImplementation.extendsFrom implementation
+    intTestRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+    intTestImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    intTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+// end::practical-integ-test-source-set[]
+
+// tag::using-custom-doclet[]
+configurations {
+    asciidoclet
+}
+
+dependencies {
+    asciidoclet 'org.asciidoctor:asciidoclet:1.+'
+}
+
+tasks.register('configureJavadoc') {
+    doLast {
+        javadoc {
+            options.doclet = 'org.asciidoctor.Asciidoclet'
+            options.docletpath = configurations.asciidoclet.files.toList()
+        }
+    }
+}
+
+javadoc {
+    dependsOn configureJavadoc
+}
+// end::using-custom-doclet[]
+
+
+// tag::skip-tests-condition[]
+def skipTestsProvider = providers.gradleProperty('mySkipTests')
+test.onlyIf("mySkipTests property is not set") {
+    !skipTestsProvider.present
+}
+// end::skip-tests-condition[]
+
+// tag::java-compiler-options[]
+compileJava {
+    options.incremental = true
+    options.fork = true
+    options.failOnError = false
+}
+// end::java-compiler-options[]
+
+// tag::java-release-flag[]
+compileJava {
+    options.release = 7
+}
+// end::java-release-flag[]
+
+// tag::integ-test-task[]
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+    shouldRunAfter test
+
+    useJUnitPlatform()
+
+    testLogging {
+        events "passed"
+    }
+}
+
+check.dependsOn integrationTest
+// end::integ-test-task[]
+
+// tag::defining-custom-javadoc-task[]
+tasks.register('testJavadoc', Javadoc) {
+    source = sourceSets.test.allJava
+}
+// end::defining-custom-javadoc-task[]

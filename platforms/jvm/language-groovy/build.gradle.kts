@@ -1,0 +1,74 @@
+plugins {
+    id("gradlebuild.distribution.api-java")
+}
+
+description = "Adds support for building Groovy projects"
+
+errorprone {
+    disabledChecks.addAll(
+        "ModifyCollectionInEnhancedForLoop", // 1 occurrences
+        "UnnecessaryParentheses", // 1 occurrences
+        "UnusedMethod", // 4 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
+
+dependencies {
+    api(project(":base-services"))
+    api(project(":build-option"))
+    api(project(":core-api"))
+    api(project(":core"))
+    api(project(":files"))
+    api(project(":file-temp"))
+    api(project(":jvm-services"))
+    api(project(":language-java"))
+    api(project(":language-jvm"))
+    api(project(":problems-api"))
+    api(project(":platform-base"))
+    api(project(":toolchains-jvm"))
+    api(project(":workers"))
+    api(project(":worker-processes"))
+
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(project(":base-annotations"))
+    implementation(project(":file-collections"))
+    implementation(project(":logging"))
+    implementation(project(":logging-api"))
+
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.asm)
+
+    testImplementation(project(":base-services-groovy"))
+    testImplementation(project(":internal-testing"))
+    testImplementation(project(":resources"))
+    testImplementation(testFixtures(project(":core")))
+
+    testFixturesApi(testFixtures(project(":language-jvm")))
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(testFixtures(project(":model-core")))
+    testFixturesImplementation(libs.guava)
+
+    integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(libs.commonsLang)
+    integTestImplementation(libs.javaParser) {
+        because("The Groovy docs inspects the dependencies at compile time")
+    }
+    integTestImplementation(libs.nativePlatform) {
+        because("Required for SystemInfo")
+    }
+
+    testRuntimeOnly(project(":distributions-core")) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
+}
+
+packageCycles {
+    excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
+    excludePatterns.add("org/gradle/api/tasks/javadoc/**")
+}

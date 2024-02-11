@@ -58,6 +58,10 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
     }
 
     @Override
+    public void removeStartupContext() {
+    }
+
+    @Override
     public void stop() {
         disconnect();
         try {

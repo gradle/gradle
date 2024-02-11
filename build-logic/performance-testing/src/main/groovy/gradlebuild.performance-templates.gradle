@@ -406,10 +406,19 @@ performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) 
     ref = "a67ceb08a7b4e4a71e3c151a3abd72a9abe5d703"
 }
 
+performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
+    remoteUri = 'https://github.com/android/nowinandroid.git'
+    // Pinned from main branch
+    ref = "e40fb7925deac9912985522378281ce0f6c9d31a" // latest on September 19th, 2023
+    doLast {
+        setMaxWorkers(outputDirectory, 8)
+    }
+}
+
 performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from main branch
-    ref = '607f6e78d637e769035cd5654facb86657b778c3'
+    ref = 'e9419cad3583427caca97958301ff98fc8e9a1c3'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
@@ -537,7 +546,7 @@ performanceTest.registerTestProject("excludeRuleMergingBuild", RemoteProject) {
 performanceTest.registerTestProject("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "5b586d729eedf0cf36238c15c5deed64d43a8742"
+    ref = "e53dc7182fafcf9fedf07920cbbea8b40ee4eef4"
     subdirectory = 'parallel-downloads'
 }
 

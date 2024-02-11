@@ -16,7 +16,6 @@
 
 package org.gradle.api.file
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {

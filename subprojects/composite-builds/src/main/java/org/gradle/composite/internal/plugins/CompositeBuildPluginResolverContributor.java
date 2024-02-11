@@ -16,11 +16,9 @@
 
 package org.gradle.composite.internal.plugins;
 
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.internal.build.BuildIncluder;
-import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
@@ -33,14 +31,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CompositeBuildPluginResolverContributor implements PluginResolverContributor {
+public class CompositeBuildPluginResolverContributor implements PluginResolverContributor, HoldsProjectState {
 
     private static final String SOURCE_DESCRIPTION = "Included Builds";
 
-    private final PluginResolver resolver;
+    private final CompositeBuildPluginResolver resolver;
 
-    public CompositeBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildState consumingBuild, BuildIncluder buildIncluder) {
-        this.resolver = new CompositeBuildPluginResolver(buildRegistry, consumingBuild, buildIncluder);
+    public CompositeBuildPluginResolverContributor(BuildIncluder buildIncluder) {
+        this.resolver = new CompositeBuildPluginResolver(buildIncluder);
+    }
+
+    @Override
+    public void discardAll() {
+        resolver.discardAll();
     }
 
     @Override
@@ -48,9 +51,9 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         resolvers.add(resolver);
     }
 
-    private static class PluginResult {
-        static final PluginResult NOT_FOUND_IN_ANY_BUILD = new PluginResult();
-        static final PluginResult NO_INCLUDED_BUILDS = new PluginResult();
+    private abstract static class PluginResult {
+        static final PluginResult NOT_FOUND_IN_ANY_BUILD = new PluginResult() {};
+        static final PluginResult NO_INCLUDED_BUILDS = new PluginResult() {};
     }
 
     private static class ResolvedPlugin extends PluginResult {
@@ -62,26 +65,24 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
     }
 
     private static class CompositeBuildPluginResolver implements PluginResolver {
-        private final BuildStateRegistry buildRegistry;
-        private final BuildState consumingBuild;
         private final BuildIncluder buildIncluder;
 
         private final Map<PluginId, PluginResult> results = new ConcurrentHashMap<>();
 
-        private CompositeBuildPluginResolver(BuildStateRegistry buildRegistry, BuildState consumingBuild, BuildIncluder buildIncluder) {
-            this.buildRegistry = buildRegistry;
-            this.consumingBuild = consumingBuild;
+        private CompositeBuildPluginResolver(BuildIncluder buildIncluder) {
             this.buildIncluder = buildIncluder;
         }
 
         @Override
-        public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+        public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
             PluginResult resolutionResult = results.computeIfAbsent(pluginRequest.getId(), this::doResolve);
             if (resolutionResult == PluginResult.NOT_FOUND_IN_ANY_BUILD) {
-                result.notFound(SOURCE_DESCRIPTION, "None of the included builds contain this plugin");
+                return PluginResolutionResult.notFound(SOURCE_DESCRIPTION, "None of the included builds contain this plugin");
             } else if (resolutionResult instanceof ResolvedPlugin) {
-                result.found(SOURCE_DESCRIPTION, ((ResolvedPlugin) resolutionResult).resolution);
-            } // else, no included builds
+                return PluginResolutionResult.found(((ResolvedPlugin) resolutionResult).resolution);
+            }
+
+            return PluginResolutionResult.notFound(SOURCE_DESCRIPTION, "No included builds contain this plugin");
         }
 
         private PluginResult doResolve(PluginId pluginId) {
@@ -93,13 +94,11 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         }
 
         private PluginResult resolvePluginFromIncludedBuilds(PluginId requestedPluginId) {
-            if (buildRegistry.getIncludedBuilds().isEmpty()) {
+            Collection<IncludedBuildState> includedBuilds = buildIncluder.getIncludedBuildsForPluginResolution();
+            if (includedBuilds.isEmpty()) {
                 return PluginResult.NO_INCLUDED_BUILDS;
             }
-            for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
-                if (build == consumingBuild || build.isImplicitBuild() || build.isPluginBuild()) {
-                    continue;
-                }
+            for (IncludedBuildState build : includedBuilds) {
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));
                 if (pluginResolution.isPresent()) {
                     return new ResolvedPlugin(pluginResolution.get());
@@ -109,15 +108,18 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         }
 
         private PluginResolution resolveFromIncludedPluginBuilds(PluginId requestedPluginId) {
-            for (IncludedBuildState build : buildIncluder.includeRegisteredPluginBuilds()) {
-                buildRegistry.ensureConfigured(build);
-
+            for (IncludedBuildState build : buildIncluder.getRegisteredPluginBuilds()) {
+                buildIncluder.prepareForPluginResolution(build);
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));
                 if (pluginResolution.isPresent()) {
                     return pluginResolution.get();
                 }
             }
             return null;
+        }
+
+        public void discardAll() {
+            results.clear();
         }
     }
 }

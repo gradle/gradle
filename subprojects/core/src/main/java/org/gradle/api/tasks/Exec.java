@@ -40,7 +40,7 @@ import org.gradle.work.DisableCachingByDefault;
  * </pre>
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
-public class Exec extends AbstractExecTask<Exec> {
+public abstract class Exec extends AbstractExecTask<Exec> {
     public Exec() {
         super(Exec.class);
     }

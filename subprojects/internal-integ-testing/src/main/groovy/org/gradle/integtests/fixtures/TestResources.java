@@ -38,11 +38,12 @@ public class TestResources implements MethodRule {
     private final Logger logger = LoggerFactory.getLogger(TestResources.class);
     private final TestDirectoryProvider testWorkDirProvider;
     private final Collection<String> extraResources;
-    private final Resources resources = new Resources();
+    private final Resources resources;
 
     public TestResources(TestDirectoryProvider testDirectoryProvider, String... extraResources) {
         testWorkDirProvider = testDirectoryProvider;
         this.extraResources = Arrays.asList(extraResources);
+        resources = new Resources(testDirectoryProvider);
     }
 
     public TestFile getDir() {

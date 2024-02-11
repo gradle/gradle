@@ -19,17 +19,20 @@ package org.gradle.api.internal.file.copy;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.Set;
@@ -245,6 +248,16 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
+    public Property<ConfigurableFilePermissions> getFilePermissions() {
+        return getDelegateCopySpec().getFilePermissions();
+    }
+
+    @Override
+    public CopyProcessingSpec filePermissions(Action<? super ConfigurableFilePermissions> configureAction) {
+        return getDelegateCopySpec().filePermissions(configureAction);
+    }
+
+    @Override
     public Integer getDirMode() {
         return getDelegateCopySpec().getDirMode();
     }
@@ -252,6 +265,16 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
         return getDelegateCopySpec().setDirMode(mode);
+    }
+
+    @Override
+    public Property<ConfigurableFilePermissions> getDirPermissions() {
+        return getDelegateCopySpec().getDirPermissions();
+    }
+
+    @Override
+    public CopyProcessingSpec dirPermissions(Action<? super ConfigurableFilePermissions> configureAction) {
+        return getDelegateCopySpec().dirPermissions(configureAction);
     }
 
     @Override
@@ -337,5 +360,11 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public CopySpecInternal preserve(Action<? super PatternFilterable> action) {
         return getDelegateCopySpec().preserve(action);
+    }
+
+    @Override
+    @Nullable
+    public File getDestinationDir() {
+        return getDelegateCopySpec().getDestinationDir();
     }
 }

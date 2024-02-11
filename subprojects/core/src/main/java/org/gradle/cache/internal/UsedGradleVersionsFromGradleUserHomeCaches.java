@@ -16,23 +16,23 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.collect.Sets;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.util.GradleVersion;
 
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class UsedGradleVersionsFromGradleUserHomeCaches implements UsedGradleVersions {
 
     private final VersionSpecificCacheDirectoryScanner directoryScanner;
 
-    public UsedGradleVersionsFromGradleUserHomeCaches(GlobalScopedCache globalScopedCache) {
-        directoryScanner = new VersionSpecificCacheDirectoryScanner(globalScopedCache.getRootDir());
+    public UsedGradleVersionsFromGradleUserHomeCaches(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
+        directoryScanner = new VersionSpecificCacheDirectoryScanner(cacheBuilderFactory.getRootDir());
     }
 
     @Override
     public SortedSet<GradleVersion> getUsedGradleVersions() {
-        SortedSet<GradleVersion> result = Sets.newTreeSet();
+        SortedSet<GradleVersion> result = new TreeSet<>();
         for (VersionSpecificCacheDirectory cacheDir : directoryScanner.getExistingDirectories()) {
             result.add(cacheDir.getVersion());
         }

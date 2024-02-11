@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
 
 /**
@@ -30,69 +31,27 @@ import org.gradle.api.attributes.Attribute;
 public interface RepositoryContentDescriptor extends InclusiveRepositoryContentDescriptor {
 
     /**
-     * Declares that an entire group should be searched for in this repository.
-     *
-     * @param group the group name
-     */
-    @Override
-    void includeGroup(String group);
-
-    /**
-     * Declares that an entire group should be searched for in this repository.
-     *
-     * @param groupRegex a regular expression of the group name
-     */
-    @Override
-    void includeGroupByRegex(String groupRegex);
-
-    /**
-     * Declares that an entire module should be searched for in this repository.
-     *
-     * @param group the group name
-     * @param moduleName the module name
-     */
-    @Override
-    void includeModule(String group, String moduleName);
-
-    /**
-     * Declares that an entire module should be searched for in this repository, using regular expressions.
-     *
-     * @param groupRegex the group name regular expression
-     * @param moduleNameRegex the module name regular expression
-     */
-    @Override
-    void includeModuleByRegex(String groupRegex, String moduleNameRegex);
-
-    /**
-     * Declares that a specific module version should be searched for in this repository.
-     * <p>
-     * The version notation supports range notations like {@code [1.0,2.0[}.
-     *
-     * @param group the group name
-     * @param moduleName the module name
-     * @param version the module version
-     */
-    @Override
-    void includeVersion(String group, String moduleName, String version);
-
-    /**
-     * Declares that a specific module version should be searched for in this repository, using regular expressions.
-     * <p>
-     * The version notation for a regex will be matched against a single version and does not support range notations.
-     *
-     * @param groupRegex the group name regular expression
-     * @param moduleNameRegex the module name regular expression
-     * @param versionRegex the module version regular expression
-     */
-    @Override
-    void includeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex);
-
-    /**
      * Declares that an entire group shouldn't be searched for in this repository.
      *
      * @param group the group name
      */
     void excludeGroup(String group);
+
+    /**
+     * Declares that an entire group and its subgroups shouldn't be searched for in this repository.
+     *
+     * <p>
+     * A subgroup is a group that starts with the given prefix and has a dot immediately after the prefix.
+     * For example, if the prefix is {@code org.gradle}, then {@code org.gradle} is matched as a group,
+     * and {@code org.gradle.foo} and {@code org.gradle.foo.bar} are matched as subgroups. {@code org.gradlefoo}
+     * is not matched as a subgroup.
+     * </p>
+     *
+     * @param groupPrefix the group prefix to include
+     * @since 8.1
+     */
+    @Incubating
+    void excludeGroupAndSubgroups(String groupPrefix);
 
     /**
      * Declares that an entire group shouldn't be searched for in this repository.

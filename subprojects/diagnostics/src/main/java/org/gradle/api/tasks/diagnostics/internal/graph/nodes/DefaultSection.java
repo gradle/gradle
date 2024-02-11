@@ -15,13 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import com.google.common.collect.Lists;
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultSection implements Section {
     private final String description;
-    private final List<Section> children = Lists.newArrayList();
+    private final List<Section> children = new ArrayList<>();
 
     public DefaultSection(String description) {
         this.description = description;

@@ -19,39 +19,58 @@ package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
+/**
+ * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
+ *
+ * https://developer.android.com/studio/releases/build-tools.html
+ * https://developer.android.com/studio/releases/gradle-plugin.html
+ * https://androidstudio.googleblog.com/
+ *
+ * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
+ * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
+ */
 class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
-    private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = TestedVersions.androidGradle.latestStartsWith("7.3")
+    private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = AGP_VERSIONS.latestStable
 
-    private static final String DAGGER_HILT_ANDROID_PLUGIN_ID = 'dagger.hilt.android.plugin'
-    private static final String TRIPLET_PLAY_PLUGIN_ID = 'com.github.triplet.play'
-    private static final String FLADLE_PLUGIN_ID = 'com.osacky.fladle'
-    private static final String SAFEARGS_PLUGIN_ID = 'androidx.navigation.safeargs'
     private static final String GOOGLE_SERVICES_PLUGIN_ID = 'com.google.gms.google-services'
     private static final String CRASHLYTICS_PLUGIN_ID = 'com.google.firebase.crashlytics'
     private static final String FIREBASE_PERF_PLUGIN_ID = 'com.google.firebase.firebase-perf'
-    private static final String SENTRY_PLUGIN_ID = 'io.sentry.android.gradle'
     private static final String BUGSNAG_PLUGIN_ID = 'com.bugsnag.android.gradle'
+    private static final String FLADLE_PLUGIN_ID = 'com.osacky.fladle'
+    private static final String TRIPLET_PLAY_PLUGIN_ID = 'com.github.triplet.play'
+    private static final String SAFEARGS_PLUGIN_ID = 'androidx.navigation.safeargs'
+    private static final String DAGGER_HILT_ANDROID_PLUGIN_ID = 'dagger.hilt.android.plugin'
+    private static final String SENTRY_PLUGIN_ID = 'io.sentry.android.gradle'
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.3.5'),
-            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.9.1'),
-            (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.4.1'),
-            (BUGSNAG_PLUGIN_ID): Versions.of('7.3.0'),
+            // https://mvnrepository.com/artifact/com.google.gms/google-services?repo=google
+            (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.3.15'),
+            // https://mvnrepository.com/artifact/com.google.firebase.crashlytics/com.google.firebase.crashlytics.gradle.plugin
+            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.9.7'),
+            // https://mvnrepository.com/artifact/com.google.firebase/perf-plugin
+            (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.4.2'),
+            // https://plugins.gradle.org/plugin/com.bugsnag.android.gradle
+            (BUGSNAG_PLUGIN_ID): Versions.of('8.0.1'),
+            // https://plugins.gradle.org/plugin/com.osacky.fladle
             (FLADLE_PLUGIN_ID): Versions.of('0.17.4'),
-            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.7.0'),
-            (SAFEARGS_PLUGIN_ID): Versions.of('2.5.1'),
-            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.43.2'),
-            (SENTRY_PLUGIN_ID): Versions.of('3.1.6'),
+            // https://plugins.gradle.org/plugin/com.github.triplet.play
+            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.8.4'),
+            // https://mvnrepository.com/artifact/androidx.navigation.safeargs/androidx.navigation.safeargs.gradle.plugin
+            (SAFEARGS_PLUGIN_ID): Versions.of('2.6.0'),
+            // https://mvnrepository.com/artifact/com.google.dagger/hilt-android-gradle-plugin
+            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.47'),
+            // https://mvnrepository.com/artifact/io.sentry.android.gradle/io.sentry.android.gradle.gradle.plugin
+            (SENTRY_PLUGIN_ID): Versions.of('3.11.1'),
         ]
     }
 
     @Override
     void configureValidation(String testedPluginId, String version) {
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(ANDROID_PLUGIN_VERSION_FOR_TESTS)
-        configureAndroidProject(testedPluginId)
+        configureAndroidProject(testedPluginId, version)
 
         validatePlugins {
             passing {
@@ -60,7 +79,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         }
     }
 
-    private void configureAndroidProject(String testedPluginId) {
+    private void configureAndroidProject(String testedPluginId, String version) {
         settingsFile << """
             pluginManagement {
                 repositories {
@@ -97,6 +116,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         """
         buildFile << """
                 android {
+                    namespace = "org.gradle.smoke.test"
                     compileSdkVersion 24
                     buildToolsVersion '${TestedVersions.androidTools}'
                     defaultConfig {
@@ -132,16 +152,16 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             case DAGGER_HILT_ANDROID_PLUGIN_ID:
                 buildFile << """
                     dependencies {
-                        implementation "com.google.dagger:hilt-android:2.43.2"
-                        implementation "com.google.dagger:hilt-compiler:2.43.2"
+                        implementation "com.google.dagger:hilt-android:$version"
+                        implementation "com.google.dagger:hilt-compiler:$version"
                     }
                 """
                 break
             case TRIPLET_PLAY_PLUGIN_ID:
                 buildFile << """
                     play {
-                        serviceAccountCredentials.set(file("your-key.json"))
-                        updatePriority.set(2)
+                        serviceAccountCredentials = file("your-key.json")
+                        updatePriority = 2
                     }
                 """
                 break
@@ -153,7 +173,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         if (testedPluginId == DAGGER_HILT_ANDROID_PLUGIN_ID) {
             return [
                 'com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS,
-                'org.jetbrains.kotlin.android': TestedVersions.kotlin.latestStable()
+                'org.jetbrains.kotlin.android': KOTLIN_VERSIONS.latestStable
             ]
         }
         return ['com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS]

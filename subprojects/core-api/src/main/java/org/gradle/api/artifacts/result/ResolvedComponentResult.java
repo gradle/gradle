@@ -33,7 +33,7 @@ public interface ResolvedComponentResult extends ComponentResult {
      * <p>Returns the dependencies of this component. Includes resolved and unresolved dependencies (if any).
      *
      * <p>The elements of the returned collection are declared as {@link DependencyResult}, however the dependency instances will also implement one of the
-     * following instances:</p>
+     * following interfaces:</p>
      *
      * <ul>
      *     <li>{@link ResolvedDependencyResult} for dependencies which were successfully resolved.</li>

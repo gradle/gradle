@@ -16,9 +16,10 @@
 
 package org.gradle.test.fixtures
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.apache.commons.io.FilenameUtils
-import org.apache.tools.zip.ZipEntry
-import org.apache.tools.zip.ZipOutputStream
+import org.gradle.api.internal.file.archive.ZipCopyAction
 import org.gradle.internal.IoActions
 import org.gradle.internal.hash.HashFunction
 import org.gradle.internal.hash.Hashing
@@ -29,7 +30,7 @@ abstract class AbstractModule implements Module {
     /**
      Last modified date for writeZipped to be able to create zipFiles with identical hashes
      */
-    private static Date lmd = new Date(0)
+    private static Date lmd = new Date(ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES)
 
     private boolean hasModuleMetadata
     private Closure<?> onEveryFile
@@ -73,13 +74,13 @@ abstract class AbstractModule implements Module {
         def bos = new ByteArrayOutputStream()
         writeContents(bos, cl)
 
-        ZipOutputStream zipStream = new ZipOutputStream(testFile)
+        ZipArchiveOutputStream zipStream = new ZipArchiveOutputStream(testFile)
         try {
-            def entry = new ZipEntry(testFile.name)
+            def entry = new ZipArchiveEntry(testFile.name)
             entry.setTime(lmd.getTime())
-            zipStream.putNextEntry(entry)
+            zipStream.putArchiveEntry(entry)
             zipStream << bos.toByteArray()
-            zipStream.closeEntry()
+            zipStream.closeArchiveEntry()
             zipStream.finish()
         } finally {
             IoActions.closeQuietly(zipStream)

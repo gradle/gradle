@@ -1,0 +1,20 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+version = '1.0.2'
+group = 'org.gradle.sample'
+
+publishing {
+    publications {
+        library(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url = layout.buildDirectory.dir("publishing-repository")
+        }
+    }
+}

@@ -235,6 +235,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void buildFailsWhenNestedBuildHasNoSettingsFile() {
+        createDirs("another");
         TestFile settingsFile = testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = getTestDirectory().file("sub");
@@ -254,6 +255,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canTargetRootProjectDirectoryFromSubDirectory() {
+        createDirs("another");
         testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = getTestDirectory().file("sub");
@@ -264,22 +266,24 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void specifyingCustomSettingsFileIsDeprecated() {
+        createDirs("another");
         testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = file("sub");
         TestFile subSettingsFile = subDirectory.file("renamed_settings.gradle").write("");
         subDirectory.file("build.gradle").write("");
 
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
+        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
         inDirectory(subDirectory).usingSettingsFile(subSettingsFile).withTasks("help").run();
     }
 
     @Test
     public void specifyingCustomBuildFileIsDeprecated() {
+        createDirs("another");
         testFile("settings.gradle").write("include 'another'");
         TestFile renamedBuildGradle = file("renamed_build.gradle").createFile();
 
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
+        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
         executer.usingBuildScript(renamedBuildGradle).withTasks("help").run();
     }
 
@@ -297,6 +301,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void multiProjectBuildCanHaveSeveralProjectsWithSameBuildFile() {
+        createDirs("child1", "child2");
         testFile("settings.gradle").writelns(
             "include 'child1', 'child2'",
             "project(':child1').buildFileName = '../child.gradle'",
@@ -309,10 +314,6 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void multiProjectBuildCanHaveSettingsFileAndRootBuildFileInSubDir() {
-        // Stop traversing to parent directory; otherwise embedded test execution will
-        // find and load the `gradle.properties` file in the root of the source repository
-        getTestDirectory().file("settings.gradle").createFile();
-
         TestFile buildFilesDir = getTestDirectory().file("root");
         TestFile relocatedSettingsFile = buildFilesDir.file("settings.gradle");
         relocatedSettingsFile.writelns(
@@ -338,6 +339,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void multiProjectBuildCanHaveAllProjectsAsChildrenOfSettingsDir() {
         TestFile settingsFile = testFile("settings.gradle");
+        createDirs("root", "root/sub");
         settingsFile.writelns(
             "rootProject.projectDir = new File(settingsDir, 'root')",
             "include 'sub'",
@@ -354,6 +356,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void usesRootProjectAsDefaultProjectWhenInSettingsDir() {
         TestFile settingsDir = testFile("gradle");
         TestFile settingsFile = settingsDir.file("settings.gradle");
+        createDirs("root", "root/sub");
         settingsFile.writelns(
             "rootProject.projectDir = new File(settingsDir, '../root')",
             "include 'sub'",
@@ -368,6 +371,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void rootProjectDirectoryAndBuildFileDoNotHaveToExistWhenInSettingsDir() {
         TestFile settingsDir = testFile("gradle");
         TestFile settingsFile = settingsDir.file("settings.gradle");
+        createDirs("root", "sub");
         settingsFile.writelns(
             "rootProject.projectDir = new File(settingsDir, '../root')",
             "include 'sub'",
@@ -382,6 +386,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void settingsFileGetsIgnoredWhenUsingSettingsOnlyDirectoryAsProjectDirectory() {
         TestFile settingsDir = testFile("gradle");
         TestFile settingsFile = settingsDir.file("settings.gradle");
+        createDirs("root");
         settingsFile.writelns(
             "rootProject.projectDir = new File(settingsDir, '../root')"
         );

@@ -145,7 +145,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
         then:
         2 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file1.txt' })
         1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
-        outputEventListener.toString().contains('[WARN] [org.gradle.api.internal.file.copy.DuplicateHandlingCopyActionDecorator] Encountered duplicate path "/root/path/file1.txt"')
+        outputEventListener.toString().contains("[WARN] [org.gradle.api.internal.file.copy.DuplicateHandlingCopyActionDecorator] file 'path/file1.txt' will be copied to '/root/path/file1.txt', overwriting file 'path/file1.txt', which has already been copied there.")
     }
 
 
@@ -160,7 +160,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
         then:
         2 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file1.txt' })
         1 * delegateAction.processFile({ it.relativePath.pathString == '/root/path/file2.txt' })
-        outputEventListener.toString().contains('[WARN] [org.gradle.api.internal.file.copy.DuplicateHandlingCopyActionDecorator] Encountered duplicate path "/root/path/file1.txt"')
+        outputEventListener.toString().contains("[WARN] [org.gradle.api.internal.file.copy.DuplicateHandlingCopyActionDecorator] file 'path/file1.txt' will be copied to '/root/path/file1.txt', overwriting file 'path/file1.txt', which has already been copied there.")
     }
 
     def duplicatesFailByPerFileConfiguration() {
@@ -186,6 +186,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
             fileNames.each { filename ->
                 def fvd = Mock(FileVisitDetails) {
                     getRelativePath() >> new RelativePath(true, filename)
+                    toString() >> "file '${filename}'"
                 }
                 visitor.visitFile(fvd)
             }

@@ -22,6 +22,7 @@ import org.gradle.performance.results.FileRenderer;
 import org.gradle.performance.results.NoResultsStore;
 import org.gradle.performance.results.PerformanceDatabase;
 import org.gradle.performance.results.PerformanceExperiment;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider;
 import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.PerformanceTestHistory;
@@ -42,9 +43,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider;
+import static org.gradle.performance.results.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider;
 
 public abstract class AbstractReportGenerator<R extends ResultsStore> {
+    public static Set<String> getDependencyPerformanceTestTeamCityBuildIds() {
+        return new HashSet<>(Arrays.asList(System.getProperty("org.gradle.performance.dependencyBuildIds", "").split(",")));
+    }
 
     protected void generateReport(String... args) {
         File outputDirectory = new File(args[0]);
@@ -54,10 +58,8 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
             resultJsons.add(new File(args[i]));
         }
 
-        Set<String> performanceTestBuildIds = new HashSet<>(Arrays.asList(System.getProperty("org.gradle.performance.dependencyBuildIds", "").split(",")));
-
         try (ResultsStore store = getResultsStore()) {
-            PerformanceExecutionDataProvider executionDataProvider = getExecutionDataProvider(store, resultJsons, performanceTestBuildIds);
+            PerformanceExecutionDataProvider executionDataProvider = getExecutionDataProvider(store, resultJsons, getDependencyPerformanceTestTeamCityBuildIds());
             PerformanceFlakinessDataProvider flakinessDataProvider = getFlakinessDataProvider();
             generateReport(store, flakinessDataProvider, executionDataProvider, outputDirectory, projectName);
             checkResult(flakinessDataProvider, executionDataProvider);

@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -29,10 +29,11 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionEngine.Result;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -48,16 +49,6 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
  */
 @SuppressWarnings("deprecation")
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
-    public enum BuildCacheState {
-        ENABLED, DISABLED
-    }
-
-    public enum ScanPluginState {
-        APPLIED, NOT_APPLIED
-    }
-
-    private final BuildCacheState buildCacheState;
-    private final ScanPluginState scanPluginState;
 
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -70,12 +61,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final FileCollectionFactory fileCollectionFactory;
-    private final FileOperations fileOperations;
+    private final TaskDependencyFactory taskDependencyFactory;
+    private final PathToFileResolver fileResolver;
 
     public ExecuteActionsTaskExecuter(
-        BuildCacheState buildCacheState,
-        ScanPluginState scanPluginState,
-
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
@@ -87,11 +76,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         FileCollectionFactory fileCollectionFactory,
-        FileOperations fileOperations
+        TaskDependencyFactory taskDependencyFactory,
+        PathToFileResolver fileResolver
     ) {
-        this.buildCacheState = buildCacheState;
-        this.scanPluginState = scanPluginState;
-
         this.executionHistoryStore = executionHistoryStore;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
@@ -103,28 +90,27 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.fileOperations = fileOperations;
+        this.taskDependencyFactory = taskDependencyFactory;
+        this.fileResolver = fileResolver;
     }
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        boolean emitLegacySnapshottingOperations = buildCacheState == BuildCacheState.ENABLED || scanPluginState == ScanPluginState.APPLIED;
         TaskExecution work = new TaskExecution(
             task,
             context,
-            emitLegacySnapshottingOperations,
-
             actionListener,
             asyncWorkTracker,
             buildOperationExecutor,
             classLoaderHierarchyHasher,
             executionHistoryStore,
             fileCollectionFactory,
-            fileOperations,
+            fileResolver,
             inputFingerprinter,
             listenerManager,
             reservedFileSystemLocationRegistry,
-            taskCacheabilityResolver
+            taskCacheabilityResolver,
+            taskDependencyFactory
         );
         try {
             return executeIfValid(task, state, context, work);

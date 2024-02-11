@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import com.google.common.collect.Lists
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
@@ -109,7 +108,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         getTask().getActions().size() == 2
 
         when:
-        List<Action<? super Task>> actions = Lists.newArrayList()
+        List<Action<? super Task>> actions = new ArrayList<>()
         actions.add(Actions.doNothing())
         getTask().setActions(actions)
 

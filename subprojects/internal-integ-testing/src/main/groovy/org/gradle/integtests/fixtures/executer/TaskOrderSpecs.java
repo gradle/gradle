@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import com.google.common.collect.Sets;
 import org.gradle.util.internal.GUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -89,7 +89,7 @@ public class TaskOrderSpecs {
 
         @Override
         public Set<String> getTasks() {
-            Set<String> tasks = Sets.newHashSet();
+            Set<String> tasks = new HashSet<>();
             for (Object constraint : constraints) {
                 if (constraint instanceof String) {
                     tasks.add((String) constraint);

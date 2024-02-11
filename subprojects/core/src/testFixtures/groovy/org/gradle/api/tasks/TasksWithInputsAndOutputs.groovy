@@ -240,7 +240,7 @@ trait TasksWithInputsAndOutputs {
 
                 @TaskAction
                 def log() {
-                    println("artifacts = \${collection.artifacts.id}")
+                    println("artifacts = \${collection.artifacts.collect { it.file.name + " (" + it.id.componentIdentifier + ")" }}")
                     println("components = \${collection.artifacts.id.componentIdentifier}")
                     println("variants = \${collection.artifacts.variant.attributes}")
                     println("variant capabilities = \${collection.artifacts.variant.capabilities}")

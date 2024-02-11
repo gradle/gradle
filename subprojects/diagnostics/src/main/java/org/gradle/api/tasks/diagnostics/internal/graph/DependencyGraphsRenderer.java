@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.internal.graph.GraphRenderer;
@@ -74,7 +73,7 @@ public class DependencyGraphsRenderer {
         if (rootRenderer != NodeRenderer.NO_OP) {
             renderNode(root, true, false, rootRenderer);
         }
-        HashSet<Object> visited = Sets.newHashSet();
+        HashSet<Object> visited = new HashSet<>();
         visited.add(root.getId());
         renderChildren(root.getChildren(), visited);
     }

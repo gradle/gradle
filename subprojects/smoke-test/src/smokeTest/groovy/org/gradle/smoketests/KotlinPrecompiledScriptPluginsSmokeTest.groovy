@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -88,13 +90,19 @@ class KotlinPrecompiledScriptPluginsSmokeTest extends AbstractSmokeTest {
         """
 
         when:
-        def result = runner('help').forwardOutput().build()
+        def result = runner('help')
+            .expectDeprecationWarningIf(
+                VersionNumber.parse(pluginPublishGradleVersion) < VersionNumber.parse("6.0"),
+                "Applying a Kotlin DSL precompiled script plugin published with Gradle versions < 6.0. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Use a version of the plugin published with Gradle >= 6.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#kotlin_dsl_precompiled_gradle_lt_6",
+                "Remove testing of plugins published with Gradle < 6.0"
+            )
+            .forwardOutput()
+            .build()
 
         then:
         result.task(':help').outcome == SUCCESS
 
         where:
-        pluginPublishGradleVersion << ['6.0', '5.6.4']
-
+        pluginPublishGradleVersion << ['8.0', '7.0', '6.0', '5.6.4']
     }
 }

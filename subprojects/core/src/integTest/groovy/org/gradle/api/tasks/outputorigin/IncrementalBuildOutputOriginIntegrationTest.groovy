@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks.outputorigin
 
+import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheKeyFixture
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -26,9 +28,11 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
 
     @Rule
     public final ScopeIdsFixture scopeIds = new ScopeIdsFixture(executer, temporaryFolder)
-
     @Rule
     public final OriginFixture originBuildInvocationId = new OriginFixture(executer, temporaryFolder)
+    @Delegate
+    @Rule
+    public final BuildCacheKeyFixture buildCacheKeyFixture = new BuildCacheKeyFixture(executer, temporaryFolder)
 
     String getBuildInvocationId() {
         scopeIds.buildInvocationId.asString()
@@ -38,11 +42,15 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId.originId(taskPath)
     }
 
+    OriginMetadata origin(String taskPath) {
+        originBuildInvocationId.origin(taskPath)
+    }
+
     def "exposes origin build id when reusing outputs"() {
         given:
         buildScript """
             def write = tasks.create("write", WriteProperties) {
-                outputFile = "out.properties"
+                destinationFile = file("out.properties")
                 properties = [v: 1]
             }
         """
@@ -53,6 +61,8 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         then:
         executedAndNotSkipped ":write"
         def firstBuildId = buildInvocationId
+        def firstBuildCacheKey = buildCacheKey(":write")
+        firstBuildCacheKey != null
         originBuildInvocationId(":write") == null
 
         when:
@@ -62,7 +72,10 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         executed ":write"
         def secondBuildId = buildInvocationId
         firstBuildId != secondBuildId
-        originBuildInvocationId(":write") == firstBuildId
+        with(origin(":write")) {
+            buildInvocationId == firstBuildId
+            buildCacheKey == firstBuildCacheKey
+        }
 
         when:
         buildFile << """
@@ -75,6 +88,9 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         def thirdBuildId = buildInvocationId
         firstBuildId != thirdBuildId
         secondBuildId != thirdBuildId
+        def thirdBuildCacheKey = buildCacheKey(":write")
+        thirdBuildCacheKey != firstBuildCacheKey
+        thirdBuildCacheKey != null
         originBuildInvocationId(":write") == null
 
         when:
@@ -82,18 +98,21 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
 
         then:
         executed ":write"
-        originBuildInvocationId(":write") == thirdBuildId
+        with(origin(":write")) {
+            buildInvocationId == thirdBuildId
+            buildCacheKey == thirdBuildCacheKey
+        }
     }
 
     def "tracks different tasks"() {
         given:
         buildScript """
             def w1 = tasks.create("w1", WriteProperties) {
-                outputFile = "w1.properties"
+                destinationFile = file("w1.properties")
                 properties = [v: 1]
             }
             def w2 = tasks.create("w2", WriteProperties) {
-                outputFile = "w2.properties"
+                destinationFile = file("w2.properties")
                 properties = [v: 1]
             }
 
@@ -139,10 +158,10 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         given:
         file("buildSrc/build.gradle").text = """
             tasks.create("w", WriteProperties) {
-                outputFile = "w.properties"
+                destinationFile = file("w.properties")
                 properties = [v: 1]
             }
-            build.dependsOn "w"
+            jar.dependsOn "w"
         """
 
         when:
@@ -164,7 +183,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         ["a", "b"].each {
             file("$it/build.gradle").text = """
                 tasks.create("w", WriteProperties) {
-                    outputFile = "w.properties"
+                    destinationFile = file("w.properties")
                     properties = [v: 1]
                 }
             """

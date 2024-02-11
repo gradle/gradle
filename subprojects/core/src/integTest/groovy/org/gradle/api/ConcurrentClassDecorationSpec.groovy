@@ -30,6 +30,7 @@ class ConcurrentClassDecorationSpec extends AbstractIntegrationSpec {
         given:
         file("buildSrc/src/main/java/Thing.java") << "public class Thing {}"
         ("a".."d").each { name ->
+            createDirs(name)
             settingsFile << "include '$name'\n"
             file("$name/build.gradle") << """
                 task decorateClass {

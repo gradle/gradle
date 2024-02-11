@@ -36,8 +36,8 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
     }
 
     def "settings set via cmdline flag are exposed"() {
+        createDirs("custom", "custom/a")
         def customSettingsDir = file("custom")
-        customSettingsDir.mkdirs()
         def customSettingsFile = new File(customSettingsDir, "settings.gradle")
         customSettingsFile << """
 
@@ -45,7 +45,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
+        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
         executer.withArguments("--settings-file", customSettingsFile.absolutePath)
         succeeds('help')
 
@@ -55,6 +55,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
     }
 
     def "composite participants expose their settings details"() {
+        createDirs("a", "nested")
         settingsFile << """
             include "a"
             includeBuild "nested"
@@ -91,6 +92,23 @@ enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
 '''
         expect:
         succeeds('help')
+    }
+
+    def 'can create project directories in afterEvaluate'() {
+        given:
+        settingsFile << '''
+        include 'has-no-dir'
+        def collectChildren(def obj) {
+            [obj] + obj.getChildren().collectMany { collectChildren(it) }
+        }
+        gradle.settingsEvaluated { settings ->
+            collectChildren(settings.rootProject).each { project ->
+                project.projectDir.mkdirs()
+            }
+        }
+        '''
+        expect:
+        succeeds(':has-no-dir:help')
     }
 
     private List<BuildOperationRecord> operations() {

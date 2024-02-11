@@ -21,11 +21,20 @@ import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.internal.build.ExecutionResult;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
+
+    /**
+     * Find a task with the given path in the task graph.
+     * @param path the path of the task to find in the task graph
+     * @return the task with the given path if it is present in the task graph, null otherwise
+     */
+    @Nullable Task findTask(String path);
+
     /**
      * Attaches the work that this graph will run. Fires events and no further tasks should be added.
      */
@@ -51,5 +60,10 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * Returns all the work items in this graph scheduled for execution plus all
      * dependencies from other builds.
      */
-    void visitScheduledNodes(Consumer<List<Node>> visitor);
+    void visitScheduledNodes(BiConsumer<List<Node>, Set<Node>> visitor);
+
+    /**
+     * Resets the lifecycle for this graph.
+     */
+    void resetState();
 }

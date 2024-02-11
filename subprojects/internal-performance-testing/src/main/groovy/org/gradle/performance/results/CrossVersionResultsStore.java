@@ -18,7 +18,6 @@ package org.gradle.performance.results;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
@@ -38,6 +37,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,6 +68,8 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     // Only the flakiness detection results within 90 days will be considered.
     private static final int FLAKINESS_DETECTION_DAYS = 90;
+    private static final Pattern PRE_TEST_BRANCH_PATTERN = Pattern.compile("pre-test/([^/]*)/.*");
+    private static final Pattern GH_MERGE_QUEUE_BRANCH_PATTERN = Pattern.compile("gh-readonly-queue/([^/]*)/.*");
     private final Map<String, GradleVersion> gradleVersionCache = new HashMap<>();
 
     public CrossVersionResultsStore() {
@@ -226,7 +228,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                 PreparedStatement operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
                     + "where testExecution in (select t.* from ( select id from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (" + channelPatternQuery + buildIdQuery + ") order by startTime desc limit ?) as t)")
             ) {
-                Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
+                Map<Long, CrossVersionPerformanceResults> results = new LinkedHashMap<>();
                 Set<String> allVersions = new TreeSet<>(Comparator.comparing(this::resolveGradleVersion));
                 Set<String> allBranches = new TreeSet<>();
 
@@ -320,7 +322,13 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
             return currentBranch;
         }
         if (vcsBranch.startsWith("pre-test/")) {
-            Matcher matcher = Pattern.compile("pre-test/([^/]*)/.*").matcher(vcsBranch);
+            Matcher matcher = PRE_TEST_BRANCH_PATTERN.matcher(vcsBranch);
+            if (matcher.matches()) {
+                return matcher.group(1);
+            }
+        }
+        if (vcsBranch.startsWith("gh-readonly-queue/")) {
+            Matcher matcher = GH_MERGE_QUEUE_BRANCH_PATTERN.matcher(vcsBranch);
             if (matcher.matches()) {
                 return matcher.group(1);
             }
@@ -355,7 +363,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     private Map<PerformanceExperiment, BigDecimal> queryFlakinessData(String sql, Timestamp time) {
         return withConnection("query flakiness data", connection -> {
-            Map<PerformanceExperiment, BigDecimal> results = Maps.newHashMap();
+            Map<PerformanceExperiment, BigDecimal> results = new HashMap();
             try (
                 PreparedStatement statement = prepareStatement(connection, sql, time);
                 ResultSet resultSet = statement.executeQuery()

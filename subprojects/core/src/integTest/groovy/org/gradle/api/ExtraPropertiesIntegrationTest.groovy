@@ -48,6 +48,7 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
     BuildTestFile extraPropertiesMultiBuild(Map expectedPropPerProject = [:], @DelegatesTo(BuildTestFile) Closure configuration = {}) {
         expectedPropPerProject = [a: 'rootValue', b: 'rootValue', 'a:a1': 'rootValue'] + expectedPropPerProject
         def root = multiProjectBuild('extra-properties', ['a', 'b']) {
+            createDirs("a", "a/a1")
             settingsFile << "include ':a:a1'"
 
             buildFile << """

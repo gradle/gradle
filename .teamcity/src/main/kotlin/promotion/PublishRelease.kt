@@ -17,7 +17,7 @@
 package promotion
 
 import common.VersionedSettingsBranch
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 
 abstract class PublishRelease(
     prepTask: String,
@@ -73,7 +73,7 @@ abstract class PublishRelease(
 class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
     prepTask = "prepFinalRelease",
-    promoteTask = "promoteFinalRelease",
+    promoteTask = branch.promoteFinalReleaseTaskName(),
     requiredConfirmationCode = "final",
     init = {
         id("Promotion_FinalRelease")

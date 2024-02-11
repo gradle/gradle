@@ -15,8 +15,6 @@
  */
 package org.gradle.execution;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
@@ -26,8 +24,12 @@ import org.gradle.api.tasks.TaskContainer;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
 public class TaskNameResolver {
 
@@ -51,7 +53,7 @@ public class TaskNameResolver {
     @Nullable
     public TaskSelectionResult selectWithName(final String taskName, final ProjectInternal project, boolean includeSubProjects) {
         if (includeSubProjects) {
-            Set<Task> tasks = Sets.newLinkedHashSet();
+            Set<Task> tasks = new LinkedHashSet<>();
             new MultiProjectTaskSelectionResult(taskName, project, false).collectTasks(tasks);
             if (!tasks.isEmpty()) {
                 return new FixedTaskSelectionResult(tasks);
@@ -75,10 +77,10 @@ public class TaskNameResolver {
      * Finds the names of all tasks, without necessarily creating or configuring the tasks. Returns an empty map when none are found.
      */
     public Map<String, TaskSelectionResult> selectAll(ProjectInternal project, boolean includeSubProjects) {
-        Map<String, TaskSelectionResult> selected = Maps.newLinkedHashMap();
+        Map<String, TaskSelectionResult> selected = new LinkedHashMap<>();
 
         if (includeSubProjects) {
-            Set<String> taskNames = Sets.newLinkedHashSet();
+            Set<String> taskNames = new LinkedHashSet<>();
             collectTaskNames(project, taskNames);
             for (String taskName : taskNames) {
                 selected.put(taskName, new MultiProjectTaskSelectionResult(taskName, project, true));
@@ -120,7 +122,7 @@ public class TaskNameResolver {
     private void collectTaskNames(ProjectInternal project, Set<String> result) {
         discoverTasks(project);
         result.addAll(getTaskNames(project));
-        for (Project subProject : project.getChildProjects().values()) {
+        for (Project subProject : getChildProjectsForInternalUse(project)) {
             collectTaskNames((ProjectInternal) subProject, result);
         }
     }
@@ -180,7 +182,7 @@ public class TaskNameResolver {
                     return;
                 }
             }
-            for (Project subProject : project.getChildProjects().values()) {
+            for (Project subProject : getChildProjectsForInternalUse(project)) {
                 collect((ProjectInternal) subProject, tasks);
             }
         }

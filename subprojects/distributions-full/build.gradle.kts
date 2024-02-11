@@ -9,6 +9,8 @@ description = "The collector project for the entirety of the Gradle distribution
 dependencies {
     coreRuntimeOnly(platform(project(":core-platform")))
 
+    agentsRuntimeOnly(project(":instrumentation-agent"))
+
     pluginsRuntimeOnly(platform(project(":distributions-publishing")))
     pluginsRuntimeOnly(platform(project(":distributions-jvm")))
     pluginsRuntimeOnly(platform(project(":distributions-native")))
@@ -18,12 +20,6 @@ dependencies {
     pluginsRuntimeOnly(project(":build-profile"))
     pluginsRuntimeOnly(project(":antlr"))
     pluginsRuntimeOnly(project(":enterprise"))
-}
-
-tasks.register<gradlebuild.run.tasks.RunEmbeddedGradle>("runDevGradle") {
-    group = "verification"
-    description = "Runs an embedded Gradle using the partial distribution for ${project.path}."
-    gradleClasspath.from(configurations.runtimeClasspath.get(), tasks.runtimeApiInfoJar)
 }
 
 // This is required for the separate promotion build and should be adjusted there in the future

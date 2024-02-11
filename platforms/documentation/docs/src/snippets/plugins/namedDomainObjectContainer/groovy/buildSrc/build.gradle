@@ -1,0 +1,16 @@
+plugins {
+    id('java-gradle-plugin')
+}
+
+repositories {
+    mavenCentral()
+}
+
+gradlePlugin {
+    plugins {
+        download {
+            id = 'org.gradle.sample.download'
+            implementationClass = 'DownloadPlugin'
+        }
+    }
+}

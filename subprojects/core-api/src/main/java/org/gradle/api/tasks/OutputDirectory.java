@@ -23,6 +23,8 @@ import java.lang.annotation.*;
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
+ * <p>The directory will be created before the task is executed if it does not exist already.</p>
+ *
  * <p>This will cause the task to be considered out-of-date when the directory path or task
  * output to that directory has been modified since the task was last run.</p>
  */

@@ -25,8 +25,8 @@ import org.gradle.performance.results.OutputDirSelector;
 import org.gradle.profiler.BuildInvoker;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Logging;
-import org.gradle.profiler.MavenScenarioDefinition;
-import org.gradle.profiler.MavenScenarioInvoker;
+import org.gradle.profiler.maven.MavenScenarioDefinition;
+import org.gradle.profiler.maven.MavenScenarioInvoker;
 import org.gradle.profiler.result.BuildInvocationResult;
 
 import java.io.File;

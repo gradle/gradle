@@ -77,7 +77,7 @@ class CompositeBuildDependencyCapabilitiesResolveIntegrationTest extends Abstrac
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("com.acme.external:external:1.0", "project :includedBuild", "com.acme.external:external:2.0-SNAPSHOT") {
+                edge("com.acme.external:external:1.0", ":includedBuild", "com.acme.external:external:2.0-SNAPSHOT") {
                     compositeSubstitute()
                     variant(expectedVariant, ['org.gradle.usage': 'java-api'])
                     artifact(name: expectedVariant)

@@ -17,7 +17,6 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
 
 import javax.annotation.Nullable;
@@ -42,25 +41,30 @@ import javax.inject.Inject;
  * To integrate a new type of value source, create an abstract subclass of this interface
  * and use {@link ProviderFactory#of(Class, Action)} to get a provider to a configured source.
  * The returned {@link org.gradle.api.provider.Provider} can be passed to tasks or queried
- * by build logic during the configuration phase, in which case the source would be automatically
+ * by build logic during the configuration phase. In the latter case, the source would be automatically
  * considered as an input to the work graph cache.
  * </p>
  * <p>
- * It is possible to have some Gradle services to be injected into the implementation, similar to
- * tasks and plugins. It can be done by adding a parameter to the constructor and annotating the
+ * It is possible to have some Gradle services to be <a href="https://docs.gradle.org/current/userguide/custom_gradle_types.html#service_injection">injected</a>
+ * into the implementation, similar to tasks and plugins.
+ * It can be done by adding a parameter to the constructor and annotating the
  * constructor with the {@code @Inject} annotation:
  * <pre>
- * public class MyValueSource implements ValueSource&lt;...&gt; {
- *     &#064;Inject
+ * public abstract class MyValueSource implements ValueSource&lt;String, ValueSourceParameters.None&gt; {
+ *     private final ExecOperations execOperations;
+ *
+ *     {@literal @}Inject
  *     public MyValueSource(ExecOperations execOperations) {
- *         ...
+ *         this.execOperations = execOperations;
  *     }
+ *
+ *     // ...
  * }
  * </pre>
  * Currently, only a small subset of services is supported:
  * <ul>
  *     <li>{@link org.gradle.process.ExecOperations} provides means to execute external processes.
- *     It is possible to use this service even during the configuration time. However, as the
+ *     It is possible to use this service even at configuration time. However, as the
  *     returned value is used to check the configuration cache, the {@link #obtain()} method will
  *     be called during each build. Calling slow commands here will slow things down.</li>
  * </ul>
@@ -81,7 +85,15 @@ import javax.inject.Inject;
  * For example, if the {@link #obtain()} method calls {@code System.getenv("FOO")} then changes to
  * the {@code FOO} environment variable only invalidate the cache if the value returned by the
  * {@code obtain()} method itself changes. The same applies to reading files or system properties.
+ * Starting an external process with a standard API (for example, {@code java.lang.ProcessBuilder}) is
+ * also allowed.
  * </p>
+ *
+ * Implementations of ValueSource are subject to the following constraint:
+ * <ul>
+ *     <li>Do not implement {@link #getParameters()} in your class, the method will be implemented by Gradle.</li>
+ * </ul>
+ *
  * @param <T> The type of value obtained from this source.
  * @param <P> The source specific parameter type.
  * @see ProviderFactory#environmentVariable(String)
@@ -91,7 +103,6 @@ import javax.inject.Inject;
  * @see <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a>
  * @since 6.1
  */
-@Incubating
 public interface ValueSource<T, P extends ValueSourceParameters> {
 
     /**

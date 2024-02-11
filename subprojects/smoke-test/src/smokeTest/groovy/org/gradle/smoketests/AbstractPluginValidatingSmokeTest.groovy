@@ -59,7 +59,6 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
             plugins {
                 $extraPluginsBlock
                 id '$id'${version ? " version '$version'" : ""}
-                id 'validate-external-gradle-plugin'
             }
 
             $buildScriptConfigurationForValidation
@@ -67,7 +66,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         configureValidation(id, version)
 
         expect:
-        performValidation()
+        performValidation(version)
 
         where:
         iterations << iterations()
@@ -78,8 +77,11 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         allPlugins.alwaysPasses = true
     }
 
-    void performValidation() {
-        allPlugins.performValidation()
+    void performValidation(String version) {
+        allPlugins.performValidation(getValidationExtraParameters(version))
     }
 
+    protected List<String> getValidationExtraParameters(String version) {
+        return []
+    }
 }

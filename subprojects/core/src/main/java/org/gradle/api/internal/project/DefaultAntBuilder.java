@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingPropertyException;
@@ -25,18 +24,30 @@ import org.apache.tools.ant.MagicNames;
 import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.PropertyHelper;
 import org.apache.tools.ant.Target;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.ant.AntTarget;
 import org.gradle.internal.Transformers;
 
+import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 
@@ -152,7 +163,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 
     private static List<String> getTaskDependencyNames(Target target, Transformer<? extends String, ? super String> taskNamer) {
         Enumeration<String> dependencies = target.getDependencies();
-        List<String> taskDependencyNames = Lists.newLinkedList();
+        List<String> taskDependencyNames = new LinkedList<>();
         while (dependencies.hasMoreElements()) {
             String targetName = dependencies.nextElement();
             String taskName = taskNamer.transform(targetName);
@@ -190,7 +201,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         return loggingAdapter.getLifecycleLogLevel();
     }
 
-    private static class AntTargetsTaskDependency implements TaskDependency {
+    private static class AntTargetsTaskDependency implements TaskDependencyInternal {
         private final List<String> taskDependencyNames;
 
         public AntTargetsTaskDependency(List<String> taskDependencyNames) {
@@ -198,7 +209,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         }
 
         @Override
-        public Set<? extends Task> getDependencies(Task task) {
+        public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
             Set<Task> tasks = Sets.newHashSetWithExpectedSize(taskDependencyNames.size());
             for (String dependedOnTaskName : taskDependencyNames) {
                 Task dependency = task.getProject().getTasks().findByName(dependedOnTaskName);
@@ -208,6 +219,11 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
                 tasks.add(dependency);
             }
             return tasks;
+        }
+
+        @Override
+        public Set<? extends Task> getDependencies(Task task) {
+            return getDependenciesForInternalUse(task);
         }
     }
 }

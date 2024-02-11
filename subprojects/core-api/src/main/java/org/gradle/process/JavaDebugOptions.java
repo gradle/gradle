@@ -29,39 +29,51 @@ import org.gradle.api.tasks.Optional;
 public interface JavaDebugOptions {
 
     /**
-     * Whether to attach a debug agent to the forked process.
+     * Should the debug agent start in the forked process? By default, this is false.
      */
-    @Input Property<Boolean> getEnabled();
+    @Input
+    Property<Boolean> getEnabled();
 
     /**
-     * Host address to listen on or connect to when debug is enabled.
-     * In the server mode on Java 9 and above, passing `*` for the host will make the server listen on all network interfaces.
-     * By default, no host address is passed to JDWP, so on Java 9 and above, the loopback address is used, while earlier versions listen on all interfaces.
+     * Host address to listen on or connect to when debug is enabled. By default, no host is set.
+     *
+     * <p>
+     * When run in {@link #getServer() server} mode, the process listens on the loopback address on Java 9+ and all interfaces on Java 8 and below by default.
+     * Setting host to {@code *} will make the process listen on all network interfaces. This is not supported on Java 8 and below.
+     * Setting host to anything else will make the process listen on that address.
+     * </p>
+     * <p>
+     * When run in {@link #getServer() client} mode, the process attempts to connect to the given host and {@link #getPort()}.
+     * </p>
      *
      * @since 7.6
      */
     @Incubating
     @Optional
-    @Input Property<String> getHost();
+    @Input
+    Property<String> getHost();
 
     /**
-     * The debug port.
+     * The debug port to listen on or connect to.
      */
-    @Input Property<Integer> getPort();
+    @Input
+    Property<Integer> getPort();
 
     /**
-     * Whether a socket-attach or a socket-listen type of debugger is expected.
+     * Should the process listen for a debugger to attach (server) or immediately connect to an already running debugger (client)?
      * <p>
-     * In socked-attach mode (server = true) the process actively waits for the debugger to connect after the JVM
-     * starts up. In socket-listen mode (server = false), the debugger should be already running before startup
-     * waiting for the JVM connecting to it.
-     *
-     * @return Whether the process actively waits for the debugger to be attached.
+     * In server mode ({@code server = true}), the process listens for a debugger to connect after the JVM starts up.
+     * </p>
+     * <p>
+     * In client mode ({@code server = false}), the process attempts to connect to an already running debugger.
+     * </p>
      */
-    @Input Property<Boolean> getServer();
+    @Input
+    Property<Boolean> getServer();
 
     /**
-     * Whether the forked process should be suspended until the connection to the debugger is established.
+     * Should the process suspend until the connection to the debugger is established?
      */
-    @Input Property<Boolean> getSuspend();
+    @Input
+    Property<Boolean> getSuspend();
 }

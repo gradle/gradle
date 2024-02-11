@@ -17,8 +17,10 @@
 package promotion
 
 import common.gradleWrapper
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
+import common.promotionBuildParameters
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.FailureAction
+import jetbrains.buildServer.configs.kotlin.RelativeId
 import vcsroots.gradlePromotionMaster
 
 abstract class BasePublishGradleDistribution(
@@ -35,7 +37,7 @@ abstract class BasePublishGradleDistribution(
 
     init {
         artifactRules = """
-        **/build/git-checkout/subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
+        **/build/git-checkout/platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
         **/build/distributions/*.zip => promote-build-distributions
         **/build/website-checkout/data/releases.xml
         **/build/git-checkout/build/reports/integTest/** => distribution-tests
@@ -46,6 +48,8 @@ abstract class BasePublishGradleDistribution(
         dependencies {
             snapshot(RelativeId("Check_Stage_${this@BasePublishGradleDistribution.triggerName}_Trigger")) {
                 synchronizeRevisions = false
+                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyCancel = FailureAction.FAIL_TO_START
             }
         }
 
@@ -66,6 +70,6 @@ fun BuildSteps.buildStep(extraParameters: String, gitUserName: String, gitUserEm
     gradleWrapper {
         name = "Promote"
         tasks = "$prepTask $stepTask"
-        gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" %additional.gradle.parameters% """
+        gradleParams = promotionBuildParameters(RelativeId("Check_Stage_${triggerName}_Trigger"), extraParameters, gitUserName, gitUserEmail)
     }
 }

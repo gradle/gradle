@@ -17,14 +17,15 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.properties.PropertyValue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NonNullApi
 public class OutputFilesCollector implements OutputUnpacker.UnpackedOutputConsumer {
-    private final List<OutputFilePropertySpec> specs = Lists.newArrayList();
+    private final List<OutputFilePropertySpec> specs = new ArrayList<>();
     private ImmutableSortedSet<OutputFilePropertySpec> fileProperties;
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {

@@ -33,6 +33,7 @@ class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec 
         mavenRepo.module("org", "toplevel1").dependsOnModules('leaf1', 'leaf2').publish()
         mavenRepo.module("org", "toplevel2").dependsOnModules('leaf3', 'leaf4').publish()
 
+        createDirs("client", "impl")
         file("settings.gradle") << "include 'client', 'impl'"
 
         buildFile << """

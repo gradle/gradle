@@ -18,7 +18,7 @@ package org.gradle.configuration;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Transformer;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 import static org.gradle.util.internal.CollectionUtils.collect;
 import static org.gradle.util.internal.CollectionUtils.sort;
+import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 @NonNullApi
 public class TaskDetailPrinter {
@@ -62,7 +63,7 @@ public class TaskDetailPrinter {
             final TaskDetails anyTask = tasksByType.iterator().next();
             String shortTypeName = anyTask.getShortTypeName();
             final LinePrefixingStyledTextOutput pathOutput = createIndentedOutput(output, INDENT);
-            pathOutput.println(tasksByType.size() > 1 ? "Paths" : "Path");
+            pathOutput.println("Path" + getPluralEnding(tasksByType));
             for (TaskDetails task : tasksByType) {
                 pathOutput.withStyle(UserInput).println(task.getPath());
             }
@@ -100,7 +101,7 @@ public class TaskDetailPrinter {
         printTaskAttribute(output, "Group", tasks, TaskDetails::getGroup);
     }
 
-    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, List<TaskDetails> tasks, Transformer<String, TaskDetails> transformer) {
+    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, List<TaskDetails> tasks, InternalTransformer<String, TaskDetails> transformer) {
         int count = collect(tasks, new HashSet<>(), transformer).size();
         final LinePrefixingStyledTextOutput attributeOutput = createIndentedOutput(output, INDENT);
         if (count == 1) {

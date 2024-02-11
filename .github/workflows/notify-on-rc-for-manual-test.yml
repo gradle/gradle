@@ -1,0 +1,30 @@
+name: IDE Experience team notifier
+run-name: Notify the IDE Experience team about new RCs for manual testing
+on:
+  push:
+    tags:
+      - 'v*.*.*-RC1'
+
+jobs:
+  send-slack-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification about new RCs for manual testing
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {
+              "text": "<https://github.com/gradle/gradle/${{ github.event.ref }}|[gradle/gradle#${{ github.event.ref }}]> has been pushed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<https://github.com/gradle/gradle/${{ github.event.ref }}|[gradle/gradle#${{ github.event.ref }}]> has been pushed"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDE_EXPERIENCE_TEAM_SLACK_WEBHOOK_URL }}

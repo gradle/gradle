@@ -1,9 +1,0 @@
-if (!hasProperty('buildProfile')) ext.buildProfile = 'default'  // <1>
-
-apply from: "profile-${buildProfile}.gradle"  // <2>
-
-tasks.register('greeting') {
-    doLast {
-        println message  // <3>
-    }
-}

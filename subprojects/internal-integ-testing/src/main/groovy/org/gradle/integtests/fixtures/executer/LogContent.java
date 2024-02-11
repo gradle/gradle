@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import net.rubygrapefruit.ansi.AnsiParser;
 import net.rubygrapefruit.ansi.console.AnsiConsole;
 import net.rubygrapefruit.ansi.console.DiagnosticConsole;
@@ -57,7 +58,7 @@ public class LogContent {
     }
 
     private static ImmutableList<String> toLines(String chars) {
-        List<String> lines = new ArrayList<String>();
+        Builder<String> lines = ImmutableList.builder();
         int pos = 0;
         while (pos < chars.length()) {
             int next = chars.indexOf('\n', pos);
@@ -66,19 +67,22 @@ public class LogContent {
                 pos = chars.length();
                 continue;
             }
-            if (next > pos && chars.charAt(next - 1) == '\r') {
-                lines.add(chars.substring(pos, next - 1));
-                pos = next + 1;
-            } else {
-                lines.add(chars.substring(pos, next));
-                pos = next + 1;
-            }
+
+            lines.add(chars.substring(pos, getSubstringEnd(chars, pos, next)));
+            pos = next + 1;
             if (pos == chars.length()) {
                 // trailing EOL
                 lines.add("");
             }
         }
-        return ImmutableList.copyOf(lines);
+        return lines.build();
+    }
+
+    private static int getSubstringEnd(String chars, int pos, int next) {
+        if (next > pos && chars.charAt(next - 1) == '\r') {
+             return next - 1;
+        }
+        return next;
     }
 
     /**

@@ -17,8 +17,9 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
-import org.gradle.internal.reflect.validation.Severity
+import org.gradle.api.problems.Severity
 import org.gradle.plugin.devel.tasks.TaskValidationReportFixture
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.TaskOutcome
 
 @SelfType(AbstractSmokeTest)
@@ -31,11 +32,15 @@ trait WithPluginValidation {
         spec()
     }
 
+    static interface ProjectBuildDirLocator {
+        TestFile getBuildDir(String projectPath, TestFile projectRoot)
+    }
+
     static class AllPluginsValidation {
         final AbstractSmokeTest owner
         final List<PluginValidation> validations = []
-        Closure<String> projectPathToBuildDir = {
-            "${it.split(':').join('/')}build"
+        ProjectBuildDirLocator projectPathToBuildDir = (String projectPath, TestFile projectRoot) -> {
+            projectRoot.file("${projectPath.split(':').join('/')}build")
         }
         Closure<Boolean> passingPluginsPredicate = { false }
         boolean alwaysPasses
@@ -59,7 +64,8 @@ trait WithPluginValidation {
         }
 
         void onPlugin(String id, String projectPath = ":", @DelegatesTo(value = PluginValidation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-            def validation = new PluginValidation(id, projectPathToBuildDir(projectPath), owner)
+            TestFile projectRootFile = owner.file(".")
+            def validation = new PluginValidation(id, projectPathToBuildDir.getBuildDir(projectPath, projectRootFile), owner)
             validations << validation
             spec.delegate = validation
             spec.resolveStrategy = Closure.DELEGATE_FIRST
@@ -73,15 +79,23 @@ trait WithPluginValidation {
         }
 
         protected void performValidation(List<String> extraParameters = []) {
+            owner.file("validate-external-gradle-plugin.gradle.kts") << getClass().getResource("validate-external-gradle-plugin.gradle.kts").text
+
             def failsValidation = validations.any { !it.messages.isEmpty() }
-            def validation = owner.runner(["validateExternalPlugins", "--continue", *extraParameters] as String[])
+            def validation = owner.runner([
+                "--init-script", "validate-external-gradle-plugin.gradle.kts",
+                "validateExternalPlugins",
+                "--continue",
+                *extraParameters] as String[])
             validation.ignoreDeprecationWarnings("We are only checking type validation problems here")
+
             def result
             if (failsValidation) {
                 result = validation.buildAndFail()
             } else {
                 result = validation.build()
             }
+
             def taskPattern = ':validatePluginWithId_'
             def pluginsWithProjectPath = result.tasks
                 .findAll {
@@ -134,10 +148,10 @@ trait WithPluginValidation {
         boolean skipped
         boolean tested
 
-        PluginValidation(String id, String pathToBuildDir, AbstractSmokeTest owner) {
+        PluginValidation(String id, TestFile buildDir, AbstractSmokeTest owner) {
             this.pluginId = id
             this.owner = owner
-            this.reportFile = owner.file("${pathToBuildDir}/reports/plugins/validation-report-for-${reportId}.txt")
+            this.reportFile = buildDir.file("reports/plugins/validation-report-for-${reportId}.txt")
         }
 
         String getReportId() {

@@ -73,7 +73,7 @@ abstract class RemoteProject extends DefaultTask {
      * Directory where the project template should be copied.
      */
     @OutputDirectory
-    final File outputDirectory = project.file("$project.buildDir/$name")
+    final File outputDirectory = project.layout.buildDirectory.dir("$name").get().asFile
 
     @TaskAction
     void checkoutAndCopy() {

@@ -606,7 +606,8 @@ The following types/formats are supported:
                 out2 = file("file2.txt")
             }
             tasks.register("b", InputFileTask) {
-                inFile = provider.map { project.layout.projectDir.file(it.out1.absolutePath) }
+                def projectLayout = project.layout
+                inFile = provider.map { projectLayout.projectDir.file(it.out1.absolutePath) }
                 outFile = file("out.txt")
             }
         """
@@ -928,7 +929,6 @@ The following types/formats are supported:
         file("out.txt").text == "22"
     }
 
-    @ToBeFixedForConfigurationCache(because = "queries mapped value of task output before it has completed")
     def "ad hoc input property with value of mapped task output implies dependency on the task"() {
         taskTypeWithOutputFileProperty()
         buildFile << """

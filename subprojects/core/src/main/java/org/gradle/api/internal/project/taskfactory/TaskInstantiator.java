@@ -22,16 +22,19 @@ import org.gradle.model.internal.core.NamedEntityInstantiator;
 
 public class TaskInstantiator implements NamedEntityInstantiator<Task> {
     private static final Object[] NO_PARAMS = new Object[0];
+
+    private final TaskIdentityFactory taskIdentityFactory;
     private final ITaskFactory taskFactory;
     private final ProjectInternal project;
 
-    public TaskInstantiator(ITaskFactory taskFactory, ProjectInternal project) {
+    public TaskInstantiator(TaskIdentityFactory taskIdentityFactory, ITaskFactory taskFactory, ProjectInternal project) {
+        this.taskIdentityFactory = taskIdentityFactory;
         this.taskFactory = taskFactory;
         this.project = project;
     }
 
     @Override
     public <S extends Task> S create(String name, Class<S> type) {
-        return taskFactory.create(TaskIdentity.create(name, type, project), NO_PARAMS);
+        return taskFactory.create(taskIdentityFactory.create(name, type, project), NO_PARAMS);
     }
 }

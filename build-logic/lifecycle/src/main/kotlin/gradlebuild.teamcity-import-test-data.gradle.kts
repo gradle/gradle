@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.api.provider.Provider
-import org.gradle.api.services.BuildService
-import org.gradle.api.services.BuildServiceParameters
-import org.gradle.api.tasks.testing.Test
-import org.gradle.build.event.BuildEventsListenerRegistry
+import gradlebuild.basics.BuildEnvironment.isTeamCityParallelTestsEnabled
+import gradlebuild.basics.repoRoot
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
-import org.gradle.work.DisableCachingByDefault
-import gradlebuild.basics.repoRoot
-import gradlebuild.basics.BuildEnvironment.isTeamCity
 
 /**
  * This is a workaround for https://youtrack.jetbrains.com/issue/TW-76894.
@@ -60,13 +54,13 @@ abstract class EmitTeamCityImportDataServiceMessageBuildService : BuildService<E
     }
 }
 
-if (isTeamCity) {
+if (isTeamCityParallelTestsEnabled) {
     val gradleRootDir = repoRoot().asFile.toPath()
     project.gradle.taskGraph.whenReady {
         val buildService: Provider<EmitTeamCityImportDataServiceMessageBuildService> = gradle.sharedServices.registerIfAbsent("emitTeamCityImportDataServiceMessageBuildService-$name", EmitTeamCityImportDataServiceMessageBuildService::class.java) {
-            parameters.testTaskPathToJUnitXmlLocation.set(
-                allTasks.filterIsInstance<Test>().associate { it.path to gradleRootDir.relativize(it.reports.junitXml.outputLocation.asFile.get().toPath()).toString() }
-            )
+            parameters.testTaskPathToJUnitXmlLocation = allTasks.filterIsInstance<Test>().associate {
+                it.path to gradleRootDir.relativize(it.reports.junitXml.outputLocation.asFile.get().toPath()).toString()
+            }
         }
         gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(buildService)
     }

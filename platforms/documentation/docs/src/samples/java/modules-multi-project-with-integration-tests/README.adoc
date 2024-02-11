@@ -1,0 +1,32 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ's Gradle import].
+
+This is an link:sample_java_modules_multi_project.html[extension of this sample] that adds blackbox integration tests.
+
+NOTE: There is also a link:sample_incubating_java_modules_multi_project_with_integration_tests.html[new sample] demonstrating how to use the link:{userManualPath}/feature_lifecycle.html#sec:incubating_state[incubating] link:{userManualPath}/jvm_test_suite_plugin.html[Test Suite Plugin] in this scenario.
+
+Here, we add an additional source set _integrationTest_ with a `module-info.java`.
+
+```
+src
+└── integrationTest
+    └── java
+        └── module-info.java
+```
+
+We effectively declare a second module that is only used for testing.
+The module is `open`, which means that it allows reflective access to its classes at runtime as required by JUnit's test execution engine.
+
+```
+open module org.gradle.sample.integtest.utilities {
+    requires org.gradle.sample.utilities;
+    requires org.junit.jupiter.api;
+}
+```
+
+NOTE: This sample does **not** work in Eclipse when imported using https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+This is due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=520667[a limitation in Eclipse] that does not allow more than one module in one project.
+It you want to do blackbox testing in Eclipse, you should move the integration tests to separate subprojects.
+
+For more information, see link:{userManualPath}/java_library_plugin.html#sec:java_library_modular[Java Module support in the Java Library Plugin],
+link:{userManualPath}/application_plugin.html#sec:application_modular[Java Module support in the Application Plugin] and
+link:{userManualPath}/java_testing.html#sec:java_testing_modular[testing Java Modules].

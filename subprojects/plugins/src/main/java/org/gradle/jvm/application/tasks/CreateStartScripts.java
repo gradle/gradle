@@ -44,6 +44,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.stream.Collectors;
 
 /**
@@ -112,13 +113,13 @@ import java.util.stream.Collectors;
  * </pre>
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class CreateStartScripts extends ConventionTask {
+public abstract class CreateStartScripts extends ConventionTask {
 
     private File outputDir;
     private String executableDir = "bin";
     private final Property<String> mainModule;
     private final Property<String> mainClass;
-    private Iterable<String> defaultJvmOpts = Lists.newLinkedList();
+    private Iterable<String> defaultJvmOpts = new LinkedList<>();
     private String applicationName;
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;
@@ -257,7 +258,7 @@ public class CreateStartScripts extends ConventionTask {
     public String getMainClassName() {
         DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
             .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
+            .willBeRemovedInGradle9()
             .withDslReference()
             .nagUser();
 
@@ -268,7 +269,7 @@ public class CreateStartScripts extends ConventionTask {
     public void setMainClassName(@Nullable String mainClassName) {
         DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
             .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
+            .willBeRemovedInGradle9()
             .withDslReference()
             .nagUser();
 

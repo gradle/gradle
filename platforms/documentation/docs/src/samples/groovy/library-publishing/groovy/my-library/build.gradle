@@ -1,0 +1,28 @@
+plugins {
+    id 'groovy'
+    id 'maven-publish'
+}
+
+version = '1.0.2'
+group = 'org.gradle.sample'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.codehaus.groovy:groovy-all:3.0.18'
+}
+
+publishing {
+    publications {
+        library(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url = layout.buildDirectory.dir("publishing-repository")
+        }
+    }
+}

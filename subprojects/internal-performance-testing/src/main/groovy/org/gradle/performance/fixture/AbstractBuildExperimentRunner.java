@@ -31,7 +31,7 @@ import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Profiler;
 import org.gradle.profiler.ProfilerFactory;
 import org.gradle.profiler.ScenarioDefinition;
-import org.gradle.profiler.report.CsvGenerator;
+import org.gradle.profiler.report.Format;
 import org.gradle.profiler.result.BuildInvocationResult;
 
 import java.io.File;
@@ -124,7 +124,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             .setSysProperties(emptyMap())
             .setWarmupCount(warmupsForExperiment(experiment))
             .setIterations(invocationsForExperiment(experiment))
-            .setCsvFormat(CsvGenerator.Format.LONG);
+            .setCsvFormat(Format.LONG);
     }
 
     private File outputDirFor(String testId, BuildExperimentSpec spec) {

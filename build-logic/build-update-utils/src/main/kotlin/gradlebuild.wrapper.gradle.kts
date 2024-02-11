@@ -1,3 +1,4 @@
+import gradlebuild.basics.capitalize
 import com.google.gson.Gson
 import java.net.URL
 

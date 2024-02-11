@@ -22,11 +22,13 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.provider.DefaultListProperty;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.model.ObjectFactory;
@@ -101,7 +103,7 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public <T> ListProperty<T> listProperty(Class<T> elementType) {
-        return broken();
+        return new DefaultListProperty<>(PropertyHost.NO_OP, elementType);
     }
 
     @Override
@@ -121,6 +123,11 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public RegularFileProperty fileProperty() {
+        return broken();
+    }
+
+    @Override
+    public DependencyCollector dependencyCollector() {
         return broken();
     }
 

@@ -27,7 +27,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 6.0
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope({Scopes.Build.class, Scopes.Project.class})
 public interface ExecOperations {
 
     /**

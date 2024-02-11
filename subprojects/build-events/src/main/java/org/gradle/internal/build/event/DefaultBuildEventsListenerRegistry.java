@@ -23,6 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.internal.RegisteredBuildServiceProvider;
 import org.gradle.build.event.BuildEventsListenerRegistry;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.Cast;
@@ -70,8 +71,10 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     private final ExecutorFactory executorFactory;
 
     public DefaultBuildEventsListenerRegistry(
-        BuildEventListenerFactory factory, ListenerManager listenerManager,
-        BuildOperationListenerManager buildOperationListenerManager, ExecutorFactory executorFactory
+        BuildEventListenerFactory factory,
+        ListenerManager listenerManager,
+        BuildOperationListenerManager buildOperationListenerManager,
+        ExecutorFactory executorFactory
     ) {
         this.factory = factory;
         this.listenerManager = listenerManager;
@@ -102,6 +105,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         }
 
         ForwardingBuildOperationListener subscription = new ForwardingBuildOperationListener(listenerProvider, executorFactory);
+        keepAliveIfBuildService(listenerProvider);
         subscriptions.put(listenerProvider, subscription);
         buildOperationListenerManager.addListener(subscription);
         listeners.add(subscription);
@@ -114,6 +118,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         }
 
         ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(listenerProvider, executorFactory);
+        keepAliveIfBuildService(listenerProvider);
         subscriptions.put(listenerProvider, subscription);
 
         BuildEventSubscriptions eventSubscriptions = new BuildEventSubscriptions(Collections.singleton(OperationType.TASK));
@@ -128,8 +133,13 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         }
     }
 
-    @Override
-    public void unsubscribeAll() {
+    private void keepAliveIfBuildService(Provider<?> listenerProvider) {
+        if (listenerProvider instanceof RegisteredBuildServiceProvider) {
+            ((RegisteredBuildServiceProvider) listenerProvider).keepAlive();
+        }
+    }
+
+    private void unsubscribeAll() {
         try {
             for (Object listener : listeners) {
                 listenerManager.removeListener(listener);

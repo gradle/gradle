@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
+import org.gradle.internal.properties.StaticValue;
 
 @NonNullApi
 public class DefaultTaskInputPropertyRegistration implements TaskInputPropertyRegistration {

@@ -25,6 +25,9 @@ import java.io.File;
 
 import static org.gradle.internal.FileUtils.canonicalize;
 
+/**
+ * Mutable build layout parameters
+ */
 public class BuildLayoutParameters {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     private static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getInstance().getUserHome() + "/.gradle");
@@ -33,13 +36,17 @@ public class BuildLayoutParameters {
     private File gradleUserHomeDir;
     private File projectDir;
     private File currentDir;
+    private File settingsFile;
+    private File buildFile;
 
     public BuildLayoutParameters() {
         this(
             findGradleInstallationHomeDir(),
             findGradleUserHomeDir(),
             null,
-            canonicalize(SystemProperties.getInstance().getCurrentDir())
+            canonicalize(SystemProperties.getInstance().getCurrentDir()),
+            null,
+            null
         );
     }
 
@@ -47,12 +54,16 @@ public class BuildLayoutParameters {
         @Nullable File gradleInstallationHomeDir,
         File gradleUserHomeDir,
         @Nullable File projectDir,
-        File currentDir
+        File currentDir,
+        @Nullable File settingsFile,
+        @Nullable File buildFile
     ) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.gradleInstallationHomeDir = gradleInstallationHomeDir;
         this.projectDir = projectDir;
         this.currentDir = currentDir;
+        this.settingsFile = settingsFile;
+        this.buildFile = buildFile;
     }
 
     static private File findGradleUserHomeDir() {
@@ -95,6 +106,14 @@ public class BuildLayoutParameters {
         return this;
     }
 
+    public void setSettingsFile(@Nullable File settingsFile) {
+        this.settingsFile = settingsFile;
+    }
+
+    public void setBuildFile(@Nullable File buildFile) {
+        this.buildFile = buildFile;
+    }
+
     public File getCurrentDir() {
         return currentDir;
     }
@@ -117,4 +136,13 @@ public class BuildLayoutParameters {
         return gradleInstallationHomeDir;
     }
 
+    @Nullable
+    public File getSettingsFile() {
+        return settingsFile;
+    }
+
+    @Nullable
+    public File getBuildFile() {
+        return buildFile;
+    }
 }

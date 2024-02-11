@@ -15,44 +15,41 @@
  */
 package org.gradle.api.internal.initialization
 
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.DependencyConstraintSet
-import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.attributes.Bundling
-import org.gradle.api.attributes.Usage
-import org.gradle.api.attributes.java.TargetJvmVersion
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
+import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.util.internal.ConfigureUtil
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Specification
 
 class DefaultScriptHandlerTest extends Specification {
     def repositoryHandler = Mock(RepositoryHandler)
-    def dependencyHandler = Mock(DependencyHandler)
-    def dependencyConstraintHandler = Mock(DependencyConstraintHandler)
-    def dependencyConstraintSet = Mock(DependencyConstraintSet)
-    def configurationContainer = Mock(ConfigurationContainer)
-    def configuration = Mock(Configuration)
+    def dependencyHandler = Mock(DependencyHandler) {
+        getArtifactTypes() >> new DefaultArtifactTypeContainer(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)
+    }
+    def configurationContainer = Mock(RoleBasedConfigurationContainerInternal)
+    def configuration = Mock(ResettableConfiguration)
     def scriptSource = Stub(ScriptSource)
+    def objectFactory = TestUtil.objectFactory()
     def depMgmtServices = Mock(DependencyResolutionServices) {
         getAttributesSchema() >> Stub(AttributesSchemaInternal)
+        getObjectFactory() >> objectFactory
     }
     def baseClassLoader = new ClassLoader() {}
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> baseClassLoader
     }
-    def classpathResolver = Mock(ScriptClassPathResolver)
-    def instantiator = TestUtil.objectInstantiator()
-    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, classpathResolver, instantiator)
-    def attributes = Mock(AttributeContainerInternal)
+    def buildLogicBuilder = Mock(BuildLogicBuilder)
+    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, buildLogicBuilder)
 
     def "adds classpath configuration when configuration container is queried"() {
         when:
@@ -62,15 +59,8 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
-        1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
-        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
-        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
-        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
-        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
-        1 * dependencyConstraintSet.add(_)
-        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
-        1 * dependencyConstraintHandler.create(_, _)
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
+        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
@@ -83,26 +73,19 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
-        1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
-        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
-        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
-        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
-        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
-        1 * dependencyConstraintSet.add(_)
-        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
-        1 * dependencyConstraintHandler.create(_, _)
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
+        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
 
     def "does not resolve classpath configuration when configuration container has not been queried"() {
         when:
-        def classpath = handler.nonInstrumentedScriptClassPath
+        def classpath = handler.instrumentedScriptClassPath
 
         then:
         0 * configuration._
-        1 * classpathResolver.resolveClassPath(null) >> ClassPath.EMPTY
+        0 * buildLogicBuilder.resolveClassPath(_, _)
 
         and:
         classpath == ClassPath.EMPTY
@@ -113,7 +96,7 @@ class DefaultScriptHandlerTest extends Specification {
 
         when:
         handler.configurations
-        def result = handler.nonInstrumentedScriptClassPath
+        def result = handler.instrumentedScriptClassPath
 
         then:
         result == classpath
@@ -121,16 +104,10 @@ class DefaultScriptHandlerTest extends Specification {
         and:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
-        1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
-        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
-        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
-        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
-        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
-        1 * dependencyConstraintSet.add(_)
-        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
-        1 * dependencyConstraintHandler.create(_, _)
-        1 * classpathResolver.resolveClassPath(configuration) >> classpath
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
+        1 * configuration.callAndResetResolutionState(_) >> { args -> args[0].create() }
+        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
+        1 * buildLogicBuilder.resolveClassPath(configuration, dependencyHandler, configurationContainer) >> classpath
     }
 
     def "script classpath queries runtime classpath"() {
@@ -164,15 +141,8 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * depMgmtServices.configurationContainer >> configurationContainer
-        1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
-        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
-        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
-        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
-        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
-        1 * dependencyConstraintSet.add(_)
-        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
-        1 * dependencyConstraintHandler.create(_, _)
+        1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
+        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
         1 * dependencyHandler.add('config', 'dep')
     }
 }

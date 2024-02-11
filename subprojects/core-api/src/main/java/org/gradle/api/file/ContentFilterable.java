@@ -17,7 +17,6 @@ package org.gradle.api.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 
 import java.io.FilterReader;
@@ -80,7 +79,7 @@ public interface ContentFilterable {
      * @param transformer to implement line based filtering
      * @return this
      */
-    ContentFilterable filter(Transformer<String, String> transformer);
+    ContentFilterable filter(Transformer<@org.jetbrains.annotations.Nullable String, String> transformer);
 
     /**
      * <p>Expands property references in each file as it is copied. More specifically, each file is transformed using
@@ -119,6 +118,5 @@ public interface ContentFilterable {
      * @return this
      * @since 7.2
      */
-    @Incubating
     ContentFilterable expand(Map<String, ?> properties, Action<? super ExpandDetails> action);
 }

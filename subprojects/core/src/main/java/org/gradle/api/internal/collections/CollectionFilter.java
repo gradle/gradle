@@ -19,10 +19,12 @@ import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
+import javax.annotation.Nullable;
+
 public class CollectionFilter<T> implements Spec<Object> {
 
-    private Class<? extends T> type;
-    private Spec<? super T> spec;
+    private final Class<? extends T> type;
+    private final Spec<? super T> spec;
 
     public CollectionFilter(Class<T> type) {
         this(type, Specs.satisfyAll());
@@ -37,7 +39,8 @@ public class CollectionFilter<T> implements Spec<Object> {
         return type;
     }
 
-    public T filter(Object object) {
+    @Nullable
+    public T filter(@Nullable Object object) {
         if (!type.isInstance(object)) {
             return null;
         }
@@ -67,8 +70,7 @@ public class CollectionFilter<T> implements Spec<Object> {
         return filter(element) != null;
     }
 
-    @SuppressWarnings("unchecked")
     public <S extends T> CollectionFilter<S> and(CollectionFilter<S> other) {
-        return new CollectionFilter<S>(other.type, Specs.intersect(spec, other.spec));
+        return new CollectionFilter<>(other.type, Specs.intersect(spec, other.spec));
     }
 }

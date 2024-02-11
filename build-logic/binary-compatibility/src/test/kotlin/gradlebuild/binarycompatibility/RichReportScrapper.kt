@@ -27,7 +27,8 @@ fun scrapeRichReport(richReportFile: File): RichReport =
         RichReport(
             scrapeMessagesForSeverity("error"),
             scrapeMessagesForSeverity("warning"),
-            scrapeMessagesForSeverity("info")
+            scrapeMessagesForSeverity("info"),
+            scrapeMessagesForSeverity("accepted")
         )
     }
 
@@ -69,7 +70,8 @@ internal
 data class RichReport(
     val errors: List<ReportMessage>,
     val warnings: List<ReportMessage>,
-    val information: List<ReportMessage>
+    val information: List<ReportMessage>,
+    val accepted: List<ReportMessage>
 ) {
 
     val isEmpty: Boolean
@@ -77,7 +79,7 @@ data class RichReport(
 
     fun toText() =
         StringBuilder("Binary compatibility\n").apply {
-            listOf("Errors" to errors, "Warnings" to warnings, "Information" to information).forEach { (name, list) ->
+            listOf("Errors" to errors, "Warnings" to warnings, "Information" to information, "Accepted" to accepted).forEach { (name, list) ->
                 if (list.isNotEmpty()) {
                     append("  $name (").append(list.size).append(")\n")
                     append(list.joinToString(separator = "\n    ", prefix = "    ", postfix = "\n"))

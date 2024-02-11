@@ -24,6 +24,7 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
@@ -34,20 +35,18 @@ import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
-import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
@@ -87,12 +86,11 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
     TaskExecuter createTaskExecuter(
         AsyncWorkTracker asyncWorkTracker,
-        BuildCacheController buildCacheController,
         BuildOperationExecutor buildOperationExecutor,
-        GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory,
         FileOperations fileOperations,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
@@ -106,12 +104,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         InputFingerprinter inputFingerprinter
     ) {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
-            buildCacheController.isEnabled()
-                ? ExecuteActionsTaskExecuter.BuildCacheState.ENABLED
-                : ExecuteActionsTaskExecuter.BuildCacheState.DISABLED,
-            gradleEnterprisePluginManager.isPresent()
-                ? ExecuteActionsTaskExecuter.ScanPluginState.APPLIED
-                : ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
             executionHistoryStore,
             buildOperationExecutor,
             asyncWorkTracker,
@@ -123,7 +115,9 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             listenerManager,
             reservedFileSystemLocationRegistry,
             fileCollectionFactory,
-            fileOperations
+            taskDependencyFactory,
+            // TODO Can we inject a PathToFileResolver here directly?
+            fileOperations.getFileResolver()
         );
         executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskExecutionModeExecuter(repository, executer);

@@ -22,6 +22,8 @@ import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import org.gradle.internal.os.OperatingSystem
+// Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
+import org.gradle.kotlin.dsl.*
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.After
 import org.junit.Assume
@@ -47,6 +49,7 @@ class DetermineBaselinesTest {
 
         // mock project.execAndGetStdout
         mockkStatic("gradlebuild.basics.kotlindsl.Kotlin_dsl_upstream_candidatesKt")
+        mockGitOperation(listOf("git", "remote", "-v"), "origin https://github.com/gradle/gradle.git (fetch)")
     }
 
     @After
@@ -84,6 +87,15 @@ class DetermineBaselinesTest {
     }
 
     @Test
+    fun `not determines fork point commit in security advisory fork`() {
+        // given
+        mockGitOperation(listOf("git", "remote", "-v"), "origin https://github.com/gradle/gradle-ghsa-84mw-qh6q-v842.git (fetch)")
+
+        // then
+        verifyBaselineDetermination("my-branch", false, null, defaultPerformanceBaselines)
+    }
+
+    @Test
     fun `determines fork point commit on feature branch and empty configuration`() {
         // Windows git complains "long path" so we don't build commit distribution on Windows
         Assume.assumeFalse(OperatingSystem.current().isWindows)
@@ -118,7 +130,7 @@ class DetermineBaselinesTest {
 
     private
     fun setCurrentBranch(branch: String) {
-        buildEnvironmentExtension.gitBranch.set(branch)
+        buildEnvironmentExtension.gitBranch = branch
     }
 
     private
@@ -127,9 +139,9 @@ class DetermineBaselinesTest {
         val determineBaselinesTask = createDetermineBaselinesTask(isCoordinatorBuild)
 
         // when
-        determineBaselinesTask.logicalBranch.set(currentBranch)
-        determineBaselinesTask.configuredBaselines.set(configuredBaseline)
-        determineBaselinesTask.defaultBaselines.set(defaultPerformanceBaselines)
+        determineBaselinesTask.logicalBranch = currentBranch
+        determineBaselinesTask.configuredBaselines = configuredBaseline
+        determineBaselinesTask.defaultBaselines = defaultPerformanceBaselines
         determineBaselinesTask.determineForkPointCommitBaseline()
 
         // then

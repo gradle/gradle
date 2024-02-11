@@ -1,0 +1,22 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[play_plugin]]
+= Building Play applications
+
+[CAUTION]
+====
+Play web application support was deprecated in Gradle 5 and replaced by an external Play plugin in Gradle 6.
+Please use the new https://gradle.github.io/playframework[Gradle Play Plugin], available from the plugin portal, instead.
+====

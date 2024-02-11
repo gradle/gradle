@@ -25,5 +25,9 @@ import javax.annotation.Nullable;
 
 @ServiceScope(Scopes.BuildTree.class)
 public interface BuildTreeWorkController {
+
+    /**
+     * Schedules and runs requested tasks based on the provided {@code taskSelector}.
+     */
     ExecutionResult<Void> scheduleAndRunRequestedTasks(@Nullable EntryTaskSelector taskSelector);
 }

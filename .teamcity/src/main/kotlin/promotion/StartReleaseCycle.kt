@@ -17,8 +17,9 @@
 package promotion
 
 import common.gradleWrapper
-import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
+import common.promotionBuildParameters
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.RelativeId
 import vcsroots.gradlePromotionMaster
 
 object StartReleaseCycle : BasePromotionBuildType(vcsRootId = gradlePromotionMaster) {
@@ -38,7 +39,7 @@ object StartReleaseCycle : BasePromotionBuildType(vcsRootId = gradlePromotionMas
                 name = "Promote"
                 tasks = "clean promoteStartReleaseCycle"
                 useGradleWrapper = true
-                gradleParams = """-PcommitId=%dep.${RelativeId("Check_Stage_ReadyforNightly_Trigger")}.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" """
+                gradleParams = promotionBuildParameters(RelativeId("Check_Stage_ReadyforNightly_Trigger"), "-PconfirmationCode=%confirmationCode%", "%gitUserName%", "%gitUserEmail%")
                 param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
             }
         }

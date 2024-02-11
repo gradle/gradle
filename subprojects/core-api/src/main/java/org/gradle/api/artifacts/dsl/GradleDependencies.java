@@ -22,9 +22,8 @@ import org.gradle.api.artifacts.Dependency;
 /**
  * Dependency APIs available for {@code dependencies} blocks that can build software that relies on Gradle APIs.
  *
- * <p>
- * NOTE: This API is <strong>incubating</strong> and is likely to change until it's made stable.
- * </p>
+ * @apiNote This interface is intended to be used to mix-in methods that expose Gradle-specific dependencies to the DSL.
+ * @implSpec The default implementation of all methods should not be overridden.
  *
  * @since 7.6
  */

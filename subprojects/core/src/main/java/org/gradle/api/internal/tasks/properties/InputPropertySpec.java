@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.internal.properties.PropertyValue;
+
 public interface InputPropertySpec extends PropertySpec {
     PropertyValue getValue();
 }

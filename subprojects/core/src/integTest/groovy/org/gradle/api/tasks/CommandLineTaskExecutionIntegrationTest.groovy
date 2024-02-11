@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CommandLineTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "fails with badly formed task name"() {
+        createDirs("a")
         settingsFile """
             rootProject.name = 'broken'
             include("a")

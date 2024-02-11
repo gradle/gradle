@@ -218,6 +218,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
     }
 
     def "can execute #description during task creation action execution"() {
+        createDirs("nested")
         settingsFile << "include 'nested'"
         buildFile << """
             tasks.create("foo") {
@@ -233,6 +234,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
     }
 
     def "can execute #description during task configuration action execution"() {
+        createDirs("nested")
         settingsFile << "include 'nested'"
         buildFile << """
             tasks.create("foo")
@@ -249,6 +251,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
     }
 
     def "can execute #description on another project during task creation action execution"() {
+        createDirs("nested", "other")
         settingsFile << "include 'nested', 'other'"
         buildFile << """
             project(":other") {
@@ -369,6 +372,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
     }
 
     def "can execute #description on another project during task configuration action execution"() {
+        createDirs("nested", "other")
         settingsFile << "include 'nested', 'other'"
         buildFile << """
             project(":other") {
@@ -403,6 +407,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
 
     @Issue("https://github.com/gradle/gradle/issues/6319")
     def "can use getTasksByName from a lazy configuration action"() {
+        createDirs("sub")
         settingsFile << """
             include "sub"
         """

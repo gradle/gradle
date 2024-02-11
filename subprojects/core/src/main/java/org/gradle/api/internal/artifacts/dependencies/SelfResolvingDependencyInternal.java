@@ -16,12 +16,17 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 import javax.annotation.Nullable;
 
-public interface SelfResolvingDependencyInternal extends SelfResolvingDependency {
+/**
+ * Used by Kotlin here:
+ * <a href="https://github.com/JetBrains/kotlin/blob/e9b4b8919dc1725026ce55a00ca8680af154ebd8/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/npm/NpmDependency.kt#L24">Link</a>
+ * When we deprecate SelfResolvingDependency, we may need to keep this class around to maintain Kotlin compatibility.
+ */
+@SuppressWarnings("deprecation")
+public interface SelfResolvingDependencyInternal extends org.gradle.api.artifacts.SelfResolvingDependency {
     /**
      * Returns the id of the target component of this dependency, if known. If unknown, an arbitrary identifier is assigned to the files referenced by this dependency.
      */

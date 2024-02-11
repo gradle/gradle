@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Bundling;
@@ -28,14 +27,24 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-class JavaEcosystemAttributesDescriber implements AttributeDescriber {
-    private final static Set<Attribute<?>> ATTRIBUTES = ImmutableSet.of(
+/**
+ * Describes JVM ecosystem related attributes.
+ *
+ * Methods on this class that accept {@link Attribute}s and attempt to match them against known values,
+ * such as the {@link #getDescribableAttributes()} used by this class, <strong>MUST match on
+ * attribute name only, NOT type</strong>.  This allows "desugared" attributes to be described
+ * in the same manner.
+ */
+/* package */ final class JavaEcosystemAttributesDescriber implements AttributeDescriber {
+    private final ImmutableSet<Attribute<?>> describableAttributes = ImmutableSet.of(
         Usage.USAGE_ATTRIBUTE,
         Category.CATEGORY_ATTRIBUTE,
         LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
@@ -46,28 +55,35 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         ProjectInternal.STATUS_ATTRIBUTE
     );
 
+    /**
+     * Checks if the given attribute is describable by this describer.
+     *
+     * @param attribute the attribute to check
+     * @return {@code true} if the given attribute is describable by this describer; {@code false} otherwise
+     */
+    public boolean isDescribable(Attribute<?> attribute) {
+        return describableAttributes.stream().anyMatch(describableAttribute -> haveSameName(attribute, describableAttribute));
+    }
+
     @Override
-    public Set<Attribute<?>> getAttributes() {
-        return ATTRIBUTES;
+    public ImmutableSet<Attribute<?>> getDescribableAttributes() {
+        return describableAttributes;
     }
 
     @SuppressWarnings("ConstantConditions")
     @Override
     public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
-        Object category = attr(attributes, Category.CATEGORY_ATTRIBUTE);
-        Object usage = attr(attributes, Usage.USAGE_ATTRIBUTE);
-        Object le = attr(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
-        Object bundling = attr(attributes, Bundling.BUNDLING_ATTRIBUTE);
-        Object targetJvmEnvironment = attr(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
-        Object targetJvm = attr(attributes, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
-        Object docsType = attr(attributes, DocsType.DOCS_TYPE_ATTRIBUTE);
-        Object status = attr(attributes, ProjectInternal.STATUS_ATTRIBUTE);
+        Object category = extractAttributeValue(attributes, Category.CATEGORY_ATTRIBUTE);
+        Object usage = extractAttributeValue(attributes, Usage.USAGE_ATTRIBUTE);
+        Object le = extractAttributeValue(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        Object bundling = extractAttributeValue(attributes, Bundling.BUNDLING_ATTRIBUTE);
+        Object targetJvmEnvironment = extractAttributeValue(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
+        Object targetJvm = extractAttributeValue(attributes, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+        Object docsType = extractAttributeValue(attributes, DocsType.DOCS_TYPE_ATTRIBUTE);
+        Object status = extractAttributeValue(attributes, ProjectInternal.STATUS_ATTRIBUTE);
 
         StringBuilder sb = new StringBuilder();
-        if (usage != null) {
-            describeUsage(usage, sb);
-            sb.append(" of ");
-        }
+
         if (category != null) {
             if (docsType != null && toName(category).equals(Category.DOCUMENTATION)) {
                 describeDocsType(docsType, sb);
@@ -81,12 +97,16 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
                 sb.append("a component");
             }
         }
+        if (usage != null) {
+            sb.append(" for use during ");
+            describeUsage(usage, sb);
+        }
         if (status != null) {
-            sb.append(" with a ");
+            sb.append(", with a ");
             describeStatus(status, sb);
         }
         if (targetJvm != null) {
-            sb.append(" compatible with ");
+            sb.append(", compatible with ");
             describeTargetJvm(targetJvm, sb);
         }
         if (le != null) {
@@ -110,58 +130,66 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     }
 
     @Nullable
-    private static <T> Object attr(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
-        return Cast.uncheckedCast(attributes.get(attribute));
+    private static <T> Object extractAttributeValue(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
+        return attributes.entrySet().stream()
+            .filter(e -> haveSameName(e.getKey(), attribute))
+            .findFirst()
+            .map(Map.Entry::getValue)
+            .orElse(null);
     }
 
     private void processExtraAttributes(Map<Attribute<?>, ?> attributes, StringBuilder sb) {
-        Set<Attribute<?>> remaining = Sets.newLinkedHashSet(attributes.keySet());
-        remaining.removeAll(ATTRIBUTES);
-        if (!remaining.isEmpty()) {
+        List<Attribute<?>> describableAttributes = attributes.keySet().stream()
+            .filter(a -> !isDescribable(a))
+            .sorted(Comparator.comparing(Attribute::getName))
+            .collect(Collectors.toList());
+
+        if (!describableAttributes.isEmpty()) {
             sb.append(", as well as ");
             boolean comma = false;
-            for (Attribute<?> attribute : remaining) {
+            for (Attribute<?> attribute : describableAttributes) {
                 if (comma) {
                     sb.append(", ");
                 }
-                describeGenericAttribute(sb, attribute, attr(attributes, attribute));
+                describeGenericAttribute(sb, attribute, extractAttributeValue(attributes, attribute));
                 comma = true;
             }
         }
     }
 
     @Override
+    @Nullable
     public String describeMissingAttribute(Attribute<?> attribute, Object consumerValue) {
         StringBuilder sb = new StringBuilder();
-        if (Usage.USAGE_ATTRIBUTE.equals(attribute)) {
+        if (haveSameName(Usage.USAGE_ATTRIBUTE, attribute)) {
             sb.append("its usage (required ");
             describeUsage(consumerValue, sb);
             sb.append(")");
-        } else if (TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, attribute)) {
             sb.append("its target Java environment (preferred optimized for ");
             describeTargetJvmEnvironment(consumerValue, sb);
             sb.append(")");
-        } else if (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
             sb.append("its target Java version (required compatibility with ");
             describeTargetJvm(consumerValue, sb);
             sb.append(")");
-        } else if (Category.CATEGORY_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(Category.CATEGORY_ATTRIBUTE, attribute)) {
             sb.append("its component category (required ");
             describeCategory(consumerValue, sb);
             sb.append(")");
-        } else if (Bundling.BUNDLING_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
             sb.append("how its dependencies are found (required ");
             describeBundling(consumerValue, sb);
             sb.append(")");
-        } else if (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attribute)) {
             sb.append("its elements (required them ");
             describeLibraryElements(consumerValue, sb);
             sb.append(")");
-        } else if (DocsType.DOCS_TYPE_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
             sb.append("the documentation type (required ");
             describeDocsType(consumerValue, sb);
             sb.append(")");
-        } else if (ProjectInternal.STATUS_ATTRIBUTE.equals(attribute)) {
+        } else if (haveSameName(ProjectInternal.STATUS_ATTRIBUTE, attribute)) {
             sb.append("its status (required ");
             describeStatus(consumerValue, sb);
             sb.append(")");
@@ -171,38 +199,33 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         return sb.toString();
     }
 
-    public void describeGenericAttribute(StringBuilder sb, Attribute<?> attribute, Object value) {
+    private static void describeGenericAttribute(StringBuilder sb, Attribute<?> attribute, @Nullable Object value) {
         sb.append("attribute '").append(attribute.getName()).append("' with value '").append(value).append("'");
     }
 
     @Override
     public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
         StringBuilder sb = new StringBuilder();
-        if (sameAttribute(Usage.USAGE_ATTRIBUTE, attribute)) {
+        if (haveSameName(Usage.USAGE_ATTRIBUTE, attribute)) {
             describeUsage(producerValue, sb);
-        } else if (sameAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
             sb.append("compatibility with ");
             describeTargetJvm(producerValue, sb);
-        } else if (sameAttribute(Category.CATEGORY_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(Category.CATEGORY_ATTRIBUTE, attribute)) {
             describeCategory(producerValue, sb);
-        } else if (sameAttribute(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
             describeDocsType(producerValue, sb);
-        } else if (sameAttribute(ProjectInternal.STATUS_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(ProjectInternal.STATUS_ATTRIBUTE, attribute)) {
             describeStatus(producerValue, sb);
-        } else if (sameAttribute(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
             describeBundling(producerValue, sb);
-        } else if (sameAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attribute)) {
             sb.append("its elements ");
             describeLibraryElements(producerValue, sb);
         } else {
             describeGenericAttribute(sb, attribute, producerValue);
         }
         return sb.toString();
-    }
-
-    // A type independent comparator, because of desugaring
-    private static boolean sameAttribute(Attribute<?> first, Attribute<?> second) {
-        return first.equals(second) || first.getName().equals(second.getName());
     }
 
     private static void describeBundling(Object bundling, StringBuilder sb) {
@@ -247,22 +270,26 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         String str = toName(usage);
         switch (str) {
             case Usage.JAVA_API:
-            case Usage.JAVA_API_CLASSES:
-            case Usage.JAVA_API_JARS:
-                sb.append("an API");
+            case JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS:
+            case JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES:
+                sb.append("compile-time");
                 break;
             case Usage.JAVA_RUNTIME:
-            case Usage.JAVA_RUNTIME_CLASSES:
-            case Usage.JAVA_RUNTIME_JARS:
-                sb.append("a runtime");
+            case JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS:
+            case JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES:
+                sb.append("runtime");
                 break;
             default:
-                sb.append("a usage of '").append(str).append("'");
+                sb.append("'").append(str).append("'");
         }
     }
 
     private static void describeTargetJvm(Object targetJvm, StringBuilder sb) {
-        sb.append("Java ").append(targetJvm);
+        if (targetJvm.equals(Integer.MAX_VALUE)) {
+            sb.append("any Java version");
+        } else {
+            sb.append("Java ").append(targetJvm);
+        }
     }
 
     private static void describeTargetJvmEnvironment(Object targetJvmEnvironment, StringBuilder sb) {
@@ -322,7 +349,18 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         }
     }
 
-    private static String toName(Object category) {
-        return category instanceof Category ? ((Named) category).getName() : String.valueOf(category);
+    private static String toName(Object attributeValue) {
+        return attributeValue instanceof Category ? ((Named) attributeValue).getName() : String.valueOf(attributeValue);
+    }
+
+    /**
+     * Checks if two attributes have the same name.
+     *
+     * @param a first attribute to compare
+     * @param b second attribute to compare
+     * @return {@code true} if the two attributes have the same name; {@code false} otherwise
+     */
+    private static boolean haveSameName(Attribute<?> a, Attribute<?> b) {
+        return Objects.equals(a.getName(), b.getName());
     }
 }

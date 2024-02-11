@@ -36,7 +36,7 @@ import static java.util.Arrays.asList
 class JavaExecHandleBuilderTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    final TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.root)
+    final TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
     JavaExecHandleBuilder builder = new JavaExecHandleBuilder(
         TestFiles.resolver(),
         TestFiles.fileCollectionFactory(),

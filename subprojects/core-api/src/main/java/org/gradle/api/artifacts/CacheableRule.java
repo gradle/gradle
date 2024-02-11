@@ -22,7 +22,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Denotates a rule which execution is subject to caching.
+ * Declares a rule eligible for caching.
+ *
  * @since 4.9
  */
 @Documented

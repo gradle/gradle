@@ -3,7 +3,7 @@ apply plugin: 'c'
 
 <% if (overlapWithOutput) { %>
     if (project != rootProject) {
-       buildDir = new File(rootProject.buildDir, project.name)
+       buildDir = rootProject.layout.buildDirectory.dir(project.name).get().asFile
     }
 <% } %>
 

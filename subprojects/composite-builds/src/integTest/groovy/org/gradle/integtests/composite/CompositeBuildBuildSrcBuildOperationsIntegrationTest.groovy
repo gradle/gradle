@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
+import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
@@ -24,6 +25,9 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import java.util.regex.Pattern
 
@@ -42,6 +46,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         includedBuilds << buildB
     }
 
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Also covered by tests in configuration cache project")
     def "generates configure, task graph and run tasks operations for buildSrc of included builds with #display"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -77,6 +82,12 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[2].details.buildPath == ":buildB:buildSrc"
         loadOps[2].parentId == buildSrcOps[0].id
 
+        def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents.size() == 3
+        buildIdentifiedEvents[0].details.buildPath == ':'
+        buildIdentifiedEvents[1].details.buildPath == ':buildB'
+        buildIdentifiedEvents[2].details.buildPath == ':buildB:buildSrc'
+
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 3
         configureOps[0].displayName == "Configure build"
@@ -108,7 +119,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         taskGraphOps[2].details.buildPath == ":buildB"
         taskGraphOps[2].parentId == treeTaskGraphOps[1].id
 
-        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        def runMainTasks = operations.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
@@ -138,6 +149,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         "rootProject.name='someLib'" | "configured root project name"
     }
 
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Also covered by tests in configuration cache project")
     def "generates configure, task graph and run tasks operations when all builds have buildSrc with #display"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -181,6 +193,13 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[3].details.buildPath == ":buildSrc"
         loadOps[3].parentId == buildSrcOps[1].id
 
+        def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents.size() == 4
+        buildIdentifiedEvents[0].details.buildPath == ':'
+        buildIdentifiedEvents[1].details.buildPath == ':buildB'
+        buildIdentifiedEvents[2].details.buildPath == ':buildB:buildSrc'
+        buildIdentifiedEvents[3].details.buildPath == ':buildSrc'
+
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 4
         configureOps[0].displayName == "Configure build"
@@ -220,7 +239,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         taskGraphOps[3].details.buildPath == ":buildB"
         taskGraphOps[3].parentId == treeTaskGraphOps[2].id
 
-        def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
+        def runMainTasks = operations.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))

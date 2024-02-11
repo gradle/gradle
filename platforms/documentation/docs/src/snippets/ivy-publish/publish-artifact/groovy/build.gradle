@@ -1,0 +1,45 @@
+plugins {
+    id "base"
+    id "ivy-publish"
+}
+
+group = "org.gradle.sample"
+version = "1.0"
+
+// tag::custom-artifact[]
+configurations {
+    conf
+}
+def rpmFile = layout.buildDirectory.file("rpms/my-package.rpm")
+def rpmArtifact = artifacts.add("conf", rpmFile.get().asFile) {
+    type "rpm"
+    builtBy "rpm"
+}
+// end::custom-artifact[]
+
+tasks.register('rpm') {
+    outputs.file rpmFile
+    def rpmFileLocation = rpmFile
+    doLast {
+        // produce real RPM here
+        rpmFileLocation.get().asFile << "file contents"
+    }
+}
+
+// tag::custom-artifact[]
+publishing {
+    publications {
+        ivy(IvyPublication) {
+            artifact rpmArtifact
+        }
+    }
+// end::custom-artifact[]
+    repositories {
+        // change URLs to point to your repo, e.g. http://my.org/repo
+        ivy {
+            url = layout.buildDirectory.dir("repo")
+        }
+    }
+// tag::custom-artifact[]
+}
+// end::custom-artifact[]

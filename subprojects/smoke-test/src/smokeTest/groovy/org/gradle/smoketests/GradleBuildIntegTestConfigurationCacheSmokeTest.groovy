@@ -20,7 +20,6 @@ import org.gradle.testkit.runner.TaskOutcome
 
 class GradleBuildIntegTestConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
     def "can run Gradle integ tests with configuration cache enabled"() {
-
         given: "tasks whose configuration can only be loaded in the original daemon"
         def supportedTasks = [
             ":configuration-cache:embeddedIntegTest",
@@ -42,6 +41,6 @@ class GradleBuildIntegTestConfigurationCacheSmokeTest extends AbstractGradleBuil
         then:
         assertConfigurationCacheStateLoaded()
         result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.FROM_CACHE
-        assertTestClassExecutedIn "subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheDebugLogIntegrationTest"
+        assertTestClassExecutedIn "platforms/core-configuration/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheDebugLogIntegrationTest"
     }
 }

@@ -16,38 +16,13 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import org.gradle.api.Action
-import org.gradle.cache.CacheBuilder
-import org.gradle.cache.FileLockManager
-import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.CacheFactory
-import org.gradle.cache.internal.DefaultCacheFactory
-import org.gradle.cache.internal.DefaultFileLockManager
-import org.gradle.cache.internal.DefaultProcessMetaDataProvider
-import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
-import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.progress.NoOpProgressLoggerFactory
+import org.gradle.internal.file.locking.ExclusiveFileAccessManager
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GradleVersion
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
-
 abstract class DownloadableGradleDistribution extends DefaultGradleDistribution {
-
-    private static final CACHE_FACTORY = createCacheFactory()
-
-    private static CacheFactory createCacheFactory() {
-        return new DefaultCacheFactory(
-                new DefaultFileLockManager(
-                        new DefaultProcessMetaDataProvider(
-                                NativeServicesTestFixture.getInstance().get(org.gradle.internal.nativeintegration.ProcessEnvironment)),
-                        20 * 60 * 1000 // allow up to 20 minutes to download a distribution
-                        , new NoOpFileLockContentionHandler()), new DefaultExecutorFactory(), new NoOpProgressLoggerFactory())
-    }
-
-    protected TestFile versionDir
-    private PersistentCache cache
+    private final TestFile versionDir
+    private final ExclusiveFileAccessManager fileAccessManager = new ExclusiveFileAccessManager(120000, 200)
 
     DownloadableGradleDistribution(String version, TestFile versionDir) {
         super(GradleVersion.version(version), versionDir.file("gradle-$version"), versionDir.file("gradle-$version-bin.zip"))
@@ -55,29 +30,38 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
     }
 
     TestFile getBinDistribution() {
-        download()
+        downloadIfNecessary()
         super.getBinDistribution()
     }
 
     TestFile getGradleHomeDir() {
-        download()
+        downloadIfNecessary()
         super.getGradleHomeDir()
     }
 
-    private void download() {
-        if (cache == null) {
-            def downloadAction = { cache ->
+    private downloadIfNecessary() {
+        def distributionZip = super.getBinDistribution()
+        def gradleHomeDir = super.getGradleHomeDir()
+        def markerFile = distributionZip.withExtension("ok")
+        def versionDir = this.versionDir
+        fileAccessManager.access(distributionZip) {
+            if (!markerFile.exists()) {
+                distributionZip.delete()
+                gradleHomeDir.deleteDir()
+
                 URL url = getDownloadURL();
                 System.out.println("downloading $url")
-                super.binDistribution.copyFrom(url)
-                super.binDistribution.usingNativeTools().unzipTo(versionDir)
+                distributionZip.copyFrom(url)
+
+                System.out.println("unzipping ${distributionZip} to ${gradleHomeDir}")
+                distributionZip.usingNativeTools().unzipTo(versionDir)
+
+                markerFile.createFile()
             }
-            //noinspection GrDeprecatedAPIUsage
-            cache = CACHE_FACTORY.open(versionDir, version.version, [:], CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared).useCrossVersionImplementation(), downloadAction as Action, null)
         }
 
-        super.binDistribution.assertIsFile()
-        super.gradleHomeDir.assertIsDir()
+        distributionZip.assertIsFile()
+        gradleHomeDir.assertIsDir()
     }
 
     abstract protected URL getDownloadURL();

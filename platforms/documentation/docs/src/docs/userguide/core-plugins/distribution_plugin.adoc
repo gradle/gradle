@@ -1,0 +1,123 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[distribution_plugin]]
+= The Distribution Plugin
+
+The Distribution Plugin facilitates building archives that serve as distributions of the project. Distribution archives typically contain the executable application and other supporting files, such as documentation.
+
+
+[[sec:distribution_usage]]
+== Usage
+
+To use the Distribution Plugin, include the following in your build script:
+
+.Using the Distribution Plugin
+====
+include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=use-plugin]"]
+====
+
+The plugin adds an extension named `distributions` of type link:{groovyDslPath}/org.gradle.api.distribution.DistributionContainer.html[DistributionContainer] to the project. It also creates a single distribution in the distributions container extension named `main`. If your build only produces one distribution you only need to configure this distribution (or use the defaults).
+
+You can run `gradle distZip` to package the main distribution as a ZIP, or `gradle distTar` to create a TAR file. To build both types of archives just run `gradle assembleDist`.
+The files will be created at `__layout.buildDirectory.dir__("distributions/__${project.name}__-__${project.version}__.__«ext»__")`.
+
+You can run `gradle installDist` to assemble the uncompressed distribution into `__layout.buildDirectory.dir__("install/__${project.name}__")`.
+
+[[sec:distribution_tasks]]
+== Tasks
+
+The Distribution Plugin adds a number of tasks to your project, as shown below.
+
+`distZip` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip]::
+Creates a ZIP archive of the distribution contents.
+
+`distTar` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+Creates a TAR archive of the distribution contents.
+
+`assembleDist` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+_Depends on_: `distTar`, `distZip`
++
+Creates ZIP and TAR archives of the distribution contents.
+
+`installDist` — link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
+Assembles the distribution content and installs it on the current machine.
+
+For each additional distribution you add to the project, the Distribution Plugin adds the following tasks, where _distributionName_ comes from link:{javadocPath}/org/gradle/api/distribution/Distribution.html#getName--[Distribution.getName()]:
+
+`__distributionName__DistZip` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip]::
+Creates a ZIP archive of the distribution contents.
+
+`__distributionName__DistTar` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Tar.html[Tar]::
+Creates a TAR archive of the distribution contents.
+
+`assemble__DistributionName__Dist` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+_Depends on_: `__distributionName__DistTar`, `__distributionName__DistZip`
++
+Creates ZIP and TAR archives of the distribution contents.
+
+`install__DistributionName__Dist` — link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
+Assembles the distribution content and installs it on the current machine.
+
+The following sample creates a `custom` distribution that will cause four additional tasks to be added to the project: `customDistZip`, `customDistTar`, `assembleCustomDist`, and `installCustomDist`:
+
+.Adding extra distributions
+====
+include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=custom-distribution]"]
+include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=custom-distribution]"]
+====
+
+Given that the project name is `myproject` and version `1.2`, running `gradle customDistZip` will produce a ZIP file named `myproject-custom-1.2.zip`.
+
+Running `gradle installCustomDist` will install the distribution contents into `__layout.buildDirectory.dir__("install/custom")`.
+
+[[sec:distribution_contents]]
+== Distribution contents
+
+All of the files in the `src/__$distribution.name__/dist` directory will automatically be included in the distribution. You can add additional files by configuring the link:{javadocPath}/org/gradle/api/distribution/Distribution.html[Distribution] object that is part of the container.
+
+.Configuring the main distribution
+====
+include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=configure-distribution]"]
+include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=configure-distribution]"]
+====
+
+In the example above, the content of the `src/readme` directory will be included in the distribution (along with the files in the `src/main/dist` directory which are added by default).
+
+The `distributionBaseName` and `distributionClassifier` properties have also been changed. This will cause the distribution archives to be created with a different name.
+
+[[sec:publishing_distributions]]
+== Publishing
+
+A distribution can be published using the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>> or <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>.
+
+[[sec:publishing_distributions_publish_plugins]]
+=== Using the Ivy/Maven Publish Plugins
+
+To publish a distribution to an Ivy repository with the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>>, add one or both of its archive tasks to an link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. The following sample demonstrates how to add the ZIP archive of the `main` distribution and the TAR archive of the `custom` distribution to the `myDistribution` publication:
+
+.Adding distribution archives to an Ivy publication
+====
+include::sample[dir="snippets/ivy-publish/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
+include::sample[dir="snippets/ivy-publish/distribution/groovy",files="build.gradle[tags=publishing]"]
+====
+
+Similarly, to publish a distribution to a Maven repository using the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>, add one or both of its archive tasks to a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] as follows:
+
+.Adding distribution archives to a Maven publication
+====
+include::sample[dir="snippets/maven-publish/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
+include::sample[dir="snippets/maven-publish/distribution/groovy",files="build.gradle[tags=publishing]"]
+====

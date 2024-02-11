@@ -19,6 +19,7 @@ package org.gradle.initialization.buildsrc
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
+import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -26,6 +27,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 
 import java.util.regex.Pattern
 
@@ -58,6 +60,11 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         loadOps[1].details.buildPath == ':buildSrc'
         loadOps[1].parentId == buildSrcOps[0].id
 
+        def buildIdentifiedEvents = ops.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents.size() == 2
+        buildIdentifiedEvents[0].details.buildPath == ':'
+        buildIdentifiedEvents[1].details.buildPath == ':buildSrc'
+
         def configureOps = ops.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
         configureOps[0].displayName == "Configure build"
@@ -83,7 +90,7 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         taskGraphOps[1].details.buildPath == ':'
         taskGraphOps[1].parentId == treeTaskGraphOps[1].id
 
-        def runMainTasks = ops.first(Pattern.compile("Run main tasks"))
+        def runMainTasks = ops.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
         def runTasksOps = ops.all(Pattern.compile("Run tasks.*"))

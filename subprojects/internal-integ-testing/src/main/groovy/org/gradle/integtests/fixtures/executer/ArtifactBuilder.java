@@ -27,5 +27,7 @@ public interface ArtifactBuilder {
 
     void manifestAttributes(Map<String, String> attributes);
 
+    void preserveTimestamps(boolean preserveTimestamps);
+
     void buildJar(File jarFile);
 }

@@ -24,7 +24,6 @@ import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
@@ -54,7 +53,6 @@ class DefaultNestedBuildTest extends Specification {
 
     DefaultNestedBuild build() {
         _ * factory.servicesForBuild(buildDefinition, _, owner) >> Mock(BuildModelControllerServices.Supplier)
-        _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
         _ * factory.newInstance(buildDefinition, _, owner, _) >> controller
         _ * buildDefinition.name >> "nested"
         services.add(Stub(BuildOperationExecutor))
@@ -75,9 +73,8 @@ class DefaultNestedBuildTest extends Specification {
         return new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree)
     }
 
-    def "runs action and finishes build when model is not required by root build"() {
+    def "runs action and does not finish build"() {
         given:
-        services.add(new BuildModelParameters(false, false, false, false, false, false, false))
         def build = build()
 
         when:
@@ -94,29 +91,7 @@ class DefaultNestedBuildTest extends Specification {
         1 * buildTreeController.scheduleAndRunTasks() >> {
             finishExecutor.finishBuildTree([])
         }
-        1 * controller.finishBuild(_) >> ExecutionResult.succeeded()
-    }
-
-    def "runs action but does not finish build when model is required by root build"() {
-        given:
-        services.add(new BuildModelParameters(false, false, false, true, false, false, false))
-        def build = build()
-
-        when:
-        def result = build.run(action)
-
-        then:
-        result == '<result>'
-
-        then:
-        1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.scheduleAndRunTasks()
-            '<result>'
-        }
-        1 * buildTreeController.scheduleAndRunTasks() >> {
-            finishExecutor.finishBuildTree([])
-        }
-        0 * controller.finishBuild(_, _)
+        0 * controller.finishBuild(_)
     }
 
     def "can have null result"() {

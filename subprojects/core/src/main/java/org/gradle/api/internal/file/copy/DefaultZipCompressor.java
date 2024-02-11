@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.apache.tools.zip.Zip64Mode;
-import org.apache.tools.zip.ZipOutputStream;
+import org.apache.commons.compress.archivers.zip.Zip64Mode;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
 
@@ -33,8 +33,8 @@ public class DefaultZipCompressor implements ZipCompressor {
     }
 
     @Override
-    public ZipOutputStream createArchiveOutputStream(File destination) throws IOException {
-        ZipOutputStream outStream = new ZipOutputStream(destination);
+    public ZipArchiveOutputStream createArchiveOutputStream(File destination) throws IOException {
+        ZipArchiveOutputStream outStream = new ZipArchiveOutputStream(destination);
         try {
             outStream.setUseZip64(zip64Mode);
             outStream.setMethod(entryCompressionMethod);

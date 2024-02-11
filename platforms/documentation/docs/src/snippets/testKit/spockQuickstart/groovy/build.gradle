@@ -1,0 +1,25 @@
+plugins {
+    id 'groovy'
+}
+
+dependencies {
+    testImplementation localGroovy()
+    testImplementation gradleTestKit()
+}
+
+// tag::declare-spock-dependency[]
+dependencies {
+    testImplementation('org.spockframework:spock-core:2.2-groovy-3.0') {
+        exclude group: 'org.codehaus.groovy'
+    }
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+// end::declare-spock-dependency[]
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+repositories {
+    mavenCentral()
+}

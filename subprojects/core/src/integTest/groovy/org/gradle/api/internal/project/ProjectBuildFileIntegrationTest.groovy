@@ -25,6 +25,7 @@ class ProjectBuildFileIntegrationTest extends AbstractIntegrationSpec {
         !buildFile.exists()
 
         when:
+        createDirs("child")
         settingsFile << "include 'child'"
         def initScript = file("init.gradle") << """
             rootProject { 

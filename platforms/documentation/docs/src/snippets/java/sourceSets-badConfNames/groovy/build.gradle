@@ -1,0 +1,13 @@
+plugins {
+    id 'java-library'
+}
+
+// tag::create-configurations[]
+configurations {
+    myCodeCompileClasspath
+}
+
+sourceSets {
+    myCode
+}
+// end::create-configurations[]

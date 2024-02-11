@@ -28,20 +28,22 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 6.8
  *
  */
-@Incubating
 @HasInternalProtocol
 public interface DependencyResolutionManagement {
     /**
      * Configures the repositories used by all projects
      * @param repositoryConfiguration the repositories configuration
      */
+    @Incubating
     void repositories(Action<? super RepositoryHandler> repositoryConfiguration);
 
     /**
      * Returns the shared repository handler
      */
+    @Incubating
     RepositoryHandler getRepositories();
 
+    @Incubating
     Property<RepositoriesMode> getRepositoriesMode();
 
     /**

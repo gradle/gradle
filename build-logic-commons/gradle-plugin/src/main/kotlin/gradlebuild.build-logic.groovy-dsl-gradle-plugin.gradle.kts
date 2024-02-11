@@ -1,3 +1,5 @@
+import gradlebuild.commons.configureJavaToolChain
+
 /*
  * Copyright 2020 the original author or authors.
  *
@@ -19,12 +21,13 @@ plugins {
     id("groovy-gradle-plugin")
     id("gradlebuild.code-quality")
     id("gradlebuild.ci-reporting")
+    id("gradlebuild.test-retry")
 }
 
 java.configureJavaToolChain()
 
 dependencies {
-    api(platform(project(":build-platform")))
+    api(platform("gradlebuild:build-platform"))
     implementation("gradlebuild:gradle-plugin")
 
     implementation(localGroovy())

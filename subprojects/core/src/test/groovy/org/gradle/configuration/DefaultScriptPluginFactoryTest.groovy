@@ -84,8 +84,6 @@ class DefaultScriptPluginFactoryTest extends Specification {
         configuration.getFiles() >> Collections.emptySet()
         baseScope.getExportClassLoader() >> baseChildClassLoader
         classpathHasher.hash(_ as ClassPath) >> TestHashCodes.hashCodeFrom(123)
-
-        1 * autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(_, _) >> PluginRequests.EMPTY
     }
 
     void "configures a target object using script"() {
@@ -99,9 +97,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(DefaultScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, target, baseScope, _ as NoDataCompileOperation, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
+        1 * scriptCompiler.compile(DefaultScript, target, targetScope, { it.transformer != null }, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
         1 * scriptRunner.run(target, _ as ServiceRegistry)
@@ -121,9 +119,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(ProjectScript, target, baseScope, _ as NoDataCompileOperation, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
+        1 * scriptCompiler.compile(ProjectScript, target, targetScope, { it.transformer != null }, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> true
@@ -147,9 +145,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(ProjectScript, target, baseScope, _ as NoDataCompileOperation, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
+        1 * scriptCompiler.compile(ProjectScript, target, targetScope, { it.transformer != null }, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> false
@@ -172,9 +170,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(ProjectScript, target, baseScope, _ as NoDataCompileOperation, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
+        1 * scriptCompiler.compile(ProjectScript, target, targetScope, { it.transformer != null }, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(false)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> true
@@ -197,9 +195,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(ProjectScript, target, baseScope, _ as NoDataCompileOperation, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
+        1 * scriptCompiler.compile(ProjectScript, target, targetScope, { it.transformer != null }, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(false)
         _ * scriptRunner.runDoesSomething >> true
         _ * scriptRunner.hasMethods >> false
@@ -221,9 +219,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(ProjectScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(ProjectScript, target, baseScope, _ as NoDataCompileOperation, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(ProjectScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
+        1 * scriptCompiler.compile(ProjectScript, target, targetScope, { it.transformer != null }, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(false)
         _ * scriptRunner.runDoesSomething >> false
         _ * scriptRunner.hasMethods >> false
@@ -243,9 +241,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * scriptCompilerFactory.createCompiler(scriptSource) >> scriptCompiler
-        1 * scriptCompiler.compile(DefaultScript, _ as NoDataCompileOperation, baseScope, _) >> classPathScriptRunner
+        1 * scriptCompiler.compile(DefaultScript, target, baseScope, _ as NoDataCompileOperation, _) >> classPathScriptRunner
         1 * classPathScriptRunner.run(target, _ as ServiceRegistry)
-        1 * scriptCompiler.compile(DefaultScript, { it.transformer != null }, targetScope, !null) >> scriptRunner
+        1 * scriptCompiler.compile(DefaultScript, target, targetScope, { it.transformer != null }, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
         1 * scriptRunner.run(target, { scriptServices -> scriptServices.get(ScriptPluginFactory) == otherScriptPluginFactory })

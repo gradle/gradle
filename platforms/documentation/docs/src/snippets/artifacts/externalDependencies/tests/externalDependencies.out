@@ -1,0 +1,8 @@
+hibernate-core-3.6.7.Final.jar
+antlr-2.7.6.jar
+commons-collections-3.1.jar
+dom4j-1.6.1.jar
+hibernate-commons-annotations-3.2.0.Final.jar
+hibernate-jpa-2.0-api-1.0.1.Final.jar
+jta-1.1.jar
+slf4j-api-1.6.1.jar

@@ -24,7 +24,11 @@ import java.util.Set;
 /**
  * A {@code SelfResolvingDependency} is a {@link Dependency} which is able to resolve itself, independent of a
  * repository.
+ *
+ * @deprecated Dependencies should not be resolved outside a resolvable configuration. To resolve this dependency,
+ * add it to a resolvable configuration and resolve that configuration.
  */
+@Deprecated
 @HasInternalProtocol
 public interface SelfResolvingDependency extends Dependency, Buildable {
     /**
@@ -34,6 +38,7 @@ public interface SelfResolvingDependency extends Dependency, Buildable {
      * @return The files which make up this dependency.
      * @see #resolve(boolean)
      */
+    @Deprecated
     Set<File> resolve();
 
     /**
@@ -46,5 +51,6 @@ public interface SelfResolvingDependency extends Dependency, Buildable {
      * @param transitive Whether to resolve transitively. Has only an effect on a {@link org.gradle.api.artifacts.ProjectDependency}
      * @return The files which make up this dependency.
      */
+    @Deprecated
     Set<File> resolve(boolean transitive);
 }

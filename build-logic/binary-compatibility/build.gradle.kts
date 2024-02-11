@@ -6,10 +6,10 @@ plugins {
 description = "Provides a plugin for configuring japicmp-gradle-plugin to detect binary incompatible changes"
 
 dependencies {
-    implementation("me.champeau.gradle:japicmp-gradle-plugin")
+    api("me.champeau.gradle:japicmp-gradle-plugin")
 
-    implementation(project(":basics"))
-    implementation(project(":module-identity"))
+    implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
 
     implementation("com.google.code.gson:gson")
     implementation("com.google.guava:guava")

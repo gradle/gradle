@@ -18,18 +18,20 @@ package org.gradle.testfixtures.internal;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.time.Clock;
 
 public class TestGlobalScopeServices extends GlobalScopeServices {
     public TestGlobalScopeServices() {
-        super(false);
+        super(false, AgentStatus.disabled());
     }
 
     @Override

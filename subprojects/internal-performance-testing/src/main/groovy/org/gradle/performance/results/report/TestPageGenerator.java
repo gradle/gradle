@@ -32,6 +32,7 @@ import org.gradle.performance.util.Git;
 import javax.annotation.Nullable;
 import java.io.Writer;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -341,7 +342,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             return Collections.singletonList(gradleUrl);
         } else if (commits.size() == 2) {
             GitHubLink dotComUrl = new GitHubLink("gradle/dotcom", commits.get(1));
-            List<GitHubLink> links = Lists.newArrayList();
+            List<GitHubLink> links = new ArrayList<>();
             links.add(gradleUrl);
             links.add(dotComUrl);
             return links;

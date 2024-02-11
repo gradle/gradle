@@ -37,15 +37,14 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
     val devSuffixes = arrayOf(
         "-SNAP\\d+",
         "-SNAPSHOT",
-        "-alpha-?\\d+",
-        "-beta-?\\d+",
+        "-alpha.*\\d+",
+        "-beta.*\\d+",
         "-dev-?\\d+",
         "-dev-\\d+-\\d+",
         "-rc-?\\d+",
-        "-RC-?\\d+",
         "-M.+",
         "-eap-?\\d+"
-    )
+    ).map { it.toRegex(RegexOption.IGNORE_CASE) }
 
     @get:Internal
     abstract val libraryVersionFile: RegularFileProperty
@@ -96,7 +95,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
         val templateVersionConfiguration = project.configurations.detachedConfiguration(*libDependencies)
         templateVersionConfiguration.resolutionStrategy.componentSelection.all {
             devSuffixes.forEach {
-                if (candidate.version.matches(".+$it\$".toRegex())) {
+                if (it.containsMatchIn(candidate.version)) {
                     reject("don't use snapshots")
                     return@forEach
                 }

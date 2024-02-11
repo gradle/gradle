@@ -1,0 +1,23 @@
+// tag::inject-task-constructor[]
+abstract class CustomTask extends DefaultTask {
+    private final String message
+    private final int number
+
+    @Inject
+    CustomTask(String message, int number) {
+        this.message = message
+        this.number = number
+    }
+// end::inject-task-constructor[]
+
+    @TaskAction
+    void printIt() {
+        println("$message $number")
+    }
+// tag::inject-task-constructor[]
+}
+// end::inject-task-constructor[]
+
+// tag::on-task-container[]
+tasks.register('myTask', CustomTask, 'hello', 42)
+// end::on-task-container[]

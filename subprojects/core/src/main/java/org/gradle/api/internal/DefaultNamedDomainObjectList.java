@@ -20,7 +20,7 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
-import org.gradle.api.internal.collections.FilteredList;
+import org.gradle.api.internal.collections.FilteredIndexedElementSource;
 import org.gradle.api.internal.collections.IndexedElementSource;
 import org.gradle.api.internal.collections.ListElementSource;
 import org.gradle.api.specs.Spec;
@@ -40,6 +40,10 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator) {
         super(type, new ListElementSource<T>(), instantiator, namer, decorator);
+    }
+
+    private DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
+        super(objects, nameFilter, elementFilter, instantiator, namer);
     }
 
     @Override
@@ -130,7 +134,13 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     @Override
     protected <S extends T> IndexedElementSource<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
-        return new FilteredList<T, S>(elementSource, filter);
+        return new FilteredIndexedElementSource<T, S>(elementSource, filter);
+    }
+
+    @Override
+    public NamedDomainObjectList<T> named(Spec<String> nameFilter) {
+        Spec<T> spec = convertNameToElementFilter(nameFilter);
+        return new DefaultNamedDomainObjectList<>(this, nameFilter, createFilter(spec), getInstantiator(), getNamer());
     }
 
     @Override

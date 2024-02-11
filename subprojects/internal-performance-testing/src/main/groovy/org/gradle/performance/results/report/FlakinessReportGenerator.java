@@ -18,6 +18,7 @@ package org.gradle.performance.results.report;
 
 import org.gradle.performance.results.CrossVersionResultsStore;
 import org.gradle.performance.results.FileRenderer;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider;
 import org.gradle.performance.results.ResultsStore;
 
 import java.io.File;

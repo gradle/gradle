@@ -18,6 +18,7 @@ package gradlebuild.kotlindsl.generator.tasks
 
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.licenseHeader
 import org.gradle.work.DisableCachingByDefault
 
 import java.io.File
@@ -61,6 +62,7 @@ val expectedKotlinDslPluginsVersion: String
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -90,6 +92,21 @@ fun DependencyHandler.embeddedKotlin(module: String): Any =
  */
 fun DependencyHandler.kotlin(module: String, version: String? = null): Any =
     "org.jetbrains.kotlin:kotlin-${'$'}module${'$'}{version?.let { ":${'$'}version" } ?: ""}"
+
+
+/**
+ * Applies the given Kotlin plugin [module] at the embedded version (currently _${embeddedKotlinVersion}_).
+ *
+ * For example: `plugins { embeddedKotlin("plugin.serialization") }`
+ *
+ * Visit the [plugin portal](https://plugins.gradle.org/search?term=org.jetbrains.kotlin) to see the list of available plugins.
+ *
+ * @param module simple name of the Kotlin Gradle plugin module, for example "jvm", "android", "kapt", "plugin.allopen" etc...
+ * @since 8.3
+ */
+@Incubating
+fun PluginDependenciesSpec.embeddedKotlin(module: String): PluginDependencySpec =
+    id("org.jetbrains.kotlin.${'$'}module") version embeddedKotlinVersion
 
 
 /**

@@ -16,42 +16,47 @@
 
 package gradlebuild.jvm.extension
 
+import org.gradle.api.Project
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.*
 
 
-abstract class UnitTestAndCompileExtension(private val tasks: TaskContainer) {
+abstract class UnitTestAndCompileExtension(
+    private val project: Project,
+    private val tasks: TaskContainer,
+) {
 
     /**
      * Enforces **Java 6** compatibility.
      */
     fun usedInWorkers() {
-        enforceJava6Compatibility()
+        enforceCompatibility(6)
     }
 
     /**
      * Enforces **Java 6** compatibility.
      */
     fun usedForStartup() {
-        enforceJava6Compatibility()
+        enforceCompatibility(6)
     }
 
     /**
-     * Enforces **Java 6** compatibility.
+     * Enforces **Java 7** compatibility.
      */
     fun usedInToolingApi() {
-        enforceJava6Compatibility()
+        enforceCompatibility(7)
     }
 
-    /**
-     * Enforces **Java 6** compatibility.
-     */
-    fun enforceJava6Compatibility() {
+    private
+    fun enforceCompatibility(majorVersion: Int) {
         tasks.withType<JavaCompile>().configureEach {
-            options.release.set(null)
-            sourceCompatibility = "6"
-            targetCompatibility = "6"
+            options.release = null
+            options.compilerArgs.remove("-parameters")
+            sourceCompatibility = "$majorVersion"
+            targetCompatibility = "$majorVersion"
         }
+        // Apply ParameterNamesIndex since 6 doesn't support -parameters
+        project.apply(plugin = "gradlebuild.api-parameter-names-index")
     }
 }

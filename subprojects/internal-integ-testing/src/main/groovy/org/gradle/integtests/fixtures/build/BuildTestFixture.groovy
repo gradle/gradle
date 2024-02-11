@@ -88,11 +88,41 @@ class BuildTestFixture {
                 """
         }
         rootMulti.with(cl)
+        addSourceToAllProjects(rootMulti, language, subprojects)
+        return rootMulti
+    }
+
+    def multiProjectBuildWithIsolatedProjects(String projectName, List<String> subprojects, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+        multiProjectBuildWithIsolatedProjects(projectName, subprojects, CompiledLanguage.JAVA, cl)
+    }
+
+    def multiProjectBuildWithIsolatedProjects(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+        def rootMulti = populate(projectName) {
+            subprojects.each {
+                settingsFile << "include '$it'\n"
+
+                project(it).buildFile << """
+                    group = 'org.test'
+                    version = '1.0'
+                """
+            }
+
+            buildFile << """
+                group = 'org.test'
+                version = '1.0'
+            """
+        }
+
+        rootMulti.with(cl)
+        addSourceToAllProjects(rootMulti, language, subprojects)
+        return rootMulti
+    }
+
+    private void addSourceToAllProjects(BuildTestFile rootMulti, CompiledLanguage language, List<String> subprojects) {
         rootMulti.file("src/main/${language.name}/Dummy.${language.name}") << "public class Dummy {}"
         subprojects.each {
             rootMulti.file(it.replace(':' as char, File.separatorChar), "src/main/${language.name}/Dummy.${language.name}") << "public class Dummy {}"
         }
-        return rootMulti
     }
 
 }

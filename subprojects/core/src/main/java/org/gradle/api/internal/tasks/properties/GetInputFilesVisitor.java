@@ -16,31 +16,24 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
-import org.gradle.api.tasks.ClasspathNormalizer;
-import org.gradle.api.tasks.CompileClasspathNormalizer;
-import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.properties.InputBehavior;
+import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
-public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
-    private static final ImmutableSet<Class<? extends FileNormalizer>> NORMALIZERS_IGNORING_DIRECTORIES = ImmutableSet.of(
-        ClasspathNormalizer.class,
-        CompileClasspathNormalizer.class,
-        IgnoredPathInputNormalizer.class
-    );
-
-    private final List<InputFilePropertySpec> specs = Lists.newArrayList();
+public class GetInputFilesVisitor implements PropertyVisitor {
+    private final List<InputFilePropertySpec> specs = new ArrayList<>();
     private final FileCollectionFactory fileCollectionFactory;
     private final String ownerDisplayName;
     private boolean hasSourceFiles;
@@ -56,15 +49,15 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     public void visitInputFileProperty(
         final String propertyName,
         boolean optional,
-        UnitOfWork.InputBehavior behavior,
+        InputBehavior behavior,
         DirectorySensitivity directorySensitivity,
         LineEndingSensitivity lineEndingSensitivity,
-        @Nullable Class<? extends FileNormalizer> fileNormalizer,
+        @Nullable FileNormalizer fileNormalizer,
         PropertyValue value,
         InputFilePropertyType filePropertyType
     ) {
         FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
-        Class<? extends FileNormalizer> normalizer = FileParameterUtils.normalizerOrDefault(fileNormalizer);
+        FileNormalizer normalizer = FileParameterUtils.normalizerOrDefault(fileNormalizer);
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,
             normalizer,
@@ -79,8 +72,8 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
         }
     }
 
-    private DirectorySensitivity normalizeDirectorySensitivity(Class<? extends FileNormalizer> fileNormalizer, DirectorySensitivity directorySensitivity) {
-        return NORMALIZERS_IGNORING_DIRECTORIES.contains(fileNormalizer)
+    private DirectorySensitivity normalizeDirectorySensitivity(FileNormalizer normalizer, DirectorySensitivity directorySensitivity) {
+        return normalizer.isIgnoringDirectories()
             ? DirectorySensitivity.DEFAULT
             : directorySensitivity;
     }

@@ -28,6 +28,7 @@ class JavaApplicationOutgoingVariantsIntegrationTest extends AbstractIntegration
         repo.module("test", "implementation", "1.0").publish()
         repo.module("test", "runtime-only", "1.0").publish()
 
+        createDirs("other-java", "java", "consumer")
         settingsFile << "include 'other-java', 'java', 'consumer'"
         buildFile << """
 def artifactType = Attribute.of('artifactType', String)
@@ -56,10 +57,16 @@ project(':consumer') {
     dependencies { consume project(':java') }
     task resolve {
         inputs.files configurations.consume
+        def fileNames = provider {
+            configurations.consume.files.collect { it.name }
+        }
+        def incomingArtifacts = provider {
+            configurations.consume.incoming.artifacts.collect { "\$it.id \$it.variant.attributes" }
+        }
         doLast {
-            println "files: " + configurations.consume.files.collect { it.name }
-            configurations.consume.incoming.artifacts.each {
-                println "\$it.id \$it.variant.attributes"
+            println "files: " + fileNames.get()
+            incomingArtifacts.get().each {
+                println it
             }
         }
     }
@@ -237,9 +244,9 @@ project(':consumer') {
     void assertResolveOutput(String output) {
         result.groupedOutput.task(":consumer:resolve").assertOutputContains(
             Arrays.stream(output.split("\n"))
-                  .map(String::trim)
-                  .filter(it -> !it.isEmpty())
-                  .collect(Collectors.joining(System.lineSeparator()))
+                .map(String::trim)
+                .filter(it -> !it.isEmpty())
+                .collect(Collectors.joining(System.lineSeparator()))
         )
     }
 }

@@ -18,10 +18,10 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -78,7 +78,7 @@ class Main {
 
     def canUseDefaultJvmArgsToPassMultipleOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
-applicationDefaultJvmArgs = ['-DtestValue=value', '-DtestValue2=some value', '-DtestValue3=some value']
+application.applicationDefaultJvmArgs = ['-DtestValue=value', '-DtestValue2=some value', '-DtestValue3=some value']
 '''
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -113,7 +113,7 @@ class Main {
 
     def canUseBothDefaultJvmArgsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
-applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=some value2']
+application.applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=some value2']
 '''
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -153,7 +153,7 @@ class Main {
         def testValue2 = OperatingSystem.current().windows ? 'some value$PATH' : 'some value\\\\$PATH'
         def testValue3 = 'some value%PATH%'
         file("build.gradle") << '''
-            applicationDefaultJvmArgs = [
+            application.applicationDefaultJvmArgs = [
                 '-DtestValue=value',
                 '-DtestValue2=some value$PATH',
                 '-DtestValue3=some value%PATH%',
@@ -191,7 +191,7 @@ class Main {
 
     def canUseDefaultJvmArgsInRunTask() {
         file("build.gradle") << '''
-        applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']
+        application.applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']
         '''
         file('src/main/java/org/gradle/test/Main.java') << '''
         package org.gradle.test;
@@ -215,7 +215,7 @@ class Main {
 
     def "can customize application name"() {
         file('build.gradle') << '''
-applicationName = 'mega-app'
+application.applicationName = 'mega-app'
 '''
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -369,7 +369,7 @@ class Main {
 
         and:
         buildFile << """
-            applicationDistribution.from("src/somewhere-else") {
+            application.applicationDistribution.from("src/somewhere-else") {
                 include "**/r2.*"
             }
         """
@@ -384,7 +384,7 @@ class Main {
         distBase.file("dir/r2.txt").text == "r2"
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "distribution file producing tasks are run automatically"() {
         when:
         buildFile << """
@@ -399,7 +399,7 @@ class Main {
                 }
             }
 
-            applicationDistribution.from(createDocs) {
+            application.applicationDistribution.from(createDocs) {
                 into "docs"
                 rename 'readme(.*)', 'READ-ME\$1'
             }

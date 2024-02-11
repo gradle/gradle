@@ -4,8 +4,16 @@ plugins {
 
 description = "Collection of test fixtures for both unit tests and integration tests, internal use only"
 
+sourceSets {
+    main {
+        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
+        errorprone.enabled = false
+    }
+}
+
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":functional"))
     implementation(project(":native"))
 
     implementation(libs.groovy)

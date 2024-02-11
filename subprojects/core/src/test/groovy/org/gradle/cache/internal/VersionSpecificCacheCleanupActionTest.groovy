@@ -17,6 +17,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,6 +33,8 @@ import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.Marke
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_7_DAYS
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
 
+import static org.gradle.internal.time.TimestampSuppliers.daysAgo
+
 class VersionSpecificCacheCleanupActionTest extends Specification implements GradleUserHomeCleanupFixture {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -41,7 +44,7 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Gra
     def progressMonitor = Mock(CleanupProgressMonitor)
     def deleter = TestFiles.deleter()
 
-    @Subject def cleanupAction = new VersionSpecificCacheCleanupAction(cachesDir, 30, 7, deleter)
+    @Subject def cleanupAction = new VersionSpecificCacheCleanupAction(cachesDir, daysAgo(30), daysAgo(7), deleter, CleanupFrequency.DAILY)
 
     def "cleans up unused version-specific cache directories"() {
         given:

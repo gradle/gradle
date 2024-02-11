@@ -19,9 +19,9 @@ package org.gradle.api.artifacts.result;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.Set;
@@ -31,6 +31,7 @@ import java.util.Set;
  * in the resolved dependency graph, and the dependencies between them.
  */
 @UsedByScanPlugin
+@HasInternalProtocol
 public interface ResolutionResult {
 
     /**
@@ -53,7 +54,6 @@ public interface ResolutionResult {
      * @return a provider for the root node of the resolved dependency graph
      * @since 7.4
      */
-    @Incubating
     Provider<ResolvedComponentResult> getRootComponent();
 
     /**

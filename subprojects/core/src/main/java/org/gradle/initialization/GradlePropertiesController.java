@@ -35,16 +35,19 @@ public interface GradlePropertiesController {
     GradleProperties getGradleProperties();
 
     /**
-     * Loads the immutable set of {@link GradleProperties} from the given directory and
+     * Loads the set of {@link GradleProperties} from the given directory and
      * makes it available to the build.
+     *
+     * Optionally sets a system properties after load.
      *
      * This method should be called only once per build but multiple calls with the
      * same argument are allowed.
      *
      * @param settingsDir directory where to look for the {@code gradle.properties} file
+     * @param setSystemProperties should system properties be set or not
      * @throws IllegalStateException if called with a different argument in the same build
      */
-    void loadGradlePropertiesFrom(File settingsDir);
+    void loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties);
 
     /**
      * Unloads the properties so the next call to {@link #loadGradlePropertiesFrom(File)} would reload them and

@@ -20,7 +20,7 @@ package org.gradle.tooling.provider.model.internal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.Describables
 import org.gradle.internal.Factory
 import org.gradle.internal.operations.BuildOperationContext

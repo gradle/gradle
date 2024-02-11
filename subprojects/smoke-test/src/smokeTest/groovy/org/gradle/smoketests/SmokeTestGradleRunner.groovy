@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidPluginMetadataException
+import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.slf4j.LoggerFactory
 
@@ -29,6 +30,7 @@ class SmokeTestGradleRunner extends GradleRunner {
 
     private final DefaultGradleRunner delegate
     private final List<String> expectedDeprecationWarnings = []
+    private final List<String> maybeExpectedDeprecationWarnings = []
     private boolean ignoreDeprecationWarnings
 
     SmokeTestGradleRunner(DefaultGradleRunner delegate) {
@@ -49,6 +51,13 @@ class SmokeTestGradleRunner extends GradleRunner {
         return result
     }
 
+    @Override
+    BuildResult run() throws InvalidRunnerConfigurationException {
+        def result = delegate.run()
+        verifyDeprecationWarnings(result)
+        return result
+    }
+
     /**
      * Expect a deprecation warning to appear when {@link #build()} or {@link #buildAndFail()} is called.
      *
@@ -59,6 +68,9 @@ class SmokeTestGradleRunner extends GradleRunner {
      *      to record how it will happen.
      */
     SmokeTestGradleRunner expectDeprecationWarning(String warning, String followup) {
+        if (followup == null || followup.isBlank()) {
+            throw new IllegalArgumentException("Follow up is required! Did you mean to expect a legacy deprecation warning instead?")
+        }
         expectedDeprecationWarnings.add(warning)
         return this
     }
@@ -108,6 +120,44 @@ class SmokeTestGradleRunner extends GradleRunner {
         return this
     }
 
+    /**
+     * Maybe expect a deprecation warning to appear when {@link #build()} or {@link #buildAndFail()} is called
+     * for an old version of a third-party plugin. The assumption is that the deprecation has already
+     * been fixed in a later version of the plugin, and thus no followup is needed.
+     *
+     * Does not fail the test if the warning does not appear in the output.
+     *
+     * WARNING: Only use for warnings that occurs intermittently. For example a deprecation warning for a function
+     * that is only called once per Gradle daemon from a third party plugin.
+     *
+     * @param warning the text of the warning to match.
+     */
+    SmokeTestGradleRunner maybeExpectLegacyDeprecationWarning(String warning) {
+        maybeExpectedDeprecationWarnings.add(warning)
+        return this
+    }
+
+    /**
+     * Maybe expect a deprecation warning to appear when {@link #build()} or {@link #buildAndFail()} is called
+     * for an old version of a third-party plugin if the given condition is true.
+     * The assumption is that the deprecation has already been fixed in a later version of the plugin,
+     * and thus no followup is needed.
+     *
+     * Does not fail the test if the warning does not appear in the output.
+     *
+     * WARNING: Only use for warnings that occurs intermittently. For example a deprecation warning for a function
+     * that is only called once per Gradle daemon from a third party plugin.
+     *
+     * @param condition only expect the warning to be produced when this condition is {@code true}.
+     * @param warning the text of the warning to match.
+     */
+    SmokeTestGradleRunner maybeExpectLegacyDeprecationWarningIf(boolean condition, String warning) {
+        if (condition) {
+            maybeExpectLegacyDeprecationWarning(warning)
+        }
+        return this
+    }
+
     SmokeTestGradleRunner ignoreDeprecationWarnings(String reason) {
         LOGGER.warn("Ignoring deprecation warnings because: {}", reason)
         ignoreDeprecationWarnings = true
@@ -118,7 +168,7 @@ class SmokeTestGradleRunner extends GradleRunner {
         @DelegatesTo.Target Class<U> deprecationClass,
         @DelegatesTo(
             genericTypeIndex = 0,
-            strategy=Closure.DELEGATE_FIRST)
+            strategy = Closure.DELEGATE_FIRST)
             Closure<T> closure) {
         deprecationClass.newInstance(this).tap(closure)
         return this
@@ -127,7 +177,7 @@ class SmokeTestGradleRunner extends GradleRunner {
     def <T> SmokeTestGradleRunner deprecations(
         @DelegatesTo(
             value = BaseDeprecations.class,
-            strategy=Closure.DELEGATE_FIRST)
+            strategy = Closure.DELEGATE_FIRST)
             Closure<T> closure) {
         return deprecations(BaseDeprecations, closure)
     }
@@ -137,7 +187,7 @@ class SmokeTestGradleRunner extends GradleRunner {
             return
         }
         def lines = result.output.readLines()
-        def remainingWarnings = new ArrayList<>(expectedDeprecationWarnings)
+        def remainingWarnings = new ArrayList<>(expectedDeprecationWarnings + maybeExpectedDeprecationWarnings)
         def totalExpectedDeprecations = remainingWarnings.size()
         int foundDeprecations = 0
         lines.eachWithIndex { String line, int lineIndex ->
@@ -147,6 +197,7 @@ class SmokeTestGradleRunner extends GradleRunner {
             }
             assert !line.contains("has been deprecated"), "Found an unexpected deprecation warning on line ${lineIndex + 1}: $line"
         }
+        remainingWarnings.removeAll(maybeExpectedDeprecationWarnings)
         assert remainingWarnings.empty, "Expected ${totalExpectedDeprecations} deprecation warnings, found ${foundDeprecations} deprecation warnings. Did not match the following:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
         expectedDeprecationWarnings.clear()
     }
@@ -259,6 +310,10 @@ class SmokeTestGradleRunner extends GradleRunner {
     SmokeTestGradleRunner forwardOutput() {
         delegate.forwardOutput()
         return this
+    }
+
+    List<String> getJvmArguments() {
+        return delegate.getJvmArguments()
     }
 
     SmokeTestGradleRunner withJvmArguments(List<String> jvmArguments) {

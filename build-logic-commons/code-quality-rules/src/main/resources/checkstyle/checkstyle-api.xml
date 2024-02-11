@@ -30,6 +30,8 @@
 
         <module name="JavadocType">
             <property name="scope" value="protected"/>
+            <!-- Allow the use of unrecognized tags like @apiNote -->
+            <property name="allowUnknownTags" value="true"/>
         </module>
 
         <!-- TODO - switch this on -->

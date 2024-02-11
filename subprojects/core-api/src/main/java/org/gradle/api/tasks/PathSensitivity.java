@@ -56,6 +56,14 @@ public enum PathSensitivity {
 
     /**
      * Ignore file paths and directories altogether.
+     *
+     * <p>
+     *     When used on an {@literal @}{@link org.gradle.work.Incremental} input, instead of
+     *     {@link org.gradle.work.ChangeType#MODIFIED} events Gradle may produce
+     *     {@link org.gradle.work.ChangeType#ADDED} and {@link org.gradle.work.ChangeType#REMOVED} events.
+     *     This is because by ignoring the path of the individual inputs it cannot identify <em>what</em>
+     *     has been modified.
+     * </p>
      */
     NONE
 }

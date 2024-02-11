@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.properties.InputBehavior;
 
 import javax.annotation.Nullable;
 

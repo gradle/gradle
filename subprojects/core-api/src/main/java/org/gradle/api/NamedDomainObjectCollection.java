@@ -16,6 +16,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -210,6 +211,23 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      */
     @Override
     <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type);
+
+    /**
+     * Returns a collection containing the objects with names matching the provided filter.
+     * The returned collection is live, so that when matching objects are added to this collection,
+     * they are also visible in the filtered collection.
+     * This method will NOT cause any pending objects in this container to be realized.
+     *
+     * @param nameFilter The specification to test names against.
+     * @return The collection of objects with names satisfying the filter. Returns an empty collection if there are no such objects in this collection.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    default NamedDomainObjectCollection<T> named(Spec<String> nameFilter) {
+        // default implementation is a workaround for plugins having their own custom collection implementation, based on an older interface (i.e. missing an implementation for this method)
+        throw new UnsupportedOperationException("Method not implemented by " + GeneratedSubclasses.unpack(this.getClass()).getName());
+    }
 
     /**
      * {@inheritDoc}

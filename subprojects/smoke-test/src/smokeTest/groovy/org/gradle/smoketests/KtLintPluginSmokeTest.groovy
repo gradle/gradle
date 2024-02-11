@@ -21,7 +21,7 @@ class KtLintPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     Map<String, Versions> getPluginsToValidate() {
         [
             'org.jlleitschuh.gradle.ktlint': TestedVersions.ktlint,
-            'org.jlleitschuh.gradle.ktlint-idea': TestedVersions.ktlint,
+            'org.jlleitschuh.gradle.ktlint-idea': TestedVersions.ktlintIdea,
         ]
     }
 }

@@ -1,0 +1,34 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>maven</literal> plugin</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>mavenPomDir</td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/poms</literal></td>
+            </tr>
+            <tr>
+                <td>conf2ScopeMappings</td>
+                <td/>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>pom</td>
+            </tr>
+        </table>
+    </section>
+</section>

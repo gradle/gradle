@@ -1,0 +1,148 @@
+
+More information about the features the `java-library` plugin adds to any JVM library project, such as API and implementation separation, can be found in the link:{userManualPath}/java_library_plugin.html[Java Library Plugin documentation].
+
+== Assemble the library JAR
+
+To build the project, run the `build` task. You can use the regular `gradle` command, but when a project includes a wrapper script, it is considered good form to use it instead.
+
+[listing.terminal.sample-command]
+----
+\$ ./gradlew build
+
+BUILD SUCCESSFUL in 0s
+${tasksExecuted.raw} actionable tasks: ${tasksExecuted.raw} executed
+----
+
+NOTE: The first time you run the wrapper script, `gradlew`, there may be a delay while that version of `gradle` is downloaded and stored locally in your `~/.gradle/wrapper/dists` folder.
+
+The first time you run the build, Gradle will check whether or not you already have the required dependencies in your cache under your `~/.gradle` directory. If not, the libraries will be downloaded and stored there. The next time you run the build, the cached versions will be used. The `build` task compiles the classes, runs the tests, and generates a test report.
+
+You can view the test report by opening the HTML output file, located at `${subprojectName.raw}/build/reports/tests/test/index.html`.
+
+You can find your newly packaged JAR file in the `${subprojectName.raw}/build/libs` directory with the name `${subprojectName.raw}.jar`.
+Verify that the archive is valid by running the following command:
+
+[listing.terminal.sample-command]
+----
+\$ jar tf ${subprojectName.raw}/build/libs/${subprojectName.raw}.jar
+META-INF/
+META-INF/MANIFEST.MF
+${subprojectName.raw}/
+${subprojectName.raw}/Library.class
+----
+
+You should see the required manifest file —`MANIFEST.MF`— and the compiled `Library` class.
+
+NOTE: All of this happens without any additional configuration in the build script because Gradle's `java-library` plugin assumes your project sources are arranged in a link:{userManualPath}/java_plugin.html#sec:java_project_layout[conventional project layout].
+You can customize the project layout if you wish link:{userManualPath}/java_plugin.html#sec:changing_java_project_layout[as described in the user manual].
+
+Congratulations, you have just completed the first step of creating a ${language.raw} ${componentType.raw}!
+You can now customize this to your own project needs.
+
+== Customize the library JAR
+
+You will often want the name of the JAR file to include the library _version_.
+This is achieved by setting a top-level `version` property in the build script:
+
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+version = "0.1.0"
+----
+
+.build.gradle
+[source.multi-language-sample,groovy]
+----
+version = '0.1.0'
+----
+
+
+[NOTE]
+====
+Next to the version, other important identity properties of a library are it's _name_ and _group_.
+The name is directly derived from the subproject name that represents the library.
+It's `lib` in the example so you probably want to adjust it by changing the name of the `lib` folder and the corresponding `include(...)` statement in the `settings.gradle(.kts)` file.
+The _group_ is used to give your library full coordinates when published.
+You can define it directly in the build script by setting the `group` property similar to how you set the version (shown above).
+====
+
+Now run the `jar` task:
+
+[listing.terminal.sample-command]
+----
+\$ ./gradlew jar
+
+BUILD SUCCESSFUL
+2 actionable tasks: 1 executed, 1 up-to-date
+----
+
+You'll notice that the resulting JAR file at `${subprojectName.raw}/build/libs/${subprojectName.raw}-0.1.0.jar` contains the version as expected.
+
+Another common requirement is customizing the manifest file, typically by adding one or more attributes.
+Let's include the library name and version in the manifest file by link:{userManualPath}/more_about_tasks.html#sec:configuring_tasks[configuring the `jar` task].
+Add the following to the end of your build script:
+
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+tasks.jar {
+    manifest {
+        attributes(mapOf("Implementation-Title" to project.name,
+                         "Implementation-Version" to project.version))
+    }
+}
+----
+
+.build.gradle
+[source.multi-language-sample,groovy]
+----
+tasks.named('jar') {
+    manifest {
+        attributes('Implementation-Title': project.name,
+                   'Implementation-Version': project.version)
+    }
+}
+----
+
+
+To confirm that these changes work as expected, run the `jar` task again, and this time also unpack the manifest file from the JAR:
+
+[listing.terminal]
+----
+\$ ./gradlew jar
+\$ jar xf ${subprojectName.raw}/build/libs/${subprojectName.raw}-0.1.0.jar META-INF/MANIFEST.MF
+----
+
+Now view the contents of the `META-INF/MANIFEST.MF` file and you should see the following:
+
+[source,mf]
+.META-INF/MANIFEST.MF
+----
+Manifest-Version: 1.0
+Implementation-Title: ${subprojectName.raw}
+Implementation-Version: 0.1.0
+----
+
+== Generating Sources JAR
+
+You can easily generate a sources JAR for your library:
+
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+java {
+    withSourcesJar()
+}
+----
+
+.build.gradle
+[source.multi-language-sample,groovy]
+----
+java {
+    withSourcesJar()
+}
+----
+
+
+The additional JAR will be produced as part of the `assemble` or `build` lifecycle tasks and will be part of the publication.
+The resulting file is found in `${subprojectName.raw}/build/libs`, with a name using the conventional classifier `-sources`.

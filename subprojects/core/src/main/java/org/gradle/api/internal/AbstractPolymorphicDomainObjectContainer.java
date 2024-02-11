@@ -137,12 +137,12 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         @Override
-        public boolean hasMethod(String name, Object... arguments) {
+        public boolean hasMethod(String name, @Nullable Object... arguments) {
             return isConfigureMethod(name, arguments);
         }
 
         @Override
-        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+        public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
             if (isConfigureMethod(name, arguments)) {
                 T element = getByName(name);
                 Object lastArgument = arguments[arguments.length - 1];
@@ -154,7 +154,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
             return DynamicInvokeResult.notFound();
         }
 
-        private boolean isConfigureMethod(String name, Object... arguments) {
+        private boolean isConfigureMethod(String name, @Nullable Object... arguments) {
             return (arguments.length == 1 && arguments[0] instanceof Closure
                     || arguments.length == 1 && arguments[0] instanceof Class
                     || arguments.length == 2 && arguments[0] instanceof Class && arguments[1] instanceof Closure)

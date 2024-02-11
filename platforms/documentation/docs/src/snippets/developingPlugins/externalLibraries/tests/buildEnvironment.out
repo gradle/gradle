@@ -1,0 +1,62 @@
+
+> Task :buildEnvironment
+
+------------------------------------------------------------
+Root project 'external-libraries'
+------------------------------------------------------------
+
+classpath
+\--- org.asciidoctor.jvm.convert:org.asciidoctor.jvm.convert.gradle.plugin:4.0.2
+     \--- org.asciidoctor:asciidoctor-gradle-jvm:4.0.2
+          +--- org.ysb33r.gradle:grolifant-rawhide:3.0.0
+          |    \--- org.tukaani:xz:1.6
+          +--- org.ysb33r.gradle:grolifant-herd:3.0.0
+          |    +--- org.tukaani:xz:1.6
+          |    +--- org.ysb33r.gradle:grolifant40:3.0.0
+          |    |    +--- org.tukaani:xz:1.6
+          |    |    +--- org.apache.commons:commons-collections4:4.4
+          |    |    +--- org.ysb33r.gradle:grolifant-core:3.0.0
+          |    |    |    +--- org.tukaani:xz:1.6
+          |    |    |    +--- org.apache.commons:commons-collections4:4.4
+          |    |    |    \--- org.ysb33r.gradle:grolifant-rawhide:3.0.0 (*)
+          |    |    \--- org.ysb33r.gradle:grolifant-rawhide:3.0.0 (*)
+          |    +--- org.ysb33r.gradle:grolifant50:3.0.0
+          |    |    +--- org.tukaani:xz:1.6
+          |    |    +--- org.ysb33r.gradle:grolifant40:3.0.0 (*)
+          |    |    +--- org.ysb33r.gradle:grolifant-core:3.0.0 (*)
+          |    |    \--- org.ysb33r.gradle:grolifant40-legacy-api:3.0.0
+          |    |         +--- org.tukaani:xz:1.6
+          |    |         +--- org.apache.commons:commons-collections4:4.4
+          |    |         +--- org.ysb33r.gradle:grolifant-core:3.0.0 (*)
+          |    |         \--- org.ysb33r.gradle:grolifant40:3.0.0 (*)
+          |    +--- org.ysb33r.gradle:grolifant60:3.0.0
+          |    |    +--- org.tukaani:xz:1.6
+          |    |    +--- org.ysb33r.gradle:grolifant40:3.0.0 (*)
+          |    |    +--- org.ysb33r.gradle:grolifant50:3.0.0 (*)
+          |    |    +--- org.ysb33r.gradle:grolifant-core:3.0.0 (*)
+          |    |    \--- org.ysb33r.gradle:grolifant-rawhide:3.0.0 (*)
+          |    +--- org.ysb33r.gradle:grolifant70:3.0.0
+          |    |    +--- org.tukaani:xz:1.6
+          |    |    +--- org.ysb33r.gradle:grolifant40:3.0.0 (*)
+          |    |    +--- org.ysb33r.gradle:grolifant50:3.0.0 (*)
+          |    |    +--- org.ysb33r.gradle:grolifant60:3.0.0 (*)
+          |    |    \--- org.ysb33r.gradle:grolifant-core:3.0.0 (*)
+          |    +--- org.ysb33r.gradle:grolifant80:3.0.0
+          |    |    +--- org.tukaani:xz:1.6
+          |    |    +--- org.ysb33r.gradle:grolifant40:3.0.0 (*)
+          |    |    +--- org.ysb33r.gradle:grolifant50:3.0.0 (*)
+          |    |    +--- org.ysb33r.gradle:grolifant60:3.0.0 (*)
+          |    |    +--- org.ysb33r.gradle:grolifant70:3.0.0 (*)
+          |    |    \--- org.ysb33r.gradle:grolifant-core:3.0.0 (*)
+          |    +--- org.ysb33r.gradle:grolifant-core:3.0.0 (*)
+          |    \--- org.ysb33r.gradle:grolifant-rawhide:3.0.0 (*)
+          +--- org.asciidoctor:asciidoctor-gradle-base:4.0.2
+          |    \--- org.ysb33r.gradle:grolifant-herd:3.0.0 (*)
+          \--- org.asciidoctor:asciidoctorj-api:2.5.7
+
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

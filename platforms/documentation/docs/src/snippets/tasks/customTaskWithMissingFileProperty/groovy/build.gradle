@@ -1,0 +1,41 @@
+// tag::all[]
+// tag::task[]
+abstract class GreetingFileTask extends DefaultTask {
+
+    @InputFiles
+    abstract RegularFileProperty getSource()
+
+    @OutputFile
+    abstract RegularFileProperty getDestination()
+
+    @TaskAction
+    def greet() {
+        def file = getDestination().get().asFile
+        if (source.get().asFile.exists()) {
+            file.write("Hello ${source.get().asFile.text}!")
+        } else {
+            file.write 'Hello missing file!'
+        }
+    }
+}
+// end::task[]
+
+// tag::config[]
+def greetingFile = objects.fileProperty()
+
+tasks.register('greet', GreetingFileTask) {
+    source = layout.projectDirectory.file("missing.txt")
+    destination = greetingFile
+}
+
+tasks.register('sayGreeting') {
+    dependsOn greet
+    doLast {
+        def file = greetingFile.get().asFile
+        println "${file.text} (file: ${file.name})"
+    }
+}
+
+greetingFile = layout.buildDirectory.file('hello.txt')
+// end::config[]
+// end::all[]

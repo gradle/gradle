@@ -60,7 +60,10 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
                 }
             }
 
-            return Optional.of(CACHING_NOT_ENABLED);
+            return Optional.of(task.getReasonNotToTrackState()
+                .map(s -> new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Task is untracked because: " + s))
+                .orElse(CACHING_NOT_ENABLED));
+
         }
 
         if (!taskProperties.hasDeclaredOutputs()) {

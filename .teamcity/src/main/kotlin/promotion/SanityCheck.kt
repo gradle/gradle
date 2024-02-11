@@ -4,8 +4,8 @@ import common.Os
 import common.VersionedSettingsBranch
 import common.gradleWrapper
 import common.requiresOs
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import vcsroots.gradlePromotionMaster
 import vcsroots.useAbsoluteVcs
 
@@ -28,7 +28,7 @@ object SanityCheck : BuildType({
     triggers {
         vcs {
             branchFilter = ""
-            enabled = VersionedSettingsBranch.fromDslContext().enableTriggers
+            enabled = VersionedSettingsBranch.fromDslContext().enableVcsTriggers
         }
     }
 

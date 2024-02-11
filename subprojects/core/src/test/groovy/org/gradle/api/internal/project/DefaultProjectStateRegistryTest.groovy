@@ -40,6 +40,10 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     def registry = new DefaultProjectStateRegistry(workerLeaseService)
     def projectFactory = Mock(IProjectFactory)
 
+    def setup() {
+        workerLeaseService.startProjectExecution(true)
+    }
+
     def "adds projects for a build"() {
         given:
         def build = build("p1", "p2")
@@ -53,6 +57,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         root.identityPath == Path.ROOT
         root.projectPath == Path.ROOT
         root.componentIdentifier.projectPath == ":"
+        root.componentIdentifier.buildTreePath == ":"
         root.parent == null
 
         def p1 = registry.stateFor(projectId("p1"))
@@ -62,6 +67,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         p1.projectPath == Path.path(":p1")
         p1.parent.is(root)
         p1.componentIdentifier.projectPath == ":p1"
+        p1.componentIdentifier.buildTreePath == ":p1"
         p1.childProjects.empty
 
         def p2 = registry.stateFor(projectId("p2"))
@@ -71,6 +77,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         p2.projectPath == Path.path(":p2")
         p2.parent.is(root)
         p2.componentIdentifier.projectPath == ":p2"
+        p2.componentIdentifier.buildTreePath == ":p2"
         p2.childProjects.empty
 
         root.childProjects.toList() == [p1, p2]
@@ -95,14 +102,14 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         def rootProject = project(":")
         def rootState = registry.stateFor(projectId(":"))
 
-        1 * projectFactory.createProject(_, _, rootState, _, _, _) >> rootProject
+        1 * projectFactory.createProject(_, _, rootState, _, _, _, _) >> rootProject
 
         rootState.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
 
         def project = project("p1")
         def state = registry.stateFor(projectId("p1"))
 
-        1 * projectFactory.createProject(_, _, state, _, _, _) >> project
+        1 * projectFactory.createProject(_, _, state, _, _, _, _) >> project
 
         state.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
 
@@ -692,13 +699,13 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         def rootProject = project(':')
         def rootState = registry.stateFor(projectId(':'))
 
-        1 * projectFactory.createProject(_, _, rootState, _, _, _) >> rootProject
+        1 * projectFactory.createProject(_, _, rootState, _, _, _, _) >> rootProject
 
         rootState.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
     }
 
     void createProject(ProjectState state, ProjectInternal project) {
-        1 * projectFactory.createProject(_, _, state, _, _, _) >> project
+        1 * projectFactory.createProject(_, _, state, _, _, _, _) >> project
 
         state.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
     }
@@ -718,9 +725,8 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     BuildState build(String... projects) {
         def descriptors = new DefaultProjectDescriptorRegistry()
         def root = new DefaultProjectDescriptor(null, "root", null, descriptors, null)
-        descriptors.addProject(root)
         projects.each {
-            descriptors.addProject(new DefaultProjectDescriptor(root, it, null, descriptors, null))
+            new DefaultProjectDescriptor(root, it, null, descriptors, null)
         }
 
         def settings = Stub(SettingsInternal)

@@ -20,6 +20,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
+import javax.annotation.Nullable;
+
 
 @EventScope(Scopes.Build.class)
 public interface TaskExecutionAccessListener {
@@ -27,10 +29,16 @@ public interface TaskExecutionAccessListener {
     /**
      * Called when accessing the project during task execution.
      */
-    void onProjectAccess(String invocationDescription, TaskInternal task);
+    void onProjectAccess(String invocationDescription, TaskInternal task, @Nullable TaskInternal runningTask);
 
     /**
      * Called when accessing task dependencies during task execution.
      */
-    void onTaskDependenciesAccess(String invocationDescription, TaskInternal task);
+    void onTaskDependenciesAccess(String invocationDescription, TaskInternal task, @Nullable TaskInternal runningTask);
+
+    /**
+     * Called when accessing the convention object during task execution.
+     */
+    void onConventionAccess(String invocationDescription, TaskInternal task, @Nullable TaskInternal runningTask);
+
 }

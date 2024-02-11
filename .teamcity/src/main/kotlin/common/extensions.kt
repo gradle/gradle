@@ -16,29 +16,34 @@
 
 package common
 
+import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import configurations.CompileAll
+import configurations.FunctionalTest
 import configurations.branchesFilterExcluding
 import configurations.buildScanCustomValue
 import configurations.buildScanTag
 import configurations.checkCleanDirUnixLike
 import configurations.checkCleanDirWindows
 import configurations.enablePullRequestFeature
-import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildTypeSettings
-import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
-import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
-import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
-import jetbrains.buildServer.configs.kotlin.v2019_2.Requirements
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
-import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.failOnText
-import jetbrains.buildServer.configs.kotlin.v2019_2.ui.add
+import jetbrains.buildServer.configs.kotlin.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.BuildStep
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.BuildTypeSettings
+import jetbrains.buildServer.configs.kotlin.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.Dependencies
+import jetbrains.buildServer.configs.kotlin.FailureAction
+import jetbrains.buildServer.configs.kotlin.Project
+import jetbrains.buildServer.configs.kotlin.RelativeId
+import jetbrains.buildServer.configs.kotlin.Requirements
+import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.failureConditions.BuildFailureOnText
+import jetbrains.buildServer.configs.kotlin.failureConditions.failOnText
+import jetbrains.buildServer.configs.kotlin.ui.add
 import java.util.Locale
+
+const val pluginPortalUrlOverride = "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
 
 fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuildStep.() -> Unit): GradleBuildStep =
     GradleBuildStep(init)
@@ -98,9 +103,9 @@ const val hiddenArtifactDestination = ".teamcity/gradle-logs"
 fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
     artifactRules = """
         *.psoutput => $hiddenArtifactDestination
-        build/*.threaddump => $hiddenArtifactDestination
+        *.threaddump => $hiddenArtifactDestination
         build/report-* => $hiddenArtifactDestination
-        build/tmp/test files/** => $hiddenArtifactDestination/test-files
+        build/tmp/teŝt files/** => $hiddenArtifactDestination/teŝt-files
         build/errorLogs/** => $hiddenArtifactDestination/errorLogs
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         build/reports/dependency-verification/** => dependency-verification-reports
@@ -132,6 +137,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
             executionTimeoutMin = timeout
         }
         testFailure = false
+        supportTestRetry = true
         add {
             failOnText {
                 conditionType = BuildFailureOnText.ConditionType.CONTAINS
@@ -154,7 +160,7 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os,
         param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
 
         param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
-        param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
+        param("env.GRADLE_OPTS", "-Xmx1536m")
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
         param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")
@@ -173,11 +179,23 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX, buildType: Buil
         name = "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         executionMode = BuildStep.ExecutionMode.ALWAYS
         scriptContent = if (os == Os.WINDOWS) {
-            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.android", false)
+            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") + checkCleanDirWindows(
+                "%teamcity.agent.jvm.user.home%\\.android",
+                false
+            )
         } else {
-            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.android", false)
+            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike(
+                "%teamcity.agent.jvm.user.home%/.android",
+                false
+            )
         }
         skipConditionally(buildType)
+    }
+}
+
+fun BuildStep.onlyRunOnGitHubMergeQueueBranch() {
+    conditions {
+        matches("teamcity.build.branch", "(pre-test/.*)|(gh-readonly-queue/.*)")
     }
 }
 
@@ -190,14 +208,14 @@ fun BuildStep.skipConditionally(buildType: BuildType? = null) {
     }
 }
 
-fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true): List<String> =
+fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true, maxParallelForks: String = "%maxParallelForks%"): List<String> =
     listOf(
         // We pass the 'maxParallelForks' setting as 'workers.max' to limit the maximum number of executers even
         // if multiple test tasks run in parallel. We also pass it to the Gradle build as a maximum (maxParallelForks)
         // for each test task, such that we are independent of whatever default value is defined in the build itself.
-        "-Dorg.gradle.workers.max=%maxParallelForks%",
-        "-PmaxParallelForks=%maxParallelForks%",
-        "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+        "-Dorg.gradle.workers.max=$maxParallelForks",
+        "-PmaxParallelForks=$maxParallelForks",
+        pluginPortalUrlOverride,
         "-s",
         "--no-configuration-cache",
         "%additional.gradle.parameters%",
@@ -246,19 +264,64 @@ fun functionalTestParameters(os: Os): List<String> {
     return listOf(
         "-PteamCityBuildId=%teamcity.build.id%",
         os.javaInstallationLocations(),
-        "-Porg.gradle.java.installations.auto-download=false"
+        "-Porg.gradle.java.installations.auto-download=false",
+        "-Porg.gradle.java.installations.auto-detect=false",
     )
 }
 
-fun BuildType.killProcessStep(stepName: String, os: Os, arch: Arch = Arch.AMD64) {
-    steps {
-        script {
-            name = stepName
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $stepName"
-            skipConditionally(this@killProcessStep)
+fun promotionBuildParameters(dependencyBuildId: RelativeId, extraParameters: String, gitUserName: String, gitUserEmail: String) =
+    """-PcommitId=%dep.$dependencyBuildId.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
+/**
+ * Align with build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java
+ */
+enum class KillProcessMode {
+    KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS,
+    KILL_PROCESSES_STARTED_BY_GRADLE,
+    KILL_ALL_GRADLE_PROCESSES
+}
+
+fun BuildSteps.killProcessStep(buildType: BuildType?, mode: KillProcessMode, os: Os, arch: Arch = Arch.AMD64, executionMode: BuildStep.ExecutionMode = BuildStep.ExecutionMode.DEFAULT) {
+    script {
+        name = mode.toString()
+        this.executionMode = executionMode
+        scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode" +
+            if (os == Os.WINDOWS) "\nwmic Path win32_process Where \"name='java.exe'\"" else ""
+        skipConditionally(buildType)
+        if (mode == KILL_ALL_GRADLE_PROCESSES && buildType is FunctionalTest) {
+            onlyRunOnGitHubMergeQueueBranch()
         }
     }
 }
 
+fun BuildType.killProcessStep(mode: KillProcessMode, os: Os, arch: Arch = Arch.AMD64, executionMode: BuildStep.ExecutionMode = BuildStep.ExecutionMode.DEFAULT) {
+    steps {
+        killProcessStep(this@killProcessStep, mode, os, arch, executionMode)
+    }
+}
+
 fun String.toCapitalized() = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+
+/**
+ * Define clean up rules for the project.
+ * See https://www.jetbrains.com/help/teamcity/teamcity-data-clean-up.html#Clean-up+Rules
+ *
+ * @param historyDays days number of days to store build history .
+ * @param artifactsDays number of days to store artifacts. In the stored history, artifacts older than this number will be cleaned up.
+ * @param artifactPatterns patterns for artifacts clean-up. If not specified, all artifacts will be removed.
+ */
+fun Project.cleanupRule(historyDays: Int, artifactsDays: Int, artifactsPatterns: String? = null) {
+    features {
+        this@cleanupRule.cleanup {
+            baseRule {
+                history(days = historyDays)
+            }
+            baseRule {
+                artifacts(
+                    days = artifactsDays,
+                    artifactPatterns = artifactsPatterns
+                )
+            }
+        }
+    }
+}

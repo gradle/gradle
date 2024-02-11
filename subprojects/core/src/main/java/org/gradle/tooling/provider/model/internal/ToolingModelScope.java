@@ -20,15 +20,24 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.tooling.provider.model.UnknownModelException;
 
 import javax.annotation.Nullable;
-import java.util.function.Function;
 
+/**
+ * A scope that allows {@link #getModel(String, ToolingModelParameterCarrier) building models}
+ * for a given {@link #getTarget() target}.
+ */
 public interface ToolingModelScope {
+
+    /**
+     * A project target for model builder, which is null when the model is build-scoped.
+     */
     @Nullable
     ProjectState getTarget();
 
     /**
-     * Creates the given model
+     * Creates a model with a given parameter.
+     * <p>
+     * Can configure the target project to locate the corresponding model builder.
      */
     @Nullable
-    Object getModel(String modelName, @Nullable Function<Class<?>, Object> parameterFactory) throws UnknownModelException;
+    Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter) throws UnknownModelException;
 }

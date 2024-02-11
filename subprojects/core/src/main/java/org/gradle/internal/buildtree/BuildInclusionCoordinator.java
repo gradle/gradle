@@ -16,11 +16,15 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -33,15 +37,17 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class BuildInclusionCoordinator {
     private final Set<IncludedBuildState> loadedBuilds = new CopyOnWriteArraySet<>();
     private final List<IncludedBuildState> libraryBuilds = new CopyOnWriteArrayList<>();
-    private final BuildStateRegistry buildStateRegistry;
+    private final GlobalDependencySubstitutionRegistry substitutionRegistry;
+    private boolean registerRootSubstitutions;
+    private final Set<BuildState> registering = new HashSet<>();
 
-    public BuildInclusionCoordinator(BuildStateRegistry buildStateRegistry) {
-        this.buildStateRegistry = buildStateRegistry;
+    public BuildInclusionCoordinator(GlobalDependencySubstitutionRegistry substitutionRegistry) {
+        this.substitutionRegistry = substitutionRegistry;
     }
 
     public void prepareForInclusion(IncludedBuildState build, boolean asPlugin) {
         if (loadedBuilds.add(build)) {
-            // Load projects (eg by running the settings script, etc) only the first time the build is included by another build.
+            // Load projects (e.g. by running the settings script, etc.) only the first time the build is included by another build.
             // This is to deal with cycles and the build being included multiple times in the tree
             build.ensureProjectsLoaded();
         }
@@ -50,9 +56,70 @@ public class BuildInclusionCoordinator {
         }
     }
 
-    public void registerGlobalLibrarySubstitutions() {
+    public void prepareRootBuildForInclusion() {
+        registerRootSubstitutions = true;
+    }
+
+    private void registerGlobalLibrarySubstitutions() {
         for (IncludedBuildState includedBuild : libraryBuilds) {
-            buildStateRegistry.registerSubstitutionsFor(includedBuild);
+            doRegisterSubstitutions(includedBuild);
+        }
+    }
+
+    public void registerSubstitutionsAvailableFor(BuildState build) {
+        if (build instanceof RootBuildState) {
+            registerGlobalLibrarySubstitutions();
+        } else {
+            makeSubstitutionsAvailableFor(build, new HashSet<>());
+        }
+    }
+
+    public void registerSubstitutionsProvidedBy(BuildState build) {
+        if (build instanceof RootBuildState && registerRootSubstitutions) {
+            // Make root build substitutions available
+            doRegisterSubstitutions((RootBuildState) build);
+        }
+    }
+
+    public void prepareForPluginResolution(IncludedBuildState build) {
+        if (!registering.add(build)) {
+            return;
+        }
+        try {
+            build.ensureProjectsConfigured();
+            makeSubstitutionsAvailableFor(build, new HashSet<>());
+        } finally {
+            registering.remove(build);
+        }
+    }
+
+    private void makeSubstitutionsAvailableFor(BuildState build, Set<BuildState> seen) {
+        // A build can see all the builds that it includes
+        if (!seen.add(build)) {
+            return;
+        }
+        boolean added = registering.add(build);
+        try {
+            for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
+                BuildState target = reference.getTarget();
+                if (!registering.contains(target) && target instanceof IncludedBuildState) {
+                    doRegisterSubstitutions((IncludedBuildState) target);
+                    makeSubstitutionsAvailableFor(target, seen);
+                }
+            }
+        } finally {
+            if (added) {
+                registering.remove(build);
+            }
+        }
+    }
+
+    private void doRegisterSubstitutions(CompositeBuildParticipantBuildState build) {
+        registering.add(build);
+        try {
+            substitutionRegistry.registerSubstitutionsFor(build);
+        } finally {
+            registering.remove(build);
         }
     }
 }

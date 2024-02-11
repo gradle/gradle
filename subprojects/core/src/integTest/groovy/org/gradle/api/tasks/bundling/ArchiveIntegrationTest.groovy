@@ -24,13 +24,20 @@ import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.internal.Resources
 import org.hamcrest.CoreMatchers
+import org.junit.Rule
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.equalTo
 
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
+    @Rule
+    public final Resources resources = new Resources(temporaryFolder)
+
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
     def canCopyFromAZip() {
@@ -338,13 +345,35 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    def "tarTreeFailsGracefully"() {
+    def "zipTreeFailsGracefully when #scenario"() {
         given:
-        file('content/some-file.txt').text = "Content"
-        file('content').zipTo(file('compressedTarWithWrongExtension.tar'))
+        content.call(getTestDirectory())
         buildFile << '''
             task copy(type: Copy) {
-                from tarTree('compressedTarWithWrongExtension.tar')
+                from zipTree('compressedTarWithWrongExtension.zip')
+                into 'dest'
+            }
+        '''.stripIndent()
+
+        when:
+        def failure = runAndFail('copy')
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertThatCause(CoreMatchers.startsWith("Cannot expand ZIP"))
+
+        where:
+        scenario | content
+        "archive of other format"   | { td -> td.file('content/some-file.txt').text = "Content"; td.file('content').tarTo(td.file('compressedTarWithWrongExtension.zip')) }
+        "random file"               | { td -> td.file('compressedZipWithWrongExtension.tar').text = "MamboJumbo" }
+    }
+
+    def "tarTreeFailsGracefully when #scenario"() {
+        given:
+        content.call(getTestDirectory())
+        buildFile << '''
+            task copy(type: Copy) {
+                from tarTree('compressedZipWithWrongExtension.tar')
                 into 'dest'
             }
         '''.stripIndent()
@@ -355,6 +384,34 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':copy'.")
         failure.assertThatCause(CoreMatchers.startsWith("Unable to expand TAR"))
+
+        where:
+        scenario | content
+        "archive of other format"   | { td -> td.file('content/some-file.txt').text = "Content"; td.file('content').zipTo(td.file('compressedZipWithWrongExtension.tar')) }
+        "random file"               | { td -> td.file('compressedZipWithWrongExtension.tar').text = "MamboJumbo" }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23391")
+    def "can decompress TAR archive created with a v7 format"() {
+        given:
+        // Our test fixtures cannot create an ancient v7 tar archive without
+        // running native executables. This archive was created by creating some files
+        // in a temporary directory and running the following command:
+        // tar --format=v7 -cf v7.tar <contents>
+        resources.findResource("v7.tar").copyTo(file("v7.tar"))
+
+        buildFile << """
+            task copy(type: Copy) {
+                from tarTree('v7.tar')
+                into 'dest'
+            }
+        """
+
+        when:
+        succeeds("copy")
+
+        then:
+        file("dest").assertContainsDescendants("file.txt", "sub/subfile.txt")
     }
 
     def cannotCreateAnEmptyZip() {
@@ -370,6 +427,37 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'zip'
         then:
         file('build/test.zip').assertDoesNotExist()
+    }
+
+    @Requires(UnitTestPreconditions.Symlinks)
+    def "does not create empty #type array on exception"() {
+        given:
+        def output = "test.${type.toLowerCase()}"
+        createDir('test') {
+            dir1 {
+                file("1_file1.txt").write("abc")
+                link('2_link', "non-existent")
+                file("3_file2.txt").write("abcd")
+            }
+        }
+        and:
+        buildFile << """
+            task pack(type: $type) {
+                from 'test'
+                destinationDirectory = buildDir
+                archiveFileName = '$output'
+            }
+        """
+        when:
+        fails 'pack'
+        failure.assertHasCause("Couldn't follow symbolic link")
+        then:
+        file("build/$output").assertDoesNotExist()
+
+        where:
+        type                 | _
+        Zip.class.simpleName | _
+        Tar.class.simpleName | _
     }
 
     def canCreateAZipArchive() {
@@ -896,7 +984,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                         fcd.relativePath = new RelativePath(!fcd.isDirectory(), fcd.relativePath.segments.drop(1))
                     }
                 }
-                into buildDir
+                into file("build/output")
             }
         """
 
@@ -904,7 +992,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run "copy"
 
         then:
-        file("build").assertHasDescendants(expectedDescendants)
+        file("build/output").assertHasDescendants(expectedDescendants)
 
         where:
         includeEmptyDirs | expectedDescendants
@@ -912,7 +1000,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         false            | ["file2.txt", "file3.txt"]
     }
 
-    @Issue("")
     def "zipTree tracks task dependencies"() {
         given:
         buildFile """

@@ -44,15 +44,31 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
     @Override
     @Nullable
     public RuntimeException finishBuildTree(List<Throwable> failures) {
-        List<Throwable> allFailures = new ArrayList<>(failures);
+        List<Throwable> finishNestedBuildsFailures = new ArrayList<>(failures);
+
         buildStateRegistry.visitBuilds(buildState -> {
             if (buildState instanceof NestedBuildState) {
                 ExecutionResult<Void> result = ((NestedBuildState) buildState).finishBuild();
-                allFailures.addAll(result.getFailures());
+                finishNestedBuildsFailures.addAll(result.getFailures());
             }
         });
-        RuntimeException reportableFailure = exceptionAnalyser.transform(allFailures);
+
+        RuntimeException reportableFailure = exceptionAnalyser.transform(finishNestedBuildsFailures);
         ExecutionResult<Void> finishResult = buildLifecycleController.finishBuild(reportableFailure);
-        return exceptionAnalyser.transform(ExecutionResult.maybeFailed(reportableFailure).withFailures(finishResult).getFailures());
+
+        List<Throwable> finishFailures = new ArrayList<>();
+        if (reportableFailure != null) {
+            finishFailures.add(reportableFailure);
+        }
+        finishFailures.addAll(finishResult.getFailures());
+        boolean failed = reportableFailure != null;
+
+        // These should run concurrently
+        buildStateRegistry.visitBuilds(buildState -> {
+            ExecutionResult<Void> result = buildState.beforeModelDiscarded(failed);
+            finishFailures.addAll(result.getFailures());
+        });
+
+        return exceptionAnalyser.transform(finishFailures);
     }
 }

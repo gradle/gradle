@@ -17,12 +17,12 @@
 package org.gradle.integtests.composite
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.isParallel() })
+@Requires(IntegTestPreconditions.NotParallelExecutor)
 class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 

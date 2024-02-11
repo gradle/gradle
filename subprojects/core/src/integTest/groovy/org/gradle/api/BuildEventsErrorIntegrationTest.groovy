@@ -78,7 +78,7 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "produces reasonable error when Gradle.allprojects action fails"() {
-        def initScript = file("init.gradle") << """
+        def initScript = initScript """
 allprojects {
     throw new RuntimeException("broken")
 }

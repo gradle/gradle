@@ -16,11 +16,16 @@
 
 package org.gradle.smoketests
 
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
+
+@Requires(UnitTestPreconditions.Jdk11OrLater)
 class MicronautPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     String getBuildScriptConfigurationForValidation() {
-        """micronaut {
-                version '2.5.4'
+        """
+            micronaut {
+                version '${TestedVersions.micronaut}'
            }
 
            pluginManager.withPlugin('io.micronaut.application') {
@@ -37,8 +42,8 @@ class MicronautPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            "io.micronaut.library": TestedVersions.micronaut,
-            "io.micronaut.application": TestedVersions.micronaut,
+            "io.micronaut.library": Versions.of(TestedVersions.micronaut),
+            "io.micronaut.application": Versions.of(TestedVersions.micronaut),
         ]
     }
 }

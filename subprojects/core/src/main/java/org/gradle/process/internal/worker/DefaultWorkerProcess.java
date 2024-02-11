@@ -32,6 +32,7 @@ import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 
 import javax.annotation.Nullable;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -154,6 +155,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     @Override
+    public String getDisplayName() {
+        return execHandle.getDisplayName();
+    }
+
+    @Override
     public String toString() {
         return "DefaultWorkerProcess{"
                 + "running=" + running
@@ -212,6 +218,10 @@ public class DefaultWorkerProcess implements WorkerProcess {
         } finally {
             lock.unlock();
         }
+
+        // Inform the exec handle to clear the startup context, so that it can be garbage collected
+        // This may contain references to tasks, projects, and builds which we don't want to keep around
+        execHandle.removeStartupContext();
     }
 
     @Override
@@ -221,6 +231,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
         } finally {
             cleanup();
         }
+    }
+
+    @Override
+    public Optional<ExecResult> getExecResult() {
+        return Optional.ofNullable(execHandle.getExecResult());
     }
 
     private void cleanup() {

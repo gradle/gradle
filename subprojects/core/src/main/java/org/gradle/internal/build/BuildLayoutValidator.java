@@ -65,20 +65,18 @@ public class BuildLayoutValidator {
             }
         }
 
-        StringBuilder message = new StringBuilder();
-        message.append("Directory '");
-        message.append(startParameter.getCurrentDir());
-        message.append("' does not contain a Gradle build.\n\n");
-        message.append("A Gradle build should contain a 'settings.gradle' or 'settings.gradle.kts' file in its root directory. ");
-        message.append("It may also contain a 'build.gradle' or 'build.gradle.kts' file.\n\n");
-        message.append("To create a new Gradle build in this directory run '");
+        StringBuilder message = new StringBuilder("Directory '");
+        message.append(startParameter.getCurrentDir())
+            .append("' does not contain a Gradle build.\n\n")
+            .append("A Gradle build should contain a 'settings.gradle' or 'settings.gradle.kts' file in its root directory. ")
+            .append("It may also contain a 'build.gradle' or 'build.gradle.kts' file.\n\n")
+            .append("To create a new Gradle build in this directory run '");
         clientMetaData.describeCommand(message, "init");
-        message.append("'\n\n");
-        message.append("For more detail on the 'init' task see ");
-        message.append(documentationRegistry.getDocumentationFor("build_init_plugin"));
-        message.append("\n\n");
-        message.append("For more detail on creating a Gradle build see ");
-        message.append(documentationRegistry.getDocumentationFor("tutorial_using_tasks")); // this is the "build script basics" chapter, we're missing some kind of "how to write a Gradle build chapter"
+        message.append("'\n\n")
+            .append(documentationRegistry.getDocumentationRecommendationFor("information about the 'init' task", "build_init_plugin"))
+            .append("\n\n")
+            // this is the "build script basics" chapter, we're missing some kind of "how to write a Gradle build chapter"
+            .append(documentationRegistry.getDocumentationRecommendationFor("details on creating a Gradle build", "tutorial_using_tasks"));
         throw new BuildLayoutException(message.toString());
     }
 

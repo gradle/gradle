@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CachingFileHasher.FileInfo
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.cache.PersistentIndexedCache
+import org.gradle.cache.IndexedCache
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
@@ -32,7 +32,7 @@ class CachingFileHasherTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def target = Mock(FileHasher)
-    def cache = Mock(PersistentIndexedCache)
+    def cache = Mock(IndexedCache)
     def cacheAccess = Mock(CrossBuildFileHashCache)
     def timeStampInspector = Mock(FileTimeStampInspector)
     def hash = TestHashCodes.hashCodeFrom(0x0123)
@@ -44,7 +44,7 @@ class CachingFileHasherTest extends Specification {
 
     def setup() {
         file.write("some-content")
-        1 * cacheAccess.createCache({ it.cacheName == "fileHashes"  }, _, _) >> cache
+        1 * cacheAccess.createIndexedCache({ it.cacheName == "fileHashes"  }, _, _) >> cache
         hasher = new CachingFileHasher(target, cacheAccess, new StringInterner(), timeStampInspector, "fileHashes", fileSystem, 1000, statisticsCollector)
     }
 

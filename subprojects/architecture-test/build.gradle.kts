@@ -1,6 +1,8 @@
-import gradlebuild.basics.flakyTestStrategy
+import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.PublicApi
+import gradlebuild.basics.PublicKotlinDslApi
+import gradlebuild.basics.flakyTestStrategy
 
 plugins {
     id("gradlebuild.internal.java")
@@ -17,6 +19,7 @@ dependencies {
     testImplementation(project(":model-core"))
     testImplementation(project(":file-temp"))
     testImplementation(project(":core"))
+    testImplementation(libs.futureKotlin("stdlib"))
     testImplementation(libs.inject)
 
     testImplementation(libs.archunitJunit5)
@@ -32,31 +35,49 @@ val acceptedApiChangesFile = layout.projectDirectory.file("src/changes/accepted-
 val verifyAcceptedApiChangesOrdering = tasks.register<gradlebuild.binarycompatibility.AlphabeticalAcceptedApiChangesTask>("verifyAcceptedApiChangesOrdering") {
     group = "verification"
     description = "Ensures the accepted api changes file is kept alphabetically ordered to make merging changes to it easier"
-    apiChangesFile.set(acceptedApiChangesFile)
+    apiChangesFile = acceptedApiChangesFile
 }
 
 val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.SortAcceptedApiChangesTask>("sortAcceptedApiChanges") {
     group = "verification"
     description = "Sort the accepted api changes file alphabetically"
-    apiChangesFile.set(acceptedApiChangesFile)
+    apiChangesFile = acceptedApiChangesFile
 }
 
-tasks.test {
-    // Looks like loading all the classes requires more than the default 512M
-    maxHeapSize = "900M"
+val ruleStoreDir = layout.projectDirectory.dir("src/changes/archunit_store")
 
-    // Only use one fork, so freezing doesn't have concurrency issues
-    maxParallelForks = 1
+tasks {
+    val reorderRuleStore by registering(ReorderArchUnitRulesTask::class) {
+        ruleFile = ruleStoreDir.file("stored.rules").asFile
+    }
 
-    systemProperty("org.gradle.public.api.includes", PublicApi.includes.joinToString(":"))
-    systemProperty("org.gradle.public.api.excludes", PublicApi.excludes.joinToString(":"))
-    jvmArgumentProviders.add(ArchUnitFreezeConfiguration(
-        project.file("src/changes/archunit_store"),
-        providers.gradleProperty("archunitRefreeze").map { true })
-    )
+    test {
+        // Looks like loading all the classes requires more than the default 512M
+        maxHeapSize = "1g"
 
-    dependsOn(verifyAcceptedApiChangesOrdering)
-    enabled = flakyTestStrategy !=  FlakyTestStrategy.ONLY
+        // Only use one fork, so freezing doesn't have concurrency issues
+        maxParallelForks = 1
+
+        inputs.dir(ruleStoreDir)
+
+        systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
+        systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
+        jvmArgumentProviders.add(
+            ArchUnitFreezeConfiguration(
+                ruleStoreDir.asFile,
+                providers.gradleProperty("archunitRefreeze").map { true })
+        )
+
+        dependsOn(verifyAcceptedApiChangesOrdering)
+        enabled = flakyTestStrategy != FlakyTestStrategy.ONLY
+
+        extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
+            // PTS doesn't work well with architecture tests which scan all classes
+            enabled = false
+        }
+
+        finalizedBy(reorderRuleStore)
+    }
 }
 
 class ArchUnitFreezeConfiguration(
@@ -75,5 +96,26 @@ class ArchUnitFreezeConfiguration(
             "-Darchunit.freeze.refreeze=${refreezeBoolean}",
             "-Darchunit.freeze.store.default.allowStoreUpdate=${refreezeBoolean}"
         )
+    }
+}
+
+/**
+ * Sorts the stored rules, so we keep a deterministic order when we add new rules.
+ */
+abstract class ReorderArchUnitRulesTask : DefaultTask() {
+    @get:OutputFile
+    abstract var ruleFile: File
+
+    @TaskAction
+    fun resortStoredRules() {
+        val lines = ruleFile.readLines()
+        val sortedLines = lines.sortedBy { line ->
+            // We sort by the rule name
+            line.substringBefore("=")
+        }
+
+        if (lines != sortedLines) {
+            ruleFile.writeText(sortedLines.joinToString("\n"))
+        }
     }
 }

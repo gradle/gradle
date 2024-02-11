@@ -1,0 +1,93 @@
+.table-of-contents a {
+  color: #02303A;
+}
+
+#fixed-issues-list ul,
+.table-of-contents ul,
+.topic ul {
+  list-style-type: none;
+}
+
+#fixed-issues-list li:before,
+.topic ul li:before {
+  color: #02303A;
+  content: '\002022';
+  font: 0.9em bold sans-serif;
+  margin-left: -1em;
+  margin-right: 0.4em;
+}
+
+li.mainTopic :before {
+  color: #02303A;
+  content: '\002022';
+  font: 0.9em bold sans-serif;
+  margin-left: -1em;
+  margin-right: 0.4em;
+}
+
+li.subTopic :before {
+  color: #02303A;
+  content: '\002022';
+  font: 0.9em bold sans-serif;
+  margin-left: 3em;
+  margin-right: 0.4em;
+}
+
+h4 {
+  margin-top: 1rem;
+  font-size: 1.0625rem;
+  font-style: italic;
+}
+
+pre {
+    overflow: auto;
+}
+
+ul.toc-sub {
+  margin-bottom: 0;
+}
+
+button.display-toggle {
+  cursor: pointer;
+}
+
+a.incubating-marker {
+  display: inline;
+  color: white;
+  font-style: italic;
+  font-size: 0.6em;
+  text-shadow: none;
+  margin-left: 0.6em;
+  border-radius: 6px;
+  background-color: rgb(160, 160, 160);
+  border: 1px solid rgb(150, 150, 150);
+  padding: 1px 5px;
+  box-shadow: none;
+  cursor: pointer;
+  vertical-align: 1px;
+}
+
+a.incubating-marker:hover {
+  text-decoration: none;
+  border: 1px solid rgb(150, 150, 150);
+}
+
+/* Same as code highlighting values in docs.css */
+.java_keyword {
+  color: #963;
+}
+.java_comment {
+  color: #998;
+}
+.java_plain, .java_type {
+
+}
+.java_separator {
+
+}
+.java_operator {
+  color: #555;
+}
+.java_literal {
+  color: #d14;
+}

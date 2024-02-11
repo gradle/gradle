@@ -32,6 +32,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHea
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -192,26 +193,26 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private static DefaultResolvedDependencyResult dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested()) {
-        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), [defaultVariant()], [defaultVariant()], "repoId")
+        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), [1: defaultVariant()], [defaultVariant()], "repoId")
         new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId(group, name), requested),
                 false,
                 selectedModule,
                 null,
-                new DefaultResolvedComponentResult(newId("a", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), [defaultVariant()], [defaultVariant()], "repoId"))
+                new DefaultResolvedComponentResult(newId("a", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), [1: defaultVariant()], [defaultVariant()], "repoId"))
     }
 
     private static DefaultResolvedVariantResult defaultVariant(String ownerGroup = 'com', String ownerModule = 'foo', String ownerVersion = '1.0') {
         def ownerId = DefaultModuleComponentIdentifier.newId(
             DefaultModuleVersionIdentifier.newId(ownerGroup, ownerModule, ownerVersion)
         )
-        new DefaultResolvedVariantResult(ownerId, Describables.of("default"), ImmutableAttributes.EMPTY, [], null)
+        new DefaultResolvedVariantResult(ownerId, Describables.of("default"), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, null)
     }
 
     private static DefaultResolvedDependencyResult path(String path) {
-        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(newId("group", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("group", "root"), "1"), [defaultVariant()], [defaultVariant()], "repoId")
+        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(newId("group", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("group", "root"), "1"), [1: defaultVariant()], [defaultVariant()], "repoId")
         List<DefaultResolvedDependencyResult> pathElements = (path.split(' -> ') as List).reverse().collect {
             def (name, version) = it.split(':')
-            def componentResult = new DefaultResolvedComponentResult(newId('group', name, version), ComponentSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('group', name), version), [defaultVariant()], [defaultVariant()], "repoId")
+            def componentResult = new DefaultResolvedComponentResult(newId('group', name, version), ComponentSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('group', name), version), [1: defaultVariant()], [defaultVariant()], "repoId")
             def result = new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId("group", name), version), false, componentResult, null, from)
             from = componentResult
             result

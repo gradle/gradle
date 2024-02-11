@@ -1,0 +1,34 @@
+// TODO:Finalize Upload Removal - Issue #21439
+// tag::lazy[]
+// tag::accessors[]
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.7.8'
+}
+
+// end::lazy[]
+// end::accessors[]
+
+// tag::accessors[]
+tasks.bootJar {
+    archiveFileName = 'app.jar'
+    mainClass = 'com.example.demo.Demo'
+}
+
+tasks.bootRun {
+    mainClass = 'com.example.demo.Demo'
+    args '--spring.profiles.active=demo'
+}
+// end::accessors[]
+
+// tag::lazy[]
+tasks.named('bootJar') {
+    archiveFileName = 'app.jar'
+    mainClass = 'com.example.demo.Demo'
+}
+
+tasks.named('bootRun') {
+    mainClass = 'com.example.demo.Demo'
+    args '--spring.profiles.active=demo'
+}
+// end::lazy[]

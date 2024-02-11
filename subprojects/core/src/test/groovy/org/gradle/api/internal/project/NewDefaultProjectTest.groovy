@@ -17,53 +17,11 @@
 package org.gradle.api.internal.project
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.dsl.ArtifactHandler
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.util.TestUtil.createChildProject
 
 class NewDefaultProjectTest extends AbstractProjectBuilderSpec {
-
-    void "delegates to artifacts handler"() {
-        def handler = Mock(ArtifactHandler)
-        project.artifactHandler = handler
-
-        when:
-        project.artifacts {
-            add('conf', 'art')
-        }
-
-        then:
-        1 * handler.add('conf', 'art')
-    }
-
-    void "delegates to dependency handler"() {
-        def handler = Mock(DependencyHandler)
-        project.dependencyHandler = handler
-
-        when:
-        project.dependencies {
-            add('conf', 'dep')
-        }
-
-        then:
-        1 * handler.add('conf', 'dep')
-    }
-
-    void "delegates to configuration container"() {
-        Closure cl = {}
-        def container = Mock(ConfigurationContainer)
-        project.configurationContainer = container
-
-        when:
-        project.configurations cl
-
-        then:
-        1 * container.configure(cl)
-    }
-
     def "provides all tasks recursively"() {
         def a = createChildProject(project, "a")
 

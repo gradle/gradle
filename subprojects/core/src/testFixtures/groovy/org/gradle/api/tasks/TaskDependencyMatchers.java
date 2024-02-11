@@ -69,47 +69,6 @@ public class TaskDependencyMatchers {
     }
 
     @Factory
-    public static Matcher<Task> finalizedBy(final String... tasks) {
-        return finalizedBy(equalTo(new HashSet<>(Arrays.asList(tasks))));
-    }
-
-    @Factory
-    public static Matcher<Task> finalizedBy(Matcher<? extends Iterable<String>> matcher) {
-        return finalizedBy(matcher, false);
-    }
-
-    @Factory
-    public static Matcher<Task> finalizedByPaths(Matcher<? extends Iterable<String>> matcher) {
-        return finalizedBy(matcher, true);
-    }
-
-    private static Matcher<Task> finalizedBy(final Matcher<? extends Iterable<String>> matcher, final boolean matchOnPaths) {
-        return new BaseMatcher<Task>() {
-            @Override
-            public boolean matches(Object o) {
-                Task task = (Task) o;
-                Set<String> names = new HashSet<>();
-                Set<? extends Task> depTasks = task.getFinalizedBy().getDependencies(task);
-                for (Task depTask : depTasks) {
-                    names.add(matchOnPaths ? depTask.getPath() : depTask.getName());
-                }
-                boolean matches = matcher.matches(names);
-                if (!matches) {
-                    StringDescription description = new StringDescription();
-                    matcher.describeTo(description);
-                    System.out.printf("expected %s, got %s.%n", description, names);
-                }
-                return matches;
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("a Task that is finalized by ").appendDescriptionOf(matcher);
-            }
-        };
-    }
-
-    @Factory
     public static <T extends Buildable> Matcher<T> builtBy(String... tasks) {
         return builtBy(equalTo(new HashSet<String>(Arrays.asList(tasks))));
     }

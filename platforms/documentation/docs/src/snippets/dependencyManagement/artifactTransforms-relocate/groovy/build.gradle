@@ -1,0 +1,99 @@
+import me.lucko.jarrelocator.JarRelocator
+import me.lucko.jarrelocator.Relocation
+import java.util.function.Predicate
+import java.util.jar.JarFile
+import java.util.stream.Collectors
+
+import org.gradle.api.artifacts.transform.TransformParameters
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("me.lucko:jar-relocator:1.3")
+    }
+}
+
+// tag::artifact-transform-relocate[]
+@CacheableTransform                                                          // <1>
+abstract class ClassRelocator implements TransformAction<Parameters> {
+    interface Parameters extends TransformParameters {                       // <2>
+        @CompileClasspath                                                    // <3>
+        ConfigurableFileCollection getExternalClasspath()
+        @Input
+        Property<String> getExcludedPackage()
+    }
+
+    @Classpath                                                               // <4>
+    @InputArtifact
+    abstract Provider<FileSystemLocation> getPrimaryInput()
+
+    @CompileClasspath
+    @InputArtifactDependencies                                               // <5>
+    abstract FileCollection getDependencies()
+
+    @Override
+    void transform(TransformOutputs outputs) {
+        def primaryInputFile = primaryInput.get().asFile
+        if (parameters.externalClasspath.contains(primaryInput)) {           // <6>
+            outputs.file(primaryInput)
+        } else {
+            def baseName = primaryInputFile.name.substring(0, primaryInputFile.name.length - 4)
+            relocateJar(outputs.file("$baseName-relocated.jar"))
+        }
+    }
+
+    private relocateJar(File output) {
+        // implementation...
+        def relocatedPackages = (dependencies.collectMany { readPackages(it) } + readPackages(primaryInput.get().asFile)) as Set
+        def nonRelocatedPackages = parameters.externalClasspath.collectMany { readPackages(it) }
+        def relocations = (relocatedPackages - nonRelocatedPackages).collect { packageName ->
+            def toPackage = "relocated.$packageName"
+            println("$packageName -> $toPackage")
+            new Relocation(packageName, toPackage)
+        }
+        new JarRelocator(primaryInput.get().asFile, output, relocations).run()
+    }
+// end::artifact-transform-relocate[]
+
+    private Set<String> readPackages(File file)  {
+        return new JarFile(file).withCloseable { jarFile ->
+            return jarFile.stream()
+                .filter(Predicate.not { it.directory })
+                .filter { it.name.endsWith(".class") }
+                .map { entry ->
+                    entry.name.substring(0, name.lastIndexOf('/')).replace('/', '.')
+                }
+                .collect(Collectors.toSet())
+        }
+    }
+// tag::artifact-transform-relocate[]
+}
+// end::artifact-transform-relocate[]
+
+configurations.create("externalClasspath")
+
+def usage = Attribute.of('usage', String)
+def artifactType = Attribute.of('artifactType', String)
+
+dependencies {
+    registerTransform(ClassRelocator) {
+        from.attribute(artifactType, "jar")
+        to.attribute(artifactType, "relocated-classes")
+        parameters {
+            externalClasspath.from(configurations.externalClasspath)
+            excludedPackage = "org.gradle.api"
+        }
+    }
+}
+
+dependencies {
+    attributesSchema {
+        attribute(usage)
+    }
+}
+configurations.create("compile") {
+    attributes.attribute usage, 'api'
+}

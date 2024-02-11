@@ -34,6 +34,7 @@ import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
 
 import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantArgOfType;
+import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantStringArg;
 import static org.gradle.groovy.scripts.internal.AstUtils.hasSinglePropertyExpressionArgument;
 import static org.gradle.groovy.scripts.internal.AstUtils.isOfType;
 
@@ -99,7 +100,7 @@ public class PluginUseScriptBlockMetadataCompiler {
                                 restrict(call, formatErrorMessage(DISALLOWED_ALIAS_NOTATION));
                                 return;
                             case "id":
-                                ConstantExpression argumentExpression = hasSingleConstantArgOfType(call, String.class);
+                                ConstantExpression argumentExpression = hasSingleConstantStringArg(call);
                                 if (argumentExpression == null) {
                                     restrict(call, formatErrorMessage(NEED_LITERAL_STRING));
                                     return;
@@ -170,7 +171,7 @@ public class PluginUseScriptBlockMetadataCompiler {
      * b) A GString expression containing only variable expressions
      */
     private static boolean hasSimpleInterpolatedStringType(MethodCallExpression call) {
-        if (hasSingleConstantArgOfType(call, String.class) != null) {
+        if (hasSingleConstantStringArg(call) != null) {
             return true;
         }
 
@@ -192,6 +193,6 @@ public class PluginUseScriptBlockMetadataCompiler {
     }
 
     public String formatErrorMessage(String message) {
-        return String.format("%s%n%nSee %s for information on the plugins {} block%n%n", message, documentationRegistry.getDocumentationFor("plugins", "sec:plugins_block"));
+        return String.format("%s%n%n%s%n%n", message, documentationRegistry.getDocumentationRecommendationFor("information on the plugins {} block", "plugins", "sec:plugins_block"));
     }
 }

@@ -19,14 +19,11 @@ package gradlebuild
 import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.build.event.BuildEventsListenerRegistry
-import org.gradle.internal.os.OperatingSystem
+// Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.jlleitschuh.gradle.ktlint.tasks.GenerateReportsTask
 
 /**
  * In build-logic and main build, register a BuildService instance separately,
@@ -51,7 +48,7 @@ fun <T : AbstractBuildScanInfoCollectingService> Project.registerBuildScanInfoCo
         val isInBuildLogic = rootProjectName == "build-logic"
         gradle.taskGraph.whenReady {
             val buildService: Provider<T> = gradle.sharedServices.registerIfAbsent("${klass.simpleName}-$rootProjectName", klass) {
-                parameters.monitoredTaskPaths.set(allTasks.filter(taskFilter).map { if (isInBuildLogic) ":build-logic${it.path}" else it.path }.toSet())
+                parameters.monitoredTaskPaths = allTasks.filter(taskFilter).map { if (isInBuildLogic) ":build-logic${it.path}" else it.path }.toSet()
             }
             gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(buildService)
             gradleRootProject.extensions.extraProperties.set("collectedInfo-${klass.simpleName}-${rootProjectName}", buildService.get().collectedInformation)

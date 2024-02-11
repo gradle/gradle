@@ -33,9 +33,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE
@@ -46,6 +44,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
     def setup() {
         expectReindentedValidationMessage()
+        enableProblemsApiCheck()
     }
 
     def "task output caching key is exposed when build cache is enabled"() {
@@ -85,13 +84,13 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
-    def "task output caching key is not exposed by default"() {
+    def "task output caching key is exposed by default"() {
         when:
         buildFile << customTaskCode('foo', 'bar')
         succeeds('customTask')
 
         then:
-        !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
+        operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
     def "handles task with no outputs"() {
@@ -145,9 +144,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
     def "handles invalid implementation classloader"() {
         given:
         buildScript """
@@ -181,9 +177,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.outputPropertyNames == null
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
     def "handles invalid action classloader"() {
         given:
         buildScript """
@@ -483,9 +476,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
     def "handles invalid nested bean classloader"() {
         given:
         buildScript """

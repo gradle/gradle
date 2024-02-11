@@ -23,13 +23,14 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
-import org.gradle.internal.reflect.Instantiator
+import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultObjectFactoryTest extends Specification {
     def propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
     def patternSetFactory = TestFiles.patternSetFactory
-    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator), Stub(DirectoryFileTreeFactory), patternSetFactory, propertyFactory, Stub(FilePropertyFactory), Stub(FileCollectionFactory), Stub(DomainObjectCollectionFactory))
+    def factory = new DefaultObjectFactory(TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectInstantiator(), Stub(DirectoryFileTreeFactory), patternSetFactory, propertyFactory, Stub(FilePropertyFactory), Stub(TaskDependencyFactory), Stub(FileCollectionFactory), Stub(DomainObjectCollectionFactory))
 
     def "property has no value"() {
         expect:

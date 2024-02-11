@@ -1,0 +1,353 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[sharing_build_logic_between_subprojects]]
+= Sharing Build Logic between Subprojects
+
+Subprojects in a multi-project build typically share some common dependencies.
+
+image::structuring-builds-3.png[]
+
+Instead of copying and pasting the same Java version and libraries in each subproject build script, Gradle provides a special directory for storing shared build logic that can be automatically applied to subprojects.
+
+[[sec:using_buildsrc]]
+== Share logic in `buildSrc`
+
+`buildSrc` is a Gradle-recognized and protected directory which comes with some benefits:
+
+1. *Reusable Build Logic*:
++
+`buildSrc` allows you to organize and centralize your custom build logic, tasks, and plugins in a structured manner.
+The code written in buildSrc can be reused across your project, making it easier to maintain and share common build functionality.
+
+2. *Isolation from the Main Build*:
++
+Code placed in `buildSrc` is isolated from the other build scripts of your project.
+This helps keep the main build scripts cleaner and more focused on project-specific configurations.
+
+3. *Automatic Compilation and Classpath*:
++
+The contents of the `buildSrc` directory are automatically compiled and included in the classpath of your main build.
+This means that classes and plugins defined in buildSrc can be directly used in your project's build scripts without any additional configuration.
+
+4. *Ease of Testing*:
++
+Since `buildSrc` is a separate build, it allows for easy testing of your custom build logic.
+You can write tests for your build code, ensuring that it behaves as expected.
+
+5. *Gradle Plugin Development*:
++
+If you are developing custom Gradle plugins for your project, `buildSrc` is a convenient place to house the plugin code.
+This makes the plugins easily accessible within your project.
+
+The `buildSrc` directory is treated as an <<composite_builds.adoc#composite_build_intro,included build>>.
+
+For multi-project builds, there can be only one `buildSrc` directory, which must be in the root project directory.
+
+NOTE: The downside of using `buildSrc` is that any change to it will invalidate every task in your project and require a rerun.
+
+`buildSrc` uses the same <<java_plugin.adoc#javalayout,source code conventions>> applicable to Java, Groovy, and Kotlin projects.
+It also provides direct access to the Gradle API.
+
+A typical project including `buildSrc` has the following layout:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── buildSrc
+│   ├── src
+│   │   └──main
+│   │      └──kotlin
+│   │         └──MyCustomTask.kt    // <1>
+│   ├── shared.gradle.kts   // <2>
+│   └── build.gradle.kts
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts    // <3>
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle.kts    // <3>
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts
+└── settings.gradle.kts
+----
+<1> Create the `MyCustomTask` task.
+<2> A shared build script.
+<3> Uses the `MyCustomTask` task and shared build script.
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── buildSrc
+│   ├── src
+│   │   └──main
+│   │      └──kotlin
+│   │         └──MyCustomTask.groovy    // <1>
+│   ├── shared.gradle   // <2>
+│   └── build.gradle
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle    // <3>
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle    // <3>
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle
+└── settings.gradle
+----
+<1> Create the `MyCustomTask` task.
+<2> A shared build script.
+<3> Uses the `MyCustomTask` task and shared build script.
+=====
+
+In the `buildSrc`, the build script `shared.gradle(.kts)` is created.
+It contains dependencies and other build information that is common to multiple subprojects:
+
+[.multi-language-sample]
+=====
+.shared.gradle.kts
+[source, kotlin]
+----
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.slf4j:slf4j-api:1.7.32")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.shared.gradle
+[source, groovy]
+----
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.slf4j:slf4j-api:1.7.32'
+}
+----
+=====
+
+In the `buildSrc`, the `MyCustomTask` is also created.
+It is a helper task that is used as part of the build logic for multiple subprojects:
+
+[.multi-language-sample]
+=====
+.MyCustomTask.kt
+[source, kotlin]
+----
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
+
+open class MyCustomTask : DefaultTask() {
+    @TaskAction
+    fun calculateSum() {
+        // Custom logic to calculate the sum of two numbers
+        val num1 = 5
+        val num2 = 7
+        val sum = num1 + num2
+
+        // Print the result
+        println("Sum: $sum")
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.MyCustomTask.groovy
+[source, groovy]
+----
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
+
+class MyCustomTask extends DefaultTask {
+    @TaskAction
+    void calculateSum() {
+        // Custom logic to calculate the sum of two numbers
+        int num1 = 5
+        int num2 = 7
+        int sum = num1 + num2
+
+        // Print the result
+        println "Sum: $sum"
+    }
+}
+----
+=====
+
+The `MyCustomTask` task is used in the build script of the `api` and `shared` projects.
+The task is automatically available because it's part of `buildSrc`.
+The `shared.build(.kts)` file is also applied:
+
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+// Apply any other configurations specific to your project
+
+// Use the build script defined in buildSrc
+apply(from = project(":buildSrc").file("shared.gradle.kts"))
+
+// Use the custom task defined in buildSrc
+tasks.register<MyCustomTask>("myCustomTask")
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+// Apply any other configurations specific to your project
+
+// Use the build script defined in buildSrc
+apply from: project(':buildSrc').file('shared.gradle')
+
+// Use the custom task defined in buildSrc
+tasks.register('myCustomTask', MyCustomTask)
+----
+=====
+
+[[sec:convention_plugins]]
+== Share logic using convention plugins
+
+Gradle's recommended way of organizing build logic is to use its plugin system.
+
+We can write a plugin that encapsulates the build logic common to several subprojects in a project.
+This kind of plugin is called a *convention plugin*.
+
+While writing plugins is outside the scope of this section, the recommended way to build a Gradle project is to put common build logic in a convention plugin located in the `buildSrc`.
+
+Let's take a look at an example project:
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── buildSrc
+│   ├── src
+│   │   └──main
+│   │      └──kotlin
+│   │         └──myproject.java-conventions.gradle  // <1>
+│   └── build.gradle.kts
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts    // <2>
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle.kts    // <2>
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts    // <2>
+└── settings.gradle.kts
+----
+<1> Create the `myproject.java-conventions` convention plugin.
+<2> Applies the `myproject.java-conventions` convention plugin.
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── buildSrc
+│   ├── src
+│   │   └──main
+│   │      └──kotlin
+│   │         └──myproject.java-conventions.gradle.kts  // <1>
+│   └── build.gradle
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle    // <2>
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle    // <2>
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle    // <2>
+└── settings.gradle
+----
+<1> Create the `myproject.java-conventions` convention plugin.
+<2> Applies the `myproject.java-conventions` convention plugin.
+=====
+
+This build contains three subprojects:
+
+====
+include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="settings.gradle[]"]
+====
+
+The source code for the convention plugin created in the `buildSrc` directory is as follows:
+
+====
+include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[]"]
+====
+
+The convention plugin is applied to the `api`, `shared`, and `person-service` subprojects:
+
+====
+include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="api/build.gradle.kts[];shared/build.gradle.kts[];services/person-service/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="api/build.gradle[];shared/build.gradle[];services/person-service/build.gradle[]"]
+====
+
+[[sec:convention_plugins_vs_cross_configuration]]
+== Do not use cross-project configuration
+
+An improper way to share build logic between subprojects is _cross-project configuration_ via the link:{javadocPath}//org/gradle/api/Project.html#subprojects-groovy.lang.Closure-[`subprojects {}`] and link:{javadocPath}/org/gradle/api/Project.html#allprojects-groovy.lang.Closure-[`allprojects {}`] DSL constructs.
+
+TIP:  Avoid using `subprojects {}` and `allprojects {}`.
+
+With cross-configuration, build logic can be injected into a subproject which is not obvious when looking at its build script.
+
+In the long run, cross-configuration usually grows in complexity and becomes a burden.
+Cross-configuration can also introduce configuration-time coupling between projects, which can prevent optimizations like configuration-on-demand from working properly.
+
+=== Convention plugins versus cross-configuration
+
+The two most common uses of cross-configuration can be better modeled using convention plugins:
+
+1. Applying plugins or other configurations to subprojects of a certain type. +
+Often, the cross-configuration logic is `if subproject is of type X, then configure Y`.
+This is equivalent to applying `X-conventions` plugin directly to a subproject.
+2. Extracting information from subprojects of a certain type. +
+This use case can be modeled using <<cross_project_publications.adoc#sec:simple-sharing-artifacts-between-projects,outgoing configuration variants>>.

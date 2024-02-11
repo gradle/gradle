@@ -36,7 +36,7 @@ public interface ExecutionPlan extends Describable, Closeable {
 
     void setContinueOnFailure(boolean continueOnFailure);
 
-    void setScheduledNodes(Collection<? extends Node> nodes);
+    void setScheduledWork(ScheduledWork work);
 
     /**
      * Adds an entry task to the execution plan. If called multiple times then execution plan follows the method invocation order.

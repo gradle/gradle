@@ -17,16 +17,27 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
+import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 
+/**
+ * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
+ *
+ * https://developer.android.com/studio/releases/build-tools.html
+ * https://developer.android.com/studio/releases/gradle-plugin.html
+ * https://androidstudio.googleblog.com/
+ *
+ * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
+ * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
+ */
 class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
     protected static final Iterable<String> TESTED_AGP_VERSIONS = TestedVersions.androidGradle.versions
@@ -35,7 +46,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     TestFile homeDir
 
-    String kotlinVersion = TestedVersions.kotlin.latestStable()
+    String kotlinVersion = KOTLIN_VERSIONS.latestStable
 
     def setup() {
         homeDir = temporaryFolder.createDir("test-kit-home")
@@ -52,13 +63,84 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
+            expectBuildIdentifierNameDeprecation(agpVersion)
+            if (GradleContextualExecuter.notConfigCache) {
+                expectAndroidConventionTypeDeprecationWarning(agpVersion)
+                expectBasePluginConventionDeprecation(agpVersion)
+                expectConfigUtilDeprecationWarning(agpVersion)
+                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
+                expectClientModuleDeprecationWarning(agpVersion)
+            }
+        }.build()
+    }
+
+    protected BuildResult buildUpToDateLocation(File projectDir, String agpVersion) {
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
+            if (GradleContextualExecuter.notConfigCache) {
+                expectAndroidConventionTypeDeprecationWarning(agpVersion)
+                expectBasePluginConventionDeprecation(agpVersion)
+                expectConfigUtilDeprecationWarning(agpVersion)
+                expectBuildIdentifierNameDeprecation(agpVersion)
+                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
+                expectClientModuleDeprecationWarning(agpVersion)
+            } else {
+                def agpVersionNumber = VersionNumber.parse(agpVersion)
+
+                expectBuildIdentifierNameDeprecation(agpVersion)
+                // TODO - this is here because AGP 7.4.x reads build/generated/source/kapt/debug at configuration time
+                if (agpVersion.startsWith("7.4")){
+                    expectConfigUtilDeprecationWarning(agpVersion)
+                }
+                if (agpVersionNumber >= VersionNumber.parse("7.4")) {
+                    // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
+                    expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                }
+                maybeExpectClientModuleDeprecationWarning(agpVersion)
+            }
+        }.build()
+    }
+
+    protected BuildResult buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(File location, String agpVersion) {
+        return runnerForLocation(location, agpVersion,"assembleDebug")
+            .deprecations(SantaTrackerDeprecations) {
+                expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+                expectAndroidConventionTypeDeprecationWarning(agpVersion)
+                expectBasePluginConventionDeprecation(agpVersion)
+                expectConfigUtilDeprecationWarning(agpVersion)
+                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectBuildIdentifierNameDeprecation(agpVersion)
+                expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
+                expectClientModuleDeprecationWarning(agpVersion)
+            }.build()
     }
 
     protected BuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
         return runnerForLocation(location, agpVersion,"assembleDebug")
             .deprecations(SantaTrackerDeprecations) {
                 expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+                expectBuildIdentifierNameDeprecation(agpVersion)
+            }.build()
+    }
+
+    protected BuildResult buildLocationMaybeExpectingWorkerExecutorAndConfigUtilDeprecation(File location, String agpVersion) {
+        return runnerForLocation(location, agpVersion,"assembleDebug")
+            .deprecations(SantaTrackerDeprecations) {
+                def agpVersionNumber = VersionNumber.parse(agpVersion)
+
+                expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+                // TODO - this is here because AGP 7.4.x reads build/generated/source/kapt/debug at configuration time
+                if (agpVersion.startsWith("7.4")){
+                    expectConfigUtilDeprecationWarning(agpVersion)
+                }
+                expectBuildIdentifierNameDeprecation(agpVersion)
+                if (agpVersionNumber >= VersionNumber.parse("7.4")) {
+                    // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
+                    expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                }
+                maybeExpectClientModuleDeprecationWarning(agpVersion)
             }.build()
     }
 
@@ -69,19 +151,26 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult cleanLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "clean").build()
+        return runnerForLocation(projectDir, agpVersion, "clean").deprecations(SantaTrackerDeprecations) {
+            expectAndroidConventionTypeDeprecationWarning(agpVersion)
+            expectBasePluginConventionDeprecation(agpVersion)
+            expectConfigUtilDeprecationWarning(agpVersion)
+            expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
+            expectClientModuleDeprecationWarning(agpVersion)
+        }.build()
     }
 
     protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
-        def runnerArgs = [["-DagpVersion=$agpVersion", "-DkotlinVersion=$kotlinVersion", "--stacktrace"], tasks].flatten()
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            // fall back to using Java 11 (LTS) for Android tests
-            // Kapt is not compatible with JDK 16+, https://youtrack.jetbrains.com/issue/KT-45545,
-            // or Java 17 for now: https://youtrack.jetbrains.com/issue/KT-47583
-            // perhaps we should always run Android tests on Java 11 instead of having some of them skipped by a precondition
-            def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
-            runnerArgs += "-Dorg.gradle.java.home=${jdk.javaHome}"
-        }
+        def runnerArgs = [[
+            // TODO: the versions of KGP we use still access Task.project from a cacheIf predicate
+            // A workaround for this has been added to TaskExecutionAccessCheckers;
+            // TODO once we remove it, uncomment the flag below or upgrade AGP
+            // "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true",
+            "-DagpVersion=$agpVersion",
+            "-DkotlinVersion=$kotlinVersion",
+            "-DjavaVersion=${AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion).majorVersion}",
+            "--stacktrace"],
+        tasks].flatten()
         def runner = runner(*runnerArgs)
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
@@ -103,7 +192,9 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
             runner.withArguments([runner.arguments, ['-I', init.canonicalPath]].flatten())
         }
-        return runner
+        return runner.deprecations(SantaTrackerDeprecations) {
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
+        }
     }
 
     protected static boolean verify(BuildResult result, Map<String, TaskOutcome> outcomes) {

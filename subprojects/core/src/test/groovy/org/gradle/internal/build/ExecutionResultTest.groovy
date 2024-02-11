@@ -19,6 +19,8 @@ package org.gradle.internal.build
 import org.gradle.execution.MultipleBuildFailures
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 class ExecutionResultTest extends Specification {
     def "can query successful result"() {
         def result = ExecutionResult.succeeded(12)
@@ -26,6 +28,7 @@ class ExecutionResultTest extends Specification {
         expect:
         result.value == 12
         result.valueOrRethrow == 12
+        result.failureOrNull == null
         result.failures.empty
         result.rethrow()
 
@@ -48,6 +51,7 @@ class ExecutionResultTest extends Specification {
         expect:
         result.value == null
         result.valueOrRethrow == null
+        result.failureOrNull == null
         result.failures.empty
         result.rethrow()
     }
@@ -59,6 +63,7 @@ class ExecutionResultTest extends Specification {
         expect:
         result.failures == [failure]
         result.failure == failure
+        result.failureOrNull == failure
 
         when:
         result.valueOrRethrow
@@ -90,6 +95,8 @@ class ExecutionResultTest extends Specification {
         result.failures == [failure1, failure2]
         result.failure instanceof MultipleBuildFailures
         result.failure.causes == [failure1, failure2]
+        result.failureOrNull instanceof MultipleBuildFailures
+        result.failureOrNull.causes == [failure1, failure2]
 
         when:
         result.valueOrRethrow
@@ -118,6 +125,7 @@ class ExecutionResultTest extends Specification {
         expect:
         result.value == null
         result.valueOrRethrow == null
+        result.failureOrNull == null
         result.failures.empty
         result.rethrow()
     }
@@ -153,4 +161,49 @@ class ExecutionResultTest extends Specification {
         result5.failure instanceof MultipleBuildFailures
     }
 
+    def "can run action for collection of items"() {
+        def action = Mock(Consumer)
+
+        when:
+        def result1 = ExecutionResult.forEach([], action)
+
+        then:
+        result1.failures.empty
+        0 * action._
+
+        when:
+        def result2 = ExecutionResult.forEach([1, 2], action)
+
+        then:
+        result2.failures.empty
+        1 * action.accept(1)
+        1 * action.accept(2)
+        0 * action._
+    }
+
+    def "collects failures for actions"() {
+        def action = Mock(Consumer)
+        def failure1 = new RuntimeException()
+        def failure2 = new RuntimeException()
+
+        when:
+        def result1 = ExecutionResult.forEach([1], action)
+
+        then:
+        result1.failure == failure1
+        result1.failures == [failure1]
+        1 * action.accept(1) >> { throw failure1 }
+        0 * action._
+
+        when:
+        def result2 = ExecutionResult.forEach([1, 2, 3], action)
+
+        then:
+        result2.failure instanceof MultipleBuildFailures
+        result2.failures == [failure1, failure2]
+        1 * action.accept(1) >> { throw failure1 }
+        1 * action.accept(2) >> { throw failure2 }
+        1 * action.accept(3)
+        0 * action._
+    }
 }

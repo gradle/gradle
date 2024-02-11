@@ -30,10 +30,12 @@ public abstract class Javadocs {
      * Link to Java API to use when generating Javadoc
      */
     public abstract Property<URI> getJavaApi();
+
     /**
      * Link to Groovy API to use when generating Javadoc
      */
     public abstract Property<URI> getGroovyApi();
+
     /**
      * The CSS file to style Javadocs with
      */

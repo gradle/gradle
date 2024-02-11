@@ -23,11 +23,11 @@ import static org.gradle.internal.classpath.intercept.InvocationUtils.unwrap;
  *
  * @param <R> the type of the receiver
  */
-abstract class AbstractInvocation<R> implements Invocation {
+public abstract class AbstractInvocation<R> implements Invocation {
     protected final R receiver;
     protected final Object[] args;
 
-    AbstractInvocation(R receiver, Object[] args) {
+    public AbstractInvocation(R receiver, Object[] args) {
         this.receiver = receiver;
         this.args = args;
     }

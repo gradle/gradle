@@ -23,8 +23,10 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.LocalTaskNode;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.UncheckedException;
@@ -38,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class DefaultBuildWorkGraphController implements BuildWorkGraphController {
@@ -66,7 +69,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             }
             nodesByPath.clear();
         }
-        taskNodeFactory.clear();
+        taskNodeFactory.resetState();
     }
 
     @Override
@@ -161,17 +164,25 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
 
         @Override
         public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
-            assertIsOwner();
-            createPlan();
+            BuildWorkPlan ownedPlan = getOwnedPlan();
             controller.prepareToScheduleTasks();
-            controller.populateWorkGraph(plan, action);
+            controller.populateWorkGraph(ownedPlan, action);
         }
 
         @Override
         public void addFilter(Spec<Task> filter) {
+            getOwnedPlan().addFilter(filter);
+        }
+
+        @Override
+        public void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
+            getOwnedPlan().addFinalization(finalization);
+        }
+
+        private BuildWorkPlan getOwnedPlan() {
             assertIsOwner();
             createPlan();
-            plan.addFilter(filter);
+            return plan;
         }
 
         private void createPlan() {

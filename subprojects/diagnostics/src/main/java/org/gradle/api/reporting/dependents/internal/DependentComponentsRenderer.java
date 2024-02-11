@@ -16,7 +16,6 @@
 
 package org.gradle.api.reporting.dependents.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -31,7 +30,9 @@ import org.gradle.reporting.ReportRenderer;
 import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
 public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
 
@@ -85,7 +86,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
     private DependentComponentsRenderableDependency getRenderableDependencyOf(final ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
         if (resolver != null && componentSpec instanceof VariantComponentSpec) {
             VariantComponentSpec variantComponentSpec = (VariantComponentSpec) componentSpec;
-            LinkedHashSet<DependentComponentsRenderableDependency> children = Sets.newLinkedHashSet();
+            LinkedHashSet<DependentComponentsRenderableDependency> children = new LinkedHashSet<>();
             for (BinarySpecInternal binarySpec : variantComponentSpec.getBinaries().withType(BinarySpecInternal.class)) {
                 DependentBinariesResolutionResult resolvedBinary = resolver.resolve(binarySpec);
                 children.add(DependentComponentsRenderableDependency.of(resolvedBinary.getRoot()));

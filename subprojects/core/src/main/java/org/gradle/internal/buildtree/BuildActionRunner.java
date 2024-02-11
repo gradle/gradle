@@ -51,7 +51,7 @@ public interface BuildActionRunner {
         private static final Result NOTHING = new Result(false, null, null, null);
         private static final Result NULL = new Result(true, null, null, null);
 
-        private Result(boolean hasResult, Object result, Throwable buildFailure, Throwable clientFailure) {
+        private Result(boolean hasResult, @Nullable Object result, @Nullable Throwable buildFailure, @Nullable Throwable clientFailure) {
             this.hasResult = hasResult;
             this.result = result;
             this.buildFailure = buildFailure;

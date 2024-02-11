@@ -1,0 +1,25 @@
+apply plugin: 'java'
+
+java.sourceCompatibility = 1.6
+
+configurations {
+    provided
+    compile.extendsFrom provided
+}
+
+dependencies {
+    provided 'log4j:log4j:1.2.17'
+    implementation project(':api')
+    runtimeOnly 'joda-time:joda-time:2.5'
+    testImplementation 'junit:junit:4.13'
+}
+
+eclipse {
+    pathVariables GRADLE_USER_HOME: file("${gradle.gradleUserHomeDir}/caches")
+
+    wtp {
+        component {
+            minusConfigurations << configurations.provided
+        }
+    }
+}

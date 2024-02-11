@@ -16,9 +16,11 @@
 
 package org.gradle.test.fixtures.archive
 
+import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.io.IOUtils
-import org.apache.tools.zip.ZipFile
-import org.gradle.test.fixtures.file.ClassFile
+import org.gradle.api.JavaVersion
+import org.gradle.internal.classanalysis.JavaClassUtil
+import org.gradle.internal.lazy.Lazy
 
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -27,13 +29,26 @@ import java.util.jar.Manifest
 class JarTestFixture extends ZipTestFixture {
     File file
 
+    private final Lazy<Manifest> theManifest = Lazy.atomic().of {
+        new Manifest(IOUtils.toInputStream(content('META-INF/MANIFEST.MF'), contentCharset as String))
+    }
+
     /**
-     * Asserts that the Jar file is well-formed
+     * Asserts that the Jar file is well-formed.
      */
-     JarTestFixture(File file, String metadataCharset = 'UTF-8', String contentCharset = null) {
+    JarTestFixture(File file, String metadataCharset = 'UTF-8', String contentCharset = null) {
+        this(file, metadataCharset, contentCharset, true)
+    }
+
+    /**
+     * Creates the fixture.
+     */
+    JarTestFixture(File file, String metadataCharset, String contentCharset, boolean checkManifest) {
          super(file, metadataCharset, contentCharset)
          this.file = file
-         isManifestPresentAndFirstEntry()
+         if (checkManifest) {
+             isManifestPresentAndFirstEntry()
+         }
      }
 
     /**
@@ -50,7 +65,7 @@ class JarTestFixture extends ZipTestFixture {
         def zipFile = new ZipFile(file, metadataCharset)
         try {
             def entries = zipFile.getEntries()
-            def zipEntry = entries.nextElement();
+            def zipEntry = entries.nextElement()
             if(zipEntry.getName().equalsIgnoreCase('META-INF/')) {
                 zipEntry = entries.nextElement()
             }
@@ -67,7 +82,7 @@ class JarTestFixture extends ZipTestFixture {
         return super.hasDescendants(allDescendants)
     }
 
-    def getJavaVersion() {
+    JavaVersion getJavaVersion() {
         JarFile jarFile = new JarFile(file)
         try {
             //take the first class file
@@ -75,14 +90,36 @@ class JarTestFixture extends ZipTestFixture {
             if (classEntry == null) {
                 throw new Exception("Could not find a class entry for: " + file)
             }
-            ClassFile classFile = new ClassFile(jarFile.getInputStream(classEntry))
-            return classFile.javaVersion
+            return JavaVersion.forClassVersion(JavaClassUtil.getClassMajorVersion(jarFile.getInputStream(classEntry)))
         } finally {
             jarFile.close()
         }
     }
 
     Manifest getManifest() {
-        new Manifest(IOUtils.toInputStream(content('META-INF/MANIFEST.MF'), contentCharset))
+        return theManifest.get()
+    }
+
+    def assertIsMultiRelease() {
+        assert "true" == manifest.mainAttributes.getValue("Multi-Release")
+        this
+    }
+
+    def assertContainsVersioned(int version, String basePath) {
+        assertContainsFile(toVersionedPath(version, basePath))
+        this
+    }
+
+    def assertNotContainsVersioned(int version, String basePath) {
+        assertNotContainsFile(toVersionedPath(version, basePath))
+    }
+
+    def assertVersionedContent(int version, String basePath, String content) {
+        assertFileContent(toVersionedPath(version, basePath), content)
+    }
+
+    static String toVersionedPath(int version, String basePath) {
+        assert version > 8: "Java only supports versioned directories for versions >8, got $version"
+        return "META-INF/versions/$version/$basePath"
     }
 }

@@ -1,0 +1,5 @@
+Calculating task graph as no cached configuration is available for tasks: someTask
+> Task :someTask
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

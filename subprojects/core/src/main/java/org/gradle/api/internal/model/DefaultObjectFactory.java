@@ -25,6 +25,7 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.Directory;
@@ -32,12 +33,15 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyCollector;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
@@ -54,24 +58,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultObjectFactory implements ObjectFactory {
+public class DefaultObjectFactory implements ObjectFactory, BuildTreeObjectFactory {
     private final Instantiator instantiator;
     private final NamedObjectInstantiator namedObjectInstantiator;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final Factory<PatternSet> patternSetFactory;
     private final PropertyFactory propertyFactory;
     private final FilePropertyFactory filePropertyFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
-                                PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+                                PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.patternSetFactory = patternSetFactory;
         this.propertyFactory = propertyFactory;
         this.filePropertyFactory = filePropertyFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
     }
@@ -98,7 +104,7 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public SourceDirectorySet sourceDirectorySet(final String name, final String displayName) {
-        return new DefaultSourceDirectorySet(name, displayName, patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, DefaultObjectFactory.this);
+        return newInstance(DefaultSourceDirectorySet.class, name, displayName, patternSetFactory, taskDependencyFactory, fileCollectionFactory, directoryFileTreeFactory, DefaultObjectFactory.this);
     }
 
     @Override
@@ -109,6 +115,11 @@ public class DefaultObjectFactory implements ObjectFactory {
     @Override
     public RegularFileProperty fileProperty() {
         return filePropertyFactory.newFileProperty();
+    }
+
+    @Override
+    public DependencyCollector dependencyCollector() {
+        return newInstance(DefaultDependencyCollector.class);
     }
 
     @Override

@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 
 /**
- * An exception to report a problem during transformation execution.
+ * An exception to report a problem during a transform execution.
  *
  * @since 3.5
  */

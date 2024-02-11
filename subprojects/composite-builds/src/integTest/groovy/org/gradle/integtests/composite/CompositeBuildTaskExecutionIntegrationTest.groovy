@@ -80,6 +80,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractCompositeBuildT
     }
 
     def "reports candidates when task path cannot be resolved"() {
+        createDirs("aaBb", "aaaBbb", "aaaaBbbb", "aaBb/ccDD", "aaBb/cccDDD")
         settingsFile << """
             rootProject.name = 'broken'
             includeBuild("aaBb")

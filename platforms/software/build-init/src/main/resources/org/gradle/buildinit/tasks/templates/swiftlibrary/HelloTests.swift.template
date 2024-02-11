@@ -1,0 +1,13 @@
+${fileComment.multilineComment}
+import XCTest
+@testable import ${moduleName.groovyString}
+
+class HelloTests: XCTestCase {
+    public static var allTests = [
+        ("testGreeting", testGreeting),
+    ]
+
+    func testGreeting() {
+        XCTAssertEqual("Hello, World!", Hello().greeting())
+    }
+}

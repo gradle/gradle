@@ -27,16 +27,18 @@ import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.OutputDirSelector;
 import org.gradle.performance.results.OutputDirSelectorUtil;
 import org.gradle.profiler.BuildAction;
-import org.gradle.profiler.DaemonControl;
+import org.gradle.profiler.BuildContext;
+import org.gradle.profiler.BuildMutator;
 import org.gradle.profiler.GradleBuildConfiguration;
-import org.gradle.profiler.GradleBuildInvoker;
-import org.gradle.profiler.GradleScenarioDefinition;
-import org.gradle.profiler.GradleScenarioInvoker;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Logging;
-import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.ScenarioDefinition;
 import org.gradle.profiler.ScenarioInvoker;
+import org.gradle.profiler.gradle.DaemonControl;
+import org.gradle.profiler.gradle.GradleBuildInvoker;
+import org.gradle.profiler.gradle.GradleScenarioDefinition;
+import org.gradle.profiler.gradle.GradleScenarioInvoker;
+import org.gradle.profiler.gradle.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
 import org.gradle.profiler.result.BuildInvocationResult;
 import org.gradle.profiler.studio.invoker.StudioGradleScenarioDefinition;
@@ -54,9 +56,14 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * {@inheritDoc}
@@ -102,7 +109,11 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(invocationSettings.getGradleUserHome());
             Logging.setupLogging(workingDirectory);
             if (buildSpec.isUseAndroidStudio()) {
-                StudioGradleScenarioDefinition studioScenarioDefinition = new StudioGradleScenarioDefinition(scenarioDefinition, buildSpec.getStudioJvmArgs());
+                StudioGradleScenarioDefinition studioScenarioDefinition = new StudioGradleScenarioDefinition(
+                    scenarioDefinition,
+                    buildSpec.getStudioJvmArgs(),
+                    buildSpec.getStudioIdeaProperties()
+                );
                 StudioGradleScenarioInvoker studioScenarioInvoker = new StudioGradleScenarioInvoker(scenarioInvoker);
                 doRunScenario(studioScenarioDefinition, studioScenarioInvoker, invocationSettings, results);
             } else {
@@ -117,6 +128,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             try {
                 Logging.resetLogging();
             } catch (IOException e) {
+                //noinspection CallToPrintStackTrace
                 e.printStackTrace();
             }
             ConnectorServices.reset();
@@ -190,13 +202,13 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .build();
     }
 
-    private File determineGradleUserHome(GradleInvocationSpec invocationSpec) {
+    private static File determineGradleUserHome(GradleInvocationSpec invocationSpec) {
         File projectDirectory = invocationSpec.getWorkingDirectory();
         // do not add the Gradle user home in the project directory, so it is not watched
         return new File(projectDirectory.getParent(), projectDirectory.getName() + "-" + GRADLE_USER_HOME_NAME);
     }
 
-    private GradleScenarioDefinition createScenarioDefinition(GradleBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {
+    private static GradleScenarioDefinition createScenarioDefinition(GradleBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {
         GradleDistribution gradleDistribution = invocationSpec.getGradleDistribution();
         List<String> cleanTasks = invocationSpec.getCleanTasks();
         File gradlePropertiesFile = new File(invocationSettings.getProjectDir(), "gradle.properties");
@@ -222,14 +234,55 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
                 : new RunTasksAction(cleanTasks),
             invocationSpec.getArgs(),
             invocationSettings.getSystemProperties(),
-            experimentSpec.getBuildMutators().stream()
-                .map(mutatorFunction -> mutatorFunction.apply(invocationSettings))
-                .collect(Collectors.toList()),
+            collectMutators(invocationSettings, experimentSpec),
             invocationSettings.getWarmUpCount(),
             invocationSettings.getBuildCount(),
             invocationSettings.getOutputDir(),
             ImmutableList.of(),
             invocationSettings.getMeasuredBuildOperations()
         );
+    }
+
+    private static List<BuildMutator> collectMutators(InvocationSettings invocationSettings, GradleBuildExperimentSpec experimentSpec) {
+        return Stream.concat(
+            experimentSpec.getBuildMutators().stream()
+                .map(mutatorFunction -> mutatorFunction.apply(invocationSettings)),
+            Stream.of(new DelayBeforeBuildMutator(500, MILLISECONDS))
+        ).collect(Collectors.toList());
+    }
+
+    /**
+     * Pause between builds for the following reasons:
+     *
+     * <ul>
+     * <li>better simulate a normal development lifecycle where builds are rarely executed
+     * back-to-back, as there is typically some work being done between the builds,</li>
+     * <li>give file system events a chance to arrive; otherwise we might detect them during
+     * the build, and invalidating the VFS,
+     * <li>let VFS cleanup (that happens between builds) finish.</li>
+     * </ul>
+     */
+    private static class DelayBeforeBuildMutator implements BuildMutator {
+        private final long delay;
+        private final TimeUnit unit;
+
+        public DelayBeforeBuildMutator(long delay, TimeUnit unit) {
+            this.unit = unit;
+            this.delay = delay;
+        }
+
+        @Override
+        public void beforeBuild(BuildContext context) {
+            try {
+                unit.sleep(delay);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Delay %d %s before each build", delay, unit.name().toLowerCase(Locale.ROOT));
+        }
     }
 }

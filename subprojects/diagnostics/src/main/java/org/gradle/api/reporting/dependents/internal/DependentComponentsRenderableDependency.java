@@ -16,7 +16,6 @@
 
 package org.gradle.api.reporting.dependents.internal;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.AbstractRenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
@@ -58,7 +57,7 @@ public class DependentComponentsRenderableDependency extends AbstractRenderableD
         String description = id.getDisplayName();
         boolean buildable = resolvedResult.isBuildable();
         boolean testSuite = resolvedResult.isTestSuite();
-        LinkedHashSet<DependentComponentsRenderableDependency> children = Sets.newLinkedHashSet();
+        LinkedHashSet<DependentComponentsRenderableDependency> children = new LinkedHashSet<>();
         for (DependentBinariesResolvedResult childResolutionResult : resolvedResult.getChildren()) {
             children.add(of(childResolutionResult));
         }

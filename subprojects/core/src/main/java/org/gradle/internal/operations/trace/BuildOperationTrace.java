@@ -18,11 +18,16 @@ package org.gradle.internal.operations.trace;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.StandardSystemProperty;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
+import groovy.json.JsonGenerator;
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -88,6 +93,7 @@ public class BuildOperationTrace implements Stoppable {
 
     private final String basePath;
     private final OutputStream logOutputStream;
+    private final JsonGenerator jsonGenerator = createJsonGenerator();
 
     private final BuildOperationListenerManager buildOperationListenerManager;
 
@@ -163,7 +169,7 @@ public class BuildOperationTrace implements Stoppable {
         ClassLoader previousClassLoader = currentThread.getContextClassLoader();
         currentThread.setContextClassLoader(JsonOutput.class.getClassLoader());
         try {
-            String json = JsonOutput.toJson(operation.toMap());
+            String json = jsonGenerator.toJson(operation.toMap());
             try {
                 synchronized (logOutputStream) {
                     logOutputStream.write(json.getBytes(StandardCharsets.UTF_8));
@@ -180,7 +186,7 @@ public class BuildOperationTrace implements Stoppable {
 
     private void writeDetailTree(List<BuildOperationRecord> roots) throws IOException {
         try {
-            String rawJson = JsonOutput.toJson(BuildOperationTree.serialize(roots));
+            String rawJson = jsonGenerator.toJson(BuildOperationTree.serialize(roots));
             String prettyJson = JsonOutput.prettyPrint(rawJson);
             Files.asCharSink(file(basePath, "-tree.json"), Charsets.UTF_8).write(prettyJson);
         } catch (OutOfMemoryError e) {
@@ -231,12 +237,12 @@ public class BuildOperationTrace implements Stoppable {
 
                         if (record.details != null) {
                             stringBuilder.append(" ");
-                            stringBuilder.append(JsonOutput.toJson(record.details));
+                            stringBuilder.append(jsonGenerator.toJson(record.details));
                         }
 
                         if (record.result != null) {
                             stringBuilder.append(" ");
-                            stringBuilder.append(JsonOutput.toJson(record.result));
+                            stringBuilder.append(jsonGenerator.toJson(record.result));
                         }
 
                         stringBuilder.append(" [");
@@ -393,4 +399,44 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
+    @NonNullApi
+    private static class JsonClassConverter implements JsonGenerator.Converter {
+        @Override
+        public boolean handles(Class<?> type) {
+            return Class.class.equals(type);
+        }
+
+        @Override
+        public Object convert(Object value, String key) {
+            Class<?> clazz = (Class<?>) value;
+            return clazz.getName();
+        }
+    }
+
+    private static JsonGenerator createJsonGenerator() {
+        return new JsonGenerator.Options()
+            .addConverter(new JsonClassConverter())
+            .addConverter(new JsonThrowableConverter())
+            .build();
+    }
+
+    @NonNullApi
+    private static class JsonThrowableConverter implements JsonGenerator.Converter {
+        @Override
+        public boolean handles(Class<?> type) {
+            return Throwable.class.isAssignableFrom(type);
+        }
+
+        @Override
+        public Object convert(Object value, String key) {
+            Throwable throwable = (Throwable) value;
+            String message = throwable.getMessage();
+            Builder<Object, Object> builder = ImmutableMap.builder();
+            if (message != null) {
+                builder.put("message", message);
+            }
+            builder.put("stackTrace", Throwables.getStackTraceAsString(throwable));
+            return builder.build();
+        }
+    }
 }

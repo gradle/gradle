@@ -384,6 +384,7 @@ To see more detail about a task, run gradle help --task <task>
     def "renders tasks in a multi-project build running [tasks]"() {
         given:
         buildFile << multiProjectBuild()
+        createDirs("sub1", "sub2")
         settingsFile << "include 'sub1', 'sub2'"
 
         when:
@@ -403,6 +404,7 @@ c
     def "renders tasks in a multi-project build running [tasks, --all]"() {
         given:
         buildFile << multiProjectBuild()
+        createDirs("sub1", "sub2")
         settingsFile << "include 'sub1', 'sub2'"
 
         when:
@@ -607,6 +609,7 @@ model - Displays the configuration model of root project 'test-project'. [deprec
         given:
         buildFile << multiProjectBuild()
         def projects = (1..100).collect {"project$it"}
+        createDirs(projects as String[])
         settingsFile << "include '${projects.join("', '")}'"
 
         expect:

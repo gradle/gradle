@@ -31,6 +31,6 @@ public interface PluginTarget {
 
     void applyRules(@Nullable String pluginId, Class<?> clazz);
 
-    void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin);
+    void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin, Class<?> declaringClass);
 
 }

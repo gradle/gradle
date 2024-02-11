@@ -5,14 +5,15 @@ plugins {
 description = "Provides plugins to configure quality checks (incubating report, CodeNarc, et al)"
 
 dependencies {
-    implementation(project(":basics"))
+    implementation("gradlebuild:basics")
+
     implementation(project(":cleanup"))
     implementation(project(":documentation"))
     implementation(project(":integration-testing"))
     implementation(project(":performance-testing"))
     implementation(project(":profiling"))
+    implementation(project(":binary-compatibility"))
 
-    implementation("me.champeau.gradle:japicmp-gradle-plugin")
     implementation("org.codenarc:CodeNarc") {
         exclude(group = "org.apache.groovy")
         exclude(group = "org.codehaus.groovy")
@@ -24,6 +25,9 @@ dependencies {
     implementation(kotlin("gradle-plugin"))
     implementation(kotlin("compiler-embeddable") as String) {
         because("Required by IncubatingApiReportTask")
+    }
+    implementation("com.gradle:gradle-enterprise-gradle-plugin") {
+        because("Arch-test plugin configures the PTS extension")
     }
 
     testImplementation("org.junit.jupiter:junit-jupiter-engine")

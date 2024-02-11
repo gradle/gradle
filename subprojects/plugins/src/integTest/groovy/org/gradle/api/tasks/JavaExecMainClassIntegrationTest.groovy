@@ -19,9 +19,12 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class JavaExecMainClassIntegrationTest extends AbstractIntegrationSpec {
 
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "can add JavaExec mainClass convention to automatically find class at execution time"() {
         given:
         def configurationCache = new ConfigurationCacheFixture(this)
@@ -70,10 +73,10 @@ class JavaExecMainClassIntegrationTest extends AbstractIntegrationSpec {
             def resolveMainClassName = tasks.register('resolveMainClassName', ResolveMainClassName) {
                 classpath.from(compileJava)
                 mainClassFromBootExtension.set(
-                    project.convention.findByType(BootExtension.class)?.mainClassName
+                    project.extensions.findByType(BootExtension.class)?.mainClassName
                 )
                 mainClassFromJavaApplication.set(
-                    project.convention.findByType(JavaApplication.class)?.mainClass
+                    project.extensions.findByType(JavaApplication.class)?.mainClass
                 )
                 mainClassFile = layout.buildDirectory.file('mainClass.txt')
             }

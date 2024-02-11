@@ -17,8 +17,8 @@
 package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

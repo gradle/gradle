@@ -53,10 +53,12 @@ import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -64,6 +66,7 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.work.ProjectParallelExecutionController;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -85,11 +88,11 @@ public class ProjectBuilderImpl {
         DefaultProjectDescriptor parentDescriptor = descriptorRegistry.getProject(parentProject.getPath());
 
         projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
+        // Descriptor is added to registry as a side effect
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(parentDescriptor, name, projectDir, descriptorRegistry, parentProject.getServices().get(FileResolver.class));
-        descriptorRegistry.addProject(projectDescriptor);
 
         ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), projectDescriptor);
-        projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name), parentProject.getBaseClassLoaderScope());
+        projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name, null), parentProject.getBaseClassLoaderScope());
         ProjectInternal project = projectState.getMutableModel();
 
         // Lock the project, these won't ever be released as ProjectBuilder has no lifecycle
@@ -114,7 +117,8 @@ public class ProjectBuilderImpl {
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
         BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(new RunTasksRequirements(startParameter));
-        BuildTreeState buildTreeState = new BuildTreeState(buildSessionState.getServices(), modelServices);
+        BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
+        BuildTreeState buildTreeState = new BuildTreeState(buildInvocationScopeId, buildSessionState.getServices(), modelServices);
         TestRootBuild build = new TestRootBuild(projectDir, startParameter, buildTreeState);
 
         BuildScopeServices buildServices = build.getBuildServices();
@@ -124,16 +128,17 @@ public class ProjectBuilderImpl {
         ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
         WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
         WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = workerLeaseService.maybeStartWorker();
+        buildServices.get(ProjectParallelExecutionController.class).startProjectExecution(false);
 
         GradleInternal gradle = build.getMutableModel();
         gradle.setIncludedBuilds(Collections.emptyList());
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
+        // Registers project as a side effect
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
-        projectDescriptorRegistry.addProject(projectDescriptor);
 
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
-        ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
+        ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);
 
         ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
         ProjectState projectState = projectStateRegistry.registerProject(build, projectDescriptor);
@@ -255,11 +260,6 @@ public class ProjectBuilderImpl {
         @Override
         public boolean isImplicitBuild() {
             return false;
-        }
-
-        @Override
-        public Path getCurrentPrefixForProjectsInChildBuilds() {
-            return Path.ROOT;
         }
 
         @Override

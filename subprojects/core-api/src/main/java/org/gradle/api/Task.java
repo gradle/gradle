@@ -302,7 +302,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @since 7.4
      */
-    @Incubating
     void notCompatibleWithConfigurationCache(String reason);
 
     /**
@@ -832,6 +831,5 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param service The service provider.
      * @since 6.1
      */
-    @Incubating
     void usesService(Provider<? extends BuildService<?>> service);
 }

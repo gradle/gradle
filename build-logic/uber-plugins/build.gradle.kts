@@ -5,7 +5,8 @@ plugins {
 description = "Provides plugins that combine and configure other plugins for different kinds of Gradle subprojects"
 
 dependencies {
-    implementation(project(":basics"))
+    implementation("gradlebuild:basics")
+
     implementation(project(":buildquality"))
     implementation(project(":cleanup"))
     implementation(project(":dependency-modules"))
@@ -15,4 +16,5 @@ dependencies {
 
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))
+    implementation("com.autonomousapps:dependency-analysis-gradle-plugin")
 }

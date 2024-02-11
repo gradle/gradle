@@ -31,7 +31,15 @@ There is a task defined in [`build-logic/performance/src/main/groovy/performance
 There is a `performance:report` task that generates a static HTML report from the contents of the database in `~/.gradle-performance-test-data`. This report allows the results over
 time to be visualized.
 
-The report for the most recent test suite run against master is [here](https://builds.gradle.org/repository/download/Gradle_Check_PerformanceTestCoordinator/.lastFinished/report-performance-performance-tests.zip%21/report/index.html?branch=master)
+The reports for the most recent test suite run against master can be found at:
+
+- [Linux Performance Test](https://builds.gradle.org/repository/download/Gradle_Master_Check_PerformanceTestTestLinux_Trigger/.lastFinished/performance-test-results.zip!/report/index.html)
+- [macOS Performance Test](https://builds.gradle.org/repository/download/Gradle_Master_Check_PerformanceTest7_Trigger/.lastFinished/performance-test-results.zip!/report/index.html)
+- [Windows Performance Test](https://builds.gradle.org/repository/download/Gradle_Master_Check_PerformanceTest6_Trigger/.lastFinished/performance-test-results.zip!/report/index.html)
+
+Running all the tests at once will be resource intensive and quite long (multiple hours).
+However, you can find instructions for running a single performance test on the top of the Graph page for each of them.
+The result of that local run will not include comparisons with previous executions, but you can then look at the numbers and verify that your changes do not introduce a regression.
 
 ### Tracking down performance regressions
 

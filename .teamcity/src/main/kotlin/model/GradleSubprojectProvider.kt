@@ -27,27 +27,27 @@ val ignoredSubprojects = listOf(
 
 interface GradleSubprojectProvider {
     val subprojects: List<GradleSubproject>
-    fun getSubprojectsFor(testConfig: TestCoverage, stage: Stage): List<GradleSubproject>
+    fun getSubprojectsForFunctionalTest(testConfig: TestCoverage): List<GradleSubproject>
     fun getSubprojectByName(name: String): GradleSubproject?
 }
 
 data class JsonBasedGradleSubprojectProvider(private val jsonFile: File) : GradleSubprojectProvider {
     @Suppress("UNCHECKED_CAST")
     override val subprojects = JSON.parseArray(jsonFile.readText()).map { toSubproject(it as Map<String, Any>) }
-    private val nameToSubproject = subprojects.map { it.name to it }.toMap()
 
-    override fun getSubprojectsFor(testConfig: TestCoverage, stage: Stage) =
+    private val nameToSubproject = subprojects.map { it.name to it }.toMap()
+    override fun getSubprojectsForFunctionalTest(testConfig: TestCoverage) =
         subprojects.filter { it.hasTestsOf(testConfig.testType) }
-            .filterNot { testConfig.os.ignoredSubprojects.contains(it.name) }
 
     override fun getSubprojectByName(name: String) = nameToSubproject[name]
 
     private
     fun toSubproject(subproject: Map<String, Any>): GradleSubproject {
         val name = subproject["name"] as String
+        val path = subproject["path"] as String
         val unitTests = !ignoredSubprojects.contains(name) && subproject["unitTests"] as Boolean
         val functionalTests = !ignoredSubprojects.contains(name) && subproject["functionalTests"] as Boolean
         val crossVersionTests = !ignoredSubprojects.contains(name) && subproject["crossVersionTests"] as Boolean
-        return GradleSubproject(name, unitTests, functionalTests, crossVersionTests)
+        return GradleSubproject(name, path, unitTests, functionalTests, crossVersionTests)
     }
 }

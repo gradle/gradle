@@ -35,7 +35,7 @@ import javax.inject.Inject;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-public class Help extends DefaultTask {
+public abstract class Help extends DefaultTask {
     private final Property<String> taskPath = getObjectFactory().property(String.class);
 
     private final Property<TaskDetailsModel> taskModel = getObjectFactory().property(TaskDetailsModel.class).convention(taskPath.map(this::mapFromTaskPath));

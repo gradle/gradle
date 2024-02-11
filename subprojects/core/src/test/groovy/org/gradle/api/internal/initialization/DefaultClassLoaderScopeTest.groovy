@@ -44,7 +44,7 @@ class DefaultClassLoaderScopeTest extends Specification {
         file("root/root") << "root"
         def rootClassLoader = new URLClassLoader(classPath("root").asURLArray, getClass().classLoader.parent)
         root = new RootClassLoaderScope("root", rootClassLoader, rootClassLoader, classLoaderCache, Stub(ClassLoaderScopeRegistryListener))
-        scope = root.createChild("child")
+        scope = root.createChild("child", null)
     }
 
     TestFile file(String path) {
@@ -247,7 +247,7 @@ class DefaultClassLoaderScopeTest extends Specification {
         file("export/export") << "bar"
         scope.local(classPath("local"))
         scope.export(classPath("export"))
-        def child = scope.lock().createChild("child").lock()
+        def child = scope.lock().createChild("child", null).lock()
 
         then:
         child.localClassLoader.getResource("root").text == "root"
@@ -264,17 +264,17 @@ class DefaultClassLoaderScopeTest extends Specification {
         def c2 = classPath("c2")
 
         when:
-        def scope1 = root.createChild("child1").export(c1).local(c2).lock()
+        def scope1 = root.createChild("child1", null).export(c1).local(c2).lock()
         scope1.exportClassLoader
 
-        def scope2 = root.createChild("child2").export(c1).local(c2).lock()
+        def scope2 = root.createChild("child2", null).export(c1).local(c2).lock()
         scope2.exportClassLoader
 
         then:
         scope1.exportClassLoader.is scope2.exportClassLoader
 
         when:
-        def child = scope1.createChild("child").export(c1).local(c2).lock()
+        def child = scope1.createChild("child", null).export(c1).local(c2).lock()
         child.exportClassLoader
 
         then:
@@ -301,31 +301,31 @@ class DefaultClassLoaderScopeTest extends Specification {
         def c2 = classPath("c2")
 
         when:
-        root.createChild("c").local(c1).export(c2).lock().exportClassLoader
+        root.createChild("c", null).local(c1).export(c2).lock().exportClassLoader
 
         then:
         classLoaderCache.size() == 2
 
         when:
-        root.createChild("d").local(c1).export(c2).lock().exportClassLoader
+        root.createChild("d", null).local(c1).export(c2).lock().exportClassLoader
 
         then:
         classLoaderCache.size() == 2
 
         when:
-        root.createChild("c").local(c1).lock().exportClassLoader
+        root.createChild("c", null).local(c1).lock().exportClassLoader
 
         then:
         classLoaderCache.size() == 3 // c has a local, d has export and local
 
         when:
-        root.createChild("d").lock().exportClassLoader
+        root.createChild("d", null).lock().exportClassLoader
 
         then:
         classLoaderCache.size() == 1
 
         when:
-        root.createChild("c").lock().exportClassLoader
+        root.createChild("c", null).lock().exportClassLoader
 
         then:
         classLoaderCache.size() == 0

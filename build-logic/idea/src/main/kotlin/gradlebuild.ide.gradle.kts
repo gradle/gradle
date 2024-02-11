@@ -51,7 +51,11 @@ tasks.idea {
 if (idea.project != null) { // may be null during script compilation
     idea {
         module {
-            excludeDirs = setOf(repoRoot().dir("intTestHomeDir").asFile)
+            // We exclude some top-level directories, so their content is not indexed
+            // and does not appear in search results by default
+            excludeDirs = listOf(".gradle", "build", "intTestHomeDir")
+                .map { repoRoot().dir(it).asFile }
+                .toSet()
         }
         project {
             settings {

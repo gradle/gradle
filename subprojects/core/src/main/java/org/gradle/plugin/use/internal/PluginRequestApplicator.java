@@ -19,8 +19,11 @@ package org.gradle.plugin.use.internal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.service.scopes.StatefulListener;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 import javax.annotation.Nullable;
@@ -37,4 +40,12 @@ public interface PluginRequestApplicator {
      * {@link ClassLoaderScope}.
      */
     void applyPlugins(PluginRequests requests, ScriptHandlerInternal scriptHandler, @Nullable PluginManagerInternal target, ClassLoaderScope classLoaderScope);
+
+    @EventScope(Scopes.Build.class)
+    @StatefulListener
+    interface PluginApplicationListener {
+
+        void pluginApplied(PluginRequestInternal pluginRequest);
+
+    }
 }

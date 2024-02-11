@@ -1,0 +1,34 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://repo.gradle.org/artifactory/libs-releases'
+    }
+}
+
+application {
+    mainClass = 'org.gradle.sample.SampleIde'
+}
+
+dependencies {
+    implementation('reporters:model-builder-plugin')
+    implementation('org.gradle:gradle-tooling-api:8.6-milestone-1')
+}
+
+tasks.run.configure {
+    args = [
+        rootBuild(project.gradle).rootProject.projectDir.absolutePath, // The path of the project (this project's root)
+        ':sample-project:assemble'  // The executed task
+    ]
+}
+
+tasks.register('importBuild') {
+    dependsOn(tasks.run)
+}
+
+Gradle rootBuild(Gradle gradle) {
+    if (gradle?.parent) rootBuild(gradle.parent) else gradle
+}

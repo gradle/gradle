@@ -16,4 +16,4 @@
 
 moduleName=dependency-management
 moduleVersion=1.0
-extensionClasses=org.gradle.api.internal.artifacts.dsl.dependencies.DependencyAdderExtensionModule
+extensionClasses=org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule

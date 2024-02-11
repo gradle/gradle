@@ -16,7 +16,6 @@
 package org.gradle.api.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -25,6 +24,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
@@ -91,7 +91,7 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
     }
 
     private Set<Module> allRequiredModulesOf(String... names) {
-        Set<Module> modules = Sets.newHashSet();
+        Set<Module> modules = new HashSet<>();
         for (String name : names) {
             modules.addAll(moduleRegistry.getModule(name).getAllRequiredModules());
         }
@@ -118,7 +118,8 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
     private static final String[] GRADLE_EXTENSION_MODULES = {
         "gradle-workers",
         "gradle-dependency-management",
-        "gradle-plugin-use"
+        "gradle-plugin-use",
+        "gradle-instrumentation-declarations"
     };
 
     private static final String[] GRADLE_OPTIONAL_EXTENSION_MODULES = {

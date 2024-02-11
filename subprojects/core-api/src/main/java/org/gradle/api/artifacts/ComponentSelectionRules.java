@@ -21,7 +21,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.internal.HasInternalProtocol;
 
-/***
+/**
  * Represents a container for component selection rules.  Rules can be applied as part of the
  * resolutionStrategy of a configuration and individual components can be explicitly accepted
  * or rejected by rule.  Components that are neither accepted or rejected will be subject to

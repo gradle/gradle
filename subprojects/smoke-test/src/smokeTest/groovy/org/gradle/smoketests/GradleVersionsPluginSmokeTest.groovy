@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 
@@ -36,15 +37,15 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
                 ${mavenCentralRepository()}
             }
-            project(":sub1") {
-                dependencies {
-                    implementation group: 'log4j', name: 'log4j', version: '1.2.14'
-                }
+        """
+        file("sub1/build.gradle") << """
+            dependencies {
+                implementation group: 'log4j', name: 'log4j', version: '1.2.14'
             }
-            project(":sub2") {
-                dependencies {
-                    implementation group: 'junit', name: 'junit', version: '4.10'
-                }
+        """
+        file("sub2/build.gradle") << """
+            dependencies {
+                implementation group: 'junit', name: 'junit', version: '4.10'
             }
         """
         settingsFile << """
@@ -52,7 +53,20 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         when:
-        def result = runner('dependencyUpdates', '-DoutputFormatter=txt').forwardOutput().build()
+        def runner = runner('dependencyUpdates', '-DoutputFormatter=txt')
+            // TODO: com.github.benmanes.gradle.versions.updates.DependencyUpdates plugin triggers dependency resolution at execution time
+            .withJvmArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+            .forwardOutput()
+
+        def declarationConfiguration = ["compileClasspathCopy", "compileClasspathCopy2", "runtimeClasspathCopy", "runtimeClasspathCopy2", "testCompileClasspathCopy", "testCompileClasspathCopy2", "testRuntimeClasspathCopy", "testRuntimeClasspathCopy2"]
+        declarationConfiguration.each {
+            runner.expectDeprecationWarning(
+                "The $it configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.",
+                "https://github.com/gradle/gradle/issues/24895"
+            )
+        }
+
+        def result = runner.build()
 
         then:
         result.task(':dependencyUpdates').outcome == SUCCESS

@@ -21,4 +21,5 @@ import org.gradle.api.provider.Property
 
 abstract class IntegrationTestExtension {
     abstract val usesJavadocCodeSnippets: Property<Boolean>
+    abstract val testJvmXmx: Property<String>
 }

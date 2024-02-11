@@ -1,0 +1,6 @@
+${fileComment.multilineComment}${packageDecl.statement}
+class Library {
+    boolean someLibraryMethod() {
+        true
+    }
+}

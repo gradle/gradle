@@ -43,4 +43,16 @@ public interface BuildServiceRegistry {
      * @return A {@link Provider} that will create the service instance when queried.
      */
     <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction);
+
+    /**
+     * Registers a service, if a service with the given name is not already registered. The service is not created until required, when the returned {@link Provider} is queried.
+     *
+     * @param name A name to use to identify the service.
+     * @param implementationType The service implementation type. Instances of the service are created as for {@link org.gradle.api.model.ObjectFactory#newInstance(Class, Object...)}.
+     * @return A {@link Provider} that will create the service instance when queried.
+     * @since 8.7
+     */
+    default <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(String name, Class<T> implementationType) {
+        return registerIfAbsent(name, implementationType, ignore -> {});
+    }
 }

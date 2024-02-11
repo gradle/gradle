@@ -125,6 +125,21 @@ class BuildOperationNotificationFixture {
 
                 def ops = [:]
 
+                private jsonGenerator = new groovy.json.JsonGenerator.Options()
+                    .addConverter(new groovy.json.JsonGenerator.Converter() {
+                        @Override
+                        public boolean handles(Class<?> type) {
+                            return Class.class.equals(type);
+                        }
+
+                        @Override
+                        public Object convert(Object value, String key) {
+                            Class<?> clazz = (Class<?>) value;
+                            return clazz.getName();
+                        }
+                    }).build()
+
+
                 @Override
                 synchronized void started(${BuildOperationStartedNotification.name} startedNotification) {
 
@@ -160,7 +175,7 @@ class BuildOperationNotificationFixture {
 
                 synchronized void store(File target){
                     target.withPrintWriter { pw ->
-                        String json = groovy.json.JsonOutput.toJson(ops.values())
+                        String json = jsonGenerator.toJson(ops.values())
                         pw.append(json)
                     }
                 }
@@ -184,6 +199,4 @@ class BuildOperationNotificationFixture {
     private TestFile jsonFile() {
         dir.file('buildOpNotifications.json')
     }
-
-
 }

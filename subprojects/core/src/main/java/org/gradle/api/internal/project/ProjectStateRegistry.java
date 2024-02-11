@@ -24,6 +24,7 @@ import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -49,6 +50,11 @@ public interface ProjectStateRegistry {
      * Locates the state object that owns the project with the given identifier.
      */
     ProjectState stateFor(ProjectComponentIdentifier identifier) throws IllegalArgumentException;
+
+    /**
+     * Locates the state object that owns the project with the identity path.
+     */
+    ProjectState stateFor(Path identityPath) throws IllegalArgumentException;
 
     /**
      * Locates the state objects for all projects of the given build.
@@ -81,5 +87,5 @@ public interface ProjectStateRegistry {
     /**
      * Discards all projects for the given build.
      */
-    void resetState(BuildState build);
+    void discardProjectsFor(BuildState build);
 }

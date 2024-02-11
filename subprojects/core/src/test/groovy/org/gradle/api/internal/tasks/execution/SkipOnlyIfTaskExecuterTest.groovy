@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.specs.Spec
 import org.gradle.groovy.scripts.ScriptSource
 import spock.lang.Specification
 
@@ -75,6 +76,22 @@ class SkipOnlyIfTaskExecuterTest extends Specification {
         1 * spec.findUnsatisfiedSpec(task) >> Mock(SelfDescribingSpec)
         1 * state.setOutcome(TaskExecutionOutcome.SKIPPED)
         noMoreInteractions()
+    }
+
+    def handlesOldStyleOnlyIfSpec() {
+        given:
+        def project = task.project
+        def otherTask = Mock(TaskInternal)
+        Spec<Task> oldStyleSpec = Mock(Spec)
+        otherTask.getProject() >> project
+        otherTask.getOnlyIf() >> oldStyleSpec
+
+        when:
+        executer.execute(otherTask, state, executionContext)
+
+        then:
+        1 * oldStyleSpec.isSatisfiedBy(task) >> false
+        1 * state.setOutcome(TaskExecutionOutcome.SKIPPED)
     }
 
     def wrapsOnlyIfPredicateFailure() {

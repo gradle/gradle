@@ -189,6 +189,7 @@ try {
 
     def "init script can inject configuration into the root project and all projects"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
         and:

@@ -18,7 +18,7 @@ package org.gradle.api.internal.file
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.PreconditionVerifier
+import org.gradle.test.precondition.PreconditionVerifier
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -26,8 +26,9 @@ import org.junit.Test
 import java.util.concurrent.Callable
 
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.junit.Assert.assertEquals
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertThrows
 import static org.junit.Assert.fail
 
 class BaseDirFileResolverTest {
@@ -151,6 +152,18 @@ class BaseDirFileResolverTest {
     @Test public void testResolveFileWithRelativePath() {
         File relativeFile = new File('relative')
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(relativeFile))
+    }
+
+    @Test public void testResolveRelativeFileURI() {
+        // Relative URIs were never supported when passed as a URI. They were only supported when passed as a String.
+        def ex = assertThrows(InvalidUserDataException, {
+            baseDirConverter.resolve(URI.create('file:relative'))
+        })
+        assertThat(ex.message, equalTo('Cannot convert URL \'file:relative\' to a file.'))
+        ex = assertThrows(InvalidUserDataException, {
+            baseDirConverter.resolve(URI.create('file:../relative'))
+        })
+        assertThat(ex.message, equalTo('Cannot convert URL \'file:../relative\' to a file.'))
     }
 
     @Test public void testResolveRelativeFileURIString() {

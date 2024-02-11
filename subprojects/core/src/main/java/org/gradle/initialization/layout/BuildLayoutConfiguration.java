@@ -17,6 +17,8 @@ package org.gradle.initialization.layout;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -28,15 +30,27 @@ public class BuildLayoutConfiguration {
     private final File currentDir;
     private final boolean searchUpwards;
     private final File settingsFile;
+    private final File buildFile;
     private final boolean useEmptySettings;
 
     public BuildLayoutConfiguration(StartParameter startParameter) {
         currentDir = startParameter.getCurrentDir();
         searchUpwards = ((StartParameterInternal)startParameter).isSearchUpwards();
         @SuppressWarnings("deprecation")
-        File customSettingsFile = startParameter.getSettingsFile();
+        File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
         this.settingsFile = customSettingsFile;
+        @SuppressWarnings("deprecation")
+        File customBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
+        this.buildFile = customBuildFile;
         useEmptySettings = ((StartParameterInternal)startParameter).isUseEmptySettings();
+    }
+
+    public BuildLayoutConfiguration(BuildLayoutParameters parameters) {
+        this.currentDir = parameters.getCurrentDir();
+        this.searchUpwards = true;
+        this.settingsFile = parameters.getSettingsFile();
+        this.buildFile = parameters.getBuildFile();
+        this.useEmptySettings = false;
     }
 
     public File getCurrentDir() {
@@ -53,6 +67,11 @@ public class BuildLayoutConfiguration {
     @Nullable
     public File getSettingsFile() {
         return settingsFile;
+    }
+
+    @Nullable
+    public File getBuildFile() {
+        return buildFile;
     }
 
     public boolean isUseEmptySettings() {

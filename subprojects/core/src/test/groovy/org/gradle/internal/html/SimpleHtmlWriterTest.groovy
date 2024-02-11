@@ -22,7 +22,7 @@ class SimpleHtmlWriterTest extends Specification {
 
     def "creates html output"() {
         given:
-        StringWriter sw = new StringWriter();
+        StringWriter sw = new StringWriter()
 
         when:
         SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(sw)
@@ -36,5 +36,24 @@ class SimpleHtmlWriterTest extends Specification {
 
         then:
         Jsoup.parse(sw.toString()).select("h1").text() == "Test Header"
+    }
+
+    def "trying to write an invalid HTML tag fails"() {
+        given:
+        StringWriter sw = new StringWriter()
+
+        when:
+        SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(sw)
+        htmlWriter.startElement("html")
+            .startElement("head").endElement()
+                .startElement("body")
+                    .startElement("invalid").endElement()
+                .endElement()
+            .endElement()
+        sw.close()
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Invalid HTML tag: 'invalid'"
     }
 }

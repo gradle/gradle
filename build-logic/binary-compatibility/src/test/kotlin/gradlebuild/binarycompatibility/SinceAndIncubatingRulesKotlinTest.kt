@@ -260,6 +260,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 added("Class", "Bar"),
                 added("Constructor", "Bar()"),
                 added("Class", "Bazar"),
+                added("Method", "Bazar.getEntries()"),
                 added("Method", "Bazar.valueOf(java.lang.String)"),
                 added("Method", "Bazar.values()"),
                 added("Class", "Cathedral"),
@@ -294,6 +295,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             assertHasInformation(
                 newApi("Class", "Bar"),
                 newApi("Class", "Bazar"),
+                newApi("Method", "Bazar.getEntries()"),
                 newApi("Method", "Bazar.valueOf(java.lang.String)"),
                 newApi("Method", "Bazar.values()"),
                 newApi("Class", "Cathedral"),

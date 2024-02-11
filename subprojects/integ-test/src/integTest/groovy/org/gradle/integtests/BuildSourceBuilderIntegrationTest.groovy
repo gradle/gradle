@@ -40,8 +40,7 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2032")
     def "can simultaneously run gradle on projects with buildSrc"() {
-        def initScript = file("init.gradle")
-        initScript << """
+        initScript """
             import ${BuildOperationListenerManager.name}
             import ${BuildOperationListener.name}
             import ${BuildOperationDescriptor.name}
@@ -59,18 +58,18 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
             def listener = new TraceListener(pid: pid, timer: timer)
             def manager = gradle.services.get(BuildOperationListenerManager)
             manager.addListener(listener)
-            
+
             class TraceListener implements BuildOperationListener {
                 Long pid
                 Timer timer
 
                 void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-                    println("[\$pid] [\$timer.elapsed] start " + buildOperation.displayName) 
+                    println("[\$pid] [\$timer.elapsed] start " + buildOperation.displayName)
                 }
-            
+
                 void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
                 }
-            
+
                 void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
                 }
             }
@@ -82,6 +81,8 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         writeSharedClassFile(buildSrcDir)
         buildFile.text = """
         import org.gradle.integtest.test.BuildSrcTask
+
+        task warmup(type: BuildSrcTask) { }
 
         task build1(type:BuildSrcTask) {
             doLast {
@@ -99,8 +100,10 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         server.expectConcurrent("build1", "build2")
 
         when:
-        def runBlockingHandle = executer.withTasks("build1").usingInitScript(initScript).start()
-        def runReleaseHandle = executer.withTasks("build2").usingInitScript(initScript).start()
+        // https://github.com/gradle/gradle-private/issues/3639 warmup to avoid potential timeout.
+        executer.withTasks("warmup").run()
+        def runBlockingHandle = executer.withTasks("build1").usingInitScript(initScriptFile).start()
+        def runReleaseHandle = executer.withTasks("build2").usingInitScript(initScriptFile).start()
 
         and:
         def releaseResult = runReleaseHandle.waitForFinish()

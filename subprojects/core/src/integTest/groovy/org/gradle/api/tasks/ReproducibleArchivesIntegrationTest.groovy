@@ -40,8 +40,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'src'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.${fileExtension}'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
             """
 
@@ -60,7 +60,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         taskName = input[1]
         taskType = taskName.capitalize()
         fileExtension = taskName
-        expectedHash = taskName == 'tar' ? 'eff4909fee3367f576fe26537ff6403a' : '62b93684c0b891fcf905b4a6eaf32976'
+        expectedHash = taskName == 'tar' ? 'e700ead57290d37d0950a9c87689e6e4' : '002ed122f6f71124e244151251037162'
     }
 
     def "timestamps are ignored in #taskName"() {
@@ -73,8 +73,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.${fileExtension}'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
             """
 
@@ -110,8 +110,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1', 'dir2', 'dir3'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.tar.${compression}'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
             """
 
@@ -124,8 +124,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         // Reason for different gzip checksum on JDK16: https://jdk.java.net/16/release-notes#JDK-8244706
         where:
         compression | md5
-        'gzip'      | (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16) ? 'c4d89909b123359774c0a5dfd3cc8e46' : 'a9339a2b2bb7f96057c480834d00e29e')
-        'bzip2'     | '3da0b978d23f0a774ea7cf07d73f3283'
+        'gzip'      | (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16) ? '022ce6c9bfb4705481fafdbe0d3c0334' : '7b86e679a3c6cda52736e1f167cc04f5')
+        'bzip2'     | '54615d3194655da3f7f72c8859f66fa5'
     }
 
     def "#taskName preserves order of child specs"() {
@@ -145,8 +145,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1/file11.txt'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.${fileExtension}'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
         """
 
@@ -181,16 +181,16 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 from('dir1')
                 destinationDirectory = buildDir
                 archiveFileName = 'test.tar'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
             task aZip(type: Zip) {
                 reproducibleFileOrder = true
                 from('dir2')
                 destinationDirectory = buildDir
                 archiveFileName = 'test.zip'
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
 
             task ${taskName}(type: ${taskType}) {
@@ -204,8 +204,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
                 dependsOn aZip, aTar
 
-                fileMode = 0644
-                dirMode = 0755
+                filePermissions {}
+                dirPermissions {}
             }
         """
 
@@ -265,7 +265,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fails taskName
 
         then:
-        failure.assertHasCause('Encountered duplicate path "test.txt" during copy operation configured with DuplicatesStrategy.FAIL')
+        failure.assertHasCause("Cannot copy file '${file('dir1/test.txt')}' to 'test.txt' because file '${file('dir2/test.txt')}' has already been copied there.")
 
         where:
         taskName << ['zip', 'tar']

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.attributes;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -29,6 +27,7 @@ import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +43,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         this.isolatableFactory = isolatableFactory;
         this.instantiator = instantiator;
         this.root = ImmutableAttributes.EMPTY;
-        this.children = Maps.newHashMap();
+        this.children = new HashMap<>();
         this.children.put(root, new ArrayList<DefaultImmutableAttributes>());
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
     }
@@ -97,7 +96,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, @Nullable Isolatable<?> value) {
         synchronized (this) {
-            List<DefaultImmutableAttributes> nodeChildren = children.computeIfAbsent(node, k -> Lists.newArrayList());
+            List<DefaultImmutableAttributes> nodeChildren = children.computeIfAbsent(node, k -> new ArrayList<>());
             for (DefaultImmutableAttributes child : nodeChildren) {
                 if (child.attribute.equals(key) && child.value.equals(value)) {
                     return child;

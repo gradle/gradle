@@ -33,6 +33,8 @@ import org.gradle.internal.build.RootBuildState
 import org.gradle.util.Path
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 class DefaultBuildTaskSelectorTest extends Specification {
     def buildRegistry = Mock(BuildStateRegistry)
     def taskSelector = Mock(TaskSelector)
@@ -256,7 +258,12 @@ class DefaultBuildTaskSelectorTest extends Specification {
     }
 
     private void withIncludedBuilds(IncludedBuildFixture... builds) {
-        _ * buildRegistry.includedBuilds >> builds.collect { it.state }
+        _ * buildRegistry.visitBuilds(_) >> { Consumer visitor ->
+            visitor.accept(root.state)
+            for (final def build in builds) {
+                visitor.accept(build.state)
+            }
+        }
     }
 
     private RootBuildFixture rootBuild() {
@@ -267,12 +274,13 @@ class DefaultBuildTaskSelectorTest extends Specification {
         def defaultProjectState = Mock(ProjectState)
         def rootProjectState = Mock(ProjectState)
 
-        build.projectsLoaded >> true
+        build.projectsCreated >> true
         build.mutableModel >> gradle
         gradle.defaultProject >> defaultProject
         defaultProject.owner >> defaultProjectState
         defaultProjectState.name >> "proj"
         defaultProjectState.displayName >> Describables.of("<default project>")
+        defaultProjectState.projectPath >> Path.path(":proj")
         defaultProjectState.identityPath >> Path.path(":proj")
         defaultProjectState.owner >> build
         defaultProjectState.childProjects >> [defaultProjectState].toSet()
@@ -284,11 +292,14 @@ class DefaultBuildTaskSelectorTest extends Specification {
 
         build.projects >> projects
         projects.rootProject >> rootProjectState
+        projects.allProjects >> [rootProjectState]
         rootProjectState.name >> "root"
         rootProjectState.displayName >> Describables.of("<root project>")
+        rootProjectState.projectPath >> Path.ROOT
         rootProjectState.identityPath >> Path.ROOT
         rootProjectState.owner >> build
         rootProjectState.childProjects >> rootChildProjects
+        rootProjectState.created >> true
 
         return new RootBuildFixture(build, rootProjectState, rootChildProjects, defaultProjectState)
     }
@@ -300,7 +311,10 @@ class DefaultBuildTaskSelectorTest extends Specification {
 
         _ * build.name >> name
         _ * build.projects >> projects
+        _ * build.importableBuild >> true
+        _ * build.projectsLoaded >> true
         _ * projects.rootProject >> rootProject
+        _ * rootProject.projectPath >> Path.ROOT
         _ * rootProject.identityPath >> Path.path(":${name}")
         _ * rootProject.owner >> build
 
@@ -309,6 +323,7 @@ class DefaultBuildTaskSelectorTest extends Specification {
 
     private ProjectState addProject(RootBuildFixture build, String name) {
         def projectState = Mock(ProjectState)
+        projectState.projectPath >> Path.path(":$name")
         projectState.identityPath >> Path.path(":$name")
         projectState.owner >> build.state
 

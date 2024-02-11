@@ -63,6 +63,10 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     org.gradle.api.Action<HttpServletRequest> beforeHandle
     org.gradle.api.Action<HttpServletRequest> afterHandle
 
+    enum SupportedHash {
+        SHA1, SHA256, SHA512, MD5
+    }
+
     enum EtagStrategy {
         NONE({ null }),
         RAW_SHA1_HEX({ Hashing.sha1().hashBytes(it as byte[]).toString() }),
@@ -84,6 +88,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     boolean sendLastModified = true
     boolean sendSha1Header = false
+
+    // by default, all hashes are supported
+    Set<SupportedHash> supportedHashes = EnumSet.allOf(SupportedHash)
+
+    boolean supportsHash(SupportedHash toCheck) {
+        return supportedHashes.contains(toCheck)
+    }
 
     void beforeHandle(org.gradle.api.Action<HttpServletRequest> r) {
         beforeHandle = r

@@ -22,17 +22,16 @@ import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 
 @ServiceScope(Scopes.Build.class)
-public interface DependencyResolutionManagementInternal extends DependencyResolutionManagement {
+public interface DependencyResolutionManagementInternal extends DependencyResolutionManagement, FinalizableValue {
 
     void configureProject(ProjectInternal project);
-
-    void preventFromFurtherMutation();
 
     void applyRules(ComponentMetadataHandler target);
 
@@ -40,6 +39,7 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
 
     RulesModeInternal getConfiguredRulesMode();
 
+    @Override
     Property<String> getDefaultProjectsExtensionName();
 
     List<VersionCatalogBuilder> getDependenciesModelBuilders();

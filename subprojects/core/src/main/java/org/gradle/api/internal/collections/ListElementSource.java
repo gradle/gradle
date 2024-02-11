@@ -27,13 +27,7 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 public class ListElementSource<T> extends AbstractIterationOrderRetainingElementSource<T> implements IndexedElementSource<T> {
-
-    private final Spec<ValuePointer<T>> alwaysAccept = new Spec<ValuePointer<T>>() {
-        @Override
-        public boolean isSatisfiedBy(ValuePointer<T> pointer) {
-            return true;
-        }
-    };
+    private static final Spec<ValuePointer<?>> ALWAYS_ACCEPT = pointer -> true;
 
     @Override
     public Iterator<T> iterator() {
@@ -48,7 +42,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
 
     @Override
     public ListIterator<T> listIterator() {
-        return new RealizedElementListIterator(getInserted(), alwaysAccept);
+        return new RealizedElementListIterator(getInserted(), ALWAYS_ACCEPT);
     }
 
     @Override
@@ -94,18 +88,18 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
     @Override
     public boolean addPending(ProviderInternal<? extends T> provider) {
         modCount++;
-        return getInserted().add(cachingElement(provider));
+        return addPendingElement(cachingElement(provider));
     }
 
     @Override
     public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         modCount++;
-        return getInserted().add(cachingElement(provider));
+        return addPendingElement(cachingElement(provider));
     }
 
     private ListIterator<T> iteratorAt(int index) {
         ListIterator<T> iterator = listIterator();
-        while(iterator.previousIndex() < index && iterator.hasNext()) {
+        while (iterator.previousIndex() < index && iterator.hasNext()) {
             iterator.next();
         }
         return iterator;
@@ -151,7 +145,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
         int listNextIndex = 0;
         int listPreviousIndex = -1;
 
-        RealizedElementListIterator(List<Element<T>> backingList, Spec<ValuePointer<T>> acceptanceSpec) {
+        RealizedElementListIterator(List<Element<T>> backingList, Spec<ValuePointer<?>> acceptanceSpec) {
             super(backingList, acceptanceSpec);
         }
 
@@ -172,7 +166,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
                     int j = previousSubIndex - 1;
                     while (j >= 0) {
                         T value = collected.get(j);
-                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<T>(candidate, j))) {
+                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<>(candidate, j))) {
                             previousIndex = i;
                             previousSubIndex = j;
                             previous = value;
@@ -228,13 +222,13 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
                 throw new IllegalStateException();
             }
             checkForComodification();
-            backingList.set(previousIndex, new Element<T>(t));
+            backingList.set(previousIndex, new Element<>(t));
         }
 
         @Override
         public void add(T t) {
             checkForComodification();
-            Element<T> element = new Element<T>(t);
+            Element<T> element = new Element<>(t);
             backingList.add(nextIndex, element);
             nextIndex++;
             previous = element.getValues().get(0);

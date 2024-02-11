@@ -34,12 +34,12 @@ configurations {
 }
 
 jmh {
-    includeTests.set(false)
-    resultFormat.set("CSV")
+    includeTests = false
+    resultFormat = "CSV"
 }
 
 val jmhReport = tasks.register<JmhHTMLReport>("jmhReport") {
     group = "jmh"
-    csv.set(tasks.jmh.map { layout.buildDirectory.file("results/jmh/results.csv").get() })
-    destination.set(layout.buildDirectory.dir("reports/jmh-html"))
+    csv = tasks.jmh.map { layout.buildDirectory.file("results/jmh/results.csv").get() }
+    destination = layout.buildDirectory.dir("reports/jmh-html")
 }

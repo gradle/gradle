@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.internal.properties.PropertyVisitor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,7 +29,7 @@ import java.util.List;
 public class DefaultTaskLocalState implements TaskLocalStateInternal {
     private final TaskMutator taskMutator;
     private final FileCollectionFactory fileCollectionFactory;
-    private final List<Object> registeredPaths = Lists.newArrayList();
+    private final List<Object> registeredPaths = new ArrayList<>();
 
     public DefaultTaskLocalState(TaskMutator taskMutator, FileCollectionFactory fileCollectionFactory) {
         this.taskMutator = taskMutator;

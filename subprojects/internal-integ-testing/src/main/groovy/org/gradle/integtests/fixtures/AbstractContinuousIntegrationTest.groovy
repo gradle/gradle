@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
+import org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Assume
@@ -195,8 +196,14 @@ ${result.error}
             }
         }
         if (gradle.isRunning() && !endOfBuildReached) {
+            new JavaProcessStackTracesMonitor(temporaryFolder.getTestDirectory()).printAllStackTracesByJstack()
             throw new RuntimeException("""Timeout waiting for build to complete. Output:
 $lastOutput
+
+Error:
+${gradle.errorOutput}
+
+Look for additional thread dump files in the following folder: $temporaryFolder
 """)
         }
 
@@ -307,7 +314,7 @@ $lastOutput
         }
     }
 
-    private waitForNotRunning() {
+    void waitForNotRunning() {
         ConcurrentTestUtil.poll(WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS) {
             assert !gradle.running
         }

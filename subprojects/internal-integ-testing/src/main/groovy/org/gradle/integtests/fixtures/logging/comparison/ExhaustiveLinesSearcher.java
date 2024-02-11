@@ -28,7 +28,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public class ExhaustiveLinesSearcher {
-    private boolean useUnifiedDiff;
+    private final boolean useUnifiedDiff;
+
     private ExhaustiveLinesSearcher(boolean useUnifiedDiff) {
         this.useUnifiedDiff = useUnifiedDiff;
     }
@@ -63,17 +64,16 @@ public class ExhaustiveLinesSearcher {
         }
 
         if (!findFirstCompleteMatch(expectedLines, actualLines).isPresent()) {
-            exhaustiveSearch(expectedLines, actualLines);
+            exhaustiveSearch(expectedLines, actualLines, useUnifiedDiff);
         }
     }
 
     /**
      * Quickly attempts to find a complete match of the expected lines in the actual lines.
-     * @param expectedLines
-     * @param actualLines
+     *
      * @return the index of the first matching line, or {@link Optional#empty()} if no match was found
      */
-    private Optional<Integer> findFirstCompleteMatch(List<String> expectedLines, List<String> actualLines) {
+    private static Optional<Integer> findFirstCompleteMatch(List<String> expectedLines, List<String> actualLines) {
         for (int actualIdx = 0; actualIdx < actualLines.size(); actualIdx++) {
             if (isMatchingIndex(expectedLines, actualLines, actualIdx)) {
                 return Optional.of(actualIdx);
@@ -84,13 +84,11 @@ public class ExhaustiveLinesSearcher {
 
     /**
      * Checks whether the given actual line matches the expected line at the given actual index.
-     * @param expectedLines
-     * @param actualLines
-     * @param actualMatchStartIdx
+     *
      * @return {@code true} if the actual index is a valid potential match position for the given number of expected lines,
-     *  and the actual lines matches the corresponding expected lines beginning at that index
+     * and the actual lines matches the corresponding expected lines beginning at that index
      */
-    private boolean isMatchingIndex(List<String> expectedLines, List<String> actualLines, int actualMatchStartIdx) {
+    private static boolean isMatchingIndex(List<String> expectedLines, List<String> actualLines, int actualMatchStartIdx) {
         for (int expectedIdx = 0; expectedIdx < expectedLines.size(); expectedIdx++) {
             int actualIdx = actualMatchStartIdx + expectedIdx;
             if (actualIdx >= actualLines.size() || !Objects.equals(expectedLines.get(expectedIdx), actualLines.get(actualIdx))) {
@@ -102,11 +100,10 @@ public class ExhaustiveLinesSearcher {
 
     /**
      * Finds all the lines in the actual line that match any line in the expected list.
-     * @param expectedLines
-     * @param actualLines
+     *
      * @return a map of expected line index to a list of all actual line indices that match the expected line
      */
-    private Map<Integer, List<Integer>> findMatchingLines(List<String> expectedLines, List<String> actualLines) {
+    private static Map<Integer, List<Integer>> findMatchingLines(List<String> expectedLines, List<String> actualLines) {
         Map<Integer, List<Integer>> result = new HashMap<>(expectedLines.size());
         for (int expectedIdx = 0; expectedIdx < expectedLines.size(); expectedIdx++) {
             String expectedLine = expectedLines.get(expectedIdx);
@@ -120,7 +117,7 @@ public class ExhaustiveLinesSearcher {
         return result;
     }
 
-    private void exhaustiveSearch(List<String> expectedLines, List<String> actualLines) {
+    private static void exhaustiveSearch(List<String> expectedLines, List<String> actualLines, boolean useUnifiedDiff) {
         Map<Integer, List<Integer>> matchingLines = findMatchingLines(expectedLines, actualLines);
         Set<PotentialMatch> potentialMatches = convertMatchingLines(expectedLines, actualLines, matchingLines);
         if (matchingLines.isEmpty()) {
@@ -131,12 +128,12 @@ public class ExhaustiveLinesSearcher {
         }
     }
 
-    private void filterLessLikelyMatches(Set<PotentialMatch> potentialMatches) {
+    private static void filterLessLikelyMatches(Set<PotentialMatch> potentialMatches) {
         final long highestNumMatches = potentialMatches.stream().map(PotentialMatch::getNumMatches).max(Long::compareTo).orElse(0L);
         potentialMatches.removeIf(pm -> pm.getNumMatches() < highestNumMatches);
     }
 
-    private Set<PotentialMatch> convertMatchingLines(List<String> expectedLines, List<String> actualLines, Map<Integer, List<Integer>> matchingLines) {
+    private static Set<PotentialMatch> convertMatchingLines(List<String> expectedLines, List<String> actualLines, Map<Integer, List<Integer>> matchingLines) {
         Set<PotentialMatch> potentialMatches = new HashSet<>(matchingLines.size());
         for (Map.Entry<Integer, List<Integer>> entry : matchingLines.entrySet()) {
             int expectedIdx = entry.getKey();

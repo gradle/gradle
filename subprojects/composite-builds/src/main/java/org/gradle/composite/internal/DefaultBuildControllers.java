@@ -129,7 +129,7 @@ class DefaultBuildControllers implements BuildControllers {
         CompositeStoppable.stoppable(controllers.values()).stop();
     }
 
-    private Comparator<BuildIdentifier> idComparator() {
+    private static Comparator<BuildIdentifier> idComparator() {
         return (id1, id2) -> {
             // Root is always last
             if (id1.equals(DefaultBuildIdentifier.ROOT)) {
@@ -142,7 +142,7 @@ class DefaultBuildControllers implements BuildControllers {
             if (id2.equals(DefaultBuildIdentifier.ROOT)) {
                 return -1;
             }
-            return id1.getName().compareTo(id2.getName());
+            return id1.getBuildPath().compareTo(id2.getBuildPath());
         };
     }
 }

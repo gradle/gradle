@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
-import com.google.common.collect.Maps;
 import org.gradle.internal.classpath.ClassPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.ref.ReferenceQueue;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
@@ -44,7 +44,7 @@ class FinalizerThread extends Thread {
         this.setDaemon(true);
         this.referenceQueue = new ReferenceQueue<CachedClassLoader>();
         this.cacheEntries = cacheEntries;
-        this.cleanups = Maps.newConcurrentMap();
+        this.cleanups = new ConcurrentHashMap<>();
         this.lock = lock;
     }
 

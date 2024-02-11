@@ -16,6 +16,7 @@
 package org.gradle.api.internal.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create instances of class using injected factory"() {
@@ -195,6 +196,24 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/27108')
+    def "plugin can try to create instance of abstract class that implements Named and get nice error message for missing name argument"() {
+        given:
+        buildFile """
+            abstract class Thing implements Named {
+                @Inject Thing() {}
+            }
+            objects.newInstance(Thing)
+        """
+
+        expect:
+        fails()
+
+        and:
+        failure.assertHasCause("Could not create an instance of type Thing.")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type String, or no service of type String.")
     }
 
     def "fails when abstract method cannot be implemented"() {
@@ -777,7 +796,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create ExtensiblePolymorphicDomainObjectContainer instances using named managed types"() {
         given:
         buildFile """
-            interface BaseThing extends Named { 
+            interface BaseThing extends Named {
                 Property<Integer> getValue()
             }
             interface ThingA extends BaseThing { }
@@ -786,10 +805,10 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             def container = project.objects.polymorphicDomainObjectContainer(BaseThing)
             container.registerBinding(ThingA, ThingA)
             container.registerBinding(ThingB, ThingB)
-            container.register("a", ThingA) { 
+            container.register("a", ThingA) {
                 value = 0
             }
-            container.register("b", ThingB) { 
+            container.register("b", ThingB) {
                 value = 1
             }
             assert container.size() == 2
@@ -831,6 +850,47 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             assert container[0].value.get() == 1
             assert container[1].name == 'b'
             assert container[1].value.get() == 2
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "plugin can create instance of interface with nested ExtensiblePolymorphicDomainObjectContainer using named managed types"() {
+        given:
+        buildFile """
+            interface Element extends Named {
+            }
+            interface Thing extends Element {
+                Property<Integer> getValue()
+            }
+            interface AnotherThing extends Element {
+                Property<String> getValue()
+            }
+
+            interface Bag {
+                ExtensiblePolymorphicDomainObjectContainer<Element> getThings()
+            }
+
+            def bag = project.objects.newInstance(Bag)
+            bag.things.registerBinding(Thing, Thing)
+            bag.things.registerBinding(AnotherThing, AnotherThing)
+
+            bag.things {
+                a(Thing) {
+                    value = 1
+                }
+                b(AnotherThing) {
+                    value = "foo"
+                }
+            }
+
+            def container = bag.things
+            assert container.size() == 2
+            assert container[0].name == 'a'
+            assert container[0].value.get() == 1
+            assert container[1].name == 'b'
+            assert container[1].value.get() == "foo"
         """
 
         expect:

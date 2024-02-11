@@ -57,13 +57,17 @@ public class OrdinalGroup extends NodeGroup {
         return newOrdinal;
     }
 
+    @Override
+    public NodeGroup reachableFrom(OrdinalGroup newOrdinal) {
+        return newOrdinal;
+    }
+
     public OrdinalNode getProducerLocationsNode() {
         if (producerLocationsNode == null) {
             producerLocationsNode = new OrdinalNode(OrdinalNode.Type.PRODUCER, this);
             if (previous != null) {
                 producerLocationsNode.addDependencySuccessor(previous.getProducerLocationsNode());
             }
-            producerLocationsNode.require();
         }
         return producerLocationsNode;
     }
@@ -74,7 +78,6 @@ public class OrdinalGroup extends NodeGroup {
             if (previous != null) {
                 destroyerLocationsNode.addDependencySuccessor(previous.getDestroyerLocationsNode());
             }
-            destroyerLocationsNode.require();
         }
         return destroyerLocationsNode;
     }
@@ -93,7 +96,7 @@ public class OrdinalGroup extends NodeGroup {
     }
 
     public String diagnostics() {
-        return "group " + ordinal + " entry nodes: " + entryNodes;
+        return "group " + ordinal + " entry nodes: " + Node.formatNodes(entryNodes);
     }
 
     public OrdinalNode locationsNode(OrdinalNode.Type ordinalType) {

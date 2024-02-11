@@ -4,6 +4,19 @@ plugins {
 
 description = "Contains project diagnostics or report tasks, e.g. help, project report, dependency report and similar"
 
+errorprone {
+    disabledChecks.addAll(
+        "BadImport", // 1 occurrences
+        "DefaultCharset", // 1 occurrences
+        "InlineMeInliner", // 1 occurrences
+        "MixedMutabilityReturnType", // 1 occurrences
+        "NonApiType", // 5 occurrences
+        "ProtectedMembersInFinalClass", // 1 occurrences
+        "StringCaseLocaleUsage", // 3 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":functional"))

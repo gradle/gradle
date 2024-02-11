@@ -17,7 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
 class JavaExecIntegrationTest extends AbstractIntegrationSpec {
@@ -66,7 +68,29 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "java exec is not incremental by default"() {
+    def "emits deprecation warning if executable specified as relative path"() {
+        given:
+        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javaExecutable.toString())
+
+        buildFile << """
+            tasks.withType(JavaExec) {
+                executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Configuring a Java executable via a relative path. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+            "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
+            "Configure an absolute path to a Java executable instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#no_relative_paths_for_java_executables")
+        run "run"
+
+        then:
+        executedAndNotSkipped ":run"
+    }
+
+    def "is not incremental by default"() {
         when:
         run "run"
 

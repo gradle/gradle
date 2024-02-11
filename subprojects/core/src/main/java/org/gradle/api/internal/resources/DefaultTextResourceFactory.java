@@ -19,6 +19,7 @@ package org.gradle.api.internal.resources;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.internal.deprecation.Documentation;
@@ -32,12 +33,14 @@ import java.nio.charset.Charset;
 public class DefaultTextResourceFactory implements TextResourceFactory {
     private final FileOperations fileOperations;
     private final TemporaryFileProvider tempFileProvider;
+    private final TaskDependencyFactory taskDependencyFactory;
     private ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory;
 
-    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory) {
+    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory, TaskDependencyFactory taskDependencyFactory) {
         this.fileOperations = fileOperations;
         this.tempFileProvider = tempFileProvider;
         this.apiTextResourcesAdapterFactory = apiTextResourcesAdapterFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -57,7 +60,7 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
 
     @Override
     public TextResource fromArchiveEntry(Object archive, String entryPath, String charset) {
-        return new FileCollectionBackedArchiveTextResource(fileOperations, tempFileProvider, fileOperations.immutableFiles(archive), entryPath, Charset.forName(charset));
+        return new FileCollectionBackedArchiveTextResource(fileOperations, taskDependencyFactory, tempFileProvider, fileOperations.immutableFiles(archive), entryPath, Charset.forName(charset));
     }
 
     @Override
@@ -88,42 +91,19 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
         return apiTextResourcesAdapterFactory.create(rootUri, redirectVerifier);
     }
 
-    private void throwExceptionDueToInsecureProtocol(URI rootUri) {
-        String contextualAdvice =
-            String.format("The provided URI '%s' uses an insecure protocol (HTTP). ", rootUri);
-        String switchToAdvice =
-            String.format(
-                "Switch the URI to '%s' or try 'resources.text.fromInsecureUri(\"%s\")' to silence the warning. ",
-                GUtil.toSecureUrl(rootUri),
-                rootUri
-            );
-        String dslMessage =
-            Documentation
-                .dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
-                .consultDocumentationMessage();
-
-        String message =
-            "Loading a TextResource from an insecure URI, without explicit opt-in, is unsupported. " +
-                contextualAdvice +
-                switchToAdvice +
-                dslMessage;
-        throw new InvalidUserCodeException(message);
+    private static void throwExceptionDueToInsecureProtocol(URI rootUri) {
+        throw new InsecureProtocolException(
+            "Loading a TextResource from an insecure URI, without explicit opt-in, is unsupported. " + String.format("The provided URI '%s' uses an insecure protocol (HTTP). ", rootUri),
+            String.format("Switch the URI to '%s' or try 'resources.text.fromInsecureUri(\"%s\")' to silence the warning. ", GUtil.toSecureUrl(rootUri), rootUri),
+            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
+        );
     }
 
-    private void throwExceptionDueToInsecureRedirect(Object uri, URI redirect) throws InvalidUserCodeException {
-        String contextualAdvice =
-            String.format("'%s' redirects to insecure '%s'. ", uri, redirect);
-        String switchToAdvice =
-            "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning. ";
-        String dslMessage =
-            Documentation
-                .dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
-                .consultDocumentationMessage();
-        String message =
-            "Loading a TextResource from an insecure redirect, without explicit opt-in, is unsupported. " +
-                contextualAdvice +
-                switchToAdvice +
-                dslMessage;
-        throw new InvalidUserCodeException(message);
+    private static void throwExceptionDueToInsecureRedirect(Object uri, URI redirect) throws InvalidUserCodeException {
+        throw new InsecureProtocolException(
+            "Loading a TextResource from an insecure redirect, without explicit opt-in, is unsupported. " + String.format("'%s' redirects to insecure '%s'.", uri, redirect),
+            "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.",
+            Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
+        );
     }
 }

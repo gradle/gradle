@@ -23,12 +23,10 @@ import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
-import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.performance.results.WritableResultsStore
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Assume
 import org.junit.Rule
 
@@ -41,9 +39,6 @@ class AbstractCrossBuildPerformanceTest extends AbstractPerformanceTest {
     private static final WritableResultsStore<CrossBuildPerformanceResults> RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossBuildResultsStore() }
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-
-    @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()

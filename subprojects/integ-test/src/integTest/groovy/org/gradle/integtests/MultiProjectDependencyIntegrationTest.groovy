@@ -17,13 +17,14 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers
-import spock.lang.IgnoreIf
 
 class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        createDirs("a", "b", "c", "d")
         settingsFile << 'include "a", "b", "c", "d"'
         buildFile << """
 allprojects {
@@ -126,9 +127,10 @@ allprojects {
         buildFile << """
 project(':a') {
     task writeOutputFile {
+        def outputDir = file('build')
         doLast {
-            file('build').mkdirs()
-            file('build/output.txt') << "${outputValue}"
+            outputDir.mkdirs()
+            new File(outputDir, 'output.txt') << "${outputValue}"
         }
     }
 }
@@ -180,7 +182,9 @@ project(':c') {
         jarsNotBuilt 'a', 'b', 'c'
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})  // 'c' + 'd' _may_ be built with parallel executer
+    // 'c' + 'd' _may_ be built with parallel executer
+    // test can't handle parallel task execution
+    @Requires(IntegTestPreconditions.NotParallelOrConfigCacheExecutor)
     def "project dependency a->[b,c] and c->d and b fails"() {
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'c', to: ['d']

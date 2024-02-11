@@ -42,6 +42,7 @@ allprojects {
         buildFile << """
 apply from:'closure_in_ext.gradle'
 """
+        createDirs("sampleSub")
         settingsFile << """
 rootProject.name = "rootProject"
 include 'sampleSub'

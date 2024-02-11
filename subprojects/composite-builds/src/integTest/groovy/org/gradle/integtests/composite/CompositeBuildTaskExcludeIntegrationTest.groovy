@@ -21,6 +21,7 @@ import spock.lang.Issue
 class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTaskExecutionIntegrationTest {
 
     def setup() {
+        createDirs("sub", "included", "included/sub")
         settingsFile << """
             rootProject.name = 'root'
             include('sub')
@@ -228,8 +229,9 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         expect:
         succeeds("greeting", ":build-logic:classes")
         2.times {
-            succeeds("greeting", "-x", ":build-logic:classes")
-            result.assertTaskNotExecuted(":build-logic:classes")
+            succeeds("greeting", "-x", ":build-logic:jar")
+            result.assertTaskNotExecuted(":build-logic:jar")
+            result.assertTaskNotExecuted(":build-logic:compileJava")
         }
     }
 
@@ -256,4 +258,33 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/24341")
+    def "can exclude task with included build that in turn includes a build for convention plugins"() {
+        setup:
+        file('included/settings.gradle').text = """
+            pluginManagement {
+                includeBuild('../conventions')
+            }
+            plugins {
+                id 'script-plugin'
+            }
+            include('sub')
+        """
+        file('conventions/settings.gradle') << """
+        """
+        file('conventions/build.gradle') << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        file('conventions/src/main/groovy/script-plugin.settings.gradle') << """
+        """
+
+        expect:
+        2.times {
+            succeeds("build", "-x", "test")
+            result.assertTaskNotExecuted(":test")
+            result.assertTaskNotExecuted(":sub:test")
+        }
+    }
 }

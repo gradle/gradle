@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 
 import java.util.NavigableSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 
@@ -31,10 +32,6 @@ public abstract class TaskNode extends Node {
 
     @Override
     protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
-        builder.append(", groupSuccessors=").append(formatNodes(getGroup().getSuccessorsFor(this)));
-        if (!getMustSuccessors().isEmpty()) {
-            builder.append(", mustSuccessors=").append(formatNodes(getMustSuccessors()));
-        }
         if (!finalizingSuccessors.isEmpty()) {
             builder.append(", finalizes=").append(formatNodes(finalizingSuccessors));
         }
@@ -81,7 +78,7 @@ public abstract class TaskNode extends Node {
     public Iterable<Node> getAllSuccessors() {
         return Iterables.concat(
             shouldSuccessors,
-            getGroup().getSuccessorsFor(this),
+            finalizingSuccessors,
             getMustSuccessors(),
             super.getAllSuccessors()
         );
@@ -90,10 +87,17 @@ public abstract class TaskNode extends Node {
     @Override
     public Iterable<Node> getHardSuccessors() {
         return Iterables.concat(
-            getGroup().getSuccessorsFor(this),
+            finalizingSuccessors,
             getMustSuccessors(),
             super.getHardSuccessors()
         );
+    }
+
+    @Override
+    public void visitHardSuccessors(Consumer<? super Node> visitor) {
+        finalizingSuccessors.forEach(visitor);
+        getMustSuccessors().forEach(visitor);
+        super.visitHardSuccessors(visitor);
     }
 
     public abstract TaskInternal getTask();

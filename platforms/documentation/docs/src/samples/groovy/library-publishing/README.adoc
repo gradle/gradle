@@ -1,0 +1,49 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how a Groovy library can be published to a repository with Gradle.
+
+====
+include::sample[dir="kotlin",files="my-library/build.gradle.kts[]"]
+include::sample[dir="groovy",files="my-library/build.gradle[]"]
+====
+
+To publish the library:
+
+[listing.terminal]
+----
+$ ./gradlew publish
+
+BUILD SUCCESSFUL
+4 actionable tasks: 4 executed
+$ tree build/publishing-repository
+build/publishing-repository/
+└── org
+    └── gradle
+        └── sample
+            └── my-library
+                ├── 1.0.2
+                │   ├── my-library-1.0.2.jar
+                │   ├── my-library-1.0.2.jar.md5
+                │   ├── my-library-1.0.2.jar.sha1
+                │   ├── my-library-1.0.2.jar.sha256
+                │   ├── my-library-1.0.2.jar.sha512
+                │   ├── my-library-1.0.2.module
+                │   ├── my-library-1.0.2.module.md5
+                │   ├── my-library-1.0.2.module.sha1
+                │   ├── my-library-1.0.2.module.sha256
+                │   ├── my-library-1.0.2.module.sha512
+                │   ├── my-library-1.0.2.pom
+                │   ├── my-library-1.0.2.pom.md5
+                │   ├── my-library-1.0.2.pom.sha1
+                │   ├── my-library-1.0.2.pom.sha256
+                │   └── my-library-1.0.2.pom.sha512
+                ├── maven-metadata.xml
+                ├── maven-metadata.xml.md5
+                ├── maven-metadata.xml.sha1
+                ├── maven-metadata.xml.sha256
+                └── maven-metadata.xml.sha512
+
+5 directories, 20 files
+----
+
+For more information, see link:{userManualPath}/publishing_setup.html[Publishing Libraries].

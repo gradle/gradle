@@ -36,12 +36,20 @@ class IvyFileRepository implements IvyRepository {
         return rootDir.toURI()
     }
 
+    private String getUriWithoutTrailingSlash() {
+        String uri = getUri().toASCIIString()
+        if (uri.endsWith('/')) {
+            uri = uri.substring(0, uri.length() - 1)
+        }
+        return uri
+    }
+
     String getIvyPattern() {
-        return "${uri}/${baseIvyPattern}"
+        return "${uriWithoutTrailingSlash}/${baseIvyPattern}"
     }
 
     String getArtifactPattern() {
-        return "${uri}/${baseArtifactPattern}"
+        return "${uriWithoutTrailingSlash}/${baseArtifactPattern}"
     }
 
     String getBaseIvyPattern() {

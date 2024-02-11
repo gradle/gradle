@@ -32,6 +32,7 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -210,7 +211,7 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
 
         private BackgroundColor(double index, int redComponent, int greenComponent, double opacity) {
             this.xaxis = ImmutableMap.of("from", index - 0.5, "to", index + 0.5);
-            this.color = String.format("rgba(%d,%d,0,%.1f)", redComponent, greenComponent, opacity);
+            this.color = String.format(Locale.ENGLISH, "rgba(%d,%d,0,%.1f)", redComponent, greenComponent, opacity);
         }
 
         public Map getXaxis() {

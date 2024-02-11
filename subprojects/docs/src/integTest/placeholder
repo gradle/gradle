@@ -1,2 +1,0 @@
-To force the build creating the integration test tasks
-TODO (donat) if we introduce integration tests in this subproject (e.g. samples tests are moved here) then remove the special handling in GenerateSubprojectsInfoPlugin

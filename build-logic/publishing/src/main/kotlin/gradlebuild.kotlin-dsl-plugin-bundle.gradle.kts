@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.capitalize
 import gradlebuild.pluginpublish.extension.PluginPublishExtension
 import java.time.Year
 
 plugins {
     id("gradlebuild.module-identity")
     `maven-publish`
+    signing
     `java-gradle-plugin`
     id("com.gradle.plugin-publish")
 }
@@ -27,7 +29,7 @@ plugins {
 extensions.create<PluginPublishExtension>("pluginPublish", gradlePlugin)
 
 tasks.validatePlugins {
-    enableStricterValidation.set(true)
+    enableStricterValidation = true
 }
 
 // Remove gradleApi() and gradleTestKit() as we want to compile/run against Gradle modules
@@ -43,6 +45,14 @@ publishing.publications.withType<MavenPublication>().configureEach {
     if (name == "pluginMaven") {
         groupId = project.group.toString()
         artifactId = moduleIdentity.baseName.get()
+    }
+    pom {
+        licenses {
+            license {
+                name = "The Apache License, Version 2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            }
+        }
     }
 }
 
@@ -71,15 +81,21 @@ val publishPluginsToTestRepository by tasks.registering {
     }
 }
 
+val futurePluginVersionsPropertiesFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties")
 val writeFuturePluginVersions by tasks.registering(WriteProperties::class) {
-    outputFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties").get().asFile
+    destinationFile = futurePluginVersionsPropertiesFile
 }
-sourceSets.main.get().output.dir(
-    writeFuturePluginVersions.map { it.outputFile.parentFile }
-)
-configurations.runtimeElements.get().outgoing {
-    variants.named("resources") {
-        artifact(writeFuturePluginVersions.map { it.outputFile.parentFile })
+val futurePluginVersionsDestDir = futurePluginVersionsPropertiesFile.map { it.asFile.parentFile }
+sourceSets.main {
+    output.dir(mapOf("builtBy" to writeFuturePluginVersions), futurePluginVersionsDestDir)
+}
+configurations.runtimeElements {
+    outgoing {
+        variants.named("resources") {
+            artifact(futurePluginVersionsDestDir) {
+                builtBy(writeFuturePluginVersions)
+            }
+        }
     }
 }
 
@@ -93,8 +109,8 @@ publishing {
 }
 
 gradlePlugin {
-    website.set("https://github.com/gradle/kotlin-dsl")
-    vcsUrl.set("https://github.com/gradle/kotlin-dsl")
+    website = "https://github.com/gradle/gradle/tree/HEAD/platforms/core-configuration/kotlin-dsl-plugins"
+    vcsUrl = "https://github.com/gradle/gradle/tree/HEAD/platforms/core-configuration/kotlin-dsl-plugins"
 
     plugins.all {
 
@@ -128,7 +144,38 @@ configurations.create("localLibsRepositoryElements") {
     }
 }
 
+configurations.create("futureVersion") {
+    isVisible = false
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("future-versions-resource"))
+    }
+    outgoing {
+        artifact(futurePluginVersionsDestDir) {
+            builtBy(writeFuturePluginVersions)
+        }
+    }
+}
+
 // Workaround for https://github.com/gradle/gradlecom/issues/627
 configurations.archives.get().allArtifacts.removeIf {
     it.name != "plugins"
+}
+
+val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
+val pgpSigningPassPhrase: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE")
+val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
+
+tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
+
+signing {
+    useInMemoryPgpKeys(pgpSigningKey.orNull, pgpSigningPassPhrase.orNull)
+    publishing.publications.configureEach {
+        if (signArtifacts) {
+            signing.sign(this)
+        }
+    }
 }

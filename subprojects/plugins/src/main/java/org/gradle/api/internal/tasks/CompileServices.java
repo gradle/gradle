@@ -28,7 +28,7 @@ import org.gradle.api.internal.tasks.compile.incremental.classpath.CachingClassS
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClassSetAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.DefaultClassSetAnalyzer;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -74,8 +74,8 @@ public class CompileServices extends AbstractPluginServiceRegistry {
     }
 
     private static class UserHomeScopeServices {
-        UserHomeScopedCompileCaches createCompileCaches(GlobalScopedCache cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
-            return new UserHomeScopedCompileCaches(cacheRepository, inMemoryCacheDecoratorFactory, interner);
+        UserHomeScopedCompileCaches createCompileCaches(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+            return new UserHomeScopedCompileCaches(cacheBuilderFactory, inMemoryCacheDecoratorFactory, interner);
         }
     }
 }

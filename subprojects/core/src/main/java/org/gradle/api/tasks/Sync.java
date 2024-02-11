@@ -65,7 +65,7 @@ import java.io.File;
  * </pre>
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class Sync extends AbstractCopyTask {
+public abstract class Sync extends AbstractCopyTask {
 
     private final PatternFilterable preserveInDestination = new PatternSet();
 

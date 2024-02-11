@@ -17,6 +17,8 @@
 package org.gradle.groovy.scripts
 
 import org.codehaus.groovy.control.CompilerConfiguration
+import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
+import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.ServiceRegistry
@@ -30,7 +32,9 @@ class DefaultScriptTest extends Specification {
     public final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     def testApplyMetaData() {
-        ServiceRegistry serviceRegistryMock = Mock(ServiceRegistry)
+        ServiceRegistry serviceRegistryMock = Mock(ServiceRegistry) {
+            get(DynamicLookupRoutine) >> new DefaultDynamicLookupRoutine()
+        }
 
         when:
         DefaultScript script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)
