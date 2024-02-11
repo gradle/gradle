@@ -17,8 +17,6 @@
 package org.gradle.performance.results;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.gradle.performance.results.report.DefaultPerformanceFlakinessDataProvider;
-import org.gradle.performance.results.report.PerformanceFlakinessDataProvider;
 
 import javax.annotation.Nullable;
 import java.io.File;
