@@ -17,9 +17,13 @@
 package org.gradle.performance.results;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.gradle.performance.results.report.DefaultPerformanceFlakinessDataProvider;
+import org.gradle.performance.results.report.PerformanceFlakinessDataProvider;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -36,6 +40,7 @@ public class PerformanceTestRuntimesGenerator {
 
     public void generate(File runtimesFile) throws IOException {
         AllResultsStore resultsStore = new AllResultsStore();
+        PerformanceFlakinessDataProvider flakinessDataProvider = new DefaultPerformanceFlakinessDataProvider(new CrossVersionResultsStore());
         Map<PerformanceExperimentOnOs, Long> estimatedExperimentDurations = resultsStore.getEstimatedExperimentDurationsInMillis();
         Map<PerformanceScenario, List<Map.Entry<PerformanceExperimentOnOs, Long>>> performanceScenarioMap =
             estimatedExperimentDurations.entrySet().stream()
@@ -57,12 +62,13 @@ public class PerformanceTestRuntimesGenerator {
                     scenario.getClassName() + "." + scenario.getTestName(),
                     perTestProject.entrySet().stream()
                         .map(experimentEntry -> {
-                                Map<OperatingSystem, Long> perOs = experimentEntry.getValue();
+                            BigDecimal flakinessRate = flakinessDataProvider.getFlakinessRate(new PerformanceExperiment(experimentEntry.getKey(), scenario));
+                            Map<OperatingSystem, Long> perOs = experimentEntry.getValue();
                                 return new TestProjectDuration(
                                     experimentEntry.getKey(),
-                                    perOs.get(OperatingSystem.LINUX),
-                                    perOs.get(OperatingSystem.WINDOWS),
-                                    perOs.get(OperatingSystem.MAC_OS)
+                                    increaseByFlakinessRate(perOs.get(OperatingSystem.LINUX), flakinessRate),
+                                    increaseByFlakinessRate(perOs.get(OperatingSystem.WINDOWS), flakinessRate),
+                                    increaseByFlakinessRate(perOs.get(OperatingSystem.MAC_OS), flakinessRate)
                                 );
                             }
                         )
@@ -74,6 +80,13 @@ public class PerformanceTestRuntimesGenerator {
         new ObjectMapper().writerWithDefaultPrettyPrinter()
             .writeValue(runtimesFile, json);
         Files.write(runtimesFile.toPath(), "\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+    }
+
+    Long increaseByFlakinessRate(Long baseDuration, @Nullable BigDecimal flakinessRate) {
+        if (flakinessRate == null || baseDuration == null) {
+            return baseDuration;
+        }
+        return baseDuration + flakinessRate.multiply(BigDecimal.valueOf(baseDuration)).longValue();
     }
 
 }
