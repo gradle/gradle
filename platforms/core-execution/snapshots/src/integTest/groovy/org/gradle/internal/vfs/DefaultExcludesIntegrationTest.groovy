@@ -18,6 +18,7 @@ package org.gradle.internal.vfs
 
 import org.apache.tools.ant.DirectoryScanner
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
@@ -142,9 +143,25 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         failure.assertHasCause "Cannot change default excludes during the build. They were changed from ${defaultExcludesFromSettings} to ${defaultExcludesInTask}. Configure default excludes in the settings script instead."
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/27225")
+    def "default excludes are remove properly"() {
+        settingsFile << removeDefaultExclude()
+
+        when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+    }
+
     private static String addDefaultExclude(String excludedFileName = EXCLUDED_FILE_NAME) {
         """
             ${DirectoryScanner.name}.addDefaultExclude('**/${ excludedFileName}')
+        """
+    }
+
+    private static String removeDefaultExclude() {
+        """
+            ${DirectoryScanner.name}.removeDefaultExclude('**/.gitignore')
         """
     }
 }
