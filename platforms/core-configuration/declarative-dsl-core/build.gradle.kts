@@ -3,11 +3,32 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
-    embeddedKotlin("plugin.serialization")
     id("gradlebuild.publish-public-libraries")
+    id("gradlebuild.shaded-jar")
+
+    embeddedKotlin("plugin.serialization")
 }
 
 description = "Common shared classes used by the Declarative DSL"
+
+shadedJar {
+    shadedConfiguration.exclude(mapOf("group" to "org.gradle", "module" to "declarative-dsl-api"))
+    shadedConfiguration.exclude(mapOf("group" to "org.jetbrains.kotlin", "module" to "kotlin-compiler-embeddable"))
+    shadedConfiguration.exclude(mapOf("group" to "org.jetbrains.kotlin", "module" to "kotlin-stdlib"))
+    shadedConfiguration.exclude(mapOf("group" to "org.jetbrains.kotlin", "module" to "kotlin-reflect"))
+    keepPackages = listOf("org.gradle.internal.declarativedsl")
+    unshadedPackages = listOf("org.gradle", "gnu", "kotlin", "org.jetbrains", "org.gradle.declarative")
+}
+
+configurations {
+    jarsToShade {
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category.LIBRARY))
+            // without adding these additional attribute, the wrong variant of the kotlinx-serialization
+            // library gets selected for the shading configuration
+        }
+    }
+}
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
