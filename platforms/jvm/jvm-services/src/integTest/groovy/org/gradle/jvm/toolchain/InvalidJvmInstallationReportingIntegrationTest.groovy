@@ -16,14 +16,20 @@
 
 package org.gradle.jvm.toolchain
 
+import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.GradleVersion
 import spock.lang.TempDir
 
 import java.util.regex.Pattern
+
+import static org.gradle.cache.internal.scopes.DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME
 
 class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegrationSpec {
 
@@ -55,6 +61,11 @@ class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegration
             project("sub1").buildFile << configureJavaExecToUseToolchains
             project("sub2").buildFile << configureJavaExecToUseToolchains
         }
+
+        // Clean the toolchain metadata cache
+        def gradleUserHomeDirectory = new TestFile(NativeServicesTestFixture.getInstance().get(GradleUserHomeDirProvider.class).gradleUserHomeDirectory)
+        TestFile toolchainsMetadataCache = new TestFile(gradleUserHomeDirectory, GLOBAL_CACHE_DIR_NAME, GradleVersion.current().version, "toolchainsMetadata")
+        toolchainsMetadataCache.deleteDir()
 
         when: "running two consecutive builds in a daemon"
         def results = (0..1).collect {

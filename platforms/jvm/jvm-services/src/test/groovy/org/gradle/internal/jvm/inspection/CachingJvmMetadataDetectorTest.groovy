@@ -17,7 +17,17 @@
 package org.gradle.internal.jvm.inspection
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.cache.internal.DefaultCacheFactory
+import org.gradle.cache.internal.DefaultFileLockManagerTestHelper
+import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
+import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
+import org.gradle.initialization.GradleUserHomeDirProvider
+import org.gradle.initialization.layout.GlobalCacheDir
+import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -34,13 +44,12 @@ class CachingJvmMetadataDetectorTest extends Specification {
     File temporaryFolder
 
     def "returned metadata from delegate"() {
-        def metadata = Mock(JvmInstallationMetadata)
         given:
+        def metadata = createJvmInstallationMetadata("jdk")
         def delegate = Mock(JvmMetadataDetector) {
             getMetadata(_ as InstallationLocation) >> metadata
         }
-
-        def detector = new CachingJvmMetadataDetector(delegate)
+        def detector = createCachingJvmMetadataDetector(delegate)
 
         when:
         def actual = detector.getMetadata(testLocation("jdk"))
@@ -49,20 +58,40 @@ class CachingJvmMetadataDetectorTest extends Specification {
         actual.is(metadata)
     }
 
+    def "returned metadata from different detector instance"() {
+        given:
+        def metadata1 = createJvmInstallationMetadata("jdk")
+        def delegate = Mock(JvmMetadataDetector) {
+            getMetadata(_ as InstallationLocation) >> metadata1
+        }
+        def detector = createCachingJvmMetadataDetector(delegate)
+        detector.getMetadata(testLocation("jdk"))
+        detector.close()
+
+        when:
+        def detector2 = createCachingJvmMetadataDetector(null)
+        def metadata2 = detector2.getMetadata(testLocation("jdk"))
+
+        then:
+        metadata1 != metadata2
+        metadata1.toString() == metadata2.toString()
+    }
+
     def "caches metadata by home"() {
         given:
+        def metadata = createJvmInstallationMetadata("jdk")
         def delegate = Mock(JvmMetadataDetector) {
-            getMetadata(_ as InstallationLocation) >> Mock(JvmInstallationMetadata)
+            getMetadata(_ as InstallationLocation) >> metadata
         }
-
-        def detector = new CachingJvmMetadataDetector(delegate)
+        def detector = createCachingJvmMetadataDetector(delegate)
 
         when:
         def metadata1 = detector.getMetadata(testLocation("jdk"))
         def metadata2 = detector.getMetadata(testLocation("jdk"))
 
         then:
-        metadata1.is(metadata2)
+        metadata1 != metadata2
+        metadata1.toString() == metadata2.toString()
     }
 
     @Requires(UnitTestPreconditions.Symlinks)
@@ -73,7 +102,8 @@ class CachingJvmMetadataDetectorTest extends Specification {
             TestFiles.execHandleFactory(),
             TestFiles.tmpDirTemporaryFileProvider(temporaryFolder)
         )
-        def detector = new CachingJvmMetadataDetector(metaDataDetector)
+        def detector = createCachingJvmMetadataDetector(metaDataDetector)
+        detector.getMetadata(InstallationLocation.autoDetected(Jvm.current().getJavaHome(), "current Java home"))
         File javaHome1 = Jvm.current().javaHome
         def link = new TestFile(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "jdklink")
         link.createLink(javaHome1)
@@ -88,30 +118,37 @@ class CachingJvmMetadataDetectorTest extends Specification {
         metadata2.errorMessage.contains("No such directory")
     }
 
-
-    def "invalidation takes predicate into account"() {
-        def location1 = testLocation("jdk1")
-        def location2 = testLocation("jdk2")
-        def metadata1 = Mock(JvmInstallationMetadata)
-        def metadata2 = Mock(JvmInstallationMetadata)
-        def delegate = Mock(JvmMetadataDetector) {
-            getMetadata(location1) >> metadata1
-            getMetadata(location2) >> metadata2
-        }
-        def metadataDetector = new CachingJvmMetadataDetector(delegate)
-        metadataDetector.getMetadata(location1)
-        metadataDetector.getMetadata(location2)
-
-        when: "cache gets invalidated by predicate, and some calls are made that match it and some that don't"
-        metadataDetector.invalidateItemsMatching(it -> it == metadata1)
-        metadataDetector.getMetadata(location1)
-        metadataDetector.getMetadata(location2)
-        then: "only the calls that don't match the predicate get executed again"
-        1 * delegate.getMetadata(location1)
-        0 * delegate.getMetadata(location2)
-    }
-
     private InstallationLocation testLocation(String filePath) {
         return InstallationLocation.userDefined(new File(filePath), "test")
+    }
+
+    private JvmInstallationMetadata createJvmInstallationMetadata(String javaHome) {
+        return JvmInstallationMetadata.from(new File(javaHome), "17", "amazon", "runtimeName", "runtimeVersion", "jvmName", "jvmVersion", "jvmVendor", "archName")
+    }
+
+    private CachingJvmMetadataDetector createCachingJvmMetadataDetector(JvmMetadataDetector delegate) {
+        def globalCacheDir = new GlobalCacheDir(createHomeDirProvider())
+        def cacheFactory = new DefaultCacheFactory(DefaultFileLockManagerTestHelper.createDefaultFileLockManager(), new DefaultExecutorFactory(), createBuildOperationRunner())
+        def cacheBuilderFactory = new DefaultUnscopedCacheBuilderFactory(cacheFactory)
+        def globalScopedCacheBuilderFactory = new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.dir, cacheBuilderFactory)
+        return new CachingJvmMetadataDetector(delegate, globalScopedCacheBuilderFactory)
+    }
+
+    private BuildOperationRunner createBuildOperationRunner() {
+        Stub(BuildOperationRunner) {
+            run(_ as RunnableBuildOperation) >> { RunnableBuildOperation operation ->
+                def context = Stub(BuildOperationContext)
+                operation.run(context)
+            }
+        }
+    }
+
+    private GradleUserHomeDirProvider createHomeDirProvider() {
+        return new GradleUserHomeDirProvider() {
+            @Override
+            File getGradleUserHomeDirectory() {
+                return temporaryFolder
+            }
+        }
     }
 }

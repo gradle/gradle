@@ -97,7 +97,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             gradleUserHome(),
             new GradleUserHomeTemporaryFileProvider({ gradleUserHome() }),
             execHandleFactory,
-            new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
+            new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector, globalScopedCache)),
             outputEventListener,
             Stub(MemoryManager)
         )
@@ -116,7 +116,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             gradleUserHome(),
             new GradleUserHomeTemporaryFileProvider({ gradleUserHome() }),
             execHandleFactory,
-            new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
+            new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector, globalScopedCache)),
             outputEventListener,
             Stub(MemoryManager)
         )

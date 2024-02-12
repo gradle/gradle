@@ -16,44 +16,72 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import org.gradle.internal.jvm.Jvm;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 
+import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Predicate;
 
-public class CachingJvmMetadataDetector implements JvmMetadataDetector, ConditionalInvalidation<JvmInstallationMetadata> {
+public class CachingJvmMetadataDetector implements JvmMetadataDetector, Closeable {
 
-    private final Map<File, JvmInstallationMetadata> javaMetadata = Collections.synchronizedMap(new HashMap<>());
-    private final JvmMetadataDetector delegate;
+    private static final Logger LOGGER = Logging.getLogger(CachingJvmMetadataDetector.class);
 
-    public CachingJvmMetadataDetector(JvmMetadataDetector delegate) {
-        this.delegate = delegate;
-        getMetadata(InstallationLocation.autoDetected(Jvm.current().getJavaHome(), "current Java home"));
+    private final JvmMetadataDetector metadataDetector;
+    private final PersistentCache persistentCache;
+    private final IndexedCache<File, JvmInstallationMetadata> indexedCache;
+    private final Map<File, JvmInstallationMetadata> invalidJavaMetadataMap = Collections.synchronizedMap(new HashMap<>());
+
+    public CachingJvmMetadataDetector(JvmMetadataDetector jvmMetadataDetector, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory) {
+        metadataDetector = jvmMetadataDetector;
+        persistentCache = globalScopedCacheBuilderFactory
+            .createCacheBuilder("toolchainsMetadata")
+            .withDisplayName("Toolchains Metadata")
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+            .open();
+        indexedCache = persistentCache.createIndexedCache("toolchainsCache", File.class, new DefaultSerializer<>());
     }
 
     @Override
     public JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation) {
-        File javaHome = resolveSymlink(javaInstallationLocation.getLocation());
-        return javaMetadata.computeIfAbsent(javaHome, file -> delegate.getMetadata(javaInstallationLocation));
-    }
-
-    private File resolveSymlink(File jdkPath) {
-        try {
-            return jdkPath.getCanonicalFile();
-        } catch (IOException e) {
-            return jdkPath;
-        }
+        return persistentCache.useCache(() -> {
+            File javaHome = javaInstallationLocation.getCanonicalFile();
+            JvmInstallationMetadata javaHomeMetadata = null;
+            try {
+                javaHomeMetadata = invalidJavaMetadataMap.getOrDefault(javaHome, indexedCache.getIfPresent(javaHome));
+            } catch (Exception exception) {
+                LOGGER.debug("Unable to obtain the toolchain metadata stored from cache", exception);
+            } finally {
+                if (javaHomeMetadata == null) {
+                    javaHomeMetadata = metadataDetector.getMetadata(javaInstallationLocation);
+                    if (javaHomeMetadata.isValidInstallation()) {
+                        indexedCache.put(javaHome, javaHomeMetadata);
+                    } else {
+                        invalidJavaMetadataMap.putIfAbsent(javaHome, javaHomeMetadata);
+                    }
+                }
+            }
+            return javaHomeMetadata;
+        });
     }
 
     @Override
-    public void invalidateItemsMatching(Predicate<JvmInstallationMetadata> predicate) {
-        synchronized (javaMetadata) {
-            javaMetadata.entrySet().removeIf(it -> predicate.test(it.getValue()));
+    public void close() {
+        cleanInvalidMetadata();
+        persistentCache.close();
+    }
+
+    public void cleanInvalidMetadata() {
+        synchronized (invalidJavaMetadataMap) {
+            invalidJavaMetadataMap.clear();
         }
     }
 }

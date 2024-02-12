@@ -22,12 +22,13 @@ import org.gradle.internal.serialization.Cached;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Set;
 
-public interface JvmInstallationMetadata {
+public interface JvmInstallationMetadata extends Serializable {
 
     enum JavaInstallationCapability {
         JAVA_COMPILER, J9_VIRTUAL_MACHINE
@@ -116,7 +117,7 @@ public interface JvmInstallationMetadata {
 
     class DefaultJvmInstallationMetadata implements JvmInstallationMetadata {
 
-        private final Path javaHome;
+        private final File javaHome;
         private final JavaVersion languageVersion;
         private final String javaVersion;
         private final String javaVendor;
@@ -127,7 +128,7 @@ public interface JvmInstallationMetadata {
         private final String jvmVendor;
         private final String architecture;
 
-        private final Cached<Set<JavaInstallationCapability>> capabilities = Cached.of(this::gatherCapabilities);
+        private transient Cached<Set<JavaInstallationCapability>> capabilities;
 
         private DefaultJvmInstallationMetadata(
             File javaHome,
@@ -140,7 +141,7 @@ public interface JvmInstallationMetadata {
             String jvmVendor,
             String architecture
         ) {
-            this.javaHome = javaHome.toPath();
+            this.javaHome = javaHome;
             this.languageVersion = JavaVersion.toVersion(javaVersion);
             this.javaVersion = javaVersion;
             this.javaVendor = javaVendor;
@@ -154,7 +155,7 @@ public interface JvmInstallationMetadata {
 
         @Override
         public Path getJavaHome() {
-            return javaHome;
+            return javaHome.toPath();
         }
 
         @Override
@@ -231,12 +232,15 @@ public interface JvmInstallationMetadata {
 
         @Override
         public boolean hasCapability(JavaInstallationCapability capability) {
+            if (capabilities == null) {
+                capabilities = Cached.of(this::gatherCapabilities);
+            }
             return capabilities.get().contains(capability);
         }
 
         private Set<JavaInstallationCapability> gatherCapabilities() {
             final Set<JavaInstallationCapability> capabilities = new HashSet<>(2);
-            final File javaCompiler = new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName("javac"));
+            final File javaCompiler = new File(new File(javaHome, "bin"), OperatingSystem.current().getExecutableName("javac"));
             if (javaCompiler.exists()) {
                 capabilities.add(JavaInstallationCapability.JAVA_COMPILER);
             }

@@ -96,7 +96,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
         tmpDir.file("gradleUserHome"),
         tmpDirTemporaryFileProvider,
         execHandleFactory,
-        new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector)),
+        new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(defaultJvmMetadataDetector, globalScopedCache)),
         outputEventListener,
         Stub(MemoryManager)
     )

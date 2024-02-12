@@ -2052,7 +2052,6 @@ Class <org.gradle.internal.jvm.JavaModuleDetector> is not annotated (directly or
 Class <org.gradle.internal.jvm.Jvm> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Jvm.java:0)
 Class <org.gradle.internal.jvm.UnsupportedJavaRuntimeException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (UnsupportedJavaRuntimeException.java:0)
 Class <org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CachingJvmMetadataDetector.java:0)
-Class <org.gradle.internal.jvm.inspection.ConditionalInvalidation> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ConditionalInvalidation.java:0)
 Class <org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultJvmMetadataDetector.java:0)
 Class <org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultJvmVersionDetector.java:0)
 Class <org.gradle.internal.jvm.inspection.InvalidInstallationWarningReporter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InvalidInstallationWarningReporter.java:0)

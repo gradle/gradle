@@ -16,9 +16,8 @@
 
 package org.gradle.jvm.internal.services;
 
-import org.gradle.internal.jvm.inspection.ConditionalInvalidation;
+import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.InvalidJvmInstallationCacheInvalidator;
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -32,15 +31,10 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     private void registerInvalidJavaInstallationsCacheInvalidator(ServiceRegistration registration) {
         registration.addProvider(new Object() {
             public void configure(ServiceRegistration serviceRegistration, JvmMetadataDetector globalJvmMetadataDetector) {
-                if (globalJvmMetadataDetector instanceof ConditionalInvalidation) {
-                    // Avoiding generic-unchecked cast with this intermediate implementation that checks the types of the items:
-                    ConditionalInvalidation<JvmInstallationMetadata> checkedInvalidationFromDetector =
-                        predicate -> ((ConditionalInvalidation<?>) globalJvmMetadataDetector).invalidateItemsMatching(item ->
-                            item instanceof JvmInstallationMetadata && predicate.test((JvmInstallationMetadata) item)
-                        );
+                if (globalJvmMetadataDetector instanceof CachingJvmMetadataDetector) {
                     serviceRegistration.add(
                         InvalidJvmInstallationCacheInvalidator.class,
-                        new InvalidJvmInstallationCacheInvalidator(checkedInvalidationFromDetector)
+                        new InvalidJvmInstallationCacheInvalidator((CachingJvmMetadataDetector) globalJvmMetadataDetector)
                     );
                 }
             }
