@@ -553,7 +553,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildB:compileJava", ":buildB:jar", ":buildC:compileJava", ":buildC:jar"
+        executedInOrder ":buildB:compileJava", ":buildC:compileJava", ":buildC:jar"
     }
 
     def "handles compileOnly dependencies for different subprojects from the same build included via separate dependency paths"() {

@@ -24,7 +24,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Ignore
 
 @Requires(
     value = UnitTestPreconditions.Jdk8OrEarlier,

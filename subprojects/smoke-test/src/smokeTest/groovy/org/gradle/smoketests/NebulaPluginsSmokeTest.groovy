@@ -100,7 +100,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         def result = runner('autoLintGradle').build()
 
         then:
-        int numOfRepoBlockLines = 14 + mavenCentralRepository().readLines().size()
+        int numOfRepoBlockLines = 13 + mavenCentralRepository().readLines().size()
         result.output.contains("parentheses are unnecessary for dependencies")
         result.output.contains("warning   dependency-parentheses")
         result.output.contains("build.gradle:$numOfRepoBlockLines")
