@@ -100,7 +100,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
             cerateDefaultProblemDescriptor(buildOperationId),
             new DefaultProblemDetails(
                 toInternalCategory(problem.getDefinition().getCategory()),
-                toInternalLabel(problem.getDefinition().getLabel()),
+                toInternalLabel(problem.getDefinition().getLabel(), problem.getContext().getContextualLabel()),
                 toInternalDetails(problem.getContext().getDetails()),
                 toInternalSeverity(problem.getDefinition().getSeverity()),
                 toInternalLocations(problem.getContext().getLocations()),
@@ -130,8 +130,8 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         return new DefaultProblemCategory(category.getNamespace(), category.getCategory(), category.getSubcategories());
     }
 
-    private static InternalLabel toInternalLabel(String label) {
-        return new DefaultLabel(label);
+    private static InternalLabel toInternalLabel(String label, @Nullable String contextualLabel) {
+        return new DefaultLabel(contextualLabel == null ? label : contextualLabel);
     }
 
     private static @Nullable InternalDetails toInternalDetails(@Nullable String details) {
