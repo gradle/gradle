@@ -53,6 +53,7 @@ import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -124,13 +125,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
 
         CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> dependencies =
-            calculatedValueContainerFactory.create(Describables.of("Dependency state for", description), context -> {
-                // TODO: Do we need to acquire project lock from `model`? getState calls user code.
-                DependencyState state = getState(configurationsProvider, hierarchy, dependencyCache);
-                return new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(
-                    maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
-                );
-            });
+            getConfigurationDependencyState(configurationsProvider, dependencyCache, model, calculatedValueContainerFactory, description, hierarchy, attributes);
 
         List<PublishArtifact> sourceArtifacts = artifactBuilder.build();
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts =
@@ -227,42 +222,77 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         }
     }
 
-    /**
-     * Collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
-     */
-    private DependencyState getState(
-        ConfigurationsProvider configurations,
-        ImmutableSet<String> hierarchy,
-        DependencyCache cache
+    private CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> getConfigurationDependencyState(
+        ConfigurationsProvider configurationsProvider,
+        DependencyCache dependencyCache,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        String description,
+        ImmutableSet<String> unsortedHierarchy,
+        ImmutableAttributes attributes
     ) {
-        ImmutableList.Builder<LocalOriginDependencyMetadata> dependencies = ImmutableList.builder();
-        ImmutableSet.Builder<LocalFileDependencyMetadata> files = ImmutableSet.builder();
-        ImmutableList.Builder<ExcludeMetadata> excludes = ImmutableList.builder();
+        List<String> sortedHierarchy = getSortedHierarchyForDependencies(configurationsProvider, unsortedHierarchy);
+        return calculatedValueContainerFactory.create(Describables.of("Dependency state for", description), context -> {
 
-        configurations.visitAll(config -> {
-            if (hierarchy.contains(config.getName())) {
-                DependencyState defined = getDefinedState(config, cache);
-                dependencies.addAll(defined.dependencies);
-                files.addAll(defined.files);
-                excludes.addAll(defined.excludes);
+            boolean needsProjectLock = false;
+            List<DependencyState> states = new ArrayList<>(sortedHierarchy.size());
+            for (String config : sortedHierarchy) {
+                DependencyState state = dependencyCache.get(config);
+                states.add(state);
+                needsProjectLock |= state == null;
             }
-        });
 
-        return new DependencyState(dependencies.build(), files.build(), excludes.build());
+            if (needsProjectLock) {
+                // Some configurations do not have cached dependency state.
+                // We need to lock the project to calculate the dependency state for these configurations.
+                model.applyToMutableState(p -> {
+                    for (int i = 0; i < sortedHierarchy.size(); i++) {
+                        if (states.get(i) == null) {
+                            String config = sortedHierarchy.get(i);
+                            ConfigurationInternal configuration = configurationsProvider.findByName(config);
+                            states.set(i, dependencyCache.computeIfAbsent(configuration, this::doGetDefinedState));
+                        }
+                    }
+                });
+            }
+
+            ImmutableList.Builder<LocalOriginDependencyMetadata> dependencies = ImmutableList.builder();
+            ImmutableSet.Builder<LocalFileDependencyMetadata> files = ImmutableSet.builder();
+            ImmutableList.Builder<ExcludeMetadata> excludes = ImmutableList.builder();
+
+            for (DependencyState state : states) {
+                dependencies.addAll(state.dependencies);
+                files.addAll(state.files);
+                excludes.addAll(state.excludes);
+            }
+
+            DependencyState state = new DependencyState(dependencies.build(), files.build(), excludes.build());
+
+            return new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(
+                maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
+            );
+        });
     }
 
     /**
-     * Get the defined dependencies and excludes for {@code configuration}, while also caching the result.
+     * Sorts the configuration's hierarchy in an arbitrary order.
+     * This order influences the order that dependencies are resolved and can therefore affect the resolved graph and artifacts.
+     * There is no reason to use this ordering other than for historical consistency.
      */
-    private DependencyState getDefinedState(ConfigurationInternal configuration, DependencyCache cache) {
-        return cache.computeIfAbsent(configuration, this::doGetDefinedState);
+    private static List<String> getSortedHierarchyForDependencies(ConfigurationsProvider configurationsProvider, ImmutableSet<String> hierarchy) {
+        List<String> sortedHierarchy = new ArrayList<>(hierarchy.size());
+        configurationsProvider.visitAll(config -> {
+            if (hierarchy.contains(config.getName())) {
+                sortedHierarchy.add(config.getName());
+            }
+        });
+        return sortedHierarchy;
     }
 
     /**
      * Calculate the defined dependencies and excludes for {@code configuration}, while converting the
      * DSL representation to the internal representation.
      */
-    @SuppressWarnings("deprecation")
     private DependencyState doGetDefinedState(ConfigurationInternal configuration) {
 
         ImmutableList.Builder<LocalOriginDependencyMetadata> dependencyBuilder = ImmutableList.builder();

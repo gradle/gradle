@@ -27,8 +27,9 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
-import java.util.HashMap;
+import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -57,7 +58,12 @@ public interface LocalConfigurationMetadataBuilder {
      * (resolvable and consumable), these conversions do not need to be executed multiple times.
      */
     class DependencyCache {
-        private final Map<String, DefaultLocalConfigurationMetadataBuilder.DependencyState> cache = new HashMap<>();
+        private final Map<String, DefaultLocalConfigurationMetadataBuilder.DependencyState> cache = new ConcurrentHashMap<>();
+
+        @Nullable
+        public DefaultLocalConfigurationMetadataBuilder.DependencyState get(String configurationName) {
+            return cache.get(configurationName);
+        }
 
         public DefaultLocalConfigurationMetadataBuilder.DependencyState computeIfAbsent(
             ConfigurationInternal configuration,
