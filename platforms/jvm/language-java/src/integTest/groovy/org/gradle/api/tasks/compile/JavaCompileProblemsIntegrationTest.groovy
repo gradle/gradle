@@ -164,7 +164,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         collectedProblems.size() == 4
 
         def warningProblems = collectedProblems.findAll {
-            it["severity"] == "WARNING"
+            it['definition']["severity"] == "WARNING"
         }
         warningProblems.size() == 2
         for (def problem in warningProblems) {
@@ -174,7 +174,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
 
         def errorProblems = collectedProblems.findAll {
-            it["severity"] == "ERROR"
+            it['definition']["severity"] == "ERROR"
         }
         errorProblems.size() == 2
         for (def problem in errorProblems) {
@@ -198,7 +198,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
         // The two expected warnings are still reported as warnings
         def warningProblems = collectedProblems.findAll {
-            it["severity"] == "WARNING"
+            it['definition']["severity"] == "WARNING"
         }
         warningProblems.size() == 2
         for (def problem in warningProblems) {
@@ -209,7 +209,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
         // The compiler will report a single error, implying that the warnings were treated as errors
         def errorProblems = collectedProblems.findAll {
-            it["severity"] == "ERROR"
+            it['definition']["severity"] == "ERROR"
         }
         errorProblems.size() == 1
         assertProblem(errorProblems[0], "ERROR") {details ->
@@ -240,22 +240,22 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         )
             Closure extraChecks = null
     ) {
-        assert problem["severity"] == severity: "Expected severity to be ${severity}, but was ${problem["severity"]}"
+        assert problem['definition']["severity"] == severity: "Expected severity to be ${severity}, but was ${problem['definition']["severity"]}"
         switch (severity) {
             case "ERROR":
-                assert problem["label"] == "Java compilation error": "Expected label 'Java compilation error', but was ${problem["label"]}"
+                assert problem['definition']["label"] == "Java compilation error": "Expected label 'Java compilation error', but was ${problem['definition']["label"]}"
                 break
             case "WARNING":
-                assert problem["label"] == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem["message"]}"
+                assert problem['definition']["label"] == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem['definition']["message"]}"
                 break
             default:
                 throw new IllegalArgumentException("Unknown severity: ${severity}")
         }
 
-        def details = problem["details"] as String
+        def details = problem['context']["details"] as String
         assert details: "Expected details to be non-null, but was null"
 
-        def locations = problem["locations"] as List<Map<String, Object>>
+        def locations = problem['context']["locations"] as List<Map<String, Object>>
         assert locations.size() == 1: "Expected one location, but received ${locations.size()}"
 
         def fileLocation = locations.find {

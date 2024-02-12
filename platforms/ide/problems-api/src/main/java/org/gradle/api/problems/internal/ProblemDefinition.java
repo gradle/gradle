@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,24 @@ import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Interface for describing structured information about a problem.
+ * Describes a specific problem without context.
+ * <p>
+ * For example, in the domain of Java compilation problems, an unused variable warning could be described as such:
+ * <ul>
+ *     <li>category: compilation:java</li>
+ *     <li>unused variable</li>
+ *     <li>severity: WARNING</li>
+ *     <li>...</li>
+ * </ul>
+ * <p>
+ * The category and the label uniquely identify the problem definition, the remaining fields only supply additional information.
+ * <p>
+ * The context for reported problems is stored in {@link ProblemContext}.
  */
-public interface Problem {
+public interface ProblemDefinition {
+
     /**
      * Returns the problem category.
      *
@@ -41,26 +53,12 @@ public interface Problem {
     String getLabel();
 
     /**
-     * A long description detailing the problem.
-     * <p>
-     * Details can elaborate on the problem, and provide more information about the problem.
-     * They can be multiple lines long, but should not detail solutions; for that, use {@link #getSolutions()}.
-     */
-    @Nullable
-    String getDetails();
-
-    /**
      * Problem severity.
      * <p>
      * The severity of a problem is a hint to the user about how important the problem is.
      * ERROR will fail the build, WARNING will not.
      */
     Severity getSeverity();
-
-    /**
-     * Return the location data associated available for this problem.
-     */
-    List<ProblemLocation> getLocations();
 
     /**
      * A link to the documentation for this problem.
@@ -72,17 +70,4 @@ public interface Problem {
      * A list of possible solutions the user can try to fix the problem.
      */
     List<String> getSolutions();
-
-    /**
-     * The exception that caused the problem.
-     */
-    @Nullable
-    RuntimeException getException();
-
-    /**
-     * Additional data attached to the problem.
-     * <p>
-     * The only supported value type is {@link String}.
-     */
-    Map<String, Object> getAdditionalData();
 }

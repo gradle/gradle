@@ -24,19 +24,19 @@ public interface InternalProblemReporter extends ProblemReporter {
 
     /**
      * Creates a new problem without reporting it immediately.
-     * The created problem can be later reported with {@link #report(Problem)}.
+     * The created problem can be later reported with {@link #report(ProblemReport)}.
      *
      * @param action The problem configuration.
      * @return The new problem.
      */
-    Problem create(Action<InternalProblemSpec> action);
+    ProblemReport create(Action<InternalProblemSpec> action);
 
     /**
      * Reports the target problem.
      *
      * @param problem The problem to report.
      */
-    void report(Problem problem);
+    void report(ProblemReport problem);
 
     /**
      * Reports the target problem with an explicit operation identifier.
@@ -44,5 +44,5 @@ public interface InternalProblemReporter extends ProblemReporter {
      * @param problem The problem to report.
      * @param id      The operation identifier.
      */
-    void report(Problem problem, OperationIdentifier id);
+    void report(ProblemReport problem, OperationIdentifier id);
 }
