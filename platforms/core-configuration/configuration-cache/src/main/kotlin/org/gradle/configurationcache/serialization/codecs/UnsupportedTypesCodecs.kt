@@ -68,8 +68,6 @@ import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.scripts.GradleScript
 import org.gradle.internal.service.DefaultServiceRegistry
 import java.io.FileDescriptor
-import java.io.InputStream
-import java.io.OutputStream
 import java.io.RandomAccessFile
 import java.net.ServerSocket
 import java.net.Socket
@@ -85,8 +83,6 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<Thread>())
     bind(unsupported<ThreadFactory>())
     bind(unsupported<Executor>())
-    bind(unsupported<InputStream>())
-    bind(unsupported<OutputStream>())
     bind(unsupported<FileDescriptor>())
     bind(unsupported<RandomAccessFile>())
     bind(unsupported<Socket>())

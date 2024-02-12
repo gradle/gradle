@@ -6,11 +6,32 @@ description = "Implementation of messaging between Gradle processes"
 
 gradlebuildJava.usedInWorkers()
 
-dependencies {
-    implementation(project(":base-services"))
+errorprone {
+    disabledChecks.addAll(
+        "DoubleBraceInitialization", // 1 occurrences
+        "EmptyBlockTag", // 2 occurrences
+        "IdentityHashMapUsage", // 2 occurrences
+        "InputStreamSlowMultibyteRead", // 1 occurrences
+        "MixedMutabilityReturnType", // 3 occurrences
+        "ReferenceEquality", // 1 occurrences
+        "StringCaseLocaleUsage", // 1 occurrences
+        "ThreadPriorityCheck", // 1 occurrences
+        "UnnecessaryParentheses", // 2 occurrences
+        "UnrecognisedJavadocTag", // 1 occurrences
+    )
+}
 
-    implementation(libs.fastutil)
-    implementation(libs.slf4jApi)
+dependencies {
+    api(project(":base-annotations"))
+    api(project(":hashing"))
+    api(project(":base-services"))
+
+    api(libs.fastutil)
+    api(libs.jsr305)
+    api(libs.slf4jApi)
+
+    implementation(project(":build-operations"))
+
     implementation(libs.guava)
     implementation(libs.kryo)
 

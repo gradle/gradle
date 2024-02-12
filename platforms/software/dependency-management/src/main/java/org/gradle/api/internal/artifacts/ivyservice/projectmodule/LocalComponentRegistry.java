@@ -17,8 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -28,7 +26,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * or in another build within a composite.
  */
 @ThreadSafe
-@ServiceScope(Scopes.Build.class)
 public interface LocalComponentRegistry {
     /**
      * @return The component metadata for the supplied identifier.

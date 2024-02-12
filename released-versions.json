@@ -1,13 +1,17 @@
 {
   "latestReleaseSnapshot": {
-    "version": "8.5-20231129110721+0000",
-    "buildTime": "20231129110721+0000"
+    "version": "8.6-20240130011148+0000",
+    "buildTime": "20240130011148+0000"
   },
   "latestRc": {
-    "version": "8.5-rc-4",
-    "buildTime": "20231124091900+0000"
+    "version": "8.6-rc-4",
+    "buildTime": "20240131130628+0000"
   },
   "finalReleases": [
+    {
+      "version": "8.6",
+      "buildTime": "20240202164716+0000"
+    },
     {
       "version": "8.5",
       "buildTime": "20231129140857+0000"
@@ -47,6 +51,10 @@
     {
       "version": "8.0",
       "buildTime": "20230213131521+0000"
+    },
+    {
+      "version": "7.6.4",
+      "buildTime": "20240205142918+0000"
     },
     {
       "version": "7.6.2",

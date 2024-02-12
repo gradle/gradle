@@ -4,6 +4,14 @@ plugins {
 
 description = "Plugin and integration with JaCoCo code coverage"
 
+errorprone {
+    disabledChecks.addAll(
+        "ReferenceEquality", // 3 occurrences
+        "UnnecessaryParentheses", // 1 occurrences
+        "UnusedMethod", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

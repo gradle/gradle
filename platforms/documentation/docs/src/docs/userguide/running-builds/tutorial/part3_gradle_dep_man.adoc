@@ -37,7 +37,7 @@ Learn the basics of project dependencies and Gradle's dependency management.
 == Step 1. Understanding Project Dependencies
 Gradle provides excellent support for dependency management and automation.
 
-Let's take another look at our build script (the `gradle.build.kts` file), specifically the following section:
+Let's take another look at our build script (the `build.gradle.kts` file), specifically the following section:
 [source,kotlin]
 ----
 repositories {

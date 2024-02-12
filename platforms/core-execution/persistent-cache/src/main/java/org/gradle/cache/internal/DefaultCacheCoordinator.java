@@ -108,7 +108,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
             case OnDemand:
-                crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.withMode(Exclusive), lockManager, stateLock, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.copyWithMode(Exclusive), lockManager, stateLock, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
             case None:

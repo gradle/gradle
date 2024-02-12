@@ -51,6 +51,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationBuilder.withBinding("basePackagePrefix", "") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", "") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", "") >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("fileComment", _) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
 
         where:
@@ -78,6 +79,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationBuilder.withBinding("basePackagePrefix", "my.lib.") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", "package my.lib") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", "") >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("fileComment", _) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
 
         where:
@@ -108,6 +110,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationBuilder.withBinding("basePackagePrefix", _) >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", _) >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", className) >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("fileComment", _) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
 
         where:
@@ -118,7 +121,7 @@ class TemplateFactoryTest extends Specification {
 
     private createInitSettings(String packageName) {
         new InitSettings("project", false, ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.KOTLIN, packageName,
-            BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir, null)
+            BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir, null, true)
     }
 
     def "whenNoSourcesAvailable creates template operation checking for sources"() {

@@ -18,7 +18,6 @@ package org.gradle.caching.internal.controller
 
 import groovy.transform.Immutable
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.controller.operations.PackOperationResult
 import org.gradle.caching.internal.controller.operations.UnpackOperationResult
@@ -27,6 +26,7 @@ import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
+import org.gradle.internal.execution.caching.impl.DefaultBuildCacheKey
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.file.impl.DefaultFileMetadata
@@ -60,7 +60,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     PackOperationExecutor packOperationExecutor = new PackOperationExecutor(buildOperationExecutor, packer, originFactory, stringInterner)
 
-    def key = Mock(BuildCacheKey)
+    def key = new DefaultBuildCacheKey(TestHashCodes.hashCodeFrom(1234))
 
     def originMetadata = Mock(OriginMetadata)
     def originReader = Mock(OriginReader)
@@ -143,7 +143,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
 
         then:
         1 * buildOperationExecutor.run(_) >> { RunnableBuildOperation action -> action.run(buildOperationContext)}
-        1 * originFactory.createWriter(entity.identity, entity.type, Duration.ofMillis(421L)) >> originWriter
+        1 * originFactory.createWriter(entity.identity, entity.type, TestHashCodes.hashCodeFrom(1234), Duration.ofMillis(421L)) >> originWriter
 
         then:
         1 * packer.pack(entity, outputSnapshots, _ as OutputStream, originWriter) >> new BuildCacheEntryPacker.PackResult(123)

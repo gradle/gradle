@@ -76,6 +76,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         return serviceDetails.getBuildIdentifier();
     }
 
+    @Override
     public String getName() {
         return serviceDetails.getName();
     }

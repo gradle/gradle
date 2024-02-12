@@ -57,7 +57,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -81,14 +80,12 @@ public class ModuleMetadataSpecBuilder {
     private final Map<SoftwareComponent, ComponentData> componentCoordinates = new HashMap<>();
     private final DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory;
     private final InvalidPublicationChecker checker;
-    private final List<DependencyAttributesValidator> dependencyAttributeValidators;
 
     public ModuleMetadataSpecBuilder(
         PublicationInternal<?> publication,
         Collection<? extends PublicationInternal<?>> publications,
         InvalidPublicationChecker checker,
-        DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory,
-        List<DependencyAttributesValidator> dependencyAttributeValidators
+        DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory
     ) {
         this.component = publication.getComponent();
         this.publicationCoordinates = publication.getCoordinates();
@@ -96,7 +93,6 @@ public class ModuleMetadataSpecBuilder {
         this.publications = publications;
         this.checker = checker;
         this.dependencyCoordinateResolverFactory = dependencyCoordinateResolverFactory;
-        this.dependencyAttributeValidators = dependencyAttributeValidators;
         // Collect a map from component to coordinates. This might be better to move to the component or some publications model
         collectCoordinates(componentCoordinates);
     }
@@ -336,10 +332,7 @@ public class ModuleMetadataSpecBuilder {
     }
 
     private List<ModuleMetadataSpec.Attribute> dependencyAttributesFor(String variant, String group, String name, AttributeContainer attributes) {
-        for (DependencyAttributesValidator validator : dependencyAttributeValidators) {
-            Optional<String> error = validator.validationErrorFor(group, name, attributes);
-            error.ifPresent(s -> checker.addDependencyValidationError(variant, s, validator.getExplanation(), validator.getSuppressor()));
-        }
+        checker.validateAttributes(variant, group, name, attributes);
         return attributesFor(attributes);
     }
 

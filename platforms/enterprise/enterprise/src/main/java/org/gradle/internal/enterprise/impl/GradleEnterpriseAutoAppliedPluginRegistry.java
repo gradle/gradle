@@ -65,13 +65,13 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
         ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedGradleEnterprisePlugin.VERSION);
         return new DefaultPluginRequest(
             AutoAppliedGradleEnterprisePlugin.ID,
-            AutoAppliedGradleEnterprisePlugin.VERSION,
             true,
-            null,
+            AUTO_APPLIED,
             getScriptDisplayName(),
+            null,
+            AutoAppliedGradleEnterprisePlugin.VERSION,
             artifact,
             null,
-            AUTO_APPLIED,
             develocityPluginCoordinates()
         );
     }

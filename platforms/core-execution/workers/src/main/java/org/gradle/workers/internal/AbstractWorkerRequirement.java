@@ -20,13 +20,20 @@ import java.io.File;
 
 public abstract class AbstractWorkerRequirement implements WorkerRequirement {
     private final File workerDirectory;
+    private final File projectCacheDir;
 
-    public AbstractWorkerRequirement(File workerDirectory) {
+    public AbstractWorkerRequirement(File workerDirectory, File projectCacheDir) {
         this.workerDirectory = workerDirectory;
+        this.projectCacheDir = projectCacheDir;
     }
 
     @Override
     public File getWorkerDirectory() {
         return workerDirectory;
+    }
+
+    @Override
+    public File getProjectCacheDir() {
+        return projectCacheDir;
     }
 }

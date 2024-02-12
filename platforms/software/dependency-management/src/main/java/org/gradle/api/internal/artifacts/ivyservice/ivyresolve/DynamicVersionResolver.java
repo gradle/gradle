@@ -349,19 +349,6 @@ public class DynamicVersionResolver {
         }
 
         @Override
-        public String getConfigurationName() {
-            if (repository instanceof FilteredModuleComponentRepository) {
-                return ((FilteredModuleComponentRepository) repository).getConsumerName();
-            }
-            return null;
-        }
-
-        @Override
-        public ImmutableAttributes getConsumerAttributes() {
-            return consumerAttributes;
-        }
-
-        @Override
         public void rejectedBySelector(ModuleComponentIdentifier id, VersionSelector versionSelector) {
             if (firstRejected == null) {
                 firstRejected = id;

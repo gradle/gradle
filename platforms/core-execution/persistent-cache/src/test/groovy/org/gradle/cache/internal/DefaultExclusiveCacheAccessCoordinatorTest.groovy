@@ -37,7 +37,7 @@ import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.None
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand
 import static org.gradle.cache.FileLockManager.LockMode.Shared
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 
 class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory()

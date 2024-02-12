@@ -18,12 +18,13 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.gradle.api.Describable;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 
 public interface ArtifactRepositoryInternal extends ArtifactRepository, Describable {
 
     void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container);
 
-    RepositoryContentDescriptorInternal createRepositoryDescriptor();
+    RepositoryContentDescriptorInternal createRepositoryDescriptor(VersionParser versionParser);
 
     RepositoryContentDescriptorInternal getRepositoryDescriptorCopy();
 }

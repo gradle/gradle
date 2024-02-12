@@ -1,6 +1,12 @@
-# Contributing to Gradle
+# Contributing to the Gradle Build Tool
 
-Thank you for contributing to Gradle! This guide explains how to:
+Thank you for your interest in contributing to Gradle!
+This guide explains how to contribute to the core Gradle components, 
+extensions and documentation located in this repository.
+For other extensions and components, see the 
+[Gradle Community Resources](https://gradle.org/resources/).
+
+This guide will help you to...
 
 * maximize the chance of your changes being accepted
 * work on the Gradle code base
@@ -32,6 +38,8 @@ Contributors must follow the Code of Conduct outlined at [https://gradle.org/con
 ### Additional help
 
 If you run into any trouble, please reach out to us on the issue you are working on.
+There is a `#contributing` channel on the community Slack which you can use
+to ask any questions.
 
 ## Setting up your development environment
 
@@ -72,15 +80,29 @@ All code contributions should contain the following:
 * Create unit tests using [Spock](https://spockframework.org/spock/docs/2.0/index.html) for new classes or methods that you introduce.
 * Create integration tests that exercise a Gradle build for the bug/feature. 
 * Annotate tests that correspond to a bug on GitHub (`@Issue("https://github.com/gradle/gradle/issues/2622")`).
-* Add documentation to the User Manual and DSL Reference (under [platforms/documentation/docs/src/docs](platforms/documentation/docs/src/docs/)). You can generate docs by running `./gradlew :docs:docs`.
+* Add documentation to the User Manual and DSL Reference (under [platforms/documentation/docs/src/docs](platforms/documentation/docs/src/docs/)).
 * For new features, the feature should be mentioned in the [Release Notes](platforms/documentation/docs/src/docs/release/notes.md).
 
-Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The [Gradle CI system](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
+Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The [Gradle CI system](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
 
 * Be careful when using features introduced in Java 1.7 or later. Some parts of Gradle still need to run on Java 6.
 * Normalize file paths in tests. The `org.gradle.util.internal.TextUtil` class has some useful functions for this purpose.
 
 You can consult the [Architecture Decision Records](architecture-standards) to learn about some of the architectural decisions the team took.
+
+### Contributing to documentation
+
+This repository includes Gradle documentation sources,
+including but not limited to: User Manual, DSL Reference and Javadoc.
+This information is used to generate documentation for each Gradle version
+on [docs.gradle.org](https://docs.gradle.org/).
+The documentation is mostly implemented in Asciidoc
+though we use GitHub-flavored Markdown for internal documentation too.
+
+You can generate docs by running `./gradlew :docs:docs`.
+This will build the whole documentation locally in [platforms/documentation](./platforms/documentation).
+For more commands and examples, including local development,
+see [this guide](./platforms/documentation/README.md).
 
 ### Creating commits and writing commit messages
 
@@ -103,6 +125,13 @@ After making changes, you can test your code in 2 ways:
 - Use: `/any/path/bin/gradle taskName`.
 
 It's also a good idea to run `./gradlew sanityCheck` before submitting your change because this will help catch code style issues.
+
+> **NOTE:** Do **NOT** run `gradle build` on the local development environment,
+> even if you have Gradle or Develocity build caching enabled for the project.
+> The Gradle Build Tool repository is massive, and it will take ages to build on
+> a local machine without necessary parallelization and caching.
+> The full test suites are executed on the CI instance for multiple configurations,
+> and you can rely on it after doing initial sanity check and targeted local testing.
 
 ### Submitting Your Change
 

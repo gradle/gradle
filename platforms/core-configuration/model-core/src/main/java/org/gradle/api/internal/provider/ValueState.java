@@ -25,9 +25,15 @@ import org.gradle.internal.state.ModelObject;
 import javax.annotation.Nullable;
 
 /**
- * Manages values that are finalizable and support conventions.
+ * Provides a state pattern implementation for values that are finalizable and support conventions.
  *
- * @param <S>
+ * <h3>Finalization</h3>
+ * See {@link org.gradle.api.provider.HasConfigurableValue} and {@link HasConfigurableValueInternal}.
+ *
+ * <h3>Conventions</h3>
+ * See {@link org.gradle.api.provider.SupportsConvention}.
+ *
+ * @param <S> the type of the value
  */
 public abstract class ValueState<S> {
     private static final ValueState<Object> FINALIZED_VALUE = new FinalizedValue<>();
@@ -38,8 +44,16 @@ public abstract class ValueState<S> {
 
     public abstract boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer);
 
+    /**
+     * Returns the state to replace this state once is finalized.
+     */
     public abstract ValueState<S> finalState();
 
+    /**
+     * Sets a new convention value, replacing the existing one if set.
+     *
+     * @param convention the new convention value
+     */
     public abstract void setConvention(S convention);
 
     public abstract void disallowChanges();
@@ -48,10 +62,40 @@ public abstract class ValueState<S> {
 
     public abstract void disallowUnsafeRead();
 
+    /**
+     * Marks this value state as being explicitly assigned. Does not remember the given value in any way.
+     *
+     * @param value
+     * @return the very <code>value</code> given
+     */
+    //TODO-RC rename this or the overload as they have significantly different semantics
     public abstract S explicitValue(S value);
 
+    /**
+     * Returns <code>value</code> if this value state is marked as explicit, otherwise returns the given <code>defaultValue</code>.
+     *
+     * Note that "default value" is not related to the convention value, though they are easy to confuse.
+     * A default value is a fallback value that is sensible to the caller, in the absence of the explicit value.
+     * The default value is not related in any way to the convention value.
+     *
+     * @param value
+     * @param defaultValue
+     * @return the given value, if this value state is not explicit, or given default value
+     */
+    //TODO-RC rename this or the overload as they have significantly different semantics
     public abstract S explicitValue(S value, S defaultValue);
 
+    /**
+     * Applies a new convention value, which replaces the existing convention value.
+     *
+     * Returns the given <code>value</code> if this value state is explicit, otherwise returns the new convention value.
+     *
+     * This is similar to calling {@link #setConvention(Object)} followed by {@link #explicitValue(Object, Object)}.
+     *
+     * @param value
+     * @param convention
+     * @return the given value, if this value state is not explicit, otherwise the new convention value
+     */
     public abstract S applyConvention(S value, S convention);
 
     /**
@@ -84,6 +128,26 @@ public abstract class ValueState<S> {
         disallowChanges();
         finalizeOnNextGet();
     }
+
+    public abstract boolean isExplicit();
+
+    /**
+     * Retrieves the current convention.
+     */
+    public abstract S convention();
+
+    /**
+     * Marks this value as being explicitly set with
+     * the current value assigned to the convention.
+     */
+    public abstract S setToConvention();
+
+    /**
+     * Marks this value as being explicitly set with
+     * the current value assigned to the convention,
+     * unless it is already an explicit value.
+     */
+    public abstract S setToConventionIfUnset(S value);
 
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
@@ -159,6 +223,30 @@ public abstract class ValueState<S> {
         @Override
         public boolean isFinalizing() {
             return finalizeOnNextGet;
+        }
+
+        @Override
+        public boolean isExplicit() {
+            return explicitValue;
+        }
+
+        @Override
+        public S convention() {
+            return convention;
+        }
+
+        @Override
+        public S setToConvention() {
+            explicitValue = true;
+            return convention;
+        }
+
+        @Override
+        public S setToConventionIfUnset(S value) {
+            if (!explicitValue) {
+                return setToConvention();
+            }
+            return value;
         }
 
         @Override
@@ -275,6 +363,26 @@ public abstract class ValueState<S> {
         @Override
         public boolean isFinalizing() {
             return true;
+        }
+
+        @Override
+        public boolean isExplicit() {
+            return true;
+        }
+
+        @Override
+        public S convention() {
+            return null;
+        }
+
+        @Override
+        public S setToConvention() {
+            throw unexpected();
+        }
+
+        @Override
+        public S setToConventionIfUnset(S value) {
+            throw unexpected();
         }
 
         @Override

@@ -480,7 +480,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         and:
         failure.assertHasCause("Could not resolve project :greeter")
-        failure.assertHasCause("No matching variant of project :greeter was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but:")
+        failure.assertHasCause("No matching variant of project :greeter was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:")
     }
 
     def "fails when dependency library does not specify the same target architecture"() {
@@ -629,8 +629,8 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         fails ":app:assemble"
 
-        failure.assertHasCause """No matching variant of project :hello was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but:
-  - Variant 'cppApiElements' capability test:hello:unspecified:
+        failure.assertHasCause """No matching variant of project :hello was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:
+  - Variant 'cppApiElements':
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'cplusplus-api' and the consumer needed attribute 'org.gradle.usage' with value 'native-runtime'
       - Other compatible attributes:
           - Doesn't say anything about org.gradle.native.architecture (required '${currentArchitecture}')

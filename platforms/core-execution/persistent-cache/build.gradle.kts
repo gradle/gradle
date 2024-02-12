@@ -7,16 +7,35 @@ description = """Persistent caches on disk and cross process locking.
     | Also contains implementations for in-memory caches in front of the disk cache.
 """.trimMargin()
 
+errorprone {
+    disabledChecks.addAll(
+        "EmptyBlockTag", // 2 occurrences
+        "LockNotBeforeTry", // 3 occurrences
+        "NonAtomicVolatileUpdate", // 1 occurrences
+        "StringCaseLocaleUsage", // 1 occurrences
+        "ThreadLocalUsage", // 1 occurrences
+        "UnnecessaryLambda", // 1 occurrences
+        "UnusedMethod", // 2 occurrences
+        "UnusedVariable", // 1 occurrences
+        "WaitNotInLoop", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":native"))
-    implementation(project(":files"))
-    implementation(project(":resources"))
-    implementation(project(":logging"))
+    api(project(":base-annotations"))
+    api(project(":enterprise-logging"))
+    api(project(":base-services"))
+    api(project(":messaging"))
+    api(project(":native"))
+    api(project(":files"))
+    api(project(":logging"))
+
+    api(libs.jsr305)
+    api(libs.guava)
+
+    implementation(project(":build-operations"))
 
     implementation(libs.slf4jApi)
-    implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 

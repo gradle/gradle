@@ -32,7 +32,7 @@ image::intellij-idea-android-studio.png[IntelliJ IDEA and Android Studio]
 Please also read the <<kotlin_dsl.adoc#kotlin_dsl,Gradle Kotlin DSL Primer>> to learn the specificities, limitations and usage of the Gradle Kotlin DSL.
 
 The rest of the user manual contain build script excerpts that demonstrate both the Groovy DSL and the Kotlin DSL.
-This is the best place where to find how to do this and what with each DSL ; and it covers all Gradle features from <<plugins.adoc#plugins,using plugins>> to <<dependency_constraints.adoc#dependency-constraints,customizing the dependency resolution behavior>>.
+This is the best place where to find how to do this and what with each DSL ; and it covers all Gradle features from <<plugins.adoc#using_plugins,using plugins>> to <<dependency_constraints.adoc#dependency-constraints,customizing the dependency resolution behavior>>.
 ====
 
 == Before you start migrating

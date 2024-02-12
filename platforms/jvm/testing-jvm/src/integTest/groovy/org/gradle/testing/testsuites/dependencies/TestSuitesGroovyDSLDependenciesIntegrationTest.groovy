@@ -16,6 +16,7 @@
 
 package org.gradle.testing.testsuites.dependencies
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
 
@@ -1055,6 +1056,76 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion multiple GAV strings
     // endregion dependencies - modules (GAV)
 
+    // region dependency constraints - modules (GAV)
+    def 'can add dependency constraints to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV string'() {
+        given:
+        buildFile << """
+        plugins {
+          id 'java-library'
+        }
+
+        ${mavenCentralRepository()}
+
+        dependencies {
+            // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
+            implementation 'org.apache.commons:commons-lang3:3.11'
+            api 'com.google.guava:guava:30.1.1-jre'
+        }
+
+        testing {
+            suites {
+                test {
+                    dependencies {
+                        // Constrain commons-lang3 and guava
+                        implementation constraint('org.apache.commons:commons-lang3:3.12.0')
+                        implementation constraint('com.google.guava:guava:33.0.0-jre')
+                    }
+                }
+                integTest(JvmTestSuite) {
+                    // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
+                    dependencies {
+                        implementation project()
+                        // Should not add dependency on commons-lang3
+                        implementation constraint('org.apache.commons:commons-lang3:3.10!!')
+                        implementation constraint('com.google.guava:guava:29.0-jre!!')
+                    }
+                }
+            }
+        }
+
+        tasks.named('check') {
+            dependsOn testing.suites.integTest
+        }
+
+        tasks.register('checkConfiguration') {
+            dependsOn test, integTest
+            def testCompile = configurations.testCompileClasspath
+            def testRuntime = configurations.testRuntimeClasspath
+            def integTestCompile = configurations.integTestCompileClasspath
+            def integTestRuntime = configurations.integTestRuntimeClasspath
+            doLast {
+                def testCompileClasspathFileNames = testCompile*.name
+                def testRuntimeClasspathFileNames = testRuntime*.name
+
+                assert testCompileClasspathFileNames.containsAll('commons-lang3-3.12.0.jar', 'guava-33.0.0-jre.jar')
+                assert testRuntimeClasspathFileNames.containsAll('commons-lang3-3.12.0.jar', 'guava-33.0.0-jre.jar')
+
+                def integTestCompileClasspathFileNames = integTestCompile*.name
+                def integTestRuntimeClasspathFileNames = integTestRuntime*.name
+
+                assert integTestCompileClasspathFileNames.containsAll('guava-29.0-jre.jar')
+                assert !integTestCompileClasspathFileNames.contains('commons-lang3-3.11.jar') : 'implementation dependency of project, should not leak to integTest'
+                assert !integTestCompileClasspathFileNames.contains('commons-lang3-3.10.jar') : 'constraint of integTest should not add dependency'
+                assert integTestRuntimeClasspathFileNames.containsAll('commons-lang3-3.10.jar', 'guava-29.0-jre.jar')
+            }
+        }
+        """
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
+    // endregion dependency constraints - modules (GAV)
+
     // region dependencies - dependency objects
     def 'can add dependency objects to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
         given:
@@ -1192,6 +1263,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion dependencies - dependency objects
 
     // region dependencies - dependency providers
+
+    private static final String ERROR_MESSAGE_PROVIDER = "Providers of type 'java.lang.String' are not supported. Only Provider<Dependency> and Provider<DependencyConstraint> are supported. Try using the Provider#map method to convert to a supported type.";
+
     def 'can add dependency providers which provide dependency objects to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
         given:
         buildFile << """
@@ -1280,7 +1354,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         fails 'checkConfiguration'
 
         then:
-        failureHasCause("Providers of non-Dependency types (java.lang.String) are not supported. Create a Dependency using DependencyFactory first.")
+        failureHasCause(ERROR_MESSAGE_PROVIDER)
     }
 
     def 'can add dependency providers which provide dependency objects with actions (using exclude) to #suiteDesc'() {
@@ -1410,7 +1484,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         fails 'checkConfiguration'
 
         then:
-        failureHasCause("Providers of non-Dependency types (java.lang.String) are not supported. Create a Dependency using DependencyFactory first.")
+        failureHasCause(ERROR_MESSAGE_PROVIDER)
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -1458,7 +1532,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         fails 'checkConfiguration'
 
         then:
-        failureHasCause("Providers of non-Dependency types (java.lang.String) are not supported. Create a Dependency using DependencyFactory first.")
+        failureHasCause(ERROR_MESSAGE_PROVIDER)
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration

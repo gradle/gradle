@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.ProblemReporter;
+import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblems;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -34,33 +33,54 @@ import java.util.Locale;
  */
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
 
-    private final InternalProblemReporter problemReporter;
+    private final ProblemReporter problemReporter;
 
-    public DiagnosticToProblemListener(Problems problemsService) {
-        this.problemReporter = ((InternalProblems) problemsService).getInternalReporter();
+    public DiagnosticToProblemListener(ProblemReporter problemReporter) {
+        this.problemReporter = problemReporter;
     }
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
         String message = diagnostic.getMessage(Locale.getDefault());
         String label = mapKindToLabel(diagnostic.getKind());
-        String resourceName = diagnostic.getSource() != null ? diagnostic.getSource().toUri().toString() : null;
-        Integer line = Math.toIntExact(diagnostic.getLineNumber());
-        Integer column = Math.toIntExact(diagnostic.getColumnNumber());
-        Integer length = Math.toIntExact(diagnostic.getEndPosition() - diagnostic.getStartPosition());
+
+        String resourceName = diagnostic.getSource() != null ? getPath(diagnostic.getSource()) : null;
+        int line = Math.toIntExact(diagnostic.getLineNumber());
+        int column = Math.toIntExact(diagnostic.getColumnNumber());
+        int length = Math.toIntExact(diagnostic.getEndPosition() - diagnostic.getStartPosition());
         Severity severity = mapKindToSeverity(diagnostic.getKind());
 
-        Problem problem = problemReporter.create(p -> p
-            .label(label)
-            .lineInFileLocation(resourceName, line, column, length)
-            .category("compiler", "java")
-            .severity(severity)
-            .details(message)
-        );
-        problemReporter.report(problem);
+        problemReporter.reporting(problem -> {
+            ProblemSpec spec = problem
+                .label(label)
+                .severity(severity)
+                .details(message);
+
+            // The category of the problem depends on the severity
+            switch (severity) {
+                case ADVICE:
+                    spec.category("compilation", "java", "compilation-advice");
+                    break;
+                case WARNING:
+                    spec.category("compilation", "java", "compilation-warning");
+                    break;
+                case ERROR:
+                    spec.category("compilation", "java", "compilation-failed");
+                    break;
+            }
+
+            // We only set the location if we have a resource to point to
+            if (resourceName != null) {
+                spec.lineInFileLocation(resourceName, line, column, length);
+            }
+        });
 
         // We need to print the message to stderr as well, as it was the default behavior of the compiler
         System.err.println(message);
+    }
+
+    private static String getPath(JavaFileObject fileObject) {
+        return fileObject.getName();
     }
 
     private static String mapKindToLabel(Diagnostic.Kind kind) {

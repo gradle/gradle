@@ -589,12 +589,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             println(bar)
         """
         executer.expectDocumentedDeprecationWarning(
-            "The Project.getConvention() method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-        )
-        executer.expectDocumentedDeprecationWarning(
             "The org.gradle.api.plugins.Convention type has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Consult the upgrading guide for further information: " +
@@ -689,6 +683,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
+        if (expr == "dependencies.project([path: ':', configuration: 'test'])") {
+            executer.expectDocumentedDeprecationWarning("Accessing the build dependencies of project dependency ':' has been deprecated. This will fail with an error in Gradle 9.0. Add the dependency to a resolvable configuration and use the configuration to track task dependencies. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_self_resolving_dependency")
+        }
         isolatedProjectsFails(":help")
 
         then:

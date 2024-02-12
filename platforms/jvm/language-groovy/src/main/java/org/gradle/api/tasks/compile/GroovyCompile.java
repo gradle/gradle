@@ -321,6 +321,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      * @return The Java compile options. Never returns null.
      */
     @Nested
+    @Override
     public CompileOptions getOptions() {
         return compileOptions;
     }

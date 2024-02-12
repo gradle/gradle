@@ -40,7 +40,6 @@ import java.util.function.Supplier;
  * Action failures (if any) are aggregated into {@link MultipleBuildOperationFailures}.
  * Batch execution succeeds only if all action finish without exceptions.
  */
-@NonNullApi
 public class IntermediateBuildActionRunner {
 
     private final BuildOperationExecutor buildOperationExecutor;

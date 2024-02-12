@@ -6,10 +6,19 @@ description = "Process execution abstractions."
 
 gradlebuildJava.usedInWorkers()
 
-dependencies {
-    implementation(project(":base-services"))
+errorprone {
+    disabledChecks.addAll(
+        "FutureReturnValueIgnored", // 1 occurrences
+    )
+}
 
-    implementation(project(":messaging"))
+dependencies {
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":messaging"))
+
+    api(libs.jsr305)
+
     implementation(project(":native"))
 
     implementation(libs.slf4jApi)
@@ -23,9 +32,4 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/process/internal/**")
-}
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

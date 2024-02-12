@@ -25,11 +25,10 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Either;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.transforms.ClassTransform;
-import org.gradle.internal.classpath.transforms.CompositeClassTransform;
-import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
+import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.DefaultInstrumentingTypeRegistryFactory;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
@@ -166,7 +165,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     @Override
-    public ClassPath transform(ClassPath classPath, StandardTransform transform, ClassTransform additional) {
+    public ClassPath transform(ClassPath classPath, ClassTransform additional) {
         if (classPath.isEmpty()) {
             return classPath;
         }
@@ -174,7 +173,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             classPath,
             instrumentingClasspathFileTransformerFor(
                 classpathElementTransformFactoryForLegacy,
-                new CompositeClassTransform(additional, transformerFor(transform))
+                additional
             )
         );
     }
@@ -200,14 +199,6 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                 (file, seen) -> cachedFile(file, transformer, seen, typeRegistry)
             )
         );
-    }
-
-    private ClassTransform transformerFor(StandardTransform transform) {
-        if (transform == StandardTransform.BuildLogic) {
-            return new InstrumentingClassTransform();
-        } else {
-            throw new UnsupportedOperationException("Not implemented yet.");
-        }
     }
 
     private ClasspathFileTransformer fileTransformerFor(StandardTransform transform) {

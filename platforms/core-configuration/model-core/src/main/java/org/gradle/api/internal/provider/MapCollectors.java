@@ -79,6 +79,11 @@ public class MapCollectors {
         public int hashCode() {
             return Objects.hashCode(key, value);
         }
+
+        @Override
+        public String toString() {
+            return String.format("{%s=%s}", key, value);
+        }
     }
 
     public static class EntryWithValueFromProvider<K, V> implements MapCollector<K, V> {
@@ -133,6 +138,11 @@ public class MapCollectors {
         public ValueProducer getProducer() {
             return providerOfValue.getProducer();
         }
+
+        @Override
+        public String toString() {
+            return String.format("entry{%s=%s}", key, providerOfValue);
+        }
     }
 
     public static class EntriesFromMap<K, V> implements MapCollector<K, V> {
@@ -168,6 +178,11 @@ public class MapCollectors {
         @Override
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
+        }
+
+        @Override
+        public String toString() {
+            return entries.toString();
         }
     }
 
@@ -212,6 +227,11 @@ public class MapCollectors {
         @Override
         public ValueProducer getProducer() {
             return providerOfEntries.getProducer();
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(providerOfEntries);
         }
     }
 }

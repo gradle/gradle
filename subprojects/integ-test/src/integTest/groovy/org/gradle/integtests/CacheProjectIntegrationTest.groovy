@@ -18,6 +18,7 @@ package org.gradle.integtests
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -39,10 +40,10 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     TestFile projectDir
     TestFile userHomeDir
     TestFile buildFile
-    TestFile propertiesFile
     TestFile classPathClassesDir
     TestFile classFile
     TestFile artifactsCache
+    Set<TestFile> visitedBaseDirs
 
     MavenHttpRepository repo
 
@@ -56,7 +57,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         projectDir.mkdirs()
         userHomeDir = executer.gradleUserHomeDir
         buildFile = projectDir.file('build.gradle')
-
+        visitedBaseDirs = []
         artifactsCache = projectDir.file(".gradle/$version/executionHistory/executionHistory.bin")
 
         repo = new MavenHttpRepository(server, mavenRepo)
@@ -69,12 +70,12 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
     private void updateCaches() {
         String version = GradleVersion.current().version
-        classPathClassesDir = userHomeDir.file("caches/$version/scripts").listFiles().find { it.file("cp_proj").isDirectory() }?.file("cp_proj")
-        def candidates = userHomeDir.file("caches/$version/scripts").listFiles().findAll { it.file("proj").isDirectory() }
+        classPathClassesDir = userHomeDir.file("caches/$version/groovy-dsl").listFiles().find { it.file("classes/cp_proj").isDirectory() }?.file("classes/cp_proj")
+        def candidates = userHomeDir.file("caches/$version/groovy-dsl").listFiles().findAll { it.file("classes/proj").isDirectory() }
         // when there are multiple candidates, assume that a different entry to that used last time is the one required
-        def baseDir = candidates.size() == 1 ? candidates.first() : candidates.find { propertiesFile == null || it != propertiesFile.parentFile }
-        propertiesFile = baseDir.file("cache.properties")
-        classFile = baseDir.file("proj/_BuildScript_.class")
+        def baseDir = candidates.size() == 1 ? candidates.first() : candidates.find {it !in visitedBaseDirs }
+        visitedBaseDirs.add(baseDir)
+        classFile = baseDir.file("classes/proj/_BuildScript_.class")
     }
 
     @Test
@@ -93,7 +94,9 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Issue("https://github.com/gradle/gradle/issues/13367")
     @Test
+    @UnsupportedWithConfigurationCache(because = "Test always passes with cc because we don't rerun config phase on second run")
     void "recovers from discarded empty classes directory from classpath entry"() {
+        given:
         buildFile << """
             task hello1 {
                 def f = file("build/test.txt")
@@ -151,7 +154,6 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         assertEquals(expected, projectDir.file(TEST_FILE).text)
         updateCaches()
         classFile.assertIsFile()
-        propertiesFile.assertIsFile()
         artifactsCache.assertIsFile()
     }
 

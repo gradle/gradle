@@ -22,12 +22,6 @@ dependencies {
     pluginsRuntimeOnly(project(":enterprise"))
 }
 
-tasks.register<gradlebuild.run.tasks.RunEmbeddedGradle>("runDevGradle") {
-    group = "verification"
-    description = "Runs an embedded Gradle using the partial distribution for ${project.path}."
-    gradleClasspath.from(configurations.runtimeClasspath.get(), tasks.runtimeApiInfoJar)
-}
-
 // This is required for the separate promotion build and should be adjusted there in the future
 tasks.register<Copy>("copyDistributionsToRootBuild") {
     dependsOn("buildDists")

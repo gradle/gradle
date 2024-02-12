@@ -26,13 +26,11 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
-import org.gradle.internal.Cast;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -71,10 +69,14 @@ public class GraphVariantSelector {
     }
 
     public GraphVariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
-        return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, AttributeMatchingExplanationBuilder.logging());
+        return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, false, AttributeMatchingExplanationBuilder.logging());
     }
 
-    private GraphVariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
+    public GraphVariantSelectionResult selectVariantsLenient(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
+        return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, true, AttributeMatchingExplanationBuilder.logging());
+    }
+
+    private GraphVariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, boolean allowNoMatchingVariants, AttributeMatchingExplanationBuilder explanationBuilder) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         AttributeMatcher attributeMatcher = consumerSchema.withProducer(targetComponent.getAttributesSchema());
@@ -89,7 +91,7 @@ public class GraphVariantSelector {
         List<? extends VariantGraphResolveState> allConsumableVariants = candidates.getVariants();
         ImmutableList<VariantGraphResolveState> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, allConsumableVariants, true);
         if (variantsProvidingRequestedCapabilities.isEmpty()) {
-            throw failureProcessor.noMatchingCapabilitiesFailure(targetComponent, explicitRequestedCapabilities, allConsumableVariants);
+            throw failureProcessor.noMatchingCapabilitiesFailure(consumerSchema, attributeMatcher, consumerAttributes, targetComponent, explicitRequestedCapabilities, allConsumableVariants);
         }
 
         List<VariantGraphResolveState> matches = attributeMatcher.matches(variantsProvidingRequestedCapabilities, consumerAttributes, explanationBuilder);
@@ -125,17 +127,18 @@ public class GraphVariantSelector {
         if (matches.size() == 1) {
             return singleVariant(true, matches);
         } else if (!matches.isEmpty()) {
-            AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
             if (explanationBuilder instanceof TraceDiscardedConfigurations) {
-                Set<VariantGraphResolveState> discarded = Cast.uncheckedCast(((TraceDiscardedConfigurations) explanationBuilder).discarded);
-                throw failureProcessor.ambiguousGraphVariantsFailure(describer, consumerAttributes, attributeMatcher, matches, targetComponent, true, discarded);
+                throw failureProcessor.ambiguousGraphVariantsFailure(consumerSchema, attributeMatcher, consumerAttributes, matches, targetComponent);
             } else {
                 // Perform a second resolution with tracing
-                return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, new TraceDiscardedConfigurations());
+                return selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, requestedArtifacts, allowNoMatchingVariants, new TraceDiscardedConfigurations());
             }
         } else {
-            AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
-            throw failureProcessor.noMatchingGraphVariantFailure(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
+            if (allowNoMatchingVariants) {
+                return new GraphVariantSelectionResult(Collections.emptyList(), true);
+            }
+
+            throw failureProcessor.noMatchingGraphVariantFailure(consumerSchema, attributeMatcher, consumerAttributes, targetComponent, candidates);
         }
     }
 
@@ -151,8 +154,7 @@ public class GraphVariantSelector {
             return singleVariant(candidates.isUseVariants(), ImmutableList.of(fallbackConfiguration.asVariant()));
         }
 
-        AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
-        throw failureProcessor.noMatchingGraphVariantFailure(describer, consumerAttributes, attributeMatcher, targetComponent, candidates);
+        throw failureProcessor.noMatchingGraphVariantFailure(consumerSchema, attributeMatcher, consumerAttributes, targetComponent, candidates);
     }
 
     @Nullable

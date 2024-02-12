@@ -45,11 +45,11 @@ androidGradlePlugin = "7.4.1"
 mockito = "2.16.0"
 
 [libraries]
-google-material = { group = "com.google.android.material", name = "material", version = "1.1.0-alpha05" }
-mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+googleMaterial = { group = "com.google.android.material", name = "material", version = "1.1.0-alpha05" }
+mockitoCore = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 
 [plugins]
-android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+androidApplication = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 ----
 
 The file is located in the `gradle` directory so that it can be used by Gradle and IDEs automatically.
@@ -64,15 +64,15 @@ The following `build.gradle.kts` file adds a plugin and two dependencies to the 
 [source,kotlin]
 ----
 plugins {
-   alias(libs.plugins.android.application)  // <1>
+   alias(libs.plugins.androidApplication)  // <1>
 }
 
 dependencies {
     // Dependency on a remote binary to compile and run the code
-    implementation(libs.google.material)    // <2>
+    implementation(libs.googleMaterial)    // <2>
 
     // Dependency on a remote binary to compile and run the test code
-    testImplementation(libs.mockito.core)   // <3>
+    testImplementation(libs.mockitoCore)   // <3>
 }
 ----
 <1> Applies the Android Gradle plugin to this project, which adds several features that are specific to building Android apps.

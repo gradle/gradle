@@ -84,13 +84,13 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
-    def "task output caching key is not exposed by default"() {
+    def "task output caching key is exposed by default"() {
         when:
         buildFile << customTaskCode('foo', 'bar')
         succeeds('customTask')
 
         then:
-        !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
+        operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
     def "handles task with no outputs"() {

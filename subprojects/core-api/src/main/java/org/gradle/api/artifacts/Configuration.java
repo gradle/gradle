@@ -20,6 +20,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -381,6 +382,18 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @since 4.6
      */
     DependencyConstraintSet getAllDependencyConstraints();
+
+    /**
+     * Use the given collector as a source for dependencies and dependency constraints.
+     *
+     * @param collector the collector to use
+     * @since 8.7
+     */
+    @Incubating
+    default void fromDependencyCollector(DependencyCollector collector) {
+        getDependencies().addAllLater(collector.getDependencies());
+        getDependencyConstraints().addAllLater(collector.getDependencyConstraints());
+    }
 
     /**
      * Returns the artifacts of this configuration excluding the artifacts of extended configurations.

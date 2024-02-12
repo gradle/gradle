@@ -22,7 +22,9 @@ public interface LockOptions {
     boolean isUseCrossVersionImplementation();
 
     /**
-     * Creates a copy of these options with the given mode.
+     * Creates a copy of this options instance using the given mode.
+     *
+     * @param mode the mode to overwrite the current mode with
      */
-    LockOptions withMode(FileLockManager.LockMode mode);
+    LockOptions copyWithMode(FileLockManager.LockMode mode);
 }

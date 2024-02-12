@@ -40,18 +40,18 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
 
     private final static Logger LOGGER = Logging.getLogger(DefaultConflictHandler.class);
 
-    private final CompositeConflictResolver<ComponentState> compositeResolver = new CompositeConflictResolver<>();
+    private final ModuleConflictResolver<ComponentState> resolver;
     private final ConflictContainer<ModuleIdentifier, ComponentState> conflicts = new ConflictContainer<>();
     private final ModuleReplacementsData moduleReplacements;
 
-    public DefaultConflictHandler(ModuleConflictResolver<ComponentState> conflictResolver, ModuleReplacementsData moduleReplacements) {
+    public DefaultConflictHandler(ModuleConflictResolver<ComponentState> resolver, ModuleReplacementsData moduleReplacements) {
+        this.resolver = resolver;
         this.moduleReplacements = moduleReplacements;
-        this.compositeResolver.addFirst(conflictResolver);
     }
 
     @Override
     public ModuleConflictResolver<ComponentState> getResolver() {
-        return compositeResolver;
+        return resolver;
     }
 
     /**
@@ -81,7 +81,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
         assert hasConflicts();
         ConflictContainer<ModuleIdentifier, ComponentState>.Conflict conflict = conflicts.popConflict();
         ConflictResolverDetails<ComponentState> details = new DefaultConflictResolverDetails<>(conflict.candidates);
-        compositeResolver.select(details);
+        resolver.select(details);
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
         }
@@ -106,11 +106,6 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
                 selected.addCause(moduleReplacement);
             }
         }
-    }
-
-    @Override
-    public void registerResolver(ModuleConflictResolver<ComponentState> conflictResolver) {
-        compositeResolver.addFirst(conflictResolver);
     }
 
     @Override

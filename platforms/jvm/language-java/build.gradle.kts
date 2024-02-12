@@ -4,6 +4,20 @@ plugins {
 
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
 
+errorprone {
+    disabledChecks.addAll(
+        "CheckReturnValue", // 2 occurrences
+        "DoNotClaimAnnotations", // 6 occurrences
+        "InconsistentCapitalization", // 1 occurrences
+        "InvalidInlineTag", // 3 occurrences
+        "MissingCasesInEnumSwitch", // 1 occurrences
+        "MixedMutabilityReturnType", // 3 occurrences
+        "OperatorPrecedence", // 2 occurrences
+        "UnusedMethod", // 4 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))

@@ -61,7 +61,9 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         and:
         def pathToClass = "com/google/android/apps/santatracker/tracker/ui/BottomSheetBehavior"
         def fileToChange = checkoutDir.file("tracker/src/main/java/${pathToClass}.java")
-        def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
+        def compiledClassFile = VersionNumber.parse(agpVersion).baseVersion >= VersionNumber.parse('8.3.0')
+            ? checkoutDir.file("tracker/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/${pathToClass}.class")
+            : checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
 
         when:
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
@@ -117,10 +119,10 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
         runner.deprecations(SantaTrackerDeprecations) {
-            expectProjectConventionDeprecationWarning(agpVersion)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
             expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion, '8.2.0')
+            expectClientModuleDeprecationWarning(agpVersion)
             if (agpVersion.startsWith('7.')) {
                 expectBuildIdentifierNameDeprecation(agpVersion)
             }
@@ -142,11 +144,11 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         runner.withArguments(runner.arguments + "--continue")
         runner.deprecations(SantaTrackerDeprecations) {
             if (GradleContextualExecuter.notConfigCache) {
-                expectProjectConventionDeprecationWarning(agpVersion)
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
+                expectClientModuleDeprecationWarning(agpVersion)
             }
         }
         result = runner.buildAndFail()

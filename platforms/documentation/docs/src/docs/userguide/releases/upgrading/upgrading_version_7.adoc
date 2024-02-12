@@ -884,7 +884,7 @@ Invalid specifications are deprecated and will become build errors in Gradle 8.0
 
 See more details about toolchain configuration in the <<toolchains#sec:configuring_toolchain_specifications,user manual>>.
 
-[[org_gradle_util_reports_deprecations]]
+[[org_gradle_util_reports_deprecations_7]]
 ==== Deprecated members of the `org.gradle.util` package now report their deprecation
 
 These members will be removed in Gradle 9.0.
@@ -1586,7 +1586,7 @@ To fix this, the plugin that configures the convention mapping for the task, ext
 
 [[jacoco_merge]]
 
-[[configuring_custom_build_layout]]
+[[configuring_custom_build_layout_7]]
 ==== Setting custom build layout
 
 Command line options:

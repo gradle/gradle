@@ -80,6 +80,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return "POM";
     }
 
+    @Override
     public String toString() {
         return "gradle pom parser";
     }

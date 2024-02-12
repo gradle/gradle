@@ -20,17 +20,13 @@ import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockReleasedSignal
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.ServiceRegistryBuilder
-import org.gradle.internal.service.scopes.GradleUserHomeScopeServices
 import org.gradle.internal.time.Time
 
 import java.util.concurrent.Executors
@@ -51,9 +47,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     def setup() {
         executer.withArguments("-d")
         executer.requireOwnGradleUserHomeDir().withDaemonBaseDir(file("daemonsRequestingLock")).requireDaemon()
-        buildFile << """
+        buildFile """
             import org.gradle.cache.FileLockManager
-            import org.gradle.cache.internal.filelock.LockOptionsBuilder
+            import org.gradle.cache.internal.filelock.DefaultLockOptions
 
             abstract class FileLocker extends DefaultTask {
                 @Inject
@@ -66,7 +62,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                 void lockIt() {
                     def lock
                     try {
-                        lock = fileLockManager.lock(projectLayout.projectDirectory.file("locks/testlock").asFile, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), "task file lock")
+                        lock = fileLockManager.lock(projectLayout.projectDirectory.file("locks/testlock").asFile, DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive), "task file lock")
                     } finally {
                         lock?.close()
                     }
@@ -160,9 +156,10 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         setupLockOwner() { requestReceived = true }
 
         when:
-        def build1 = executer.withArguments("-d").withTasks("lock").start()
-        def build2 = executer.withArguments("-d").withTasks("lock").start()
-        def build3 = executer.withArguments("-d").withTasks("lock").start()
+        // Debug logging might have logged exceptions from other Gradle systems, e.g. execution engine, so we disable stacktrace checks
+        def build1 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
+        def build2 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
+        def build3 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
         poll(120) {
             assert requestReceived
             assertConfirmationCount(build1)
@@ -189,9 +186,10 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         }
 
         when:
-        def build1 = executer.withArguments("-d").withTasks("lock").start()
-        def build2 = executer.withArguments("-d").withTasks("lock").start()
-        def build3 = executer.withArguments("-d").withTasks("lock").start()
+        // Debug logging might have logged exceptions from other Gradle systems, e.g. execution engine, so we disable stacktrace checks
+        def build1 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
+        def build2 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
+        def build3 = executer.withStackTraceChecksDisabled().withArguments("-d").withTasks("lock").start()
 
         then:
         poll(120) {
@@ -224,71 +222,83 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         given:
         def gradleUserHome = file("home").absoluteFile
         buildFile << """
-            import org.gradle.cache.UnscopedCacheBuilderFactory
+            task doWorkInWorker(type: WorkerTask) {
+                gradleUserHome = file("${escapeString(gradleUserHome)}")
+            }
+        """
+        buildFile """
+            import org.gradle.cache.scopes.ScopedCacheBuilderFactory
             import org.gradle.cache.PersistentCache
             import org.gradle.cache.FileLockManager
-            import org.gradle.cache.internal.filelock.LockOptionsBuilder
             import org.gradle.internal.logging.events.OutputEventListener
             import org.gradle.internal.nativeintegration.services.NativeServices
-            import ${ServiceRegistry.name}
-            import ${ServiceRegistryBuilder.name}
             import org.gradle.internal.service.DefaultServiceRegistry
             import org.gradle.internal.service.scopes.GlobalScopeServices
+            import org.gradle.internal.service.ServiceRegistryBuilder
+            import org.gradle.internal.service.scopes.GradleUserHomeScopeServices
             import org.gradle.workers.WorkParameters
-            import ${GradleUserHomeScopeServices.name}
-            import ${AgentStatus.name}
-
-            task doWorkInWorker(type: WorkerTask)
+            import org.gradle.workers.WorkAction
+            import org.gradle.internal.agents.AgentStatus
+            import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 
             abstract class WorkerTask extends DefaultTask {
                 @Inject
                 abstract WorkerExecutor getWorkerExecutor()
 
+                @Internal
+                abstract DirectoryProperty getGradleUserHome()
+
                 @TaskAction
                 void doWork() {
                     (1..8).each {
-                        workerExecutor.processIsolation().submit(ToolSetupWorkAction) { }
+                        workerExecutor.processIsolation().submit(ToolSetupWorkAction) {
+                            it.gradleUserHome = this.gradleUserHome
+                        }
                     }
                 }
             }
 
-            abstract class ToolSetupWorkAction implements WorkAction<WorkParameters.None> {
+            interface ToolSetupWorkParameters extends WorkParameters {
+                DirectoryProperty getGradleUserHome()
+            }
+
+            abstract class ToolSetupWorkAction implements WorkAction<ToolSetupWorkParameters> {
                 void execute() {
-                    UnscopedCacheBuilderFactory cacheBuilderFactory = ZincCompilerServices.getInstance(new File("${escapeString(gradleUserHome)}")).get(UnscopedCacheBuilderFactory.class);
+                    ScopedCacheBuilderFactory cacheBuilderFactory = ZincCompilerServices.getInstance(parameters.gradleUserHome.get().asFile).get(GlobalScopedCacheBuilderFactory.class)
                     println "Waiting for lock..."
-                    final PersistentCache zincCache = cacheBuilderFactory.cache("zinc-0.3.15")
+                    final PersistentCache zincCache = cacheBuilderFactory.createCacheBuilder("zinc-0.3.15")
                             .withDisplayName("Zinc 0.3.15 compiler cache")
-                            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
-                            .open();
+                            .withInitialLockMode(FileLockManager.LockMode.Exclusive)
+                            .open()
                     println "Starting work..."
                     try {
                         Thread.sleep(10000) //setup an external tool which can take some time
                     } finally {
-                        zincCache.close();
+                        zincCache.close()
                     }
                 }
             }
 
             class ZincCompilerServices extends DefaultServiceRegistry {
-                private static ServiceRegistry instance;
+                private static def instance
 
                 private ZincCompilerServices(File gradleUserHome) {
-                    super(NativeServices.getInstance());
+                    super(NativeServices.getInstance())
 
-                    add(OutputEventListener.class, OutputEventListener.NO_OP);
-                    addProvider(new GlobalScopeServices(true, AgentStatus.disabled()));
+                    add(OutputEventListener.class, OutputEventListener.NO_OP)
+                    addProvider(new GlobalScopeServices(true, AgentStatus.disabled()))
                 }
 
-                public static ServiceRegistry getInstance(File gradleUserHome) {
+                 static def getInstance(File gradleUserHome) {
                     if (instance == null) {
-                        NativeServices.initializeOnWorker(gradleUserHome);
-                        ServiceRegistry global = new ZincCompilerServices(gradleUserHome);
-                        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder();
-                        builder.parent(global);
-                        builder.provider(new GradleUserHomeScopeServices(global));
-                        instance = builder.build();
+                        NativeServices.initializeOnWorker(gradleUserHome)
+                        def global = new ZincCompilerServices(gradleUserHome)
+                        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
+                        builder.parent(global)
+                        builder.provider(new GradleUserHomeScopeServices(global))
+                        instance = builder.build()
                     }
-                    return instance;
+                    return instance
                 }
             }
         """
@@ -359,7 +369,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             String getProcessDisplayName() { return "process" }
         }, receivingFileLockContentionHandler)
         receivingSocket = receivingFileLockContentionHandler.communicator.socket
-        receivingLock = fileLockManager.lock(file("locks/testlock"), LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), "testlock", "test holding lock", whenContended)
+        receivingLock = fileLockManager.lock(file("locks/testlock"), DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive), "testlock", "test holding lock", whenContended)
     }
 
 }

@@ -29,39 +29,6 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
         enableProblemsApiCheck()
     }
 
-    def "task is going to be implicitly added to the problem"() {
-        given:
-        buildFile """
-            import org.gradle.api.problems.internal.Problem
-            import org.gradle.api.problems.Severity
-            import org.gradle.internal.deprecation.Documentation
-
-            abstract class ProblemReportingTask extends DefaultTask {
-                @Inject
-                protected abstract Problems getProblems();
-
-                @TaskAction
-                void run() {
-                    problems.forNamespace("org.example.plugin").reporting {
-                        it.label("label")
-                        .category("type")
-                    }
-                }
-            }
-
-            tasks.register("reportProblem", ProblemReportingTask)
-            """
-
-        when:
-        run("reportProblem")
-
-        then:
-        collectedProblems.size() == 1
-        def problem = collectedProblems[0]
-        def locations = (problem["locations"] as Collection)
-        locations[0]["buildTreePath"] == ":reportProblem"
-    }
-
     def "plugin id is going to be implicitly added to the problem"() {
         given:
         settingsFile << """
@@ -116,9 +83,7 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
         run("reportProblem")
 
         then:
-        collectedProblems.size() == 1
-        def problem = collectedProblems[0]
-        def locations = (problem["locations"] as Collection)
+        def locations = (collectedProblem["locations"] as Collection)
         locations[0]["pluginId"] == "test.plugin"
     }
 }

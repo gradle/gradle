@@ -33,7 +33,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
-import org.gradle.api.internal.attributes.DescribableAttributesSchema;
+import org.gradle.api.internal.attributes.AttributesSchemaWithDescribers;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
@@ -92,7 +92,7 @@ public abstract class JavaEcosystemSupport {
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
-        configureConsumerDescriptors((DescribableAttributesSchema) attributesSchema);
+        configureConsumerDescriptors((AttributesSchemaWithDescribers) attributesSchema);
         attributesSchema.attributeDisambiguationPrecedence(
                 Category.CATEGORY_ATTRIBUTE,
                 Usage.USAGE_ATTRIBUTE,
@@ -103,7 +103,7 @@ public abstract class JavaEcosystemSupport {
         );
     }
 
-    private static void configureConsumerDescriptors(DescribableAttributesSchema attributesSchema) {
+    private static void configureConsumerDescriptors(AttributesSchemaWithDescribers attributesSchema) {
         attributesSchema.addConsumerDescriber(new JavaEcosystemAttributesDescriber());
     }
 

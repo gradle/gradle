@@ -17,7 +17,9 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
+import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
@@ -26,6 +28,12 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterpri
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 
+import javax.annotation.Nullable;
+
+/**
+ * Resolves a plugin either by determining that it is already on the classpath
+ * or by delegating to another resolver.
+ */
 public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     private final PluginResolver delegate;
     private final PluginRegistry corePluginRegistry;
@@ -51,50 +59,66 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     }
 
     @Override
-    public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
+    public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
         PluginId pluginId = pluginRequest.getId();
         if (isCorePlugin(pluginId) || !isPresentOnClasspath(pluginId)) {
-            delegate.resolve(pluginRequest, result);
-        } else if (pluginRequest.getOriginalRequest().getVersion() != null) {
-            if (pluginRequest.getId().equals(AutoAppliedGradleEnterprisePlugin.BUILD_SCAN_PLUGIN_ID)) {
-                if (isPresentOnClasspath(AutoAppliedGradleEnterprisePlugin.ID)) {
-                    // The JAR that contains the enterprise plugin also contains the build scan plugin.
-                    // If the user is in the process of migrating to Gradle 6 and has not yet moved away from the scan plugin,
-                    // they might hit this scenario when running with --scan as that will have auto applied the new plugin.
-                    // Instead of a generic failure, we provide more specific feedback to help people upgrade.
-                    // We use the same message the user would have seen if they didn't use --scan and trigger the auto apply.
-                    throw new InvalidPluginRequestException(pluginRequest,
-                        "The build scan plugin is not compatible with this version of Gradle.\n"
-                            + "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information."
-                    );
-                }
-            }
-            String existingVersion = pluginVersionTracker.findPluginVersionAt(parentLoaderScope, pluginId.getId());
-            if (existingVersion != null) {
-                if (existingVersion.equals(pluginRequest.getOriginalRequest().getVersion())) {
-                    resolveAlreadyOnClasspath(pluginId, existingVersion, result);
-                } else {
-                    throw new InvalidPluginRequestException(
-                        pluginRequest,
-                        "The request for this plugin could not be satisfied because " +
-                            "the plugin is already on the classpath with a different version (" + existingVersion + ")."
-                    );
-                }
-            } else {
-                throw new InvalidPluginRequestException(
-                    pluginRequest,
-                    "The request for this plugin could not be satisfied because " +
-                        "the plugin is already on the classpath with an unknown version, so compatibility cannot be checked."
-                );
-            }
-        } else {
-            resolveAlreadyOnClasspath(pluginId, null, result);
+            return delegate.resolve(pluginRequest);
         }
+
+        String version = getVersion(pluginRequest);
+        if (version == null) {
+            return resolveAlreadyOnClasspath(pluginId, null);
+        }
+
+        if (pluginRequest.getId().equals(AutoAppliedGradleEnterprisePlugin.BUILD_SCAN_PLUGIN_ID) &&
+            isPresentOnClasspath(AutoAppliedGradleEnterprisePlugin.ID)
+        ) {
+            // The JAR that contains the enterprise plugin also contains the build scan plugin.
+            // If the user is in the process of migrating to Gradle 6 and has not yet moved away from the scan plugin,
+            // they might hit this scenario when running with --scan as that will have auto applied the new plugin.
+            // Instead of a generic failure, we provide more specific feedback to help people upgrade.
+            // We use the same message the user would have seen if they didn't use --scan and trigger the auto apply.
+            throw new InvalidPluginRequestException(pluginRequest,
+                "The build scan plugin is not compatible with this version of Gradle.\n"
+                    + "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information."
+            );
+        }
+
+        String existingVersion = pluginVersionTracker.findPluginVersionAt(parentLoaderScope, pluginId.getId());
+        if (existingVersion == null) {
+            throw new InvalidPluginRequestException(
+                pluginRequest,
+                "The request for this plugin could not be satisfied because " +
+                    "the plugin is already on the classpath with an unknown version, so compatibility cannot be checked."
+            );
+        } else if (!existingVersion.equals(version)) {
+            throw new InvalidPluginRequestException(
+                pluginRequest,
+                "The request for this plugin could not be satisfied because " +
+                    "the plugin is already on the classpath with a different version (" + existingVersion + ")."
+            );
+        }
+
+        return resolveAlreadyOnClasspath(pluginId, existingVersion);
     }
 
-    private void resolveAlreadyOnClasspath(PluginId pluginId, String pluginVersion, PluginResolutionResult result) {
-        PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, pluginVersion, parentLoaderScope, pluginInspector);
-        result.found("Already on classpath", pluginResolution);
+    @Nullable
+    private static String getVersion(PluginRequestInternal pluginRequest) {
+        if (pluginRequest.getOriginalRequest() != null) {
+            return pluginRequest.getOriginalRequest().getVersion();
+        }
+        return pluginRequest.getVersion();
+    }
+
+    private PluginResolutionResult resolveAlreadyOnClasspath(PluginId pluginId, @Nullable String pluginVersion) {
+        DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, parentLoaderScope);
+        PluginImplementation<?> plugin = pluginRegistry.lookup(pluginId);
+        if (plugin != null) {
+            PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, pluginVersion, plugin);
+            return PluginResolutionResult.found(pluginResolution);
+        } else {
+            return PluginResolutionResult.notFound("Classpath", "Plugin with id '" + pluginId + "' not found.");
+        }
     }
 
     private boolean isPresentOnClasspath(PluginId pluginId) {

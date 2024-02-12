@@ -18,6 +18,7 @@ body:
       options:
         - Wrong or misleading information
         - Missing information
+        - Styling or Accessibility
         - Typo (please open a PR instead)
     validations:
       required: true

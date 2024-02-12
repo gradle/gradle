@@ -52,6 +52,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     private static final int ATTRIBUTE = 19;
     private static final int GRADLE_SERIALIZED_SNAPSHOT = 20;
     private static final int DEFAULT_SNAPSHOT = 21;
+    private static final int ARRAY_OF_PRIMITIVE_SNAPSHOT = 22;
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer = new ImplementationSnapshotSerializer();
@@ -93,6 +94,8 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 size = decoder.readSmallInt();
                 ImmutableList<ValueSnapshot> arrayElements = readList(decoder, size);
                 return new ArrayValueSnapshot(arrayElements);
+            case ARRAY_OF_PRIMITIVE_SNAPSHOT:
+                return ArrayOfPrimitiveValueSnapshot.decode(decoder);
             case EMPTY_LIST_SNAPSHOT:
                 return ListValueSnapshot.EMPTY;
             case LIST_SNAPSHOT:
@@ -258,6 +261,10 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             ManagedValueSnapshot managedTypeSnapshot = (ManagedValueSnapshot) snapshot;
             encoder.writeString(managedTypeSnapshot.getClassName());
             write(encoder, managedTypeSnapshot.getState());
+        } else if (snapshot instanceof ArrayOfPrimitiveValueSnapshot) {
+            encoder.writeSmallInt(ARRAY_OF_PRIMITIVE_SNAPSHOT);
+            ArrayOfPrimitiveValueSnapshot arrayOfPrimitiveSnapshot = (ArrayOfPrimitiveValueSnapshot) snapshot;
+            arrayOfPrimitiveSnapshot.encode(encoder);
         } else {
             throw new IllegalArgumentException("Don't know how to serialize a value of type " + snapshot.getClass().getSimpleName());
         }

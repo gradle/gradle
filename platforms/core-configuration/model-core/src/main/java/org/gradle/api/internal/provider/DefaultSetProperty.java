@@ -18,21 +18,32 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Set;
-import java.util.function.Supplier;
+
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>> implements SetProperty<T> {
-    private static final Supplier<ImmutableCollection.Builder<Object>> FACTORY = new Supplier<ImmutableCollection.Builder<Object>>() {
-        @Override
-        public ImmutableCollection.Builder<Object> get() {
-            return ImmutableSet.builder();
-        }
-    };
+    private static final SerializableSupplier<ImmutableCollection.Builder<Object>> FACTORY = ImmutableSet::builder;
+
+    /**
+     * Convenience method to add a possibly-missing provider to a set property without clearing the set.
+     *
+     * @param set the set property to add to
+     * @param provider the provider to add
+     * @param <T> the type of the set elements
+     */
+    // Should be removed when https://github.com/gradle/gradle/issues/20266 is resolved
+    public static <T> void addOptionalProvider(SetProperty<T> set, Provider<? extends T> provider) {
+        set.addAll(provider.map(Collections::singleton).orElse(Collections.emptySet()));
+    }
+
     public DefaultSetProperty(PropertyHost host, Class<T> elementType) {
         super(host, Set.class, elementType, Cast.uncheckedNonnullCast(FACTORY));
     }
@@ -80,5 +91,15 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     public SetProperty<T> convention(Provider<? extends Iterable<? extends T>> provider) {
         super.convention(provider);
         return this;
+    }
+
+    @Override
+    public SetProperty<T> unset() {
+        return uncheckedNonnullCast(super.unset());
+    }
+
+    @Override
+    public SetProperty<T> unsetConvention() {
+        return uncheckedNonnullCast(super.unsetConvention());
     }
 }

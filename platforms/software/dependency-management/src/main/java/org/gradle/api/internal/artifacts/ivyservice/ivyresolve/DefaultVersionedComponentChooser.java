@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentSelection;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
@@ -91,7 +90,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         Action<? super ArtifactResolutionDetails> contentFilter = result.getContentFilter();
         for (ModuleComponentResolveState candidate : resolveStates) {
             if (contentFilter != null) {
-                DynamicArtifactResolutionDetails details = new DynamicArtifactResolutionDetails(candidate, result.getConfigurationName(), result.getConsumerAttributes());
+                DynamicArtifactResolutionDetails details = new DynamicArtifactResolutionDetails(candidate);
                 contentFilter.execute(details);
                 if (!details.found) {
                     continue;
@@ -227,14 +226,10 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
 
     private static class DynamicArtifactResolutionDetails implements ArtifactResolutionDetails {
         private final ModuleComponentResolveState resolveState;
-        private final String configurationName;
-        private final ImmutableAttributes consumerAttributes;
         boolean found = true;
 
-        public DynamicArtifactResolutionDetails(ModuleComponentResolveState resolveState, String configurationName, ImmutableAttributes consumerAttributes) {
+        public DynamicArtifactResolutionDetails(ModuleComponentResolveState resolveState) {
             this.resolveState = resolveState;
-            this.configurationName = configurationName;
-            this.consumerAttributes = consumerAttributes;
         }
 
         @Override
@@ -246,16 +241,6 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         @Nullable
         public ModuleComponentIdentifier getComponentId() {
             return resolveState.getId();
-        }
-
-        @Override
-        public AttributeContainer getConsumerAttributes() {
-            return consumerAttributes;
-        }
-
-        @Override
-        public String getConsumerName() {
-            return configurationName;
         }
 
         @Override

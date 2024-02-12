@@ -14,13 +14,23 @@ tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
     options.release = 8
 }
 
+errorprone {
+    disabledChecks.addAll(
+        "StringCaseLocaleUsage", // 3 occurrences
+    )
+}
+
 dependencies {
     api(project(":files"))
 
-    implementation(project(":base-services"))
-    implementation(project(":file-temp"))
+    api(libs.jsr305)
+    api(libs.nativePlatform)
 
-    implementation(libs.nativePlatform)
+    api(project(":base-services"))
+    api(project(":file-temp"))
+
+    implementation(project(":base-annotations"))
+
     implementation(libs.nativePlatformFileEvents)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
@@ -32,6 +42,7 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
 
     jmhImplementation(project(":files"))
+    jmhImplementation(project(":base-services"))
 }
 
 jmh {

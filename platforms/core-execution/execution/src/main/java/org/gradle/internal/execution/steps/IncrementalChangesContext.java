@@ -22,15 +22,23 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class IncrementalChangesContext extends CachingContext {
+public class IncrementalChangesContext extends ValidationFinishedContext {
 
     private final ImmutableList<String> rebuildReasons;
     private final ExecutionStateChanges executionStateChanges;
 
-    public IncrementalChangesContext(CachingContext parent, ImmutableList<String> rebuildReasons, @Nullable ExecutionStateChanges executionStateChanges) {
+    public IncrementalChangesContext(
+        ValidationFinishedContext parent,
+        ImmutableList<String> rebuildReasons,
+        @Nullable ExecutionStateChanges executionStateChanges
+    ) {
         super(parent);
         this.rebuildReasons = rebuildReasons;
         this.executionStateChanges = executionStateChanges;
+    }
+
+    protected IncrementalChangesContext(IncrementalChangesContext parent) {
+        this(parent, parent.getRebuildReasons(), parent.getChanges().orElse(null));
     }
 
     /**
