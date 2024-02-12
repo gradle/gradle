@@ -29,6 +29,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.work.DisableCachingByDefault;
 import org.objectweb.asm.ClassReader;
 
@@ -45,6 +46,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
+import static org.gradle.api.internal.initialization.transform.MergeSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
 
 /**
  * TODO: This class has similar implementation in build-logic/packaging/src/main/kotlin/gradlebuild/instrumentation/transforms/CollectDirectClassSuperTypesTransform.kt.
@@ -55,7 +57,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
 
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang");
     public static final String SUPER_TYPES_MARKER_FILE_NAME = ".gradle-super-types.marker";
-    private static final String FILE_SUFFIX = ".super-types";
+    public static final String FILE_SUFFIX = ".direct-super-types";
 
     @Inject
     protected abstract ObjectFactory getObjects();
@@ -91,6 +93,8 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
 
             File output = outputs.file(inputFile.getName() + FILE_SUFFIX);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
+                String hash = services.getFileSystemAccess().read(inputFile.getAbsolutePath()).getHash().toString();
+                writer.write(FILE_HASH_PROPERTY_NAME + "=" + hash + "\n");
                 for (Map.Entry<String, Set<String>> entry : superTypes.entrySet()) {
                     writer.write(entry.getKey() + "=" + String.join(",", entry.getValue()) + "\n");
                 }
@@ -113,14 +117,20 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
     static class InjectedInstrumentationServices {
 
         private final ClasspathWalker classpathWalker;
+        private final FileSystemAccess fileSystemAccess;
 
         @Inject
-        public InjectedInstrumentationServices(Stat stat) {
+        public InjectedInstrumentationServices(Stat stat, FileSystemAccess fileSystemAccess) {
             this.classpathWalker = new ClasspathWalker(stat);
+            this.fileSystemAccess = fileSystemAccess;
         }
 
         public ClasspathWalker getClasspathWalker() {
             return classpathWalker;
+        }
+
+        public FileSystemAccess getFileSystemAccess() {
+            return fileSystemAccess;
         }
     }
 }

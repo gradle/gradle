@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import static org.gradle.api.internal.initialization.transform.MergeSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
+
 public abstract class CacheInstrumentationTypeRegistryBuildService implements BuildService<CacheInstrumentationTypeRegistryBuildService.Parameters> {
 
     public interface Parameters extends BuildServiceParameters {
@@ -68,10 +70,12 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
             Properties properties = new Properties();
             try (InputStream inputStream = Files.newInputStream(file.toPath())) {
                 properties.load(inputStream);
-                properties.forEach((key, value) -> {
-                    Set<String> keyTypes = classHierarchy.computeIfAbsent((String) key, __ -> new HashSet<>());
-                    Collections.addAll(keyTypes, ((String) value).split(","));
-                });
+                properties.entrySet().stream()
+                    .filter(entry -> !entry.getKey().equals(FILE_HASH_PROPERTY_NAME))
+                    .forEach(e -> {
+                        Set<String> keyTypes = classHierarchy.computeIfAbsent((String) e.getKey(), __ -> new HashSet<>());
+                        Collections.addAll(keyTypes, ((String) e.getValue()).split(","));
+                    });
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
