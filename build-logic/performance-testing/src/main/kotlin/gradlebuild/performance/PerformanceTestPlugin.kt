@@ -190,9 +190,23 @@ class PerformanceTestPlugin : Plugin<Project> {
             databaseParameters = project.propertiesForPerformanceDb
             branchName = buildBranch
             channel.convention(branchName.map { "commits-$it" })
-            channelPatterns.add(logicalBranch)
-            channelPatterns.add(logicalBranch.map { "commits-pre-test/$it/%" })
-            channelPatterns.add(logicalBranch.map { "commits-gh-readonly-queue/$it/%" })
+            val prefix = channel.map { channelName ->
+                val osIndependentPrefix = if (channelName.startsWith("flakiness-detection")) {
+                    "flakiness-detection"
+                } else {
+                    channelName.substringBefore('-')
+                }
+                if (channelName.startsWith("$osIndependentPrefix-macos")) {
+                    "$osIndependentPrefix-macos"
+                } else if (channelName.startsWith("$osIndependentPrefix-windows")) {
+                    "$osIndependentPrefix-windows"
+                } else {
+                    osIndependentPrefix
+                }
+            }
+            channelPatterns.add(prefix.zip(logicalBranch) { prefixString, branch -> "$prefixString-$branch" })
+            channelPatterns.add(prefix.zip(logicalBranch) { prefixString, branch -> "$prefixString-pre-test/$branch/%" })
+            channelPatterns.add(prefix.zip(logicalBranch) { prefixString, branch -> "$prefixString-gh-readonly-queue/$branch/%" })
             commitId = buildCommitId
             projectName = project.name
         }
