@@ -15,7 +15,7 @@
  */
 
 import gradlebuild.basics.accessors.groovy
-import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
@@ -39,7 +39,7 @@ val reportTask = tasks.register<IncubatingApiReportTask>("incubationReport") {
 
 plugins.withId("org.jetbrains.kotlin.jvm") {
     reportTask {
-        sources.from(sourceSets.main.get().kotlin.sourceDirectories)
+        sources.from(kotlinMainSourceSet.sourceDirectories)
     }
 }
 

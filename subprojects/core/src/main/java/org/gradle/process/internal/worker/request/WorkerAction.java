@@ -18,8 +18,8 @@ package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DefaultProblems;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -79,7 +79,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             // Make the argument serializers available so work implementations can register their own serializers
             serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
             serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
-            serviceRegistry.add(Problems.class, new DefaultProblems(new WorkerProblemEmitter(responder)));
+            serviceRegistry.add(InternalProblems.class, new DefaultProblems(new WorkerProblemEmitter(responder)));
             Class<?> workerImplementation = Class.forName(workerImplementationName);
             implementation = Cast.uncheckedNonnullCast(instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation));
         } catch (Exception e) {

@@ -6,7 +6,11 @@ plugins {
 description = "Common shared build cache classes"
 
 dependencies {
-    implementation(project(":base-annotations"))
-    implementation(project(":files"))
-    implementation(libs.slf4jApi)
+    api(projects.buildCacheSpi)
+
+    implementation(projects.baseAnnotations)
+    implementation(projects.hashing)
+    implementation(projects.files)
+
+    testImplementation(testFixtures(projects.hashing))
 }

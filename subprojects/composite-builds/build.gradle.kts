@@ -4,20 +4,35 @@ plugins {
 
 description = "Included build controller and composite build infrastructure"
 
+errorprone {
+    disabledChecks.addAll(
+        "FutureReturnValueIgnored", // 1 occurrences
+        "SameNameButDifferent", // 11 occurrences
+        "ThreadLocalUsage", // 1 occurrences
+        "UnusedMethod", // 4 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":messaging"))
+    api(project(":model-core"))
+    api(project(":plugin-use"))
+
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(project(":build-operations"))
+    implementation(project(":enterprise-logging"))
     implementation(project(":enterprise-operations"))
-    implementation(project(":messaging"))
     implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":dependency-management"))
-    implementation(project(":plugin-use"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
-    implementation(libs.inject)
 
     testImplementation(project(":file-watching"))
     testImplementation(project(":build-option"))

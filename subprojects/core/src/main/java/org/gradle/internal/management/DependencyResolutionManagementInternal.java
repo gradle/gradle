@@ -39,6 +39,7 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
 
     RulesModeInternal getConfiguredRulesMode();
 
+    @Override
     Property<String> getDefaultProjectsExtensionName();
 
     List<VersionCatalogBuilder> getDependenciesModelBuilders();

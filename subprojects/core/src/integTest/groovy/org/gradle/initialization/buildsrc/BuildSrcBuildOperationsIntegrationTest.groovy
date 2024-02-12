@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 
 import java.util.regex.Pattern
 
@@ -89,7 +90,7 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         taskGraphOps[1].details.buildPath == ':'
         taskGraphOps[1].parentId == treeTaskGraphOps[1].id
 
-        def runMainTasks = ops.first(Pattern.compile("Run main tasks"))
+        def runMainTasks = ops.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
         def runTasksOps = ops.all(Pattern.compile("Run tasks.*"))

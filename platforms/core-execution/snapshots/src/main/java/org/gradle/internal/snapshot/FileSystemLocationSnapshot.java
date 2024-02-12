@@ -29,7 +29,7 @@ import java.util.Optional;
  * We know everything about this snapshot, including children and Merkle hash.
  *
  * The snapshot can be a snapshot of a regular file or of a whole directory tree.
- * The file at the location is not required to exist (see {@link MissingFileSnapshot}.
+ * The file at the location is not required to exist (see {@link MissingFileSnapshot}).
  */
 public interface FileSystemLocationSnapshot extends FileSystemSnapshot, FileSystemNode, MetadataSnapshot {
 

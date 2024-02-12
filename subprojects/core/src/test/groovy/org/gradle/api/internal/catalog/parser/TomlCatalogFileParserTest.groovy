@@ -396,6 +396,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
     }
 
     void hasDependency(String name, @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = DependencySpec) Closure<Void> spec) {
+        assert model.hasDependency(name)
         def data = model.getDependencyData(name)
         assert data != null: "Expected a dependency with alias $name but it wasn't found"
         def dependencySpec = new DependencySpec(data)
@@ -405,12 +406,14 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
     }
 
     void hasBundle(String id, List<String> expectedElements) {
+        assert model.hasBundle(id)
         def bundle = model.getBundle(id)?.components
         assert bundle != null: "Expected a bundle with name $id but it wasn't found"
         assert bundle == expectedElements
     }
 
     void hasVersion(String id, String version) {
+        assert model.hasVersion(id)
         def versionConstraint = model.getVersion(id)?.version
         assert versionConstraint != null: "Expected a version constraint with name $id but didn't find one"
         def actual = versionConstraint.toString()
@@ -418,6 +421,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
     }
 
     void hasPlugin(String alias, String id, String version) {
+        assert model.hasPlugin(alias)
         def plugin = model.getPlugin(alias)
         assert plugin != null : "Expected a plugin with alias '$alias' but it wasn't found"
         assert plugin.id == id
@@ -425,6 +429,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
     }
 
     void hasPlugin(String alias, @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = PluginSpec) Closure<Void> spec) {
+        assert model.hasPlugin(alias)
         def plugin = model.getPlugin(alias)
         assert plugin != null : "Expected a plugin with alias '$alias' but it wasn't found"
         def pluginSpec = new PluginSpec(plugin)

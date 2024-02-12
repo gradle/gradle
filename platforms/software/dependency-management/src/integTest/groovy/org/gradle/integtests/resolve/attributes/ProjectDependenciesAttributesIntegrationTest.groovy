@@ -85,9 +85,9 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
 
         then:
         failure.assertHasCause("""No matching variant of project :dep was found. The consumer was configured to find attribute 'color' with value 'green' but:
-  - Variant 'blueVariant' capability test:dep:unspecified:
+  - Variant 'blueVariant':
       - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'
-  - Variant 'redVariant' capability test:dep:unspecified:
+  - Variant 'redVariant':
       - Incompatible because this component declares attribute 'color' with value 'red' and the consumer needed attribute 'color' with value 'green'""")
     }
 

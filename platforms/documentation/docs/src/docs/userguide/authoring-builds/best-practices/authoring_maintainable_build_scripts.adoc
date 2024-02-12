@@ -290,7 +290,7 @@ Gradle cannot mutate the usage of configuration 'customCompileClasspath' because
 If you encounter this error you must either:
 
 1. Change the name of your configuration to avoid the conflict.
-1. If changing the name is not possible, ensure the allowed usage (consumable, resolvable, declarable against) for your configuration is aligned with Gradle's expectations.
+2. If changing the name is not possible, ensure the allowed usage (consumable, resolvable, declarable against) for your configuration is aligned with Gradle's expectations.
 
 As a best practice, you should not "anticipate" configuration creation - let Gradle create the configuration first and then adjust it.
 Or, if possible, use non-conflicting names for your custom configurations by renaming them when you see this warning.

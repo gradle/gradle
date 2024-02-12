@@ -32,6 +32,7 @@ import org.gradle.process.internal.health.memory.JvmMemoryStatus;
 
 import javax.annotation.Nullable;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -154,6 +155,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     @Override
+    public String getDisplayName() {
+        return execHandle.getDisplayName();
+    }
+
+    @Override
     public String toString() {
         return "DefaultWorkerProcess{"
                 + "running=" + running
@@ -225,6 +231,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
         } finally {
             cleanup();
         }
+    }
+
+    @Override
+    public Optional<ExecResult> getExecResult() {
+        return Optional.ofNullable(execHandle.getExecResult());
     }
 
     private void cleanup() {

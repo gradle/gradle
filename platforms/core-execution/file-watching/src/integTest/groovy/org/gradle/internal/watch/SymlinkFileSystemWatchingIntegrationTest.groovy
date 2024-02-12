@@ -24,7 +24,10 @@ import spock.lang.Issue
 @LocalOnly
 @Requires(UnitTestPreconditions.Symlinks)
 class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
-    private static final String UNABLE_TO_WATCH_MESSAGE = "Unable to watch the file system for changes."
+    def setup() {
+        // The daemon manages the cleanup of symlinks in the VFS between builds
+        executer.requireDaemon()
+    }
 
     @Issue("https://github.com/gradle/gradle/issues/11851")
     def "gracefully handle when declaring the same path as an input via symlinks"() {
@@ -95,6 +98,44 @@ class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
         "symlinked file"                | "symlinkedFile"                | "actualFile"     | 'file("symlinkedFile")' | "actualFile"
         "symlinked directory"           | "symlinkedDir"                 | "actualDir"      | 'dir("symlinkedDir")'   | "actualDir/file.txt"
         "symlink in a directory"        | "dirWithSymlink/symlinkInside" | "fileInside.txt" | 'dir("dirWithSymlink")' | "fileInside.txt"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26201")
+    def "changes are detected when parent of input is symlinked"() {
+        def targetDir = file("target")
+        def inputFile = targetDir.file("input.txt")
+        def linkedDir = file("linked-dir").createLink(targetDir)
+
+        inputFile.text = "original"
+
+        buildFile << """
+            task myTask {
+                def outputFile = file("build/output.txt")
+                inputs.file("linked-dir/input.txt")
+                outputs.file(outputFile)
+
+                doLast {
+                    outputFile.text = "Hello world"
+                }
+            }
+        """
+
+        when:
+        withWatchFs().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
+
+        when:
+        withWatchFs().run "myTask"
+        then:
+        skipped(":myTask")
+
+        when:
+        inputFile.text = "changed"
+        waitForChangesToBePickedUp()
+        withWatchFs().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
     }
 
     def "file system watching works when the project dir is symlinked"() {

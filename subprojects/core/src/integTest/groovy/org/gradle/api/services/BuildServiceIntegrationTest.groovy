@@ -1182,6 +1182,43 @@ Hello, subproject1
         outputContains("service: value is 2")
     }
 
+    def "service can be registered without action"() {
+        noParametersServiceImplementation()
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService)
+
+            task first {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+
+            task second {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+        """
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 3
+        outputContains("service: created with value = 0")
+        outputContains("service: value is 1")
+        outputContains("service: value is 2")
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 3
+        outputContains("service: created with value = 0")
+        outputContains("service: value is 1")
+        outputContains("service: value is 2")
+    }
+
     def "service can take another service as a parameter"() {
         serviceImplementation()
         buildFile << """

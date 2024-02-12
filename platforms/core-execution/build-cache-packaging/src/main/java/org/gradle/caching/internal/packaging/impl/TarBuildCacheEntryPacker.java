@@ -182,7 +182,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         OriginMetadata originMetadata = null;
         Map<String, FileSystemLocationSnapshot> snapshots = new HashMap<>();
 
-        tarEntry = tarInput.getNextTarEntry();
+        tarEntry = tarInput.getNextEntry();
         AtomicLong entries = new AtomicLong();
         while (tarEntry != null) {
             entries.incrementAndGet();
@@ -191,7 +191,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             if (path.equals(METADATA_PATH)) {
                 // handle origin metadata
                 originMetadata = readOriginAction.execute(CloseShieldInputStream.wrap(tarInput));
-                tarEntry = tarInput.getNextTarEntry();
+                tarEntry = tarInput.getNextEntry();
             } else {
                 // handle tree
                 Matcher matcher = TREE_PATH.matcher(path);
@@ -245,7 +245,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         // We are handling the root of the tree here
         if (missing) {
             fileSystemSupport.ensureFileIsMissing(treeRoot);
-            return input.getNextTarEntry();
+            return input.getNextEntry();
         }
 
         fileSystemSupport.ensureDirectoryForTree(treeType, treeRoot);
@@ -255,7 +255,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             }
             RegularFileSnapshot fileSnapshot = unpackFile(input, rootEntry, treeRoot, treeRoot.getName());
             snapshots.put(treeName, fileSnapshot);
-            return input.getNextTarEntry();
+            return input.getNextEntry();
         }
 
         if (!isDirEntry) {
@@ -285,7 +285,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         TarArchiveEntry entry;
 
-        while ((entry = input.getNextTarEntry()) != null) {
+        while ((entry = input.getNextEntry()) != null) {
             boolean isDir = entry.isDirectory();
             boolean outsideOfRoot = parser.nextPath(safeEntryName(entry), isDir, builder::leaveDirectory);
             if (outsideOfRoot) {

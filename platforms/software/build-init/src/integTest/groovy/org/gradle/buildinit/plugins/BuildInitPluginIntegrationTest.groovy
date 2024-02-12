@@ -305,6 +305,10 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         outputContains("""Options
+     --comments     Include clarifying comments in files.
+
+     --no-comments     Disables option --comments.
+
      --dsl     Set the build script DSL to be used in generated scripts.
                Available values are:
                     groovy
@@ -333,12 +337,14 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
      --test-framework     Set the test framework to be used.
                           Available values are:
+                               cpptest
                                junit
                                junit-jupiter
                                kotlintest
                                scalatest
                                spock
                                testng
+                               xctest
 
      --type     Set the type of project to generate.
                 Available values are:

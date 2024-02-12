@@ -33,6 +33,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.Map;
@@ -76,8 +77,8 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
     }
 
     @Override
-    public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier, BuildIdentifier currentBuild) {
-        boolean isLocalProject = projectIdentifier.getBuild().getBuildPath().equals(currentBuild.getBuildPath());
+    public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier, Path currentBuildPath) {
+        boolean isLocalProject = projectIdentifier.getBuild().getBuildPath().equals(currentBuildPath.getPath());
         if (isLocalProject) {
             return getLocalComponent(projectIdentifier, projectStateRegistry.stateFor(projectIdentifier));
         } else {

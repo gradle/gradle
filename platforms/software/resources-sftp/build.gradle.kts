@@ -4,6 +4,12 @@ plugins {
 
 description = "Implementation for interacting with repositories over sftp"
 
+errorprone {
+    disabledChecks.addAll(
+        "UnusedMethod", // 2 occurrences
+    )
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))

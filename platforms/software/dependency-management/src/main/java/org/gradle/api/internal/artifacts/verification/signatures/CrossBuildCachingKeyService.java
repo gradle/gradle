@@ -21,14 +21,12 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -79,8 +77,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
             boolean refreshKeys) {
         cache = cacheBuilderFactory
             .createCrossVersionCacheBuilder("keyrings")
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .open();
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;

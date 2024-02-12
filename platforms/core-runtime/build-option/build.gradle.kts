@@ -6,11 +6,18 @@ description = "The Gradle build option parser."
 
 gradlebuildJava.usedInWorkers()
 
-dependencies {
-    implementation(project(":cli"))
-    implementation(project(":base-services"))
+errorprone {
+    disabledChecks.addAll(
+        "StringCaseLocaleUsage", // 2 occurrences
+    )
+}
 
-    implementation(project(":base-annotations"))
-    implementation(project(":messaging"))
-    implementation(libs.commonsLang)
+dependencies {
+    api(libs.jsr305)
+
+    api(project(":cli"))
+    api(project(":base-annotations"))
+    api(project(":messaging"))
+
+    implementation(project(":base-services"))
 }

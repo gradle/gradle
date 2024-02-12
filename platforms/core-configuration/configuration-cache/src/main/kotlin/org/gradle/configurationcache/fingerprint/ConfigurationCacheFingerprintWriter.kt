@@ -21,11 +21,9 @@ import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.configurations.ProjectDependencyObservedListener
+import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -46,7 +44,6 @@ import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.CoupledProjectsListener
-import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.UndeclaredBuildInputListener
 import org.gradle.configurationcache.extensions.fileSystemEntryType
@@ -78,6 +75,7 @@ import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.scripts.ScriptFileResolvedListener
+import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 import org.gradle.util.Path
 import java.io.File
 import java.net.URI
@@ -101,7 +99,7 @@ class ConfigurationCacheFingerprintWriter(
     ScriptExecutionListener,
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener,
-    ProjectDependencyObservedListener,
+    ProjectComponentObservationListener,
     CoupledProjectsListener,
     ToolingModelProjectDependencyListener,
     FileResourceListener,
@@ -539,9 +537,9 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {
-        if (consumingProject != null) {
-            onProjectDependency(consumingProject, targetProject)
+    override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
+        if (consumingProjectPath != null) {
+            onProjectDependency(consumingProjectPath, targetProjectPath)
         }
     }
 
@@ -559,14 +557,14 @@ class ConfigurationCacheFingerprintWriter(
 
     override fun onToolingModelDependency(consumer: ProjectState, target: ProjectState) {
         if (host.modelAsProjectDependency) {
-            onProjectDependency(consumer, target)
+            onProjectDependency(consumer.identityPath, target.identityPath)
         }
     }
 
     private
-    fun onProjectDependency(consumer: ProjectState, target: ProjectState) {
+    fun onProjectDependency(consumerPath: Path, targetPath: Path) {
         if (host.cacheIntermediateModels) {
-            val dependency = ProjectSpecificFingerprint.ProjectDependency(consumer.identityPath, target.identityPath)
+            val dependency = ProjectSpecificFingerprint.ProjectDependency(consumerPath, targetPath)
             if (projectDependencies.add(dependency)) {
                 projectScopedWriter.write(dependency)
             }

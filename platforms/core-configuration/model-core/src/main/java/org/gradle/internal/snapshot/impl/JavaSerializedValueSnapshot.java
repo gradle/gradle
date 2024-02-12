@@ -81,6 +81,10 @@ public class JavaSerializedValueSnapshot implements ValueSnapshot {
     }
 
     protected Object populateClass(Class<?> originalClass) {
+        return javaDeserialized(originalClass, serializedValue);
+    }
+
+    private static Object javaDeserialized(Class<?> originalClass, byte[] serializedValue) {
         try {
             return new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedValue), originalClass.getClassLoader()).readObject();
         } catch (Exception e) {

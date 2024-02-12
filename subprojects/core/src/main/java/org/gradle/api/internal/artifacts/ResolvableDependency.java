@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts;
 
+@Deprecated
 public interface ResolvableDependency {
-    void resolve(DependencyResolveContext context);
+    @Deprecated
+    void resolve(CachingDependencyResolveContext context);
 }

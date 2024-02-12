@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.util.ReproduciblePropertiesWriter
 import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinDependencyExtensions
 
@@ -26,7 +26,7 @@ plugins {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "4.2.1" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "4.3.0" // TODO:kotlin-dsl
 
 tasks {
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
@@ -37,9 +37,7 @@ tasks {
 
     val apiExtensionsFileCollection = files(apiExtensionsOutputDir).builtBy(generateKotlinDependencyExtensions)
 
-    sourceSets.main {
-        kotlin.srcDir(apiExtensionsFileCollection)
-    }
+    kotlinMainSourceSet.srcDir(apiExtensionsFileCollection)
 
     // Workaround for https://github.com/gradle/gradle/issues/24131
     // See gradlebuild.unittest-and-compile.gradle.kts

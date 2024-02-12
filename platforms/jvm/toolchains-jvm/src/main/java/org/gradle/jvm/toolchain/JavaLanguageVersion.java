@@ -51,6 +51,7 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
      * @since 6.8
      * @return the version number
      */
+    @Override
     String toString();
 
     /**

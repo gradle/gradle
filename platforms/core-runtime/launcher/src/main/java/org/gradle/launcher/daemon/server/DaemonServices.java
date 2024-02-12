@@ -44,6 +44,7 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.HandleInvalidateVirtualFileSystem;
 import org.gradle.launcher.daemon.server.api.HandleReportStatus;
 import org.gradle.launcher.daemon.server.api.HandleStop;
+import org.gradle.launcher.daemon.server.exec.CleanUpVirtualFileSystemAfterBuild;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment;
 import org.gradle.launcher.daemon.server.exec.ExecuteBuild;
@@ -136,14 +137,24 @@ public class DaemonServices extends DefaultServiceRegistry {
         return GarbageCollectorMonitoringStrategy.determineGcStrategy();
     }
 
-    protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(DaemonContext daemonContext, ProcessEnvironment processEnvironment, DaemonHealthStats healthStats, DaemonHealthCheck healthCheck, BuildExecuter buildActionExecuter, DaemonRunningStats runningStats) {
+    protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(
+        BuildExecuter buildActionExecuter,
+        DaemonContext daemonContext,
+        DaemonHealthCheck healthCheck,
+        DaemonHealthStats healthStats,
+        DaemonRunningStats runningStats,
+        ExecutorFactory executorFactory,
+        ProcessEnvironment processEnvironment
+    ) {
         File daemonLog = getDaemonLogFile();
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
+        GradleUserHomeScopeServiceRegistry userHomeServiceRegistry = get(GradleUserHomeScopeServiceRegistry.class);
         return ImmutableList.of(
             new HandleStop(get(ListenerManager.class)),
-            new HandleInvalidateVirtualFileSystem(get(GradleUserHomeScopeServiceRegistry.class)),
+            new HandleInvalidateVirtualFileSystem(userHomeServiceRegistry),
             new HandleCancel(),
             new HandleReportStatus(),
+            new CleanUpVirtualFileSystemAfterBuild(executorFactory, userHomeServiceRegistry),
             new ReturnResult(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
             new EstablishBuildEnvironment(processEnvironment),
@@ -155,7 +166,6 @@ public class DaemonServices extends DefaultServiceRegistry {
             new WatchForDisconnection(),
             new ExecuteBuild(buildActionExecuter, runningStats)
         );
-
     }
 
     Serializer<BuildAction> createBuildActionSerializer() {

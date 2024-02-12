@@ -17,6 +17,7 @@
 package org.gradle.performance.results.report;
 
 import org.gradle.performance.results.PerformanceExperiment;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider;
 import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.ResultsStore;

@@ -66,7 +66,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ScopedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 
@@ -76,9 +76,9 @@ import java.util.List;
  * Contains the services for a given {@link GradleInternal} instance.
  */
 @SuppressWarnings("deprecation")
-public class GradleScopeServices extends DefaultServiceRegistry {
+public class GradleScopeServices extends ScopedServiceRegistry {
     public GradleScopeServices(final ServiceRegistry parent) {
-        super(parent);
+        super(Scopes.Gradle.class, "Gradle-scope services", parent);
         register(registration -> {
             registration.add(DefaultBuildOutputCleanupRegistry.class);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {

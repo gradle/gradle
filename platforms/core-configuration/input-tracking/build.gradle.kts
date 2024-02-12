@@ -4,9 +4,16 @@ plugins {
 
 description = "Configuration input discovery code"
 
-dependencies {
-    implementation(project(":base-annotations"))
-    implementation(libs.guava)
+errorprone {
+    disabledChecks.addAll(
+        "HashtableContains",
+        "UnsynchronizedOverridesSynchronized", // 29 occurrences
+    )
+}
 
-    testImplementation(libs.guava)
+dependencies {
+    api(libs.jsr305)
+    api(libs.guava)
+
+    implementation(project(":base-annotations"))
 }

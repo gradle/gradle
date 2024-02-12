@@ -21,7 +21,7 @@ import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockReleasedSignal
 import org.gradle.cache.LockTimeoutException
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -115,7 +115,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     }
 
     FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Action<FileLockReleasedSignal> whenContended = null) {
-        def lock = lockManager.lock(file, LockOptionsBuilder.mode(lockMode), "foo", "operation", whenContended)
+        def lock = lockManager.lock(file, DefaultLockOptions.mode(lockMode), "foo", "operation", whenContended)
         openedLocks << lock
         lock
     }

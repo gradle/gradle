@@ -20,11 +20,19 @@ plugins {
 
 description = "Adds support for creating dependency platforms for JVM projects"
 
+errorprone {
+    disabledChecks.addAll(
+        "InlineFormatString", // 1 occurrences
+    )
+}
+
 dependencies {
+    api(project(":core-api"))
+
+    api(libs.inject)
+
     implementation(project(":base-services"))
-    implementation(project(":core-api"))
     implementation(project(":dependency-management"))
-    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":ivy"))
     implementation(project(":maven"))
@@ -32,9 +40,7 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":publish"))
 
-    implementation(libs.groovy)
-    implementation(libs.guava)
-    implementation(libs.inject)
+    runtimeOnly(libs.groovy)
 
     integTestImplementation(testFixtures(project(":dependency-management")))
     integTestImplementation(testFixtures(project(":resources-http")))

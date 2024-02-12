@@ -20,29 +20,39 @@ plugins {
 
 description = "Contains a basic JVM plugin used to compile, test, and assemble Java source; often applied by other JVM plugins (though named java-base, jvm-base would be a more proper name)."
 
+errorprone {
+    disabledChecks.addAll(
+        "UnusedMethod", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":dependency-management"))
-    implementation(project(":diagnostics"))
-    implementation(project(":execution"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":language-java"))
+    api(project(":language-jvm"))
+    api(project(":model-core"))
+    api(project(":platform-jvm"))
+    api(project(":toolchains-jvm"))
+
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
     implementation(project(":file-collections"))
-    implementation(project(":language-java"))
-    implementation(project(":language-jvm"))
     implementation(project(":logging"))
-    implementation(project(":model-core"))
     implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
     implementation(project(":reporting"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
-    implementation(project(":toolchains-jvm"))
 
     implementation(libs.commonsLang)
-    implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.inject)
+
+    runtimeOnly(project(":diagnostics"))
 
     testImplementation(testFixtures(project(":core")))
 

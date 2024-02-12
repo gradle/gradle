@@ -30,7 +30,11 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Encapsulates the production of some value.
+ * Encapsulates the production of some value by some producer.
+ * <p>
+ * All providers implement this interface, but this interface may be implemented whenever
+ * lazy evaluation is required.
+ * </p>
  */
 public interface ValueSupplier {
     /**

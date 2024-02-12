@@ -98,7 +98,7 @@ public class TestInstrumentedClassLoader extends TransformingClassLoader {
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         Pair<RelativePath, ClassVisitor> pathAndVisitor;
         try {
-            pathAndVisitor = transform.apply(classEntry, writer, new ClassData(originalReader, typeRegistry));
+            pathAndVisitor = transform.apply(classEntry, writer, new ClassData(originalReader, bytes, typeRegistry));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

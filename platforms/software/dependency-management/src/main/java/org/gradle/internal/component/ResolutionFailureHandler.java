@@ -16,570 +16,190 @@
 
 package org.gradle.internal.component;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
-import org.gradle.api.internal.artifacts.transform.AmbiguousArtifactTransformException;
 import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.problems.Problems;
-import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.GraphVariantSelector;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
+import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
+import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
+import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
+import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.exceptions.StyledException.style;
-
-// TODO: Register all failures with the Problems API
 
 /**
- * Provides a central location for logging and reporting failures appearing during
- * each stage of resolution, including during the variant selection process.
+ * Provides a central location for handling failures encountered during
+ * each stage of the variant selection process during dependency resolution.
  *
  * All variant selection failures encountered during selection by the {@link GraphVariantSelector} or
  * {@link AttributeMatchingArtifactVariantSelector}
  * should be routed through this class.
  *
- * This class reports failures to the {@link Problems} service.  It is a
- * Gradle managed type, and so it can serve as an injection point for any types wishing to be notified or respond
- * to the variant selection process.
+ * This class is responsible for packaging failure data into the appropriate {@link ResolutionFailure} type,
+ * selecting the appropriate {@link ResolutionFailureDescriber} to describe that failure,
+ * returning the result of running the describer.  It maintains a registry of <strong>default</strong>
+ * describers for each failure type; but will first consult the {@link AttributesSchemaInternal} for
+ * any custom describers registered on that schema for a given failure type.
+ *
+ * Class is non-{@code final} for testing via stubbing.
  */
 public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
-    private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
-    private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
-    private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
-    private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
+    private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
 
-    private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
-    private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
-    private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
-    private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
-
-    private final DocumentationRegistry documentationRegistry;
-
-    public ResolutionFailureHandler(DocumentationRegistry documentationRegistry) {
-        this.documentationRegistry = documentationRegistry;
-    }
-
-    private void suggestSpecificDocumentation(AbstractVariantSelectionException exception, String prefix, String section) {
-        exception.addResolution(prefix + documentationRegistry.getDocumentationFor("variant_model", section) + ".");
-    }
-
-    private void suggestReviewAlgorithm(AbstractVariantSelectionException exception) {
-        exception.addResolution(DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
+    public ResolutionFailureHandler(ResolutionFailureDescriberRegistry failureDescriberRegistry) {
+        this.defaultFailureDescribers = failureDescriberRegistry;
     }
 
     // region Artifact Variant Selection Failures
-    public NoMatchingArtifactVariantsException noMatchingArtifactVariantFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, AttributeDescriber attributeDescriber) {
-        String message = buildNoMatchingVariantsFailureMsg(displayName, componentRequested, variants, matcher, attributeDescriber);
-        NoMatchingArtifactVariantsException e = new NoMatchingArtifactVariantsException(message);
-        suggestSpecificDocumentation(e, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
-        suggestReviewAlgorithm(e);
-        return e;
+    public AbstractVariantSelectionException noMatchingArtifactVariantFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, String variantSetName, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> candidateVariants) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(candidateVariants);
+        IncompatibleResolutionFailure failure = new IncompatibleResolutionFailure(schema, variantSetName, requestedAttributes, assessedCandidates);
+        return describeFailure(schema, failure);
     }
 
-    public AmbiguousArtifactVariantsException ambiguousArtifactVariantsFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded, AttributeDescriber attributeDescriber) {
-        String message = buildMultipleMatchingVariantsFailureMsg(attributeDescriber, displayName, componentRequested, matches, matcher, discarded);
-        AmbiguousArtifactVariantsException e = new AmbiguousArtifactVariantsException(message);
-        suggestSpecificDocumentation(e, AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION);
-        suggestReviewAlgorithm(e);
-        return e;
+    public AbstractVariantSelectionException ambiguousArtifactVariantsFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, String selectedComponentName, ImmutableAttributes requestedAttributes, List<? extends ResolvedVariant> matchingVariants) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(matchingVariants);
+        AmbiguousResolutionFailure failure = new AmbiguousResolutionFailure(schema, selectedComponentName, requestedAttributes, assessedCandidates);
+        return describeFailure(schema, failure);
     }
 
-    public AmbiguousArtifactTransformException ambiguousArtifactTransformationFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<TransformedVariant> transformedVariants) {
-        String message = buildAmbiguousTransformMsg(displayName, componentRequested, transformedVariants);
-        AmbiguousArtifactTransformException e = new AmbiguousArtifactTransformException(message);
-        suggestSpecificDocumentation(e, AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION);
-        suggestReviewAlgorithm(e);
-        return e;
+    public AbstractVariantSelectionException ambiguousArtifactTransformationFailure(AttributesSchemaInternal schema, String selectedComponentName, ImmutableAttributes requestedAttributes, List<TransformedVariant> transformedVariants) {
+        AmbiguousArtifactTransformFailure failure = new AmbiguousArtifactTransformFailure(schema, selectedComponentName, requestedAttributes, transformedVariants);
+        return describeFailure(schema, failure);
     }
 
-    // TODO: Unify this failure in the exception hierarchy with the others
-    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(AttributesSchema schema, ArtifactVariantSelectionException t) {
-        BrokenResolvedArtifactSet e = new BrokenResolvedArtifactSet(t);
-        // TODO: unify this with the other failures in the hierarchy so that basic resolution can be added
-        //addBasicResolution(e);
-        return e;
+    public AbstractVariantSelectionException unknownArtifactVariantSelectionFailure(AttributesSchemaInternal schema, ResolvedVariantSet producer, Exception cause) {
+        UnknownArtifactSelectionFailure failure = new UnknownArtifactSelectionFailure(schema, producer.asDescribable().getDisplayName(), cause);
+        return describeFailure(schema, failure);
     }
 
-    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(AttributesSchema schema, ResolvedVariantSet producer, Exception cause) {
-        String message = buildUnknownArtifactVariantFailureMsg(producer);
-        ArtifactVariantSelectionException e = new ArtifactVariantSelectionException(message, cause);
-        // This is the catch-all error type and there's nothing more specific to add here
-        suggestReviewAlgorithm(e);
-        return unknownArtifactVariantSelectionFailure(schema, e);
-    }
-
-    public IncompatibleArtifactVariantsException incompatibleArtifactVariantsFailure(ComponentState selected, Set<NodeState> incompatibleNodes) {
-        String message = buildIncompatibleArtifactVariantsFailureMsg(selected, incompatibleNodes);
-        IncompatibleArtifactVariantsException e = new IncompatibleArtifactVariantsException(message);
-        suggestSpecificDocumentation(e, INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION);
-        suggestReviewAlgorithm(e);
-        return e;
-    }
-
-    private String buildUnknownArtifactVariantFailureMsg(ResolvedVariantSet producer) {
-        return String.format("Could not select a variant of %s that matches the consumer attributes.", producer.asDescribable().getDisplayName());
-    }
-
-    private String buildNoMatchingVariantsFailureMsg(
-        String producerDisplayName,
-        AttributeContainerInternal consumer,
-        Collection<? extends ResolvedVariant> candidates,
-        AttributeMatcher matcher, AttributeDescriber describer
-    ) {
-        TreeFormatter formatter = new TreeFormatter();
-        formatter.node("No variants of " + style(StyledTextOutput.Style.Info, producerDisplayName) + " match the consumer attributes");
-        formatter.startChildren();
-        for (ResolvedVariant variant : candidates) {
-            formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable(), describer);
-        }
-        formatter.endChildren();
-        return formatter.toString();
-    }
-
-    private String buildMultipleMatchingVariantsFailureMsg(AttributeDescriber describer, String producerDisplayName, AttributeContainerInternal consumer, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
-        TreeFormatter formatter = new TreeFormatter();
-        if (consumer.getAttributes().isEmpty()) {
-            formatter.node("More than one variant of " + producerDisplayName + " matches the consumer attributes");
-        } else {
-            formatter.node("The consumer was configured to find " + describer.describeAttributeSet(consumer.asMap()) + ". However we cannot choose between the following variants of " + producerDisplayName);
-        }
-        formatter.startChildren();
-        for (ResolvedVariant variant : variants) {
-            formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatchesForAmbiguity(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable(), describer);
-        }
-        formatter.endChildren();
-        if (!discarded.isEmpty()) {
-            formatter.node("The following variants were also considered but didn't match the requested attributes:");
-            formatter.startChildren();
-            discarded.stream()
-                .sorted(Comparator.comparing(v -> v.asDescribable().getCapitalizedDisplayName()))
-                .forEach(discardedVariant -> {
-                    formatter.node(discardedVariant.asDescribable().getCapitalizedDisplayName());
-                    formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, discardedVariant.getAttributes().asImmutable(), describer);
-                });
-            formatter.endChildren();
-        }
-        return formatter.toString();
-    }
-
-    private String buildAmbiguousTransformMsg(String producerDisplayName, AttributeContainerInternal requested, List<TransformedVariant> candidates) {
-        TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Found multiple transforms that can produce a variant of " + producerDisplayName + " with requested attributes");
-        formatSortedAttributes(formatter, requested);
-        formatter.node("Found the following transforms");
-
-        Comparator<TransformedVariant> variantComparator =
-            Comparator.<TransformedVariant, String>comparing(x -> x.getTransformChain().getDisplayName())
-                .thenComparing(x -> x.getAttributes().toString());
-        Map<ResolvedVariant, List<TransformedVariant>> variantToTransforms = candidates.stream().collect(Collectors.groupingBy(
-            TransformedVariant::getRoot,
-            () -> new TreeMap<>(Comparator.comparing(variant -> variant.asDescribable().getDisplayName())),
-            Collectors.collectingAndThen(Collectors.toList(), list -> list.stream().sorted(variantComparator).collect(Collectors.toList()))));
-
-        formatter.startChildren();
-        for (Map.Entry<ResolvedVariant, List<TransformedVariant>> entry : variantToTransforms.entrySet()) {
-            formatter.node("From '" + entry.getKey().asDescribable().getDisplayName() + "'");
-            formatter.startChildren();
-            formatter.node("With source attributes");
-            formatSortedAttributes(formatter, entry.getKey().getAttributes());
-            formatter.node("Candidate transform(s)");
-            formatter.startChildren();
-            for (TransformedVariant variant : entry.getValue()) {
-                formatter.node("Transform '" + variant.getTransformChain().getDisplayName() + "' producing attributes:");
-                formatSortedAttributes(formatter, variant.getAttributes());
-            }
-            formatter.endChildren();
-            formatter.endChildren();
-        }
-        formatter.endChildren();
-        return formatter.toString();
-    }
-
-    private void formatSortedAttributes(TreeFormatter formatter, AttributeContainer attributes) {
-        formatter.startChildren();
-        for (Attribute<?> attribute : Ordering.usingToString().sortedCopy(attributes.keySet())) {
-            formatter.node(attribute.getName() + " '" + attributes.getAttribute(attribute) + "'");
-        }
-        formatter.endChildren();
-    }
-
-    private String buildIncompatibleArtifactVariantsFailureMsg(ComponentState selected, Set<NodeState> incompatibleNodes) {
-        StringBuilder sb = new StringBuilder("Multiple incompatible variants of ")
-            .append(selected.getId())
-            .append(" were selected:\n");
-        ArrayList<NodeState> sorted = Lists.newArrayList(incompatibleNodes);
-        sorted.sort(Comparator.comparing(NodeState::getNameWithVariant));
-        for (NodeState node : sorted) {
-            sb.append("   - Variant ").append(node.getNameWithVariant()).append(" has attributes ");
-            formatAttributes(sb, node.getMetadata().getAttributes());
-            sb.append("\n");
-        }
-        return sb.toString();
-    }
-
-    private void formatAttributes(StringBuilder sb, ImmutableAttributes attributes) {
-        ImmutableSet<Attribute<?>> keySet = attributes.keySet();
-        List<Attribute<?>> sorted = Lists.newArrayList(keySet);
-        sorted.sort(Comparator.comparing(Attribute::getName));
-        boolean space = false;
-        sb.append("{");
-        for (Attribute<?> attribute : sorted) {
-            if (space) {
-                sb.append(", ");
-            }
-            sb.append(attribute.getName()).append("=").append(attributes.getAttribute(attribute));
-            space = true;
-        }
-        sb.append("}");
+    public AbstractVariantSelectionException incompatibleArtifactVariantsFailure(AttributesSchemaInternal schema, ComponentState selectedComponent, Set<NodeState> incompatibleNodes) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(ImmutableAttributes.EMPTY, schema.matcher());
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessNodeStates(incompatibleNodes);
+        IncompatibleMultipleNodeSelectionFailure failure = new IncompatibleMultipleNodeSelectionFailure(schema, selectedComponent.toString(), assessedCandidates);
+        return describeFailure(schema, failure);
     }
     // endregion Artifact Variant Selection Failures
 
     // region Graph Variant Selection Failures
-    public AmbiguousGraphVariantsException ambiguousGraphVariantsFailure(
-        AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
-        AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveState> matches,
-        ComponentGraphResolveMetadata targetComponent, boolean variantAware,
-        Set<VariantGraphResolveState> discarded
+    public AbstractVariantSelectionException ambiguousGraphVariantsFailure(
+        AttributesSchemaInternal schema, AttributeMatcher matcher,
+        AttributeContainerInternal requestedAttributes,
+        List<? extends VariantGraphResolveState> matchingVariants,
+        ComponentGraphResolveMetadata targetComponent
     ) {
-        String message = buildAmbiguousGraphVariantsFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware, discarded);
-        AmbiguousGraphVariantsException e = new AmbiguousGraphVariantsException(message);
-        e.addResolution(AMBIGUOUS_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", AMBIGUOUS_VARIANTS_SECTION + "."));
-        suggestReviewAlgorithm(e);
-        return e;
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(matchingVariants);
+        VariantAwareAmbiguousResolutionFailure failure = new VariantAwareAmbiguousResolutionFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, targetComponent);
+        return describeFailure(schema, failure);
     }
 
-    public IncompatibleGraphVariantsException incompatibleGraphVariantsFailure(
-        AttributeContainerInternal fromConfigurationAttributes,
-        AttributeMatcher attributeMatcher,
-        ComponentGraphResolveMetadata targetComponent,
-        ConfigurationGraphResolveState targetConfiguration,
-        boolean variantAware,
-        AttributeDescriber describer
-    ) {
-        String message = buildIncompatibleGraphVariantsFailureMsg(fromConfigurationAttributes, attributeMatcher, targetComponent, targetConfiguration, variantAware, describer);
-        IncompatibleGraphVariantsException e = new IncompatibleGraphVariantsException(message);
-        e.addResolution(INCOMPATIBLE_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", INCOMPATIBLE_VARIANTS_SECTION) + ".");
-        suggestReviewAlgorithm(e);
-        return e;
-    }
-
-    public NoMatchingGraphVariantsException noMatchingGraphVariantFailure(
-        AttributeDescriber describer,
-        AttributeContainerInternal fromConfigurationAttributes,
-        AttributeMatcher attributeMatcher,
+    public AbstractVariantSelectionException noMatchingGraphVariantFailure(
+        AttributesSchemaInternal schema,
+        AttributeMatcher matcher,
+        AttributeContainerInternal requestedAttributes,
         ComponentGraphResolveMetadata targetComponent,
         GraphSelectionCandidates candidates
     ) {
-        String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
-        NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
-        suggestReviewAlgorithm(e);
-        e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
-        return e;
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessGraphSelectionCandidates(candidates);
+        IncompatibleGraphVariantFailure failure = new IncompatibleGraphVariantFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates, targetComponent);
+        return describeFailure(schema, failure);
     }
 
-    public NoMatchingCapabilitiesException noMatchingCapabilitiesFailure(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
-        String message = buildNoMatchingCapabilitiesFailureMsg(targetComponent, requestedCapabilities, candidates);
-        NoMatchingCapabilitiesException e = new NoMatchingCapabilitiesException(message);
-        suggestReviewAlgorithm(e);
-        return e;
+    public AbstractVariantSelectionException noMatchingCapabilitiesFailure(AttributesSchemaInternal schema, AttributeMatcher matcher, ImmutableAttributes requestedAttributes, ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariantStates(candidates);
+        NoMatchingCapabilitiesFailure failure = new NoMatchingCapabilitiesFailure(schema, targetComponent.getId().getDisplayName(), targetComponent, requestedCapabilities, assessedCandidates);
+        return describeFailure(schema, failure);
     }
 
-    public ConfigurationNotFoundException configurationNotFoundFailure(String targetConfigurationName, ComponentIdentifier targetComponentId) {
-        String message = buildConfigurationNotFoundFailureMsg(targetConfigurationName, targetComponentId);
-        ConfigurationNotFoundException e = new ConfigurationNotFoundException(message);
-        suggestReviewAlgorithm(e);
-        return e;
-    }
+    // region Configuration by name
+    // These are cases where a configuration is requested by name in a target component, so there is sometimes no relevant schema to provide to this handler method.
 
-    public ExternalConfigurationNotFoundException externalConfigurationNotFoundFailure(ComponentIdentifier fromComponent, String fromConfiguration, String toConfiguration, ComponentIdentifier toComponent) {
-        String message = buildExternalConfigurationNotFoundFailureMsg(fromComponent, fromConfiguration, toConfiguration, toComponent);
-        ExternalConfigurationNotFoundException e = new ExternalConfigurationNotFoundException(message);
-        suggestReviewAlgorithm(e);
-        return e;
-    }
-
-    public ConfigurationNotConsumableException configurationNotConsumableFailure(String targetComponentName, String targetConfigurationName) {
-        String message = buildConfigurationNotConsumableFailureMsg(targetComponentName, targetConfigurationName);
-        ConfigurationNotConsumableException e = new ConfigurationNotConsumableException(message);
-        suggestReviewAlgorithm(e);
-        return e;
-    }
-
-    private String buildConfigurationNotFoundFailureMsg(String targetConfigurationName, ComponentIdentifier targetComponentId) {
-        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", targetConfigurationName, targetComponentId.getDisplayName());
-    }
-
-    private String buildExternalConfigurationNotFoundFailureMsg(ComponentIdentifier fromComponent, String fromConfiguration, String toConfiguration, ComponentIdentifier toComponent) {
-        return String.format("%s declares a dependency from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", StringUtils.capitalize(fromComponent.getDisplayName()), fromConfiguration, toConfiguration, toComponent.getDisplayName());
-    }
-
-    private String buildConfigurationNotConsumableFailureMsg(String targetComponentName, String targetConfigurationName) {
-        return String.format("Selected configuration '" + targetConfigurationName + "' on '" + targetComponentName + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
-    }
-
-    private String buildAmbiguousGraphVariantsFailureMsg(
-        AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
-        AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveState> matches,
-        ComponentGraphResolveMetadata targetComponent, boolean variantAware,
-        Set<VariantGraphResolveState> discarded
-    ) {
-        Map<String, VariantGraphResolveState> ambiguousVariants = new TreeMap<>();
-        for (VariantGraphResolveState match : matches) {
-            ambiguousVariants.put(match.getName(), match);
-        }
-        TreeFormatter formatter = new TreeFormatter();
-        String configTerm = variantAware ? "variants" : "configurations";
-        if (fromConfigurationAttributes.isEmpty()) {
-            formatter.node("Cannot choose between the following " + configTerm + " of ");
-        } else {
-            formatter.node("The consumer was configured to find " + describer.describeAttributeSet(fromConfigurationAttributes.asMap()) + ". However we cannot choose between the following " + configTerm + " of ");
-        }
-        formatter.append(style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName()));
-        formatter.startChildren();
-        for (String configuration : ambiguousVariants.keySet()) {
-            formatter.node(configuration);
-        }
-        formatter.endChildren();
-        formatter.node("All of them match the consumer attributes");
-        // We're sorting the names of the variants and later attributes
-        // to make sure the output is consistently the same between invocations
-        formatter.startChildren();
-        for (VariantGraphResolveState ambiguousVariant : ambiguousVariants.values()) {
-            formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousVariant.getMetadata(), variantAware, true, describer);
-        }
-        formatter.endChildren();
-        if (!discarded.isEmpty()) {
-            formatter.node("The following " + configTerm + " were also considered but didn't match the requested attributes:");
-            formatter.startChildren();
-            discarded.stream()
-                .sorted(Comparator.comparing(VariantGraphResolveState::getName))
-                .forEach(discardedConf -> formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, discardedConf.getMetadata(), variantAware, false, describer));
-            formatter.endChildren();
-        }
-
-        return formatter.toString();
-    }
-
-    private String buildIncompatibleGraphVariantsFailureMsg(
-        AttributeContainerInternal fromConfigurationAttributes,
-        AttributeMatcher attributeMatcher,
+    public AbstractVariantSelectionException incompatibleRequestedConfigurationFailure(
+        AttributesSchemaInternal schema,
+        AttributeMatcher matcher,
+        AttributeContainerInternal requestedAttributes,
         ComponentGraphResolveMetadata targetComponent,
-        ConfigurationGraphResolveState targetConfiguration,
-        boolean variantAware,
-        AttributeDescriber describer
+        ConfigurationGraphResolveState targetConfiguration
     ) {
-        TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Configuration '" + targetConfiguration.getName() + "' in " + style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName()) + " does not match the consumer attributes");
-        formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, targetConfiguration.asVariant().getMetadata(), variantAware, false, describer);
-        return formatter.toString();
+        ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
+        List<AssessedCandidate> assessedCandidates = Collections.singletonList(resolutionCandidateAssessor.assessCandidate(targetConfiguration.getName(), targetConfiguration.asVariant().getCapabilities(), targetConfiguration.asVariant().getMetadata().getAttributes()));
+        IncompatibleRequestedConfigurationFailure failure = new IncompatibleRequestedConfigurationFailure(schema, targetComponent.getId().getDisplayName(), requestedAttributes, assessedCandidates);
+        return describeFailure(schema, failure);
     }
 
-    private String buildNoMatchingGraphVariantSelectionFailureMsg(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
-        boolean variantAware = candidates.isUseVariants();
-        Map<String, VariantGraphResolveMetadata> variants = new TreeMap<>();
-        if (variantAware) {
-            for (VariantGraphResolveState variant : candidates.getVariants()) {
-                variants.put(variant.getName(), variant.getMetadata());
-            }
-        } else {
-            for (ConfigurationGraphResolveMetadata configuration : candidates.getCandidateConfigurations()) {
-                variants.put(configuration.getName(), configuration);
-            }
-        }
-        TreeFormatter formatter = new TreeFormatter();
-        String targetVariantText = style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName());
-        if (fromConfigurationAttributes.isEmpty()) {
-            formatter.node("Unable to find a matching " + (variantAware ? "variant" : "configuration") + " of " + targetVariantText);
-        } else {
-            formatter.node("No matching " + (variantAware ? "variant" : "configuration") + " of " + targetVariantText + " was found. The consumer was configured to find " + describer.describeAttributeSet(fromConfigurationAttributes.asMap()) + " but:");
-        }
-        formatter.startChildren();
-        if (variants.isEmpty()) {
-            formatter.node("None of the " + (variantAware ? "variants" : "consumable configurations") + " have attributes.");
-        } else {
-            // We're sorting the names of the configurations and later attributes
-            // to make sure the output is consistently the same between invocations
-            for (VariantGraphResolveMetadata variant : variants.values()) {
-                formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, variant, variantAware, false, describer);
-            }
-        }
-        formatter.endChildren();
-        return formatter.toString();
+    public AbstractVariantSelectionException configurationNotFoundFailure(ComponentIdentifier toComponent, String toConfigurationName) {
+        RequestedConfigurationNotFoundFailure failure = new RequestedConfigurationNotFoundFailure(toConfigurationName, toComponent);
+        return describeFailure(failure);
     }
-
-    private String buildNoMatchingCapabilitiesFailureMsg(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
-        StringBuilder sb = new StringBuilder("Unable to find a variant of ");
-        sb.append(targetComponent.getId()).append(" providing the requested ");
-        sb.append(CapabilitiesSupport.prettifyCapabilities(targetComponent, requestedCapabilities));
-        sb.append(":\n");
-        for (VariantGraphResolveState candidate : candidates) {
-            sb.append("   - Variant ").append(candidate.getName()).append(" provides ");
-            sb.append(CapabilitiesSupport.sortedCapabilityList(targetComponent, candidate.getCapabilities().asSet())).append("\n");
-        }
-        return sb.toString();
+    public AbstractVariantSelectionException externalConfigurationNotFoundFailure(ComponentIdentifier fromComponent, String fromConfigurationName, ComponentIdentifier toComponent, String toConfigurationName) {
+        ExternalRequestedConfigurationNotFoundFailure failure = new ExternalRequestedConfigurationNotFoundFailure(toConfigurationName, toComponent, fromComponent, fromConfigurationName);
+        return describeFailure(failure);
     }
-
-    private void formatConfiguration(
-        TreeFormatter formatter,
-        ComponentGraphResolveMetadata targetComponent,
-        AttributeContainerInternal consumerAttributes,
-        AttributeMatcher attributeMatcher,
-        VariantGraphResolveMetadata variant,
-        boolean variantAware,
-        boolean ambiguous,
-        AttributeDescriber describer
-    ) {
-        AttributeContainerInternal producerAttributes = variant.getAttributes();
-        if (variantAware) {
-            formatter.node("Variant '");
-        } else {
-            formatter.node("Configuration '");
-        }
-        formatter.append(variant.getName());
-        formatter.append("'");
-        if (variantAware) {
-            formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, variant.getCapabilities().asSet()));
-        }
-        if (ambiguous) {
-            formatAttributeMatchesForAmbiguity(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);
-        } else {
-            formatAttributeMatchesForIncompatibility(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);
-        }
+    public AbstractVariantSelectionException configurationNotConsumableFailure(ComponentIdentifier targetComponent, String targetConfigurationName) {
+        ConfigurationNotConsumableFailure failure = new ConfigurationNotConsumableFailure(targetConfigurationName, targetComponent);
+        return describeFailure(failure);
     }
-
-    private void formatAttributeMatchesForIncompatibility(
-        TreeFormatter formatter,
-        ImmutableAttributes immutableConsumer,
-        AttributeMatcher attributeMatcher,
-        ImmutableAttributes immutableProducer,
-        AttributeDescriber describer
-    ) {
-        Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
-        List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
-        Map<Attribute<?>, ?> compatibleAttrs = new LinkedHashMap<>();
-        Map<Attribute<?>, ?> incompatibleAttrs = new LinkedHashMap<>();
-        Map<Attribute<?>, ?> incompatibleConsumerAttrs = new LinkedHashMap<>();
-        for (Attribute<?> attribute : allAttributes.values()) {
-            Attribute<Object> untyped = Cast.uncheckedCast(attribute);
-            String attributeName = attribute.getName();
-            AttributeValue<Object> consumerValue = immutableConsumer.findEntry(untyped);
-            AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
-            if (consumerValue.isPresent() && producerValue.isPresent()) {
-                if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    compatibleAttrs.put(attribute, Cast.uncheckedCast(producerValue.get()));
-                } else {
-                    incompatibleAttrs.put(attribute, Cast.uncheckedCast(producerValue.get()));
-                    incompatibleConsumerAttrs.put(attribute, Cast.uncheckedCast(consumerValue.get()));
-                }
-            } else if (consumerValue.isPresent()) {
-                otherValues.add("Doesn't say anything about " + describer.describeMissingAttribute(attribute, consumerValue.get()));
-            }
-        }
-        if (!compatibleAttrs.isEmpty()) {
-            formatter.append(" declares ").append(style(StyledTextOutput.Style.SuccessHeader, describer.describeAttributeSet(compatibleAttrs)));
-        }
-        formatter.startChildren();
-        if (!incompatibleAttrs.isEmpty()) {
-            formatter.node("Incompatible because this component declares " + style(StyledTextOutput.Style.FailureHeader, describer.describeAttributeSet(incompatibleAttrs)) + " and the consumer needed <FailureHeader>" + describer.describeAttributeSet(incompatibleConsumerAttrs) + "</FailureHeader>");
-        }
-        formatAttributeSection(formatter, "Other compatible attribute", otherValues);
-        formatter.endChildren();
-    }
-
-    private void formatAttributeMatchesForAmbiguity(
-        TreeFormatter formatter,
-        ImmutableAttributes immutableConsumer,
-        AttributeMatcher attributeMatcher,
-        ImmutableAttributes immutableProducer,
-        AttributeDescriber describer
-    ) {
-        Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
-        Map<Attribute<?>, ?> compatibleAttrs = new LinkedHashMap<>();
-        List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
-        for (Attribute<?> attribute : allAttributes.values()) {
-            Attribute<Object> untyped = Cast.uncheckedCast(attribute);
-            String attributeName = attribute.getName();
-            AttributeValue<Object> consumerValue = immutableConsumer.findEntry(untyped);
-            AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
-            if (consumerValue.isPresent() && producerValue.isPresent()) {
-                if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    compatibleAttrs.put(attribute, Cast.uncheckedCast(producerValue.get()));
-                }
-            } else if (consumerValue.isPresent()) {
-                otherValues.add("Doesn't say anything about " + describer.describeMissingAttribute(attribute, consumerValue.get()));
-            } else {
-                otherValues.add("Provides " + describer.describeExtraAttribute(attribute, producerValue.get()) + " but the consumer didn't ask for it");
-            }
-        }
-        if (!compatibleAttrs.isEmpty()) {
-            formatter.append(" declares ").append(style(StyledTextOutput.Style.SuccessHeader, describer.describeAttributeSet(compatibleAttrs)));
-        }
-        formatter.startChildren();
-        formatAttributeSection(formatter, "Unmatched attribute", otherValues);
-        formatter.endChildren();
-    }
-
-    private Map<String, Attribute<?>> collectAttributes(ImmutableAttributes consumerAttributes, ImmutableAttributes producerAttributes) {
-        Map<String, Attribute<?>> allAttributes = new TreeMap<>();
-        for (Attribute<?> attribute : producerAttributes.keySet()) {
-            allAttributes.put(attribute.getName(), attribute);
-        }
-        for (Attribute<?> attribute : consumerAttributes.keySet()) {
-            allAttributes.put(attribute.getName(), attribute);
-        }
-        return allAttributes;
-    }
-
-    private void formatAttributeSection(TreeFormatter formatter, String section, List<String> values) {
-        if (!values.isEmpty()) {
-            if (values.size() > 1) {
-                formatter.node(section + "s");
-            } else {
-                formatter.node(section);
-            }
-            formatter.startChildren();
-            values.forEach(formatter::node);
-            formatter.endChildren();
-        }
-    }
+    // endregion Configuration by name
     // endregion Graph Variant Selection Failures
+
+    private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure(FAILURE failure) {
+        @SuppressWarnings("unchecked")
+        Class<FAILURE> failureType = (Class<FAILURE>) failure.getClass();
+        List<ResolutionFailureDescriber<?, FAILURE>> describers = defaultFailureDescribers.getDescribers(failureType);
+        return describeFailure(describers, failure);
+    }
+
+    private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure(AttributesSchemaInternal schema, FAILURE failure) {
+        @SuppressWarnings("unchecked")
+        Class<FAILURE> failureType = (Class<FAILURE>) failure.getClass();
+        List<ResolutionFailureDescriber<?, FAILURE>> describers = new ArrayList<>();
+        describers.addAll(schema.getFailureDescribers(failureType));
+        describers.addAll(defaultFailureDescribers.getDescribers(failureType));
+        return describeFailure(describers, failure);
+    }
+
+    private <FAILURE extends ResolutionFailure> AbstractVariantSelectionException describeFailure(List<ResolutionFailureDescriber<?, FAILURE>> describers, FAILURE failure) {
+        return describers.stream()
+            .filter(describer -> describer.canDescribeFailure(failure))
+            .findFirst()
+            .map(describer -> describer.describeFailure(failure))
+            .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
+    }
 }

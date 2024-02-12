@@ -25,11 +25,11 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
+import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
-import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -96,14 +96,34 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
         }
 
         ClientInjectedClasspathPluginResolver createInjectedClassPathPluginResolver(
-            ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector,
-            InjectedPluginClasspath injectedPluginClasspath, CachedClasspathTransformer classpathTransformer,
+            FileResolver fileResolver,
+            DependencyManagementServices dependencyManagementServices,
+            DependencyMetaDataProvider dependencyMetaDataProvider,
+            ClassLoaderScopeRegistry classLoaderScopeRegistry,
+            PluginInspector pluginInspector,
+            InjectedPluginClasspath injectedPluginClasspath,
+            ScriptClassPathResolver scriptClassPathResolver,
+            FileCollectionFactory fileCollectionFactory,
             InjectedClasspathInstrumentationStrategy instrumentationStrategy
         ) {
             if (injectedPluginClasspath.getClasspath().isEmpty()) {
                 return ClientInjectedClasspathPluginResolver.EMPTY;
             }
-            return new DefaultInjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), classpathTransformer, pluginInspector, injectedPluginClasspath.getClasspath(), instrumentationStrategy);
+            Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(
+                fileResolver,
+                fileCollectionFactory,
+                dependencyManagementServices,
+                dependencyMetaDataProvider
+            );
+            return new DefaultInjectedClasspathPluginResolver(
+                classLoaderScopeRegistry.getCoreAndPluginsScope(),
+                scriptClassPathResolver,
+                fileCollectionFactory,
+                pluginInspector,
+                injectedPluginClasspath.getClasspath(),
+                instrumentationStrategy,
+                dependencyResolutionServicesFactory
+            );
         }
 
         PluginResolutionStrategyInternal createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager) {

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject
 import com.alibaba.fastjson.annotation.JSONField
 import common.functionalTestExtraParameters
 import jetbrains.buildServer.configs.kotlin.BuildSteps
-import jetbrains.buildServer.configs.kotlin.buildFeatures.parallelTests
+import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import model.CIBuildModel
 import model.Stage
 import model.StageName
@@ -65,14 +65,12 @@ class FunctionalTest(
         parallelizationMethod.extraBuildParameters
     ).filter { it.isNotBlank() }.joinToString(separator = " ")
 
-    if (parallelizationMethod is ParallelizationMethod.TeamCityParallelTests && parallelizationMethod.numberOfBatches > 1) {
-        params {
-            param("env.TEAMCITY_PARALLEL_TESTS_ENABLED", "1")
-        }
-        features {
-            parallelTests {
-                this.numberOfBatches = parallelizationMethod.numberOfBatches
-            }
+    if (parallelizationMethod is ParallelizationMethod.TeamCityParallelTests) {
+        tcParallelTests(parallelizationMethod.numberOfBatches)
+    }
+
+    features {
+        perfmon {
         }
     }
 

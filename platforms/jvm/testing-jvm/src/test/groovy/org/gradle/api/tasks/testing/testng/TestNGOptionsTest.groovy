@@ -44,6 +44,7 @@ class TestNGOptionsTest extends Specification {
             configFailurePolicy == DEFAULT_CONFIG_FAILURE_POLICY
             !preserveOrder
             !groupByInstances
+            !threadPoolFactoryClass
         }
     }
 
@@ -83,6 +84,7 @@ class TestNGOptionsTest extends Specification {
             parallel == source.parallel
             threadCount == source.threadCount
             useDefaultListeners == source.useDefaultListeners
+            threadPoolFactoryClass == source.threadPoolFactoryClass
             suiteName == source.suiteName
             testName == source.testName
             suiteXmlFiles == source.suiteXmlFiles
@@ -102,6 +104,7 @@ class TestNGOptionsTest extends Specification {
             setParallel(prefix + "Parallel")
             setThreadCount(intValue)
             setUseDefaultListeners(booleanValue)
+            setThreadPoolFactoryClass(prefix + "ThreadPoolFactoryClass")
             setSuiteName(prefix + "SuiteName")
             setTestName(prefix + "TestName")
             setSuiteXmlFiles([new File(prefix + "SuiteXmlFile")])

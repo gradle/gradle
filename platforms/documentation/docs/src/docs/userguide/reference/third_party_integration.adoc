@@ -56,7 +56,7 @@ We have dedicated guides showing you how to integrate a Gradle project with the 
  * <<teamcity.adoc#build_teamcity,TeamCity>>
  * <<travis-ci.adoc#build_travis,Travis CI>>
 
-Even if you don't use one of the above, you can almost certainly configure your CI platform to use the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> scripts.
+Even if you don't use one of the above, you can almost certainly configure your CI platform to use the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>> scripts.
 
 == How to integrate with Gradle
 

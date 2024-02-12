@@ -19,7 +19,9 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -109,6 +111,16 @@ public class EmptySchema implements AttributesSchemaInternal {
     @Override
     public Attribute<?> getAttributeByName(String name) {
         return null;
+    }
+
+    @Override
+    public <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<?, FAILURE>> describerType) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getFailureDescribers(Class<FAILURE> failureType) {
+        return Collections.emptyList();
     }
 
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {

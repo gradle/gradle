@@ -30,7 +30,6 @@ trait KotlinRunnerFactory {
                 .deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
                     expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber)
                     expectBasePluginConventionDeprecation(kotlinVersionNumber, agpVersionNumber)
-                    expectProjectConventionDeprecation(kotlinVersionNumber, agpVersionNumber)
                     expectConventionTypeDeprecation(kotlinVersionNumber, agpVersionNumber)
                 }
     }

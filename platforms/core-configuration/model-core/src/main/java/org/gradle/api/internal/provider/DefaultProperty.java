@@ -24,9 +24,16 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
+/**
+ * The implementation for general-purpose (atomic, non-composite) properties, where
+ * the value is supplied by some provider.
+ *
+ * @param <T>
+ */
 public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
+    private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
 
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
         super(propertyHost);
@@ -123,6 +130,18 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     @Override
+    public Property<T> unset() {
+        super.unset();
+        return this;
+    }
+
+    @Override
+    public Property<T> unsetConvention() {
+        discardConvention();
+        return this;
+    }
+
+    @Override
     protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value) {
         // Discard this property from a provider chain, as it does not contribute anything to the calculation.
         return value.calculateExecutionTimeValue();
@@ -136,6 +155,16 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     protected ProviderInternal<? extends T> finalValue(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
         return value.withFinalValue(consumer);
+    }
+
+    @Override
+    protected ProviderInternal<? extends T> getDefaultConvention() {
+        return Cast.uncheckedCast(NOT_DEFINED);
+    }
+
+    @Override
+    protected boolean isDefaultConvention() {
+        return getConventionSupplier() == NOT_DEFINED;
     }
 
     @Override

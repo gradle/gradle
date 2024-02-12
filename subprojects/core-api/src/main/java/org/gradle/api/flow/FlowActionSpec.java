@@ -16,6 +16,7 @@
 
 package org.gradle.api.flow;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
@@ -31,6 +32,14 @@ public interface FlowActionSpec<P extends FlowParameters> {
      * Returns the parameters defined by the configured {@link FlowAction dataflow action}.
      *
      * @return mutable parameters object, never null.
+     * @since 8.1
      */
     P getParameters();
+
+    /**
+     * Configures the {@link P parameters} for the {@link FlowAction flow action}.
+     *
+     * @since 8.7
+     */
+    void parameters(Action<? super P> configureAction);
 }

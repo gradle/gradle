@@ -18,7 +18,7 @@ package org.gradle.internal;
 
 /**
  * Equivalent to {@code Transformer}, but does not declare nullability due to Java 6 restrictions.
- * /**
+ *
  * <p>A {@code Transformer} transforms objects of type.</p>
  *
  * <p>Implementations are free to return new objects or mutate the incoming value.</p>

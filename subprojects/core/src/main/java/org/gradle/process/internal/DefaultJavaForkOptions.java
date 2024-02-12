@@ -197,6 +197,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         options.setDebug(enabled);
     }
 
+    @Override
     public JavaDebugOptions getDebugOptions() {
         return options.getDebugOptions();
     }

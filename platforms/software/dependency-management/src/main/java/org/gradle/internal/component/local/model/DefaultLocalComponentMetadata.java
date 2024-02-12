@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
+import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenessVerifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -327,6 +328,8 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
 
         @Override
         public void visitConfigurations(Consumer<Candidate> visitor) {
+            VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
+
             configurationsProvider.visitAll(configuration -> {
                 visitor.accept(new Candidate() {
                     @Override

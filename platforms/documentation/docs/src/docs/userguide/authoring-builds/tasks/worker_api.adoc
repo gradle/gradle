@@ -169,7 +169,8 @@ This is the fastest isolation mode because it requires the least overhead to set
 However, it will use a single shared classloader for all units of work.
 This means that each unit of work can potentially affect one another through static class state.
 It also means that every unit of work uses the same version of libraries that are on the buildscript classpath.
-If you wanted the user to be able to configure the task to run with a different (but compatible) version of the
+
+For instance, if you wanted the user to be able to configure the task to run with a different (but compatible) version of the
 https://commons.apache.org/proper/commons-codec/[Apache Commons Codec] library, you would need to use a different isolation mode.
 
 First, you'll want to change the dependency in `buildSrc/build.gradle` to be `compileOnly`.

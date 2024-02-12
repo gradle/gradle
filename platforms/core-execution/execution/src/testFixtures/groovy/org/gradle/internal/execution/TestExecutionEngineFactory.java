@@ -30,8 +30,8 @@ import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
-import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
+import org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
@@ -40,6 +40,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
@@ -62,16 +63,17 @@ public class TestExecutionEngineFactory {
         ValidateStep.ValidationWarningRecorder validationWarningReporter,
         VirtualFileSystem virtualFileSystem
     ) {
+        NoOpBuildOperationProgressEventEmitter progressEventEmitter = new NoOpBuildOperationProgressEventEmitter();
         // @formatter:off
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationExecutor,
-            new IdentityCacheStep<>(
+            new IdentityCacheStep<>(progressEventEmitter,
             new AssignMutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningReporter,
-            new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
+            new ResolveIncrementalCachingStateStep<>(buildCacheController, false,
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(

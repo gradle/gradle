@@ -36,6 +36,7 @@ public interface VariantGraphResolveState extends HasAttributes {
 
     String getName();
 
+    @Override
     ImmutableAttributes getAttributes();
 
     ImmutableCapabilities getCapabilities();

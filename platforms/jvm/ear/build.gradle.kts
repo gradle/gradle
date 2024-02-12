@@ -4,35 +4,45 @@ plugins {
 
 description = "Adds support for assembling web application EAR files"
 
+errorprone {
+    disabledChecks.addAll(
+        "DefaultCharset", // 2 occurrences
+        "StringCaseLocaleUsage", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
+    api(project(":base-services"))
+    api(project(":core-api"))
+    api(project(":language-jvm"))
+    api(project(":model-core"))
+    api(project(":platform-jvm"))
+
     implementation(project(":core"))
-    implementation(project(":core-api"))
-    implementation(project(":functional"))
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":file-collections"))
     implementation(project(":language-java"))
-    implementation(project(":language-jvm"))
     implementation(project(":logging"))
-    implementation(project(":model-core"))
-    implementation(project(":platform-jvm"))
     implementation(project(":platform-base"))
-    implementation(project(":plugins"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
-    implementation(project(":war"))
 
-    implementation(libs.groovy)
     implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
 
-    testImplementation(project(":native"))
+    runtimeOnly(project(":plugins"))
+
     testImplementation(project(":base-services-groovy"))
-    testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))
+    testImplementation(project(":native"))
+    testImplementation(project(":war"))
+    testImplementation(libs.ant)
 
     testRuntimeOnly(project(":distributions-jvm")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

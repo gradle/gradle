@@ -19,6 +19,7 @@ package org.gradle.performance.results.report;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.results.FormatSupport;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider;
 import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
 import org.gradle.performance.results.PerformanceTestExecutionResult;
@@ -33,9 +34,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
+import static org.gradle.performance.results.report.AbstractReportGenerator.getDependencyPerformanceTestTeamCityBuildIds;
 import static org.gradle.performance.results.report.Tag.FixedTag;
 
 public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<ResultsStore> {
+    private static final Set<String> DEPENDENCY_PERFORMANCE_TEST_TEAM_CITY_BUILD_IDS = getDependencyPerformanceTestTeamCityBuildIds();
+
     protected final PerformanceFlakinessDataProvider flakinessDataProvider;
     protected final PerformanceExecutionDataProvider executionDataProvider;
 
@@ -265,8 +269,9 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
     private Optional<String> determineBaseline() {
         return executionDataProvider.getReportScenarios().stream()
             .filter(scenario -> !scenario.getCrossBuild())
+            .flatMap(scenario -> scenario.getHistoryExecutions().stream())
+            .filter(execution -> DEPENDENCY_PERFORMANCE_TEST_TEAM_CITY_BUILD_IDS.contains(execution.getTeamCityBuildId()))
             .findFirst()
-            .filter(scenario -> !scenario.getHistoryExecutions().isEmpty())
-            .map(scenario -> scenario.getHistoryExecutions().get(0).getBaseVersion().getName());
+            .map(execution -> execution.getBaseVersion().getName());
     }
 }

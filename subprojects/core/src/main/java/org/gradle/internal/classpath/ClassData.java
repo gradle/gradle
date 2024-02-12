@@ -26,20 +26,25 @@ import javax.annotation.Nonnull;
 
 public class ClassData implements InstrumentationMetadata {
     private final InstrumentingTypeRegistry typeRegistry;
-    private final Lazy<ClassNode> lazyClassNode;
+    private final Lazy<ClassNode> classNode;
+    private final byte[] classContent;
 
-    public ClassData(ClassReader reader, InstrumentingTypeRegistry typeRegistry) {
-        lazyClassNode = Lazy.unsafe().of(() -> {
+    public ClassData(ClassReader reader, byte[] content, InstrumentingTypeRegistry typeRegistry) {
+        this.classNode = Lazy.unsafe().of(() -> {
             ClassNode classNode = new ClassNode();
             reader.accept(classNode, 0);
             return classNode;
         });
+        this.classContent = content;
         this.typeRegistry = typeRegistry;
     }
 
+    public byte[] getClassContent() {
+        return classContent;
+    }
 
     public ClassNode readClassAsNode() {
-        return lazyClassNode.get();
+        return classNode.get();
     }
 
     @Override

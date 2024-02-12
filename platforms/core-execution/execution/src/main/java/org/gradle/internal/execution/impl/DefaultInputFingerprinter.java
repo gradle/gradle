@@ -173,6 +173,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             this.propertiesRequiringIsEmptyCheck = propertiesRequiringIsEmptyCheck;
         }
 
+        @Override
         public ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots() {
             return valueSnapshots;
         }
@@ -182,6 +183,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             return union(knownCurrentValueSnapshots, valueSnapshots);
         }
 
+        @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints() {
             return fileFingerprints;
         }
