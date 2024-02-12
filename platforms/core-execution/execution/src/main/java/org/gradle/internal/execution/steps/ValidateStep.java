@@ -22,7 +22,7 @@ import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -78,17 +78,17 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
 
         InternalProblems problemsService = validationContext.getProblemsService();
         InternalProblemReporter reporter = problemsService.getInternalReporter();
-        List<Problem> problems = validationContext.getProblems();
-        for (Problem problem : problems) {
+        List<ProblemReport> problems = validationContext.getProblems();
+        for (ProblemReport problem : problems) {
             reporter.report(problem);
         }
 
-        Map<Severity, ImmutableList<Problem>> problemsMap = problems.stream()
+        Map<Severity, ImmutableList<ProblemReport>> problemsMap = problems.stream()
             .collect(
-                groupingBy(Problem::getSeverity,
+                groupingBy(p -> p.getDefinition().getSeverity(),
                     mapping(identity(), toImmutableList())));
-        ImmutableList<Problem> warnings = problemsMap.getOrDefault(WARNING, of());
-        ImmutableList<Problem> errors = problemsMap.getOrDefault(ERROR, of());
+        ImmutableList<ProblemReport> warnings = problemsMap.getOrDefault(WARNING, of());
+        ImmutableList<ProblemReport> errors = problemsMap.getOrDefault(ERROR, of());
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);
@@ -165,7 +165,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         }
     }
 
-    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<? extends Problem> validationErrors) {
+    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<? extends ProblemReport> validationErrors) {
         Set<String> uniqueErrors = validationErrors.stream()
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(toImmutableSet());
@@ -175,6 +175,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     }
 
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(UnitOfWork work, Collection<? extends Problem> warnings);
+        void recordValidationWarnings(UnitOfWork work, Collection<? extends ProblemReport> warnings);
     }
 }

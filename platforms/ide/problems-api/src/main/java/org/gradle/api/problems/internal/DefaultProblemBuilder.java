@@ -39,17 +39,17 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
 
-    public DefaultProblemBuilder(Problem problem) {
-        this.label = problem.getLabel();
-        this.category = problem.getCategory();
-        this.severity = problem.getSeverity();
-        this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
-        this.details = problem.getDetails();
-        this.docLink = problem.getDocumentationLink();
-        this.solutions = new ArrayList<String>(problem.getSolutions());
-        this.exception = problem.getException();
-        this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
-        this.namespace = problem.getCategory().getNamespace();
+    public DefaultProblemBuilder(ProblemReport problem) {
+        this.label = problem.getDefinition().getLabel();
+        this.category = problem.getDefinition().getCategory();
+        this.severity = problem.getDefinition().getSeverity();
+        this.locations = new ArrayList<ProblemLocation>(problem.getContext().getLocations());
+        this.details = problem.getContext().getDetails();
+        this.docLink = problem.getDefinition().getDocumentationLink();
+        this.solutions = new ArrayList<String>(problem.getDefinition().getSolutions());
+        this.exception = problem.getContext().getException();
+        this.additionalData = new HashMap<String, Object>(problem.getContext().getAdditionalData());
+        this.namespace = problem.getDefinition().getCategory().getNamespace();
     }
 
     public DefaultProblemBuilder(String namespace) {
@@ -59,7 +59,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public Problem build() {
+    public ProblemReport build() {
         // Label is mandatory
         if (label == null) {
             return missingLabelProblem();
@@ -77,20 +77,24 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             }
         }
 
-        return new DefaultProblem(label, getSeverity(), locations, docLink, details, solutions, getExceptionForProblemInstantiation(), category, additionalData);
+        ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, getSeverity(), docLink, solutions, category);
+        ProblemContext problemContext = new DefaultProblemContext(locations, details, getExceptionForProblemInstantiation(), additionalData);
+        return new DefaultProblemReport(problemDefinition, problemContext);
     }
 
-    private Problem missingLabelProblem() {
+    private ProblemReport missingLabelProblem() {
         return invalidProblem("problem label must be specified", "missing-label");
     }
 
-    private Problem missingCategoryProblem() {
+    private ProblemReport missingCategoryProblem() {
         return invalidProblem("problem category must be specified", "missing-category");
     }
 
-    private Problem invalidProblem(String label, String subcategory) {
+    private ProblemReport invalidProblem(String label, String subcategory) {
         category("validation", "problems-api", subcategory).stackLocation();
-        return new DefaultProblem(label, Severity.WARNING, Collections.<ProblemLocation>emptyList(), null, null, null, getExceptionForProblemInstantiation(), category, Collections.<String, Object>emptyMap());
+        ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, Severity.WARNING, null, null, category);
+        ProblemContext problemContext = new DefaultProblemContext(Collections.<ProblemLocation>emptyList(), null, getExceptionForProblemInstantiation(), Collections.<String, Object>emptyMap());
+        return new DefaultProblemReport(problemDefinition, problemContext);
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {

@@ -16,7 +16,7 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
@@ -34,26 +34,26 @@ import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class TypeValidationProblemRenderer {
 
-    public static String renderMinimalInformationAbout(Problem problem) {
+    public static String renderMinimalInformationAbout(ProblemReport problem) {
         return renderMinimalInformationAbout(problem, true);
     }
 
-    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink) {
+    public static String renderMinimalInformationAbout(ProblemReport problem, boolean renderDocLink) {
         return renderMinimalInformationAbout(problem, renderDocLink, true);
     }
 
-    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {
+    public static String renderMinimalInformationAbout(ProblemReport problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getAdditionalData()) + endLineWithDot(problem.getLabel()));
-        ofNullable(problem.getDetails()).ifPresent(reason -> {
+        formatter.node(introductionFor(problem.getContext().getAdditionalData()) + endLineWithDot(problem.getDefinition().getLabel()));
+        ofNullable(problem.getContext().getDetails()).ifPresent(reason -> {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
+            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getContext().getDetails())));
         });
         if (renderSolutions) {
-            renderSolutions(formatter, problem.getSolutions());
+            renderSolutions(formatter, problem.getDefinition().getSolutions());
         }
         if (renderDocLink) {
-            ofNullable(problem.getDocumentationLink()).ifPresent(docLink -> {
+            ofNullable(problem.getDefinition().getDocumentationLink()).ifPresent(docLink -> {
                 formatter.blankLine();
                 formatter.node(new DocumentationRegistry().getDocumentationRecommendationFor("information", docLink));
             });

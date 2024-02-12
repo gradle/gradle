@@ -18,7 +18,7 @@ package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.DocLink;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 
@@ -34,7 +34,7 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public Problem build() {
+    public ProblemReport build() {
         return delegate.build();
     }
 

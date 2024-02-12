@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems.internal
 
-public interface InternalProblem extends Problem {
+import spock.lang.Specification
 
-    /**
-     * Returns a problem builder with fields initialized with values from this instance.
-     */
-    InternalProblemBuilder toBuilder();
+class DefaultProblemsTestReport extends Specification {
+
+    def "using org.gradle core namespace is not allowed on the public API"() {
+        def emitter = Mock(ProblemEmitter)
+
+        given:
+        def p = new DefaultProblems(emitter)
+
+        when:
+        p.forNamespace(DefaultProblemCategory.GRADLE_CORE_NAMESPACE)
+
+        then:
+        thrown(IllegalStateException)
+    }
 }

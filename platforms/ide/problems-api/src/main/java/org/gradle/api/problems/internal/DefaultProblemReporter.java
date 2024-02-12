@@ -46,8 +46,8 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     public RuntimeException throwing(Action<ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
-        Problem problem = problemBuilder.build();
-        RuntimeException exception = problem.getException();
+        ProblemReport problem = problemBuilder.build();
+        RuntimeException exception = problem.getContext().getException();
         if (exception == null) {
             throw new IllegalStateException("Exception must be non-null");
         } else {
@@ -55,7 +55,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         }
     }
 
-    public RuntimeException throwError(RuntimeException exception, Problem problem) {
+    public RuntimeException throwError(RuntimeException exception, ProblemReport problem) {
         report(problem);
         throw exception;
     }
@@ -69,7 +69,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public Problem create(Action<InternalProblemSpec> action) {
+    public ProblemReport create(Action<InternalProblemSpec> action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
@@ -81,9 +81,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         return new DefaultProblemBuilder(namespace);
     }
 
-    private Problem transformProblem(Problem problem, OperationIdentifier id) {
+    private ProblemReport transformProblem(ProblemReport problem, OperationIdentifier id) {
         for (ProblemTransformer transformer : transformers) {
-            problem = transformer.transform((InternalProblem) problem, id);
+            problem = transformer.transform(problem, id);
         }
         return problem;
     }
@@ -97,7 +97,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      * @param problem The problem to report.
      */
     @Override
-    public void report(Problem problem) {
+    public void report(ProblemReport problem) {
         OperationIdentifier id = CurrentBuildOperationRef.instance().getId();
         if (id != null) {
             report(problem, id);
@@ -114,7 +114,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      * @param id The operation identifier to associate with the problem.
      */
     @Override
-    public void report(Problem problem, OperationIdentifier id) {
+    public void report(ProblemReport problem, OperationIdentifier id) {
         emitter.emit(transformProblem(problem, id), id);
     }
 }
