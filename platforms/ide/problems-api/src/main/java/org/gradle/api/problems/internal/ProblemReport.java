@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal
+package org.gradle.api.problems.internal;
 
-import spock.lang.Specification
+/**
+ * Interface for describing structured information about a problem.
+ */
+public interface ProblemReport {
 
-class DefaultProblemsTest extends Specification {
+    /**
+     * Returns the problem definition, i.e. the data that is independent of the report context.
+     */
+    ProblemDefinition getDefinition();
 
-    def "using org.gradle core namespace is not allowed on the public API"() {
-        def emitter = Mock(ProblemEmitter)
+    /**
+     * Returns the contextual information associated with this problem.
+     */
+    ProblemContext getContext();
 
-        given:
-        def p = new DefaultProblems(emitter)
-
-        when:
-        p.forNamespace(DefaultProblemCategory.GRADLE_CORE_NAMESPACE)
-
-        then:
-        thrown(IllegalStateException)
-    }
+    /**
+     * Returns a problem builder with fields initialized with values from this instance.
+     */
+    InternalProblemBuilder toBuilder();
 }

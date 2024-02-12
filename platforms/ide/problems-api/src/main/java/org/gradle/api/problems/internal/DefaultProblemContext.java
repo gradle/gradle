@@ -19,7 +19,6 @@ package org.gradle.api.problems.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -28,58 +27,27 @@ import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblem implements InternalProblem, Serializable {
-    private final String label;
-    private Severity severity;
+public class DefaultProblemContext implements Serializable, ProblemContext {
     private final List<ProblemLocation> locations;
-    private final DocLink documentationLink;
     private final String description;
-    private final List<String> solutions;
     private final RuntimeException cause;
-    private final ProblemCategory problemCategory;
     private final Map<String, Object> additionalData;
 
-    protected DefaultProblem(
-        String label,
-        Severity severity,
+    protected DefaultProblemContext(
         List<ProblemLocation> locations,
-        @Nullable DocLink documentationUrl,
         @Nullable String description,
-        @Nullable List<String> solutions,
         @Nullable RuntimeException cause,
-        ProblemCategory problemCategory,
         Map<String, Object> additionalData
     ) {
-        this.label = label;
-        this.severity = severity;
         this.locations = ImmutableList.copyOf(locations);
-        this.documentationLink = documentationUrl;
         this.description = description;
-        this.solutions = solutions == null ? ImmutableList.<String>of() : ImmutableList.copyOf(solutions);
         this.cause = cause;
-        this.problemCategory = problemCategory;
         this.additionalData = ImmutableMap.copyOf(additionalData);
-    }
-
-    @Override
-    public String getLabel() {
-        return label;
-    }
-
-    @Override
-    public Severity getSeverity() {
-        return severity;
     }
 
     @Override
     public List<ProblemLocation> getLocations() {
         return locations;
-    }
-
-    @Nullable
-    @Override
-    public DocLink getDocumentationLink() {
-        return documentationLink;
     }
 
     @Override
@@ -88,32 +56,13 @@ public class DefaultProblem implements InternalProblem, Serializable {
     }
 
     @Override
-    public List<String> getSolutions() {
-        return solutions;
-    }
-
-    @Override
     public RuntimeException getException() {
         return cause;
     }
 
     @Override
-    public ProblemCategory getCategory() {
-        return problemCategory;
-    }
-
-    @Override
     public Map<String, Object> getAdditionalData() {
         return additionalData;
-    }
-
-    public void setSeverity(Severity severity) {
-        this.severity = severity;
-    }
-
-    @Override
-    public InternalProblemBuilder toBuilder() {
-        return new DefaultProblemBuilder(this);
     }
 
     private static boolean equals(@Nullable Object a, @Nullable Object b) {
@@ -128,21 +77,16 @@ public class DefaultProblem implements InternalProblem, Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultProblem that = (DefaultProblem) o;
-        return equals(label, that.label) &&
-            severity == that.severity &&
-            equals(locations, that.locations) &&
-            equals(problemCategory, that.problemCategory) &&
-            equals(documentationLink, that.documentationLink) &&
+        DefaultProblemContext that = (DefaultProblemContext) o;
+        return equals(locations, that.locations) &&
             equals(description, that.description) &&
-            equals(solutions, that.solutions) &&
             equals(cause, that.cause) &&
             equals(additionalData, that.additionalData);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, severity, locations, documentationLink, description, solutions, cause, additionalData});
+        return Arrays.hashCode(new Object[]{locations, description, cause, additionalData});
     }
 
 }

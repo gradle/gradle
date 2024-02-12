@@ -42,10 +42,10 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].category.toString() == "org.gradle:type"
-        deserialized[0].locations.isEmpty()
-        deserialized[0].documentationLink == null
+        deserialized[0].definition.label == "label"
+        deserialized[0].definition.category.toString() == "org.gradle:type"
+        deserialized[0].context.locations.isEmpty()
+        deserialized[0].definition.documentationLink == null
     }
 
     def "can serialize and deserialize a validation problem with a location"() {
@@ -62,13 +62,13 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].category.toString() == "org.gradle:type"
-        deserialized[0].locations[0].path == "location"
-        deserialized[0].locations[0].line == 1
-        deserialized[0].locations[0].column == 2
-        deserialized[0].locations[0].length == 3
-        deserialized[0].documentationLink == null
+        deserialized[0].definition.label == "label"
+        deserialized[0].definition.category.toString() == "org.gradle:type"
+        deserialized[0].context.locations[0].path == "location"
+        deserialized[0].context.locations[0].line == 1
+        deserialized[0].context.locations[0].column == 2
+        deserialized[0].context.locations[0].length == 3
+        deserialized[0].definition.documentationLink == null
     }
 
     def "can serialize and deserialize a validation problem with a documentation link"() {
@@ -86,13 +86,13 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].category.toString() == "org.gradle:type"
-        deserialized[0].locations[0].path == "location"
-        deserialized[0].locations[0].line == 1
-        deserialized[0].locations[0].column == 1
-        deserialized[0].documentationLink.getUrl() == "url"
-        deserialized[0].documentationLink.getConsultDocumentationMessage() == "consult"
+        deserialized[0].definition.label == "label"
+        deserialized[0].definition.category.toString() == "org.gradle:type"
+        deserialized[0].context.locations[0].path == "location"
+        deserialized[0].context.locations[0].line == 1
+        deserialized[0].context.locations[0].column == 1
+        deserialized[0].definition.documentationLink.getUrl() == "url"
+        deserialized[0].definition.documentationLink.getConsultDocumentationMessage() == "consult"
     }
 
     /**
@@ -126,11 +126,11 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].category.toString() == "org.gradle:type"
-        deserialized[0].locations == [] as List
-        deserialized[0].documentationLink == null
-        deserialized[0].exception.message == "cause"
+        deserialized[0].definition.label == "label"
+        deserialized[0].definition.category.toString() == "org.gradle:type"
+        deserialized[0].context.locations == [] as List
+        deserialized[0].definition.documentationLink == null
+        deserialized[0].context.exception.message == "cause"
     }
 
     def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
@@ -147,11 +147,11 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].category.toString() == "org.gradle:type"
-        deserialized[0].locations == [] as List
-        deserialized[0].documentationLink == null
-        deserialized[0].severity == severity
+        deserialized[0].definition.label == "label"
+        deserialized[0].definition.category.toString() == "org.gradle:type"
+        deserialized[0].context.locations == [] as List
+        deserialized[0].definition.documentationLink == null
+        deserialized[0].definition.severity == severity
 
         where:
         severity << Severity.values()
@@ -172,12 +172,12 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].category.toString() == "org.gradle:type"
-        deserialized[0].locations == [] as List
-        deserialized[0].documentationLink == null
-        deserialized[0].solutions[0] == "solution 0"
-        deserialized[0].solutions[1] == "solution 1"
+        deserialized[0].definition.label == "label"
+        deserialized[0].definition.category.toString() == "org.gradle:type"
+        deserialized[0].context.locations == [] as List
+        deserialized[0].definition.documentationLink == null
+        deserialized[0].definition.solutions[0] == "solution 0"
+        deserialized[0].definition.solutions[1] == "solution 1"
     }
 
     def "can serialize and deserialize a validation problem with additional data"() {
@@ -195,11 +195,11 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].category.toString() == "org.gradle:type"
-        deserialized[0].locations == [] as List
-        deserialized[0].documentationLink == null
-        deserialized[0].additionalData["key 1"] == "value 1"
-        deserialized[0].additionalData["key 2"] == "value 2"
+        deserialized[0].definition.label == "label"
+        deserialized[0].definition.category.toString() == "org.gradle:type"
+        deserialized[0].context.locations == [] as List
+        deserialized[0].definition.documentationLink == null
+        deserialized[0].context.additionalData["key 1"] == "value 1"
+        deserialized[0].context.additionalData["key 2"] == "value 2"
     }
 }
