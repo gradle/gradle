@@ -57,12 +57,12 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
             "    ELSE 0.0\n" +
             "  END) AS FAILURE_RATE \n" +
             "  FROM testExecution\n" +
-            " WHERE (CHANNEL = 'flakiness-detection-master' OR CHANNEL = 'flakiness-detection-release') AND STARTTIME> ?\n" +
+            " WHERE (CHANNEL = ? OR CHANNEL = ?) AND STARTTIME> ?\n" +
             "GROUP BY TESTCLASS, TESTID, TESTPROJECT ORDER by FAILURE_RATE;";
     private static final String FAILURE_THRESOLD_SQL =
         "SELECT TESTCLASS, TESTID, TESTPROJECT, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD\n" +
             "FROM testExecution\n" +
-            "WHERE (CHANNEL = 'flakiness-detection-master' or CHANNEL= 'flakiness-detection-release') AND STARTTIME > ? AND DIFFCONFIDENCE > 0.97\n" +
+            "WHERE (CHANNEL = ? or CHANNEL= ?) AND STARTTIME > ? AND DIFFCONFIDENCE > 0.97\n" +
             "GROUP BY TESTCLASS, TESTID, TESTPROJECT";
 
 
@@ -345,27 +345,29 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
         return gradleVersion;
     }
 
-    public Map<PerformanceExperiment, BigDecimal> getFlakinessRates() {
+    public Map<PerformanceExperiment, BigDecimal> getFlakinessRates(OperatingSystem os) {
         Timestamp time = Timestamp.valueOf(LocalDateTime.now().minusDays(FLAKINESS_DETECTION_DAYS));
-        return queryFlakinessData(FLAKINESS_RATE_SQL, time);
+        return queryFlakinessData(FLAKINESS_RATE_SQL, os, time);
     }
 
-    public Map<PerformanceExperiment, BigDecimal> getFailureThresholds() {
+    public Map<PerformanceExperiment, BigDecimal> getFailureThresholds(OperatingSystem os) {
         Timestamp time = Timestamp.valueOf(LocalDateTime.now().minusDays(FLAKINESS_DETECTION_DAYS));
-        return queryFlakinessData(FAILURE_THRESOLD_SQL, time);
+        return queryFlakinessData(FAILURE_THRESOLD_SQL, os, time);
     }
 
-    private PreparedStatement prepareStatement(Connection connection, String sql, Timestamp param) throws SQLException {
+    private PreparedStatement prepareStatement(Connection connection, String sql, OperatingSystem os, Timestamp timestamp) throws SQLException {
         PreparedStatement statement = connection.prepareStatement(sql);
-        statement.setTimestamp(1, param);
+        statement.setString(1, "flakiness-detection" + os.getChannelSuffix() + "-master");
+        statement.setString(2, "flakiness-detection" + os.getChannelSuffix() + "-release");
+        statement.setTimestamp(3, timestamp);
         return statement;
     }
 
-    private Map<PerformanceExperiment, BigDecimal> queryFlakinessData(String sql, Timestamp time) {
+    private Map<PerformanceExperiment, BigDecimal> queryFlakinessData(String sql, OperatingSystem os, Timestamp time) {
         return withConnection("query flakiness data", connection -> {
             Map<PerformanceExperiment, BigDecimal> results = new HashMap();
             try (
-                PreparedStatement statement = prepareStatement(connection, sql, time);
+                PreparedStatement statement = prepareStatement(connection, sql, os, time);
                 ResultSet resultSet = statement.executeQuery()
             ) {
                 while (resultSet.next()) {
