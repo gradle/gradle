@@ -24,6 +24,7 @@ dependencies {
 
     api(project(":process-services"))
     api(project(":base-annotations"))
+    api(project(":build-cache-spi"))
     api(project(":logging-api"))
     api(project(":base-services"))
     api(project(":files"))

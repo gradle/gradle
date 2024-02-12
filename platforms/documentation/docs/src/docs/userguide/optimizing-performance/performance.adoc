@@ -29,7 +29,7 @@ TIP: Want faster Gradle Builds? https://gradle.org/training/#build-cache-deep-di
 
 == Inspect your build
 
-Before you make any changes, <<inspect.adoc#build_scans,inspect your build>> with a build scan or profile report. A proper build inspection helps
+Before you make any changes, <<inspect.adoc#inspecting_build_scans,inspect your build>> with a build scan or profile report. A proper build inspection helps
 you understand:
 
 * how long it takes to build your project

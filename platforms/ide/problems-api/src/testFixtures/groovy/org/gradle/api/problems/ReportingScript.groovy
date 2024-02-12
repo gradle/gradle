@@ -20,7 +20,6 @@ class ReportingScript {
 
     static String getProblemReportingScript(String taskActionMethodBody) {
         return """
-            import org.gradle.api.problems.internal.Problem
             import org.gradle.api.problems.Severity
 
             abstract class ProblemReportingTask extends DefaultTask {

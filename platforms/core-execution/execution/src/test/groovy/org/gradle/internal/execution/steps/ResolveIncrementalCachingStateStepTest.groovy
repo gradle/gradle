@@ -17,15 +17,20 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
+import org.gradle.internal.execution.history.PreviousExecutionState
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.hash.TestHashCodes
 
 class ResolveIncrementalCachingStateStepTest extends AbstractResolveCachingStateStepTest<IncrementalChangesContext, ResolveIncrementalCachingStateStep<IncrementalChangesContext>> {
     @Override
     ResolveIncrementalCachingStateStep<IncrementalChangesContext> createStep() {
-        return new ResolveIncrementalCachingStateStep<>(buildCache, delegate)
+        return new ResolveIncrementalCachingStateStep<>(buildCache, false, delegate)
     }
 
-    def "uses cache key from incremental state when available"() {
+    def executionStateChanges = Mock(ExecutionStateChanges)
+    def previousExecutionState = Mock(PreviousExecutionState)
+
+    def "uses cache key from execution history when no changes"() {
         def cacheKey = TestHashCodes.hashCodeFrom(1234)
         delegateResult.executionReasons >> ImmutableList.of()
         delegateResult.reusedOutputOriginMetadata >> Optional.empty()
@@ -35,15 +40,64 @@ class ResolveIncrementalCachingStateStepTest extends AbstractResolveCachingState
         step.execute(work, context)
         then:
         _ * buildCache.enabled >> buildCacheEnabled
+        _ * context.changes >> Optional.of(executionStateChanges)
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * executionStateChanges.changeDescriptions >> ImmutableList.of()
 
-        _ * context.cacheKey >> Optional.of(cacheKey)
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
+        _ * previousExecutionState.cacheKey >> cacheKey
         _ * context.validationProblems >> ImmutableList.of()
         1 * delegate.execute(work, { CachingContext context ->
-            def buildCacheKey = buildCacheEnabled
-                ? context.cachingState.whenEnabled().get().key
-                : context.cachingState.whenDisabled().get().key.get()
+            def buildCacheKey = context.cachingState.cacheKeyCalculatedState.get().key
             buildCacheKey.hashCode == cacheKey.toString()
+        }) >> delegateResult
+
+        where:
+        buildCacheEnabled << [true, false]
+    }
+
+    def "calculates cache key when there are changes"() {
+        def previousCacheKey = TestHashCodes.hashCodeFrom(1234)
+        delegateResult.executionReasons >> ImmutableList.of()
+        delegateResult.reusedOutputOriginMetadata >> Optional.empty()
+        delegateResult.afterExecutionOutputState >> Optional.empty()
+
+        when:
+        step.execute(work, context)
+        then:
+        _ * buildCache.enabled >> buildCacheEnabled
+        _ * context.changes >> Optional.of(executionStateChanges)
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * executionStateChanges.changeDescriptions >> ImmutableList.of("Out-of-date")
+
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
+        0 * previousExecutionState.cacheKey >> previousCacheKey
+        _ * context.validationProblems >> ImmutableList.of()
+        1 * delegate.execute(work, { CachingContext context ->
+            def buildCacheKey = context.cachingState.cacheKeyCalculatedState.get().key
+            buildCacheKey.hashCode != previousCacheKey.toString()
+        }) >> delegateResult
+
+        where:
+        buildCacheEnabled << [true, false]
+    }
+
+    def "calculates cache key when there is no history available"() {
+        delegateResult.executionReasons >> ImmutableList.of()
+        delegateResult.reusedOutputOriginMetadata >> Optional.empty()
+        delegateResult.afterExecutionOutputState >> Optional.empty()
+
+        when:
+        step.execute(work, context)
+        then:
+        _ * buildCache.enabled >> buildCacheEnabled
+        _ * context.changes >> Optional.of(executionStateChanges)
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        _ * context.previousExecutionState >> Optional.empty()
+
+        _ * context.validationProblems >> ImmutableList.of()
+        1 * delegate.execute(work, { CachingContext context ->
+            context.cachingState.cacheKeyCalculatedState.isPresent()
         }) >> delegateResult
 
         where:

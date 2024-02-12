@@ -19,7 +19,16 @@ package org.gradle.api.internal.tasks.userinput;
 import java.util.Collection;
 import java.util.function.Function;
 
-public class NonInteractiveUserInputHandler implements UserInputHandler {
+public class NonInteractiveUserInputHandler extends AbstractUserInputHandler implements AbstractUserInputHandler.UserInteraction {
+    @Override
+    protected UserInteraction newInteraction() {
+        return this;
+    }
+
+    @Override
+    public void finish() {
+    }
+
     @Override
     public Boolean askYesNoQuestion(String question) {
         return null;
@@ -36,8 +45,8 @@ public class NonInteractiveUserInputHandler implements UserInputHandler {
     }
 
     @Override
-    public <T> ChoiceBuilder<T> choice(String question, Collection<T> options) {
-        return new DefaultChoiceBuilder<>(options);
+    public <T> Choice<T> choice(String question, Collection<T> options) {
+        return new NonInteractiveChoiceBuilder<>(options);
     }
 
     @Override
@@ -55,27 +64,27 @@ public class NonInteractiveUserInputHandler implements UserInputHandler {
         return false;
     }
 
-    private static class DefaultChoiceBuilder<T> implements ChoiceBuilder<T> {
+    private static class NonInteractiveChoiceBuilder<T> implements Choice<T> {
         private T defaultOption;
 
-        DefaultChoiceBuilder(Collection<T> options) {
+        NonInteractiveChoiceBuilder(Collection<T> options) {
             defaultOption = options.iterator().next();
         }
 
         @Override
-        public ChoiceBuilder<T> renderUsing(Function<T, String> renderer) {
+        public Choice<T> renderUsing(Function<T, String> renderer) {
             // Ignore, the values are never rendered
             return this;
         }
 
         @Override
-        public ChoiceBuilder<T> defaultOption(T defaultOption) {
+        public Choice<T> defaultOption(T defaultOption) {
             this.defaultOption = defaultOption;
             return this;
         }
 
         @Override
-        public ChoiceBuilder<T> whenNotConnected(T defaultOption) {
+        public Choice<T> whenNotConnected(T defaultOption) {
             this.defaultOption = defaultOption;
             return this;
         }

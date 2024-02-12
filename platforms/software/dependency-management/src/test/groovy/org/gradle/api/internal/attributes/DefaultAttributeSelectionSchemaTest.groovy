@@ -27,7 +27,6 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.util.TestUtil.objectFactory
-
 /**
  * Tests {@link DefaultAttributesSchema.DefaultAttributeSelectionSchema}. The class-under-test should
  * eventually be moved into its own file so that we don't need to instantiate it indirectly through a

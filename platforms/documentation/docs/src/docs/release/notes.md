@@ -52,6 +52,15 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="java-22"></a>
+### Support for building projects with Java 22
+
+Gradle now supports [using Java 22](userguide/compatibility.html#java) for compiling, testing, and starting other Java programs.
+This can be accomplished using [toolchains](userguide/toolchains.html).
+
+Currently, you cannot run Gradle on Java 22 because Groovy lacks support for JDK 22.
+However, support for running Gradle with Java 22 is expected in future versions.
+
 ### Configuration cache
 
 The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds.

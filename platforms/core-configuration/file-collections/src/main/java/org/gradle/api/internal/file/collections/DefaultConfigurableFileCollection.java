@@ -23,7 +23,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileCollectionConfigurer;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -90,11 +89,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         this.value = initialValue;
     }
 
-    @Override
-    public ConfigurableFileCollection withActualValue(Action<FileCollectionConfigurer> action) {
+    protected void withActualValue(Action<Configurer> action) {
         setToConventionIfUnset();
-        action.execute(getExplicitValue());
-        return this;
+        action.execute(getConfigurer());
     }
 
     @Override
@@ -348,7 +345,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public ConfigurableFileCollection from(Object... paths) {
-        getExplicitValue().from(paths);
+        getConfigurer().from(paths);
         return this;
     }
 
@@ -434,8 +431,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         return valueState.explicitValue(value, defaultValue);
     }
 
-    private FileCollectionConfigurer getExplicitValue() {
-        return new ExplicitValueConfigurer();
+    private Configurer getConfigurer() {
+        return new Configurer();
     }
 
     @VisibleForTesting
@@ -759,31 +756,22 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
     }
 
-    private abstract class Configurer implements FileCollectionConfigurer {
+    private class Configurer {
 
-        protected abstract ValueCollector getValue();
+        protected ValueCollector getValue() {
+            return getExplicitCollector();
+        }
 
-        protected abstract void setValue(ValueCollector newValue);
+        protected void setValue(ValueCollector newValue) {
+            setExplicitCollector(newValue);
+        }
 
-        @Override
-        public FileCollectionConfigurer from(Object... paths) {
+        public Configurer from(Object... paths) {
             assertMutable();
             if (paths.length > 0) {
                 setValue(getValue().plus(DefaultConfigurableFileCollection.this, resolver, patternSetFactory, dependencyFactory, host, paths));
             }
             return this;
-        }
-    }
-
-    private class ExplicitValueConfigurer extends Configurer {
-        @Override
-        protected ValueCollector getValue() {
-            return getExplicitCollector();
-        }
-
-        @Override
-        protected void setValue(ValueCollector newValue) {
-            setExplicitCollector(newValue);
         }
     }
 }

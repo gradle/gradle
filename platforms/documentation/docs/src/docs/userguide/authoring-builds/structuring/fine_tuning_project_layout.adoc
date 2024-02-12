@@ -15,4 +15,4 @@
 [[fine_tuning_project_layout]]
 = Fine-Tuning the Project Layout
 
-This page has been moved to <<multi_project_builds#multi_project_builds,Structuring Software with Gradle>>.
+This page has been moved to <<multi_project_builds.adoc#multi_project_builds,Multi-Project Builds>>.

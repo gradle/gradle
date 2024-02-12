@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.api.problems.internal.Problem
+import org.gradle.api.problems.internal.ProblemReport
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
@@ -63,7 +63,7 @@ abstract class AbstractResolveCachingStateStepTest<C extends ValidationFinishedC
         then:
         _ * buildCache.enabled >> false
         _ * context.beforeExecutionState >> Optional.empty()
-        _ * context.validationProblems >> ImmutableList.of(Mock(Problem))
+        _ * context.validationProblems >> ImmutableList.of(Mock(ProblemReport))
         1 * delegate.execute(work, { CachingContext context ->
             context.cachingState.whenDisabled().map { it.disabledReasons*.category }.get() == [CachingDisabledReasonCategory.VALIDATION_FAILURE]
             context.cachingState.whenDisabled().map { it.disabledReasons*.message }.get() == ["Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details."]
@@ -83,28 +83,5 @@ abstract class AbstractResolveCachingStateStepTest<C extends ValidationFinishedC
         1 * delegate.execute(work, { CachingContext context ->
             context.cachingState.whenDisabled().map { it.disabledReasons }.get() as List == [disabledReason]
         }) >> delegateResult
-    }
-
-    def "calculates cache key when execution state is available"() {
-        delegateResult.executionReasons >> ImmutableList.of()
-        delegateResult.reusedOutputOriginMetadata >> Optional.empty()
-        delegateResult.afterExecutionOutputState >> Optional.empty()
-
-        when:
-        step.execute(work, context)
-        then:
-        _ * buildCache.enabled >> buildCacheEnabled
-        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-
-        _ * context.validationProblems >> ImmutableList.of()
-        1 * delegate.execute(work, { CachingContext context ->
-            def buildCacheKey = buildCacheEnabled
-                ? context.cachingState.whenEnabled().get().key
-                : context.cachingState.whenDisabled().get().key.get()
-            buildCacheKey != null
-        }) >> delegateResult
-
-        where:
-        buildCacheEnabled << [true, false]
     }
 }

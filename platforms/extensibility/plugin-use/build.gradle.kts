@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":dependency-management"))
     implementation(project(":build-option"))
     implementation(project(":problems-api"))
+    implementation(project(":functional"))
 
     implementation(libs.groovy)
     implementation(libs.guava)

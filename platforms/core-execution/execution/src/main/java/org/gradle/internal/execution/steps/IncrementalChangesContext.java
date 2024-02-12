@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
-import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -27,22 +26,19 @@ public class IncrementalChangesContext extends ValidationFinishedContext {
 
     private final ImmutableList<String> rebuildReasons;
     private final ExecutionStateChanges executionStateChanges;
-    private final HashCode cacheKey;
 
     public IncrementalChangesContext(
         ValidationFinishedContext parent,
         ImmutableList<String> rebuildReasons,
-        @Nullable ExecutionStateChanges executionStateChanges,
-        @Nullable HashCode cacheKey
+        @Nullable ExecutionStateChanges executionStateChanges
     ) {
         super(parent);
         this.rebuildReasons = rebuildReasons;
         this.executionStateChanges = executionStateChanges;
-        this.cacheKey = cacheKey;
     }
 
     protected IncrementalChangesContext(IncrementalChangesContext parent) {
-        this(parent, parent.getRebuildReasons(), parent.getChanges().orElse(null), parent.getCacheKey().orElse(null));
+        this(parent, parent.getRebuildReasons(), parent.getChanges().orElse(null));
     }
 
     /**
@@ -58,13 +54,5 @@ public class IncrementalChangesContext extends ValidationFinishedContext {
      */
     public Optional<ExecutionStateChanges> getChanges() {
         return Optional.ofNullable(executionStateChanges);
-    }
-
-    /**
-     * The cache key of the work.
-     * Empty if and only if {@link #getBeforeExecutionState()} is empty.
-     */
-    public Optional<HashCode> getCacheKey() {
-        return Optional.ofNullable(cacheKey);
     }
 }

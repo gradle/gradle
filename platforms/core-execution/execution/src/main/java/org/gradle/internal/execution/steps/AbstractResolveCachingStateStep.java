@@ -44,24 +44,27 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
     private static final CachingState VALIDATION_FAILED_STATE = CachingState.disabledWithoutInputs(VALIDATION_FAILED_REASON);
 
     private final BuildCacheController buildCache;
+    private final boolean emitDebugLogging;
 
-    public AbstractResolveCachingStateStep(BuildCacheController buildCache) {
+    public AbstractResolveCachingStateStep(
+        BuildCacheController buildCache,
+        boolean emitDebugLogging
+    ) {
         this.buildCache = buildCache;
+        this.emitDebugLogging = emitDebugLogging;
     }
 
     @Override
     public CachingResult execute(UnitOfWork work, C context) {
         CachingState cachingState;
-        if (!context.getValidationProblems().isEmpty()) {
-            cachingState = VALIDATION_FAILED_STATE;
-        } else {
-            cachingState = context.getBeforeExecutionState()
-                .map(beforeExecutionState -> calculateCachingState(work, context, beforeExecutionState))
-                .orElseGet(() -> calculateCachingStateWithNoCapturedInputs(work));
-        }
+        cachingState = context.getBeforeExecutionState()
+            .map(beforeExecutionState -> calculateCachingState(work, context, beforeExecutionState))
+            .orElseGet(() -> !context.getValidationProblems().isEmpty()
+                ? VALIDATION_FAILED_STATE
+                : calculateCachingStateWithNoCapturedInputs(work));
 
         cachingState.apply(
-            enabled -> logCacheKey(enabled.getKey(), work),
+            enabled -> logCacheKey(enabled.getCacheKeyCalculatedState().getKey(), work),
             disabled -> logDisabledReasons(disabled.getDisabledReasons(), work)
         );
 
@@ -70,13 +73,16 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
     }
 
     private CachingState calculateCachingState(UnitOfWork work, C context, BeforeExecutionState beforeExecutionState) {
-        Logger logger = buildCache.isEmitDebugLogging()
+        Logger logger = emitDebugLogging
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
         CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(logger);
-        HashCode cacheKey = cacheKeyFromContext(context)
+        HashCode cacheKey = getPreviousCacheKeyIfApplicable(context)
             .orElseGet(() -> cachingStateFactory.calculateCacheKey(beforeExecutionState));
         ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder = ImmutableList.builder();
+        if (!context.getValidationProblems().isEmpty()) {
+            cachingDisabledReasonsBuilder.add(VALIDATION_FAILED_REASON);
+        }
         if (!buildCache.isEnabled()) {
             cachingDisabledReasonsBuilder.add(BUILD_CACHE_DISABLED_REASON);
         }
@@ -88,7 +94,10 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
         return cachingStateFactory.createCachingState(beforeExecutionState, cacheKey, cachingDisabledReasonsBuilder.build());
     }
 
-    protected abstract Optional<HashCode> cacheKeyFromContext(C context);
+    /**
+     * Return cache key from previous build if there are no changes.
+     */
+    protected abstract Optional<HashCode> getPreviousCacheKeyIfApplicable(C context);
 
     protected abstract UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState);
 
@@ -102,10 +111,10 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
     }
 
     private void logCacheKey(BuildCacheKey cacheKey, UnitOfWork work) {
-        if (buildCache.isEmitDebugLogging()) {
-            LOGGER.warn("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getDisplayName());
+        if (emitDebugLogging) {
+            LOGGER.warn("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getHashCode());
         } else {
-            LOGGER.info("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getDisplayName());
+            LOGGER.info("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getHashCode());
         }
     }
 

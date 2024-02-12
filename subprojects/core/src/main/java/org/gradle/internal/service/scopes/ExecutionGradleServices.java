@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service.scopes;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.api.problems.Problems;
@@ -68,7 +69,6 @@ import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.ResolveNonIncrementalCachingStateStep;
 import org.gradle.internal.execution.steps.Result;
 import org.gradle.internal.execution.steps.SkipEmptyIncrementalWorkStep;
-import org.gradle.internal.execution.steps.SkipEmptyNonIncrementalWorkStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.Step;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
@@ -82,6 +82,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -131,6 +132,7 @@ public class ExecutionGradleServices {
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         BuildOutputCleanupRegistry buildOutputCleanupRegistry,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CurrentBuildOperationRef currentBuildOperationRef,
@@ -142,6 +144,7 @@ public class ExecutionGradleServices {
         WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
+        StartParameter startParameter,
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
         VirtualFileSystem virtualFileSystem,
@@ -149,6 +152,7 @@ public class ExecutionGradleServices {
     ) {
         UniqueId buildId = buildInvocationScopeId.getId();
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
+        boolean emitBuildCacheDebugLogging = startParameter.isBuildCacheDebugLogging();
 
         // @formatter:off
         // CHECKSTYLE:OFF
@@ -162,11 +166,9 @@ public class ExecutionGradleServices {
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
-            // TODO Consider not supporting skip-when-empty for immutable work entirely
-            new SkipEmptyNonIncrementalWorkStep(buildId, workInputListeners,
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveNonIncrementalCachingStateStep<>(buildCacheController,
+            new ResolveNonIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
             new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
@@ -174,7 +176,7 @@ public class ExecutionGradleServices {
             new NoInputChangesStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             sharedExecutionPipeline
-        ))))))))))));
+        )))))))))));
 
         Step<IdentityContext,WorkspaceResult> mutablePipeline =
             new AssignMutableWorkspaceStep<>(
@@ -184,8 +186,8 @@ public class ExecutionGradleServices {
             new SkipEmptyIncrementalWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveChangesStep<>(changeDetector, buildCacheController::isEmitDebugLogging,
-            new ResolveIncrementalCachingStateStep<>(buildCacheController,
+            new ResolveChangesStep<>(changeDetector,
+            new ResolveIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
@@ -199,7 +201,7 @@ public class ExecutionGradleServices {
 
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationExecutor,
-            new IdentityCacheStep<>(
+            new IdentityCacheStep<>(buildOperationProgressEventEmitter,
             new ExecuteWorkBuildOperationFiringStep<>(buildOperationExecutor,
             new ChoosePipelineStep<>(
                 immutablePipeline,

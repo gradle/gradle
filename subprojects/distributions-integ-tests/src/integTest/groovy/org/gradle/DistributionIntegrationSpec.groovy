@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 151
+    protected static final THIRD_PARTY_LIB_COUNT = 150
 
     @Shared String baseVersion = GradleVersion.current().baseVersion.version
 
@@ -58,7 +58,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     /**
      * Change this whenever you add or remove subprojects for distribution java agents (lib/agents).
-     * @return
      */
     int getAgentJarsCount() {
         1

@@ -35,7 +35,6 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshotSerializer;
 import org.gradle.internal.snapshot.impl.SnapshotSerializer;
 
-import java.time.Duration;
 import java.util.Map;
 
 public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<PreviousExecutionState> {
@@ -44,6 +43,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
     private final Serializer<ValueSnapshot> valueSnapshotSerializer;
     private final HashCodeSerializer hashCodeSerializer;
+    private final Serializer<OriginMetadata> originMetadataSerializer;
 
     public DefaultPreviousExecutionStateSerializer(
         Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer,
@@ -56,14 +56,12 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
         this.hashCodeSerializer = hashCodeSerializer;
         this.implementationSnapshotSerializer = new ImplementationSnapshotSerializer();
         this.valueSnapshotSerializer = new SnapshotSerializer(classLoaderHasher);
+        this.originMetadataSerializer = new OriginMetadataSerializer();
     }
 
     @Override
     public PreviousExecutionState read(Decoder decoder) throws Exception {
-        OriginMetadata originMetadata = new OriginMetadata(
-            decoder.readString(),
-            Duration.ofMillis(decoder.readLong())
-        );
+        OriginMetadata originMetadata = originMetadataSerializer.read(decoder);
 
         HashCode cacheKey = hashCodeSerializer.read(decoder);
 
@@ -98,9 +96,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
 
     @Override
     public void write(Encoder encoder, PreviousExecutionState execution) throws Exception {
-        OriginMetadata originMetadata = execution.getOriginMetadata();
-        encoder.writeString(originMetadata.getBuildInvocationId());
-        encoder.writeLong(originMetadata.getExecutionTime().toMillis());
+        originMetadataSerializer.write(encoder, execution.getOriginMetadata());
 
         hashCodeSerializer.write(encoder, execution.getCacheKey());
         implementationSnapshotSerializer.write(encoder, execution.getImplementation());

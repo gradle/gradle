@@ -24,7 +24,7 @@ import org.gradle.api.problems.internal.FileLocation;
 import org.gradle.api.problems.internal.LineInFileLocation;
 import org.gradle.api.problems.internal.OffsetInFileLocation;
 import org.gradle.api.problems.internal.PluginIdLocation;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.api.problems.internal.TaskPathLocation;
@@ -88,25 +88,25 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
 
     private Optional<InternalProblemEvent> createProblemEvent(OperationIdentifier buildOperationId, @Nullable Object details) {
         if (details instanceof DefaultProblemProgressDetails) {
-            Problem problem = ((DefaultProblemProgressDetails) details).getProblem();
+            ProblemReport problem = ((DefaultProblemProgressDetails) details).getProblem();
             return of(createProblemEvent(buildOperationId, problem));
         }
         return empty();
     }
 
-    private DefaultProblemEvent createProblemEvent(OperationIdentifier buildOperationId, Problem problem) {
+    private DefaultProblemEvent createProblemEvent(OperationIdentifier buildOperationId, ProblemReport problem) {
         return new DefaultProblemEvent(
             cerateDefaultProblemDescriptor(buildOperationId),
             new DefaultProblemDetails(
-                toInternalCategory(problem.getCategory()),
-                toInternalLabel(problem.getLabel()),
-                toInternalDetails(problem.getDetails()),
-                toInternalSeverity(problem.getSeverity()),
-                toInternalLocations(problem.getLocations()),
-                toInternalDocumentationLink(problem.getDocumentationLink()),
-                toInternalSolutions(problem.getSolutions()),
-                toInternalAdditionalData(problem.getAdditionalData()),
-                toInternalFailure(problem.getException())
+                toInternalCategory(problem.getDefinition().getCategory()),
+                toInternalLabel(problem.getDefinition().getLabel()),
+                toInternalDetails(problem.getContext().getDetails()),
+                toInternalSeverity(problem.getDefinition().getSeverity()),
+                toInternalLocations(problem.getContext().getLocations()),
+                toInternalDocumentationLink(problem.getDefinition().getDocumentationLink()),
+                toInternalSolutions(problem.getDefinition().getSolutions()),
+                toInternalAdditionalData(problem.getContext().getAdditionalData()),
+                toInternalFailure(problem.getContext().getException())
             )
         );
     }

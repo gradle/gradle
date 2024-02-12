@@ -43,7 +43,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.classpath.Instrumented;
@@ -219,7 +219,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             .severity(ERROR);
     }
 
-    private static RuntimeException throwVersionCatalogProblemException(InternalProblems problemsService, Problem problem) {
+    private static RuntimeException throwVersionCatalogProblemException(InternalProblems problemsService, ProblemReport problem) {
         throw throwError(problemsService, "Invalid catalog definition", ImmutableList.of(problem));
     }
 

@@ -16,20 +16,28 @@
 
 package org.gradle.caching.internal.origin;
 
+import org.gradle.internal.hash.HashCode;
+
 import java.time.Duration;
 
 public class OriginMetadata {
 
     private final String buildInvocationId;
+    private final HashCode buildCacheKey;
     private final Duration executionTime;
 
-    public OriginMetadata(String buildInvocationId, Duration executionTime) {
+    public OriginMetadata(String buildInvocationId, HashCode buildCacheKey, Duration executionTime) {
         this.buildInvocationId = buildInvocationId;
+        this.buildCacheKey = buildCacheKey;
         this.executionTime = executionTime;
     }
 
     public String getBuildInvocationId() {
         return buildInvocationId;
+    }
+
+    public HashCode getBuildCacheKey() {
+        return buildCacheKey;
     }
 
     public Duration getExecutionTime() {
@@ -50,12 +58,16 @@ public class OriginMetadata {
         if (!buildInvocationId.equals(that.buildInvocationId)) {
             return false;
         }
+        if (!buildCacheKey.equals(that.buildCacheKey)) {
+            return false;
+        }
         return executionTime.equals(that.executionTime);
     }
 
     @Override
     public int hashCode() {
         int result = buildInvocationId.hashCode();
+        result = 31 * result + buildCacheKey.hashCode();
         result = 31 * result + executionTime.hashCode();
         return result;
     }
@@ -64,6 +76,7 @@ public class OriginMetadata {
     public String toString() {
         return "OriginMetadata{"
             + "buildInvocationId=" + buildInvocationId
+            + ", buildCacheKey=" + buildCacheKey
             + ", executionTime=" + executionTime
             + '}';
     }

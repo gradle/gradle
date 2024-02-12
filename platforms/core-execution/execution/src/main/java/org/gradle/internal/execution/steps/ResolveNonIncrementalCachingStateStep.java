@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.caching.internal.controller.NoOpBuildCacheController;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.hash.HashCode;
@@ -28,19 +29,24 @@ public class ResolveNonIncrementalCachingStateStep<C extends ValidationFinishedC
 
     public ResolveNonIncrementalCachingStateStep(
         BuildCacheController buildCache,
+        boolean emitDebugLogging,
         Step<? super NonIncrementalCachingContext, ? extends UpToDateResult> delegate
     ) {
-        super(buildCache);
+        super(buildCache, emitDebugLogging);
         this.delegate = delegate;
+    }
+
+    public ResolveNonIncrementalCachingStateStep(Step<? super NonIncrementalCachingContext, ? extends UpToDateResult> delegate) {
+        this(NoOpBuildCacheController.INSTANCE, false, delegate);
+    }
+
+    @Override
+    protected Optional<HashCode> getPreviousCacheKeyIfApplicable(C context) {
+        return Optional.empty();
     }
 
     @Override
     protected UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState) {
         return delegate.execute(work, new NonIncrementalCachingContext(context, cachingState));
-    }
-
-    @Override
-    protected Optional<HashCode> cacheKeyFromContext(C context) {
-        return Optional.empty();
     }
 }

@@ -29,11 +29,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-class LatestModuleConflictResolver<T extends ComponentResolutionState> implements ModuleConflictResolver<T> {
+public class LatestModuleConflictResolver<T extends ComponentResolutionState> implements ModuleConflictResolver<T> {
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
 
-    LatestModuleConflictResolver(VersionComparator versionComparator, VersionParser versionParser) {
+    public LatestModuleConflictResolver(VersionComparator versionComparator, VersionParser versionParser) {
         this.versionComparator = versionComparator.asVersionComparator();
         this.versionParser = versionParser;
     }

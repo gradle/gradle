@@ -27,6 +27,7 @@ dependencies {
     api(project(":base-services"))
     api(project(":build-cache"))
     api(project(":build-cache-base"))
+    api(project(":build-cache-spi"))
     api(project(":build-operations"))
     api(project(":core-api"))
     api(project(":files"))
@@ -43,8 +44,8 @@ dependencies {
         because("Adds generic build operations for the execution engine")
     }
 
-
     implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
 
     testImplementation(project(":native"))
     testImplementation(project(":logging"))

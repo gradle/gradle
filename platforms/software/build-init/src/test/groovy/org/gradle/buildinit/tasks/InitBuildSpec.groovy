@@ -17,7 +17,7 @@
 package org.gradle.buildinit.tasks
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.userinput.UserInputHandler
+import org.gradle.api.internal.tasks.userinput.UserQuestions
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.BuildConverter
 import org.gradle.buildinit.plugins.internal.BuildGenerator
@@ -151,7 +151,7 @@ class InitBuildSpec extends Specification {
         init.projectName = "other"
 
         when:
-        def projectName = init.getEffectiveProjectName(Mock(UserInputHandler), defaultGenerator)
+        def projectName = init.getEffectiveProjectName(Mock(UserQuestions), defaultGenerator)
 
         then:
         projectName == "other"
@@ -160,12 +160,12 @@ class InitBuildSpec extends Specification {
     def "should use project name from user input"() {
         given:
         defaultGenerator.supportsProjectName() >> true
-        def userInputHandler = Mock(UserInputHandler)
-        userInputHandler.askQuestion("Project name", _ as String) >> "newProjectName"
+        def userQuestions = Mock(UserQuestions)
+        userQuestions.askQuestion("Project name", _ as String) >> "newProjectName"
 
 
         when:
-        def projectName = init.getEffectiveProjectName(userInputHandler, defaultGenerator)
+        def projectName = init.getEffectiveProjectName(userQuestions, defaultGenerator)
 
         then:
         projectName == "newProjectName"
@@ -178,7 +178,7 @@ class InitBuildSpec extends Specification {
         init.projectName = "invalidProjectName"
 
         when:
-        init.getEffectiveProjectName(Mock(UserInputHandler), defaultGenerator)
+        init.getEffectiveProjectName(Mock(UserQuestions), defaultGenerator)
 
         then:
         GradleException e = thrown()
@@ -224,13 +224,13 @@ class InitBuildSpec extends Specification {
 
     def "get java language version for #language"() {
         given:
-        def inputHandler = Mock(UserInputHandler)
-        inputHandler.askIntQuestion(_ as String, InitBuild.MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API, InitBuild.DEFAULT_JAVA_VERSION) >> 11
+        def userQuestions = Mock(UserQuestions)
+        userQuestions.askIntQuestion(_ as String, InitBuild.MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API, InitBuild.DEFAULT_JAVA_VERSION) >> 11
         def buildInitializer = Mock(BuildInitializer)
         buildInitializer.supportsJavaTargets() >> isJvmLanguage
 
         when:
-        def languageVersion = init.getJavaLanguageVersion(inputHandler, buildInitializer)
+        def languageVersion = init.getJavaLanguageVersion(userQuestions, buildInitializer)
 
         then:
         languageVersion == result
@@ -247,13 +247,13 @@ class InitBuildSpec extends Specification {
 
     def "gets java-version from property"() {
         given:
-        def inputHandler = Mock(UserInputHandler)
+        def userQuestions = Mock(UserQuestions)
         def buildInitializer = Mock(BuildInitializer)
         buildInitializer.supportsJavaTargets() >> true
         init.javaVersion = "11"
 
         when:
-        def version = init.getJavaLanguageVersion(inputHandler, buildInitializer)
+        def version = init.getJavaLanguageVersion(userQuestions, buildInitializer)
 
         then:
         version.asInt() == 11
@@ -261,14 +261,14 @@ class InitBuildSpec extends Specification {
 
     def "gets useful error when requesting invalid Java target"() {
         given:
-        def inputHandler = Mock(UserInputHandler)
+        def userQuestions = Mock(UserQuestions)
         def buildInitializer = Mock(BuildInitializer)
         buildInitializer.supportsJavaTargets() >> true
 
         init.getJavaVersion().set("invalid")
 
         when:
-        init.getJavaLanguageVersion(inputHandler, buildInitializer)
+        init.getJavaLanguageVersion(userQuestions, buildInitializer)
 
         then:
         def e = thrown(GradleException)
@@ -277,14 +277,14 @@ class InitBuildSpec extends Specification {
 
     def "gets useful error when requesting Java target below minimum"() {
         given:
-        def inputHandler = Mock(UserInputHandler)
+        def userQuestions = Mock(UserQuestions)
         def buildInitializer = Mock(BuildInitializer)
         buildInitializer.supportsJavaTargets() >> true
 
         init.getJavaVersion().set("5")
 
         when:
-        init.getJavaLanguageVersion(inputHandler, buildInitializer)
+        init.getJavaLanguageVersion(userQuestions, buildInitializer)
 
         then:
         def e = thrown(GradleException)

@@ -778,7 +778,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         def validationContext = DefaultTypeValidationContext.withoutRootType(false)
         metadata.visitValidationFailures(validationContext)
         List<String> actualErrors = validationContext.problems
-            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.severity == Severity.ERROR ? " [STRICT]" : "") as String) })
+            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.definition.severity == Severity.ERROR ? " [STRICT]" : "") as String) })
         actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors

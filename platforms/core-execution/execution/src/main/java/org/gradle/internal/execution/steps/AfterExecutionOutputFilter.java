@@ -16,23 +16,11 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.util.Optional;
+public interface AfterExecutionOutputFilter<C extends WorkspaceContext> {
+    ImmutableSortedMap<String, FileSystemSnapshot> filterOutputs(C context, BeforeExecutionState beforeExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsAfterExecution);
 
-public interface AfterExecutionOutputFilter<C extends WorkspaceContext, B> {
-    Optional<B> getBeforeExecutionState(C context);
-    ImmutableSortedMap<String, FileSystemSnapshot> filterOutputs(C context, B beforeExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsAfterExecution);
-
-    AfterExecutionOutputFilter<WorkspaceContext, Object> NO_FILTER = new AfterExecutionOutputFilter<WorkspaceContext, Object>() {
-        @Override
-        public Optional<Object> getBeforeExecutionState(WorkspaceContext context) {
-            return Optional.of(Boolean.TRUE);
-        }
-
-        @Override
-        public ImmutableSortedMap<String, FileSystemSnapshot> filterOutputs(WorkspaceContext context, Object beforeExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsAfterExecution) {
-            return outputSnapshotsAfterExecution;
-        }
-    };
+    AfterExecutionOutputFilter<WorkspaceContext> NO_FILTER = (context, beforeExecutionState, outputSnapshotsAfterExecution) -> outputSnapshotsAfterExecution;
 }

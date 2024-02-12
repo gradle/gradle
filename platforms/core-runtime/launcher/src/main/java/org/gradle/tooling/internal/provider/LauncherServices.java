@@ -65,7 +65,6 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
-import org.gradle.internal.watch.vfs.FileSystemWatchingInformation;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -77,6 +76,7 @@ import org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsWorkerThreadBuildActionExecutor;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
+import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.continuous.ContinuousBuildActionExecutor;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DaemonSidePayloadClassLoaderFactory;
@@ -181,7 +181,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             WorkerLeaseService workerLeaseService,
             BuildLayoutValidator buildLayoutValidator,
             FileSystem fileSystem,
-            FileSystemWatchingInformation fileSystemWatchingInformation,
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
             ValueSnapshotter valueSnapshotter
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
@@ -202,7 +202,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     clock,
                     fileSystem,
                     caseSensitivity,
-                    fileSystemWatchingInformation,
+                    virtualFileSystem,
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
@@ -214,6 +214,10 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
     }
 
     static class ToolingBuildTreeScopeServices {
+
+        ProblemStream createProblemStream(StartParameter parameter, ProblemDiagnosticsFactory diagnosticsFactory){
+            return  parameter.getWarningMode().shouldDisplayMessages()? diagnosticsFactory.newUnlimitedStream() : diagnosticsFactory.newStream();
+        }
         BuildTreeActionExecutor createActionExecutor(
             List<BuildActionRunner> buildActionRunners,
             StyledTextOutputFactory styledTextOutputFactory,
@@ -236,7 +240,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             InternalOptions options,
             ProblemDiagnosticsFactory problemDiagnosticsFactory,
             StartParameter startParameter,
-            InternalProblems problemsService
+            InternalProblems problemsService,
+            ProblemStream problemStream
         ) {
             return new InitProblems(
                 new InitDeprecationLoggingActionExecutor(
@@ -268,7 +273,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                     problemDiagnosticsFactory,
                     eventEmitter,
                     startParameter,
-                    problemsService),
+                    problemsService,
+                    problemStream),
                 problemsService);
         }
 

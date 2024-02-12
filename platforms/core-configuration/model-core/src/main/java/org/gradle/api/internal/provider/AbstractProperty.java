@@ -28,6 +28,20 @@ import org.gradle.internal.state.ModelObject;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * The base implementation for all properties in Gradle.
+ * <p>
+ *     A property is a provider where the value is configurable.
+ * </p>
+ * <p>
+ *     A property's value is not stored in the property itself,
+ *     but computed by some {@link ValueSupplier}, which
+ *     provides the basic machinery for lazy evaluation.
+ * </p>
+ *
+ * @param <T> the type of the value this property provides
+ * @param <S> the type of value supplier that actually provides the value for this property
+ */
 public abstract class AbstractProperty<T, S extends ValueSupplier> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
     private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");

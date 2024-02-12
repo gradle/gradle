@@ -29,7 +29,6 @@ ADRs can be written by any team.
 Like code, they should be reviewed by any other relevant teams.
 The goal is not to *own* a decision, but to *share* it with other teams, and improve the build tool together.
 
-
 ### Format
 
 The format for ADR should follow this template:
