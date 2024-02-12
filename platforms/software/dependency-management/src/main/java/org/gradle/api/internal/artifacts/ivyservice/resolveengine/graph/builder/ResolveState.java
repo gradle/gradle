@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
@@ -106,9 +107,8 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         AttributeDesugaring attributeDesugaring,
         DependencySubstitutionApplicator dependencySubstitutionApplicator,
         VersionSelectorScheme versionSelectorScheme,
-        Comparator<Version> versionComparator,
+        VersionComparator versionComparator,
         VersionParser versionParser,
-        ModuleConflictResolver<ComponentState> conflictResolver,
         ConflictResolution conflictResolution,
         List<? extends DependencyMetadata> syntheticDependencies,
         ResolutionConflictTracker conflictTracker,
@@ -124,7 +124,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.attributesFactory = attributesFactory;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
         this.versionSelectorScheme = versionSelectorScheme;
-        this.versionComparator = versionComparator;
+        this.versionComparator = versionComparator.asVersionComparator();
         this.versionParser = versionParser;
         this.conflictResolution = conflictResolution;
         this.conflictTracker = conflictTracker;
@@ -149,7 +149,8 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
         rootModule.select(rootComponent);
 
-        this.selectorStateResolver = new SelectorStateResolver<>(conflictResolver, this, rootComponent, resolveOptimizations, versionComparator, versionParser);
+        ModuleConflictResolver<ComponentState> moduleConflictResolver = conflictTracker.getModuleConflictHandler().getResolver();
+        this.selectorStateResolver = new SelectorStateResolver<>(moduleConflictResolver, this, rootComponent, resolveOptimizations, this.versionComparator, versionParser);
         rootModule.setSelectorStateResolver(selectorStateResolver);
 
         // Create root node
@@ -181,6 +182,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public ModuleResolveState getModule(ModuleIdentifier id) {
         return getModule(id, false);
+    }
+
+    public ComponentMetaDataResolver getComponentMetadataResolver() {
+        return metaDataResolver;
     }
 
     private ModuleResolveState getModule(ModuleIdentifier id, boolean rootModule) {

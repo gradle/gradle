@@ -21,6 +21,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -69,6 +70,21 @@ class DefaultDeleterTest extends Specification {
         given:
         TestFile dir = tmpDir.getTestDirectory()
         dir.file("someFile").createFile()
+
+        when:
+        boolean didWork = deleter.ensureEmptyDirectory(dir)
+
+        then:
+        dir.assertIsEmptyDir()
+        didWork
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26912")
+    def "deletes read-only file"() {
+        given:
+        TestFile dir = tmpDir.getTestDirectory()
+        TestFile file = dir.file("someFile").createFile()
+        file.setWritable(false);
 
         when:
         boolean didWork = deleter.ensureEmptyDirectory(dir)

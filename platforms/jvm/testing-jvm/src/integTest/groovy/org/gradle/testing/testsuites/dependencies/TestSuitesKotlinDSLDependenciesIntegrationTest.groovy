@@ -958,6 +958,73 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion multiple GAV strings
     // endregion dependencies - modules (GAV)
 
+    // region dependency constraints - modules (GAV)
+    def 'can add dependency constraints to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV string'() {
+        given:
+        buildKotlinFile << """
+        plugins {
+          `java-library`
+        }
+
+        ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+        dependencies {
+            // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
+            implementation("org.apache.commons:commons-lang3:3.11")
+            api("com.google.guava:guava:30.1.1-jre")
+        }
+
+        testing {
+            suites {
+                val test by getting(JvmTestSuite::class) {
+                    dependencies {
+                        // Constrain commons-lang3 and guava
+                        implementation(constraint("org.apache.commons:commons-lang3:3.12.0"))
+                        implementation(constraint("com.google.guava:guava:33.0.0-jre"))
+                    }
+                }
+                val integTest by registering(JvmTestSuite::class) {
+                    // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
+                    dependencies {
+                        implementation(project())
+                        // Should not add dependency on commons-lang3
+                        implementation(constraint("org.apache.commons:commons-lang3:3.10!!"))
+                        implementation(constraint("com.google.guava:guava:29.0-jre!!"))
+                    }
+                }
+            }
+        }
+
+        tasks.named("check") {
+            dependsOn(testing.suites.named("integTest"))
+        }
+
+        tasks.register("checkConfiguration") {
+            dependsOn("test", "integTest")
+
+            val testCompileClasspathFileNames = configurations.getByName("testCompileClasspath").files.map { it.name }
+            val testRuntimeClasspathFileNames = configurations.getByName("testRuntimeClasspath").files.map { it.name }
+            val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+            val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
+
+            doLast {
+
+                assert(testCompileClasspathFileNames.containsAll(listOf("commons-lang3-3.12.0.jar", "guava-33.0.0-jre.jar")))
+                assert(testRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.12.0.jar", "guava-33.0.0-jre.jar")))
+
+                assert(integTestCompileClasspathFileNames.containsAll(listOf("guava-29.0-jre.jar"))) { "constraints apply to compile classpath" }
+                assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "implementation dependency of project, should not leak to integTest" }
+                assert(!integTestCompileClasspathFileNames.contains("commons-lang3-3.10.jar")) { "constraint of integTest should not add dependency" }
+                assert(integTestRuntimeClasspathFileNames.containsAll(listOf("commons-lang3-3.10.jar", "guava-29.0-jre.jar"))) { "constraints apply to runtime classpath" }
+            }
+        }
+        """
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
+    // endregion dependency constraints - modules (GAV)
+
     // region dependencies - dependency objects
     def 'can add dependency objects to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
         given :

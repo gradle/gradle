@@ -40,6 +40,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
@@ -62,10 +63,11 @@ public class TestExecutionEngineFactory {
         ValidateStep.ValidationWarningRecorder validationWarningReporter,
         VirtualFileSystem virtualFileSystem
     ) {
+        NoOpBuildOperationProgressEventEmitter progressEventEmitter = new NoOpBuildOperationProgressEventEmitter();
         // @formatter:off
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationExecutor,
-            new IdentityCacheStep<>(
+            new IdentityCacheStep<>(progressEventEmitter,
             new AssignMutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,

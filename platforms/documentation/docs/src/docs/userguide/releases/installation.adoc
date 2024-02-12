@@ -18,7 +18,7 @@
 [[gs:installation]]
 == Gradle Installation
 
-If all you want to do is run an existing Gradle project, then you don't need to install Gradle if the build uses the <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>>.
+If all you want to do is run an existing Gradle project, then you don't need to install Gradle if the build uses the <<gradle_wrapper#gradle_wrapper_reference,Gradle Wrapper>>.
 This is identifiable by the presence of the `gradlew` or `gradlew.bat` files in the root of the project:
 
 [listing,subs=+macros]
@@ -31,7 +31,7 @@ This is identifiable by the presence of the `gradlew` or `gradlew.bat` files in 
 └── ⋮
 ----
 <1> Project root directory.
-<2> <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>.
+<2> <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
 <3> Scripts for executing Gradle builds.
 
 If the `gradlew` or `gradlew.bat` files are already present in your project, *you do not need to install Gradle*.
@@ -299,7 +299,5 @@ JVM:          17.0.6 (Homebrew 17.0.6+0)
 OS:           Mac OS X 13.2.1 aarch64
 
 ----
-
-If you run into any trouble, see the <<troubleshooting.adoc#sec:troubleshooting_installation,section on troubleshooting>>.
 
 You can verify the integrity of the Gradle distribution by downloading the SHA-256 file (available from the link:{website}/releases[releases page]) and following these <<gradle_wrapper.adoc#sec:verification,verification instructions>>.

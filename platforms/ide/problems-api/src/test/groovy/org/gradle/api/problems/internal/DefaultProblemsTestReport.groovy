@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.file;
+package org.gradle.api.problems.internal
 
-import org.gradle.api.Incubating;
-import org.gradle.api.provider.ConfigurableValue;
+import spock.lang.Specification
 
-/**
- * The configuration protocol for incremental updates to ConfigurableFileCollections.
- *
- * @since 8.7
- */
-@Incubating
-public interface FileCollectionConfigurer extends ConfigurableValue.Configurer {
-    /**
-     * Adds a set of source paths to this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     *
-     * @param paths The files to add.
-     * @return this
-     *
-     * @since 8.7
-     */
-    FileCollectionConfigurer from(Object... paths);
+class DefaultProblemsTestReport extends Specification {
+
+    def "using org.gradle core namespace is not allowed on the public API"() {
+        def emitter = Mock(ProblemEmitter)
+
+        given:
+        def p = new DefaultProblems(emitter)
+
+        when:
+        p.forNamespace(DefaultProblemCategory.GRADLE_CORE_NAMESPACE)
+
+        then:
+        thrown(IllegalStateException)
+    }
 }

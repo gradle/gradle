@@ -680,6 +680,11 @@
             <pgp value="31BAE2E51D95E0F8AD9B7BCC40A3C4432BD7308C"/>
          </artifact>
       </component>
+      <component group="com.googlecode.plist" name="dd-plist" version="1.27">
+         <artifact name="dd-plist-1.27.jar">
+            <pgp value="1CEED21A8E77F056ED2341A84410603103CE3AF4"/>
+         </artifact>
+      </component>
       <component group="com.gradleup" name="gr8-plugin" version="0.10">
          <artifact name="gr8-plugin-0.10.jar">
             <pgp value="4857D1CE04E78FAB2A172E8F39B48E1BADDB933F"/>
@@ -735,8 +740,8 @@
             <pgp value="C5AA57F4A38EBA7B7F9156DDAB2DA4527F6FFC0B"/>
          </artifact>
       </component>
-      <component group="com.sun.activation" name="jakarta.activation" version="2.0.0">
-         <artifact name="jakarta.activation-2.0.0.jar">
+      <component group="com.sun.activation" name="jakarta.activation" version="2.0.1">
+         <artifact name="jakarta.activation-2.0.1.jar">
             <pgp value="6DD3B8C64EF75253BEB2C53AD908A43FB7EC07AC"/>
          </artifact>
       </component>
@@ -1212,8 +1217,8 @@
             <pgp value="77993D3295698C46912E83984B2277C6358670EE"/>
          </artifact>
       </component>
-      <component group="org.assertj" name="assertj-core" version="3.20.2">
-         <artifact name="assertj-core-3.20.2.jar">
+      <component group="org.assertj" name="assertj-core" version="3.23.1">
+         <artifact name="assertj-core-3.23.1.jar">
             <pgp value="BE685132AFD2740D9095F9040CC0B712FEE75827"/>
          </artifact>
       </component>

@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results.report;
-
-import org.gradle.performance.results.CrossVersionResultsStore;
-import org.gradle.performance.results.PerformanceExperiment;
-import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
+package org.gradle.performance.results;
 
 import java.math.BigDecimal;
 import java.util.Map;
 
-import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.ScenarioRegressionResult.BIG_FLAKY_REGRESSION;
-import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.ScenarioRegressionResult.SMALL_FLAKY_REGRESSION;
-import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.ScenarioRegressionResult.STABLE_REGRESSION;
+import static org.gradle.performance.results.PerformanceFlakinessDataProvider.ScenarioRegressionResult.BIG_FLAKY_REGRESSION;
+import static org.gradle.performance.results.PerformanceFlakinessDataProvider.ScenarioRegressionResult.SMALL_FLAKY_REGRESSION;
+import static org.gradle.performance.results.PerformanceFlakinessDataProvider.ScenarioRegressionResult.STABLE_REGRESSION;
 
 public class DefaultPerformanceFlakinessDataProvider implements PerformanceFlakinessDataProvider {
     private final Map<PerformanceExperiment, BigDecimal> flakinessRates;
     private final Map<PerformanceExperiment, BigDecimal> failureThresholds;
 
-    public DefaultPerformanceFlakinessDataProvider(CrossVersionResultsStore crossVersionResultsStore) {
-        flakinessRates = crossVersionResultsStore.getFlakinessRates();
-        failureThresholds = crossVersionResultsStore.getFailureThresholds();
+    public DefaultPerformanceFlakinessDataProvider(CrossVersionResultsStore crossVersionResultsStore, OperatingSystem os) {
+        flakinessRates = crossVersionResultsStore.getFlakinessRates(os);
+        failureThresholds = crossVersionResultsStore.getFailureThresholds(os);
     }
 
     @Override

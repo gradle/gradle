@@ -135,7 +135,10 @@ dependencies {
     implementation(libs.groovyTemplates)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
-    implementation(libs.tomlj)
+    implementation(libs.tomlj) {
+        // Used for its nullability annotations, not needed at runtime
+        exclude("org.checkerframework", "checker-qual")
+    }
     implementation(libs.xmlApis)
 
     compileOnly(libs.futureKotlin("stdlib")) {

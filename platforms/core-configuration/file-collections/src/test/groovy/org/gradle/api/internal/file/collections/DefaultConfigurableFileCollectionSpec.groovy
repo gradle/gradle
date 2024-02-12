@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.file.collections
 
-import org.gradle.api.Action
+
 import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileCollectionConfigurer
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
@@ -1896,7 +1895,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.withActualValue({
             it.from("src1", "src2")
             it.from("src3")
-        } as Action<FileCollectionConfigurer>)
+        })
         then:
         collection.from as List == ["src1", "src2", "src3"]
     }

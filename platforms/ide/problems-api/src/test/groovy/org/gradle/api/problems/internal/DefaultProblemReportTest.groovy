@@ -21,20 +21,20 @@ import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Specification
 
-class DefaultProblemTest extends Specification {
+class DefaultProblemReportTest extends Specification {
     def "unbound builder result is equal to original"() {
         def problem = createTestProblem(severity, additionalData)
 
         def newProblem = problem.toBuilder().build()
         expect:
-        newProblem.category == problem.category
-        newProblem.label == problem.label
-        newProblem.additionalData == problem.additionalData
-        newProblem.details == problem.details
-        newProblem.exception == problem.exception
-        newProblem.locations == problem.locations
-        newProblem.severity == problem.severity
-        newProblem.solutions == problem.solutions
+        newProblem.definition.category == problem.definition.category
+        newProblem.definition.label == problem.definition.label
+        newProblem.context.additionalData == problem.context.additionalData
+        newProblem.context.details == problem.context.details
+        newProblem.context.exception == problem.context.exception
+        newProblem.context.locations == problem.context.locations
+        newProblem.definition.severity == problem.definition.severity
+        newProblem.definition.solutions == problem.definition.solutions
         newProblem == problem
 
         where:
@@ -61,46 +61,57 @@ class DefaultProblemTest extends Specification {
         // We are not running this test as an integration test, so we won't have a BuildOperationId available,
         // i.e. the OperationId will be null
         1 * emitter.emit(newProblem, operationId)
-        newProblem.category == problem.category
-        newProblem.label == problem.label
-        newProblem.additionalData == problem.additionalData
-        newProblem.details == problem.details
-        newProblem.exception == problem.exception
-        newProblem.locations == problem.locations
-        newProblem.severity == problem.severity
-        newProblem.solutions == ["solution"]
-        newProblem.class == DefaultProblem
+        newProblem.definition.category == problem.definition.category
+        newProblem.definition.label == problem.definition.label
+        newProblem.context.additionalData == problem.context.additionalData
+        newProblem.context.details == problem.context.details
+        newProblem.context.exception == problem.context.exception
+        newProblem.context.locations == problem.context.locations
+        newProblem.definition.severity == problem.definition.severity
+        newProblem.definition.solutions == ["solution"]
+        newProblem.class == DefaultProblemReport
     }
 
     private static createTestProblem(Severity severity, Map<String, String> additionalData) {
-        new DefaultProblem("message",
-            severity,
-            [],
-            Documentation.userManual("id"),
-            "description",
-            [],
-            new RuntimeException("cause"),
-            DefaultProblemCategory.create('a', 'b', 'c'),
-            additionalData)
+        new DefaultProblemReport(
+            new DefaultProblemDefinition(
+                'message',
+                severity,
+                Documentation.userManual('id'),
+                [],
+                DefaultProblemCategory.create('a', 'b', 'c')
+            ),
+            new DefaultProblemContext(
+                [],
+                'description',
+                new RuntimeException('cause'),
+                additionalData
+            )
+        )
     }
 
     def "unbound basic builder result is DefaultProblem"() {
         given:
-        def problem = new DefaultProblem("message",
-            Severity.WARNING,
-            [],
-            Documentation.userManual("id"),
-            "description",
-            [],
-            new RuntimeException("cause"),
-            DefaultProblemCategory.create('a', 'b', 'c'),
-            [:])
-
+        def problem = new DefaultProblemReport(
+            new DefaultProblemDefinition(
+                'message',
+                Severity.WARNING,
+                Documentation.userManual('id'),
+                [],
+                DefaultProblemCategory.create('a', 'b', 'c')
+            ),
+            new DefaultProblemContext(
+                [],
+                'description',
+                new RuntimeException('cause'),
+                [:]
+            )
+        )
 
         when:
         def newProblem = problem.toBuilder().build()
 
         then:
-        newProblem.class == DefaultProblem
+        newProblem.class == DefaultProblemReport
     }
 }

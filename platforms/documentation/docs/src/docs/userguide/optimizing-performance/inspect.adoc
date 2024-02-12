@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[build_scans]]
+[[inspecting_build_scans]]
 = Inspecting Gradle Builds
 
 Gradle provides multiple ways to inspect your build:

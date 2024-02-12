@@ -21,6 +21,7 @@ import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.test.fixtures.file.TestFile
+
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
  */
@@ -70,10 +71,12 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails("compileJava")
 
+
         then:
-        collectedProblems.size() == 2
-        for (def problem in collectedProblems) {
-            assertProblem(problem, "ERROR") { details, taskLocation ->
+        def problems = collectedProblems
+        problems.size() == 2
+        for (def problem in (problems)) {
+            assertProblem(problem, "ERROR") { details ->
                 assert details == "';' expected"
             }
         }
@@ -90,7 +93,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 4
         for (def problem in collectedProblems) {
-            assertProblem(problem, "ERROR") { details, taskLocation ->
+            assertProblem(problem, "ERROR") { details ->
                 assert details == "';' expected"
             }
         }
@@ -106,7 +109,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 2
         for (def problem in collectedProblems) {
-            assertProblem(problem, "WARNING") { details, taskLocation ->
+            assertProblem(problem, "WARNING") { details ->
                 assert details == "redundant cast to java.lang.String"
             }
         }
@@ -123,7 +126,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 4
         for (def problem in collectedProblems) {
-            assertProblem(problem, "WARNING") { details, taskLocation ->
+            assertProblem(problem, "WARNING") { details ->
                 assert details == "redundant cast to java.lang.String"
             }
         }
@@ -140,7 +143,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 4
         for (def problem in collectedProblems) {
-            assertProblem(problem, "ERROR") { details, taskLocation ->
+            assertProblem(problem, "ERROR") { details ->
                 assert details == "';' expected"
             }
         }
@@ -161,21 +164,21 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         collectedProblems.size() == 4
 
         def warningProblems = collectedProblems.findAll {
-            it["severity"] == "WARNING"
+            it['definition']["severity"] == "WARNING"
         }
         warningProblems.size() == 2
         for (def problem in warningProblems) {
-            assertProblem(problem, "WARNING") {details, taskLocation ->
+            assertProblem(problem, "WARNING") {details ->
                 assert details == "redundant cast to java.lang.String"
             }
         }
 
         def errorProblems = collectedProblems.findAll {
-            it["severity"] == "ERROR"
+            it['definition']["severity"] == "ERROR"
         }
         errorProblems.size() == 2
         for (def problem in errorProblems) {
-            assertProblem(problem, "ERROR") { details, taskLocation ->
+            assertProblem(problem, "ERROR") { details ->
                 assert details == "';' expected"
             }
         }
@@ -195,21 +198,21 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
         // The two expected warnings are still reported as warnings
         def warningProblems = collectedProblems.findAll {
-            it["severity"] == "WARNING"
+            it['definition']["severity"] == "WARNING"
         }
         warningProblems.size() == 2
         for (def problem in warningProblems) {
-            assertProblem(problem, "WARNING") {details, taskLocation ->
+            assertProblem(problem, "WARNING") {details ->
                 assert details == "redundant cast to java.lang.String"
             }
         }
 
         // The compiler will report a single error, implying that the warnings were treated as errors
         def errorProblems = collectedProblems.findAll {
-            it["severity"] == "ERROR"
+            it['definition']["severity"] == "ERROR"
         }
         errorProblems.size() == 1
-        assertProblem(errorProblems[0], "ERROR") {details, taskLocation ->
+        assertProblem(errorProblems[0], "ERROR") {details ->
             assert details == "warnings found and -Werror specified"
         }
     }
@@ -232,34 +235,28 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         @ClosureParams(
             value = SimpleType,
             options = [
-                "java.lang.String",
                 "java.lang.String"
             ]
         )
-        Closure extraChecks = null
+            Closure extraChecks = null
     ) {
-        assert problem["severity"] == severity: "Expected severity to be ${severity}, but was ${problem["severity"]}"
+        assert problem['definition']["severity"] == severity: "Expected severity to be ${severity}, but was ${problem['definition']["severity"]}"
         switch (severity) {
             case "ERROR":
-                assert problem["label"] == "Java compilation error": "Expected label 'Java compilation error', but was ${problem["label"]}"
+                assert problem['definition']["label"] == "Java compilation error": "Expected label 'Java compilation error', but was ${problem['definition']["label"]}"
                 break
             case "WARNING":
-                assert problem["label"] == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem["message"]}"
+                assert problem['definition']["label"] == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem['definition']["message"]}"
                 break
             default:
                 throw new IllegalArgumentException("Unknown severity: ${severity}")
         }
 
-        def details = problem["details"] as String
+        def details = problem['context']["details"] as String
         assert details: "Expected details to be non-null, but was null"
 
-        def locations = problem["locations"] as List<Map<String, Object>>
-        assert locations.size() == 2: "Expected two locations, but received ${locations.size()}"
-
-        def taskLocation = locations.find {
-            it.containsKey("buildTreePath")
-        }
-        assert taskLocation != null: "Expected a task location, but it was null"
+        def locations = problem['context']["locations"] as List<Map<String, Object>>
+        assert locations.size() == 1: "Expected one location, but received ${locations.size()}"
 
         def fileLocation = locations.find {
             it.containsKey("path") && it.containsKey("line") && it.containsKey("column") && it.containsKey("length")
@@ -276,7 +273,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         visitedFileLocations[fileLocationPath] += 1
 
         if (extraChecks != null) {
-            extraChecks.call(details, taskLocation)
+            extraChecks.call(details)
         }
     }
 

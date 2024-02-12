@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFac
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
@@ -52,6 +53,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
@@ -138,6 +140,7 @@ import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -179,6 +182,7 @@ class DependencyManagementBuildScopeServices {
         registration.add(FileResourceConnector.class);
         registration.add(DependencyGraphResolver.class);
         registration.add(ResolvedArtifactSetResolver.class);
+        registration.add(DependencyGraphBuilder.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(
@@ -246,10 +250,23 @@ class DependencyManagementBuildScopeServices {
         return new DefaultDependencyFactory(
             instantiator,
             DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
-            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
             new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
             capabilityNotationParser, objectFactory, projectDependencyFactory,
             attributesFactory);
+    }
+
+    DependencyConstraintFactoryInternal createDependencyConstraintFactory(
+        Instantiator instantiator,
+        ObjectFactory objectFactory,
+        DefaultProjectDependencyFactory factory,
+        ImmutableAttributesFactory attributesFactory,
+        SimpleMapInterner stringInterner
+    ) {
+        return new DefaultDependencyConstraintFactory(
+            objectFactory,
+            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
+            attributesFactory
+        );
     }
 
     RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationExecutor executor) {
@@ -474,6 +491,7 @@ class DependencyManagementBuildScopeServices {
     ExecutionEngine createExecutionEngine(
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CurrentBuildOperationRef currentBuildOperationRef,
         Deleter deleter,
@@ -490,7 +508,7 @@ class DependencyManagementBuildScopeServices {
         // @formatter:off
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationExecutor,
-            new IdentityCacheStep<>(
+            new IdentityCacheStep<>(buildOperationProgressEventEmitter,
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,

@@ -164,6 +164,10 @@ class ApiType internal constructor(
     private val context: ApiTypeProvider.Context
 ) {
 
+    override fun toString(): String {
+        return binaryName
+    }
+
     internal
     val binaryName: String
         get() = binaryNameOfInternalName(delegate.name)

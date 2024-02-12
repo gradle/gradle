@@ -81,6 +81,6 @@ class AndroidStudioSystemProperties(
         } else if (androidStudioHome.isPresent) {
             return "-Dstudio.home=${androidStudioHome.get()}"
         }
-        throw IllegalArgumentException("Android Studio home must be provided via 'studioHome' sysprop either auto downloading must be enabled via `autoDownloadAndroidStudio=true` sysprop")
+        throw IllegalArgumentException("Android Studio home must be provided via the 'studio.home' system property, or auto downloading must be enabled via `autoDownloadAndroidStudio=true` gradle property, system property, or environment variable")
     }
 }

@@ -27,6 +27,7 @@ import jetbrains.buildServer.configs.kotlin.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.RelativeId
 import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.buildFeatures.parallelTests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import model.CIBuildModel
 import model.StageName
@@ -68,6 +69,19 @@ fun BuildFeatures.enablePullRequestFeature() {
             }
             filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
             filterTargetBranch = "+:refs/heads/${VersionedSettingsBranch.fromDslContext().branchName}"
+        }
+    }
+}
+
+fun BaseGradleBuildType.tcParallelTests(numberOfBatches: Int) {
+    if (numberOfBatches > 1) {
+        params {
+            param("env.TEAMCITY_PARALLEL_TESTS_ENABLED", "1")
+        }
+        features {
+            parallelTests {
+                this.numberOfBatches = numberOfBatches
+            }
         }
     }
 }

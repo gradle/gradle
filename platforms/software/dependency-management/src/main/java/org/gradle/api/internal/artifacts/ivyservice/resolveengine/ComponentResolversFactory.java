@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.internal.artifacts.ComponentResolversFactory;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -36,9 +34,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Default implementation of {@link ComponentResolversFactory}.
+ * Creates {@link ComponentResolvers} for a given resolve context. The resolvers
+ * will be able to resolve local components and components from the given
+ * repositories.
  */
-public class DefaultComponentResolversFactory implements ComponentResolversFactory {
+public class ComponentResolversFactory {
     private final List<ResolverProviderFactory> resolverFactories;
     private final ResolveIvyFactory moduleDependencyResolverFactory;
     private final ProjectDependencyResolver projectDependencyResolver;
@@ -48,7 +48,7 @@ public class DefaultComponentResolversFactory implements ComponentResolversFacto
     private final LocalComponentRegistry localComponentRegistry;
 
     @Inject
-    public DefaultComponentResolversFactory(
+    public ComponentResolversFactory(
         List<ResolverProviderFactory> resolverFactories,
         ResolveIvyFactory moduleDependencyResolverFactory,
         ProjectDependencyResolver projectDependencyResolver,
@@ -66,68 +66,37 @@ public class DefaultComponentResolversFactory implements ComponentResolversFacto
         this.localComponentRegistry = localComponentRegistry;
     }
 
-    @Override
     public ComponentResolvers create(
         ResolveContext resolveContext,
         List<? extends ResolutionAwareRepository> repositories,
         AttributesSchemaInternal consumerSchema
     ) {
-        validateResolutionStrategy(resolveContext.getResolutionStrategy());
-
         List<ComponentResolvers> resolvers = new ArrayList<>(3);
         for (ResolverProviderFactory factory : resolverFactories) {
             factory.create(resolvers, localComponentRegistry);
         }
         resolvers.add(projectDependencyResolver);
 
-        resolvers.add(createModuleRepositoryResolvers(
-            repositories,
-            consumerSchema,
-            // We should avoid using `resolveContext` if possible here.
-            // We should not need to know _what_ we're resolving in order to construct a resolver for a set of repositories.
-            // These parameters are used to support filtering components by attributes when using dynamic versions.
-            // We should consider just removing that feature and making dynamic version selection dumber.
-            resolveContext.getResolutionStrategy(),
-            resolveContext.getAttributes(),
-            metadataHandler
-        ));
+        // We should avoid using `resolveContext` if possible here.
+        // We should not need to know _what_ we're resolving in order to construct a resolver for a set of repositories.
+        ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
+        AttributeContainerInternal requestedAttributes = resolveContext.getAttributes();
 
-        return new ComponentResolversChain(resolvers);
-    }
-
-    private static void validateResolutionStrategy(ResolutionStrategyInternal resolutionStrategy) {
-        if (resolutionStrategy.isDependencyLockingEnabled()) {
-            if (resolutionStrategy.isFailingOnDynamicVersions()) {
-                failOnDependencyLockingConflictingWith("fail on dynamic versions");
-            } else if (resolutionStrategy.isFailingOnChangingVersions()) {
-                failOnDependencyLockingConflictingWith("fail on changing versions");
-            }
-        }
-    }
-
-    private static void failOnDependencyLockingConflictingWith(String conflicting) {
-        throw new InvalidUserCodeException("Resolution strategy has both dependency locking and " + conflicting + " enabled. You must choose between the two modes.");
-    }
-
-    /**
-     * Creates a resolver that resolves module components from the given repositories.
-     */
-    private ComponentResolvers createModuleRepositoryResolvers(
-        List<? extends ResolutionAwareRepository> repositories,
-        AttributesSchemaInternal consumerSchema,
-        ResolutionStrategyInternal resolutionStrategy,
-        AttributeContainerInternal requestedAttributes,
-        GlobalDependencyResolutionRules metadataHandler
-    ) {
-        return moduleDependencyResolverFactory.create(
+        resolvers.add(moduleDependencyResolverFactory.create(
             resolutionStrategy,
             repositories,
             metadataHandler.getComponentMetadataProcessorFactory(),
+            // `requestedAttributes` and `consumerSchema` are used to support filtering components by attributes
+            // when using dynamic versions. We should consider just removing that feature and making dynamic
+            // version selection dumber. Needing to know _what_ is being resolved (the `requestedAttributes`)
+            // should not be necessary to build a resolver that could theoretically resolve anything.
             requestedAttributes,
             consumerSchema,
             attributesFactory,
             componentMetadataSupplierRuleExecutor
-        );
+        ));
+
+        return new ComponentResolversChain(resolvers);
     }
 
 }

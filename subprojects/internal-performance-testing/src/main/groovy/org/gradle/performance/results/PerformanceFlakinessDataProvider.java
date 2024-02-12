@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results.report;
-
-import org.gradle.performance.results.PerformanceExperiment;
-import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
+package org.gradle.performance.results;
 
 import java.math.BigDecimal;
 

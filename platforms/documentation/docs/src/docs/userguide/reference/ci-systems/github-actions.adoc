@@ -95,7 +95,7 @@ gradleEnterprise {
 
 === Test building the project
 
-The project uses the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> for building the project.
+The project uses the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>> for building the project.
 It is a recommended practice for any Gradle project as it enables your project to built on CI without having to install the Gradle runtime.
 
 Before asking GitHub Actions to build your project, it's useful to ensure that it builds locally.
