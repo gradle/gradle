@@ -328,6 +328,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'yes'
         ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.toPath().resolve(defaultProjectName)))
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Select 'yes'
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(convertMavenBuildPrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
@@ -364,6 +370,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         when:
         pom()
+
+        // Select 'yes'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.toPath().resolve(defaultProjectName)))
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
         // Select 'yes'
         ConcurrentTestUtil.poll(60) {
