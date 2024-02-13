@@ -20,8 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
-import org.gradle.integtests.tooling.r85.ProblemProgressEventCrossVersionTest.ProblemProgressListener
-import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -30,14 +28,19 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
 @TargetGradleVersion(">=8.7")
-@ToolingApiVersion(">=8.7")
+@ToolingApiVersion("=8.7")
 class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecification {
+
+    ProblemProgressEventCrossVersionTest.ProblemProgressListener listener
+
+    def setup(){
+        listener = new ProblemProgressEventCrossVersionTest.ProblemProgressListener()
+    }
 
     def "Can use problems service in model builder and get failure objects"() {
         given:
         Assume.assumeTrue(javaHome != null)
         buildFile getBuildScriptSampleContent(false, false)
-        ProblemProgressListener listener = new ProblemProgressListener()
 
         when:
         withConnection {
@@ -46,7 +49,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
                 .addProgressListener(listener)
                 .get()
         }
-        def problems = listener.problems.collect { it as SingleProblemEvent }
+        def problems = getProblems()
 
         then:
         problems.size() == 1
@@ -62,10 +65,13 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         ]
     }
 
+    List<Object> getProblems() {
+        listener.problems.collect { it.descriptor }
+    }
+
     def "Can add additional metadata"() {
         given:
         buildFile getBuildScriptSampleContent(false, true)
-        def listener = new ProblemProgressListener()
 
         when:
         withConnection { connection ->
@@ -74,9 +80,11 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
                 .get()
         }
 
+
         then:
-        listener.problems.size() == 1
-        listener.problems[0].additionalData.asMap == [
+        def problems = getProblems()
+        problems.size() == 1
+        problems[0].additionalData.asMap == [
             'keyToString': 'value'
         ]
     }

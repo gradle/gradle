@@ -67,7 +67,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems.collect { it.descriptor }
     }
 
-    static def assertProblemDetailsForTAPIProblemEvent(List<?> problems, String expectedDetails = null, String expecteDocumentation = null) {
+    static def assertProblemDetailsForTAPIProblemEvent(List<?> problems, String expectedDetails = null, String expectedDocumentation = null) {
         problems.size() == 1
         problems[0].category.namespace == 'org.example.plugin'
         problems[0].category.category == 'main'
@@ -84,7 +84,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         lineInFileLocation.column == 2
         lineInFileLocation.length == 3
         problems[0].locations[1] instanceof TaskPathLocation
-        problems[0].documentationLink.url == expecteDocumentation
+        problems[0].documentationLink.url == expectedDocumentation
         problems[0].solutions.size() == 1
         problems[0].solutions[0].solution == 'try this instead'
     }

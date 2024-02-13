@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r87
+package org.gradle.integtests.tooling.r88
 
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
@@ -31,7 +30,7 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.assertProblemDetailsForTAPIProblemEvent
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 
-@ToolingApiVersion(">=8.7")
+@ToolingApiVersion(">=8.8")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
@@ -51,9 +50,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems
     }
 
-    @TargetGradleVersion(">=8.5")
-    def "Failing executions produce problems"() {
-        setup:
+    @TargetGradleVersion(">=6.9.4 <=8.5")
+    def "Problems not exposed in target version 8.5 and lower"() {
+        given:
+
         buildFile """
             plugins {
               id 'java-library'
@@ -63,26 +63,20 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             task baz {}
         """
 
-
         when:
         def listener = new ProblemProgressListener()
         withConnection { connection ->
-            connection.newBuild()
-                .forTasks(":ba")
+            connection.newBuild().forTasks('ba')
                 .addProgressListener(listener)
-                .setStandardError(System.err)
-                .setStandardOutput(System.out)
-                .addArguments("--info")
                 .run()
         }
 
         then:
         thrown(BuildException)
-        listener.problems.size() == 2
+        listener.problems.size() == 0
     }
 
     @TargetGradleVersion(">=8.5")
-    @ToolingApiVersion("=8.7")
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
@@ -100,7 +94,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         when:
 
-        def problems = runTask().collect{ it.descriptor }
+        def problems = runTask()
 
         then:
         assertProblemDetailsForTAPIProblemEvent(problems, expectedDetails, expecteDocumentation)
@@ -113,30 +107,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
-    @TargetGradleVersion("=8.5")
-    def "No problem for exceptions in 8.5"() {
-        // serialization of exceptions is not working in 8.5 (Gson().toJson() fails)
-        withReportProblemTask """
-            throw new RuntimeException("boom")
-        """
-
-        given:
-        def listener = new ProblemProgressListener()
-
-        when:
-        withConnection {
-            it.model(CustomModel)
-                .setJavaHome(jdk17.javaHome)
-                .addProgressListener(listener)
-                .get()
-        }
-
-        then:
-        thrown(BuildException)
-        listener.problems.size() == 0
-    }
-
-    @TargetGradleVersion("=8.7")
+    @TargetGradleVersion(">=8.8")
     def "Can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {
@@ -156,39 +127,101 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         def problems = listener.problems
-        validateCompilationProblem(problems, buildFile)
+        org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.validateCompilationProblem(problems, buildFile)
         problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
     }
 
-    static void validateCompilationProblem(List<ProblemEvent> problems, TestFile buildFile) {
-        problems.size() == 1
-        problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
-        problems[0].category.category == 'compilation'
-    }
-
-    @TargetGradleVersion("=8.6")
-    def "8.6 version doesn't send failure"() {
-        buildFile """
-            tasks.register("foo) {
+    @TargetGradleVersion(">=8.6")
+    def "Problems expose summary Tooling API events"() {
+        given:
+        withReportProblemTask """
+            for(int i = 0; i < 10; i++) {
+                problems.forNamespace("org.example.plugin").reporting{
+                    it.label("The 'standard-plugin' is deprecated")
+                        .category("deprecation", "plugin")
+                        .severity(Severity.WARNING)
+                        .solution("Please use 'standard-plugin-2' instead of this plugin")
+                    }
+            }
         """
 
-        given:
-        def listener = new ProblemProgressListener()
-
         when:
-        withConnection {
-            it.model(CustomModel)
-                .setJavaHome(jdk17.javaHome)
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
                 .addProgressListener(listener)
-                .get()
+                .run()
         }
 
         then:
-        thrown(BuildException)
         def problems = listener.problems
-        validateCompilationProblem(problems, buildFile)
-        problems[0].failure == null
+        problems.size() == 2
+
+        def firstProblem = problems[0]
+        firstProblem.label.label == "The 'standard-plugin' is deprecated"
+        firstProblem.details.details == null
+
+        def aggregatedProblems = problems[1]
+
+        def aggregations =  aggregatedProblems.aggregations
+        aggregations.size() == 1
+        aggregations[0].label.label == "The 'standard-plugin' is deprecated"
+        aggregations[0].problemDescriptors.size() == 10
     }
+
+//    @TargetGradleVersion(">=8.8")
+//    def "Can serialize groovy compilation error"() {
+//        buildFile """
+//            tasks.register("foo) {
+//        """
+//
+//        given:
+//        def listener = new ProblemProgressListener()
+//
+//        when:
+//        withConnection {
+//            it.model(CustomModel)
+//                .setJavaHome(jdk17.javaHome)
+//                .addProgressListener(listener)
+//                .get()
+//        }
+//
+//        then:
+//        thrown(BuildException)
+//        def problems = listener.problems
+//        validateCompilationProblem(problems)
+//        problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
+//    }
+
+//    void validateCompilationProblem(List<ProblemEvent> problems) {
+//        problems.size() == 1
+//        problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
+//        problems[0].category.category == 'compilation'
+//    }
+//
+//    @TargetGradleVersion("=8.6")
+//    def "8.6 version doesn't send failure"() {
+//        buildFile """
+//            tasks.register("foo) {
+//        """
+//
+//        given:
+//        def listener = new ProblemProgressListener()
+//
+//        when:
+//        withConnection {
+//            it.model(CustomModel)
+//                .setJavaHome(jdk17.javaHome)
+//                .addProgressListener(listener)
+//                .get()
+//        }
+//
+//        then:
+//        thrown(BuildException)
+//        def problems = listener.problems
+//        validateCompilationProblem(problems)
+//        problems[0].failure == null
+//    }
 
     class ProblemProgressListener implements ProgressListener {
 
