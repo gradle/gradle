@@ -49,16 +49,6 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
  */
 @SuppressWarnings("deprecation")
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
-    public enum BuildCacheState {
-        ENABLED, DISABLED
-    }
-
-    public enum ScanPluginState {
-        APPLIED, NOT_APPLIED
-    }
-
-    private final BuildCacheState buildCacheState;
-    private final ScanPluginState scanPluginState;
 
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -75,9 +65,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final PathToFileResolver fileResolver;
 
     public ExecuteActionsTaskExecuter(
-        BuildCacheState buildCacheState,
-        ScanPluginState scanPluginState,
-
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
@@ -92,9 +79,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         TaskDependencyFactory taskDependencyFactory,
         PathToFileResolver fileResolver
     ) {
-        this.buildCacheState = buildCacheState;
-        this.scanPluginState = scanPluginState;
-
         this.executionHistoryStore = executionHistoryStore;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
@@ -112,11 +96,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        boolean emitLegacySnapshottingOperations = buildCacheState == BuildCacheState.ENABLED || scanPluginState == ScanPluginState.APPLIED;
         TaskExecution work = new TaskExecution(
             task,
             context,
-            emitLegacySnapshottingOperations,
             actionListener,
             asyncWorkTracker,
             buildOperationExecutor,

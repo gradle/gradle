@@ -9,60 +9,108 @@ description = """This project contains most of the dependency management logic o
     |
     |DSL facing APIs are to be found in 'core-api'""".trimMargin()
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":build-option"))
-    implementation(project(":enterprise-operations"))
-    implementation(project(":functional"))
-    implementation(project(":messaging"))
-    implementation(project(":native"))
-    implementation(project(":logging"))
-    implementation(project(":files"))
-    implementation(project(":file-temp"))
-    implementation(project(":file-collections"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":build-cache"))
-    implementation(project(":core"))
-    implementation(project(":resources"))
-    implementation(project(":resources-http"))
-    implementation(project(":snapshots"))
-    implementation(project(":execution"))
-    implementation(project(":security"))
-    implementation(project(":wrapper-shared"))
+errorprone {
+    disabledChecks.addAll(
+        "AmbiguousMethodReference", // 1 occurrences
+        "ClassCanBeStatic",
+        "DefaultCharset", // 3 occurrences
+        "EmptyBlockTag", // 2 occurrences
+        "Finally", // 4 occurrences
+        "HidingField", // 1 occurrences
+        "IdentityHashMapUsage", // 2 occurrences
+        "ImmutableEnumChecker", // 2 occurrences
+        "InconsistentCapitalization", // 2 occurrences
+        "InlineFormatString", // 5 occurrences
+        "InlineMeSuggester", // 2 occurrences
+        "InvalidParam", // 1 occurrences
+        "LoopOverCharArray", // 1 occurrences
+        "MathAbsoluteNegative",
+        "MissingCasesInEnumSwitch", // 7 occurrences
+        "MixedMutabilityReturnType", // 5 occurrences
+        "ModifiedButNotUsed", // 1 occurrences
+        "MutablePublicArray", // 1 occurrences
+        "NonApiType", // 3 occurrences
+        "NonCanonicalType", // 3 occurrences
+        "ObjectEqualsForPrimitives", // 3 occurrences
+        "OperatorPrecedence", // 2 occurrences
+        "ReferenceEquality", // 10 occurrences
+        "SameNameButDifferent", // 4 occurrences
+        "StreamResourceLeak", // 1 occurrences
+        "StringCaseLocaleUsage", // 3 occurrences
+        "StringCharset", // 1 occurrences
+        "StringSplitter", // 4 occurrences
+        "TypeParameterShadowing", // 4 occurrences
+        "TypeParameterUnusedInFormals", // 2 occurrences
+        "UndefinedEquals", // 1 occurrences
+        "UnusedMethod", // 34 occurrences
+        "UnusedTypeParameter", // 1 occurrences
+        "UnusedVariable", // 6 occurrences
+    )
+}
 
-    implementation(libs.slf4jApi)
-    implementation(libs.groovy)
+
+dependencies {
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":build-operations"))
+    api(project(":build-option"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":enterprise-logging"))
+    api(project(":enterprise-operations"))
+    api(project(":execution"))
+    api(project(":file-collections"))
+    api(project(":file-temp"))
+    api(project(":files"))
+    api(project(":functional"))
+    api(project(":hashing"))
+    api(project(":logging"))
+    api(project(":messaging"))
+    api(project(":model-core"))
+    api(project(":persistent-cache"))
+    api(project(":problems-api"))
+    api(project(":resources"))
+    api(project(":security"))
+    api(project(":snapshots"))
+
+    api(libs.bouncycastlePgp)
+    api(libs.groovy)
+    api(libs.guava)
+    api(libs.inject)
+    api(libs.ivy)
+    api(libs.jsr305)
+    api(libs.maven3Settings)
+    api(libs.maven3SettingsBuilder)
+    api(libs.slf4jApi)
+
+    implementation(project(":base-services-groovy"))
+    implementation(project(":logging-api"))
+    implementation(project(":resources-http"))
+
+    implementation(libs.ant)
     implementation(libs.asm)
     implementation(libs.asmCommons)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
     implementation(libs.commonsIo)
-    implementation(libs.httpcore)
-    implementation(libs.inject)
-    implementation(libs.gson)
-    implementation(libs.ant)
-    implementation(libs.ivy)
-    implementation(libs.maven3SettingsBuilder)
+    implementation(libs.commonsLang)
     implementation(libs.fastutil)
+    implementation(libs.gson)
+    implementation(libs.httpcore)
 
-    testImplementation(project(":process-services"))
-    testImplementation(project(":diagnostics"))
     testImplementation(project(":build-cache-packaging"))
+    testImplementation(project(":diagnostics"))
+    testImplementation(project(":process-services"))
     testImplementation(libs.asmUtil)
     testImplementation(libs.commonsHttpclient)
-    testImplementation(libs.jsoup)
     testImplementation(libs.groovyXml)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":core-api")))
-    testImplementation(testFixtures(project(":version-control")))
-    testImplementation(testFixtures(project(":resources-http")))
+    testImplementation(libs.jsoup)
     testImplementation(testFixtures(project(":base-services")))
-    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":core-api")))
     testImplementation(testFixtures(project(":execution")))
+    testImplementation(testFixtures(project(":messaging")))
+    testImplementation(testFixtures(project(":resources-http")))
+    testImplementation(testFixtures(project(":snapshots")))
+    testImplementation(testFixtures(project(":version-control")))
 
     integTestImplementation(project(":build-option"))
     integTestImplementation(libs.jansi)

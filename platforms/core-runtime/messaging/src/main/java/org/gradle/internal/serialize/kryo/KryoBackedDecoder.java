@@ -137,6 +137,33 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
     }
 
     @Override
+    public short readShort() throws EOFException, IOException {
+        try {
+            return input.readShort();
+        } catch (KryoException e) {
+            throw maybeEndOfStream(e);
+        }
+    }
+
+    @Override
+    public float readFloat() throws EOFException, IOException {
+        try {
+            return input.readFloat();
+        } catch (KryoException e) {
+            throw maybeEndOfStream(e);
+        }
+    }
+
+    @Override
+    public double readDouble() throws EOFException, IOException {
+        try {
+            return input.readDouble();
+        } catch (KryoException e) {
+            throw maybeEndOfStream(e);
+        }
+    }
+
+    @Override
     public boolean readBoolean() throws EOFException {
         try {
             return input.readBoolean();

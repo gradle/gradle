@@ -42,11 +42,6 @@ class ChangingProvider<T> extends DefaultProvider<T> {
     }
 
     @Override
-    public ValueProducer getProducer() {
-        return ValueProducer.UNKNOWN_PRODUCER;
-    }
-
-    @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
         return ExecutionTimeValue.changingValue(this);
     }

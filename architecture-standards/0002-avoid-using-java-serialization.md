@@ -6,8 +6,8 @@
 
 ## Context
 
-In Gradle we often need to serialize in-memory objects for caching, or to transmit them across process barriers etc.
-Java serialization is one way to implement this, however despite it's simplicity of implementation, it has several drawbacks:
+In Gradle, we often need to serialize in-memory objects for caching or transmitting them across process barriers, etc.
+Java serialization is one way to implement this, however, despite its simplicity of implementation, it has several drawbacks:
 
 - **Performance:** Java's built-in serialization mechanism is often slower compared to other serialization solutions. This is due to Java's use of reflection and the need to maintain a lot of metadata.
 
@@ -27,7 +27,7 @@ Java serialization is one way to implement this, however despite it's simplicity
 
 We do not use Java serialization. Instead, we use custom serialization where we explicitly describe how data objects should be serialized and deserialized.
 
-For internal purposes we use binary formats for their brevity.
+For internal purposes, we use binary formats for their brevity.
 We use the `Serializer` abstraction to separate the actual implementation of serialization from its uses.
 
 When sharing data with external tools, we use JSON.

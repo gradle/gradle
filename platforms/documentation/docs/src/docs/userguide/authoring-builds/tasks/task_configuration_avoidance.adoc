@@ -19,7 +19,7 @@ As of Gradle 5.1, we recommend that the configuration avoidance APIs be used whe
 
 image::writing-tasks-4.png[]
 
-[[sec:how_does_it_work]]
+[[sec:how_does_it_work_config_api]]
 == Task configuration avoidance API
 The configuration avoidance API avoids configuring tasks if they will not be used for a build, which can significantly impact total configuration time.
 

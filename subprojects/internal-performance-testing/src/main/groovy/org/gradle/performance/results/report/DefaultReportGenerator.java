@@ -18,13 +18,16 @@ package org.gradle.performance.results.report;
 
 import org.gradle.performance.results.AllResultsStore;
 import org.gradle.performance.results.CrossVersionResultsStore;
+import org.gradle.performance.results.DefaultPerformanceFlakinessDataProvider;
 import org.gradle.performance.results.PerformanceDatabase;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider;
+import org.gradle.performance.results.ResultsStoreHelper;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.ScenarioRegressionResult.BIG_FLAKY_REGRESSION;
-import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.ScenarioRegressionResult.STABLE_REGRESSION;
+import static org.gradle.performance.results.PerformanceFlakinessDataProvider.ScenarioRegressionResult.BIG_FLAKY_REGRESSION;
+import static org.gradle.performance.results.PerformanceFlakinessDataProvider.ScenarioRegressionResult.STABLE_REGRESSION;
 
 // See more details in https://docs.google.com/document/d/1pghuxbCR5oYWhUrIK2e4bmABQt3NEIYOOIK4iHyjWyQ/edit#heading=h.is4fzcbmxxld
 public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsStore> {
@@ -36,7 +39,7 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
     protected PerformanceFlakinessDataProvider getFlakinessDataProvider() {
         if (PerformanceDatabase.isAvailable()) {
             try (CrossVersionResultsStore resultsStore = new CrossVersionResultsStore()) {
-                return new DefaultPerformanceFlakinessDataProvider(resultsStore);
+                return new DefaultPerformanceFlakinessDataProvider(resultsStore, ResultsStoreHelper.determineOsFromChannel());
             }
         } else {
             return super.getFlakinessDataProvider();

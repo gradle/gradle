@@ -133,13 +133,12 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         // This project is a Kotlin JVM project that consumes a Kotlin Multiplatform JVM project, so can't just use default KMP deprecations
         testRunner.deprecations(KotlinDeprecations) {
             expectAbstractCompileDestinationDirDeprecation(kotlinVersionNumber)
-            expectConventionTypeDeprecation(kotlinVersionNumber)
-            2.times { expectProjectConventionDeprecation(kotlinVersionNumber) }
             expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber)
             expectConfigureUtilDeprecation(kotlinVersionNumber)
             expectConventionTypeDeprecation(kotlinVersionNumber)
             2.times { expectJavaPluginConventionDeprecation(kotlinVersionNumber) }
             expectBuildIdentifierNameDeprecation(kotlinVersionNumber)
+            expectAllowedUsageChangingDeprecation(kotlinVersionNumber)
             if (GradleContextualExecuter.configCache || kotlinVersionNumber == VersionNumber.parse("1.7.22")) {
                 expectForUseAtConfigurationTimeDeprecation(kotlinVersionNumber)
             }
@@ -151,7 +150,14 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                         "Please use the destinationDirectory property instead. " +
                         "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_7", "compile_task_wiring")}"
         )
-
+        testRunner.expectLegacyDeprecationWarningIf(
+                kotlinVersionNumber <= VersionNumber.parse("1.7.0"),
+                BaseDeprecations.CONVENTION_TYPE_DEPRECATION
+        )
+        testRunner.expectLegacyDeprecationWarningIf(
+                kotlinVersionNumber == VersionNumber.parse("1.9.0"),
+                BaseDeprecations.CONVENTION_TYPE_DEPRECATION
+        )
         def result = testRunner.build()
 
         then:

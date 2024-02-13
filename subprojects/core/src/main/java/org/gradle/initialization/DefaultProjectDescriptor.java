@@ -190,6 +190,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -204,6 +205,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
             && Objects.equal(this.getName(), that.getName());
     }
 
+    @Override
     public int hashCode() {
         return Objects.hashCode(this.getParent(), this.getName());
     }

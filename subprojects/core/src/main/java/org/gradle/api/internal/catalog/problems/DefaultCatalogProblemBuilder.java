@@ -19,12 +19,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.internal.DocLink;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
+import java.util.List;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderSolutions;
@@ -35,39 +36,42 @@ public class DefaultCatalogProblemBuilder {
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     public static final String VERSION_CATALOG_PROBLEMS = "version_catalog_problems";
 
-    public static void maybeThrowError(InternalProblems problemsService, String error, Collection<Problem> problems) {
+    public static void maybeThrowError(InternalProblems problemsService, String error, Collection<ProblemReport> problems) {
         if (!problems.isEmpty()) {
-            throw throwErrorWithNewProblemsApi(problemsService, error, problems);
+            throw throwError(problemsService, error, problems);
         }
     }
 
-    public static RuntimeException throwErrorWithNewProblemsApi(InternalProblems problemsService, String error, Collection<Problem> problems) {
+    public static RuntimeException throwError(InternalProblems problemsService, String error, Collection<ProblemReport> problems) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(error);
         formatter.startChildren();
-        for (Problem problem : problems) {
-            reportInto(formatter, problem);
+        for (ProblemReport problem : problems) {
+            formatter.node(getProblemString(problem));
             problemsService.getInternalReporter().report(problem);
         }
         formatter.endChildren();
         throw new InvalidUserDataException(formatter.toString());
     }
 
-    private static void reportInto(TreeFormatter output, Problem problem) {
+    public static String getProblemString(ProblemReport problem) {
+        return getProblemString(problem.getDefinition().getLabel(), problem.getContext().getDetails(), problem.getDefinition().getSolutions(), problem.getDefinition().getDocumentationLink());
+    }
+
+    public static String getProblemString(String label, String details, List<String> solutions, DocLink documentationLink) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(problem.getLabel());
-        if (problem.getDetails() != null) {
+        formatter.node(label);
+        if (details != null) {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
+            formatter.node("Reason: " + capitalize(endLineWithDot(details)));
         }
 
-        renderSolutions(formatter, problem.getSolutions());
-        DocLink documentationLink = problem.getDocumentationLink();
+        renderSolutions(formatter, solutions);
         if (documentationLink != null) {
             formatter.blankLine();
             formatter.node(DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", documentationLink));
         }
-        output.node(formatter.toString());
+        return formatter.toString();
     }
 
     @Nonnull

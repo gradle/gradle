@@ -16,9 +16,9 @@
 
 package org.gradle.problems.internal.transformers;
 
-import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.api.problems.internal.ProblemTransformer;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
@@ -31,12 +31,12 @@ public class StackLocationTransformer implements ProblemTransformer {
     }
 
     @Override
-    public Problem transform(InternalProblem problem) {
-        if (problem.getException() == null) {
+    public ProblemReport transform(ProblemReport problem, OperationIdentifier id) {
+        if (problem.getContext().getException() == null) {
             return problem;
         }
 
-        ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(problem.getException());
+        ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(problem.getContext().getException());
         Location loc = problemDiagnostics.getLocation();
         if (loc != null) {
             return problem.toBuilder().lineInFileLocation(loc.getSourceLongDisplayName().getDisplayName(), loc.getLineNumber()).build();

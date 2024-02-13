@@ -36,7 +36,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     @Override
     AbstractCollectionProperty<String, C> propertyWithNoValue() {
         def p = property()
-        p.set((Iterable) null)
+        p.unset()
         return p
     }
 
@@ -62,6 +62,8 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     abstract AbstractCollectionProperty<String, C> property()
 
+    abstract String getCollectionName()
+
     @Override
     protected void setToNull(Object property) {
         property.set((Iterable) null)
@@ -74,16 +76,19 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
     def property = property()
 
-    protected void assertValueIs(Collection<String> expected) {
+    protected void assertValueIs(Collection<String> expected, PropertyInternal<?> property = this.property) {
         assert property.present
         def actual = property.get()
         assert actual instanceof ImmutableCollection
         assert immutableCollectionType.isInstance(actual)
+        assertCollectionIs(actual, expected)
+    }
+
+    protected void assertCollectionIs(ImmutableCollection actual, Collection<String> expected) {
         assert actual == toImmutable(expected)
         actual.each {
             assert it instanceof String
         }
-        assert property.present
     }
 
     protected abstract C toImmutable(Collection<String> values)
@@ -95,6 +100,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     def "has empty collection as value by default"() {
         expect:
         assertValueIs([])
+        !property.explicit
     }
 
     def "can change value to empty collection"() {
@@ -103,6 +109,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         expect:
         assertValueIs([])
+        property.explicit
     }
 
     def "can set value using empty collection"() {
@@ -1262,5 +1269,289 @@ The value of this property is derived from: <source>""")
             where:
             consumer << safeConsumers()
         }
+    }
+
+    def "can add to convention value"() {
+        given:
+        property.convention(Providers.of(["1"]))
+        property.withActualValue {
+            it.add(Providers.of("2"))
+            it.addAll(Providers.of(["3", "4"]))
+        }
+
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+
+        when:
+        property.unset()
+
+        then:
+        assertValueIs toImmutable(["1"])
+        !property.explicit
+    }
+
+    def "can add to convention value with append"() {
+        given:
+        property.convention(Providers.of(["1"]))
+        property.append(Providers.of("2"))
+        property.appendAll(Providers.of(["3", "4"]))
+
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+
+        when:
+        property.unset()
+
+        then:
+        assertValueIs toImmutable(["1"])
+        !property.explicit
+    }
+
+    def "can add to explicit value"() {
+        given:
+        property.set([])
+        property.withActualValue {
+            it.addAll(Providers.of(["1", "2"]))
+            it.addAll(Providers.of(["3", "4"]))
+        }
+
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+    }
+
+    def "can add to explicit value with append"() {
+        given:
+        property.set([])
+        property.appendAll(Providers.of(["1", "2"]))
+        property.appendAll(Providers.of(["3", "4"]))
+
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+    }
+
+    def "can add to actual value without previous configuration"() {
+        given:
+        property.withActualValue {
+            it.addAll(Providers.of(["1", "2"]))
+            it.addAll(Providers.of(["3", "4"]))
+        }
+
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+
+        when:
+        property.convention(Providers.of("0"))
+
+        then:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+    }
+
+    def "can add to actual value without previous configuration with append"() {
+        given:
+        property.appendAll(Providers.of(["1", "2"]))
+        property.appendAll(Providers.of(["3", "4"]))
+
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+    }
+
+    def "appending to an undefined property is undefined-safe"() {
+        given:
+        property.set((Iterable) null)
+        property.append(Providers.of("4"))
+
+        expect:
+        assertValueIs(toImmutable(["4"]))
+    }
+
+    def "appending after adding an undefined element provider is undefined-safe"() {
+        given:
+        property.addAll(Providers.of(["1", "2"]))
+        property.add(Providers.notDefined())
+        property.append(Providers.of("4"))
+
+        expect:
+        property.getOrNull() == toImmutable(["4"])
+    }
+
+    def "appending after adding an undefined iterable provider is undefined-safe"() {
+        given:
+        property.addAll(Providers.of(["1", "2"]))
+        property.addAll(Providers.notDefined())
+        property.append(Providers.of("4"))
+
+        expect:
+        property.getOrNull() == toImmutable(["4"])
+    }
+
+    def "appending an undefined element provider is undefined-safe"() {
+        given:
+        property.append(Providers.notDefined())
+
+        expect:
+        assertValueIs toImmutable([])
+    }
+
+    def "appending an undefined iterable provider is undefined-safe"() {
+        given:
+        property.appendAll(Providers.notDefined())
+
+        expect:
+        assertValueIs toImmutable([])
+    }
+
+    def "adding after appending an undefined element provider is undefined-safe"() {
+        given:
+        property.append(Providers.notDefined())
+        property.add("1")
+
+        expect:
+        assertValueIs toImmutable(["1"])
+    }
+
+    def "adding after appending an undefined iterable provider is undefined-safe"() {
+        given:
+        property.appendAll(Providers.notDefined())
+        property.add("1")
+
+        expect:
+        assertValueIs toImmutable(["1"])
+    }
+
+    def "property remains undefined-safe after restored"() {
+        given:
+        property.add(Providers.notDefined())
+        property.add("2")
+        property.addAll(supplierWithChangingExecutionTimeValues(['3'], ['3a'], ['3b'], ['3c'], ['3d']))
+        property.addAll(supplierWithValues(['4']))
+        property.append(Providers.notDefined())
+
+        when:
+        def execTimeValue = property.calculateExecutionTimeValue()
+        def property2 = property()
+        property2.fromState(execTimeValue)
+
+        then:
+        assertValueIs(['2', '3a', '4'], property2)
+
+        when:
+        property2.add("5")
+        property2.append("6")
+        property2.append(Providers.notDefined())
+        def execTimeValue2 = property2.calculateExecutionTimeValue()
+
+        then:
+        assertValueIs(['2', '3b', '4', '5', '6'], property2)
+
+        when:
+        def property3 = property()
+        property3.fromState(execTimeValue2)
+
+        then:
+        assertValueIs(['2', '3d', '4', '5', '6'], property3)
+    }
+
+    def "can alternate append and add"() {
+        when:
+        property.append("1")
+        property.add("2")
+        property.append("3")
+
+        then:
+        assertValueIs toImmutable(["1", "2", "3"])
+    }
+
+    def "can alternate add and append"() {
+        when:
+        property.add("1")
+        property.append("2")
+        property.add("3")
+
+        then:
+        assertValueIs toImmutable(["1", "2", "3"])
+    }
+    
+    def "has meaningful toString for #valueDescription"(Closure<AbstractCollectionProperty<String, C>> initializer, String stringValue) {
+        given:
+        def p = initializer.call()
+
+        expect:
+        p.toString() == stringValue
+
+        where:
+        valueDescription      | initializer                                    || stringValue
+        "default"             | { propertyWithDefaultValue() }                 || "$collectionName(class ${String.name}, [])"
+        "empty"               | { property().value([]) }                       || "$collectionName(class ${String.name}, [])"
+        "unset"               | { propertyWithNoValue() }                      || "$collectionName(class ${String.name}, missing)"
+        "s1"                  | { property().tap { add("s1") } }               || "$collectionName(class ${String.name}, [s1])"
+        "[s1, s2]"            | { property().value(["s1, s2"]) }               || "$collectionName(class ${String.name}, [s1, s2])"
+        "s1 + s2"             | { property().tap { add("s1"); add("s2") } }    || "$collectionName(class ${String.name}, [s1] + [s2])"
+        "provider {s1}"       | { property().tap { add(Providers.of("s1")) } } || "$collectionName(class ${String.name}, item(fixed(class ${String.name}, s1)))"
+        "provider {[s1, s2]}" | { property().value(Providers.of(["s1, s2"])) } || "$collectionName(class ${String.name}, fixed(class ${ArrayList.name}, [s1, s2]))"
+
+        // The following case abuses Groovy lax type-checking to put an invalid value into the property.
+        "[provider {s1}]"     | { property().value([Providers.of("s1")]) }     || "$collectionName(class ${String.name}, [fixed(class ${String.name}, s1)])"
+    }
+    
+    def "can set explicit value to convention"() {
+        given:
+        property.convention(['1'])
+        property.value(['4'])
+
+        when:
+        property.setToConvention()
+
+        then:
+        assertValueIs(['1'])
+        property.explicit
+
+        when:
+        property.add('3')
+
+        then:
+        assertValueIs(['1', '3'])
+
+        when:
+        property.unset()
+
+        then:
+        assertValueIs(['1'])
+        !property.explicit
+    }
+
+    def "can set explicit value to convention if not set yet"() {
+        given:
+        property.convention(['1'])
+        property.value(['4'])
+
+        when:
+        property.setToConventionIfUnset()
+
+        then:
+        assertValueIs(['4'])
+
+        when:
+        property.unset()
+        property.setToConventionIfUnset()
+
+        then:
+        assertValueIs(['1'])
+        property.explicit
+    }
+
+    def "property is empty when setToConventionIfUnset if convention not set yet"() {
+        when:
+        property.setToConventionIfUnset()
+
+        then:
+        assertValueIs([])
+        !property.explicit
     }
 }

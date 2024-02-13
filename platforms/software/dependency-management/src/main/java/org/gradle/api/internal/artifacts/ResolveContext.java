@@ -15,15 +15,14 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Describable;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.util.Path;
 
 import java.util.List;
 
@@ -34,13 +33,7 @@ public interface ResolveContext extends DependencyMetaDataProvider {
 
     String getName();
 
-    Describable asDescribable();
-
-    String getDisplayName();
-
-    Path getIdentityPath();
-
-    Path getProjectPath();
+    ResolutionHost getResolutionHost();
 
     DomainObjectContext getDomainObjectContext();
 

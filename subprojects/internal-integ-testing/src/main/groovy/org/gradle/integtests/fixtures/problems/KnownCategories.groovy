@@ -20,7 +20,7 @@ class KnownCategories {
 
     static void assertHasKnownCategory(ReceivedProblem problem) {
         assert problem != null
-        def category = problem['category']
+        def category = problem['definition']['category']
         assert category != null : "Category must be present"
         assert category['namespace'] != null : "Must specify a namespace: $category"
         assert category['category'] != null : "Must specify a main category: $category"
@@ -36,6 +36,9 @@ class KnownCategories {
 
     private static final def KNOWN_CATEGORIES = [
         [namespace: "org.gradle", category: "compilation", subcategories: ["groovy-dsl", "compilation-failed"]],
+        [namespace: "org.gradle", category: "compilation", subcategories: ["java", "compilation-failed"]],
+        [namespace: "org.gradle", category: "compilation", subcategories: ["java", "compilation-warning"]],
+        [namespace: "org.gradle", category: "compilation", subcategories: ["java", "compilation-advice"]],
         [namespace: "org.gradle", category: "dependency-version-catalog", subcategories: ["alias-not-finished"]],
         [namespace: "org.gradle", category: "dependency-version-catalog", subcategories: ["reserved-alias-name"]],
         [namespace: "org.gradle", category: "dependency-version-catalog", subcategories: ["catalog-file-does-not-exist"]],

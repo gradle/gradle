@@ -20,36 +20,50 @@ plugins {
 
 description = "Plugins that add support for generating IDE project files used for importing Gradle projects into IDEs"
 
+errorprone {
+    disabledChecks.addAll(
+        "MixedMutabilityReturnType", // 2 occurrences
+        "ShortCircuitBoolean", // 2 occurrences
+        "UnnecessaryParentheses", // 1 occurrences
+        "UnusedMethod", // 2 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":base-ide-plugins"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
+    api(project(":base-annotations"))
+    api(project(":base-ide-plugins"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":ide"))
+    api(project(":platform-jvm"))
+    api(project(":tooling-api"))
+
+    api(libs.groovy)
+    api(libs.guava)
+    api(libs.inject)
+    api(libs.jsr305)
+
     implementation(project(":dependency-management"))
     implementation(project(":ear"))
     implementation(project(":file-collections"))
-    implementation(project(":ide"))
     implementation(project(":language-java"))
-    implementation(project(":language-jvm"))
-    implementation(project(":logging"))
     implementation(project(":model-core"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins"))
     implementation(project(":plugins-groovy"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":plugins-jvm-test-fixtures"))
     implementation(project(":plugins-jvm-test-suite"))
     implementation(project(":scala"))
-    implementation(project(":testing-base"))
     implementation(project(":test-suites-base"))
-    implementation(project(":tooling-api"))
     implementation(project(":war"))
 
     implementation(libs.commonsLang)
-    implementation(libs.groovy)
-    implementation(libs.guava)
-    implementation(libs.inject)
+
+    runtimeOnly(project(":language-jvm"))
+    runtimeOnly(project(":plugins"))
+    runtimeOnly(project(":testing-base"))
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependency-management")))

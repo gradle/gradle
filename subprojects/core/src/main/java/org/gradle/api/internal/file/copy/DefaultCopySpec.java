@@ -248,6 +248,16 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
+    @Nullable
+    public File getDestinationDir() {
+        if (destDir instanceof File) {
+            return (File) destDir;
+        } else {
+            return destDir == null ? null : new File(PATH_NOTATION_PARSER.parseNotation(destDir));
+        }
+    }
+
+    @Override
     public CopySpec into(Object destDir) {
         this.destDir = destDir;
         return this;

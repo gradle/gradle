@@ -32,11 +32,6 @@ class BaseDeprecations {
         "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
         "See ${DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_5", "method_workerexecutor_submit_is_deprecated")} for more details."
 
-    public static final String PROJECT_CONVENTION_DEPRECATION = "The Project.getConvention() method has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Consult the upgrading guide for further information: " +
-        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8", "deprecated_access_to_conventions")
-
     public static final String CONVENTION_TYPE_DEPRECATION = "The org.gradle.api.plugins.Convention type has been deprecated. " +
         "This is scheduled to be removed in Gradle 9.0. " +
         "Consult the upgrading guide for further information: " +

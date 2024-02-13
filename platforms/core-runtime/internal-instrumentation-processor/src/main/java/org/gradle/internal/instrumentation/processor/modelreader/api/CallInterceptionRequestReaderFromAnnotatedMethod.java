@@ -20,5 +20,6 @@ import javax.lang.model.element.ExecutableElement;
 import java.util.Collection;
 
 public interface CallInterceptionRequestReaderFromAnnotatedMethod extends CallInterceptionRequestReader<ExecutableElement> {
+    @Override
     Collection<Result> readRequest(ExecutableElement input);
 }

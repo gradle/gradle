@@ -153,8 +153,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Multiple incompatible variants of org:test:1.0 were selected:
-   - Variant org:test:1.0 variant api1 has attributes {custom=c1, org.gradle.status=${MultipleVariantSelectionIntegrationTest.defaultStatus()}}
-   - Variant org:test:1.0 variant runtime2 has attributes {custom=c2, org.gradle.status=${MultipleVariantSelectionIntegrationTest.defaultStatus()}}""")
+   - Variant api1 has attributes {custom=c1, org.gradle.status=${MultipleVariantSelectionIntegrationTest.defaultStatus()}}
+   - Variant runtime2 has attributes {custom=c2, org.gradle.status=${MultipleVariantSelectionIntegrationTest.defaultStatus()}}""")
     }
 
     void "cannot select distinct variants of the same component by using different attributes if they have the same capabilities"() {
@@ -444,8 +444,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Multiple incompatible variants of org:foo:1.1 were selected:
-   - Variant org:foo:1.1 variant altruntime has attributes {custom=c3, org.gradle.status=${defaultStatus()}}
-   - Variant org:foo:1.1 variant runtime has attributes {custom=c2, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=${defaultStatus()}, org.gradle.usage=java-runtime}""")
+   - Variant altruntime has attributes {custom=c3, org.gradle.status=${defaultStatus()}}
+   - Variant runtime has attributes {custom=c2, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=${defaultStatus()}, org.gradle.usage=java-runtime}""")
 
     }
 

@@ -47,7 +47,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     def fileSystemAccess = Mock(FileSystemAccess)
     def cachesDir = tmpDir.file("caches")
     def cacheScopeMapping = new DefaultCacheScopeMapping(cachesDir, GradleVersion.current())
-    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(cacheScopeMapping, new TestInMemoryCacheFactory())
+    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(new TestInMemoryCacheFactory())
     def globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(cachesDir, cacheRepository)
     def inMemoryTaskArtifactCache = new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()) {
         @Override

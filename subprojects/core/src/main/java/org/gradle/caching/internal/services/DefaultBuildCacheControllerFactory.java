@@ -74,15 +74,13 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
         );
 
         boolean logStackTraces = startParameter.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
-        boolean emitDebugLogging = startParameter.isBuildCacheDebugLogging();
 
         return new DefaultBuildCacheController(
             config,
             buildOperationExecutor,
             buildOperationProgressEmitter,
-            temporaryFileProvider,
+            temporaryFileProvider::createTemporaryFile,
             logStackTraces,
-            emitDebugLogging,
             !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY),
             packer,
             originMetadataFactory,

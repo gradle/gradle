@@ -66,7 +66,7 @@ fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnv
 
 
 @Suppress("UnstableApiUsage")
-fun Project.git(vararg args: String): String {
+fun Project.git(vararg args: String): Provider<String> {
     val projectDir = layout.projectDirectory.asFile
     val execOutput = providers.exec {
         workingDir = projectDir
@@ -76,8 +76,10 @@ fun Project.git(vararg args: String): String {
             commandLine = listOf("cmd", "/c") + commandLine
         }
     }
-    return if (execOutput.result.get().exitValue == 0) execOutput.standardOutput.asText.get().trim()
-    else "<unknown>" // It's a source distribution, we don't know.
+    return execOutput.result.zip(execOutput.standardOutput.asText) { result, outputText ->
+        if (result.exitValue == 0) outputText.trim()
+        else "<unknown>" // It's a source distribution, we don't know.
+    }
 }
 
 
@@ -89,7 +91,13 @@ fun toMergeQueueBaseBranch(actualBranch: String): String = when {
     else -> actualBranch
 }
 
-
+/**
+ * The build environment.
+ *
+ * WARNING: Every val in here must not change for they same daemon. If it does, changes will go undetected,
+ *          since this whole object is kept in the classloader between builds.
+ *          Anything that changes must be in a val with a get() method that recomputes the value each time.
+ */
 object BuildEnvironment {
 
     /**
@@ -113,7 +121,8 @@ object BuildEnvironment {
     val isTravis = "TRAVIS" in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()
     val isTeamCity = "TEAMCITY_VERSION" in System.getenv()
-    val isTeamCityParallelTestsEnabled = "TEAMCITY_PARALLEL_TESTS_ENABLED" in System.getenv()
+    val isTeamCityParallelTestsEnabled
+        get() = "TEAMCITY_PARALLEL_TESTS_ENABLED" in System.getenv()
     val isCodeQl: Boolean by lazy {
         // This logic is kept here instead of `codeql-analysis.init.gradle` because that file will hopefully be removed in the future.
         // Removing that file is waiting on the GitHub team fixing an issue in Autobuilder logic.

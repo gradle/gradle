@@ -84,23 +84,35 @@ class CheckBadMerge {
      * Also, we ignore empty lines.
      */
     static boolean isBadFileInMergeCommit(String filePath, String mergeCommit, String masterCommit, String releaseCommit) {
-        List<String> mergeCommitFileLines = showFileOnCommit(mergeCommit, filePath).readLines()
-        List<String> masterCommitFileLines = showFileOnCommit(masterCommit, filePath).readLines()
-        List<String> releaseCommitFileLines = showFileOnCommit(releaseCommit, filePath).readLines()
-        for (String line in mergeCommitFileLines) {
-            if (line.trim().isEmpty()) {
-                continue
+        try {
+            List<String> mergeCommitFileLines = showFileOnCommit(mergeCommit, filePath).readLines()
+            List<String> masterCommitFileLines = showFileOnCommit(masterCommit, filePath).readLines()
+            List<String> releaseCommitFileLines = showFileOnCommit(releaseCommit, filePath).readLines()
+            for (String line in mergeCommitFileLines) {
+                if (line.trim().isEmpty()) {
+                    continue
+                }
+                if (!masterCommitFileLines.contains(line) && releaseCommitFileLines.contains(line)) {
+                    println("Found bad file $filePath in merge commit $mergeCommit: '$line' only exists in $releaseCommit but not in $masterCommit")
+                    return true
+                }
             }
-            if (!masterCommitFileLines.contains(line) && releaseCommitFileLines.contains(line)) {
-                println("Found bad file $filePath in merge commit $mergeCommit: '$line' only exists in $releaseCommit but not in $masterCommit")
-                return true
-            }
+        } catch (AbortException ignore) {
+            return false
         }
         return false
     }
 
+    static class AbortException extends RuntimeException {
+    }
+
     static String showFileOnCommit(String commit, String filePath) {
-        return getStdout("git show $commit:$filePath")
+        ExecResult execResult = exec("git show $commit:$filePath")
+        if (execResult.returnCode != 0 && execResult.stderr ==~ /path '.*' exists on disk, but not in '.*'/) {
+            println("File $filePath does not exist on commit $commit, skip.")
+            throw new AbortException()
+        }
+        return execResult.stdout
     }
 
     static List<String> branchesOf(String commit) {
@@ -116,7 +128,14 @@ class CheckBadMerge {
             .split(" ").collect { it.trim() }.grep { !it.isEmpty() }
     }
 
-    static String getStdout(String command) {
+    @groovy.transform.ToString
+    static class ExecResult {
+        String stdout
+        String stderr
+        int returnCode
+    }
+
+    static ExecResult exec(String command) {
         Process process = command.execute()
         def stdoutFuture = readStreamAsync(process.inputStream)
         def stderrFuture = readStreamAsync(process.errorStream)
@@ -124,9 +143,14 @@ class CheckBadMerge {
         int returnCode = process.waitFor()
         String stdout = stdoutFuture.get()
         String stderr = stderrFuture.get()
+        return new ExecResult(stderr: stderr, stdout: stdout, returnCode: returnCode)
+    }
 
-        assert returnCode == 0: "$command failed with return code: $returnCode, stdout: $stdout stderr: $stderr"
-        return stdout
+    static String getStdout(String command) {
+        ExecResult execResult = exec(command)
+
+        assert execResult.returnCode == 0: "$command failed with return code: $execResult"
+        return execResult.stdout
     }
 
     static Future<String> readStreamAsync(InputStream inputStream) {

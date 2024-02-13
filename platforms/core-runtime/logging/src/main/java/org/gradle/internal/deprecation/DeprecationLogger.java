@@ -20,7 +20,7 @@ import org.gradle.api.problems.Problems;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
+import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -67,8 +67,8 @@ public class DeprecationLogger {
 
     private static final LoggingDeprecatedFeatureHandler DEPRECATED_FEATURE_HANDLER = new LoggingDeprecatedFeatureHandler();
 
-    public synchronized static void init(ProblemDiagnosticsFactory problemDiagnosticsFactory, WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, Problems problemsService) {
-        DEPRECATED_FEATURE_HANDLER.init(problemDiagnosticsFactory, warningMode, buildOperationProgressEventEmitter, problemsService);
+    public synchronized static void init(WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, Problems problemsService, ProblemStream problemStream) {
+        DEPRECATED_FEATURE_HANDLER.init(warningMode, buildOperationProgressEventEmitter, problemsService, problemStream);
     }
 
     public synchronized static void reset() {
@@ -151,7 +151,7 @@ public class DeprecationLogger {
      */
     @CheckReturnValue
     @SuppressWarnings("rawtypes")
-    public static DeprecationMessageBuilder<?> deprecateAction(final String action) {
+    public static DeprecationMessageBuilder.DeprecateAction deprecateAction(final String action) {
         return new DeprecationMessageBuilder.DeprecateAction(action);
     }
 

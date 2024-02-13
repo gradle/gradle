@@ -64,6 +64,10 @@
                 <td>useDefaults</td>
                 <td><literal>false</literal></td>
             </tr>
+            <tr>
+                <td>comments</td>
+                <td><literal>true</literal></td>
+            </tr>
         </table>
     </section>
     <section>

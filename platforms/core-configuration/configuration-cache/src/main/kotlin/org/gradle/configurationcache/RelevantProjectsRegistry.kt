@@ -16,20 +16,21 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.configurations.ProjectDependencyObservedListener
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration
+import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.execution.plan.Node
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.Path
 
 
 @ServiceScope(Scopes.Build::class)
 class RelevantProjectsRegistry(
-    private val build: BuildState
-) : ProjectDependencyObservedListener {
+    private val build: BuildState,
+    private val projectStateRegistry: ProjectStateRegistry
+) : ProjectComponentObservationListener {
 
     private
     val targetProjects = mutableSetOf<ProjectState>()
@@ -65,7 +66,7 @@ class RelevantProjectsRegistry(
     private
     fun isLocalProject(projectState: ProjectState) = projectState.owner === build
 
-    override fun dependencyObserved(consumingProject: ProjectState?, targetProject: ProjectState, requestedState: ConfigurationInternal.InternalState, target: ResolvedProjectConfiguration) {
-        targetProjects.add(targetProject)
+    override fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
+        targetProjects.add(projectStateRegistry.stateFor(targetProjectPath))
     }
 }

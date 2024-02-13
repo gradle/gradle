@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks.outputorigin
 
+import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildCacheKeyFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
@@ -30,12 +32,20 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
     @Rule
     public final OriginFixture outputOrigin = new OriginFixture(executer, temporaryFolder)
 
+    @Delegate
+    @Rule
+    public final BuildCacheKeyFixture buildCacheKeyFixture = new BuildCacheKeyFixture(executer, temporaryFolder)
+
     String getBuildInvocationId() {
         scopeIds.buildInvocationId.asString()
     }
 
     String originBuildInvocationId(String taskPath) {
         outputOrigin.originId(taskPath)
+    }
+
+    OriginMetadata origin(String taskPath) {
+        outputOrigin.origin(taskPath)
     }
 
     def setup() {
@@ -60,6 +70,7 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
         then:
         executedAndNotSkipped ":write"
         def firstBuildId = buildInvocationId
+        def firstBuildCacheKey = buildCacheKey(":write")
         originBuildInvocationId(":write") == null
 
         when:
@@ -69,7 +80,10 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
         skipped ":write"
         def secondBuildId = buildInvocationId
         firstBuildId != secondBuildId
-        originBuildInvocationId(":write") == firstBuildId
+        with(origin(":write")) {
+            buildInvocationId == firstBuildId
+            buildCacheKey == firstBuildCacheKey
+        }
 
         when:
         buildFile << """
@@ -80,8 +94,10 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
         then:
         executedAndNotSkipped ":write"
         def thirdBuildId = buildInvocationId
+        def thirdBuildCacheKey = buildCacheKey(":write")
         firstBuildId != thirdBuildId
         secondBuildId != thirdBuildId
+        thirdBuildCacheKey != firstBuildCacheKey
         originBuildInvocationId(":write") == null
 
         when:
@@ -89,7 +105,10 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         skipped ":write"
-        originBuildInvocationId(":write") == thirdBuildId
+        with(origin(":write")) {
+            buildInvocationId == thirdBuildId
+            buildCacheKey == thirdBuildCacheKey
+        }
 
         when:
         succeeds  "write"

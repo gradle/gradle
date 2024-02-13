@@ -7,7 +7,15 @@ description = "Build operations are our way to inspect the process of executing 
 
 gradlebuildJava.usedInWorkers()
 
+errorprone {
+    disabledChecks.addAll(
+        "ThreadLocalUsage", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-annotations"))
+    api(libs.jsr305)
+    api(project(":base-annotations"))
+
     implementation(libs.slf4jApi)
 }

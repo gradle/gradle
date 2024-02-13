@@ -17,14 +17,15 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
+import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
@@ -45,10 +46,16 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     public DefaultDependencyCollector(DependencyFactoryInternal dependencyFactory) {
         this.dependencyFactory = dependencyFactory;
         this.getDependencies().finalizeValueOnRead();
+        this.getDependencyConstraints().finalizeValueOnRead();
     }
 
     @Nested
+    @Override
     public abstract SetProperty<Dependency> getDependencies();
+
+    @Nested
+    @Override
+    public abstract SetProperty<DependencyConstraint> getDependencyConstraints();
 
     @SuppressWarnings("unchecked")
     private <D extends Dependency> D ensureMutable(D dependency) {
@@ -81,19 +88,8 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     }
 
     private <D extends Dependency> void doAddLazy(Provider<D> dependency, @Nullable Action<? super D> config) {
-        @SuppressWarnings("unchecked")
-        Provider<D> provider = dependency.map((Object dep) -> {
-            // Generic failure check (for Groovy which ignores this when dynamic)
-            if (!(dep instanceof Dependency)) {
-                throw new InvalidUserCodeException(
-                    "Providers of non-Dependency types ("
-                        + dep.getClass().getName()
-                        + ") are not supported. Create a Dependency using DependencyFactory first."
-                );
-            }
-            return applyConfiguration((D) dep, config);
-        });
-        getDependencies().add(provider);
+        Provider<D> provider = dependency.map(dep -> applyConfiguration(dep, config));
+        DefaultSetProperty.addOptionalProvider(getDependencies(), provider);
     }
 
     private <D extends Dependency> List<Dependency> createDependencyList(Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
@@ -164,6 +160,46 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     @Override
     public <D extends Dependency> void add(Provider<? extends D> dependency, Action<? super D> configuration) {
         doAddLazy(dependency, configuration);
+    }
+
+
+    private static DependencyConstraint applyConstraintConfiguration(DependencyConstraint dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
+        if (config != null) {
+            config.execute(dependencyConstraint);
+        }
+
+        // TODO Use DependencyConstraint mutation validator https://github.com/gradle/gradle/issues/27904
+
+        return dependencyConstraint;
+    }
+
+    private void doAddConstraintEager(DependencyConstraint dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
+        getDependencyConstraints().add(applyConstraintConfiguration(dependencyConstraint, config));
+    }
+
+    private void doAddConstraintLazy(Provider<? extends DependencyConstraint> dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
+        Provider<DependencyConstraint> provider = dependencyConstraint.map(dep -> applyConstraintConfiguration(dep, config));
+        DefaultSetProperty.addOptionalProvider(getDependencyConstraints(), provider);
+    }
+
+    @Override
+    public void addConstraint(DependencyConstraint dependencyConstraint) {
+        doAddConstraintEager(dependencyConstraint, null);
+    }
+
+    @Override
+    public void addConstraint(DependencyConstraint dependencyConstraint, Action<? super DependencyConstraint> configuration) {
+        doAddConstraintEager(dependencyConstraint, configuration);
+    }
+
+    @Override
+    public void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint) {
+        doAddConstraintLazy(dependencyConstraint, null);
+    }
+
+    @Override
+    public void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint, Action<? super DependencyConstraint> configuration) {
+        doAddConstraintLazy(dependencyConstraint, configuration);
     }
 
     @Override

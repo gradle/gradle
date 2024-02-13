@@ -25,6 +25,8 @@ import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
+import java.util.Arrays;
+
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 public class Collectors {
@@ -81,6 +83,11 @@ public class Collectors {
         public int size() {
             return 1;
         }
+
+        @Override
+        public String toString() {
+            return String.format("[%s]", element);
+        }
     }
 
     public static class ElementFromProvider<T> implements ProvidedCollector<T> {
@@ -114,14 +121,7 @@ public class Collectors {
         @Override
         public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
             ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
-            if (value.isMissing()) {
-                visitor.execute(ExecutionTimeValue.missing());
-            } else if (value.hasFixedValue()) {
-                // transform preserving side effects
-                visitor.execute(ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
-            } else {
-                visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
-            }
+            visitValue(visitor, value);
         }
 
         @Override
@@ -149,6 +149,22 @@ public class Collectors {
         @Override
         public int size() {
             return 1;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("item(%s)", provider);
+        }
+    }
+
+    private static <T> void visitValue(Action<? super ValueSupplier.ExecutionTimeValue<? extends Iterable<? extends T>>> visitor, ValueSupplier.ExecutionTimeValue<? extends T> value) {
+        if (value.isMissing()) {
+            visitor.execute(ValueSupplier.ExecutionTimeValue.missing());
+        } else if (value.hasFixedValue()) {
+            // transform preserving side effects
+            visitor.execute(ValueSupplier.ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
+        } else {
+            visitor.execute(ValueSupplier.ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
         }
     }
 
@@ -201,6 +217,11 @@ public class Collectors {
         public int size() {
             return Iterables.size(value);
         }
+
+        @Override
+        public String toString() {
+            return value.toString();
+        }
     }
 
     public static class ElementsFromCollectionProvider<T> implements ProvidedCollector<T> {
@@ -218,12 +239,7 @@ public class Collectors {
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             Value<? extends Iterable<? extends T>> value = provider.calculateValue(consumer);
-            if (value.isMissing()) {
-                return value.asType();
-            }
-
-            collector.addAll(value.getWithoutSideEffect(), collection);
-            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
+            return collectEntriesFromValue(collector, collection, value);
         }
 
         @Override
@@ -238,7 +254,7 @@ public class Collectors {
 
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
-            return Objects.equal(provider, provider);
+            return Objects.equal(this.provider, provider);
         }
 
         @Override
@@ -266,6 +282,20 @@ public class Collectors {
                 throw new UnsupportedOperationException();
             }
         }
+
+        @Override
+        public String toString() {
+            return String.valueOf(provider);
+        }
+    }
+
+    private static <T> ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
+        if (value.isMissing()) {
+            return value.asType();
+        }
+
+        collector.addAll(value.getWithoutSideEffect(), collection);
+        return ValueSupplier.Value.present().withSideEffect(ValueSupplier.SideEffect.fixedFrom(value));
     }
 
     public static class ElementsFromArray<T> implements Collector<T> {
@@ -301,6 +331,11 @@ public class Collectors {
         @Override
         public int size() {
             return value.length;
+        }
+
+        @Override
+        public String toString() {
+            return Arrays.toString(value);
         }
     }
 
@@ -370,6 +405,11 @@ public class Collectors {
         @Override
         public int hashCode() {
             return Objects.hashCode(type, delegate);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("(%s as %s)", delegate, type);
         }
     }
 }

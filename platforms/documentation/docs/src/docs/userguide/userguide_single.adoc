@@ -40,28 +40,10 @@ include::installation.adoc[leveloffset=+2]
 include::compatibility.adoc[leveloffset=+2]
 include::feature_lifecycle.adoc[leveloffset=+2]
 
-[[part:upgrading_and_migrating]]
-== UPGRADING
-
-include::upgrading_version_8.adoc[leveloffset=+2]
-include::upgrading_version_7.adoc[leveloffset=+2]
-include::upgrading_version_6.adoc[leveloffset=+2]
-include::upgrading_version_5.adoc[leveloffset=+2]
-include::upgrading_version_4.adoc[leveloffset=+2]
-
-== MIGRATING
-
-include::migrating_from_maven.adoc[leveloffset=+2]
-include::migrating_from_ant.adoc[leveloffset=+2]
-
 [[part:running_builds]]
 == **RUNNING GRADLE BUILDS**
 
-include::getting_started_eng.adoc[leveloffset=+2]
-include::gradle_ides.adoc[leveloffset=+2]
-include::continuous_builds.adoc[leveloffset=+2]
-
-== BASICS
+== CORE CONCEPTS
 
 include::gradle_basics.adoc[leveloffset=+2]
 include::gradle_wrapper_basics.adoc[leveloffset=+2]
@@ -74,16 +56,13 @@ include::plugin_basics.adoc[leveloffset=+2]
 include::gradle_optimizations.adoc[leveloffset=+2]
 include::build_scans.adoc[leveloffset=+2]
 
+== OTHER TOPICS
+
+include::gradle_ides.adoc[leveloffset=+2]
+include::continuous_builds.adoc[leveloffset=+2]
+
 [[part:authoring_builds]]
 == **AUTHORING GRADLE BUILDS**
-
-include::getting_started_dev.adoc[leveloffset=+2]
-include::multi_project_builds.adoc[leveloffset=+2]
-include::declaring_dependencies_between_subprojects.adoc[leveloffset=+2]
-include::sharing_build_logic_between_subprojects.adoc[leveloffset=+2]
-include::composite_builds.adoc[leveloffset=+2]
-include::structuring_software_products_details.adoc[leveloffset=+2]
-include::structuring_software_products.adoc[leveloffset=+2]
 
 == BASICS
 
@@ -103,7 +82,7 @@ include::multi_project_builds.adoc[leveloffset=+2]
 include::declaring_dependencies_between_subprojects.adoc[leveloffset=+2]
 include::sharing_build_logic_between_subprojects.adoc[leveloffset=+2]
 include::composite_builds.adoc[leveloffset=+2]
-include::structuring_software_products_details.adoc[leveloffset=+2]
+include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
 
 == DEVELOPING TASKS
 
@@ -259,12 +238,15 @@ include::travis-ci.adoc[leveloffset=+2]
 [[part:reference]]
 == **REFERENCE**
 
-include::groovy_build_script_primer.adoc[leveloffset=+2]
-include::kotlin_dsl.adoc[leveloffset=+2]
-include::migrating_from_groovy_to_kotlin_dsl.adoc[leveloffset=2]
-include::gradle_wrapper.adoc[leveloffset=2]
+include::command_line_interface.adoc[leveloffset=+2]
+include::gradle_wrapper.adoc[leveloffset=+2]
 include::plugin_reference.adoc[leveloffset=2]
 include::third_party_integration.adoc[leveloffset=2]
+
+== GRADLE DSLs and API
+
+include::groovy_build_script_primer.adoc[leveloffset=+2]
+include::kotlin_dsl.adoc[leveloffset=+2]
 
 == **LICENSE INFORMATION**
 

@@ -52,7 +52,7 @@ class DefaultCopySpecCodec(
 
     override suspend fun WriteContext.encode(value: DefaultCopySpec) {
         encodePreservingIdentityOf(value) {
-            writeNullableString(value.destPath)
+            writeNullableString(value.destinationDir?.path)
             write(value.sourceRootsForThisSpec)
             write(value.patterns)
             writeEnum(value.duplicatesStrategyForThisSpec)

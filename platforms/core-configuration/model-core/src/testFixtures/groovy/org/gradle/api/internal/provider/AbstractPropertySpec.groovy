@@ -256,7 +256,7 @@ abstract class AbstractPropertySpec<T> extends PropertySpec<T> {
         copy.orNull == someValue()
     }
 
-    def "obtaining value of the shadow copy does not finalize property"() {
+    def "obtaining value of the shallow copy does not finalize property"() {
         given:
         def property = propertyWithValue(someValue())
         property.finalizeValueOnRead()

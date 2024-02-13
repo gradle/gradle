@@ -84,12 +84,12 @@ public interface DaemonFixture {
     /**
      * Asserts that this daemon becomes idle within a short timeout. Blocks until this has happened.
      */
-    void becomesIdle();
+    DaemonFixture becomesIdle();
 
     /**
      * Asserts that this daemon stops and is no longer visible to any clients within a short timeout. Blocks until this has happened.
      */
-    void stops();
+    DaemonFixture stops();
 
     /**
      * Asserts that this daemon is currently idle.
@@ -109,7 +109,7 @@ public interface DaemonFixture {
     /**
      * Asserts that this daemon becomes canceled within a short timeout. Blocks until this has happened.
      */
-    void becomesCanceled();
+    DaemonFixture becomesCanceled();
 
     /**
      * Asserts that this daemon has stopped and is no longer visible to any clients.

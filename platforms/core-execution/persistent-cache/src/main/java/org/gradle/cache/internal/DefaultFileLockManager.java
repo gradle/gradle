@@ -295,7 +295,7 @@ public class DefaultFileLockManager implements FileLockManager {
          * - lock info region, locked just to write the lock info or read info from it
          * <br><br>
          *
-         * Algorithm:<br> 
+         * Algorithm:<br>
          * 1. We first try to acquire a lock on the state region with retries, see {@link #lockStateRegion(LockMode)}.<br>
          * 2a. If we use exclusive lock, and we succeed in step 1., then we acquire an exclusive lock
          * on the information region and write our details (port and lock id) there, and then we release lock of information region.
@@ -445,6 +445,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private final Condition condition = lock.newCondition();
         private int waiting;
 
+        @Override
         public boolean await(long millis) throws InterruptedException {
             lock.lock();
             try {

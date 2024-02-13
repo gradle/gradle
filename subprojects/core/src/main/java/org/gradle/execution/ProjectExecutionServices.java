@@ -35,12 +35,10 @@ import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
-import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
@@ -88,9 +86,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
     TaskExecuter createTaskExecuter(
         AsyncWorkTracker asyncWorkTracker,
-        BuildCacheController buildCacheController,
         BuildOperationExecutor buildOperationExecutor,
-        GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
@@ -108,12 +104,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         InputFingerprinter inputFingerprinter
     ) {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
-            buildCacheController.isEnabled()
-                ? ExecuteActionsTaskExecuter.BuildCacheState.ENABLED
-                : ExecuteActionsTaskExecuter.BuildCacheState.DISABLED,
-            gradleEnterprisePluginManager.isPresent()
-                ? ExecuteActionsTaskExecuter.ScanPluginState.APPLIED
-                : ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
             executionHistoryStore,
             buildOperationExecutor,
             asyncWorkTracker,

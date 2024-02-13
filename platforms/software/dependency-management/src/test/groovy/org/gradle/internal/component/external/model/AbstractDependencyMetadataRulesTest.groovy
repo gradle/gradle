@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependenciesMetadata
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -54,13 +53,20 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     def notationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl, SimpleMapInterner.notThreadSafe())
     def constraintNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl, SimpleMapInterner.notThreadSafe())
 
-    @Shared versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
-    @Shared componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
-    @Shared attributes = AttributeTestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
-    @Shared schema = createSchema()
-    @Shared mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
-    @Shared ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
-    @Shared defaultVariant
+    @Shared
+        versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
+    @Shared
+        componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
+    @Shared
+        attributes = AttributeTestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
+    @Shared
+        schema = createSchema()
+    @Shared
+        mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
+    @Shared
+        ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
+    @Shared
+        defaultVariant
 
     protected static <T> VariantMetadataRules.VariantAction<T> variantAction(String variantName, Action<? super T> action) {
         new VariantMetadataRules.VariantAction<T>(variantName, action)
@@ -244,7 +250,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def dependencies = selectTargetConfigurationMetadata(metadataImplementation).dependencies
 
         then:
-        dependencies.collect { it.selector } == [newSelector(DefaultModuleIdentifier.newId("org.test", "added"), "1.0") ]
+        dependencies.collect { it.selector } == [newSelector(DefaultModuleIdentifier.newId("org.test", "added"), "1.0")]
 
         where:
         metadataType | metadataImplementation
@@ -282,10 +288,10 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "consumer"), "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
-        def consumer = new LocalComponentDependencyMetadata(componentSelector, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
+        def consumer = new LocalComponentDependencyMetadata(componentSelector, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
-        def documentationRegistry = new DocumentationRegistry()
-        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(documentationRegistry))
+        def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
+        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
 
         return consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0].metadata
     }

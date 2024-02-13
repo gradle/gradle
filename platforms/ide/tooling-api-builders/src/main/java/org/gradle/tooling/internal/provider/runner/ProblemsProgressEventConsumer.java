@@ -24,13 +24,14 @@ import org.gradle.api.problems.internal.FileLocation;
 import org.gradle.api.problems.internal.LineInFileLocation;
 import org.gradle.api.problems.internal.OffsetInFileLocation;
 import org.gradle.api.problems.internal.PluginIdLocation;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.api.problems.internal.TaskPathLocation;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
+import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.build.event.types.DefaultLabel;
 import org.gradle.internal.build.event.types.DefaultProblemCategory;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
@@ -40,6 +41,7 @@ import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
@@ -86,26 +88,35 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
 
     private Optional<InternalProblemEvent> createProblemEvent(OperationIdentifier buildOperationId, @Nullable Object details) {
         if (details instanceof DefaultProblemProgressDetails) {
-            Problem problem = ((DefaultProblemProgressDetails) details).getProblem();
+            ProblemReport problem = ((DefaultProblemProgressDetails) details).getProblem();
             return of(createProblemEvent(buildOperationId, problem));
         }
         return empty();
     }
 
-    private DefaultProblemEvent createProblemEvent(OperationIdentifier buildOperationId, Problem problem) {
+    private DefaultProblemEvent createProblemEvent(OperationIdentifier buildOperationId, ProblemReport problem) {
         return new DefaultProblemEvent(
             cerateDefaultProblemDescriptor(buildOperationId),
             new DefaultProblemDetails(
-                toInternalCategory(problem.getCategory()),
-                toInternalLabel(problem.getLabel()),
-                toInternalDetails(problem.getDetails()),
-                toInternalSeverity(problem.getSeverity()),
-                toInternalLocations(problem.getLocations()),
-                toInternalDocumentationLink(problem.getDocumentationLink()),
-                toInternalSolutions(problem.getSolutions()),
-                toInternalAdditionalData(problem.getAdditionalData())
+                toInternalCategory(problem.getDefinition().getCategory()),
+                toInternalLabel(problem.getDefinition().getLabel()),
+                toInternalDetails(problem.getContext().getDetails()),
+                toInternalSeverity(problem.getDefinition().getSeverity()),
+                toInternalLocations(problem.getContext().getLocations()),
+                toInternalDocumentationLink(problem.getDefinition().getDocumentationLink()),
+                toInternalSolutions(problem.getDefinition().getSolutions()),
+                toInternalAdditionalData(problem.getContext().getAdditionalData()),
+                toInternalFailure(problem.getContext().getException())
             )
         );
+    }
+
+    @Nullable
+    private static InternalFailure toInternalFailure(@Nullable RuntimeException ex) {
+        if (ex == null) {
+            return null;
+        }
+        return DefaultFailure.fromThrowable(ex);
     }
 
     private DefaultProblemDescriptor cerateDefaultProblemDescriptor(OperationIdentifier parentBuildOperationId) {

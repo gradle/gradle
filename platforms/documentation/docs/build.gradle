@@ -73,8 +73,8 @@ configurations.docsTestRuntimeClasspath {
 }
 
 asciidoctorj {
-    version = '2.4.2'
-    modules.pdf.version '1.5.4'
+    version = '2.5.11'
+    modules.pdf.version '2.3.10'
 }
 
 tasks.withType(AsciidoctorTask).configureEach { task ->
@@ -94,6 +94,9 @@ gradleDocumentation {
     javadocs {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
+    }
+    kotlinDslReference {
+        dokkaVersionOverride = "1.9.10"
     }
 }
 

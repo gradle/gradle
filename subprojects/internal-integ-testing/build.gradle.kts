@@ -1,4 +1,3 @@
-import gradlebuild.basics.accessors.groovy
 import gradlebuild.integrationtests.tasks.GenerateLanguageAnnotations
 import java.util.Properties
 
@@ -7,6 +6,13 @@ plugins {
 }
 
 description = "Collection of test fixtures for integration tests, internal use only"
+
+sourceSets {
+    main {
+        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
+        errorprone.enabled = false
+    }
+}
 
 dependencies {
     api(libs.jettyWebApp) {
@@ -40,6 +46,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":resources"))
     implementation(project(":build-cache"))
+    implementation(project(":build-cache-local"))
     implementation(project(":persistent-cache"))
     implementation(project(":platform-jvm"))
     implementation(project(":dependency-management"))

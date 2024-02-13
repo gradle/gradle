@@ -21,10 +21,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -109,13 +108,13 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        List<? extends Problem> problems = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
+        List<? extends ProblemReport> problems = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
 
         Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problems).sorted();
         if (problems.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
-            if (getFailOnWarning().get() || problems.stream().anyMatch(problem -> problem.getSeverity() == ERROR)) {
+            if (getFailOnWarning().get() || problems.stream().anyMatch(problem -> problem.getDefinition().getSeverity() == ERROR)) {
                 if (getIgnoreFailures().get()) {
                     getLogger().warn("Plugin validation finished with errors. {} {}",
                         annotateTaskPropertiesDoc(),
@@ -134,13 +133,12 @@ public abstract class ValidatePlugins extends DefaultTask {
         }
     }
 
-    private void reportProblems(List<? extends Problem> problems) {
+    private void reportProblems(List<? extends ProblemReport> problems) {
         InternalProblemReporter reporter = getServices().get(InternalProblems.class).getInternalReporter();
         problems.stream()
-            .filter(InternalProblem.class::isInstance)
-            .map(InternalProblem.class::cast)
+            .map(ProblemReport.class::cast)
             .map(problem -> problem.toBuilder()
-                .label(introductionFor(problem.getAdditionalData()) + problem.getLabel()).build())
+                .label(introductionFor(problem.getContext().getAdditionalData()) + problem.getDefinition().getLabel()).build())
             .forEach(reporter::report);
     }
 

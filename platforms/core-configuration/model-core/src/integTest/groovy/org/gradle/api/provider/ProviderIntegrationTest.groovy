@@ -277,6 +277,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
     def "zipped provider is live"() {
         buildFile """
             tasks.register("run") {
+                def objects = objects
                 doLast {
                     def p1 = objects.property(String)
                     def p2 = objects.property(String)
@@ -299,6 +300,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
     def "zipped provider isPresent does not throw when there is no value"() {
         buildFile """
             tasks.register("run") {
+                def objects = objects
                 doLast {
                     def p1 = objects.property(String).convention("ok")
                     def p2 = objects.property(String)

@@ -290,7 +290,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
             it.descendant "Download ${server.uri}${projectD.pomPath}"
         }
 
-        def resolveArtifacts = applyBuildScript.child("Resolve files of :compileClasspath")
+        def resolveArtifacts = applyBuildScript.child(resolveConfigurationFiles(':compileClasspath'))
 
         resolveArtifacts.child("Resolve ${expectedDisplayName('projectB', 'jar', '1.0')} (group:projectB:1.0)")
             .child "Download ${server.uri}${projectB.artifactPath}"
@@ -340,11 +340,11 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
 
         def applyRootBuildScript = configureRoot.child(applyBuildScriptRootProject("multi"))
         def resolveCompile = applyRootBuildScript.child("Resolve dependencies of :compileClasspath")
-        applyRootBuildScript.child("Resolve files of :compileClasspath")
+        applyRootBuildScript.child(resolveConfigurationFiles(':compileClasspath'))
 
         def applyProjectABuildScript = resolveCompile.child("Configure project :a").child(applyBuildScript(aBuildfile, ':a'))
         def resolveCompileA = applyProjectABuildScript.child("Resolve dependencies of :a:compileClasspath")
-        applyProjectABuildScript.child("Resolve files of :a:compileClasspath")
+        applyProjectABuildScript.child(resolveConfigurationFiles(':a:compileClasspath'))
 
         resolveCompileA.child("Configure project :b")
     }
@@ -391,4 +391,11 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         return new MavenFileRepository(file(name))
     }
 
+    private String resolveConfigurationFiles(String path) {
+        if (targetVersion.baseVersion >= GradleVersion.version("8.7")) {
+            return "Resolve files of configuration '" + path + "'"
+        } else {
+            return "Resolve files of " + path
+        }
+    }
 }

@@ -521,6 +521,9 @@ In this case, you can ignore a key in the configuration block:
 As soon as a key is ignored, it will not be used for verification, even if the signature file mentions it.
 However, if the signature cannot be verified with at least one other key, Gradle will mandate that you provide a checksum.
 
+NOTE: If Gradle cannot download a key while bootstrapping, it will mark it as ignored.
+If you can find the key but Gradle does not, you can <<#sec:add-manual-keyring,manually add it>> to the keyring file.
+
 [[sec:local-keyring]]
 === Exporting keys for faster verification
 
@@ -555,52 +558,12 @@ Available options for keyring format are `armored` and `binary`.
 Without `keyring-format`, if the `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` file is present, Gradle will search for keys there in priority.
 The plain text file will be ignored if there's already a `.gpg` file (the binary version takes precedence).
 
-You can generate the binary version using GPG, for example issuing the following commands (syntax may depend on the tool you use):
-
-[source,bash]
-----
-$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 8756c4f765c9ac3cb6b85d62379ce192d401ab61
-
-gpg: keybox 'gradle/verification-keyring.gpg' created
-gpg: key 379CE192D401AB61: public key "Bintray (by JFrog) <****>" imported
-gpg: Total number processed: 1
-gpg:               imported: 1
-
-$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 6f538074ccebf35f28af9b066a0975f8b1127b83
-
-gpg: key 0729A0AFF8999A87: public key "Kotlin Release <****>" imported
-gpg: Total number processed: 1
-gpg:               imported: 1
-----
-
-The plain text version, on the other hand, can be updated manually.
-The file must be formatted with the `US-ASCII` encoding and consists of a list of keys in ASCII-armored format.
-
-In the example above, you could amend an existing KEYS file by issuing the following commands:
-
-[source,bash]
-----
-$ gpg --no-default-keyring --keyring /tmp/keyring.gpg --recv-keys 8756c4f765c9ac3cb6b85d62379ce192d401ab61
-
-gpg: keybox '/tmp/keyring.gpg' created
-gpg: key 379CE192D401AB61: public key "Bintray (by JFrog) <****>" imported
-gpg: Total number processed: 1
-gpg:               imported: 1
-
-# First let's add a header so that we can recognize the added key
-$ gpg --keyring /tmp/keyring.gpg --list-sigs 8756c4f765c9ac3cb6b85d62379ce192d401ab61 > gradle/verification-keyring.keys
-
-# Then write its ASCII-armored version
-$ gpg --keyring /tmp/keyring.gpg --export --armor 8756c4f765c9ac3cb6b85d62379ce192d401ab61 > gradle/verification-keyring.keys
-----
-
-Or, alternatively, you can _ask Gradle to export all keys it used for verification of this build to the keyring_ during bootstrapping:
+You can _ask Gradle to export all keys it used for verification of this build to the keyring_ during bootstrapping:
 
 ----
 ./gradlew --write-verification-metadata pgp,sha256 --export-keys
 ----
 
---
 Unless `keyring-format` is specified, this command will generate *both* the binary version and the ASCII-armored file.
 Use this option to choose the preferred format.
 You should only pick one for your project.
@@ -611,7 +574,6 @@ If you use git and use the binary version, make sure to make it treat this file 
 ----
 *.gpg           binary
 ----
---
 
 You can also ask Gradle to export all trusted keys without updating the verification metadata file:
 
@@ -641,7 +603,8 @@ When bootstrapping, Gradle performs _optimistic verification_ and therefore assu
 It will therefore:
 
 - automatically add the trusted keys as soon as verification passes
-- automatically add ignored keys for keys which couldn't be downloaded from public key servers
+- automatically add ignored keys for keys which couldn't be downloaded from public key servers.
+See <<#sec:add-manual-keyring,here>> how to manually add keys if needed
 - automatically generate checksums for artifacts without signatures or ignored keys
 
 If, for some reason, verification fails during the generation, Gradle will automatically generate an ignored key entry but warn you that you must absolutely check what happens.
@@ -677,15 +640,228 @@ To enable this mode, you need to disable key servers in the configuration file:
 
 NOTE: If you are asking Gradle to <<sec:bootstrapping-verification,generate a verification metadata file>> and that an existing verification metadata file sets `enabled` to `false`, then this flag will be ignored, so that potentially missing keys are downloaded.
 
-[[sec:troubleshooting-verification]]
-== Troubleshooting dependency verification
+[[sec:disabling-verification]]
+== Disabling verification or making it lenient
 
+Dependency verification can be expensive, or sometimes verification could get in the way of day to day development (because of frequent dependency upgrades, for example).
+
+Alternatively, you might want to enable verification on CI servers but not on local machines.
+
+Gradle actually provides 3 different verification modes:
+
+- `strict`, which is the default.
+Verification fails _as early as possible_, in order to avoid the use of compromised dependencies during the build.
+- `lenient`, which will run the build even if there are verification failures.
+The verification errors will be displayed during the build without causing a build failure.
+- `off` when verification is totally ignored.
+
+All those modes can be activated on the CLI using the `--dependency-verification` flag, for example:
+
+----
+./gradlew --dependency-verification lenient build
+----
+
+Alternatively, you can set the `org.gradle.dependency.verification` system property, either on the CLI:
+
+----
+./gradlew -Dorg.gradle.dependency.verification=lenient build
+----
+
+or in a `gradle.properties` file:
+
+----
+org.gradle.dependency.verification=lenient
+----
+
+[[sub:disabling-specific-verification]]
+== Disabling dependency verification for some configurations only
+
+In order to provide the strongest security level possible, dependency verification is enabled globally.
+This will ensure, for example, that you trust all the plugins you use.
+However, the plugins themselves may need to resolve additional dependencies that it doesn't make sense to ask the user to accept.
+For this purpose, Gradle provides an API which allows _disabling dependency verification on some specific configurations_.
+
+[WARNING]
+====
+Disabling dependency verification, if you care about security, is not a good idea.
+This API mostly exist for cases where it doesn't make sense to check dependencies.
+However, in order to be on the safe side, Gradle will systematically print a warning whenever verification has been disabled for a specific configuration.
+====
+
+As an example, a plugin may want to check if there are _newer_ versions of a library available and list those versions.
+It doesn't make sense, in this context, to ask the user to put the checksums of the POM files of the newer releases because by definition, they don't know about them.
+So the plugin might need to run its code _independently of the dependency verification configuration_.
+
+To do this, you need to call the `ResolutionStrategy#disableDependencyVerification` method:
+
+.Disabling dependency verification
+====
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-one-configuration]"]
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-one-configuration]"]
+====
+
+It's also possible to disable verification on detached configurations like in the following example:
+
+.Disabling dependency verification
+====
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-detached-configuration]"]
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-detached-configuration]"]
+====
+
+[[sec:trusting-artifacts]]
+== Trusting some particular artifacts
+
+You might want to trust some artifacts more than others.
+For example, it's legitimate to think that artifacts produced in your company and found in your internal repository only are safe, but you want to check every external component.
+
+NOTE: This is a typical _company policy_.
+In practice, **nothing** prevents your internal repository from being compromised, so it's a good idea to check your internal artifacts too!
+
+For this purpose, Gradle offers a way to automatically trust some artifacts.
+You can trust all artifacts in a group by adding this to your configuration:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <trusted-artifacts>
+         <trust group="com.mycompany" reason="We trust mycompany artifacts"/>
+      </trusted-artifacts>
+   </configuration>
+</verification-metadata>
+----
+
+This means that all components which group is `com.mycompany` will automatically be trusted.
+Trusted means that Gradle will not perform any verification whatsoever.
+
+The `trust` element accepts those attributes:
+
+- `group`, the group of the artifact to trust
+- `name`, the name of the artifact to trust
+- `version`, the version of the artifact to trust
+- `file`, the name of the artifact _file_ to trust
+- `regex`, a boolean saying if the `group`, `name`, `version` and `file` attributes need to be interpreted as regular expressions (defaults to `false`)
+- `reason`, an optional reason, why matched artifacts are trusted
+
+In the example above it means that the trusted artifacts would be artifacts in `com.mycompany` but not `com.mycompany.other`.
+To trust all artifacts in `com.mycompany` and all subgroups, you can use:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <trusted-artifacts>
+         <trust group="^com[.]mycompany($|([.].*))" regex="true" reason="We trust all mycompany artifacts"/>
+      </trusted-artifacts>
+   </configuration>
+</verification-metadata>
+----
+
+[[sec:trusting-several-checksums]]
+== Trusting multiple checksums for an artifact
+
+It's quite common to have _different checksums for the same artifact_ in the wild.
+How is that possible?
+Despite progress, it's often the case that developers publish, for example, to Maven Central and another repository separately, using different builds.
+In general, this is not a problem but sometimes it means that the metadata files would be different (different timestamps, additional whitespaces, ...).
+Add to this that your build may use several repositories or repository mirrors and it makes it quite likely that a single build can "see" different metadata files for the same component!
+In general, it's not malicious (but you **must** verify that the artifact is actually correct), so Gradle lets you declare the additional artifact checksums.
+For example:
+
+[source,xml]
+----
+      <component group="org.apache" name="apache" version="13">
+         <artifact name="apache-13.pom">
+            <sha256 value="2fafa38abefe1b40283016f506ba9e844bfcf18713497284264166a5dbf4b95e">
+               <also-trust value="ff513db0361fd41237bef4784968bc15aae478d4ec0a9496f811072ccaf3841d"/>
+            </sha256>
+         </artifact>
+      </component>
+----
+
+You can have as many `also-trust` entries as needed, but in general you shouldn't have more than 2.
+
+[[sec:skipping-javadocs]]
+== Skipping Javadocs and sources
+
+By default Gradle will verify _all_ downloaded artifacts, which includes Javadocs and sources.
+In general this is not a problem but you might face an issue with IDEs which automatically try to download them during import: if you didn't set the checksums for those too, importing would fail.
+
+To avoid this, you can configure Gradle to trust automatically all javadocs/sources:
+
+[source,xml]
+----
+<trusted-artifacts>
+   <trust file=".*-javadoc[.]jar" regex="true"/>
+   <trust file=".*-sources[.]jar" regex="true"/>
+</trusted-artifacts>
+----
+
+[[sec:add-manual-keyring]]
+== Adding keys manually to the keyring
+
+[[sec:add-ascii-keyring]]
+=== Adding keys to the ASCII-armored keyring
+
+The added key must be ASCII-armored formatted and can be simply added at the end of the file.
+If you already downloaded the key in the right format, you can simply append it to the file.
+
+Or you can amend an existing KEYS file by issuing the following commands:
+
+[source,bash]
+----
+$ gpg --no-default-keyring --keyring /tmp/keyring.gpg --recv-keys 8756c4f765c9ac3cb6b85d62379ce192d401ab61
+
+gpg: keybox '/tmp/keyring.gpg' created
+gpg: key 379CE192D401AB61: public key "Bintray (by JFrog) <****>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+
+# Write its ASCII-armored version
+$ gpg --keyring /tmp/keyring.gpg --export --armor 8756c4f765c9ac3cb6b85d62379ce192d401ab61 > gradle/verification-keyring.keys
+----
+
+Once done, make sure to run <<#sec:verification-update,the generation command again>> so that the key is processed by Gradle.
+This will do the following:
+
+* Add a standard header to the key
+* Rewrite the key using Gradle's own format, which trims the key to the bare minimum
+* Move the key to its sorted location, keeping the file reproducible
+
+[[sec:add-binary-keyring]]
+=== Adding keys to the binary keyring
+
+You can add keys to the binary version using GPG, for example issuing the following commands (syntax may depend on the tool you use):
+
+[source,bash]
+----
+$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 8756c4f765c9ac3cb6b85d62379ce192d401ab61
+
+gpg: keybox 'gradle/verification-keyring.gpg' created
+gpg: key 379CE192D401AB61: public key "Bintray (by JFrog) <****>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+
+$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 6f538074ccebf35f28af9b066a0975f8b1127b83
+
+gpg: key 0729A0AFF8999A87: public key "Kotlin Release <****>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+----
+
+[[sec:troubleshooting-verification]]
 [[sec:dealing-verification-failure]]
-=== Dealing with a verification failure
+== Dealing with a verification failure
 
 Dependency verification can fail in different ways, this section explains how you should deal with the various cases.
 
-==== Missing verification metadata
+=== Missing verification metadata
 
 The simplest failure you can have is when verification metadata is missing from the dependency verification file.
 This is the case for example if you use <<sec:checksum-verification,checksum verification>>, then you update a dependency and new versions of the dependency (and potentially its transitive dependencies) are brought in.
@@ -712,7 +888,7 @@ The corresponding artifact is `commons-logging-1.2.jar` so you need to add the f
 
 Alternatively, you can ask Gradle to generate the missing information by using the <<#sec:bootstrapping-verification,bootstrapping mechanism>>: existing information in the metadata file will be preserved, Gradle will only add the missing verification metadata.
 
-==== Incorrect checksums
+=== Incorrect checksums
 
 A more problematic issue is when the actual checksum verification fails:
 
@@ -739,7 +915,7 @@ This is usually harmless: erase the file from the cache and Gradle would redownl
 
 Note that a variation of a compromised library is often _name squatting_, when a hacker would use GAV coordinates which _look legit_ but are actually different by one character, or _repository shadowing_, when a dependency with the official GAV coordinates is published in a malicious repository which comes first in your build.
 
-==== Untrusted signatures
+=== Untrusted signatures
 
 If you have signature verification enabled, Gradle will perform verification of the signatures but will not trust them automatically:
 
@@ -750,7 +926,7 @@ If you have signature verification enabled, Gradle will perform verification of 
 
 In this case it means you need to check yourself if the key that was used for verification (and therefore the signature) can be trusted, in which case refer to <<#sec:understanding-signature-verification,this section of the documentation>> to figure out how to declare trusted keys.
 
-==== Failed signature verification
+=== Failed signature verification
 
 If Gradle fails to verify a signature, you will need to take action and verify artifacts manually because this **may indicate a compromised dependency**.
 
@@ -801,7 +977,7 @@ However, if you only do so, Gradle will still fail because all keys for this art
 ----
 
 [[sec:manual-checking-dependency]]
-==== Manual verification of a dependency
+=== Manual verification of a dependency
 
 You will likely face a dependency verification failure (either checksum verification or signature verification) and will need to figure out if the dependency has been compromised or not.
 
@@ -897,136 +1073,8 @@ You can safely delete the artifact file as Gradle would automatically re-downloa
 rm -rf ~/.gradle/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1
 ----
 
-[[sec:disabling-verification]]
-=== Disabling verification or making it lenient
-
-Dependency verification can be expensive, or sometimes verification could get in the way of day to day development (because of frequent dependency upgrades, for example).
-
-Alternatively, you might want to enable verification on CI servers but not on local machines.
-
-Gradle actually provides 3 different verification modes:
-
-- `strict`, which is the default.
-Verification fails _as early as possible_, in order to avoid the use of compromised dependencies during the build.
-- `lenient`, which will run the build even if there are verification failures.
-The verification errors will be displayed during the build without causing a build failure.
-- `off` when verification is totally ignored.
-
-All those modes can be activated on the CLI using the `--dependency-verification` flag, for example:
-
-----
-./gradlew --dependency-verification lenient build
-----
-
-Alternatively, you can set the `org.gradle.dependency.verification` system property, either on the CLI:
-
-----
-./gradlew -Dorg.gradle.dependency.verification=lenient build
-----
-
-or in a `gradle.properties` file:
-
-----
-org.gradle.dependency.verification=lenient
-----
-
-[[sec:trusting-artifacts]]
-=== Trusting some particular artifacts
-
-You might want to trust some artifacts more than others.
-For example, it's legitimate to think that artifacts produced in your company and found in your internal repository only are safe, but you want to check every external component.
-
-NOTE: This is a typical _company policy_.
-In practice, **nothing** prevents your internal repository from being compromised, so it's a good idea to check your internal artifacts too!
-
-For this purpose, Gradle offers a way to automatically trust some artifacts.
-You can trust all artifacts in a group by adding this to your configuration:
-
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
-   <configuration>
-      <trusted-artifacts>
-         <trust group="com.mycompany" reason="We trust mycompany artifacts"/>
-      </trusted-artifacts>
-   </configuration>
-</verification-metadata>
-----
-
-This means that all components which group is `com.mycompany` will automatically be trusted.
-Trusted means that Gradle will not perform any verification whatsoever.
-
-The `trust` element accepts those attributes:
-
-- `group`, the group of the artifact to trust
-- `name`, the name of the artifact to trust
-- `version`, the version of the artifact to trust
-- `file`, the name of the artifact _file_ to trust
-- `regex`, a boolean saying if the `group`, `name`, `version` and `file` attributes need to be interpreted as regular expressions (defaults to `false`)
-- `reason`, an optional reason, why matched artifacts are trusted
-
-In the example above it means that the trusted artifacts would be artifacts in `com.mycompany` but not `com.mycompany.other`.
-To trust all artifacts in `com.mycompany` and all subgroups, you can use:
-
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
-   <configuration>
-      <trusted-artifacts>
-         <trust group="^com[.]mycompany($|([.].*))" regex="true" reason="We trust all mycompany artifacts"/>
-      </trusted-artifacts>
-   </configuration>
-</verification-metadata>
-----
-
-[[sec:trusting-several-checksums]]
-=== Trusting multiple checksums for an artifact
-
-It's quite common to have _different checksums for the same artifact_ in the wild.
-How is that possible?
-Despite progress, it's often the case that developers publish, for example, to Maven Central and another repository separately, using different builds.
-In general, this is not a problem but sometimes it means that the metadata files would be different (different timestamps, additional whitespaces, ...).
-Add to this that your build may use several repositories or repository mirrors and it makes it quite likely that a single build can "see" different metadata files for the same component!
-In general, it's not malicious (but you **must** verify that the artifact is actually correct), so Gradle lets you declare the additional artifact checksums.
-For example:
-
-[source,xml]
-----
-      <component group="org.apache" name="apache" version="13">
-         <artifact name="apache-13.pom">
-            <sha256 value="2fafa38abefe1b40283016f506ba9e844bfcf18713497284264166a5dbf4b95e">
-               <also-trust value="ff513db0361fd41237bef4784968bc15aae478d4ec0a9496f811072ccaf3841d"/>
-            </sha256>
-         </artifact>
-      </component>
-----
-
-You can have as many `also-trust` entries as needed, but in general you shouldn't have more than 2.
-
-[[sec:skipping-javadocs]]
-=== Skipping Javadocs and sources
-
-By default Gradle will verify _all_ downloaded artifacts, which includes Javadocs and sources.
-In general this is not a problem but you might face an issue with IDEs which automatically try to download them during import: if you didn't set the checksums for those too, importing would fail.
-
-To avoid this, you can configure Gradle to trust automatically all javadocs/sources:
-
-[source,xml]
-----
-<trusted-artifacts>
-   <trust file=".*-javadoc[.]jar" regex="true"/>
-   <trust file=".*-sources[.]jar" regex="true"/>
-</trusted-artifacts>
-----
-
 [[sec:verification-metadata-hygiene]]
-=== Cleaning up the verification file
+== Cleaning up the verification file
 
 If you do nothing, the dependency verification metadata will grow over time as you add new dependencies or change versions: Gradle will not automatically remove _unused_ entries from this file.
 The reason is that there's no way for Gradle to know upfront if a dependency will effectively be used during the build or not.
@@ -1038,7 +1086,7 @@ One option to cleanup the file is to move the existing `verification-metadata.xm
 We need to move the existing file because both the bootstrapping mode and the dry-run mode are incremental: they copy information from the existing metadata verification file (in particular, trusted keys).
 
 [[sec:refreshing-missing-keys]]
-=== Refreshing missing keys
+== Refreshing missing keys
 
 Gradle caches missing keys for 24 hours, meaning it will not attempt to re-download the missing keys for 24 hours after failing.
 
@@ -1048,37 +1096,4 @@ If you want to retry immediately, you can run with the `--refresh-keys` CLI flag
 ./gradlew build --refresh-keys
 ----
 
-[[sub:disabling-specific-verification]]
-== Disabling dependency verification for some configurations only
-
-In order to provide the strongest security level possible, dependency verification is enabled globally.
-This will ensure, for example, that you trust all the plugins you use.
-However, the plugins themselves may need to resolve additional dependencies that it doesn't make sense to ask the user to accept.
-For this purpose, Gradle provides an API which allows _disabling dependency verification on some specific configurations_.
-
-[WARNING]
-====
-Disabling dependency verification, if you care about security, is not a good idea.
-This API mostly exist for cases where it doesn't make sense to check dependencies.
-However, in order to be on the safe side, Gradle will systematically print a warning whenever verification has been disabled for a specific configuration.
-====
-
-As an example, a plugin may want to check if there are _newer_ versions of a library available and list those versions.
-It doesn't make sense, in this context, to ask the user to put the checksums of the POM files of the newer releases because by definition, they don't know about them.
-So the plugin might need to run its code _independently of the dependency verification configuration_.
-
-To do this, you need to call the `ResolutionStrategy#disableDependencyVerification` method:
-
-.Disabling dependency verification
-====
-include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-one-configuration]"]
-include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-one-configuration]"]
-====
-
-It's also possible to disable verification on detached configurations like in the following example:
-
-.Disabling dependency verification
-====
-include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-detached-configuration]"]
-include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-detached-configuration]"]
-====
+See <<#sec:add-manual-keyring,here>> how to manually add keys if Gradle keeps failing to download them.

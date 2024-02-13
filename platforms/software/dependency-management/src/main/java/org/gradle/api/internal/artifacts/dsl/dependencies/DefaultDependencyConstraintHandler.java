@@ -122,23 +122,21 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         }
     };
     private final ConfigurationContainer configurationContainer;
-    private final DependencyFactoryInternal dependencyFactory;
+    private final DependencyConstraintFactoryInternal dependencyConstraintFactory;
     private final DynamicAddDependencyMethods dynamicMethods;
     private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
-    private final Category platform;
     private final Category enforcedPlatform;
 
     public DefaultDependencyConstraintHandler(ConfigurationContainer configurationContainer,
-                                              DependencyFactoryInternal dependencyFactory,
+                                              DependencyConstraintFactoryInternal dependencyConstraintFactory,
                                               ObjectFactory objects,
                                               PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
-        this.dependencyFactory = dependencyFactory;
+        this.dependencyConstraintFactory = dependencyConstraintFactory;
         this.dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DependencyConstraintAdder());
         this.objects = objects;
         this.platformSupport = platformSupport;
-        platform = toCategory(Category.REGULAR_PLATFORM);
         enforcedPlatform = toCategory(Category.ENFORCED_PLATFORM);
     }
 
@@ -178,7 +176,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     private DependencyConstraint doCreate(Object dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
-        DependencyConstraint dependencyConstraint = dependencyFactory.createDependencyConstraint(dependencyNotation);
+        DependencyConstraint dependencyConstraint = dependencyConstraintFactory.createDependencyConstraint(dependencyNotation);
         if (configureAction != null) {
             configureAction.execute(dependencyConstraint);
         }
@@ -237,7 +235,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
             if (dependencyNotation instanceof Provider<?>) {
                 return doAddProvider(configuration, (Provider<?>) dependencyNotation, ConfigureUtil.configureUsing(configureClosure));
             }
-            DependencyConstraint dependencyConstraint = ConfigureUtil.configure(configureClosure, dependencyFactory.createDependencyConstraint(dependencyNotation));
+            DependencyConstraint dependencyConstraint = ConfigureUtil.configure(configureClosure, dependencyConstraintFactory.createDependencyConstraint(dependencyNotation));
             configuration.getDependencyConstraints().add(dependencyConstraint);
             return dependencyConstraint;
         }

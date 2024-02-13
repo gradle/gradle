@@ -20,13 +20,14 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.provider.Provider;
-import org.gradle.cache.internal.DecompressionCache;
+import org.gradle.cache.internal.DecompressionCoordinator;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 
@@ -42,23 +43,28 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static java.lang.String.format;
 
 public class ZipFileTree extends AbstractArchiveFileTree {
+    private static final String ZIP_ENTRY_PREFIX = "zip entry";
+
     private final Provider<File> fileProvider;
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileHasher fileHasher;
+    private final TemporaryFileProvider temporaryExtractionDir;
 
     public ZipFileTree(
         Provider<File> zipFile,
         Chmod chmod,
         DirectoryFileTreeFactory directoryFileTreeFactory,
         FileHasher fileHasher,
-        DecompressionCache decompressionCache
+        DecompressionCoordinator decompressionCoordinator,
+        TemporaryFileProvider temporaryExtractionDir
     ) {
-        super(decompressionCache);
+        super(decompressionCoordinator);
         this.fileProvider = zipFile;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileHasher = fileHasher;
+        this.temporaryExtractionDir = temporaryExtractionDir;
     }
 
     @Override
@@ -78,17 +84,17 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
     @Override
     public void visit(FileVisitor visitor) {
-        decompressionCache.useCache(() -> {
-            File zipFile = fileProvider.get();
-            if (!zipFile.exists()) {
-                throw new InvalidUserDataException(format("Cannot expand %s as it does not exist.", getDisplayName()));
-            }
-            if (!zipFile.isFile()) {
-                throw new InvalidUserDataException(format("Cannot expand %s as it is not a file.", getDisplayName()));
-            }
+        File zipFile = fileProvider.get();
+        if (!zipFile.exists()) {
+            throw new InvalidUserDataException(format("Cannot expand %s as it does not exist.", getDisplayName()));
+        }
+        if (!zipFile.isFile()) {
+            throw new InvalidUserDataException(format("Cannot expand %s as it is not a file.", getDisplayName()));
+        }
 
+        File expandedDir = getExpandedDir();
+        decompressionCoordinator.exclusiveAccessTo(expandedDir, () -> {
             AtomicBoolean stopFlag = new AtomicBoolean();
-            File expandedDir = getExpandedDir();
             try (ZipFile zip = new ZipFile(zipFile)) {
                 // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
                 // to us. So, collect the entries in a map and iterate over them in alphabetical order.
@@ -102,6 +108,8 @@ public class ZipFileTree extends AbstractArchiveFileTree {
                         visitor.visitFile(details);
                     }
                 }
+            } catch (GradleException e) {
+                throw e; // Gradle exceptions are already meant to be human-readable, so just rethrow it
             } catch (Exception e) {
                 throw new GradleException(format("Cannot expand %s.", getDisplayName()), e);
             }
@@ -126,7 +134,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     private File getExpandedDir() {
         File zipFile = fileProvider.get();
         String expandedDirName = "zip_" + fileHasher.hash(zipFile);
-        return new File(decompressionCache.getBaseDir(), expandedDirName);
+        return temporaryExtractionDir.newTemporaryDirectory(".cache", "expanded", expandedDirName);
     }
 
     private static final class DetailsImpl extends AbstractArchiveFileTreeElement {
@@ -143,7 +151,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
         @Override
         public String getDisplayName() {
-            return format("zip entry %s!%s", originalFile, entry.getName());
+            return format("%s '%s!%s'", ZIP_ENTRY_PREFIX, originalFile, entry.getName());
         }
 
         @Override

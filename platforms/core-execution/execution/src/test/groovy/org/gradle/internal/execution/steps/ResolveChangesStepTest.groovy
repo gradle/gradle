@@ -18,21 +18,22 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.api.problems.internal.Problem
+import org.gradle.api.problems.internal.ProblemReport
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 
-class ResolveChangesStepTest extends StepSpec<CachingContext> {
+class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
     def step = new ResolveChangesStep<>(changeDetector, delegate)
     def beforeExecutionState = Stub(BeforeExecutionState) {
         inputFileProperties >> ImmutableSortedMap.of()
+        inputProperties >> ImmutableSortedMap.of()
+        outputFileLocationSnapshots >> ImmutableSortedMap.of()
     }
     def delegateResult = Mock(Result)
-
 
     def "doesn't provide input file changes when rebuild is forced"() {
         when:
@@ -106,7 +107,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
-        _ * context.validationProblems >> ImmutableList.of(Mock(Problem))
+        _ * context.validationProblems >> ImmutableList.of(Mock(ProblemReport))
         _ * context.previousExecutionState >> Optional.empty()
         0 * _
     }
@@ -126,6 +127,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
             return delegateResult
         }
         _ * changes.changeDescriptions >> ImmutableList.of("changed")
+        _ * changes.beforeExecutionState >> beforeExecutionState
         _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
@@ -134,4 +136,5 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _) >> changes
         0 * _
     }
+
 }

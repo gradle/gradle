@@ -25,7 +25,6 @@ import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.streams.DefaultValueStore
 import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
@@ -216,13 +215,9 @@ class ConfigurationCacheRepository(
     val cache = cacheBuilderFactory
         .createCrossVersionCacheBuilder("configuration-cache")
         .withDisplayName("Configuration Cache")
-        .withOnDemandLockMode() // Don't need to lock anything until we use the caches
+        .withInitialLockMode(FileLockManager.LockMode.OnDemand) // Don't need to lock anything until we use the caches
         .withLruCacheCleanup(cleanupActionDecorator)
         .open()
-
-    private
-    fun CacheBuilder.withOnDemandLockMode() =
-        withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
 
     private
     fun CacheBuilder.withLruCacheCleanup(cleanupActionDecorator: CleanupActionDecorator): CacheBuilder =

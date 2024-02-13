@@ -28,11 +28,11 @@ import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.serialize.PlaceholderException
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.tooling.internal.provider.action.BuildActionSerializer
-import org.gradle.tooling.internal.provider.action.ExecuteBuildAction
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics
 import org.gradle.launcher.exec.BuildActionResult
 import org.gradle.launcher.exec.DefaultBuildActionParameters
+import org.gradle.tooling.internal.provider.action.BuildActionSerializer
+import org.gradle.tooling.internal.provider.action.ExecuteBuildAction
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 
 class DaemonMessageSerializerTest extends SerializerSpec {

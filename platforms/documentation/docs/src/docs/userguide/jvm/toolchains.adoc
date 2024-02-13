@@ -397,7 +397,7 @@ Gradle prefers higher version numbers, so JDK 17.0.1 comes before JDK 17.0.0.
 
 So Gradle picks the first match in this order: Microsoft JDK 17.0.1.
 
-[[sec:plugins]]
+[[sec:plugins_toolchains]]
 == Toolchains for plugin authors
 
 When creating a plugin or a task that uses toolchains, it is essential to provide sensible defaults and allow users to override them.

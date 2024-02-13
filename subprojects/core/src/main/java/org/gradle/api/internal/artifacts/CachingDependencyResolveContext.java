@@ -28,7 +28,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class CachingDependencyResolveContext implements DependencyResolveContext {
+@Deprecated
+public class CachingDependencyResolveContext {
     private final List<Object> queue = new ArrayList<Object>();
     private final CachingDirectedGraphWalker<Object, FileCollectionInternal> walker = new CachingDirectedGraphWalker<Object, FileCollectionInternal>(new DependencyGraph());
     private final TaskDependencyFactory taskDependencyFactory;
@@ -41,12 +42,10 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
         this.attributes = attributes;
     }
 
-    @Override
     public boolean isTransitive() {
         return transitive;
     }
 
-    @Override
     public Map<String, String> getAttributes() {
         return attributes;
     }
@@ -60,7 +59,9 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
         }
     }
 
-    @Override
+    /**
+     * Accepts either a {@link ResolvableDependency} or {@link org.gradle.api.file.FileCollection}
+     */
     public void add(Object dependency) {
         queue.add(dependency);
     }

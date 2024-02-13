@@ -16,13 +16,11 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.problems.buildtree.ProblemReporter;
 
 import java.io.File;
 
-@NonNullApi
 public class DeprecationsReporter implements ProblemReporter {
     @Override
     public String getId() {

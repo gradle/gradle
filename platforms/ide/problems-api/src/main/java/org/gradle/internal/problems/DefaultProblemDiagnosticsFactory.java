@@ -120,6 +120,7 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
             remainingStackTraces.set(maxStackTraces);
         }
 
+        @Override
         public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
             if (exception == null) {
                 return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
@@ -128,10 +129,12 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
             }
         }
 
+        @Override
         public ProblemDiagnostics forCurrentCaller() {
             return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
         }
 
+        @Override
         public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
             return locationFromStackTrace(getImplicitThrowable(exceptionFactory), false, true, NO_OP);
         }

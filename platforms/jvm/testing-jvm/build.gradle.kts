@@ -10,7 +10,15 @@ This project is a implementation dependency of many other testing-related subpro
 dependency for any projects working directly with Test tasks.
 """
 
+errorprone {
+    disabledChecks.addAll(
+        "EmptyBlockTag", // 1 occurrences
+    )
+}
+
 dependencies {
+    api(project(":testing-base"))
+
     implementation(project(":functional"))
     implementation(project(":base-services"))
     implementation(project(":messaging"))
@@ -21,7 +29,6 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
-    implementation(project(":testing-base"))
     implementation(project(":testing-jvm-infrastructure"))
     implementation(project(":toolchains-jvm"))
 

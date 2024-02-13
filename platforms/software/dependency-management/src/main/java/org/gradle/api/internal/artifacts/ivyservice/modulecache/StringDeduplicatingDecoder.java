@@ -65,6 +65,21 @@ class StringDeduplicatingDecoder implements Decoder, Closeable {
     }
 
     @Override
+    public short readShort() throws EOFException, IOException {
+        return delegate.readShort();
+    }
+
+    @Override
+    public float readFloat() throws EOFException, IOException {
+        return delegate.readFloat();
+    }
+
+    @Override
+    public double readDouble() throws EOFException, IOException {
+        return delegate.readDouble();
+    }
+
+    @Override
     public boolean readBoolean() throws EOFException, IOException {
         return delegate.readBoolean();
     }
@@ -121,6 +136,6 @@ class StringDeduplicatingDecoder implements Decoder, Closeable {
 
     @Override
     public void close() throws IOException {
-        ((Closeable)delegate).close();
+        ((Closeable) delegate).close();
     }
 }

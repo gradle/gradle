@@ -23,12 +23,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
+import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutionApplicator
@@ -43,13 +42,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.specs.Specs
+import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -121,29 +118,51 @@ class DependencyGraphBuilderTest extends Specification {
         }
     }
 
-    def moduleConflictHandler = new DefaultConflictHandler(conflictResolver, moduleReplacements)
-    def capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler()
     def versionComparator = new DefaultVersionComparator()
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(desugaring, new ComponentIdGenerator())
-    def documentationRegistry = new DocumentationRegistry()
-    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(documentationRegistry))
+    def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
+    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
 
-    DependencyGraphBuilder builder
+    DependencyGraphBuilder builder = new DependencyGraphBuilder(
+        moduleExclusions,
+        AttributeTestUtil.attributesFactory(),
+        desugaring,
+        versionSelectorScheme,
+        versionComparator,
+        new ComponentIdGenerator(),
+        new VersionParser(),
+        variantSelector,
+        buildOperationProcessor
+    )
 
     def setup() {
         def rootComponentState = new DefaultLocalComponentGraphResolveState(0, root, desugaring, new ComponentIdGenerator(), false)
 
         _ * rootComponent.getRootComponent() >> rootComponentState
         _ * rootComponent.getRootVariant() >> rootComponentState.getConfiguration('root').asVariant()
-
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleConflictHandler, capabilitiesConflictHandler, Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), desugaring, versionSelectorScheme, versionComparator.asVersionComparator(), new ComponentIdGenerator(), new VersionParser(), variantSelector)
     }
 
-    private TestGraphVisitor resolve(DependencyGraphBuilder builder = this.builder) {
+    private TestGraphVisitor resolve(Spec<? super DependencyMetadata> edgeFilter = { true }) {
         def graphVisitor = new TestGraphVisitor()
-        builder.resolve(rootComponent, Mock(ResolutionStrategyInternal), [], graphVisitor)
+        builder.resolve(
+            rootComponent,
+            [],
+            edgeFilter,
+            attributesSchema,
+            componentSelectorConverter,
+            idResolver,
+            metaDataResolver,
+            moduleReplacements,
+            dependencySubstitutionApplicator,
+            conflictResolver,
+            [],
+            ConflictResolution.latest,
+            false,
+            false,
+            graphVisitor
+        )
         return graphVisitor
     }
 
@@ -589,7 +608,6 @@ class DependencyGraphBuilderTest extends Specification {
     def "does not include filtered dependencies"() {
         given:
         def spec = { DependencyMetadata dep -> dep.selector.module != 'c' }
-        builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleConflictHandler, capabilitiesConflictHandler, spec, attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), desugaring, versionSelectorScheme, Stub(Comparator), new ComponentIdGenerator(), new VersionParser(), variantSelector)
 
         def a = revision('a')
         def b = revision('b')
@@ -602,7 +620,7 @@ class DependencyGraphBuilderTest extends Specification {
         doesNotResolve d, c
 
         when:
-        def result = resolve(builder)
+        def result = resolve(spec)
         result.rethrowFailure()
 
         then:
@@ -1142,7 +1160,7 @@ class DependencyGraphBuilderTest extends Specification {
             excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.moduleVersionId.group, excluded.moduleVersionId.name))
         }
         def dependencyMetaData = new LocalComponentDependencyMetadata(componentSelector,
-            ImmutableAttributes.EMPTY, "default", [] as List<IvyArtifactName>,
+            "default", [] as List<IvyArtifactName>,
             excludeRules, force, false, transitive, false, false, null)
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency) {
             getAttributes() >> ImmutableAttributes.EMPTY

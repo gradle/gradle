@@ -5,26 +5,59 @@ plugins {
 
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
+errorprone {
+    disabledChecks.addAll(
+        "AnnotateFormatMethod", // 1 occurrences
+        "EmptyBlockTag", // 3 occurrences
+        "FormatString", // 1 occurrences
+        "GetClassOnEnum", // 4 occurrences
+        "HidingField", // 1 occurrences
+        "IdentityHashMapUsage", // 1 occurrences
+        "ImmutableEnumChecker", // 1 occurrences
+        "InvalidParam", // 1 occurrences
+        "MixedMutabilityReturnType", // 4 occurrences
+        "MutablePublicArray", // 1 occurrences
+        "NullableOptional", // 2 occurrences
+        "OperatorPrecedence", // 5 occurrences
+        "ReferenceEquality", // 3 occurrences
+        "StringCaseLocaleUsage", // 13 occurrences
+        "TypeParameterShadowing", // 2 occurrences
+        "UndefinedEquals", // 2 occurrences
+        "UnnecessaryLambda", // 1 occurrences
+        "UnnecessaryParentheses", // 1 occurrences
+        "UnnecessaryStringBuilder", // 1 occurrences
+        "UnusedMethod", // 8 occurrences
+        "UnusedTypeParameter", // 1 occurrences
+        "UnusedVariable", // 20 occurrences
+    )
+}
+
 dependencies {
     api(project(":core-api"))
     api(project(":problems-api"))
+    api(project(":base-annotations"))
+    api(project(":hashing"))
+    api(project(":process-services"))
+    api(project(":base-services"))
+    api(project(":files"))
+    api(project(":functional"))
+    api(project(":logging"))
+    api(project(":messaging"))
+    api(project(":persistent-cache"))
+    api(project(":snapshots"))
 
-    implementation(project(":base-services"))
+    api(libs.asm)
+    api(libs.jsr305)
+    api(libs.inject)
+    api(libs.groovy)
+    api(libs.guava)
+
     implementation(project(":base-services-groovy"))
-    implementation(project(":functional"))
-    implementation(project(":logging"))
-    implementation(project(":messaging"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":snapshots"))
 
     implementation(libs.futureKotlin("stdlib"))
-    implementation(libs.inject)
-    implementation(libs.fastutil)
-    implementation(libs.groovy)
     implementation(libs.slf4jApi)
-    implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.asm)
+    implementation(libs.fastutil)
 
     testFixturesApi(testFixtures(project(":diagnostics")))
     testFixturesApi(testFixtures(project(":core")))
@@ -71,9 +104,7 @@ packageCycles {
     excludePatterns.add("org/gradle/model/internal/manage/schema/**")
     excludePatterns.add("org/gradle/model/internal/type/**")
     excludePatterns.add("org/gradle/api/internal/plugins/*")
-}
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+    // cycle between org.gradle.api.internal.provider and org.gradle.util.internal
+    // (api.internal.provider -> ConfigureUtil, DeferredUtil -> api.internal.provider)
+    excludePatterns.add("org/gradle/util/internal/*")
 }

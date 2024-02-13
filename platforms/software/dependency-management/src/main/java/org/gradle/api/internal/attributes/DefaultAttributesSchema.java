@@ -27,6 +27,10 @@ import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.DefaultAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
+import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
@@ -53,10 +57,16 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final HashMap<AttributesSchemaInternal, AttributeMatcher> matcherCache = new HashMap<>();
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
     private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
+    private final ResolutionFailureDescriberRegistry failureDescriberRegistry;
 
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
+        this(instantiatorFactory, instantiatorFactory.inject(), isolatableFactory);
+    }
+
+    public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, InstanceGenerator instanceGenerator, IsolatableFactory isolatableFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
+        this.failureDescriberRegistry = ResolutionFailureDescriberRegistry.emptyRegistry(instanceGenerator);
     }
 
     @Override
@@ -160,6 +170,16 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     @Override
     public Attribute<?> getAttributeByName(String name) {
         return attributesByName.get(name);
+    }
+
+    @Override
+    public <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<?, FAILURE>> describerType) {
+        failureDescriberRegistry.registerDescriber(failureType, describerType);
+    }
+
+    @Override
+    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getFailureDescribers(Class<FAILURE> failureType) {
+        return failureDescriberRegistry.getDescribers(failureType);
     }
 
     // TODO: Move this out into its own class so it can be unit tested directly.

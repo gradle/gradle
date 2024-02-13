@@ -4,32 +4,42 @@ plugins {
 
 description = "Adds support for building Groovy projects"
 
+errorprone {
+    disabledChecks.addAll(
+        "ModifyCollectionInEnhancedForLoop", // 1 occurrences
+        "UnnecessaryParentheses", // 1 occurrences
+        "UnusedMethod", // 4 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
+
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":build-option"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":worker-processes"))
+    api(project(":base-services"))
+    api(project(":build-option"))
+    api(project(":core-api"))
+    api(project(":core"))
+    api(project(":files"))
+    api(project(":file-temp"))
+    api(project(":jvm-services"))
+    api(project(":language-java"))
+    api(project(":language-jvm"))
+    api(project(":problems-api"))
+    api(project(":platform-base"))
+    api(project(":toolchains-jvm"))
+    api(project(":workers"))
+    api(project(":worker-processes"))
+
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(project(":base-annotations"))
     implementation(project(":file-collections"))
-    implementation(project(":file-temp"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":jvm-services"))
-    implementation(project(":workers"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":language-jvm"))
-    implementation(project(":language-java"))
-    implementation(project(":files"))
-    implementation(project(":toolchains-jvm"))
+    implementation(project(":logging"))
+    implementation(project(":logging-api"))
 
     implementation(libs.groovy)
-    implementation(libs.groovyAnt)
-    implementation(libs.groovyDoc)
     implementation(libs.guava)
     implementation(libs.asm)
-    implementation(libs.inject)
 
     testImplementation(project(":base-services-groovy"))
     testImplementation(project(":internal-testing"))

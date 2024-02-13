@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 
-public interface ConfigurationContainerInternal extends RoleBasedConfigurationContainerInternal {
+public interface ConfigurationContainerInternal extends RoleBasedConfigurationContainerInternal, ConfigurationsProvider {
     @Override
     ConfigurationInternal getByName(String name) throws UnknownConfigurationException;
     @Override

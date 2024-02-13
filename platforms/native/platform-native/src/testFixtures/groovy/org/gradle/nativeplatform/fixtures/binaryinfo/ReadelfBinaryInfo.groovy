@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.fixtures.binaryinfo
 
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.Architectures
 
@@ -60,15 +61,29 @@ class ReadelfBinaryInfo implements BinaryInfo {
 
     @Override
     List<Symbol> listDebugSymbols() {
-        def process = ['readelf', '--debug-dump=info', binaryFile.absolutePath].execute()
+        def process = ['readelf', '-s', binaryFile.absolutePath].execute()
         def lines = process.inputStream.readLines()
-        def symbols = []
+        return readSymbols(lines)
+    }
 
-        lines.each { line ->
-            def findSymbol = (line =~ /.*DW_AT_name\s+:\s+(\(.*\):)?\s+(.*)/)
-            if (findSymbol.matches()) {
-                def name = new File(findSymbol[0][2] as String).name.trim()
-                symbols << new Symbol(name, 'D' as char, true)
+    /**
+     * This parses the command-line output of readelf -s and extracts all FILE symbols.
+     *
+     * @return list of symbols representing the source files included in the binary
+     */
+    @VisibleForTesting
+    static List<Symbol> readSymbols(List<String> lines) {
+        def symbols = []
+        lines.collect { it.trim() }.grep { !it.isEmpty() }.each {
+            //     11: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS crtstuff.c
+            def line = it.trim().split(/\s+/)
+            if (line.length > 7 && line[3] == "FILE") {
+                def name = line[7]
+                // These are objects added by GCC or Swift toolchains
+                if (!(name in ["crt1.o", "crtstuff.c", "SwiftRT-ELF.cpp"])) {
+                    def type = 'F' as char
+                    symbols.add(new Symbol(name, type, false))
+                }
             }
         }
         return symbols
@@ -80,6 +95,7 @@ class ReadelfBinaryInfo implements BinaryInfo {
         return readSoName(lines)
     }
 
+    @VisibleForTesting
     static String readSoName(List<String> lines) {
         final Pattern pattern = ~/^.*\(SONAME\)\s+.*soname.*\: \[(.*)\]$/
         String matchingLine = lines.find {
