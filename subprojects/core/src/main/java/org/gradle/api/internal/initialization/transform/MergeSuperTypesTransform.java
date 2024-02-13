@@ -22,15 +22,18 @@ import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -65,10 +68,17 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
         @Internal
         Property<CacheInstrumentationTypeRegistryBuildService> getBuildService();
 
+        /**
+         * Original classpath is an input, since if original classpath changes that means
+         * that also type hierarchy could have changed, so we need to re-merge the hierarchy.
+         */
         @InputFiles
         @PathSensitive(PathSensitivity.NAME_ONLY)
         ConfigurableFileCollection getOriginalClasspath();
     }
+
+    @Inject
+    public abstract ObjectFactory getObjects();
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputArtifact
@@ -78,6 +88,7 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
     public void transform(TransformOutputs outputs) {
         File input = getInput().get().getAsFile();
         File output = outputs.file(input.getName().replace(CollectDirectClassSuperTypesTransform.FILE_SUFFIX, MergeSuperTypesTransform.FILE_SUFFIX));
+        InjectedInternalServices services = getObjects().newInstance(InjectedInternalServices.class);
 
         try (InputStream inputStream = Files.newInputStream(input.toPath());
              BufferedWriter outputWriter = new BufferedWriter(new FileWriter(output))
@@ -85,7 +96,7 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
             Properties properties = loadProperties(inputStream);
             outputWriter.write(FILE_HASH_PROPERTY_NAME + "=" + properties.getProperty(FILE_HASH_PROPERTY_NAME) + "\n");
 
-            InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry();
+            InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry(services);
             for (String className : getSortedClassNames(properties)) {
                 Set<String> superTypes = registry.getSuperTypes(className);
                 if (!superTypes.isEmpty()) {
@@ -101,10 +112,9 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
         }
     }
 
-    private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
+    private InstrumentationTypeRegistry getInstrumentationTypeRegistry(InjectedInternalServices internalServices) {
         CacheInstrumentationTypeRegistryBuildService buildService = getParameters().getBuildService().get();
-        InstrumentationTypeRegistry registry = buildService.getInstrumentingTypeRegistry(null);
-        return registry;
+        return buildService.getInstrumentingTypeRegistry(internalServices.gradleCoreInstrumentingTypeRegistry);
     }
 
     private static Properties loadProperties(InputStream inputStream) throws IOException {
@@ -117,5 +127,19 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
         Set<String> types = new TreeSet<>(properties.stringPropertyNames());
         types.remove(FILE_HASH_PROPERTY_NAME);
         return types;
+    }
+
+    static class InjectedInternalServices {
+
+        private final GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry;
+
+        @Inject
+        public InjectedInternalServices(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+            this.gradleCoreInstrumentingTypeRegistry = gradleCoreInstrumentingTypeRegistry;
+        }
+
+        public GradleCoreInstrumentationTypeRegistry getGradleCoreInstrumentingTypeRegistry() {
+            return gradleCoreInstrumentingTypeRegistry;
+        }
     }
 }

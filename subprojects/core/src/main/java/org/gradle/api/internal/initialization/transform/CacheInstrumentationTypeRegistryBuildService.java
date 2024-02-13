@@ -41,6 +41,7 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
 
     public interface Parameters extends BuildServiceParameters {
         ConfigurableFileCollection getClassHierarchy();
+        ConfigurableFileCollection getOriginalClasspath();
     }
 
     private volatile InstrumentationTypeRegistry instrumentingTypeRegistry;

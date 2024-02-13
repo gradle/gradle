@@ -44,7 +44,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         """
 
         when:
-        run("tasks")
+        run("tasks", "--info")
 
         then:
         gradleUserHomeOutput("original/buildSrc.jar").exists()
@@ -90,7 +90,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["ExternalDependencyInstrumentingArtifactTransform", "CollectDirectClassSuperTypesTransform"]
+        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["CollectDirectClassSuperTypesTransform", "MergeSuperTypesTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
         gradleUserHomeOutput("instrumented/commons-lang3-3.8.1.jar").exists()
     }

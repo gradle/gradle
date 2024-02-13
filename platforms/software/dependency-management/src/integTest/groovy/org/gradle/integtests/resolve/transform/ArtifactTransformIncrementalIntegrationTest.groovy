@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTATION_PHASE_ATTRIBUTE
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.NOT_INSTRUMENTED_ATTRIBUTE_VALUE
 
 class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
@@ -35,10 +35,10 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
         """
         file("a/build.gradle") << """
             buildscript {
-                // Build script classpath is resolved via ${INSTRUMENTED_ATTRIBUTE.name} attribute,
+                // Build script classpath is resolved via ${INSTRUMENTATION_PHASE_ATTRIBUTE.name} attribute,
                 // so we have to set that attribute too to make transform run
                 def artifactType = Attribute.of('artifactType', String)
-                def instrumented = Attribute.of('${INSTRUMENTED_ATTRIBUTE.name}', String.class)
+                def instrumented = Attribute.of('${INSTRUMENTATION_PHASE_ATTRIBUTE.name}', String.class)
                 dependencies {
                     classpath "com.test:lib:1.0"
                     registerTransform(MakeColor) {

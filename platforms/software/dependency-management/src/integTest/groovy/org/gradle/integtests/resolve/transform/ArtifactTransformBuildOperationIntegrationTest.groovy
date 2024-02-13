@@ -43,7 +43,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.util.function.Predicate
 
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTATION_PHASE_ATTRIBUTE
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.NOT_INSTRUMENTED_ATTRIBUTE_VALUE
 
 class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
@@ -1480,10 +1480,10 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             : consumerBuildFile
         buildscriptDestination << """
             buildscript {
-                // Build script classpath is resolved via ${INSTRUMENTED_ATTRIBUTE.name} attribute,
+                // Build script classpath is resolved via ${INSTRUMENTATION_PHASE_ATTRIBUTE.name} attribute,
                 // so we have to set that attribute too to make transform run
                 def artifactType = Attribute.of('artifactType', String)
-                def instrumented = Attribute.of('${INSTRUMENTED_ATTRIBUTE.name}', String.class)
+                def instrumented = Attribute.of('${INSTRUMENTATION_PHASE_ATTRIBUTE.name}', String.class)
                 dependencies {
                     classpath("test:test:1.0")
 
