@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts.dsl;
 
+import com.h0tk3y.kotlin.staticObjectNotation.Restricted;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
@@ -48,6 +49,7 @@ import java.util.Set;
  *
  * @since 8.6
  */
+@Restricted
 @Incubating
 @NonExtensible
 @SuppressWarnings("JavadocReference")
