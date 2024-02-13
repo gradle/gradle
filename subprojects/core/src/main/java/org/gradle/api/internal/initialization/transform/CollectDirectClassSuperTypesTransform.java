@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitive;
@@ -94,7 +95,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
             File outputDir = outputs.dir("supertypes");
             File output = new File(outputDir, inputFile.getName() + DIRECT_SUPER_TYPES_SUFFIX);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
-                String hash = services.getFileSystemAccess().read(inputFile.getAbsolutePath()).getHash().toString();
+                String hash = InstrumentationTransformUtils.hash(services.getFileSystemAccess(), inputFile);
                 writer.write(FILE_HASH_PROPERTY_NAME + "=" + hash + "\n");
                 for (Map.Entry<String, Set<String>> entry : superTypes.entrySet()) {
                     writer.write(entry.getKey() + "=" + String.join(",", entry.getValue()) + "\n");

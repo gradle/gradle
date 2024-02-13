@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -102,7 +103,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             // Directories are ok to use outside the cache, since they are not locked by the daemon.
             // Jars that are already in the global cache don't need to be copied, since
             // the global caches are additive only and jars shouldn't be deleted or changed during the build.
-            String hash = injectedServices.fileSystemAccess.read(input.getAbsolutePath()).getHash().toString();
+            String hash = InstrumentationTransformUtils.hash(injectedServices.fileSystemAccess, input);
             createNewFile(outputs.file(ORIGINAL_DIR_NAME + "/" + hash + ORIGINAL_JAR_HASH_EXTENSION));
         } else {
             // Jars that are in some mutable location (e.g. build/ directory) need to be copied to the global cache,

@@ -39,6 +39,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.hash;
 
 public abstract class CacheInstrumentationTypeRegistryBuildService implements BuildService<CacheInstrumentationTypeRegistryBuildService.Parameters> {
 
@@ -100,10 +101,7 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
                         fileSystemAccess = getObjectFactory().newInstance(InjectedInternalServices.class).getFileSystemAccess();
                     }
                     Map<String, File> originalFiles = new HashMap<>(getParameters().getOriginalClasspath().getFiles().size());
-                    getParameters().getOriginalClasspath().forEach(file -> {
-                        String fileHash = fileSystemAccess.read(file.getAbsolutePath()).getHash().toString();
-                        originalFiles.put(fileHash, file);
-                    });
+                    getParameters().getOriginalClasspath().forEach(file -> originalFiles.put(hash(fileSystemAccess, file), file));
                     this.originalFiles = originalFiles;
                 }
             }
