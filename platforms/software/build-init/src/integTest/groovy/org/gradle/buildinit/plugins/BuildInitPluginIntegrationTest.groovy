@@ -327,6 +327,10 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
      --java-version     Provides java version to use in the project.
 
+     --overwrite     Allow existing files in the build directory to be overwritten?
+
+     --no-overwrite     Disables option --overwrite.
+
      --package     Set the package for source files.
 
      --project-name     Set the project name.

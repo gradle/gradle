@@ -30,8 +30,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     def basicType = "4: Basic (build structure only)"
     def basicTypeOption = 4
     def applicationOption = 1
-    def projectNamePrompt = "Project name (default: some-thing)"
+    def defaultProjectName = "some-thing"
+    def defaultFileName = "some-file"
+    def projectNamePrompt = "Project name (default: $defaultProjectName)"
     def convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+    def overwriteFilesPrompt = "Found existing files in the current directory: '%s'. Allow these files to be overwritten? (default: yes)"
+    def overwriteFilesExceptionMessage = "Existing files found in the current directory: '%s'. Unable to initialize build."
     def javaOption = 1
     def languageSelectionOptions = [
         "Select implementation language:",
@@ -118,6 +122,75 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def "prompts to overwrite files if any exist and defaults to yes"() {
+        when:
+        // a file exists in the build directory
+        targetDir.file(defaultFileName).touch()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init", "--incubating", "--dsl", "groovy", "--type", "basic", "--project-name", defaultProjectName)
+
+        def handle = executer.start()
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.toPath().resolve(defaultProjectName)))
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def "prompts to overwrite files if any exist and does not creates gradle files for no option"() {
+        when:
+        // a file exists in the build dir
+        targetDir.file(defaultFileName).touch()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+
+        // Initialize with only overwrite prompt
+        executer.withTasks("init", "--incubating", "--dsl", "groovy", "--type", "basic", "--project-name", defaultProjectName)
+
+        def handle = executer.start()
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.toPath().resolve(defaultProjectName)))
+        }
+        handle.stdinPipe.write(('no' + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.close()
+
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription("Execution failed for task ':init'")
+        result.assertHasCause(String.format(overwriteFilesExceptionMessage, executer.testDirectoryProvider.testDirectory.toPath().resolve(defaultProjectName)))
+
+        expect:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesNotGenerated()
+    }
+
+    def "does not prompt to overwrite files for option given on command-line"() {
+        when:
+        // a file exists in the build dir
+        targetDir.file(defaultFileName).touch()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+
+        // Initialize with no prompts
+        executer.withTasks("init", "--incubating", "--dsl", "groovy", "--type", "basic", "--project-name", defaultProjectName, "--overwrite")
+
+        def handle = executer.start()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated()
     }
 
     def "user can provide details for Java build"() {
@@ -252,6 +325,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'yes'
         ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.toPath().resolve(defaultProjectName)))
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Select 'yes'
+        ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(convertMavenBuildPrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
@@ -291,6 +370,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         executer.withStdinPipe()
         executer.withTasks("init")
         def handle = executer.start()
+
+        // Select 'yes'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.toPath().resolve(defaultProjectName)))
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
 
         // Select 'no'
         ConcurrentTestUtil.poll(60) {
