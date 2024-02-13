@@ -32,7 +32,6 @@ import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -52,7 +51,6 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
-import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.GradleVersion;
 
 import java.util.EnumSet;
@@ -183,14 +181,13 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         // Clear build service data after resolution so content can be garbage collected
         return runAndClearBuildServiceAfter(() -> {
             // We resolve class hierarchy before instrumentation, otherwise the resolution can block the whole build
-            Provider<CacheInstrumentationTypeRegistryBuildService> buildService = getOrRegisterNewService();
-            getOrRegisterNewService().get().getParameters().getClassHierarchy().setFrom(getHierarchyView(classpathConfiguration));
-            getOrRegisterNewService().get().getParameters().getOriginalClasspath().setFrom(classpathConfiguration);
+            CacheInstrumentationTypeRegistryBuildService buildService = getOrRegisterNewService().get();
+            buildService.getParameters().getClassHierarchy().setFrom(getHierarchyView(classpathConfiguration));
+            buildService.getParameters().getOriginalClasspath().setFrom(classpathConfiguration);
             FileCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             FileCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
             ClassPath instrumentedClasspath = DefaultClassPath.of(instrumentedExternalDependencies.plus(instrumentedProjectDependencies));
-            FileSystemAccess fileSystemAccess = ((GradleInternal) gradle).getServices().get(FileSystemAccess.class);
-            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath, hash -> buildService.get().getOriginalFile(hash, fileSystemAccess));
+            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath, buildService::getOriginalFile);
         });
     }
 

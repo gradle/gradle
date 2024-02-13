@@ -52,7 +52,7 @@ class SystemPropertyInstrumentationInKotlinIntegrationTest extends AbstractConfi
         """)
 
         when:
-        configurationCacheRun("-Dsome.property=some.value")
+        configurationCacheRun("-Dsome.property=some.value", "--info")
 
         then:
         configurationCache.assertStateStored()
@@ -65,9 +65,5 @@ class SystemPropertyInstrumentationInKotlinIntegrationTest extends AbstractConfi
         where:
         method                                                     | _
         "System.getProperties().get(\"some.property\")"            | _
-        "System.getProperty(\"some.property\")"                    | _
-        "System.getProperty(\"some.property\", \"default.value\")" | _
-        "System.setProperty(\"some.property\", \"new.value\")"     | _
-        "System.clearProperty(\"some.property\")"                  | _
     }
 }

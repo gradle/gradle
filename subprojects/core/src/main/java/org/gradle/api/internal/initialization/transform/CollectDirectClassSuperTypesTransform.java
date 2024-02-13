@@ -46,7 +46,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
-import static org.gradle.api.internal.initialization.transform.MergeSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
 
 /**
  * TODO: This class has similar implementation in build-logic/packaging/src/main/kotlin/gradlebuild/instrumentation/transforms/CollectDirectClassSuperTypesTransform.kt.
@@ -57,7 +56,8 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
 
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang");
     public static final String SUPER_TYPES_MARKER_FILE_NAME = ".gradle-super-types.marker";
-    public static final String FILE_SUFFIX = ".direct-super-types";
+    public static final String DIRECT_SUPER_TYPES_SUFFIX = ".direct-super-types";
+    public static final String FILE_HASH_PROPERTY_NAME = "-hash-";
 
     @Inject
     protected abstract ObjectFactory getObjects();
@@ -91,7 +91,8 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
                 return;
             }
 
-            File output = outputs.file(inputFile.getName() + FILE_SUFFIX);
+            File outputDir = outputs.dir("supertypes");
+            File output = new File(outputDir, inputFile.getName() + DIRECT_SUPER_TYPES_SUFFIX);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
                 String hash = services.getFileSystemAccess().read(inputFile.getAbsolutePath()).getHash().toString();
                 writer.write(FILE_HASH_PROPERTY_NAME + "=" + hash + "\n");
@@ -102,7 +103,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
 
             // Mark the folder so we know that this is a folder with super types files
             // This is currently used just to not delete the folders for performance testing
-            outputs.file(SUPER_TYPES_MARKER_FILE_NAME).createNewFile();
+            new File(outputDir, SUPER_TYPES_MARKER_FILE_NAME).createNewFile();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

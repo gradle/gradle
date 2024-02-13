@@ -17,6 +17,7 @@
 package org.gradle.api.internal.initialization.transform;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.classpath.types.ExternalPluginsInstrumentationTypeRegistry;
@@ -24,6 +25,7 @@ import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +38,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import static org.gradle.api.internal.initialization.transform.MergeSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
+import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
 
 public abstract class CacheInstrumentationTypeRegistryBuildService implements BuildService<CacheInstrumentationTypeRegistryBuildService.Parameters> {
 
@@ -45,8 +47,12 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
         ConfigurableFileCollection getOriginalClasspath();
     }
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
     private volatile InstrumentationTypeRegistry instrumentingTypeRegistry;
     private volatile Map<String, File> originalFiles;
+    private volatile FileSystemAccess fileSystemAccess;
 
     public InstrumentationTypeRegistry getInstrumentingTypeRegistry(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
         if (gradleCoreInstrumentationTypeRegistry.isEmpty()) {
@@ -86,15 +92,19 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
         return classHierarchy;
     }
 
-    public File getOriginalFile(String hash, FileSystemAccess fileSystemAccess) {
+    public File getOriginalFile(String hash) {
         if (originalFiles == null) {
             synchronized (this) {
                 if (originalFiles == null) {
-                    originalFiles = new HashMap<>(getParameters().getOriginalClasspath().getFiles().size());
+                    if (fileSystemAccess == null) {
+                        fileSystemAccess = getObjectFactory().newInstance(InjectedInternalServices.class).getFileSystemAccess();
+                    }
+                    Map<String, File> originalFiles = new HashMap<>(getParameters().getOriginalClasspath().getFiles().size());
                     getParameters().getOriginalClasspath().forEach(file -> {
                         String fileHash = fileSystemAccess.read(file.getAbsolutePath()).getHash().toString();
                         originalFiles.put(fileHash, file);
                     });
+                    this.originalFiles = originalFiles;
                 }
             }
         }
@@ -106,5 +116,10 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
         // since build service instance is not deregistered
         instrumentingTypeRegistry = null;
         originalFiles = null;
+    }
+
+    interface InjectedInternalServices {
+        @Inject
+        FileSystemAccess getFileSystemAccess();
     }
 }

@@ -46,7 +46,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.DIRECT_SUPER_TYPES_SUFFIX;
+import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
 import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.SUPER_TYPES_MARKER_FILE_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.findFirstWithSuffix;
 
 /**
  * A transform that merges all instrumentation related super types for classes from a single artifact to a single file.
@@ -61,8 +64,7 @@ import static org.gradle.api.internal.initialization.transform.CollectDirectClas
 @DisableCachingByDefault(because = "Not worth caching.")
 public abstract class MergeSuperTypesTransform implements TransformAction<MergeSuperTypesTransform.InstrumentArtifactTransformParameters> {
 
-    public static final String FILE_SUFFIX = ".merged-super-types";
-    public static final String FILE_HASH_PROPERTY_NAME = "-hash-";
+    public static final String MERGED_SUPER_TYPES_SUFFIX = ".merged-super-types";
 
     public interface InstrumentArtifactTransformParameters extends TransformParameters {
         @Internal
@@ -86,13 +88,9 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
 
     @Override
     public void transform(TransformOutputs outputs) {
-        File input = getInput().get().getAsFile();
-        if (input.getName().equals(SUPER_TYPES_MARKER_FILE_NAME)) {
-            // This is a marker, we don't want to process it
-            return;
-        }
-
-        File output = outputs.file(input.getName().replace(CollectDirectClassSuperTypesTransform.FILE_SUFFIX, MergeSuperTypesTransform.FILE_SUFFIX));
+        File input = findFirstWithSuffix(getInput().get().getAsFile(), DIRECT_SUPER_TYPES_SUFFIX);
+        File outputDir = outputs.dir("supertypes");
+        File output = new File(outputDir, input.getName().replace(DIRECT_SUPER_TYPES_SUFFIX, MergeSuperTypesTransform.MERGED_SUPER_TYPES_SUFFIX));
         InjectedInternalServices services = getObjects().newInstance(InjectedInternalServices.class);
 
         try (InputStream inputStream = Files.newInputStream(input.toPath());
@@ -111,7 +109,7 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
 
             // Mark the folder so we know that this is a folder with super types files
             // This is currently used just to not delete the folders for performance testing
-            outputs.file(SUPER_TYPES_MARKER_FILE_NAME).createNewFile();
+            new File(outputDir, SUPER_TYPES_MARKER_FILE_NAME).createNewFile();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -141,10 +139,6 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
         @Inject
         public InjectedInternalServices(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry) {
             this.gradleCoreInstrumentingTypeRegistry = gradleCoreInstrumentingTypeRegistry;
-        }
-
-        public GradleCoreInstrumentationTypeRegistry getGradleCoreInstrumentingTypeRegistry() {
-            return gradleCoreInstrumentingTypeRegistry;
         }
     }
 }
