@@ -28,6 +28,11 @@ configurations {
             // library gets selected for the shading configuration
         }
     }
+    /*shadedRuntimeElements {
+        attributes {
+            attribute(GradleModuleApiAttribute.attribute, GradleModuleApiAttribute.IMPLEMENTATION)
+        }
+    }*/
 }
 
 tasks.withType<KotlinCompile>().configureEach {
