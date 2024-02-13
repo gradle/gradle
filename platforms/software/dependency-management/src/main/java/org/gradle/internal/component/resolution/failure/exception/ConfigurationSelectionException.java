@@ -16,16 +16,14 @@
 
 package org.gradle.internal.component.resolution.failure.exception;
 
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+import javax.annotation.Nullable;
 
-import java.util.List;
+public class ConfigurationSelectionException extends AbstractResolutionFailureException {
+    public ConfigurationSelectionException(String message) {
+        super(message);
+    }
 
-/**
- * Represents a failure during variant selection when a named {@link org.gradle.api.artifacts.Configuration Configuration}
- * cannot be selected
- */
-public final class ConfigurationSelectionException extends AbstractResolutionFailureException {
-    public ConfigurationSelectionException(String message, ResolutionFailure failure, List<String> resolutions) {
-        super(message, failure, resolutions);
+    public ConfigurationSelectionException(String message, @Nullable Throwable cause) {
+        super(message, cause);
     }
 }

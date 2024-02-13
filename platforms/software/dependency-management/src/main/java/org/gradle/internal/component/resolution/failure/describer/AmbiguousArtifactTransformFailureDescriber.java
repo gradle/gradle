@@ -21,8 +21,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -41,10 +39,12 @@ public abstract class AmbiguousArtifactTransformFailureDescriber extends Abstrac
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
     @Override
-    public ArtifactVariantSelectionException describeFailure(AmbiguousArtifactTransformFailure failure, Optional<AttributesSchemaInternal> schema) {
-        String message = buildAmbiguousTransformMsg(failure);
-        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION), suggestReviewAlgorithm());
-        return new ArtifactVariantSelectionException(message, failure, resolutions);
+    public ArtifactVariantSelectionException describeFailure(AmbiguousArtifactTransformFailure failure) {
+        String msg = buildAmbiguousTransformMsg(failure);
+        ArtifactVariantSelectionException result = new ArtifactVariantSelectionException(msg);
+        suggestSpecificDocumentation(result, AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION);
+        suggestReviewAlgorithm(result);
+        return result;
     }
 
     private String buildAmbiguousTransformMsg(AmbiguousArtifactTransformFailure failure) {

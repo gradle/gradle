@@ -21,10 +21,6 @@
  * main branches of the {@link org.gradle.internal.component.resolution.failure.type.ResolutionFailure ResolutionFailure}
  * hierarchy, which represent a failure to select a variant of a component, and a failure to select
  * a configuration by name.
- *
- * Artifact variant selection failures are not represented by a specific exception type, as they are
- * similar to graph selection failures, and the type of failure is more important that the type of
- * resolution being performed in this hierarchy.
  */
 @org.gradle.api.NonNullApi
 package org.gradle.internal.component.resolution.failure.exception;
