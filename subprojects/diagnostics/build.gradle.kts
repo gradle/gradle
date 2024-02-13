@@ -26,6 +26,7 @@ dependencies {
     api(project(":enterprise-logging"))
     api(project(":file-collections"))
     api(project(":logging"))
+    api(project(":model-core"))
     api(project(":platform-base"))
     api(project(":reporting"))
 
@@ -35,7 +36,6 @@ dependencies {
 
     implementation(project(":functional"))
     implementation(project(":logging-api"))
-    implementation(project(":model-core"))
 
     implementation(libs.groovyJson)
     implementation(libs.guava)
