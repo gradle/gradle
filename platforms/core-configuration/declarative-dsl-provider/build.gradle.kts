@@ -18,33 +18,12 @@ plugins {
     id("gradlebuild.distribution.implementation-kotlin")
 }
 
-/*configurations {
-    compileClasspath {
-        attributes {
-            attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements.JAR))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling.SHADOWED))
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 6)
-        }
-    }
-}*/
-
-val artifactType = Attribute.of("artifactType", String::class.java)
-
-dependencies {
-    registerTransform(Unzip::class) {
-        from.attribute(artifactType, "jar")
-        to.attribute(artifactType, "java-classes-directory")
-    }
-}
-
 dependencies {
     api(project(":base-services"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":declarative-dsl-api"))
-//    api(project(":declarative-dsl-core"))
-     api(project(path = ":declarative-dsl-core", configuration = "shadedRuntimeElements"))
+    api(project(":declarative-dsl-core"))
     api(libs.futureKotlin("stdlib"))
     api(libs.inject)
 
