@@ -469,7 +469,7 @@ However, this might affect plugin authors if they don't use SAM conversions to c
 
 === Deprecations
 
-[[org_gradle_util_reports_deprecations]]
+[[org_gradle_util_reports_deprecations_8]]
 ==== Deprecated members of the `org.gradle.util` package now report their deprecation
 
 These members will be removed in Gradle 9.0:

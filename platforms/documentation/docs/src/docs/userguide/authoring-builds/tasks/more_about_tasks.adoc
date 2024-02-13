@@ -17,7 +17,7 @@
 
 A task represents some *independent unit of work* that a build performs, such as compiling classes, creating a JAR, generating Javadoc, or publishing archives to a repository.
 
-[[sec:listing_tasks]]
+[[sec:more_listing_tasks]]
 == Listing tasks
 
 All available tasks in your project come from Gradle plugins and build scripts.
@@ -396,7 +396,7 @@ When Gradle is able to fetch outputs of a task from the cache, it labels the tas
 The build cache particularly useful if you switch between branches regularly.
 Gradle supports both local and remote build caches.
 
-[[sec:task_dependencies]]
+[[sec:more_task_dependencies]]
 == Task dependencies
 
 Gradle inherently understands the dependencies among tasks.
@@ -632,7 +632,7 @@ include::sample[dir="snippets/tasks/customTask/kotlin",files="build.gradle.kts[t
 include::sample[dir="snippets/tasks/customTask/groovy",files="build.gradle[tags=define-task]"]
 ====
 
-You can learn more about developing custom task types in <<implementing_tasks.adoc#implementing_tasks,Implementing Tasks>>.
+You can learn more about developing custom task types in <<more_about_tasks.adoc#sec:implementing_tasks,Implementing Tasks>>.
 
 [[sec:configuration_avoidance]]
 == Task configuration avoidance

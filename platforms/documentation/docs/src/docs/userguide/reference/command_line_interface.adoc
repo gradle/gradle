@@ -76,7 +76,7 @@ For more information on exposing command line options for your own tasks, see <<
 === Executing tasks
 You can learn about what projects and tasks are available in the <<#sec:command_line_project_reporting, project reporting section>>.
 
-Most builds support a common set of tasks known as <<lifecycle_tasks.adoc#sec:lifecycle_tasks,,_lifecycle tasks_>>. These include the `build`, `assemble`, and `check` tasks.
+Most builds support a common set of tasks known as <<lifecycle_tasks.adoc#sec:lifecycle_tasks,_lifecycle tasks_>>. These include the `build`, `assemble`, and `check` tasks.
 
 To execute a task called `myTask` on the root project, type:
 
