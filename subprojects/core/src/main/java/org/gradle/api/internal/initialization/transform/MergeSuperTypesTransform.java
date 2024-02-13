@@ -87,6 +87,11 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
     @Override
     public void transform(TransformOutputs outputs) {
         File input = getInput().get().getAsFile();
+        if (input.getName().equals(SUPER_TYPES_MARKER_FILE_NAME)) {
+            // This is a marker, we don't want to process it
+            return;
+        }
+
         File output = outputs.file(input.getName().replace(CollectDirectClassSuperTypesTransform.FILE_SUFFIX, MergeSuperTypesTransform.FILE_SUFFIX));
         InjectedInternalServices services = getObjects().newInstance(InjectedInternalServices.class);
 

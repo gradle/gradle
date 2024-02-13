@@ -21,7 +21,10 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.work.DisableCachingByDefault;
+
+import java.io.File;
 
 /**
  * Artifact transform that instruments project based plugins with Gradle instrumentation.
@@ -37,5 +40,10 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
     @Override
     protected BytecodeInterceptorFilter provideInterceptorFilter() {
         return BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
+    }
+
+    @Override
+    protected File inputArtifact(FileSystemAccess fileSystemAccess) {
+        return getInput().get().getAsFile();
     }
 }

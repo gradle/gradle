@@ -40,6 +40,7 @@ import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -49,9 +50,11 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 
 import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.InstrumentArtifactTransformParameters;
+import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.SUPER_TYPES_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_JAR_HASH_EXTENSION;
 
 /**
  * Base artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
@@ -75,10 +78,13 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
 
     protected abstract BytecodeInterceptorFilter provideInterceptorFilter();
 
+    protected abstract File inputArtifact(FileSystemAccess fileSystemAccess);
+
     @Override
     public void transform(TransformOutputs outputs) {
-        File input = getInput().get().getAsFile();
-        if (!input.exists()) {
+        InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
+        File input = inputArtifact(injectedServices.fileSystemAccess);
+        if (input.getName().equals(SUPER_TYPES_MARKER_FILE_NAME) || !input.exists()) {
             // Files can be passed to the artifact transform even if they don't exist,
             // in the case when user adds a file classpath via files("path/to/jar").
             // Unfortunately we don't filter them out before the artifact transform is run.
@@ -104,14 +110,14 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         // Instrument jars
         doTransform(input, outputs, injectedServices);
 
-        // Copy original jars after in case they are not in global cache
-        if (input.isDirectory()) {
-            // Directories are ok to use outside the cache, since they are not locked by the daemon
-            outputs.dir(getInput());
-        } else if (injectedServices.getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
+        // Link to original jars if they are safe to load from cache loader otherwise copy a jar
+        if (input.isDirectory() || injectedServices.getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
+            // Here we just create a file with the hash of the original jar, so that we can reconstruct an original jar classpath.
+            // Directories are ok to use outside the cache, since they are not locked by the daemon.
             // Jars that are already in the global cache don't need to be copied, since
             // the global caches are additive only and jars shouldn't be deleted or changed during the build.
-            outputs.file(getInput());
+            String hash = injectedServices.fileSystemAccess.read(input.getAbsolutePath()).getHash().toString();
+            createNewFile(outputs.file(ORIGINAL_JAR_DIR_NAME + "/" + hash + ORIGINAL_JAR_HASH_EXTENSION));
         } else {
             // Jars that are in some mutable location (e.g. build/ directory) need to be copied to the global cache,
             // since daemon keeps them locked when loading them to a classloader, which prevents e.g. deleting the build directory on windows
@@ -153,13 +159,20 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         private final ClasspathElementTransformFactoryForLegacy legacyTransformFactory;
         private final GlobalCacheLocations globalCacheLocations;
         private final GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry;
+        private final FileSystemAccess fileSystemAccess;
 
         @Inject
-        public InjectedInstrumentationServices(Stat stat, GlobalCacheLocations globalCacheLocations, GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+        public InjectedInstrumentationServices(
+            Stat stat,
+            GlobalCacheLocations globalCacheLocations,
+            GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry,
+            FileSystemAccess fileSystemAccess
+        ) {
             this.transformFactory = new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
             this.legacyTransformFactory = new ClasspathElementTransformFactoryForLegacy(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
             this.globalCacheLocations = globalCacheLocations;
             this.gradleCoreInstrumentingTypeRegistry = gradleCoreInstrumentingTypeRegistry;
+            this.fileSystemAccess = fileSystemAccess;
         }
 
         public ClasspathElementTransformFactory getTransformFactory(boolean isAgentSupported) {

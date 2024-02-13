@@ -117,10 +117,12 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         allTransformsFor("main") ==~ [
             // Only the folder name is reported, so we cannot distinguish first and second
+            "CollectDirectClassSuperTypesTransform",
+            "MergeSuperTypesTransform",
             "ExternalDependencyInstrumentingArtifactTransform",
             "CollectDirectClassSuperTypesTransform",
-            "ExternalDependencyInstrumentingArtifactTransform",
-            "CollectDirectClassSuperTypesTransform"
+            "MergeSuperTypesTransform",
+            "ExternalDependencyInstrumentingArtifactTransform"
         ]
     }
 
@@ -158,10 +160,10 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("animals-1.0.jar") ==~ ["CollectDirectClassSuperTypesTransform", "ExternalDependencyInstrumentingArtifactTransform"]
-        def output = gradleUserHomeOutput("animals-1.0.jar.super-types")
+        allTransformsFor("animals-1.0.jar") ==~ ["MergeSuperTypesTransform", "CollectDirectClassSuperTypesTransform", "ExternalDependencyInstrumentingArtifactTransform"]
+        def output = gradleUserHomeOutput("animals-1.0.jar.direct-super-types")
         output.exists()
-        output.readLines() == [
+        output.readLines().drop(1) == [
             "org/gradle/test/Dog=org/gradle/test/Mammal",
             "org/gradle/test/GermanShepherd=org/gradle/test/Animal,org/gradle/test/Dog",
             "org/gradle/test/Mammal=org/gradle/test/Animal"

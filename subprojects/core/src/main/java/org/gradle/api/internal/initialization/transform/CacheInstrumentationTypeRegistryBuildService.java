@@ -22,6 +22,7 @@ import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.classpath.types.ExternalPluginsInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +46,7 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
     }
 
     private volatile InstrumentationTypeRegistry instrumentingTypeRegistry;
+    private volatile Map<String, File> originalFiles;
 
     public InstrumentationTypeRegistry getInstrumentingTypeRegistry(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
         if (gradleCoreInstrumentationTypeRegistry.isEmpty()) {
@@ -84,9 +86,25 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
         return classHierarchy;
     }
 
+    public File getOriginalFile(String hash, FileSystemAccess fileSystemAccess) {
+        if (originalFiles == null) {
+            synchronized (this) {
+                if (originalFiles == null) {
+                    originalFiles = new HashMap<>(getParameters().getOriginalClasspath().getFiles().size());
+                    getParameters().getOriginalClasspath().forEach(file -> {
+                        String fileHash = fileSystemAccess.read(file.getAbsolutePath()).getHash().toString();
+                        originalFiles.put(fileHash, file);
+                    });
+                }
+            }
+        }
+        return originalFiles.get(hash);
+    }
+
     public void clear() {
         // Remove the reference to the registry, so that it can be garbage collected,
         // since build service instance is not deregistered
         instrumentingTypeRegistry = null;
+        originalFiles = null;
     }
 }
