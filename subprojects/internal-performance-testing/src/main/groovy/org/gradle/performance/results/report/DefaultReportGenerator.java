@@ -21,6 +21,7 @@ import org.gradle.performance.results.CrossVersionResultsStore;
 import org.gradle.performance.results.DefaultPerformanceFlakinessDataProvider;
 import org.gradle.performance.results.PerformanceDatabase;
 import org.gradle.performance.results.PerformanceFlakinessDataProvider;
+import org.gradle.performance.results.ResultsStoreHelper;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,7 +39,7 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
     protected PerformanceFlakinessDataProvider getFlakinessDataProvider() {
         if (PerformanceDatabase.isAvailable()) {
             try (CrossVersionResultsStore resultsStore = new CrossVersionResultsStore()) {
-                return new DefaultPerformanceFlakinessDataProvider(resultsStore);
+                return new DefaultPerformanceFlakinessDataProvider(resultsStore, ResultsStoreHelper.determineOsFromChannel());
             }
         } else {
             return super.getFlakinessDataProvider();

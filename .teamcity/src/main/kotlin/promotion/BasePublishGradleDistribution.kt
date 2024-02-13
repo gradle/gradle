@@ -26,7 +26,7 @@ import vcsroots.gradlePromotionMaster
 abstract class BasePublishGradleDistribution(
     // The branch to be promoted
     val promotedBranch: String,
-    val prepTask: String,
+    val prepTask: String?,
     val triggerName: String,
     val gitUserName: String = "bot-teamcity",
     val gitUserEmail: String = "bot-teamcity@gradle.com",
@@ -53,15 +53,17 @@ abstract class BasePublishGradleDistribution(
             }
         }
 
-        steps {
-            buildStep(
-                this@BasePublishGradleDistribution.extraParameters,
-                this@BasePublishGradleDistribution.gitUserName,
-                this@BasePublishGradleDistribution.gitUserEmail,
-                this@BasePublishGradleDistribution.triggerName,
-                this@BasePublishGradleDistribution.prepTask,
-                "checkNeedToPromote"
-            )
+        if (this@BasePublishGradleDistribution.prepTask != null) {
+            steps {
+                buildStep(
+                    this@BasePublishGradleDistribution.extraParameters,
+                    this@BasePublishGradleDistribution.gitUserName,
+                    this@BasePublishGradleDistribution.gitUserEmail,
+                    this@BasePublishGradleDistribution.triggerName,
+                    this@BasePublishGradleDistribution.prepTask,
+                    "checkNeedToPromote"
+                )
+            }
         }
     }
 }
