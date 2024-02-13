@@ -68,7 +68,9 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
         because("SamplesIvyPublishIntegrationTest test applies the java-library plugin.")
     }
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("IvyPublishCrossVersionIntegrationTest test applies the war plugin.")
+    }
 }
 
 integTest.usesJavadocCodeSnippets = true
