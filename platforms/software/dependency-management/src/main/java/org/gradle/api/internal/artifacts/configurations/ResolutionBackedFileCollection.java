@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.component.ArtifactVariantSelectionException;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 public class ResolutionBackedFileCollection extends AbstractFileCollection {

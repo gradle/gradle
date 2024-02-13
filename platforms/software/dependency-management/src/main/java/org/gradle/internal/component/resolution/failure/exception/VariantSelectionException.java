@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component;
 
-public class AmbiguousGraphVariantsException extends AbstractGraphVariantSelectionException {
-    public AmbiguousGraphVariantsException(String message) {
+package org.gradle.internal.component.resolution.failure.exception;
+
+import javax.annotation.Nullable;
+
+public class VariantSelectionException extends AbstractResolutionFailureException {
+    public VariantSelectionException(String message) {
         super(message);
+    }
+
+    public VariantSelectionException(String message, @Nullable Throwable cause) {
+        super(message, cause);
     }
 }

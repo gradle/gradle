@@ -16,18 +16,13 @@
 
 package org.gradle.integtests.internal.component
 
-import org.gradle.api.internal.artifacts.transform.AmbiguousArtifactTransformException
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.internal.component.AbstractVariantSelectionException
-import org.gradle.internal.component.AmbiguousArtifactVariantsException
-import org.gradle.internal.component.AmbiguousGraphVariantsException
-import org.gradle.internal.component.ConfigurationNotFoundException
-import org.gradle.internal.component.ExternalConfigurationNotFoundException
-import org.gradle.internal.component.IncompatibleArtifactVariantsException
-import org.gradle.internal.component.IncompatibleGraphVariantsException
-import org.gradle.internal.component.NoMatchingArtifactVariantsException
-import org.gradle.internal.component.NoMatchingGraphVariantsException
+import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
+import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException
+import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -383,10 +378,10 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private static class Demonstration {
         private final String name
-        private final Class<AbstractVariantSelectionException> exception
+        private final Class<AbstractResolutionFailureException> exception
         private final Closure setup
 
-        private Demonstration(String name, Class<AbstractVariantSelectionException> exception, Closure setup) {
+        private Demonstration(String name, Class<AbstractResolutionFailureException> exception, Closure setup) {
             this.name = name
             this.exception = exception
             this.setup = setup
@@ -397,20 +392,20 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    private final Demonstration ambiguousGraphVariantForProject = new Demonstration("Ambiguous graph variant (project)", AmbiguousGraphVariantsException.class, this.&setupAmbiguousGraphVariantFailureForProject)
-    private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", AmbiguousGraphVariantsException.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
-    private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", NoMatchingGraphVariantsException.class, this.&setupNoMatchingGraphVariantsFailureForProject)
-    private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", NoMatchingGraphVariantsException.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
+    private final Demonstration ambiguousGraphVariantForProject = new Demonstration("Ambiguous graph variant (project)", VariantSelectionException.class, this.&setupAmbiguousGraphVariantFailureForProject)
+    private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", VariantSelectionException.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
+    private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", VariantSelectionException.class, this.&setupNoMatchingGraphVariantsFailureForProject)
+    private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", VariantSelectionException.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
 
-    private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", IncompatibleGraphVariantsException.class, this.&setupIncompatibleRequestedConfigurationFailureForProject)
+    private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", VariantSelectionException.class, this.&setupIncompatibleRequestedConfigurationFailureForProject)
 
-    private final Demonstration configurationNotFound = new Demonstration("Configuration not found", ConfigurationNotFoundException.class, this.&setupConfigurationNotFound)
-    private final Demonstration externalConfigurationNotFound = new Demonstration("External configuration not found", ExternalConfigurationNotFoundException.class, this.&setupExternalConfigurationNotFound)
+    private final Demonstration configurationNotFound = new Demonstration("Configuration not found", ConfigurationSelectionException.class, this.&setupConfigurationNotFound)
+    private final Demonstration externalConfigurationNotFound = new Demonstration("External configuration not found", ConfigurationSelectionException.class, this.&setupExternalConfigurationNotFound)
 
-    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible artifact variants", IncompatibleArtifactVariantsException.class, this.&setupIncompatibleArtifactVariantsFailureForProject)
-    private final Demonstration noMatchingArtifactVariants = new Demonstration("No matching artifact variants", NoMatchingArtifactVariantsException.class, this.&setupNoMatchingArtifactVariantsFailureForProject)
-    private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", AmbiguousArtifactTransformException.class, this.&setupAmbiguousArtifactTransformFailureForProject)
-    private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", AmbiguousArtifactVariantsException.class, this.&setupAmbiguousArtifactVariantsFailureForProject)
+    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible artifact variants", VariantSelectionException.class, this.&setupIncompatibleArtifactVariantsFailureForProject)
+    private final Demonstration noMatchingArtifactVariants = new Demonstration("No matching artifact variants", ArtifactVariantSelectionException.class, this.&setupNoMatchingArtifactVariantsFailureForProject)
+    private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", ArtifactVariantSelectionException.class, this.&setupAmbiguousArtifactTransformFailureForProject)
+    private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactVariantSelectionException.class, this.&setupAmbiguousArtifactVariantsFailureForProject)
 
     private final List<Demonstration> demonstrations = [
         ambiguousGraphVariantForProject,

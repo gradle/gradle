@@ -20,8 +20,8 @@ import com.google.common.collect.Ordering;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.transform.AmbiguousArtifactTransformException;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
+import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -34,14 +34,14 @@ import java.util.stream.Collectors;
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousArtifactTransformFailure}.
  */
-public abstract class AmbiguousArtifactTransformFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformException, AmbiguousArtifactTransformFailure> {
+public abstract class AmbiguousArtifactTransformFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformFailure> {
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
     @Override
-    public AmbiguousArtifactTransformException describeFailure(AmbiguousArtifactTransformFailure failure) {
+    public ArtifactVariantSelectionException describeFailure(AmbiguousArtifactTransformFailure failure) {
         String msg = buildAmbiguousTransformMsg(failure);
-        AmbiguousArtifactTransformException result = new AmbiguousArtifactTransformException(msg);
+        ArtifactVariantSelectionException result = new ArtifactVariantSelectionException(msg);
         suggestSpecificDocumentation(result, AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION);
         suggestReviewAlgorithm(result);
         return result;

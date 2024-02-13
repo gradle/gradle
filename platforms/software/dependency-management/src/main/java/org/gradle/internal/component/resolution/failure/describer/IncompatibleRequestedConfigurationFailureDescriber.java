@@ -17,10 +17,10 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.internal.component.IncompatibleGraphVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -30,15 +30,15 @@ import static org.gradle.internal.exceptions.StyledException.style;
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleRequestedConfigurationFailure}.
  */
-public abstract class IncompatibleRequestedConfigurationFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleGraphVariantsException, IncompatibleRequestedConfigurationFailure> {
+public abstract class IncompatibleRequestedConfigurationFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleRequestedConfigurationFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Override
-    public IncompatibleGraphVariantsException describeFailure(IncompatibleRequestedConfigurationFailure failure) {
+    public VariantSelectionException describeFailure(IncompatibleRequestedConfigurationFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildIncompatibleGraphVariantsFailureMsg(failure, describer);
-        IncompatibleGraphVariantsException e = new IncompatibleGraphVariantsException(message);
+        VariantSelectionException e = new VariantSelectionException(message);
         e.addResolution(INCOMPATIBLE_VARIANTS_PREFIX + getDocumentationRegistry().getDocumentationFor("variant_model", INCOMPATIBLE_VARIANTS_SECTION) + ".");
         suggestReviewAlgorithm(e);
         return e;

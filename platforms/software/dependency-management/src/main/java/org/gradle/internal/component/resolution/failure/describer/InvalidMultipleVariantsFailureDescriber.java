@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.IncompatibleArtifactVariantsException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure;
 
 import java.util.Comparator;
@@ -30,14 +30,14 @@ import java.util.List;
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleMultipleNodeSelectionFailure}.
  */
-public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleArtifactVariantsException, IncompatibleMultipleNodeSelectionFailure> {
+public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleMultipleNodeSelectionFailure> {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Override
-    public IncompatibleArtifactVariantsException describeFailure(IncompatibleMultipleNodeSelectionFailure failure) {
+    public VariantSelectionException describeFailure(IncompatibleMultipleNodeSelectionFailure failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
-        IncompatibleArtifactVariantsException result = new IncompatibleArtifactVariantsException(msg);
+        VariantSelectionException result = new VariantSelectionException(msg);
         suggestSpecificDocumentation(result, INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION);
         suggestReviewAlgorithm(result);
         return result;

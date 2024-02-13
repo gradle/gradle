@@ -16,21 +16,21 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.internal.component.ConfigurationNotFoundException;
+import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link RequestedConfigurationNotFoundFailure}.
  */
-public abstract class RequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ConfigurationNotFoundException, RequestedConfigurationNotFoundFailure> {
+public abstract class RequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<RequestedConfigurationNotFoundFailure> {
     @Override
-    public ConfigurationNotFoundException describeFailure(RequestedConfigurationNotFoundFailure failure) {
-        ConfigurationNotFoundException result = new ConfigurationNotFoundException(buildConfigurationNotFoundFailureMsg(failure));
+    public ConfigurationSelectionException describeFailure(RequestedConfigurationNotFoundFailure failure) {
+        ConfigurationSelectionException result = new ConfigurationSelectionException(buildConfigurationNotFoundFailureMsg(failure));
         suggestReviewAlgorithm(result);
         return result;
     }
 
     private String buildConfigurationNotFoundFailureMsg(RequestedConfigurationNotFoundFailure failure) {
-        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", failure.getRequestedName(), failure.getRequestedComponent().getDisplayName());
+        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", failure.getRequestedName(), failure.getRequestedComponentName());
     }
 }

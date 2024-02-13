@@ -17,24 +17,24 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.internal.component.AmbiguousArtifactVariantsException;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
+import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousResolutionFailure}.
  */
-public abstract class AmbiguousArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactVariantsException, AmbiguousResolutionFailure> {
+public abstract class AmbiguousArtifactVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousResolutionFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
     @Override
-    public AmbiguousArtifactVariantsException describeFailure(AmbiguousResolutionFailure failure) {
+    public ArtifactVariantSelectionException describeFailure(AmbiguousResolutionFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildMultipleMatchingVariantsFailureMsg(failure, describer);
-        AmbiguousArtifactVariantsException e = new AmbiguousArtifactVariantsException(message);
+        ArtifactVariantSelectionException e = new ArtifactVariantSelectionException(message);
         suggestSpecificDocumentation(e, AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION);
         suggestReviewAlgorithm(e);
         return e;

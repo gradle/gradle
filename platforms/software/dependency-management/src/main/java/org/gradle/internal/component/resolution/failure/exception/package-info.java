@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component;
 
-public class NoMatchingCapabilitiesException extends AbstractGraphVariantSelectionException {
-    public NoMatchingCapabilitiesException(String message) {
-        super(message);
-    }
-}
+/**
+ * Exceptions thrown when variant selection fails.
+ *
+ * The hierarchy of exceptions here should be kept small, and in sync with the 2
+ * main branches of the {@link org.gradle.internal.component.resolution.failure.type.ResolutionFailure ResolutionFailure}
+ * hierarchy, which represent a failure to select a variant of a component, and a failure to select
+ * a configuration by name.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.internal.component.resolution.failure.exception;

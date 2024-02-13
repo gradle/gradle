@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component;
+package org.gradle.internal.component.resolution.failure.exception;
 
-import org.gradle.internal.component.model.GraphVariantSelector;
-import org.gradle.internal.exceptions.ResolutionProvider;
+import javax.annotation.Nullable;
 
-/**
- * Abstract base class of exceptions thrown by the {@link ResolutionFailureHandler} when a variant of a component cannot be selected
- * by the {@link GraphVariantSelector}.
- */
-public abstract class AbstractGraphVariantSelectionException extends AbstractVariantSelectionException implements ResolutionProvider {
-    public AbstractGraphVariantSelectionException(String message) {
+public class ConfigurationSelectionException extends AbstractResolutionFailureException {
+    public ConfigurationSelectionException(String message) {
         super(message);
+    }
+
+    public ConfigurationSelectionException(String message, @Nullable Throwable cause) {
+        super(message, cause);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component;
+package org.gradle.internal.component.resolution.failure.exception;
 
 import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
-import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.component.ResolutionFailureHandler;
 
 /**
  * Base class of exceptions thrown by the {@link ResolutionFailureHandler} when a variant of a component cannot be selected
@@ -25,8 +25,7 @@ import org.gradle.internal.exceptions.Contextual;
  *
  * Throwing a more specific subclass of this type should be preferred when possible.
  */
-@Contextual
-public class ArtifactVariantSelectionException extends AbstractVariantSelectionException {
+public class ArtifactVariantSelectionException extends AbstractResolutionFailureException {
     public ArtifactVariantSelectionException(String message) {
         super(message);
     }
