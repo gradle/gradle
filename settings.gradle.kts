@@ -1,4 +1,7 @@
 import org.gradle.api.internal.FeaturePreviews
+import java.io.PrintWriter
+import java.io.Serializable
+import java.io.Writer
 
 pluginManagement {
     repositories {
@@ -34,6 +37,8 @@ includeBuild("build-logic-commons")
 includeBuild("build-logic")
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
+
+val architectureElements = mutableListOf<ArchitectureElementBuilder>()
 
 // If you include a new subproject here, you will need to execute the
 // ./gradlew generateSubprojectsInfo
@@ -273,17 +278,102 @@ gradle.settingsEvaluated {
 
 // region platform include DSL
 
+gradle.rootProject {
+    tasks.register("architectureDoc", GeneratorTask::class.java) {
+        outputFile = layout.projectDirectory.file("architecture/index.html")
+        elements = provider { architectureElements.map { it.build() } }
+    }
+}
+
+abstract class GeneratorTask : DefaultTask() {
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @get:Input
+    abstract val elements: ListProperty<ArchitectureElement>
+
+    @TaskAction
+    fun generate() {
+        outputFile.asFile.get().bufferedWriter().use {
+            PrintWriter(it).run {
+                println(
+                    """
+                    <html>
+                        <head>
+                            <title>Gradle platform architecture</title>
+                        </head>
+                        <body>
+                            <script type="module">
+                                import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+                                mermaid.initialize({ startOnLoad: true });
+                            </script>
+                            <h1>Gradle platform architecture</h1>
+                """.trimIndent()
+                )
+                graph(elements.get())
+                println(
+                    """
+                        </body>
+                    </html>
+                """.trimIndent()
+                )
+            }
+        }
+    }
+
+    private fun PrintWriter.graph(elements: List<ArchitectureElement>) {
+        println("""
+            <pre class="mermaid">
+                graph TD
+        """.trimIndent())
+        for (element in elements) {
+            if (element is Platform) {
+                platform(element)
+            } else {
+                element(element)
+            }
+        }
+        println("</pre>")
+    }
+
+    private fun PrintWriter.platform(platform: Platform) {
+        println()
+        println("subgraph ${platform.id}[\"${platform.name} platform\"]")
+        for (child in platform.children) {
+            element(child)
+        }
+        println("end")
+        println("style ${platform.id} fill:#c2e0f4,stroke:#3498db,stroke-width:2px;")
+    }
+
+    private fun PrintWriter.element(element: ArchitectureElement) {
+        println()
+        println(
+            """
+            ${element.id}["${element.name} module"]
+            style ${element.id} stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px;
+        """.trimIndent()
+        )
+    }
+}
+
 /**
  * Defines a top-level architecture module.
  */
-fun module(platformName: String, moduleConfiguration: ArchitectureModuleScope.() -> Unit) =
-    ArchitectureModuleScope("platforms/$platformName").moduleConfiguration()
+fun module(moduleName: String, moduleConfiguration: ArchitectureModuleBuilder.() -> Unit) {
+    val module = ArchitectureModuleBuilder(moduleName)
+    architectureElements.add(module)
+    module.moduleConfiguration()
+}
 
 /**
  * Defines a platform.
  */
-fun platform(platformName: String, platformConfiguration: PlatformScope.() -> Unit) =
-    PlatformScope("platforms/$platformName").platformConfiguration()
+fun platform(platformName: String, platformConfiguration: PlatformBuilder.() -> Unit) {
+    val platform = PlatformBuilder(platformName)
+    architectureElements.add(platform)
+    platform.platformConfiguration()
+}
 
 /**
  * Defines a bucket of unassigned projects.
@@ -300,27 +390,57 @@ class ProjectScope(
     }
 }
 
-class ArchitectureModuleScope(
-    private val projectScope: ProjectScope
+sealed class ArchitectureElement(
+    val name: String
+) : Serializable {
+    val id: String = name.replace("-", "_")
+}
+
+class Platform(name: String, val children: List<ArchitectureModule>) : ArchitectureElement(name)
+
+class ArchitectureModule(name: String) : ArchitectureElement(name)
+
+sealed class ArchitectureElementBuilder(
+    val name: String
 ) {
-    constructor(basePath: String): this(ProjectScope(basePath))
+    abstract fun build(): ArchitectureElement
+}
+
+class ArchitectureModuleBuilder(
+    name: String,
+    private val projectScope: ProjectScope
+) : ArchitectureElementBuilder(name) {
+    constructor(name: String) : this(name, ProjectScope("platforms/$name"))
 
     fun subproject(projectName: String) {
         projectScope.subproject(projectName)
+    }
+
+    override fun build(): ArchitectureModule {
+        return ArchitectureModule(name)
     }
 }
 
-class PlatformScope(
+class PlatformBuilder(
+    name: String,
     private val projectScope: ProjectScope
-) {
-    constructor(basePath: String): this(ProjectScope(basePath))
+) : ArchitectureElementBuilder(name) {
+    private val modules = mutableListOf<ArchitectureModuleBuilder>()
+
+    constructor(name: String) : this(name, ProjectScope("platforms/$name"))
 
     fun subproject(projectName: String) {
         projectScope.subproject(projectName)
     }
 
-    fun module(platformName: String, moduleConfiguration: ArchitectureModuleScope.() -> Unit) {
-        ArchitectureModuleScope("platforms/$platformName").moduleConfiguration()
+    fun module(platformName: String, moduleConfiguration: ArchitectureModuleBuilder.() -> Unit) {
+        val module = ArchitectureModuleBuilder(platformName)
+        modules.add(module)
+        module.moduleConfiguration()
+    }
+
+    override fun build(): Platform {
+        return Platform(name, modules.map { it.build() })
     }
 }
 
