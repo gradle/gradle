@@ -103,6 +103,18 @@ public abstract class InitBuild extends DefaultTask {
     public abstract Property<Boolean> getUseDefaults();
 
     /**
+    * Should we allow existing files in the build directory to be overwritten?
+    *
+    * This property can be set via command-line option '--overwrite'. Defaults to true.
+    *
+    * @since ?.?
+    */
+    @Input
+    @Optional
+    @Option(option = "overwrite", description = "Allow existing files in the build directory to be overwritten?")
+    public abstract Property<Boolean> getAllowFileOverwrite();
+
+    /**
      * The desired type of project to generate, such as 'java-application' or 'kotlin-library'.
      * <p>
      * This property can be set via command-line option '--type'.
@@ -270,6 +282,8 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private GenerationSettings calculateGenerationSettings(UserQuestions userQuestions) {
+        validateBuildDirectory(userQuestions);
+
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
 
         BuildInitializer initializer = getBuildInitializer(userQuestions, projectLayoutRegistry);
@@ -338,6 +352,26 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         return getUserInputHandler();
+    }
+
+    private void validateBuildDirectory(UserQuestions userQuestions) {
+        File[] existingProjectFiles = projectDir.getAsFile().listFiles();
+        boolean isNotEmptyDirectory = existingProjectFiles != null && existingProjectFiles.length != 0;
+        if (isNotEmptyDirectory) {
+            String projectDirPath = projectDir.getAsFile().getPath();
+
+            boolean fileOverwriteAllowed;
+            if (getAllowFileOverwrite().isPresent()) {
+                fileOverwriteAllowed = getAllowFileOverwrite().get();
+            } else {
+                fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the current directory: '" + projectDirPath +
+                "'. Allow these files to be overwritten?", true);
+            }
+
+            if (!fileOverwriteAllowed) {
+                throw new GradleException("Existing files found in the current directory: '" + projectDirPath + "'. Unable to initialize build.");
+            }
+        }
     }
 
     private static void validatePackageName(String packageName) {
