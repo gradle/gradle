@@ -26,7 +26,7 @@ pluginManagement {
 plugins {
     id("com.gradle.enterprise").version("3.16.2") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
 //    id("net.ltgt.errorprone").version("3.1.0")
 }
 
@@ -59,75 +59,79 @@ unassigned {
     subproject("core-api")
 }
 
-// Core Runtime Platform
-platform("core-runtime") {
-    subproject("base-annotations")
-    subproject("base-services")
-    subproject("bootstrap")
-    subproject("build-operations")
-    subproject("build-option")
-    subproject("build-profile")
-    subproject("cli")
-    subproject("distributions-basics")
-    subproject("distributions-core")
-    subproject("file-temp")
-    subproject("files")
-    subproject("functional")
-    subproject("installation-beacon")
-    subproject("instrumentation-agent")
-    subproject("instrumentation-declarations")
-    subproject("internal-instrumentation-api")
-    subproject("internal-instrumentation-processor")
-    subproject("launcher")
-    subproject("logging")
-    subproject("logging-api")
-    subproject("messaging")
-    subproject("native")
-    subproject("process-services")
-    subproject("worker-services")
-    subproject("wrapper")
-    subproject("wrapper-shared")
+// Core platform
+platform("core") {
+
+    // Core Runtime Module
+    module("core-runtime") {
+        subproject("base-annotations")
+        subproject("base-services")
+        subproject("bootstrap")
+        subproject("build-operations")
+        subproject("build-option")
+        subproject("build-profile")
+        subproject("cli")
+        subproject("distributions-basics")
+        subproject("distributions-core")
+        subproject("file-temp")
+        subproject("files")
+        subproject("functional")
+        subproject("installation-beacon")
+        subproject("instrumentation-agent")
+        subproject("instrumentation-declarations")
+        subproject("internal-instrumentation-api")
+        subproject("internal-instrumentation-processor")
+        subproject("launcher")
+        subproject("logging")
+        subproject("logging-api")
+        subproject("messaging")
+        subproject("native")
+        subproject("process-services")
+        subproject("worker-services")
+        subproject("wrapper")
+        subproject("wrapper-shared")
+    }
+
+    // Core Configuration Module
+    module("core-configuration") {
+        subproject("api-metadata")
+        subproject("base-services-groovy")
+        subproject("configuration-cache")
+        subproject("file-collections")
+        subproject("input-tracking")
+        subproject("kotlin-dsl")
+        subproject("kotlin-dsl-provider-plugins")
+        subproject("kotlin-dsl-tooling-builders")
+        subproject("kotlin-dsl-tooling-models")
+        subproject("kotlin-dsl-plugins")
+        subproject("kotlin-dsl-integ-tests")
+        subproject("model-core")
+        subproject("model-groovy")
+        subproject("declarative-dsl-api")
+        subproject("declarative-dsl-provider")
+        subproject("declarative-dsl-core")
+    }
+
+    // Core Execution Module
+    module("core-execution") {
+        subproject("build-cache")
+        subproject("build-cache-base")
+        subproject("build-cache-local")
+        subproject("build-cache-http")
+        subproject("build-cache-packaging")
+        subproject("build-cache-spi")
+        subproject("file-watching")
+        subproject("execution")
+        subproject("hashing")
+        subproject("persistent-cache")
+        subproject("snapshots")
+        subproject("worker-processes")
+        subproject("workers")
+    }
 }
 
-// Core Configuration Platform
-platform("core-configuration") {
-    subproject("api-metadata")
-    subproject("base-services-groovy")
-    subproject("configuration-cache")
-    subproject("file-collections")
-    subproject("input-tracking")
-    subproject("kotlin-dsl")
-    subproject("kotlin-dsl-provider-plugins")
-    subproject("kotlin-dsl-tooling-builders")
-    subproject("kotlin-dsl-tooling-models")
-    subproject("kotlin-dsl-plugins")
-    subproject("kotlin-dsl-integ-tests")
-    subproject("model-core")
-    subproject("model-groovy")
-    subproject("declarative-dsl-api")
-    subproject("declarative-dsl-provider")
-    subproject("declarative-dsl-core")
-}
-
-// Core Execution Platform
-platform("core-execution") {
-    subproject("build-cache")
-    subproject("build-cache-base")
-    subproject("build-cache-local")
-    subproject("build-cache-http")
-    subproject("build-cache-packaging")
-    subproject("build-cache-spi")
-    subproject("file-watching")
-    subproject("execution")
-    subproject("hashing")
-    subproject("persistent-cache")
-    subproject("snapshots")
-    subproject("worker-processes")
-    subproject("workers")
-}
-
-// Documentation Platform
-platform("documentation") {
+// Documentation Module
+module("documentation") {
     subproject("docs")
     subproject("docs-asciidoctor-extensions-base")
     subproject("docs-asciidoctor-extensions")
@@ -141,8 +145,8 @@ platform("extensibility") {
     subproject("test-kit")
 }
 
-// IDE Platform
-platform("ide") {
+// IDE Module
+module("ide") {
     subproject("base-ide-plugins")
     subproject("ide")
     subproject("ide-native")
@@ -216,8 +220,8 @@ platform("jvm") {
     subproject("war")
 }
 
-// Develocity Platform
-platform("enterprise") {
+// Develocity Module
+module("enterprise") {
     subproject("enterprise")
     subproject("enterprise-logging")
     subproject("enterprise-operations")
@@ -225,7 +229,7 @@ platform("enterprise") {
     subproject("enterprise-workers")
 }
 
-platform("build-infrastructure") {
+module("build-infrastructure") {
     subproject("precondition-tester")
 }
 
@@ -269,18 +273,54 @@ gradle.settingsEvaluated {
 
 // region platform include DSL
 
+/**
+ * Defines a top-level architecture module.
+ */
+fun module(platformName: String, moduleConfiguration: ArchitectureModuleScope.() -> Unit) =
+    ArchitectureModuleScope("platforms/$platformName").moduleConfiguration()
+
+/**
+ * Defines a platform.
+ */
 fun platform(platformName: String, platformConfiguration: PlatformScope.() -> Unit) =
     PlatformScope("platforms/$platformName").platformConfiguration()
 
-fun unassigned(platformConfiguration: PlatformScope.() -> Unit) =
-    PlatformScope("subprojects").platformConfiguration()
+/**
+ * Defines a bucket of unassigned projects.
+ */
+fun unassigned(moduleConfiguration: ProjectScope.() -> Unit) =
+    ProjectScope("subprojects").moduleConfiguration()
 
-class PlatformScope(
+class ProjectScope(
     private val basePath: String
 ) {
     fun subproject(projectName: String) {
         include(projectName)
         project(":$projectName").projectDir = file("$basePath/$projectName")
+    }
+}
+
+class ArchitectureModuleScope(
+    private val projectScope: ProjectScope
+) {
+    constructor(basePath: String): this(ProjectScope(basePath))
+
+    fun subproject(projectName: String) {
+        projectScope.subproject(projectName)
+    }
+}
+
+class PlatformScope(
+    private val projectScope: ProjectScope
+) {
+    constructor(basePath: String): this(ProjectScope(basePath))
+
+    fun subproject(projectName: String) {
+        projectScope.subproject(projectName)
+    }
+
+    fun module(platformName: String, moduleConfiguration: ArchitectureModuleScope.() -> Unit) {
+        ArchitectureModuleScope("platforms/$platformName").moduleConfiguration()
     }
 }
 
