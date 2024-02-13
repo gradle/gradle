@@ -24,7 +24,7 @@ import spock.lang.Timeout
 
 @Timeout(120)
 @ToolingApiVersion('>=6.1')
-@TargetGradleVersion(">=7.0")
+@TargetGradleVersion(">=8.8")
 /**
  * @see org.gradle.integtests.tooling.r87.TestDisplayNameJUnit4CrossVersionSpec and
  * @see org.gradle.integtests.tooling.r87.TestDisplayNameSpockCrossVersionSpec
@@ -262,7 +262,8 @@ public class ParameterizedTests {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
                         testClass("org.example.ParameterizedTests") {
-                            suite("test1(String)") {
+                            displayName "Parameterized test"
+                            testMethodSuite("test1(String)") {
                                 displayName "1st test"
                                 generatedTest("test1(String)[1]") {
                                     displayName "[1] foo"
@@ -271,7 +272,7 @@ public class ParameterizedTests {
                                     displayName "[2] bar"
                                 }
                             }
-                            suite("test2(String)") {
+                            testMethodSuite("test2(String)") {
                                 displayName "2nd test"
                                 generatedTest("test2(String)[1]") {
                                     displayName "1 ==> the test for 'foo'"
@@ -287,7 +288,7 @@ public class ParameterizedTests {
         }
     }
 
-    @TargetGradleVersion(">8.6")
+    @TargetGradleVersion(">=8.8")
     def "reports display names for dynamic tests"() {
         file("src/test/java/org/example/DynamicTests.java") << """package org.example;
 
@@ -339,24 +340,25 @@ public class DynamicTests {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
                         testClass("org.example.DynamicTests") {
-                            suite("testFactory()") {
+                            displayName "DynamicTests"
+                            testMethodSuite("testFactory()") {
                                 displayName "testFactory()"
-                                suite("testFactory()[1]") {
+                                testMethodSuite("testFactory()[1]") {
                                     displayName "some container"
-                                    suite("testFactory()[1][1]") {
+                                    testMethodSuite("testFactory()[1][1]") {
                                         displayName "some nested container"
-                                        generatedTest("testFactory()[1][1][1]", "org.example.DynamicTests") {
+                                        generatedTest("testFactory()[1][1][1]") {
                                             displayName "foo"
                                         }
-                                        generatedTest("testFactory()[1][1][2]", "org.example.DynamicTests") {
+                                        generatedTest("testFactory()[1][1][2]") {
                                             displayName "bar"
                                         }
                                     }
                                 }
                             }
-                            suite("anotherTestFactory()") {
+                            testMethodSuite("anotherTestFactory()") {
                                 displayName "another test factory"
-                                generatedTest("anotherTestFactory()[1]", "org.example.DynamicTests") {
+                                generatedTest("anotherTestFactory()[1]") {
                                     displayName "foo"
                                 }
                             }
@@ -429,7 +431,7 @@ public class ComplexTests {
                             test("ugly_test()") {
                                 displayName "pretty pretty_test"
                             }
-                            suite("parametrized_test(int, String)") {
+                            testMethodSuite("parametrized_test(int, String)") {
                                 displayName "parametrized test (int, String)"
                                 generatedTest("parametrized_test(int, String)[1]") {
                                     displayName "[1] 10, first"
@@ -438,7 +440,7 @@ public class ComplexTests {
                                     displayName "[2] 20, second"
                                 }
                             }
-                            suite("ugly_parametrized_test(int, String)") {
+                            testMethodSuite("ugly_parametrized_test(int, String)") {
                                 displayName "pretty parametrized test"
                                 generatedTest("ugly_parametrized_test(int, String)[1]") {
                                     displayName "[1] 30, third"

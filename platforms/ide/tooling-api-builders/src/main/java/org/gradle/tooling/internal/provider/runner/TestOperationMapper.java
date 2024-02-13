@@ -85,7 +85,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
     }
 
     private DefaultTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptorInternal suite) {
-        return new DefaultTestDescriptor(buildOperationId, suite.getName(), suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), null, parentId, taskTracker.getTaskPath(buildOperationId));
+        return new DefaultTestDescriptor(buildOperationId, suite.getName(), suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), suite.getMethodName(), parentId, taskTracker.getTaskPath(buildOperationId));
     }
 
     private DefaultTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptorInternal test) {

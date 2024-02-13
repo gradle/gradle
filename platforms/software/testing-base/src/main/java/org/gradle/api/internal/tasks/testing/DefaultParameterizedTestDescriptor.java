@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,27 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.api.NonNullApi;
+import org.gradle.internal.id.CompositeIdGenerator;
 
 import javax.annotation.Nullable;
 
-@UsedByScanPlugin("test-distribution")
-public class DefaultTestDescriptor extends AbstractTestDescriptor {
-    private final String displayName;
+@NonNullApi
+public class DefaultParameterizedTestDescriptor extends DefaultTestSuiteDescriptor {
+
+    private final CompositeIdGenerator.CompositeId parentId;
     private final String className;
-    private final String classDisplayName;
+    private final String displayName;
 
-    @UsedByScanPlugin("test-distribution")
-    public DefaultTestDescriptor(Object id, String className, String name) {
-        this(id, className, name, null, name);
-    }
-
-    @UsedByScanPlugin("test-distribution")
-    public DefaultTestDescriptor(Object id, String className, String name, @Nullable String classDisplayName, String displayName) {
-        super(id, name);
+    public DefaultParameterizedTestDescriptor(Object id, String methodName, @Nullable String className, String displayName, CompositeIdGenerator.CompositeId parentId) {
+        super(id, methodName);
         this.className = className;
-        this.classDisplayName = classDisplayName == null ? className : classDisplayName;
         this.displayName = displayName;
+        this.parentId = parentId;
     }
 
-    @Override
-    public String toString() {
-        return "Test " + getName() + "(" + className + ")";
-    }
-
-    @Override
-    public boolean isComposite() {
-        return false;
+    public CompositeIdGenerator.CompositeId getParentId() {
+        return parentId;
     }
 
     @Override
@@ -65,7 +55,7 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
     }
 
     @Override
-    public String getClassDisplayName() {
-        return classDisplayName;
+    public String toString() {
+        return "Test method " + getMethodName();
     }
 }

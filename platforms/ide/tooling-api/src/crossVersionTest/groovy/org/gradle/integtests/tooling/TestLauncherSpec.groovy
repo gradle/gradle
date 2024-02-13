@@ -326,7 +326,9 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
 
         void test(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
 
-        void generatedTest(String name, String className, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
+        void testMethodSuite(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
+
+        void generatedTest(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec)
     }
 
     class DefaultTestEventsSpec implements TestEventsSpec {
@@ -430,8 +432,25 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         }
 
         @Override
-        void generatedTest(String name, String className = null, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-            def expectedClassName = className ?: parent.parent.name
+        void testMethodSuite(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+            def expectedClassName = ((JvmTestOperationDescriptor) parent).className
+            def child = testEvents.find {
+                it.parent == parent &&
+                    it.jvmTestKind == JvmTestKind.SUITE &&
+                    it.suiteName == name &&
+                    it.className == expectedClassName &&
+                    it.methodName == name &&
+                    it.name == name
+            }
+            if (child == null) {
+                failWith("test method suite", name)
+            }
+            assertSpec(child, testEvents, verifiedEvents, spec)
+        }
+
+        @Override
+        void generatedTest(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+            def expectedClassName = ((JvmTestOperationDescriptor) parent).className
             def child = testEvents.find {
                 it.parent == parent &&
                     it.jvmTestKind == JvmTestKind.ATOMIC &&

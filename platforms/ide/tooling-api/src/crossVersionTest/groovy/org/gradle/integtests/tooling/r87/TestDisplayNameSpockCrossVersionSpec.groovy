@@ -26,7 +26,7 @@ import spock.lang.Timeout
 
 @Timeout(120)
 @ToolingApiVersion('>=6.1')
-@TargetGradleVersion(">8.6")
+@TargetGradleVersion(">=8.8")
 @Requires(UnitTestPreconditions.Jdk17OrEarlier)
 /**
  * @see org.gradle.integtests.tooling.r70.TestDisplayNameJUnit5CrossVersionSpec and
@@ -124,7 +124,7 @@ class ParameterizedTests extends Specification {
                     suite("Gradle Test Executor") {
                         testClass("org.example.ParameterizedTests") {
                             displayName "ParameterizedTests"
-                            suite("length of #name is #length") {
+                            testMethodSuite("length of #name is #length") {
                                 displayName "length of #name is #length"
                                 generatedTest("length of Spock is 5") {
                                     displayName "length of Spock is 5"

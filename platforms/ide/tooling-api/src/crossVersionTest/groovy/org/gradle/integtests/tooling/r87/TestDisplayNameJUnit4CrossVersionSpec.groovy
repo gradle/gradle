@@ -26,7 +26,7 @@ import spock.lang.Timeout
 
 @Timeout(120)
 @ToolingApiVersion('>=6.1')
-@TargetGradleVersion(">8.6")
+@TargetGradleVersion(">=8.8")
 @Requires(UnitTestPreconditions.Jdk17OrEarlier)
 /**
  * @see org.gradle.integtests.tooling.r70.TestDisplayNameJUnit5CrossVersionSpec and
