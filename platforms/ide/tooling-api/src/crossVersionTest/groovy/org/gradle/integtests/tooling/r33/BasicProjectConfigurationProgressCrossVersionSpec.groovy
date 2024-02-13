@@ -124,7 +124,6 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         configureA.failures[0].message == "A problem occurred configuring project ':a'."
     }
 
-    @TargetGradleVersion(">8.6")
     def "generates events for buildSrc builds"() {
         given:
         buildSrc()
@@ -194,10 +193,14 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
 
         then:
         events.tests.size() == events.operations.size()
+        def aTestDisplayName = targetDist.hasLegacyTestDisplayNames ? "Test ok(ATest)" : "ok"
         if (targetDist.runsBuildSrcTests) {
-            events.operation("Gradle Test Run :buildSrc:a:test").descendant("ok")
+            def event = events.operation("Gradle Test Run :buildSrc:a:test").descendant(aTestDisplayName)
+            event.parent.descriptor.name == "ATest"
         }
-        events.operation("Gradle Test Run :test").descendant("ok")
+        def thingTestDisplayName = targetDist.hasLegacyTestDisplayNames ? "Test ok(ThingTest)" : "ok"
+        def event = events.operation("Gradle Test Run :test").descendant(thingTestDisplayName)
+        event.parent.descriptor.name == "ThingTest"
     }
 
     def javaProjectWithTests() {

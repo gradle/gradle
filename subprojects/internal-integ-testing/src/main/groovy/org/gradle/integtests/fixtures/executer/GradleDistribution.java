@@ -180,4 +180,9 @@ public interface GradleDistribution {
      * Returns true if it as a Gradle version that supports Kotlin scripts
      */
     boolean isSupportsKotlinScript();
+
+    /**
+     * Returns true if this version wraps tests display names with 'test method(Class)' instead of 'method'
+     */
+    boolean isHasLegacyTestDisplayNames();
 }

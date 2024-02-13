@@ -43,7 +43,6 @@ import spock.lang.Timeout
 class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     public static final GradleVersion GRADLE_VERSION_34 = GradleVersion.version("3.4")
 
-    @TargetGradleVersion(">8.6")
     def "test launcher api fires progress events"() {
         given:
         collectDescriptorsFromBuild()
@@ -67,14 +66,26 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         def testExecutorEvents = events.operations.findAll { it.descriptor.displayName.matches "Gradle Test Executor \\d+" }
         testExecutorEvents.size() == 2
         testExecutorEvents.every { it.successful }
-        events.tests.findAll { it.descriptor.displayName == "MyTest" }.size() == 2
-        events.tests.findAll { it.descriptor.displayName == "foo" }.size() == 2
-        events.tests.findAll { it.descriptor.displayName == "foo2" }.size() == 2
-        if (supportsEfficientClassFiltering()) {
-            events.tests.size() == 10
+        if (targetDist.hasLegacyTestDisplayNames) {
+            assert events.tests.findAll { it.descriptor.displayName == "Test class example.MyTest" }.size() == 2
+            assert events.tests.findAll { it.descriptor.displayName == "Test foo(example.MyTest)" }.size() == 2
+            assert events.tests.findAll { it.descriptor.displayName == "Test foo2(example.MyTest)" }.size() == 2
+            if (supportsEfficientClassFiltering()) {
+                assert events.tests.size() == 10
+            } else {
+                assert events.tests.findAll { it.descriptor.displayName == "Test class example2.MyOtherTest" }.size() == 2
+                assert events.tests.size() == 12
+            }
         } else {
-            events.tests.findAll { it.descriptor.displayName == "MyOtherTest" }.size() == 2
-            events.tests.size() == 12
+            assert events.tests.findAll { it.descriptor.displayName == "MyTest" }.size() == 2
+            assert events.tests.findAll { it.descriptor.displayName == "foo" }.size() == 2
+            assert events.tests.findAll { it.descriptor.displayName == "foo2" }.size() == 2
+            if (supportsEfficientClassFiltering()) {
+                assert events.tests.size() == 10
+            } else {
+                assert events.tests.findAll { it.descriptor.displayName == "MyOtherTest" }.size() == 2
+                assert events.tests.size() == 12
+            }
         }
     }
 
@@ -92,10 +103,10 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         if (supportsEfficientClassFiltering()) {
-            events.tests.size() == 10
+            assert events.tests.size() == 10
             assertTestNotExecuted(className: "example2.MyOtherTest")
         } else {
-            events.tests.size() == 12
+            assert events.tests.size() == 12
             assertTestExecuted(className: "example2.MyOtherTest")
         }
 

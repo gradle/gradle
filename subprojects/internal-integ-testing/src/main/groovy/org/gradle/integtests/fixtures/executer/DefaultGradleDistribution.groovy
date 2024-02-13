@@ -336,6 +336,11 @@ class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("4.10.3"); // see compatibility matrix https://docs.gradle.org/8.0/userguide/compatibility.html
     }
 
+    @Override
+    boolean isHasLegacyTestDisplayNames() {
+        return !isSameOrNewer("8.8")
+    }
+
     protected boolean isSameOrNewer(String otherVersion) {
         return isVersion(otherVersion) || version.compareTo(GradleVersion.version(otherVersion)) > 0;
     }

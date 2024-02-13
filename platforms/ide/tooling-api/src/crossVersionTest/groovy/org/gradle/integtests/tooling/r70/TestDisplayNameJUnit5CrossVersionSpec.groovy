@@ -24,7 +24,7 @@ import spock.lang.Timeout
 
 @Timeout(120)
 @ToolingApiVersion('>=6.1')
-@TargetGradleVersion(">=8.8")
+@TargetGradleVersion(">=7.0")
 /**
  * @see org.gradle.integtests.tooling.r87.TestDisplayNameJUnit4CrossVersionSpec and
  * @see org.gradle.integtests.tooling.r87.TestDisplayNameSpockCrossVersionSpec
@@ -223,6 +223,7 @@ class TestingAStackDemo {
         }
     }
 
+    @TargetGradleVersion(">=8.8")
     def "reports display names of parameterized tests"() {
         file("src/test/java/org/example/ParameterizedTests.java") << """package org.example;
 
@@ -369,7 +370,7 @@ public class DynamicTests {
         }
     }
 
-
+    @TargetGradleVersion(">=8.8")
     def "reports transformed display names with DisplayNameGeneration"() {
         file("src/test/java/org/example/ComplexTests.java") << """package org.example;
 

@@ -17,9 +17,7 @@
 
 package org.gradle.integtests.tooling.r25
 
-
 import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.file.TestFile
@@ -116,7 +114,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         assertHasBuildSuccessfulLogging()
     }
 
-    @TargetGradleVersion(">8.6")
     def "receive test progress events for successful test run"() {
         given:
         buildFile << """
@@ -165,26 +162,29 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         workerSuite.descriptor.methodName == null
         workerSuite.descriptor.parent == rootSuite.descriptor
 
-        def testClass = events.operation("MyTest")
+        def classDisplayName = targetDist.hasLegacyTestDisplayNames ? 'Test class example.MyTest' : 'MyTest'
+
+        def testClass = events.operation(classDisplayName)
         testClass.descriptor.jvmTestKind == JvmTestKind.SUITE
         testClass.descriptor.name == 'example.MyTest'
-        testClass.descriptor.displayName == 'MyTest'
+        testClass.descriptor.displayName == classDisplayName
         testClass.descriptor.suiteName == 'example.MyTest'
         testClass.descriptor.className == 'example.MyTest'
         testClass.descriptor.methodName == null
         testClass.descriptor.parent == workerSuite.descriptor
 
-        def testMethod = events.operation("foo")
+        def testDisplayName = targetDist.hasLegacyTestDisplayNames ? 'Test foo(example.MyTest)' : 'foo'
+
+        def testMethod = events.operation(testDisplayName)
         testMethod.descriptor.jvmTestKind == JvmTestKind.ATOMIC
         testMethod.descriptor.name == 'foo'
-        testMethod.descriptor.displayName == 'foo'
+        testMethod.descriptor.displayName == testDisplayName
         testMethod.descriptor.suiteName == null
         testMethod.descriptor.className == 'example.MyTest'
         testMethod.descriptor.methodName == 'foo'
         testMethod.descriptor.parent == testClass.descriptor
     }
 
-    @TargetGradleVersion(">8.6")
     def "receive test progress events for failed test run"() {
         given:
         buildFile << """
@@ -237,10 +237,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         workerSuite.result instanceof TestFailureResult
         workerSuite.result.failures.size() == 0
 
-        def testClass = events.operation("MyTest")
+        def classDisplayName = targetDist.hasLegacyTestDisplayNames ? 'Test class example.MyTest' : 'MyTest'
+
+        def testClass = events.operation(classDisplayName)
         testClass.descriptor.jvmTestKind == JvmTestKind.SUITE
         testClass.descriptor.name == 'example.MyTest'
-        testClass.descriptor.displayName == 'MyTest'
+        testClass.descriptor.displayName == classDisplayName
         testClass.descriptor.suiteName == 'example.MyTest'
         testClass.descriptor.className == 'example.MyTest'
         testClass.descriptor.methodName == null
@@ -248,10 +250,12 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         testClass.result instanceof TestFailureResult
         testClass.result.failures.size() == 0
 
-        def testMethod = events.operation("foo")
+        def testDisplayName = targetDist.hasLegacyTestDisplayNames ? 'Test foo(example.MyTest)' : 'foo'
+
+        def testMethod = events.operation(testDisplayName)
         testMethod.descriptor.jvmTestKind == JvmTestKind.ATOMIC
         testMethod.descriptor.name == 'foo'
-        testMethod.descriptor.displayName == 'foo'
+        testMethod.descriptor.displayName == testDisplayName
         testMethod.descriptor.suiteName == null
         testMethod.descriptor.className == 'example.MyTest'
         testMethod.descriptor.methodName == 'foo'
@@ -266,7 +270,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         testMethod.result.failures[0].causes[0].causes.empty
     }
 
-    @TargetGradleVersion(">8.6")
     def "receive test progress events for skipped test run"() {
         given:
         buildFile << """
@@ -295,7 +298,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
 
         then:
         events.tests.size() == 4
-        def testMethod = events.operation("foo")
+        def testDisplayName = targetDist.hasLegacyTestDisplayNames ? 'Test foo(example.MyTest)' : 'foo'
+        def testMethod = events.operation(testDisplayName)
         testMethod.result instanceof TestSkippedResult
     }
 
