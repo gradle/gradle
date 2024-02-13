@@ -38,11 +38,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-<<<<<<< HEAD
-        return 60 * 1024 * 1024
-=======
         return 62 * 1024 * 1024
->>>>>>> master
     }
 
     @Override

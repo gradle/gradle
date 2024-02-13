@@ -64,7 +64,7 @@ include::continuous_builds.adoc[leveloffset=+2]
 [[part:authoring_builds]]
 == **AUTHORING GRADLE BUILDS**
 
-== BASICS
+== THE BASICS
 
 include::gradle_directories.adoc[leveloffset=+2]
 include::intro_multi_project_builds.adoc[leveloffset=+2]
