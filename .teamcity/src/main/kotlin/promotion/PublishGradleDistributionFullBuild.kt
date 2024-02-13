@@ -36,7 +36,7 @@ abstract class PublishGradleDistributionFullBuild(
                 buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, promoteTask)
             } else {
                 buildStep(
-                    listOf(extraParameters, "-PpromotedBranch=${promotedBranch}").joinToString(separator = " "),
+                    listOf(extraParameters, "-PpromotedBranch=$promotedBranch").joinToString(separator = " "),
                     gitUserName,
                     gitUserEmail,
                     triggerName,
