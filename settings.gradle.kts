@@ -1,7 +1,6 @@
 import org.gradle.api.internal.FeaturePreviews
 import java.io.PrintWriter
 import java.io.Serializable
-import java.io.Writer
 
 pluginManagement {
     repositories {
@@ -65,7 +64,7 @@ unassigned {
 }
 
 // Core platform
-platform("core") {
+val core = platform("core") {
 
     // Core Runtime Module
     module("core-runtime") {
@@ -143,13 +142,6 @@ module("documentation") {
     subproject("samples")
 }
 
-// Extensibility Platform
-platform("extensibility") {
-    subproject("plugin-use")
-    subproject("plugin-development")
-    subproject("test-kit")
-}
-
 // IDE Module
 module("ide") {
     subproject("base-ide-plugins")
@@ -162,17 +154,9 @@ module("ide") {
     subproject("tooling-api-builders")
 }
 
-// Native Platform
-platform("native") {
-    subproject("distributions-native")
-    subproject("platform-native")
-    subproject("language-native")
-    subproject("tooling-native")
-    subproject("testing-native")
-}
-
 // Software Platform
-platform("software") {
+val software = platform("software") {
+    uses(core)
     subproject("antlr")
     subproject("build-init")
     subproject("dependency-management")
@@ -197,7 +181,9 @@ platform("software") {
 }
 
 // JVM Platform
-platform("jvm") {
+val jvm = platform("jvm") {
+    uses(core)
+    uses(software)
     subproject("code-quality")
     subproject("distributions-jvm")
     subproject("ear")
@@ -224,6 +210,27 @@ platform("jvm") {
     subproject("testing-junit-platform")
     subproject("war")
 }
+
+// Extensibility Platform
+platform("extensibility") {
+    uses(core)
+    uses(jvm)
+    subproject("plugin-use")
+    subproject("plugin-development")
+    subproject("test-kit")
+}
+
+// Native Platform
+platform("native") {
+    uses(core)
+    uses(software)
+    subproject("distributions-native")
+    subproject("platform-native")
+    subproject("language-native")
+    subproject("tooling-native")
+    subproject("testing-native")
+}
+
 
 // Develocity Module
 module("enterprise") {
@@ -322,10 +329,12 @@ abstract class GeneratorTask : DefaultTask() {
     }
 
     private fun PrintWriter.graph(elements: List<ArchitectureElement>) {
-        println("""
+        println(
+            """
             <pre class="mermaid">
                 graph TD
-        """.trimIndent())
+        """.trimIndent()
+        )
         for (element in elements) {
             if (element is Platform) {
                 platform(element)
@@ -344,6 +353,9 @@ abstract class GeneratorTask : DefaultTask() {
         }
         println("end")
         println("style ${platform.id} fill:#c2e0f4,stroke:#3498db,stroke-width:2px;")
+        for (dep in platform.uses) {
+            println("${platform.id} --> $dep")
+        }
     }
 
     private fun PrintWriter.element(element: ArchitectureElement) {
@@ -369,10 +381,11 @@ fun module(moduleName: String, moduleConfiguration: ArchitectureModuleBuilder.()
 /**
  * Defines a platform.
  */
-fun platform(platformName: String, platformConfiguration: PlatformBuilder.() -> Unit) {
+fun platform(platformName: String, platformConfiguration: PlatformBuilder.() -> Unit): PlatformBuilder {
     val platform = PlatformBuilder(platformName)
     architectureElements.add(platform)
     platform.platformConfiguration()
+    return platform
 }
 
 /**
@@ -390,19 +403,26 @@ class ProjectScope(
     }
 }
 
-sealed class ArchitectureElement(
-    val name: String
-) : Serializable {
-    val id: String = name.replace("-", "_")
+class ElementId(val id: String): Serializable {
+    override fun toString(): String {
+        return id
+    }
 }
 
-class Platform(name: String, val children: List<ArchitectureModule>) : ArchitectureElement(name)
+sealed class ArchitectureElement(
+    val name: String,
+    val id: ElementId
+) : Serializable
 
-class ArchitectureModule(name: String) : ArchitectureElement(name)
+class Platform(name: String, id: ElementId, val uses: List<ElementId>, val children: List<ArchitectureModule>) : ArchitectureElement(name, id)
+
+class ArchitectureModule(name: String, id: ElementId) : ArchitectureElement(name, id)
 
 sealed class ArchitectureElementBuilder(
     val name: String
 ) {
+    val id: ElementId = ElementId(name.replace("-", "_"))
+
     abstract fun build(): ArchitectureElement
 }
 
@@ -417,7 +437,7 @@ class ArchitectureModuleBuilder(
     }
 
     override fun build(): ArchitectureModule {
-        return ArchitectureModule(name)
+        return ArchitectureModule(name, id)
     }
 }
 
@@ -426,11 +446,16 @@ class PlatformBuilder(
     private val projectScope: ProjectScope
 ) : ArchitectureElementBuilder(name) {
     private val modules = mutableListOf<ArchitectureModuleBuilder>()
+    private val uses = mutableListOf<PlatformBuilder>()
 
     constructor(name: String) : this(name, ProjectScope("platforms/$name"))
 
     fun subproject(projectName: String) {
         projectScope.subproject(projectName)
+    }
+
+    fun uses(platform: PlatformBuilder) {
+        uses.add(platform)
     }
 
     fun module(platformName: String, moduleConfiguration: ArchitectureModuleBuilder.() -> Unit) {
@@ -440,7 +465,7 @@ class PlatformBuilder(
     }
 
     override fun build(): Platform {
-        return Platform(name, modules.map { it.build() })
+        return Platform(name, id, uses.map { it.id }, modules.map { it.build() })
     }
 }
 
