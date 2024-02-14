@@ -87,26 +87,37 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     public void transform(TransformOutputs outputs) {
         File originalInput = originalInput();
 
+        InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
+        if (isAgentSupported()) {
+            // When agent is supported, we output an instrumented jar and an original jar,
+            // so we can then later reconstruct instrumented jars classpath and original jars classpath
+            doTransformForAgent(originalInput, outputs, injectedServices);
+        } else {
+            // When agent is not supported, we have only one classpath so we output just an instrumented jar
+            doTransform(originalInput, outputs, injectedServices);
+        }
+    }
+
+    private void doTransformForAgent(File input, TransformOutputs outputs, InjectedInstrumentationServices injectedServices) {
         // A marker file that indicates that the result is instrumented jar,
         // this is important so TransformedClassPath can correctly filter instrumented jars.
         createNewFile(outputs.file(INSTRUMENTED_MARKER_FILE_NAME));
 
         // Instrument jars
-        InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
-        doTransform(originalInput, outputs, injectedServices);
+        doTransform(input, outputs, injectedServices);
 
         // Create a marker file that signals we should use original entry if they are safe to load from cache loader
         // ELSE copy an entry
-        if (originalInput.isDirectory() || injectedServices.getGlobalCacheLocations().isInsideGlobalCache(originalInput.getAbsolutePath())) {
+        if (input.isDirectory() || injectedServices.getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
             // Directories are ok to use outside the cache, since they are not locked by the daemon.
             // Jars that are already in the global cache don't need to be copied, since
             // the global caches are additive only and jars shouldn't be deleted or changed during the build.
-            createNewFile(outputs.file(ORIGINAL_DIR_NAME + "/" + originalInput.getName() + ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX));
+            createNewFile(outputs.file(ORIGINAL_DIR_NAME + "/" + input.getName() + ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX));
         } else {
             // Jars that are in some mutable location (e.g. build/ directory) need to be copied to the global cache,
             // since daemon keeps them locked when loading them to a classloader, which prevents e.g. deleting the build directory on windows
-            File copyOfOriginalFile = outputs.file(ORIGINAL_DIR_NAME + "/" + originalInput.getName());
-            GFileUtils.copyFile(originalInput, copyOfOriginalFile);
+            File copyOfOriginalFile = outputs.file(ORIGINAL_DIR_NAME + "/" + input.getName());
+            GFileUtils.copyFile(input, copyOfOriginalFile);
         }
     }
 
