@@ -1,14 +1,6 @@
-<html>
-    <head>
-        <title>Gradle platform architecture</title>
-    </head>
-    <body>
-        <script type="module">
-            import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-            mermaid.initialize({ startOnLoad: true });
-        </script>
-        <h1>Gradle platform architecture</h1>
-<pre class="mermaid">
+<!-- This is a generated file. Use `./gradlew :architectureDoc` to generate -->
+# Gradle platform architecture
+```mermaid
     graph TD
 
 subgraph core["core platform"]
@@ -58,6 +50,4 @@ style enterprise stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px;
 
 build_infrastructure["build-infrastructure module"]
 style build_infrastructure stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px;
-</pre>
-    </body>
-</html>
+```

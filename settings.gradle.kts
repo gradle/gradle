@@ -287,7 +287,8 @@ gradle.settingsEvaluated {
 
 gradle.rootProject {
     tasks.register("architectureDoc", GeneratorTask::class.java) {
-        outputFile = layout.projectDirectory.file("architecture/index.html")
+        description = "Generates the architecture documentation"
+        outputFile = layout.projectDirectory.file("architecture/readme.md")
         elements = provider { architectureElements.map { it.build() } }
     }
 }
@@ -305,25 +306,11 @@ abstract class GeneratorTask : DefaultTask() {
             PrintWriter(it).run {
                 println(
                     """
-                    <html>
-                        <head>
-                            <title>Gradle platform architecture</title>
-                        </head>
-                        <body>
-                            <script type="module">
-                                import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-                                mermaid.initialize({ startOnLoad: true });
-                            </script>
-                            <h1>Gradle platform architecture</h1>
+                    <!-- This is a generated file. Use `./gradlew :architectureDoc` to generate -->
+                    # Gradle platform architecture
                 """.trimIndent()
                 )
                 graph(elements.get())
-                println(
-                    """
-                        </body>
-                    </html>
-                """.trimIndent()
-                )
             }
         }
     }
@@ -331,7 +318,7 @@ abstract class GeneratorTask : DefaultTask() {
     private fun PrintWriter.graph(elements: List<ArchitectureElement>) {
         println(
             """
-            <pre class="mermaid">
+            ```mermaid
                 graph TD
         """.trimIndent()
         )
@@ -342,7 +329,7 @@ abstract class GeneratorTask : DefaultTask() {
                 element(element)
             }
         }
-        println("</pre>")
+        println("```")
     }
 
     private fun PrintWriter.platform(platform: Platform) {
