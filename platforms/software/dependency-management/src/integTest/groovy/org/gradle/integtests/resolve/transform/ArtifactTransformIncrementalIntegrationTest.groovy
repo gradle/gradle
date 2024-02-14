@@ -18,9 +18,6 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTATION_PHASE_ATTRIBUTE
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.NOT_INSTRUMENTED_ATTRIBUTE_VALUE
-
 class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
     def "incremental artifact transform in buildscript block for included build runs without exception"() {
@@ -35,15 +32,12 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
         """
         file("a/build.gradle") << """
             buildscript {
-                // Build script classpath is resolved via ${INSTRUMENTATION_PHASE_ATTRIBUTE.name} attribute,
-                // so we have to set that attribute too to make transform run
                 def artifactType = Attribute.of('artifactType', String)
-                def instrumented = Attribute.of('${INSTRUMENTATION_PHASE_ATTRIBUTE.name}', String.class)
                 dependencies {
                     classpath "com.test:lib:1.0"
                     registerTransform(MakeColor) {
-                        from.attribute(artifactType, 'jar').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
-                        to.attribute(artifactType, 'green').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'green')
                         parameters.targetColor.set('green')
                     }
                 }

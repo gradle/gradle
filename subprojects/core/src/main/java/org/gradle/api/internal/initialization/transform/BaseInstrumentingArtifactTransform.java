@@ -86,6 +86,9 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     @Override
     public void transform(TransformOutputs outputs) {
         File originalInput = originalInput();
+        if (!originalInput.exists()) {
+            return;
+        }
 
         InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
         if (isAgentSupported()) {
