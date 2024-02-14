@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,22 @@ import org.gradle.api.Incubating;
 
 import java.util.List;
 
+
 /**
- * Describes the problem aggregations sent at the end of the build.
+ * Represents a list of aggregated problems. These are sent at the end of the build.
+ * All Problems that occurred more than once during the build are aggregated and sent as a {@link ProblemAggregation}.
+ * They won't be sent in between the build only the first one.
  *
- * @since 8.6
+ * @since 8.8
  */
 @Incubating
-public interface ProblemAggregationDescriptor extends BaseProblemDescriptor {
+public interface ProblemAggregationEvent extends ProblemEvent {
 
     /**
-     * Returns the list of problem aggregations.
-     * All Problems that occurred more than once during the build are aggregated and sent as a {@link ProblemAggregation}.
+     * Returns the list of aggregated problems.
+     * @return The list of aggregated problems.
      *
-     * @return The list of problem aggregations.
-     * @since 8.6
+     * @since 8.8
      */
     List<ProblemAggregation> getAggregations();
 }

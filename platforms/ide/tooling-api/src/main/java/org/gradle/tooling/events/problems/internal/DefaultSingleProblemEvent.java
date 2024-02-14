@@ -17,6 +17,8 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.internal.BaseProgressEvent;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
@@ -24,45 +26,47 @@ import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemCategory;
-import org.gradle.tooling.events.problems.ProblemDescriptor;
 import org.gradle.tooling.events.problems.Severity;
+import org.gradle.tooling.events.problems.SingleProblemEvent;
 import org.gradle.tooling.events.problems.Solution;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultProblemsOperationDescriptor implements ProblemDescriptor {
+public class DefaultSingleProblemEvent extends BaseProgressEvent implements SingleProblemEvent {
     private final ProblemCategory category;
+    private final Severity severity;
     private final Label label;
     private final Details details;
-    private final Severity severity;
     private final List<Location> locations;
     private final DocumentationLink documentationLink;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
-    private final FailureContainer exception;
+    private final FailureContainer failure;
 
-    public DefaultProblemsOperationDescriptor(
+    public DefaultSingleProblemEvent(
+        long eventTime,
+        @Nullable OperationDescriptor problemDescriptor,
         ProblemCategory category,
-        Label label,
-        @Nullable Details details,
         Severity severity,
+        Label label,
+        Details details,
         List<Location> locations,
-        @Nullable DocumentationLink documentationLink,
+        DocumentationLink documentationLink,
         List<Solution> solutions,
         AdditionalData additionalData,
-        @Nullable FailureContainer exception
-    ) {
+        @Nullable FailureContainer failure) {
+        super(eventTime, problemDescriptor == null ? "<null>" : problemDescriptor.getDisplayName(), problemDescriptor);
         this.category = category;
+        this.severity = severity;
         this.label = label;
         this.details = details;
-        this.severity = severity;
         this.locations = locations;
         this.documentationLink = documentationLink;
         this.solutions = solutions;
         this.additionalData = additionalData;
-        this.exception = exception;
+        this.failure = failure;
     }
 
     @Override
@@ -75,7 +79,6 @@ public class DefaultProblemsOperationDescriptor implements ProblemDescriptor {
         return label;
     }
 
-    @Nullable
     @Override
     public Details getDetails() {
         return details;
@@ -91,7 +94,6 @@ public class DefaultProblemsOperationDescriptor implements ProblemDescriptor {
         return locations;
     }
 
-    @Nullable
     @Override
     public DocumentationLink getDocumentationLink() {
         return documentationLink;
@@ -102,13 +104,13 @@ public class DefaultProblemsOperationDescriptor implements ProblemDescriptor {
         return solutions;
     }
 
-    public AdditionalData getAdditionalData() {
-        return additionalData;
-    }
-
     @Nullable
     @Override
     public FailureContainer getFailure() {
-        return exception;
+        return failure;
+    }
+
+    public AdditionalData getAdditionalData() {
+        return additionalData;
     }
 }

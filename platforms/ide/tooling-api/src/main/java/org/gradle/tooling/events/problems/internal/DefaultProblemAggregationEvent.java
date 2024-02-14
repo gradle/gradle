@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,24 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
+import org.gradle.tooling.events.internal.BaseProgressEvent;
 import org.gradle.tooling.events.problems.ProblemAggregation;
-import org.gradle.tooling.events.problems.ProblemAggregationDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.tooling.events.problems.ProblemAggregationEvent;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
-public class DefaultProblemAggregationOperationDescriptor extends DefaultOperationDescriptor implements ProblemAggregationDescriptor {
-    private final List<ProblemAggregation> aggregations;
+public class DefaultProblemAggregationEvent extends BaseProgressEvent implements ProblemAggregationEvent {
+    private final List<ProblemAggregation> summaries;
 
-    public DefaultProblemAggregationOperationDescriptor(InternalOperationDescriptor internalDescriptor, OperationDescriptor parent, List<ProblemAggregation> aggregations) {
-        super(internalDescriptor, parent);
-        this.aggregations = aggregations;
+    public DefaultProblemAggregationEvent(long eventTime, @Nullable OperationDescriptor descriptor, List<ProblemAggregation> summaries) {
+        super(eventTime, descriptor == null? "<null>" : descriptor.getDisplayName(), descriptor);
+        this.summaries = summaries;
     }
+
 
     @Override
     public List<ProblemAggregation> getAggregations() {
-        return aggregations;
+        return summaries;
     }
 }

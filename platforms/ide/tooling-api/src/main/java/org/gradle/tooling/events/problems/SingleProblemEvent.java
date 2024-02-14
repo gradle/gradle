@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,21 +22,17 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * Describes a problem event.
- * <p>
+ * ProblemEvent with all the details relevant.
  *
- * Provides all details provided for problem events. The events are generated via the Problems API.
- *
- * @since 8.4
+ * @since 8.8
  */
 @Incubating
-public interface ProblemDescriptor {
-
+public interface SingleProblemEvent extends ProblemEvent {
     /**
      * Returns the problem category.
      *
      * @return the problem category
-     * @since 8.6
+     * @since 8.8
      */
     ProblemCategory getCategory();
 
@@ -44,7 +40,7 @@ public interface ProblemDescriptor {
      * Returns the problem label.
      *
      * @return the problem label
-     * @since 8.6
+     * @since 8.8
      */
     Label getLabel();
 
@@ -52,16 +48,15 @@ public interface ProblemDescriptor {
      * Returns the details string.
      *
      * @return the problem details
-     * @since 8.6
+     * @since 8.8
      */
-    @Nullable
     Details getDetails();
 
     /**
      * Returns the problem severity.
      *
      * @return the problem severity
-     * @since 8.6
+     * @since 8.8
      */
     Severity getSeverity();
 
@@ -69,7 +64,7 @@ public interface ProblemDescriptor {
      * Returns the locations associated with this problem.
      *
      * @return the locations
-     * @since 8.6
+     * @since 8.8
      */
     List<Location> getLocations();
 
@@ -77,26 +72,25 @@ public interface ProblemDescriptor {
      * Returns the link to the documentation
      *
      * @return the locations
-     * @since 8.6
+     * @since 8.8
      */
-    @Nullable
     DocumentationLink getDocumentationLink();
 
     /**
      * Returns the list of solutions.
      *
      * @return the solutions
-     * @since 8.6
+     * @since 8.8
      */
     List<Solution> getSolutions();
 
     /**
      * Returns the failure associated with this problem.
      * <br>
-     * <code>null</code> if run against a Gradle version prior to 8.7
+     * <code>null</code> if run against a Gradle version prior to 8.8
      *
      * @return the failure
-     * @since 8.7
+     * @since 8.8
      */
     @Nullable
     FailureContainer getFailure();

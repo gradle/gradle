@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.events.problems;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
-import org.gradle.tooling.events.ProgressEvent;
+package org.gradle.integtests.tooling.r88
 
-/**
- *
- * An event representing a problem.
- *
- * @since 8.4
- */
-@NonNullApi
-@Incubating
-public interface ProblemEvent extends ProgressEvent {
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.events.problems.SingleProblemEvent
 
+@TargetGradleVersion(">=8.8")
+@ToolingApiVersion(">=8.8")
+class ProblemsServiceModelBuilderCrossVersionTest extends org.gradle.integtests.tooling.r87.ProblemsServiceModelBuilderCrossVersionTest {
+
+    @Override
+    List<Object> getProblems() {
+        listener.problems.collect { it as SingleProblemEvent }
+    }
 }
