@@ -114,7 +114,6 @@ class StandardKotlinScriptEvaluator(
         options: EvalOptions
     ) {
         withOptions(options) {
-
             interpreter.eval(
                 target,
                 scriptSource,
