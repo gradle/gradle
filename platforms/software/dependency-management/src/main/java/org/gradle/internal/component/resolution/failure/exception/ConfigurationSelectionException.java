@@ -16,12 +16,14 @@
 
 package org.gradle.internal.component.resolution.failure.exception;
 
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+
 /**
  * Represents a failure during variant selection when a named {@link org.gradle.api.artifacts.Configuration Configuration}
  * cannot be selected
  */
 public final class ConfigurationSelectionException extends AbstractResolutionFailureException {
-    public ConfigurationSelectionException(String message) {
-        super(message);
+    public ConfigurationSelectionException(String message, ResolutionFailure failure) {
+        super(message, failure);
     }
 }

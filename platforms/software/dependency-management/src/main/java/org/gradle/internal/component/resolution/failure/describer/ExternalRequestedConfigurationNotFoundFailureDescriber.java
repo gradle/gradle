@@ -26,7 +26,7 @@ import org.gradle.internal.component.resolution.failure.type.ExternalRequestedCo
 public abstract class ExternalRequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ExternalRequestedConfigurationNotFoundFailure> {
     @Override
     public ConfigurationSelectionException describeFailure(ExternalRequestedConfigurationNotFoundFailure failure) {
-        ConfigurationSelectionException result = new ConfigurationSelectionException(buildExternalConfigurationNotFoundFailureMsg(failure));
+        ConfigurationSelectionException result = new ConfigurationSelectionException(buildExternalConfigurationNotFoundFailureMsg(failure), failure);
         suggestReviewAlgorithm(result);
         return result;
     }

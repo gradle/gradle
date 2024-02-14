@@ -25,7 +25,7 @@ import org.gradle.internal.component.resolution.failure.type.RequestedConfigurat
 public abstract class RequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<RequestedConfigurationNotFoundFailure> {
     @Override
     public ConfigurationSelectionException describeFailure(RequestedConfigurationNotFoundFailure failure) {
-        ConfigurationSelectionException result = new ConfigurationSelectionException(buildConfigurationNotFoundFailureMsg(failure));
+        ConfigurationSelectionException result = new ConfigurationSelectionException(buildConfigurationNotFoundFailureMsg(failure), failure);
         suggestReviewAlgorithm(result);
         return result;
     }

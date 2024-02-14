@@ -34,7 +34,7 @@ public abstract class AmbiguousArtifactVariantsFailureDescriber extends Abstract
     public ArtifactVariantSelectionException describeFailure(AmbiguousResolutionFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildMultipleMatchingVariantsFailureMsg(failure, describer);
-        ArtifactVariantSelectionException e = new ArtifactVariantSelectionException(message);
+        ArtifactVariantSelectionException e = new ArtifactVariantSelectionException(message, failure);
         suggestSpecificDocumentation(e, AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION);
         suggestReviewAlgorithm(e);
         return e;

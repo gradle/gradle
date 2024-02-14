@@ -39,7 +39,7 @@ public abstract class IncompatibleGraphVariantsFailureDescriber extends Abstract
     public VariantSelectionException describeFailure(IncompatibleGraphVariantFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledAttributeDescriber(describer), failure);
-        VariantSelectionException e = new VariantSelectionException(message);
+        VariantSelectionException e = new VariantSelectionException(message, failure);
         suggestReviewAlgorithm(e);
         suggestSpecificDocumentation(e, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
         return e;

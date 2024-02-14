@@ -33,7 +33,7 @@ public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractR
         if (failure.getCause() instanceof ArtifactVariantSelectionException) {
             result = (ArtifactVariantSelectionException) failure.getCause();
         } else {
-            result = new ArtifactVariantSelectionException(buildUnknownArtifactVariantFailureMsg(failure), failure.getCause());
+            result = new ArtifactVariantSelectionException(buildUnknownArtifactVariantFailureMsg(failure), failure, failure.getCause());
         }
         suggestReviewAlgorithm(result);
         return result;

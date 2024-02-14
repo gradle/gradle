@@ -36,7 +36,7 @@ public abstract class IncompatibleArtifactVariantsFailureDescriber extends Abstr
     @Override
     public ArtifactVariantSelectionException describeFailure(IncompatibleResolutionFailure failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
-        ArtifactVariantSelectionException result = new ArtifactVariantSelectionException(msg);
+        ArtifactVariantSelectionException result = new ArtifactVariantSelectionException(msg, failure);
         suggestSpecificDocumentation(result, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
         suggestReviewAlgorithm(result);
         return result;

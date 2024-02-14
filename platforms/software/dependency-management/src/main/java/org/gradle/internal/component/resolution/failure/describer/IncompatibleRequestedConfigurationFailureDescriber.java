@@ -38,7 +38,7 @@ public abstract class IncompatibleRequestedConfigurationFailureDescriber extends
     public VariantSelectionException describeFailure(IncompatibleRequestedConfigurationFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildIncompatibleGraphVariantsFailureMsg(failure, describer);
-        VariantSelectionException e = new VariantSelectionException(message);
+        VariantSelectionException e = new VariantSelectionException(message, failure);
         e.addResolution(INCOMPATIBLE_VARIANTS_PREFIX + getDocumentationRegistry().getDocumentationFor("variant_model", INCOMPATIBLE_VARIANTS_SECTION) + ".");
         suggestReviewAlgorithm(e);
         return e;

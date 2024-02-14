@@ -28,7 +28,7 @@ public abstract class NoMatchingCapabilitiesFailureDescriber extends AbstractRes
     @Override
     public VariantSelectionException describeFailure(NoMatchingCapabilitiesFailure failure) {
         String message = buildNoMatchingCapabilitiesFailureMsg(failure);
-        VariantSelectionException e = new VariantSelectionException(message);
+        VariantSelectionException e = new VariantSelectionException(message, failure);
         suggestReviewAlgorithm(e);
         return e;
     }

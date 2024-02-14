@@ -41,7 +41,7 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
     @Override
     public VariantSelectionException describeFailure(VariantAwareAmbiguousResolutionFailure failure) {
         String message = buildAmbiguousGraphVariantsFailureMsg(failure);
-        VariantSelectionException result = new VariantSelectionException(message);
+        VariantSelectionException result = new VariantSelectionException(message, failure);
         suggestSpecificDocumentation(result, AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION);
         suggestReviewAlgorithm(result);
         return result;

@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.exception;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
@@ -28,20 +29,29 @@ import java.util.List;
 /**
  * Abstract base class for all attribute matching selection failures occurring at any stage of dependency resolution.
  *
+ * This exception type carries information about the failure, and implements {@link ResolutionProvider} to provide a
+ * list of resolutions that may help the user to fix the problem.  This class is meant to be immutable.
+ *
  * @implNote This class should not be subclassed beyond the existing
  * {@link ConfigurationSelectionException}, {@link ArtifactVariantSelectionException}, and
- * {@link VariantSelectionException} subtypes.
+ * {@link VariantSelectionException} subtypes.  All subtypes should remain immutable.
  */
 @Contextual
 public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider {
     private final List<String> resolutions = new ArrayList<>(1); // Usually there is only one resolution
+    private final ResolutionFailure failure;
 
-    public AbstractResolutionFailureException(String message) {
-        this(message, null);
+    public AbstractResolutionFailureException(String message, ResolutionFailure failure) {
+        this(message, failure, null);
     }
 
-    public AbstractResolutionFailureException(String message, @Nullable Throwable cause) {
+    public AbstractResolutionFailureException(String message, ResolutionFailure failure, @Nullable Throwable cause) {
         super(message, cause);
+        this.failure = failure;
+    }
+
+    public ResolutionFailure getFailure() {
+        return failure;
     }
 
     /**

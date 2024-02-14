@@ -53,7 +53,7 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
     public AbstractResolutionFailureException describeFailure(IncompatibleGraphVariantFailure failure) {
         GradleVersion minGradleApiVersionSupportedByPlugin = findMinGradleVersionSupportedByPlugin(failure.getCandidates());
         String message = buildPluginNeedsNewerGradleVersionFailureMsg(failure.getRequestedName(), minGradleApiVersionSupportedByPlugin);
-        VariantSelectionException result = new VariantSelectionException(message);
+        VariantSelectionException result = new VariantSelectionException(message, failure);
         suggestUpdateGradle(result, minGradleApiVersionSupportedByPlugin);
         suggestDowngradePlugin(result, failure.getRequestedName());
         return result;

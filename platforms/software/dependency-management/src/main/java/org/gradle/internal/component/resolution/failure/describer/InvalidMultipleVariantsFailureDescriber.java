@@ -37,7 +37,7 @@ public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractRe
     @Override
     public ArtifactVariantSelectionException describeFailure(IncompatibleMultipleNodeSelectionFailure failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
-        ArtifactVariantSelectionException result = new ArtifactVariantSelectionException(msg);
+        ArtifactVariantSelectionException result = new ArtifactVariantSelectionException(msg, failure);
         suggestSpecificDocumentation(result, INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION);
         suggestReviewAlgorithm(result);
         return result;

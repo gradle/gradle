@@ -26,7 +26,7 @@ public abstract class ConfigurationNotConsumableFailureDescriber extends Abstrac
     @Override
     public ConfigurationSelectionException describeFailure(ConfigurationNotConsumableFailure failure) {
         String message = buildConfigurationNotConsumableFailureMsg(failure);
-        ConfigurationSelectionException e = new ConfigurationSelectionException(message);
+        ConfigurationSelectionException e = new ConfigurationSelectionException(message, failure);
         suggestReviewAlgorithm(e);
         return e;
     }
