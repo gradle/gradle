@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.exception;
-
-import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+package org.gradle.internal.logging.events;
 
 /**
- * Represents a failure during variant selection when a variant of a component cannot be selected
- * by the {@link org.gradle.internal.component.model.GraphVariantSelector GraphVariantSelector}.
+ * A marker interface to indicate that the event should be handled as quickly as possible, and not buffered or throttled.
  */
-public final class VariantSelectionException extends AbstractResolutionFailureException {
-    public VariantSelectionException(String message, ResolutionFailure failure) {
-        super(message, failure);
-    }
+public interface InteractiveEvent {
 }
