@@ -19,53 +19,60 @@ errorprone {
 }
 
 dependencies {
+    api(project(":base-annotations"))
+    api(project(":build-operations"))
+    api(project(":hashing"))
+    api(project(":problems-api"))
+
+    api(libs.asm)
+    api(libs.fastutil)
+    api(libs.groovy)
+    api(libs.guava)
+    api(libs.jsr305)
+    api(libs.inject)
+
     implementation(project(":base-services"))
-    implementation(project(":enterprise-operations"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":worker-processes"))
+    implementation(project(":build-events"))
+    implementation(project(":core"))
+    implementation(project(":core-api"))
+    implementation(project(":dependency-management"))
     implementation(project(":files"))
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":jvm-services"))
-    implementation(project(":core-api"))
+    implementation(project(":language-jvm"))
+    implementation(project(":logging-api"))
+    implementation(project(":messaging"))
     implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":workers"))
-    implementation(project(":snapshots"))
-    implementation(project(":execution"))
-    implementation(project(":dependency-management"))
+    implementation(project(":persistent-cache"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
-    implementation(project(":language-jvm"))
-    implementation(project(":build-events"))
-    implementation(project(":tooling-api"))
-    implementation(project(":toolchains-jvm"))
+    implementation(project(":process-services"))
+    implementation(project(":snapshots"))
     implementation(project(":test-suites-base"))
+    implementation(project(":toolchains-jvm"))
+    implementation(project(":tooling-api"))
+    implementation(project(":workers"))
+    implementation(project(":worker-processes"))
 
-    implementation(libs.groovy)
     implementation(libs.slf4jApi)
-    implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.fastutil)
     implementation(libs.ant)
     implementation(libs.commonsCompress)
-    implementation(libs.asm)
-    implementation(libs.asmCommons)
-    implementation(libs.inject)
 
     runtimeOnly(project(":java-compiler-plugin"))
 
     testImplementation(project(":base-services-groovy"))
-    testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platform-base")))
     testImplementation(testFixtures(project(":toolchains-jvm")))
+
+    testImplementation(libs.commonsIo)
     testImplementation(libs.nativePlatform) {
         because("Required for SystemInfo")
     }
+
+    // TODO: Make these available for all integration tests? Maybe all tests?
+    integTestImplementation(libs.jetbrainsAnnotations)
 
     testFixturesApi(testFixtures(project(":language-jvm")))
     testFixturesImplementation(project(":base-services"))
@@ -82,8 +89,6 @@ dependencies {
         because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")
     }
 
-    // TODO: Make these available for all integration tests? Maybe all tests?
-    integTestImplementation(libs.jetbrainsAnnotations)
     integTestDistributionRuntimeOnly(project(":distributions-core"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
