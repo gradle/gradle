@@ -31,6 +31,6 @@ public abstract class ConfigurationNotConsumableFailureDescriber extends Abstrac
         return e;
     }
     private String buildConfigurationNotConsumableFailureMsg(ConfigurationNotConsumableFailure failure) {
-        return String.format("Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentName() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
+        return String.format("Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentDisplayName() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
     }
 }

@@ -31,6 +31,6 @@ public abstract class RequestedConfigurationNotFoundFailureDescriber extends Abs
     }
 
     private String buildConfigurationNotFoundFailureMsg(RequestedConfigurationNotFoundFailure failure) {
-        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", failure.getRequestedName(), failure.getRequestedComponentName());
+        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", failure.getRequestedName(), failure.getRequestedComponentDisplayName());
     }
 }
