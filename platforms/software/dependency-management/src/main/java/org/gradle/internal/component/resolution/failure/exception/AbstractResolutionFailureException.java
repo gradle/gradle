@@ -29,7 +29,8 @@ import java.util.List;
  * Abstract base class for all attribute matching selection failures occurring at any stage of dependency resolution.
  *
  * @implNote This class should not be subclassed beyond the existing
- * {@link ConfigurationSelectionException} and {@link VariantSelectionException} subtypes.
+ * {@link ConfigurationSelectionException}, {@link ArtifactVariantSelectionException}, and
+ * {@link VariantSelectionException} subtypes.
  */
 @Contextual
 public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider {

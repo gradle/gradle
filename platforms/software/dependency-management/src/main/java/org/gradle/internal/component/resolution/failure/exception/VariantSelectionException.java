@@ -18,7 +18,11 @@ package org.gradle.internal.component.resolution.failure.exception;
 
 import javax.annotation.Nullable;
 
-public class VariantSelectionException extends AbstractResolutionFailureException {
+/**
+ * Represents a failure during variant selection when a variant of a component cannot be selected
+ * by the {@link org.gradle.internal.component.model.GraphVariantSelector GraphVariantSelector}.
+ */
+public final class VariantSelectionException extends AbstractResolutionFailureException {
     public VariantSelectionException(String message) {
         super(message);
     }
