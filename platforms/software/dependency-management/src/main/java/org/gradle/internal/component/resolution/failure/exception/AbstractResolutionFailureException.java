@@ -17,6 +17,8 @@
 package org.gradle.internal.component.resolution.failure.exception;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
@@ -37,6 +39,8 @@ import java.util.List;
  */
 @Contextual
 public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider {
+    private static final Logger LOGGER = Logging.getLogger(AbstractResolutionFailureException.class);
+
     private final ImmutableList<String> resolutions;
     private final ResolutionFailure failure;
 
@@ -48,6 +52,8 @@ public abstract class AbstractResolutionFailureException extends StyledException
         super(message, cause);
         this.failure = failure;
         this.resolutions = ImmutableList.copyOf(resolutions);
+
+        LOGGER.info("Variant Selection Exception: {} caused by Resolution Failure: {}", this.getClass().getName(), failure.getClass().getName());
     }
 
     public ResolutionFailure getFailure() {
