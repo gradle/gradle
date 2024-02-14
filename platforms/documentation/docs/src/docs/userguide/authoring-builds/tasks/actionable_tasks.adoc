@@ -18,6 +18,8 @@
 Actionable tasks describe work in Gradle.
 These tasks have actions.
 
+image::writing-tasks-3.png[]
+
 In Gradle core, the `compileJava` task compiles the Java source code.
 The `Jar` and `Zip` tasks zip files into archives.
 

@@ -18,6 +18,8 @@
 Knowing when and where a particular value is configured is difficult to track as a build grows in complexity.
 Gradle provides several ways to manage this using *lazy configuration*.
 
+image::writing-tasks-4.png[]
+
 [[lazy_properties]]
 == Lazy properties
 

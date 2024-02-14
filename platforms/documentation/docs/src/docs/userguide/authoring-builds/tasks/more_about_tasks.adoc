@@ -17,6 +17,8 @@
 
 A task represents some *independent unit of work* that a build performs, such as compiling classes, creating a JAR, generating Javadoc, or publishing archives to a repository.
 
+image::writing-tasks-1.png[]
+
 [[sec:more_listing_tasks]]
 == Listing tasks
 

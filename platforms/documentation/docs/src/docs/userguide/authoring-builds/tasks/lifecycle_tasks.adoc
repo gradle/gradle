@@ -19,6 +19,8 @@ Lifecycle tasks are tasks that do not do work themselves.
 These tasks have no actions.
 They serve as _targets_ for the build.
 
+image::writing-tasks-2.png[]
+
 Lifecycle tasks represent various concepts:
 
 * a work-flow step (e.g., run all checks with `check`)
