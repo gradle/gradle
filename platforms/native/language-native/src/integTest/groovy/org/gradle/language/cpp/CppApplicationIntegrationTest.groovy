@@ -137,16 +137,14 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         result.assertTasksExecuted(tasks.release.allToInstall, tasks.release.extract, tasks.release.assemble)
 
         executable("build/exe/main/release/app").assertExists()
-        // clang 11: build/exe/main/release/app: ['greeter.cpp', 'main.cpp']
-        // clang 14: build/exe/main/release/app: ['greeter.cpp', 'std', '__ioinit', 'ios_base', 'Init', '_Ios_Iostate', '_S_goodbit', ... ]
-        executable("build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(["greeter.cpp"])
+        executable("build/exe/main/release/app").assertHasStrippedDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
         installation("build/install/main/release").exec().out == app.withFeatureEnabled().expectedOutput
 
         succeeds tasks.debug.assemble
         result.assertTasksExecuted(tasks.debug.allToInstall, tasks.debug.assemble)
 
         executable("build/exe/main/debug/app").assertExists()
-        executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(["greeter.cpp"])
+        executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
         installation("build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
@@ -632,7 +630,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         fails ":app:assemble"
 
         failure.assertHasCause """No matching variant of project :hello was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:
-  - Variant 'cppApiElements' capability test:hello:unspecified:
+  - Variant 'cppApiElements':
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'cplusplus-api' and the consumer needed attribute 'org.gradle.usage' with value 'native-runtime'
       - Other compatible attributes:
           - Doesn't say anything about org.gradle.native.architecture (required '${currentArchitecture}')

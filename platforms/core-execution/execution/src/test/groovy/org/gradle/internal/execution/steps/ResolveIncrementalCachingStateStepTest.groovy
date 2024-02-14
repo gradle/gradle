@@ -24,7 +24,7 @@ import org.gradle.internal.hash.TestHashCodes
 class ResolveIncrementalCachingStateStepTest extends AbstractResolveCachingStateStepTest<IncrementalChangesContext, ResolveIncrementalCachingStateStep<IncrementalChangesContext>> {
     @Override
     ResolveIncrementalCachingStateStep<IncrementalChangesContext> createStep() {
-        return new ResolveIncrementalCachingStateStep<>(buildCache, delegate)
+        return new ResolveIncrementalCachingStateStep<>(buildCache, false, delegate)
     }
 
     def executionStateChanges = Mock(ExecutionStateChanges)

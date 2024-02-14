@@ -29,14 +29,15 @@ public class ResolveNonIncrementalCachingStateStep<C extends ValidationFinishedC
 
     public ResolveNonIncrementalCachingStateStep(
         BuildCacheController buildCache,
+        boolean emitDebugLogging,
         Step<? super NonIncrementalCachingContext, ? extends UpToDateResult> delegate
     ) {
-        super(buildCache);
+        super(buildCache, emitDebugLogging);
         this.delegate = delegate;
     }
 
     public ResolveNonIncrementalCachingStateStep(Step<? super NonIncrementalCachingContext, ? extends UpToDateResult> delegate) {
-        this(NoOpBuildCacheController.INSTANCE, delegate);
+        this(NoOpBuildCacheController.INSTANCE, false, delegate);
     }
 
     @Override

@@ -49,9 +49,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 
 import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.InstrumentArtifactTransformParameters;
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_JAR_DIR_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_MARKER_FILE_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_JAR_DIR_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NAME;
 
 /**
  * Base artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
@@ -85,19 +85,24 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             return;
         }
 
+        InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
+        if (isAgentSupported()) {
+            // When agent is supported, we output an instrumented jar and an original jar,
+            // so we can then later reconstruct instrumented jars classpath and original jars classpath
+            doTransformForAgent(input, outputs, injectedServices);
+        } else {
+            // When agent is not supported, we have only one classpath so we output just an instrumented jar
+            doTransform(input, outputs, injectedServices);
+        }
+    }
+
+    private void doTransformForAgent(File input, TransformOutputs outputs, InjectedInstrumentationServices injectedServices) {
         // A marker file that indicates that the result is instrumented jar,
         // this is important so TransformedClassPath can correctly filter instrumented jars.
         createNewFile(outputs.file(INSTRUMENTED_MARKER_FILE_NAME));
 
         // Instrument jars
-        InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
-        InstrumentationTypeRegistry typeRegistry = getParameters().getBuildService().isPresent()
-            ? getParameters().getBuildService().get().getInstrumentingTypeRegistry(injectedServices.getGradleCoreInstrumentingTypeRegistry())
-            : InstrumentationTypeRegistry.empty();
-        File outputFile = outputs.file(INSTRUMENTED_JAR_DIR_NAME + "/" + input.getName());
-        ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(getParameters().getAgentSupported().get());
-        ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(provideInterceptorFilter()), typeRegistry);
-        transform.transform(outputFile);
+        doTransform(input, outputs, injectedServices);
 
         // Copy original jars after in case they are not in global cache
         if (input.isDirectory()) {
@@ -110,9 +115,28 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         } else {
             // Jars that are in some mutable location (e.g. build/ directory) need to be copied to the global cache,
             // since daemon keeps them locked when loading them to a classloader, which prevents e.g. deleting the build directory on windows
-            File copyOfOriginalFile = outputs.file(ORIGINAL_JAR_DIR_NAME + "/" + input.getName());
+            File copyOfOriginalFile = outputs.file(ORIGINAL_DIR_NAME + "/" + input.getName());
             GFileUtils.copyFile(input, copyOfOriginalFile);
         }
+    }
+
+    private void doTransform(File input, TransformOutputs outputs, InjectedInstrumentationServices injectedServices) {
+        String outputPath = getOutputPath(input);
+        File output = input.isDirectory() ? outputs.dir(outputPath) : outputs.file(outputPath);
+        InstrumentationTypeRegistry typeRegistry = getParameters().getBuildService().isPresent()
+            ? getParameters().getBuildService().get().getInstrumentingTypeRegistry(injectedServices.getGradleCoreInstrumentingTypeRegistry())
+            : InstrumentationTypeRegistry.empty();
+        ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(isAgentSupported());
+        ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(provideInterceptorFilter()), typeRegistry);
+        transform.transform(output);
+    }
+
+    private static String getOutputPath(File input) {
+        return INSTRUMENTED_DIR_NAME + "/" + input.getName();
+    }
+
+    private boolean isAgentSupported() {
+        return getParameters().getAgentSupported().get();
     }
 
     private boolean createNewFile(File file) {

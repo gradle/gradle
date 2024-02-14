@@ -55,9 +55,7 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         then:
         executedAndNotSkipped":stripSymbolsDebug"
-        // clang 11: [greeter.cpp, sum.cpp, multiply.cpp, main.cpp]
-        // clang 14: ['multiply.cpp', 'Multiply', 'multiply', 'int', 'this', 'a', 'b', ...]
-        executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(['multiply.cpp'])
+        executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(withoutHeaders(app.original))
         binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
     }
 

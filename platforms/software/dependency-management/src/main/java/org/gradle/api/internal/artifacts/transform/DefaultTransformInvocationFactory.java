@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.transform.TransformExecutionResult.TransformWorkspaceResult;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -26,8 +27,10 @@ import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -76,7 +79,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
 
-        Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> identityCache;
+        Cache<Identity, IdentityCacheResult<TransformWorkspaceResult>> identityCache;
         UnitOfWork execution;
 
         // TODO This is a workaround for script compilation that is triggered via the "early" execution

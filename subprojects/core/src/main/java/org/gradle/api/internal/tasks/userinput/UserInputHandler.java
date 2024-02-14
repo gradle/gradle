@@ -35,7 +35,7 @@ public interface UserInputHandler {
     @Nullable
     @UsedByScanPlugin
     default Boolean askYesNoQuestion(String question) {
-        return askUser(interaction -> interaction.askYesNoQuestion(question)).get();
+        return askUser(interaction -> interaction.askYesNoQuestion(question)).getOrNull();
     }
 
     /**

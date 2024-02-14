@@ -22,6 +22,7 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
@@ -40,10 +41,10 @@ import org.gradle.api.provider.ProviderConvertible
  * This file is used to add [Kotlin extension functions](https://kotlinlang.org/docs/extensions.html) to [Dependencies], [DependencyCollector] and [DependencyModifier] to make the Kotlin DSL more idiomatic.
  *
  * These extension functions allow an interface to implement a dependencies block in the Kotlin DSL by
- * - exposing an instance of [DependencyCollector] to add dependencies without explicitly calling [DependencyCollector.add]
+ * - exposing an instance of [DependencyCollector] to add dependencies without explicitly calling [DependencyCollector.add] or [DependencyCollector.addConstraint]
  * - exposing an instance of [DependencyModifier] to modify dependencies without explicitly calling [DependencyModifier.modify]
  *
- * There are `invoke(...)` equivalents for all the `add(...)` methods in [DependencyCollector].
+ * There are `invoke(...)` equivalents for all the `add(...)` and `addConstraint(...)` methods in [DependencyCollector].
  *
  * There are `invoke(...)` equivalents for all the `modify(...)` methods in [DependencyModifier].
  *
@@ -84,9 +85,19 @@ class DependenciesExtensions {
 
             // Modify a dependency to select test fixtures
             implementation(testFixtures("org:foo:1.0")) // is getImplementation().add(getTestFixtures().modify("org:foo:1.0"))
+
+            // Add a constraint by String
+            implementation(constraint("org:foo:1.0")) // is getImplementation().addConstraint(constraint("org:foo:1.0"))
+
+            // Add a constraint on projects
+            implementation(constraint(project(":path"))) // is getImplementation().addConstraint(constraint(project(":path")))
+            implementation(constraint(project())) // is getImplementation().addConstraint(constraint(project()))
         }
     }
 }
+
+
+// The #module and #constraint methods here allow the usage of named arguments in Kotlin, even though the signature is overall the same as the Java method.
 
 
 /**
@@ -228,3 +239,43 @@ operator fun DependencyCollector.invoke(dependency: Provider<out Dependency>) = 
  * @since 8.6
  */
 operator fun <D : Dependency> DependencyCollector.invoke(dependency: Provider<out D>, configuration: Action<in D>) = add(dependency, configuration)
+
+
+/**
+ * Add a dependency constraint.
+ *
+ * @param dependencyConstraint dependency constraint to add
+ * @since 8.7
+ */
+operator fun DependencyCollector.invoke(dependencyConstraint: DependencyConstraint) = addConstraint(dependencyConstraint)
+
+
+/**
+ * Add a dependency constraint.
+ *
+ * @param dependencyConstraint dependency constraint to add
+ * @param configuration an action to configure the dependency constraint
+ * @since 8.7
+ */
+operator fun DependencyCollector.invoke(dependencyConstraint: DependencyConstraint, configuration: Action<in DependencyConstraint>) = addConstraint(dependencyConstraint, configuration)
+
+
+/**
+ * Add a dependency constraint.
+ *
+ * @param dependencyConstraint dependency constraint to add
+ * @since 8.7
+ */
+@JvmName("invokeConstraint")
+operator fun DependencyCollector.invoke(dependencyConstraint: Provider<out DependencyConstraint>) = addConstraint(dependencyConstraint)
+
+
+/**
+ * Add a dependency constraint.
+ *
+ * @param dependencyConstraint dependency constraint to add
+ * @param configuration an action to configure the dependency constraint
+ * @since 8.7
+ */
+@JvmName("invokeConstraint")
+operator fun DependencyCollector.invoke(dependencyConstraint: Provider<out DependencyConstraint>, configuration: Action<in DependencyConstraint>) = addConstraint(dependencyConstraint, configuration)

@@ -19,6 +19,7 @@ package org.gradle.performance.results.report;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.results.FormatSupport;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider;
 import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
 import org.gradle.performance.results.PerformanceTestExecutionResult;

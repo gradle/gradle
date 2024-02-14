@@ -18,10 +18,10 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.caching.internal.DefaultBuildCacheKey
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingState
+import org.gradle.internal.execution.caching.impl.DefaultBuildCacheKey
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore

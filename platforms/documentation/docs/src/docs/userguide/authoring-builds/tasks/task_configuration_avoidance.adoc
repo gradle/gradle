@@ -17,7 +17,7 @@
 
 This chapter provides an introduction to "configuration avoidance" when dealing with tasks and explains some guidelines for migrating your build to use the configuration avoidance APIs effectively. The API described here co-exists with an existing API that will be replaced with our usual deprecation process over several major releases.  As of Gradle 5.1, we recommend that the configuration avoidance APIs be used whenever tasks are created by custom plugins.
 
-[[sec:how_does_it_work]]
+[[sec:how_does_it_work_config_api]]
 == How does the configuration avoidance API work?
 
 In a nutshell, the API allows builds to avoid the cost of creating and configuring tasks during Gradle's configuration phase when those tasks will never be executed.

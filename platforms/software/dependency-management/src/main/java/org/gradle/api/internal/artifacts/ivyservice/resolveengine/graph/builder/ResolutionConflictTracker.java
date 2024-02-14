@@ -33,4 +33,12 @@ class ResolutionConflictTracker {
     public boolean hasKnownConflict(ModuleVersionIdentifier id) {
         return moduleConflictHandler.hasKnownConflictFor(id) || capabilitiesConflictHandler.hasKnownConflictFor(id);
     }
+
+    public ModuleConflictHandler getModuleConflictHandler() {
+        return moduleConflictHandler;
+    }
+
+    public CapabilitiesConflictHandler getCapabilitiesConflictHandler() {
+        return capabilitiesConflictHandler;
+    }
 }

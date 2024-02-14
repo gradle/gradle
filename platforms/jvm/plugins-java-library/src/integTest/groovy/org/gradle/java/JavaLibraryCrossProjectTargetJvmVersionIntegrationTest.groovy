@@ -57,22 +57,22 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
 
         then:
         failure.assertHasCause('''No matching variant of project :producer was found. The consumer was configured to find a library for use during compile-time, compatible with Java 6, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
-  - Variant 'apiElements' capability test:producer:unspecified declares a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
+  - Variant 'apiElements' declares a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'mainSourceElements' capability test:producer:unspecified declares a component, and its dependencies declared externally:
+  - Variant 'mainSourceElements' declares a component, and its dependencies declared externally:
       - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
       - Other compatible attributes:
           - Doesn't say anything about its elements (required them preferably in the form of class files)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 6)
           - Doesn't say anything about its usage (required compile-time)
-  - Variant 'runtimeElements' capability test:producer:unspecified declares a library for use during runtime, packaged as a jar, and its dependencies declared externally:
+  - Variant 'runtimeElements' declares a library for use during runtime, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'testResultsElementsForTest' capability test:producer:unspecified:
+  - Variant 'testResultsElementsForTest':
       - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
       - Other compatible attributes:
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)

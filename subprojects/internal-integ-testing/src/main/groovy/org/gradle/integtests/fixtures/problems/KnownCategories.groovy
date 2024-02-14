@@ -20,7 +20,7 @@ class KnownCategories {
 
     static void assertHasKnownCategory(ReceivedProblem problem) {
         assert problem != null
-        def category = problem['category']
+        def category = problem['definition']['category']
         assert category != null : "Category must be present"
         assert category['namespace'] != null : "Must specify a namespace: $category"
         assert category['category'] != null : "Must specify a main category: $category"

@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.caching.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.caching.CachingStateFactory;

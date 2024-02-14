@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -55,7 +55,8 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def setup() {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         factory = AttributeTestUtil.attributesFactory()
-        variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(new DocumentationRegistry()))
+        def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
+        variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry))
     }
 
     def "returns this when same target requested"() {
@@ -381,6 +382,10 @@ Configuration 'bar':
             getName() >> name
             getAttributes() >> attributes
             getCapabilities() >> ImmutableCapabilities.EMPTY
+            getMetadata() >> Stub(VariantGraphResolveMetadata) {
+                getName() >> name
+                getAttributes() >> attributes
+            }
         }
         return variant
     }

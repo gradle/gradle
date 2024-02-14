@@ -42,8 +42,8 @@ object SamplesGenerator {
         // clear the target directory to remove renamed files and reset the README file
         target.asFile.deleteRecursively()
 
-        val groovyDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.GROOVY, packageName, testFramework, target.dir("groovy"))
-        val kotlinDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.KOTLIN, packageName, testFramework, target.dir("kotlin"))
+        val groovyDslSettings = InitSettings(projectName, false, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.GROOVY, packageName, testFramework, target.dir("groovy"))
+        val kotlinDslSettings = InitSettings(projectName, false, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.KOTLIN, packageName, testFramework, target.dir("kotlin"))
 
         val specificContentId = if (descriptor.language === Language.CPP || descriptor.language === Language.SWIFT) {
             "native-" + descriptor.componentType.toString()

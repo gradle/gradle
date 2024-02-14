@@ -1,4 +1,3 @@
-import gradlebuild.basics.accessors.groovy
 import gradlebuild.integrationtests.tasks.GenerateLanguageAnnotations
 import java.util.Properties
 
@@ -47,6 +46,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":resources"))
     implementation(project(":build-cache"))
+    implementation(project(":build-cache-local"))
     implementation(project(":persistent-cache"))
     implementation(project(":platform-jvm"))
     implementation(project(":dependency-management"))

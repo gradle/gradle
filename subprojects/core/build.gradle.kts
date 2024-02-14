@@ -82,7 +82,9 @@ dependencies {
     api(project(":base-services-groovy"))
     api(project(":build-cache"))
     api(project(":build-cache-base"))
+    api(project(":build-cache-local"))
     api(project(":build-cache-packaging"))
+    api(project(":build-cache-spi"))
     api(project(":build-operations"))
     api(project(":build-option"))
     api(project(":cli"))
@@ -133,7 +135,10 @@ dependencies {
     implementation(libs.groovyTemplates)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
-    implementation(libs.tomlj)
+    implementation(libs.tomlj) {
+        // Used for its nullability annotations, not needed at runtime
+        exclude("org.checkerframework", "checker-qual")
+    }
     implementation(libs.xmlApis)
 
     compileOnly(libs.futureKotlin("stdlib")) {

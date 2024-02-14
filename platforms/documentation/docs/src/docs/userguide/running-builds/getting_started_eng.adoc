@@ -34,8 +34,8 @@ _Reading time_: **25 minutes**
 The core concepts cover:
 
 <<gradle_basics.adoc#gradle,Part 1.>> Gradle Overview +
-<<gradle_wrapper_basics.adoc#gradle_wrapper,Part 2.>> Gradle's Wrapper +
-<<command_line_interface_basics.adoc#command_line_interface,Part 3.>> Gradle's Command Line Interface +
+<<gradle_wrapper_basics.adoc#gradle_wrapper_basics,Part 2.>> Gradle's Wrapper +
+<<command_line_interface_basics.adoc#command_line_interface_basics,Part 3.>> Gradle's Command Line Interface +
 <<settings_file_basics.adoc#settings_file_basics,Part 4.>> Settings File +
 <<build_file_basics.adoc#build_file_basics,Part 5.>> Build Files +
 <<dependency_management_basics.adoc#dependency_management_basics,Part 6.>> Dependency Management +
