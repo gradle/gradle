@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.specs.Spec;
@@ -33,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.io.FilenameUtils.removeExtension;
 
 /**
  * A special ClassPath that keeps track of the transformed "doubles" of the original classpath entries (JARs and class directories).
@@ -51,7 +50,10 @@ public class TransformedClassPath implements ClassPath {
      * A marker file put next to the instrumented entry to indicate that it is instrumented.
      */
     public static final String INSTRUMENTED_MARKER_FILE_NAME = ".gradle-instrumented.marker";
-    public static final String ORIGINAL_JAR_HASH_EXTENSION = ".original-jar-hash";
+    /**
+     * A marker file put next to the instrumented entry to indicate that original entry should be retrieved from original classpath.
+     */
+    public static final String ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX = ".original-entry-placeholder.marker";
     public static final String INSTRUMENTED_DIR_NAME = "instrumented";
     public static final String ORIGINAL_DIR_NAME = "original";
 
@@ -266,7 +268,7 @@ public class TransformedClassPath implements ClassPath {
      */
     public static TransformedClassPath fromInstrumentingArtifactTransformOutput(ClassPath classPath) {
         checkArgument(!(classPath instanceof TransformedClassPath), "Cannot build the TransformedClassPath out of TransformedClassPath %s", classPath);
-        return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, computeResultSizeOfInstrumentingArtifactTransformOutput(classPath), null);
+        return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, computeResultSizeOfInstrumentingArtifactTransformOutput(classPath));
     }
 
     /**
@@ -280,7 +282,7 @@ public class TransformedClassPath implements ClassPath {
      * @param classPath the classpath to process
      * @return the classpath that carries the instrumentation mappings if needed
      */
-    public static ClassPath handleInstrumentingArtifactTransform(ClassPath classPath, Function<String, File> originalEntryResolver) {
+    public static ClassPath handleInstrumentingArtifactTransform(ClassPath classPath) {
         if (classPath.isEmpty() || classPath instanceof TransformedClassPath) {
             return classPath;
         }
@@ -291,7 +293,7 @@ public class TransformedClassPath implements ClassPath {
             return classPath;
         }
 
-        return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, resultSize, originalEntryResolver);
+        return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, resultSize);
     }
 
     /**
@@ -310,7 +312,7 @@ public class TransformedClassPath implements ClassPath {
         return resultSize;
     }
 
-    private static TransformedClassPath fromInstrumentingArtifactTransformOutputWithExpectedSize(ClassPath classPath, int resultSize, Function<String, File> originalEntryResolver) {
+    private static TransformedClassPath fromInstrumentingArtifactTransformOutputWithExpectedSize(ClassPath classPath, int resultSize) {
         List<File> inputFiles = classPath.getAsFiles();
 
         Builder result = builderWithExactSize(resultSize);
@@ -320,9 +322,6 @@ public class TransformedClassPath implements ClassPath {
                 checkArgument(i + 2 < inputFiles.size(), "Missing the instrumented or original entry for classpath %s", inputFiles);
                 File instrumentedEntry = inputFiles.get(i + 1);
                 File originalEntry = inputFiles.get(i + 2);
-                if (originalEntry.getName().endsWith(ORIGINAL_JAR_HASH_EXTENSION)) {
-                    originalEntry = checkNotNull(originalEntryResolver.apply(originalEntry.getName().replace(ORIGINAL_JAR_HASH_EXTENSION, "")));
-                }
                 checkArgument(
                     areInstrumentedAndOriginalEntriesValid(instrumentedEntry, originalEntry),
                     "Instrumented entry %s doesn't match original entry %s",
@@ -342,7 +341,7 @@ public class TransformedClassPath implements ClassPath {
         return instrumentedEntry.getParentFile() != null
             && instrumentedEntry.getParentFile().getName().equals(INSTRUMENTED_DIR_NAME)
             && !originalEntry.equals(instrumentedEntry)
-            && instrumentedEntry.getName().equals(originalEntry.getName());
+            && instrumentedEntry.getName().startsWith(removeExtension(originalEntry.getName()));
     }
 
     private static boolean isInstrumentedMarkerFile(File classPathEntry) {

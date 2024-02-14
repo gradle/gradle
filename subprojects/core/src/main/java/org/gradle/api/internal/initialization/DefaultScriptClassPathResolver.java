@@ -17,6 +17,7 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -42,7 +43,6 @@ import org.gradle.api.internal.initialization.transform.ExternalDependencyInstru
 import org.gradle.api.internal.initialization.transform.MergeSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.agents.AgentStatus;
@@ -53,15 +53,23 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.COLLECTED_DIRECT_SUPER_TYPES;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.MERGED_SUPER_TYPES;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
@@ -105,15 +113,16 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             .attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, NOT_INSTRUMENTED);
 
         // Register instrumentation transforms
+        Provider<CacheInstrumentationTypeRegistryBuildService> service = getOrRegisterNewService();
         dependencyHandler.registerTransform(
             CollectDirectClassSuperTypesTransform.class,
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, NOT_INSTRUMENTED);
                 spec.getTo().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, COLLECTED_DIRECT_SUPER_TYPES);
+                spec.parameters(params -> params.getBuildService().set(service));
             }
         );
 
-        Provider<CacheInstrumentationTypeRegistryBuildService> service = getOrRegisterNewService();
         dependencyHandler.registerTransform(
             MergeSuperTypesTransform.class,
             spec -> {
@@ -127,7 +136,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         );
 
         registerTransform(dependencyHandler, ExternalDependencyInstrumentingArtifactTransform.class, service, MERGED_SUPER_TYPES, INSTRUMENTED_AND_UPGRADED);
-        registerTransform(dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, Providers.notDefined(), NOT_INSTRUMENTED, INSTRUMENTED_ONLY);
+        registerTransform(dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, service, NOT_INSTRUMENTED, INSTRUMENTED_ONLY);
     }
 
     private void registerTransform(
@@ -184,10 +193,10 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             CacheInstrumentationTypeRegistryBuildService buildService = getOrRegisterNewService().get();
             buildService.getParameters().getClassHierarchy().setFrom(getHierarchyView(classpathConfiguration));
             buildService.getParameters().getOriginalClasspath().setFrom(classpathConfiguration);
-            FileCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
-            FileCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
-            ClassPath instrumentedClasspath = DefaultClassPath.of(instrumentedExternalDependencies.plus(instrumentedProjectDependencies));
-            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath, buildService::getOriginalFile);
+            ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
+            ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
+            ClassPath instrumentedClasspath = combineClassPaths(classpathConfiguration.getIncoming().getArtifacts(), instrumentedExternalDependencies, instrumentedProjectDependencies);
+            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath);
         });
     }
 
@@ -205,18 +214,18 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         }).getFiles();
     }
 
-    private static FileCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
+    private static ArtifactCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, INSTRUMENTED_AND_UPGRADED));
             config.componentFilter(componentId -> !isGradleApi(componentId) && !isProject(componentId));
-        }).getFiles();
+        }).getArtifacts();
     }
 
-    private static FileCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
+    private static ArtifactCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, INSTRUMENTED_ONLY));
             config.componentFilter(DefaultScriptClassPathResolver::isProject);
-        }).getFiles();
+        }).getArtifacts();
     }
 
     private static boolean isGradleApi(ComponentIdentifier componentId) {
@@ -229,5 +238,27 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static boolean isProject(ComponentIdentifier componentId) {
         return componentId instanceof ProjectComponentIdentifier;
+    }
+
+    /**
+     * Combines the original classpath with the external and project dependencies.
+     */
+    public static ClassPath combineClassPaths(ArtifactCollection originalClasspath, ArtifactCollection externalDependencies, ArtifactCollection projectDependencies) {
+        Map<ComponentIdentifier, Set<File>> originalArtifact = new HashMap<>(originalClasspath.getArtifacts().size());
+        originalClasspath.getArtifacts().forEach(artifact -> originalArtifact.computeIfAbsent(artifact.getId().getComponentIdentifier(), __ -> new HashSet<>()).add(artifact.getFile()));
+        List<File> files = new ArrayList<>();
+        Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream()).forEach(artifact -> {
+            if (artifact.getFile().getName().endsWith(ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX)) {
+                String name = artifact.getFile().getName().replace(ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX, "");
+                File original = originalArtifact.get(artifact.getVariant().getOwner()).stream()
+                    .filter(file -> file.getName().equals(name))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Original artifact not found for " + artifact));
+                files.add(original);
+            } else {
+                files.add(artifact.getFile());
+            }
+        });
+        return DefaultClassPath.of(files);
     }
 }

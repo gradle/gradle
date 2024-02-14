@@ -22,9 +22,10 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.ClasspathWalker;
@@ -46,6 +47,7 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 
 /**
@@ -53,7 +55,12 @@ import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
  *  We could reuse the same class at some point.
  */
 @DisableCachingByDefault(because = "Not worth caching.")
-public abstract class CollectDirectClassSuperTypesTransform implements TransformAction<TransformParameters.None> {
+public abstract class CollectDirectClassSuperTypesTransform implements TransformAction<CollectDirectClassSuperTypesTransform.Parameters> {
+
+    public interface Parameters extends TransformParameters {
+        @Internal
+        Property<CacheInstrumentationTypeRegistryBuildService> getBuildService();
+    }
 
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang");
     public static final String SUPER_TYPES_MARKER_FILE_NAME = ".gradle-super-types.marker";
@@ -69,11 +76,18 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
 
     @Override
     public void transform(TransformOutputs outputs) {
+        File inputFile = getInput().get().getAsFile();
+        if (!inputFile.exists()) {
+            // Files can be passed to the artifact transform even if they don't exist,
+            // in the case when user adds a file classpath via files("path/to/jar").
+            // Unfortunately we don't filter them out before the artifact transform is run.
+            return;
+        }
+
         try {
             // We cannot inject internal services in to the transform directly, but we can create them via object factory
             InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
             ClasspathWalker walker = services.getClasspathWalker();
-            File inputFile = getInput().get().getAsFile();
             Map<String, Set<String>> superTypes = new TreeMap<>();
             try {
                 walker.visit(inputFile, entry -> {
@@ -95,7 +109,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
             File outputDir = outputs.dir("supertypes");
             File output = new File(outputDir, inputFile.getName() + DIRECT_SUPER_TYPES_SUFFIX);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
-                String hash = InstrumentationTransformUtils.hash(services.getFileSystemAccess(), inputFile);
+                String hash = checkNotNull(getParameters().getBuildService().get().hash(inputFile));
                 writer.write(FILE_HASH_PROPERTY_NAME + "=" + hash + "\n");
                 for (Map.Entry<String, Set<String>> entry : superTypes.entrySet()) {
                     writer.write(entry.getKey() + "=" + String.join(",", entry.getValue()) + "\n");

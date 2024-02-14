@@ -23,8 +23,14 @@ import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.classpath.types.ExternalPluginsInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -38,8 +44,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.hash;
 
 public abstract class CacheInstrumentationTypeRegistryBuildService implements BuildService<CacheInstrumentationTypeRegistryBuildService.Parameters> {
 
@@ -53,7 +59,7 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
 
     private volatile InstrumentationTypeRegistry instrumentingTypeRegistry;
     private volatile Map<String, File> originalFiles;
-    private volatile FileSystemAccess fileSystemAccess;
+    private final Lazy<FileSystemAccess> fileSystemAccess = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInternalServices.class).getFileSystemAccess());
 
     public InstrumentationTypeRegistry getInstrumentingTypeRegistry(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
         if (gradleCoreInstrumentationTypeRegistry.isEmpty()) {
@@ -97,16 +103,31 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
         if (originalFiles == null) {
             synchronized (this) {
                 if (originalFiles == null) {
-                    if (fileSystemAccess == null) {
-                        fileSystemAccess = getObjectFactory().newInstance(InjectedInternalServices.class).getFileSystemAccess();
-                    }
                     Map<String, File> originalFiles = new HashMap<>(getParameters().getOriginalClasspath().getFiles().size());
-                    getParameters().getOriginalClasspath().forEach(file -> originalFiles.put(hash(fileSystemAccess, file), file));
+                    getParameters().getOriginalClasspath().forEach(file -> {
+                        String fileHash = hash(file);
+                        if (fileHash != null) {
+                            originalFiles.put(fileHash, file);
+                        }
+                    });
                     this.originalFiles = originalFiles;
                 }
             }
         }
-        return originalFiles.get(hash);
+        return checkNotNull(originalFiles.get(hash));
+    }
+
+    @Nullable
+    public String hash(File file) {
+        Hasher hasher = Hashing.newHasher();
+        FileSystemLocationSnapshot snapshot = fileSystemAccess.get().read(file.getAbsolutePath());
+        if (snapshot.getType() == FileType.Missing) {
+            return null;
+        }
+
+        hasher.putHash(fileSystemAccess.get().read(file.getAbsolutePath()).getHash());
+        hasher.putString(file.getName());
+        return hasher.hash().toString();
     }
 
     public void clear() {

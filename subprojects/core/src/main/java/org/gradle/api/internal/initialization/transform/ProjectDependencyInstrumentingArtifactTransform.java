@@ -34,7 +34,7 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
     @Override
     @Classpath
     @InputArtifact
-    public abstract Provider<FileSystemLocation> getInput();
+    public abstract Provider<FileSystemLocation> getInputMetadata();
 
     @Override
     protected BytecodeInterceptorFilter provideInterceptorFilter() {
@@ -42,7 +42,7 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
     }
 
     @Override
-    protected File inputArtifact() {
-        return getInput().get().getAsFile();
+    protected File originalInput() {
+        return getInputMetadata().get().getAsFile();
     }
 }

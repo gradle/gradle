@@ -41,9 +41,9 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
     }
 
     @Override
-    protected File inputArtifact() {
+    protected File originalInput() {
         try {
-            File input = findFirstWithSuffix(getInput().get().getAsFile(), MERGED_SUPER_TYPES_SUFFIX);
+            File input = findFirstWithSuffix(getInputMetadata().get().getAsFile(), MERGED_SUPER_TYPES_SUFFIX);
             String hash = Files.asCharSource(input, StandardCharsets.UTF_8)
                 .readFirstLine()
                 .replace(FILE_HASH_PROPERTY_NAME + "=", "");

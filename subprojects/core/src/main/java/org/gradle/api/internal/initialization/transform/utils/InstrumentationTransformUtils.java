@@ -16,13 +16,6 @@
 
 package org.gradle.api.internal.initialization.transform.utils;
 
-import com.google.common.base.Preconditions;
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.vfs.FileSystemAccess;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -50,14 +43,5 @@ public class InstrumentationTransformUtils {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    public static String hash(FileSystemAccess fileSystemAccess, File file) {
-        Hasher hasher = Hashing.newHasher();
-        FileSystemLocationSnapshot snapshot = fileSystemAccess.read(file.getAbsolutePath());
-        Preconditions.checkArgument(snapshot.getType() != FileType.Missing, "File does not exist: " + file.getAbsolutePath());
-        hasher.putHash(fileSystemAccess.read(file.getAbsolutePath()).getHash());
-        hasher.putString(file.getName());
-        return hasher.hash().toString();
     }
 }
