@@ -402,7 +402,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     private final Demonstration configurationNotFound = new Demonstration("Configuration not found", ConfigurationSelectionException.class, this.&setupConfigurationNotFound)
     private final Demonstration externalConfigurationNotFound = new Demonstration("External configuration not found", ConfigurationSelectionException.class, this.&setupExternalConfigurationNotFound)
 
-    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible artifact variants", VariantSelectionException.class, this.&setupIncompatibleArtifactVariantsFailureForProject)
+    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible artifact variants", ArtifactVariantSelectionException.class, this.&setupIncompatibleArtifactVariantsFailureForProject)
     private final Demonstration noMatchingArtifactVariants = new Demonstration("No matching artifact variants", ArtifactVariantSelectionException.class, this.&setupNoMatchingArtifactVariantsFailureForProject)
     private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", ArtifactVariantSelectionException.class, this.&setupAmbiguousArtifactTransformFailureForProject)
     private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactVariantSelectionException.class, this.&setupAmbiguousArtifactVariantsFailureForProject)

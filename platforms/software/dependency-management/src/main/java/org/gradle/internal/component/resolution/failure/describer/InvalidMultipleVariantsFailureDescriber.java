@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
-import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
+import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure;
 
 import java.util.Comparator;
@@ -35,9 +35,9 @@ public abstract class InvalidMultipleVariantsFailureDescriber extends AbstractRe
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Override
-    public VariantSelectionException describeFailure(IncompatibleMultipleNodeSelectionFailure failure) {
+    public ArtifactVariantSelectionException describeFailure(IncompatibleMultipleNodeSelectionFailure failure) {
         String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
-        VariantSelectionException result = new VariantSelectionException(msg);
+        ArtifactVariantSelectionException result = new ArtifactVariantSelectionException(msg);
         suggestSpecificDocumentation(result, INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION);
         suggestReviewAlgorithm(result);
         return result;
