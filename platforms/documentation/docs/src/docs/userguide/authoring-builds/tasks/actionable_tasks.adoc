@@ -19,7 +19,7 @@ Actionable tasks describe work in Gradle.
 These tasks have actions.
 
 In Gradle core, the `compileJava` task compiles the Java source code.
-The `Jar` and `Zip` tasks zip up files into archives.
+The `Jar` and `Zip` tasks zip files into archives.
 
 [[sec:task_groups]]
 == Task inputs and outputs
@@ -41,10 +41,9 @@ Clearly defined task inputs and outputs serve two purposes:
 1. They inform Gradle about task dependencies. +
 For example, if Gradle understands that the output of the `compileJava` task serves as the input for the `jar` task, it will prioritize running `compileJava` first.
 2. They facilitate incremental building. +
-For example, if Gradle recognizes that the inputs and outputs of a task remain unchanged, it can leverage results from previous build runs or the build cache, thereby avoiding the need to rerun the task action altogether.
+For example, suppose Gradle recognizes that the inputs and outputs of a task remain unchanged. In that case, it can leverage results from previous build runs or the build cache, avoiding rerunning the task action altogether.
 
-When you apply a plugin like the `java-library` plugin.
-Gradle will automatically register some tasks and configure them with defaults.
+When you apply a plugin like the `java-library` plugin, Gradle will automatically register some tasks and configure them with defaults.
 
 Let's define a task that packages JARs and a start script into an archive in an imaginary sample project:
 
@@ -118,7 +117,7 @@ We used an existing implementation from Gradle core which is the link:{javadocPa
 Because we register a new task here, it's not pre-configured.
 We need to configure the inputs and outputs.
 
-Defining inputs and outputs is essentially what makes a task an actionable task.
+Defining inputs and outputs is what makes a task an actionable task.
 
 For the link:{javadocPath}/org/gradle/api/tasks/bundling/Zip.html[`Zip`] task type, we can use the link:{javadocPath}/org/gradle/api/tasks/AbstractCopyTask.html#from-java.lang.Object...-[`from()`] method to add a file to the inputs.
 In our case, we add the run script.
@@ -129,8 +128,10 @@ To ensure we use the correct location, we use link:{javadocPath}/org/gradle/api/
 We provide the outputs of the `jar` task as well as the JAR of all the dependencies (using link:{javadocPath}/org/gradle/api/Project.html#getConfigurations--[`configurations`]link:{javadocPath}/org/gradle/api/tasks/SourceSet.html#getRuntimeClasspath--[`.runtimeClasspath`]) as additional inputs.
 
 For outputs, we need to define two properties.
+
 First, the destination directory, which should be a directory inside the build folder.
 We can access this through link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[`layout`].
+
 Second, we need to specify a name for the zip file, which we've called `myApplication.zip`
 
 Here is what the complete task looks like:
@@ -174,7 +175,7 @@ def packageApp = tasks.register(Zip, 'packageApp') {
 =====
 ====
 
-if we run our `packageApp` task, `myApplication.zip` is produced:
+If we run our `packageApp` task, `myApplication.zip` is produced:
 
 [source,text]
 ----
@@ -190,7 +191,7 @@ BUILD SUCCESSFUL in 1s
 3 actionable tasks: 3 executed
 ----
 
-Gradle executed a number of tasks it required to build the JAR file, which includes the compilation of the code of the `app` project and the compilation of code dependencies.
+Gradle executed a number of tasks it required to build the JAR file, which included the compilation of the code of the `app` project and the compilation of code dependencies.
 
 Looking at the newly created ZIP file, we can see that it contains everything needed to run the Java application:
 
@@ -214,9 +215,9 @@ Archive:  ./app/build/dist/myApplication.zip
   3309228                     9 files
 ----
 
-Actionable tasks should be wired to lifecycle tasks so that a developer only need run lifecycle tasks.
+Actionable tasks should be wired to lifecycle tasks so that a developer only needs to run lifecycle tasks.
 
-So far we called our new task directly.
+So far, we called our new task directly.
 Let's wire it to a lifecycle task.
 
 The following is added to the build script so that the `packageApp` actionable task is wired to the `build` lifecycle task using link:{javadocPath}/org/gradle/api/DefaultTask.html#dependsOn-java.lang.Object...-[`dependsOn()`]:
@@ -274,9 +275,9 @@ You could define your own lifecycle task if needed.
 
 == Task implementation by extending `DefaultTask`
 
-To address more individual needs and if no existing plugins provide the build functionality you need, you can create your own task implementation.
+To address more individual needs, and if no existing plugins provide the build functionality you need, you can create your own task implementation.
 
-Implementing a class means creating a custom class (i.e., _type_) which is done by subclassing link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`]
+Implementing a class means creating a custom class (i.e., _type_), which is done by subclassing link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`]
 
 Let's start with an example built by Gradle `init` for a simple Java application with the source code in the `app` subproject and the common build logic in `buildSrc`:
 
@@ -519,7 +520,7 @@ public abstract class GenerateReportTask extends DefaultTask {
 =====
 ====
 
-The task action generates a report of the files contained in the `sourceDirectory`.
+The task action generates a report of the files in the `sourceDirectory`.
 
 In the application build file, we register a task of type `GenerateReportTask` using `task.register()` and name it `generateReport`.
 At the same time, we configure the inputs and outputs of the task:
@@ -603,7 +604,7 @@ BUILD SUCCESSFUL in 1s
 
 == Task Actions
 
-A task action is the code that implements what a task is doing as demonstrated in the previous section.
+A task action is the code that implements what a task is doing, as demonstrated in the previous section.
 For example, the `javaCompile` task action calls the Java compiler to transform source code into byte code.
 
 It is possible to dynamically modify task actions for tasks that are already registered.
@@ -612,8 +613,11 @@ This is helpful for testing, patching, or modifying core build logic.
 Let's look at an example of a simple Gradle build with one `app` subproject that makes up a Java application – containing one Java class and using Gradle's `application` plugin.
 The project has common build logic in the `buildSrc` folder where `my-convention-plugin` resides:
 
-[source,kotlin]
+====
+[.multi-language-sample]
+=====
 .app/build.gradle.kts
+[source,kotlin]
 ----
 plugins {
     id("my-convention-plugin")
@@ -625,11 +629,32 @@ application {
     mainClass = "org.example.app.App"
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+plugins {
+    id 'my-convention-plugin'
+}
+
+version = '1.0'
+
+application {
+    mainClass = 'org.example.app.App'
+}
+----
+=====
+====
 
 We define a task called `printVersion` in the build file of the `app`:
 
-[source,kotlin]
+====
+[.multi-language-sample]
+=====
 .buildSrc/src/main/kotlin/PrintVersion.kt
+[source,kotlin]
 ----
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
@@ -649,26 +674,55 @@ abstract class PrintVersion : DefaultTask() {
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.buildSrc/src/main/groovy/PrintVersion.groovy
+[source,groovy]
+----
+import org.gradle.api.DefaultTask
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
 
-This task does one simple thing, it prints out the version of the project to the command line.
+abstract class PrintVersion extends DefaultTask {
 
-The class extends `DefaultTask`, as all task implementations do, and it has one `@Input` which is of type `Property<String>`.
+    // Configuration code
+    @Input
+    abstract Property<String> getVersion()
+
+    // Execution code
+    @TaskAction
+    void printVersion() {
+        println("Version: ${getVersion().get()}")
+    }
+}
+----
+=====
+====
+
+This task does one simple thing: it prints out the version of the project to the command line.
+
+The class extends `DefaultTask` and it has one `@Input`, which is of type `Property<String>`.
 It has one method that is annotated with `@TaskAction`, which prints out the version.
 
 Note that the task implementation clearly distinguishes between "Configuration code" and "Execution code".
 
-The configuration code is executed during Gradle's configuration phase and builds up a model of the project in memory so that Gradle knows what it needs to do for a certain build invocation.
-Everything around the task actions, like the input or output properties, are part of this configuration code.
+The configuration code is executed during Gradle's configuration phase.
+It builds up a model of the project in memory so that Gradle knows what it needs to do for a certain build invocation.
+Everything around the task actions, like the input or output properties, is part of this configuration code.
 
-Only the code inside the task action method is the execution code that does the actual work.
-It accesses the inputs and outputs to do some work if the task is part of the task graph and if it can't be skipped, because it's UP-TO-DATE or it's taken FROM-CACHE.
+The code inside the task action method is the execution code that does the actual work.
+It accesses the inputs and outputs to do some work if the task is part of the task graph and if it can't be skipped because it's UP-TO-DATE or it's taken FROM-CACHE.
 
-Now once we have this task implementation, we can use it in our build setup.
+Once a task implementation is complete, it can be used in a build setup.
+In our convention plugin, `my-convention-plugin`, we can register a new task that uses the new task implementation:
 
-So if we go to our convention plugin, `my-convention-plugin`, we can register a new task there that uses our task implementation.
-
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
 [source,kotlin]
-.buildSrc/src/main/kotlin/my-convention-plugin.gradle.kt
 ----
 tasks.register<PrintVersion>("printVersion") {
 
@@ -676,37 +730,67 @@ tasks.register<PrintVersion>("printVersion") {
     version = project.version as String
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.register(PrintVersion, "printVersion") {
 
-Inside the configuration block for the task, we now write configuration phase code which only modifies the values of input and output properties of the task, but does not touch the execution phase code.
-So the task action is not referred here in any way.
-It's something Gradle will pick up automatically if needed.
-Even for simple custom task implementations like this one, it makes a quite clean separation between "configuration time code" and "execution time code".
+    // Configuration code
+    version = project.version.toString()
+}
+----
+=====
+====
 
-However, you could write tasks, especially simple tasks like this one, in a bit more compact way directly in the build script without creating a separate class for the task.
+Inside the configuration block for the task, we can write configuration phase code which modifies the values of input and output properties of the task.
+The task action is not referred to here in any way.
 
-Let's register another task and call it 'printVersionDynamic'.
+It is possible to write simple tasks like this one in a more compact way and directly in the build script without creating a separate class for the task.
 
-This time, we do not define a type for the task which means the task will be of the general type `DefaultTask`.
-This general type does not define any task actions – that means it does not have methods annotated with `@TaskAction`.
+Let's register another task and call it `printVersionDynamic`.
+
+This time, we do not define a type for the task, which means the task will be of the general type `DefaultTask`.
+This general type does not define any task actions, meaning it does not have methods annotated with `@TaskAction`.
 This type is useful for defining 'lifecycle tasks':
 
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
 [source,kotlin]
-.buildSrc/src/main/kotlin/convention-plugin.gradle.kt
 ----
 tasks.register("printVersionDynamic") {
 
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.register("printVersionDynamic") {
 
-But the default task type can also be used to define tasks with custom actions dynamically without additional classes.
-This is done by using the doFirst{} or doLast{} construct.
-Similar to defining a method and annotating this `@TaskAction`, this adds an action to this task.
-The methods are called doFirst {} and doLast {}, because the task can have multiple actions.
-And if the task already has an action defined you can use this distinction to decide if your
-additional action should run before or after the existing actions:
+}
+----
+=====
+====
 
+However, the default task type can also be used to define tasks with custom actions dynamically, without additional classes.
+This is done by using the `doFirst{}` or `doLast{}` construct.
+Similar to defining a method and annotating this `@TaskAction`, this adds an action to a task.
+
+The methods are called `doFirst{}` and `doLast{}` because the task can have multiple actions.
+If the task already has an action defined, you can use this distinction to decide if your additional action should run before or after the existing actions:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
 [source,kotlin]
-.buildSrc/src/main/kotlin/convention-plugin.gradle.kt
 ----
 tasks.register("printVersionDynamic") {
     doFirst {
@@ -719,29 +803,50 @@ tasks.register("printVersionDynamic") {
     }
 }
 ----
-
-If you only have one action, which is the case here because we start with an empty task, we typically use the doLast {} method.
-
-Now we can add the action code inside this method.
-We put our `println()` statement here.
-
-[source,kotlin]
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
 ----
 tasks.register("printVersionDynamic") {
+    doFirst {
+        // Task action = Execution code
+        // Run before exiting actions
+    }
     doLast {
-        println("Version: ${project.version}")
+        // Task action = Execution code
+        // Run after existing actions
     }
 }
 ----
+=====
+====
 
-While this example will work, it mixes execution code and configuration code.
-The doLast{} actions are part of the execution code but the `project.version` is created in the configuration phase.
-If the configuration cache is turned on, this example will no longer work as the cache requires a clear separation between execution and configuration code.
+If you only have one action, which is the case here because we start with an empty task, we typically use the `doLast{}` method.
 
-For this we can declare the version we want to print as an input dynamically.
-Instead of declaring a property and annotating it with `@Input` we can use the general inputs properties that all tasks have:
+In the task, we first declare the version we want to print as an input dynamically.
+Instead of declaring a property and annotating it with `@Input`, we use the general inputs properties that all tasks have.
+Then, we add the action code, a `println()` statement, inside the `doLast{}` method:
 
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
 [source,kotlin]
+----
+tasks.register("printVersionDynamic") {
+    inputs.property("version", project.version.toString())
+    doLast {
+        println("Version: ${inputs.properties["version"]}")
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
 ----
 tasks.register("printVersionDynamic") {
     inputs.property("version", project.version)
@@ -750,23 +855,27 @@ tasks.register("printVersionDynamic") {
     }
 }
 ----
+=====
+====
 
-So what we see here are two alternative approaches to implement a custom task in Gradle.
+We saw two alternative approaches to implementing a custom task in Gradle.
 
-The dynamic setup makes it a bit more compact.
-However, as I showed, it's easier to mix configuration time and execution time state here.
-It also can get hard to keep an overview, if you need more inputs for a more complex task implementation.
-And then you see that this general 'inputs' field here is untyped.
-So you have a map with string keys to arbitrary objects. So when you get things out of the map again, in the task action, you need to know which type they are of and possibly cast them.
+The dynamic setup makes it more compact.
+However, it's easy to mix configuration and execution time states when writing dynamic tasks.
+You can also see that 'inputs' are untyped in dynamic tasks, which can lead to issues.
+When you implement your custom task as a class, you can clearly define the inputs as properties with a dedicated type.
 
-When you implement your custom task as class, you can clearly Define the inputs as properties with a dedicated type.
+Dynamic modification of task actions can provide value for tasks that are already registered, but which you need to modify for some reason.
 
-Where this dynamic modification of actions actually can give additional value, is when you have tasks that are already registered, but which you need to modify for some reason.
+Let's take the `compileJava` task as an example.
 
-Let's take as an example the compileJava task, which is registered by the Java plugins.
+Once the task is registered, you can't remove it.
+You could, instead, clear its actions:
 
-Once the task is registered, you can't remove it. It's also difficult, and in certain cases impossible, to remove certain task dependencies that have been set up already by the plugins you are using.
-
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
 [source,kotlin]
 ----
 tasks.compileJava {
@@ -779,7 +888,32 @@ tasks.compileJava {
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.compileJava {
+    // Clear existing actions
+    actions.clear()
 
+    // Add a new action
+    doLast {
+        println("Custom action: Compiling Java classes...")
+    }
+}
+----
+=====
+====
+
+It's also difficult, and in certain cases impossible, to remove certain task dependencies that have been set up already by the plugins you are using.
+You could, instead, modify its behavior:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
 [source,kotlin]
 ----
 tasks.compileJava {
@@ -798,5 +932,27 @@ tasks.compileJava {
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.compileJava {
+    // Modify the task behavior
+    doLast {
+        def outputDir = file("$buildDir/compiledClasses")
+        outputDir.mkdirs()
 
+        def compiledFiles = sourceSets["main"].output.files
+        compiledFiles.each { compiledFile ->
+            def destinationFile = new File(outputDir, compiledFile.name)
+            compiledFile.copyTo(destinationFile)
+        }
 
+        println("Java compilation completed. Compiled classes copied to: ${outputDir.absolutePath}")
+    }
+}
+----
+=====
+====

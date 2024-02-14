@@ -25,7 +25,7 @@ Lifecycle tasks represent various concepts:
 * a buildable thing (e.g., create a debug 32-bit executable for native components with `debug32MainExecutable`)
 * a convenience task to execute many of the same logical tasks (e.g., run all compilation tasks with `compileAll`)
 
-The <<base_plugin.adoc#base_plugin,Gradle `base` plugin>> defines several lifecycle tasks including `build`, `assemble`, and `check`.
+The <<base_plugin.adoc#base_plugin,Gradle `base` plugin>> defines several lifecycle tasks, including `build`, `assemble`, and `check`.
 
 A well-organized setup of lifecycle tasks enhances the accessibility of your build for new users and simplifies integration with CI.
 
@@ -56,8 +56,8 @@ Build tasks
 assemble - Assembles the outputs of this project.
 ----
 
-When listing available tasks in the `app` subproject, we can see that tasks are grouped.
-Here, the `:run` tasks is part of the `Application` group with the description `Runs this project as a JVM application`.
+When listing available tasks in the `app` subproject, we see that tasks are grouped.
+Here, the `:run` task is part of the `Application` group with the description `Runs this project as a JVM application`.
 
 [[sec:hidden_tasks]]
 == Private and hidden tasks
@@ -171,7 +171,7 @@ In contrast, `./gradlew tasks --all` will show all tasks; _hidden_ and _visible_
 
 If you want to customize which tasks are shown to users when listed, you can group tasks and set the visibility of each group.
 
-NOTE: Remember, even if you _hide_ tasks, they are still available and Gradle can still run them.
+NOTE: Remember, even if you _hide_ tasks, they are still available, and Gradle can still run them.
 
 Let's start with an example built by Gradle `init` for a Java application with multiple subprojects.
 The project structure is as follows:
@@ -425,8 +425,8 @@ run - Runs this project as a JVM application
 tasksAll - Show additional tasks.
 ----
 
-This is already pretty useful if the standard lifecycle tasks are sufficient.
-Moving the groups around can help a lot to make it clear which tasks you expect to be used in your build.
+This is already useful if the standard lifecycle tasks are sufficient.
+Moving the groups around helps clarify the tasks you expect to used in your build.
 
 In many cases, there are more specific requirements that you want to address.
 One common scenario is running quality checks without running tests.
@@ -478,7 +478,7 @@ tasks.register('qualityCheck') {                        // qualityCheck task
 
 Note that you don't need to list all the tasks that Gradle will execute.
 Just specify the targets you want to collect here.
-Gradle will figure out which other tasks it needs to call to reach these goals.
+Gradle will determine which other tasks it needs to call to reach these goals.
 
 In the example, we add the `classes` task, a lifecycle task to compile all our production code, and the `spotbugsMain` task, which checks our production code.
 
@@ -547,7 +547,7 @@ With this setup, developers only need to know that they can call Gradle with `:s
 [[sec:global_lifecycle_tasks]]
 == Global lifecycle tasks
 
-Another place to invoke lifecycle tasks is within the root build, this is especially useful for Continuous Integration (CI).
+Another place to invoke lifecycle tasks is within the root build; this is especially useful for Continuous Integration (CI).
 
 Gradle tasks play a crucial role in CI or CD systems, where activities like compiling all code, running tests, or building and packaging the complete application are typical.
 To facilitate this, you can include lifecycle tasks that span multiple subprojects.
@@ -563,7 +563,7 @@ Let's continue using the Gradle `init` Java application multi-project as an exam
 This time, we're incorporating a build script in the root project.
 We'll establish two groups for our global lifecycle tasks: one for tasks relevant to local development, such as running all checks, and another exclusively for our CI system.
 
-Once again, we narrow down the tasks listed to our specific groups:
+Once again, we narrowed down the tasks listed to our specific groups:
 
 ====
 [.multi-language-sample]
@@ -736,8 +736,8 @@ BUILD SUCCESSFUL in 1s
 [[sec:task_name]]
 == Task name abbreviation
 
-When specifying tasks on the command line, it's not necessary to provide the complete task name.
-You can provide enough of the task name to uniquely identify the task.
+When specifying tasks on the command line, providing the complete task name is unnecessary.
+You can provide enough of the task name to identify the task uniquely.
 
 For example, instead of running `./gradlew :checkAll`, we can run `./gradlew :chAl`:
 
@@ -761,19 +761,19 @@ You can execute the `:check` task in the `utitlities` subproject with the `gradl
 
 You can use https://en.wikipedia.org/wiki/Camel_case[camel case] patterns for more complex abbreviations.
 
-Another practice, which I advise against, is calling tasks without the colon `:` in front.
+Calling tasks without the colon `:` in front is not advised.
 If you do so, Gradle will attempt to find matching tasks in all the subprojects, and you won't precisely know which tasks will be invoked.
 For instance, Gradle will skip projects where the task is unavailable.
 
-I recommend adhering to the ':' notation, ensuring the appropriate lifecycle tasks are available so that everyone is aware of the intended usage in your build.
+It is recommended that you adhere to the ':' notation, ensuring the appropriate lifecycle tasks are available so that everyone is aware of the intended usage in your build.
 
 [[sec:exclude_task]]
 == Exclude tasks from execution
 
-You can exclude a task from being executed using the `-x` or `--exclude-task` command-line option and providing the name of the task to exclude.
+You can exclude a task from execution using the `-x` or `--exclude-task` command-line option and provide the task's name to exclude.
 
 For instance, you can run the `check` task but exclude the `test` task from running.
 This approach can lead to unexpected outcomes, particularly if you exclude an actionable task that produces results needed by other tasks.
-Instead of relying on the `-x` parameter, it is recommended to define a suitable lifecycle task for the desired action.
+Instead of relying on the `-x` parameter, defining a suitable lifecycle task for the desired action is recommended.
 
-Using `-x` is a practice that should be absolutely avoided, although still commonly observed.
+Using `-x` is a practice that should be avoided, although still commonly observed.
