@@ -40,11 +40,9 @@ public abstract class AmbiguousArtifactTransformFailureDescriber extends Abstrac
 
     @Override
     public ArtifactVariantSelectionException describeFailure(AmbiguousArtifactTransformFailure failure) {
-        String msg = buildAmbiguousTransformMsg(failure);
-        ArtifactVariantSelectionException result = new ArtifactVariantSelectionException(msg, failure);
-        suggestSpecificDocumentation(result, AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION);
-        suggestReviewAlgorithm(result);
-        return result;
+        String message = buildAmbiguousTransformMsg(failure);
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION), suggestReviewAlgorithm());
+        return new ArtifactVariantSelectionException(message, failure, resolutions);
     }
 
     private String buildAmbiguousTransformMsg(AmbiguousArtifactTransformFailure failure) {

@@ -18,12 +18,14 @@ package org.gradle.internal.component.resolution.failure.exception;
 
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
 
+import java.util.List;
+
 /**
  * Represents a failure during variant selection when a variant of a component cannot be selected
  * by the {@link org.gradle.internal.component.model.GraphVariantSelector GraphVariantSelector}.
  */
 public final class VariantSelectionException extends AbstractResolutionFailureException {
-    public VariantSelectionException(String message, ResolutionFailure failure) {
-        super(message, failure);
+    public VariantSelectionException(String message, ResolutionFailure failure, List<String> resolutions) {
+        super(message, failure, resolutions);
     }
 }
