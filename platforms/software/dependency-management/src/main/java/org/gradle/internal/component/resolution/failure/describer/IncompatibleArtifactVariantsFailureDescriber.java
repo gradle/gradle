@@ -24,6 +24,8 @@ import org.gradle.internal.component.resolution.failure.type.IncompatibleResolut
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.List;
+
 import static org.gradle.internal.exceptions.StyledException.style;
 
 /**
@@ -35,11 +37,9 @@ public abstract class IncompatibleArtifactVariantsFailureDescriber extends Abstr
 
     @Override
     public ArtifactVariantSelectionException describeFailure(IncompatibleResolutionFailure failure) {
-        String msg = buildIncompatibleArtifactVariantsFailureMsg(failure);
-        ArtifactVariantSelectionException result = new ArtifactVariantSelectionException(msg, failure);
-        suggestSpecificDocumentation(result, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
-        suggestReviewAlgorithm(result);
-        return result;
+        String message = buildIncompatibleArtifactVariantsFailureMsg(failure);
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION), suggestReviewAlgorithm());
+        return new ArtifactVariantSelectionException(message, failure, resolutions);
     }
 
     private String buildIncompatibleArtifactVariantsFailureMsg(IncompatibleResolutionFailure failure) {

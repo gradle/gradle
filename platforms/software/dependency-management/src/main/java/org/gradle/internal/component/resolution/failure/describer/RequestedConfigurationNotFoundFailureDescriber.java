@@ -19,15 +19,17 @@ package org.gradle.internal.component.resolution.failure.describer;
 import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
 
+import java.util.List;
+
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link RequestedConfigurationNotFoundFailure}.
  */
 public abstract class RequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<RequestedConfigurationNotFoundFailure> {
     @Override
     public ConfigurationSelectionException describeFailure(RequestedConfigurationNotFoundFailure failure) {
-        ConfigurationSelectionException result = new ConfigurationSelectionException(buildConfigurationNotFoundFailureMsg(failure), failure);
-        suggestReviewAlgorithm(result);
-        return result;
+        String message = buildConfigurationNotFoundFailureMsg(failure);
+        List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
+        return new ConfigurationSelectionException(message, failure, resolutions);
     }
 
     private String buildConfigurationNotFoundFailureMsg(RequestedConfigurationNotFoundFailure failure) {

@@ -19,6 +19,8 @@ package org.gradle.internal.component.resolution.failure.describer;
 import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
 import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 
+import java.util.List;
+
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link ConfigurationNotConsumableFailure}.
  */
@@ -26,10 +28,10 @@ public abstract class ConfigurationNotConsumableFailureDescriber extends Abstrac
     @Override
     public ConfigurationSelectionException describeFailure(ConfigurationNotConsumableFailure failure) {
         String message = buildConfigurationNotConsumableFailureMsg(failure);
-        ConfigurationSelectionException e = new ConfigurationSelectionException(message, failure);
-        suggestReviewAlgorithm(e);
-        return e;
+        List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
+        return new ConfigurationSelectionException(message, failure, resolutions);
     }
+
     private String buildConfigurationNotConsumableFailureMsg(ConfigurationNotConsumableFailure failure) {
         return String.format("Selected configuration '" + failure.getRequestedName() + "' on '" + failure.getRequestedComponentDisplayName() + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
     }

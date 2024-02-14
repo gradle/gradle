@@ -26,6 +26,7 @@ import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguo
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -41,10 +42,8 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
     @Override
     public VariantSelectionException describeFailure(VariantAwareAmbiguousResolutionFailure failure) {
         String message = buildAmbiguousGraphVariantsFailureMsg(failure);
-        VariantSelectionException result = new VariantSelectionException(message, failure);
-        suggestSpecificDocumentation(result, AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION);
-        suggestReviewAlgorithm(result);
-        return result;
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
+        return new VariantSelectionException(message, failure, resolutions);
     }
 
     private String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure failure) {

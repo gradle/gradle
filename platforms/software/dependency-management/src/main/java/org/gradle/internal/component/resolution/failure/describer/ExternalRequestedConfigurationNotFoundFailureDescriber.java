@@ -20,15 +20,17 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
 import org.gradle.internal.component.resolution.failure.type.ExternalRequestedConfigurationNotFoundFailure;
 
+import java.util.List;
+
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link ExternalRequestedConfigurationNotFoundFailure}.
  */
 public abstract class ExternalRequestedConfigurationNotFoundFailureDescriber extends AbstractResolutionFailureDescriber<ExternalRequestedConfigurationNotFoundFailure> {
     @Override
     public ConfigurationSelectionException describeFailure(ExternalRequestedConfigurationNotFoundFailure failure) {
-        ConfigurationSelectionException result = new ConfigurationSelectionException(buildExternalConfigurationNotFoundFailureMsg(failure), failure);
-        suggestReviewAlgorithm(result);
-        return result;
+        String message = buildExternalConfigurationNotFoundFailureMsg(failure);
+        List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
+        return new ConfigurationSelectionException(message, failure, resolutions);
     }
 
     private String buildExternalConfigurationNotFoundFailureMsg(ExternalRequestedConfigurationNotFoundFailure failure) {

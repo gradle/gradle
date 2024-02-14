@@ -19,6 +19,8 @@ package org.gradle.internal.component.resolution.failure.describer;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 
+import java.util.List;
+
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link UnknownArtifactSelectionFailure}.
  *
@@ -33,9 +35,10 @@ public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractR
         if (failure.getCause() instanceof ArtifactVariantSelectionException) {
             result = (ArtifactVariantSelectionException) failure.getCause();
         } else {
-            result = new ArtifactVariantSelectionException(buildUnknownArtifactVariantFailureMsg(failure), failure, failure.getCause());
+            String message = buildUnknownArtifactVariantFailureMsg(failure);
+            List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
+            result = new ArtifactVariantSelectionException(message, failure, resolutions, failure.getCause());
         }
-        suggestReviewAlgorithm(result);
         return result;
     }
 

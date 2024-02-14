@@ -26,6 +26,8 @@ import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVa
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.List;
+
 import static org.gradle.internal.exceptions.StyledException.style;
 
 /**
@@ -39,10 +41,8 @@ public abstract class IncompatibleGraphVariantsFailureDescriber extends Abstract
     public VariantSelectionException describeFailure(IncompatibleGraphVariantFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledAttributeDescriber(describer), failure);
-        VariantSelectionException e = new VariantSelectionException(message, failure);
-        suggestReviewAlgorithm(e);
-        suggestSpecificDocumentation(e, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
-        return e;
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION), suggestReviewAlgorithm());
+        return new VariantSelectionException(message, failure, resolutions);
     }
 
     protected String buildNoMatchingGraphVariantSelectionFailureMsg(StyledAttributeDescriber describer, IncompatibleGraphVariantFailure failure) {

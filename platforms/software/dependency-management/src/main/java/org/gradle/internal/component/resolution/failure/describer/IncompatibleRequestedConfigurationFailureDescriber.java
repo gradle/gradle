@@ -25,6 +25,8 @@ import org.gradle.internal.component.resolution.failure.type.IncompatibleRequest
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.List;
+
 import static org.gradle.internal.exceptions.StyledException.style;
 
 /**
@@ -38,10 +40,8 @@ public abstract class IncompatibleRequestedConfigurationFailureDescriber extends
     public VariantSelectionException describeFailure(IncompatibleRequestedConfigurationFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildIncompatibleGraphVariantsFailureMsg(failure, describer);
-        VariantSelectionException e = new VariantSelectionException(message, failure);
-        e.addResolution(INCOMPATIBLE_VARIANTS_PREFIX + getDocumentationRegistry().getDocumentationFor("variant_model", INCOMPATIBLE_VARIANTS_SECTION) + ".");
-        suggestReviewAlgorithm(e);
-        return e;
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
+        return new VariantSelectionException(message, failure, resolutions);
     }
 
     private String buildIncompatibleGraphVariantsFailureMsg(

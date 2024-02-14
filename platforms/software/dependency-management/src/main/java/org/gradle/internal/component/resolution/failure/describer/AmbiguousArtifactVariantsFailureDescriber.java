@@ -23,6 +23,8 @@ import org.gradle.internal.component.resolution.failure.exception.ArtifactVarian
 import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.List;
+
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousResolutionFailure}.
  */
@@ -34,10 +36,8 @@ public abstract class AmbiguousArtifactVariantsFailureDescriber extends Abstract
     public ArtifactVariantSelectionException describeFailure(AmbiguousResolutionFailure failure) {
         AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
         String message = buildMultipleMatchingVariantsFailureMsg(failure, describer);
-        ArtifactVariantSelectionException e = new ArtifactVariantSelectionException(message, failure);
-        suggestSpecificDocumentation(e, AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION);
-        suggestReviewAlgorithm(e);
-        return e;
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
+        return new ArtifactVariantSelectionException(message, failure, resolutions);
     }
 
     private String buildMultipleMatchingVariantsFailureMsg(AmbiguousResolutionFailure failure, AttributeDescriber describer) {

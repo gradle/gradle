@@ -53,10 +53,8 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
     public AbstractResolutionFailureException describeFailure(IncompatibleGraphVariantFailure failure) {
         GradleVersion minGradleApiVersionSupportedByPlugin = findMinGradleVersionSupportedByPlugin(failure.getCandidates());
         String message = buildPluginNeedsNewerGradleVersionFailureMsg(failure.getRequestedName(), minGradleApiVersionSupportedByPlugin);
-        VariantSelectionException result = new VariantSelectionException(message, failure);
-        suggestUpdateGradle(result, minGradleApiVersionSupportedByPlugin);
-        suggestDowngradePlugin(result, failure.getRequestedName());
-        return result;
+        List<String> resolutions = buildResolutions(suggestUpdateGradle(minGradleApiVersionSupportedByPlugin), suggestDowngradePlugin(failure.getRequestedName()));
+        return new VariantSelectionException(message, failure, resolutions);
     }
 
     private boolean allCandidatesIncompatibleDueToGradleVersionTooLow(IncompatibleResolutionFailure failure) {
@@ -91,11 +89,11 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
         return String.format(GRADLE_VERSION_TOO_OLD_TEMPLATE, pluginId, minRequiredGradleVersion.getVersion(), currentGradleVersion);
     }
 
-    private void suggestUpdateGradle(AbstractResolutionFailureException result, GradleVersion minRequiredGradleVersion) {
-        result.addResolution("Upgrade to at least Gradle " + minRequiredGradleVersion.getVersion() + ". See the instructions at " + getDocumentationRegistry().getDocumentationFor("upgrading_version_8", NEEDS_NEWER_GRADLE_SECTION + "."));
+    private String suggestUpdateGradle(GradleVersion minRequiredGradleVersion) {
+        return "Upgrade to at least Gradle " + minRequiredGradleVersion.getVersion() + ". See the instructions at " + getDocumentationRegistry().getDocumentationFor("upgrading_version_8", NEEDS_NEWER_GRADLE_SECTION + ".");
     }
 
-    private void suggestDowngradePlugin(AbstractResolutionFailureException result, String pluginId) {
-        result.addResolution("Downgrade plugin " + pluginId + " to an older version compatible with " + currentGradleVersion + ".");
+    private String suggestDowngradePlugin(String pluginId) {
+        return "Downgrade plugin " + pluginId + " to an older version compatible with " + currentGradleVersion + ".";
     }
 }

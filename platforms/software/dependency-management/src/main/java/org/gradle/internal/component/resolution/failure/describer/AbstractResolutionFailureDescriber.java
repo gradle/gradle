@@ -19,7 +19,6 @@ package org.gradle.internal.component.resolution.failure.describer;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedAttribute;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
@@ -28,6 +27,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,12 +48,16 @@ public abstract class AbstractResolutionFailureDescriber<FAILURE extends Resolut
     @Inject
     protected abstract DocumentationRegistry getDocumentationRegistry();
 
-    protected void suggestReviewAlgorithm(AbstractResolutionFailureException exception) {
-        exception.addResolution(DEFAULT_MESSAGE_PREFIX + getDocumentationRegistry().getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
+    protected List<String> buildResolutions(String... resolutions) {
+        return Arrays.asList(resolutions);
     }
 
-    protected void suggestSpecificDocumentation(AbstractResolutionFailureException exception, String prefix, String section) {
-        exception.addResolution(prefix + getDocumentationRegistry().getDocumentationFor("variant_model", section) + ".");
+    protected String suggestReviewAlgorithm() {
+        return DEFAULT_MESSAGE_PREFIX + getDocumentationRegistry().getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".";
+    }
+
+    protected String suggestSpecificDocumentation(String prefix, String section) {
+        return prefix + getDocumentationRegistry().getDocumentationFor("variant_model", section) + ".";
     }
 
     protected void formatAttributeSection(TreeFormatter formatter, String section, List<String> values) {

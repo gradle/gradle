@@ -21,6 +21,8 @@ import org.gradle.internal.component.resolution.failure.ResolutionCandidateAsses
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
 
+import java.util.List;
+
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link NoMatchingCapabilitiesFailure}.
  */
@@ -28,9 +30,8 @@ public abstract class NoMatchingCapabilitiesFailureDescriber extends AbstractRes
     @Override
     public VariantSelectionException describeFailure(NoMatchingCapabilitiesFailure failure) {
         String message = buildNoMatchingCapabilitiesFailureMsg(failure);
-        VariantSelectionException e = new VariantSelectionException(message, failure);
-        suggestReviewAlgorithm(e);
-        return e;
+        List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
+        return new VariantSelectionException(message, failure, resolutions);
     }
 
     private String buildNoMatchingCapabilitiesFailureMsg(NoMatchingCapabilitiesFailure failure) {

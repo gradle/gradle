@@ -23,7 +23,6 @@ import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,36 +37,25 @@ import java.util.List;
  */
 @Contextual
 public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider {
-    private final List<String> resolutions = new ArrayList<>(1); // Usually there is only one resolution
+    private final ImmutableList<String> resolutions;
     private final ResolutionFailure failure;
 
-    public AbstractResolutionFailureException(String message, ResolutionFailure failure) {
-        this(message, failure, null);
+    public AbstractResolutionFailureException(String message, ResolutionFailure failure, List<String> resolutions) {
+        this(message, failure, resolutions, null);
     }
 
-    public AbstractResolutionFailureException(String message, ResolutionFailure failure, @Nullable Throwable cause) {
+    public AbstractResolutionFailureException(String message, ResolutionFailure failure, List<String> resolutions, @Nullable Throwable cause) {
         super(message, cause);
         this.failure = failure;
+        this.resolutions = ImmutableList.copyOf(resolutions);
     }
 
     public ResolutionFailure getFailure() {
         return failure;
     }
 
-    /**
-     * Adds a resolution to the list of resolutions.
-     *
-     * Meant to be called during subclass construction, so <strong>must</strong> remain safe to do so by only accessing fields on this type,
-     * hence the {@code final} modifier.
-     *
-     * @param resolution The resolution (suggestion message) to add
-     */
-    public final void addResolution(String resolution) {
-        resolutions.add(resolution);
-    }
-
     @Override
     public ImmutableList<String> getResolutions() {
-        return ImmutableList.copyOf(resolutions);
+        return resolutions;
     }
 }
