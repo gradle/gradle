@@ -34,7 +34,7 @@ public abstract class AbstractConfigurationSelectionFailure implements Resolutio
         return requestedConfigurationName;
     }
 
-    public String getRequestedComponentName() {
+    public String getRequestedComponentDisplayName() {
         return requestedComponentName;
     }
 }
