@@ -27,12 +27,14 @@ import java.util.List;
 import java.util.ListIterator;
 
 public abstract class AbstractUserInputRenderer implements OutputEventListener {
-    final OutputEventListener delegate;
+    protected final OutputEventListener delegate;
+    private final UserInput userInput;
     private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
     private boolean paused;
 
-    public AbstractUserInputRenderer(OutputEventListener delegate) {
+    public AbstractUserInputRenderer(OutputEventListener delegate, UserInput userInput) {
         this.delegate = delegate;
+        this.userInput = userInput;
     }
 
     @Override
@@ -44,7 +46,11 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
             handleUserInputResumeEvent();
             return;
         } else if (event instanceof PromptOutputEvent) {
-            handlePrompt((PromptOutputEvent) event);
+            PromptOutputEvent promptOutputEvent = (PromptOutputEvent) event;
+            handlePrompt(promptOutputEvent);
+            if (!promptOutputEvent.getPrompt().trim().isEmpty()) {
+                userInput.forwardResponse();
+            }
             return;
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.api;
-
-import org.gradle.launcher.daemon.protocol.ForwardInput;
-import org.gradle.launcher.daemon.protocol.UserResponse;
-
-public interface StdinHandler {
-    void onUserResponse(UserResponse input);
-
-    void onInput(ForwardInput input);
-
-    void onEndOfInput();
-}
+@org.gradle.api.NonNullApi
+package org.gradle.internal.logging.console;

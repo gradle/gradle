@@ -16,51 +16,54 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
-import org.gradle.api.UncheckedIOException;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import org.gradle.internal.UncheckedException;
 
 public class DefaultUserInputReader implements UserInputReader {
-
-    private static final char UNIX_NEW_LINE = '\n';
-    private static final char WINDOWS_NEW_LINE = '\r';
-    private final Reader br = new InputStreamReader(System.in);
+    private final Object lock = new Object();
+    private UserInput pending;
+    private boolean finished;
 
     @Override
-    public String readInput() {
-        StringBuilder out = new StringBuilder();
+    public void startInput() {
+        synchronized (lock) {
+            pending = null;
+            finished = false;
+        }
+    }
 
-        while (true) {
-            try {
-                int c = br.read();
-
-                if (isEOF(c)) {
-                    return null;
+    @Override
+    public void putInput(UserInput input) {
+        synchronized (lock) {
+            if (input == END_OF_INPUT) {
+                finished = true;
+                lock.notifyAll();
+            } else {
+                if (pending != null) {
+                    throw new IllegalStateException("Multiple responses received.");
                 }
-
-                if (!isLineSeparator((char)c)) {
-                    out.append((char)c);
-                } else {
-                    if (c == WINDOWS_NEW_LINE && '\n' != (char)br.read()) {
-                        throw new RuntimeException("Unexpected");
-                    }
-                    break;
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                pending = input;
+                lock.notifyAll();
             }
         }
-
-        return out.toString();
     }
 
-    private boolean isEOF(int c) {
-        return c == 4 || c == -1;
-    }
+    @Override
+    public UserInput readInput() {
+        synchronized (lock) {
+            while (!finished && pending == null) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+            if (pending != null) {
+                UserInput result = pending;
+                pending = null;
+                return result;
+            }
 
-    private boolean isLineSeparator(char c) {
-        return c == UNIX_NEW_LINE || c == WINDOWS_NEW_LINE;
+            return END_OF_INPUT;
+        }
     }
 }

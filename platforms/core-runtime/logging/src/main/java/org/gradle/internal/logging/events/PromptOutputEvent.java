@@ -20,8 +20,12 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 
+/**
+ * Requests that the client present the given prompt to the user and return the user's response as a single line of text.
+ *
+ * The response is delivered to the {@link UserInputReader} service.
+ */
 public class PromptOutputEvent extends RenderableOutputEvent {
-
     private final String prompt;
 
     public PromptOutputEvent(long timestamp, String prompt) {

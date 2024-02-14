@@ -15,12 +15,14 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
+import org.gradle.launcher.daemon.protocol.UserResponse;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.api.StdinHandler;
@@ -35,6 +37,11 @@ import java.io.PipedOutputStream;
  */
 public class ForwardClientInput implements DaemonCommandAction {
     private static final Logger LOGGER = Logging.getLogger(ForwardClientInput.class);
+    private final UserInputReader inputReader;
+
+    public ForwardClientInput(UserInputReader inputReader) {
+        this.inputReader = inputReader;
+    }
 
     @Override
     public void execute(final DaemonCommandExecution execution) {
@@ -46,6 +53,7 @@ public class ForwardClientInput implements DaemonCommandAction {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
+        inputReader.startInput();
         execution.getConnection().onStdin(new StdinHandler() {
             @Override
             public void onInput(ForwardInput input) {
@@ -58,10 +66,16 @@ public class ForwardClientInput implements DaemonCommandAction {
             }
 
             @Override
+            public void onUserResponse(UserResponse input) {
+                inputReader.putInput(new UserInputReader.TextResponse(input.getResponse()));
+            }
+
+            @Override
             public void onEndOfInput() {
                 LOGGER.info("Closing daemon's stdin at end of input.");
                 try {
                     inputSource.close();
+                    inputReader.putInput(UserInputReader.END_OF_INPUT);
                 } catch (IOException e) {
                     LOGGER.warn("Problem closing output stream connected to replacement stdin", e);
                 } finally {

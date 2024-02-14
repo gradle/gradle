@@ -31,7 +31,8 @@ class UserInputConsoleRendererTest extends Specification {
     def console = Mock(Console)
     def buildProgressArea = Mock(BuildProgressArea)
     def textArea = Mock(TextArea)
-    @Subject def renderer = new UserInputConsoleRenderer(listener, console)
+    def userInput = Mock(UserInput)
+    @Subject def renderer = new UserInputConsoleRenderer(listener, console, userInput)
 
     def "can handle user input request and resume events"() {
         given:
@@ -46,8 +47,11 @@ class UserInputConsoleRendererTest extends Specification {
         1 * console.getBuildProgressArea() >> buildProgressArea
         1 * buildProgressArea.setVisible(false)
         1 * console.flush()
+
+        and:
         0 * console._
         0 * listener.onOutput(_)
+        0 * userInput._
         renderer.eventQueue.empty
 
         when:
@@ -57,8 +61,12 @@ class UserInputConsoleRendererTest extends Specification {
         1 * console.getBuildOutputArea() >> textArea
         1 * textArea.text(prompt.prompt)
         1 * console.flush()
+        1 * userInput.forwardResponse()
+
+        and:
         0 * console._
         0 * listener.onOutput(_)
+        0 * userInput._
         renderer.eventQueue.empty
 
         when:
@@ -68,8 +76,11 @@ class UserInputConsoleRendererTest extends Specification {
         1 * console.getBuildProgressArea() >> buildProgressArea
         1 * buildProgressArea.setVisible(true)
         1 * console.flush()
+
+        and:
         0 * console._
         0 * listener.onOutput(_)
+        0 * userInput._
         renderer.eventQueue.empty
     }
 

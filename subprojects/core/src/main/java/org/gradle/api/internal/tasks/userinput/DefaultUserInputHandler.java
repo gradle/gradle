@@ -186,13 +186,13 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
                 }
                 sendPrompt(prompt);
                 while (true) {
-                    String input = userInputReader.readInput();
-                    if (input == null) {
+                    UserInputReader.UserInput input = userInputReader.readInput();
+                    if (input == UserInputReader.END_OF_INPUT) {
                         interrupted.set(true);
                         return null;
                     }
 
-                    String sanitizedInput = sanitizeInput(input);
+                    String sanitizedInput = sanitizeInput(input.getText());
                     T result = parser.transform(sanitizedInput);
                     if (result != null) {
                         return result;

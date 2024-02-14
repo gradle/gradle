@@ -21,12 +21,16 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.io.TextStream;
+import org.gradle.internal.logging.console.DefaultUserInput;
+import org.gradle.internal.logging.console.UserInput;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.InputMessage;
+import org.gradle.launcher.daemon.protocol.UserResponse;
 
 import javax.annotation.Nullable;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Eagerly consumes from an input stream, sending line by line ForwardInput
@@ -39,15 +43,25 @@ public class DaemonClientInputForwarder implements Stoppable {
     public static final int DEFAULT_BUFFER_SIZE = 8192;
     private final InputForwarder forwarder;
 
-    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super InputMessage> dispatch,
-                                      ExecutorFactory executorFactory) {
-        this(inputStream, dispatch, executorFactory, DEFAULT_BUFFER_SIZE);
+    public DaemonClientInputForwarder(
+        InputStream inputStream,
+        Dispatch<? super InputMessage> dispatch,
+        DefaultUserInput userInput,
+        ExecutorFactory executorFactory
+    ) {
+        this(inputStream, dispatch, userInput, executorFactory, DEFAULT_BUFFER_SIZE);
     }
 
-    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super InputMessage> dispatch,
-                                      ExecutorFactory executorFactory, int bufferSize) {
-        TextStream handler = new ForwardTextStreamToConnection(dispatch);
+    public DaemonClientInputForwarder(
+        InputStream inputStream,
+        Dispatch<? super InputMessage> dispatch,
+        DefaultUserInput userInput,
+        ExecutorFactory executorFactory,
+        int bufferSize
+    ) {
+        ForwardTextStreamToConnection handler = new ForwardTextStreamToConnection(dispatch);
         forwarder = new InputForwarder(inputStream, handler, executorFactory, bufferSize);
+        userInput.delegateTo(new ForwardingUserInput(handler));
     }
 
     public void start() {
@@ -59,11 +73,29 @@ public class DaemonClientInputForwarder implements Stoppable {
         forwarder.stop();
     }
 
+    private static class ForwardingUserInput implements UserInput {
+        private final ForwardTextStreamToConnection handler;
+
+        public ForwardingUserInput(ForwardTextStreamToConnection handler) {
+            this.handler = handler;
+        }
+
+        @Override
+        public void forwardResponse() {
+            handler.forwardResponse();
+        }
+    }
+
     private static class ForwardTextStreamToConnection implements TextStream {
         private final Dispatch<? super InputMessage> dispatch;
+        private final AtomicBoolean forwardResponse = new AtomicBoolean();
 
         public ForwardTextStreamToConnection(Dispatch<? super InputMessage> dispatch) {
             this.dispatch = dispatch;
+        }
+
+        void forwardResponse() {
+            forwardResponse.set(true);
         }
 
         @Override
@@ -71,7 +103,11 @@ public class DaemonClientInputForwarder implements Stoppable {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Forwarding input to daemon: '{}'", input.replace("\n", "\\n"));
             }
-            dispatch.dispatch(new ForwardInput(input.getBytes()));
+            if (forwardResponse.compareAndSet(true, false)) {
+                dispatch.dispatch(new UserResponse(input));
+            } else {
+                dispatch.dispatch(new ForwardInput(input.getBytes()));
+            }
         }
 
         @Override

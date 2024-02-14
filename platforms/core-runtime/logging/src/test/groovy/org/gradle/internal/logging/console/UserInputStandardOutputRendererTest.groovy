@@ -26,7 +26,8 @@ import spock.lang.Subject
 
 class UserInputStandardOutputRendererTest  extends Specification {
     def listener = Mock(OutputEventListener)
-    @Subject def renderer = new UserInputStandardOutputRenderer(listener)
+    def userInput = Mock(UserInput)
+    @Subject def renderer = new UserInputStandardOutputRenderer(listener, userInput)
 
     def "can handle user input request and resume events"() {
         given:
@@ -44,6 +45,7 @@ class UserInputStandardOutputRendererTest  extends Specification {
 
         then:
         0 * listener.onOutput(_)
+        0 * userInput._
         renderer.eventQueue.empty
     }
 
@@ -58,6 +60,7 @@ class UserInputStandardOutputRendererTest  extends Specification {
         def t = thrown(IllegalStateException)
         t.message == 'Cannot resume user input if not paused yet'
         0 * listener.onOutput(_)
+        0 * userInput._
         renderer.eventQueue.empty
     }
 
@@ -80,6 +83,7 @@ class UserInputStandardOutputRendererTest  extends Specification {
 
         then:
         0 * listener.onOutput(_)
+        0 * userInput._
         renderer.eventQueue.size() == 2
 
         when:
@@ -89,6 +93,7 @@ class UserInputStandardOutputRendererTest  extends Specification {
         1 * listener.onOutput(testOutputEvent1)
         1 * listener.onOutput(testOutputEvent2)
         0 * listener.onOutput(_)
+        0 * userInput._
         renderer.eventQueue.empty
     }
 
@@ -101,6 +106,7 @@ class UserInputStandardOutputRendererTest  extends Specification {
 
         then:
         1 * listener.onOutput(testOutputEvent)
+        0 * userInput._
         renderer.eventQueue.empty
     }
 

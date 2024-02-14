@@ -22,8 +22,8 @@ import org.gradle.internal.logging.events.PromptOutputEvent;
 public class UserInputConsoleRenderer extends AbstractUserInputRenderer {
     private final Console console;
 
-    public UserInputConsoleRenderer(OutputEventListener delegate, Console console) {
-        super(delegate);
+    public UserInputConsoleRenderer(OutputEventListener delegate, Console console, UserInput userInput) {
+        super(delegate, userInput);
         this.console = console;
     }
 
