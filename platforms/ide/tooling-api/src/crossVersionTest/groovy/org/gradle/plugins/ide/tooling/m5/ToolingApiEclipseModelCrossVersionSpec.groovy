@@ -23,7 +23,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
         file('build.gradle').text = """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 
 task rootTask {}

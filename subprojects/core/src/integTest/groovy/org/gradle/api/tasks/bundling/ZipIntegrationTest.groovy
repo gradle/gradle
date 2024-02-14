@@ -128,7 +128,9 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
     def "task is out of date after `into` changes"() {
         file("src/main/java/Main.java") << "public class Main {}"
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task zip(type: Zip) {
                 into('src') {
@@ -151,7 +153,9 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile.delete()
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task zip(type: Zip) {
                 into('sources') {

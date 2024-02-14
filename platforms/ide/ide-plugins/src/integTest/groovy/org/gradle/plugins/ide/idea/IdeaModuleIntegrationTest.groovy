@@ -46,8 +46,10 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
 
         //when
         runTask 'idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 configurations {
   provided
@@ -133,8 +135,10 @@ idea {
 
         //when
         runIdeaTask '''
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 sourceSets {
    main {
@@ -166,8 +170,10 @@ sourceSets {
     void plusMinusConfigurationsWorkFineForSelfResolvingFileDependencies() {
         //when
         runTask 'idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 configurations {
   bar
@@ -205,8 +211,10 @@ idea {
     void scopesCustomizedUsingPlusEqualOperator() {
         //when
         runTask 'idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 configurations {
   bar
@@ -248,8 +256,10 @@ dependencies {
 
         //when
         runTask(['idea'], '''
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 idea {
     module {
@@ -274,8 +284,10 @@ idea {
     void shouldNotPutSourceSetsOutputDirOnClasspath() {
         //when
         runTask 'idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 task generate {
     doLast {
@@ -307,8 +319,10 @@ sourceSets.test.output.dir "$buildDir/ws/test"
     void theBuiltByTaskBeExecuted() {
         //when
         def result = runIdeaTask('''
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 sourceSets.main.output.dir "$buildDir/generated/main", builtBy: 'generateForMain'
 sourceSets.test.output.dir "$buildDir/generated/test", builtBy: 'generateForTest'
@@ -332,8 +346,10 @@ task generateForTest
 
         //when
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }
@@ -365,8 +381,10 @@ idea.module {
 
         //when
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }
@@ -395,8 +413,10 @@ dependencies {
 
         //when
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 dependencies {
     implementation files('artifact1.jar')
@@ -420,8 +440,10 @@ dependencies {
 
         //when
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
   flatDir dirs: 'repo'
@@ -451,7 +473,7 @@ dependencies {
         //when
         runIdeaTask """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
 }
 
@@ -488,8 +510,10 @@ project(':impl') {
 
         //when
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }
@@ -519,8 +543,10 @@ dependencies {
 
         //when
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }
@@ -557,8 +583,10 @@ idea {
 
         //when
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }
@@ -626,8 +654,10 @@ dependencies {
 
         //when
         ExecutionResult result = runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -670,8 +700,10 @@ Could not resolve: myGroup:missing-artifact:1.0
 
         // when
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -703,8 +735,10 @@ dependencies {
 
         // when
         runIdeaTask """
-            apply plugin: 'java'
-            apply plugin: 'idea'
+            plugins {
+                id("java-library")
+                id("idea")
+            }
 
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -733,8 +767,10 @@ dependencies {
 
         // when
         runIdeaTask """
-            apply plugin: 'java'
-            apply plugin: 'idea'
+            plugins {
+                id("java-library")
+                id("idea")
+            }
 
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -763,8 +799,10 @@ dependencies {
 
         // when
         runIdeaTask """
-            apply plugin: 'java'
-            apply plugin: 'idea'
+            plugins {
+                id("java-library")
+                id("idea")
+            }
 
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -793,8 +831,10 @@ dependencies {
 
         // when
         runIdeaTask """
-            apply plugin: 'java'
-            apply plugin: 'idea'
+            plugins {
+                id("java-library")
+                id("idea")
+            }
 
             repositories {
                 maven { url "${mavenRepo.uri}" }

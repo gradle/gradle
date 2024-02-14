@@ -469,7 +469,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             """
             project(":nested") {
                 plugins {
-                    java
+                    id("java-library")
                 }
             }
             """

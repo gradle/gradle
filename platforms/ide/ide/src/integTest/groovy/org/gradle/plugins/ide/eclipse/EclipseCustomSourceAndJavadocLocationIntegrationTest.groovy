@@ -26,8 +26,10 @@ class EclipseCustomSourceAndJavadocLocationIntegrationTest extends AbstractEclip
         String customJavadocPath = temporaryFolder.file('guava-custom-javadoc.jar').absolutePath.replace('\\', '\\\\')
 
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
             ${mavenCentralRepository()}
 

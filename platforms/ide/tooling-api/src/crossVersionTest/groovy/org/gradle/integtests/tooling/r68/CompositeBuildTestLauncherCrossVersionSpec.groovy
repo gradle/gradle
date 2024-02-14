@@ -56,7 +56,7 @@ class CompositeBuildTestLauncherCrossVersionSpec extends TestLauncherSpec {
         file('included-build/settings.gradle') << "rootProject.name='included-build'"
         file('included-build/build.gradle') << """
         plugins {
-            id("java")
+            id("java-library")
         }
         ${mavenCentralRepository()}
         dependencies {

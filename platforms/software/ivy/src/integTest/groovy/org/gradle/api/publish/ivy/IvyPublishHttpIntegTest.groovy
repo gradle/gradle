@@ -198,8 +198,11 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
             credentialsBlock = "credentials(PasswordCredentials)"
         }
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
+
             version = '2'
             group = 'org.gradle'
             publishing {
@@ -270,8 +273,10 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     def "uses first configured pattern for publication"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             version = '2'
             group = 'org.gradle'
@@ -370,8 +375,10 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     void "does not upload meta-data file if artifact upload fails"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             version = '2'
             group = 'org.gradle'
@@ -404,8 +411,10 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     def "retries artifact upload for transient network error"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             version = '2'
             group = 'org.gradle'
@@ -452,8 +461,10 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     def "doesn't publish Gradle metadata if custom pattern is used for artifact"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             version = '2'
             group = 'org.gradle'
@@ -495,8 +506,10 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         def customModule = customIvyRepo.module("org.gradle", "publish", "2")
         given:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             version = '2'
             group = 'org.gradle'
@@ -594,9 +607,10 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     private static String publicationBuild(String version, String group, URI uri, String repoName = "ivy", String credentialsBlock = "credentials(PasswordCredentials)") {
         return """
             plugins {
-                id 'java'
-                id 'ivy-publish'
+                id("java-library")
+                id("ivy-publish")
             }
+
             version = '$version'
             group = '$group'
 

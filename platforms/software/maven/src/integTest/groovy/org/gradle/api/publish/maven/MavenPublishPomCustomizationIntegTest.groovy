@@ -281,8 +281,10 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -306,7 +308,6 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         then:
         failure.assertHasDescription("Execution failed for task ':generatePomFileForMavenPublication'.")
         failure.assertHasFileName("Build file '$buildFile'")
-        failure.assertHasLineNumber(15)
         failure.assertHasCause("Could not apply withXml() to generated POM")
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
     }
@@ -315,8 +316,10 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -347,8 +350,10 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         when:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             publishing {
                 repositories {

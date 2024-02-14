@@ -48,7 +48,9 @@ task c
     def "can execute a build for a project"() {
         file('settings.gradle') << 'rootProject.name="test"'
         file('build.gradle') << '''
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 '''
         when:
         withConnection { connection ->
@@ -132,7 +134,10 @@ task c
 
     def "does not resolve dependencies when building the set of tasks for a project"() {
         file('build.gradle') << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 dependencies {
     ${implementationConfiguration} files { throw new RuntimeException('broken') }
 }

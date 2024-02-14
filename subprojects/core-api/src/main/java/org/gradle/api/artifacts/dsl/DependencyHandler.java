@@ -48,7 +48,7 @@ import java.util.Map;
  * <p>Example shows a basic way of declaring dependencies.
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that we can use 'implementation', 'testImplementation' for dependencies
+ *     id("java-library") // Adds 'implementation' and 'testImplementation' configurations
  * }
  *
  * dependencies {
@@ -91,7 +91,7 @@ import java.util.Map;
  *
  * <pre class='autoTestedWithDeprecations'>
  * plugins {
- *     id 'java' // so that I can declare 'implementation' dependencies
+ *     id("java-library") // Adds 'implementation' configuration
  * }
  *
  * dependencies {
@@ -120,7 +120,7 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that I can declare 'implementation' dependencies
+ *     id("java-library") // Adds 'implementation' configuration
  * }
  *
  * dependencies {
@@ -173,7 +173,7 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that we can use 'implementation', 'testImplementation' for dependencies
+ *     id("java-library") // Adds 'implementation' and 'testImplementation' configurations
  * }
  *
  * dependencies {
@@ -209,7 +209,7 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that we can use 'implementation', 'testImplementation' for dependencies
+ *     id("java-library") // Adds 'implementation' and 'testImplementation' configurations
  * }
  *
  * dependencies {

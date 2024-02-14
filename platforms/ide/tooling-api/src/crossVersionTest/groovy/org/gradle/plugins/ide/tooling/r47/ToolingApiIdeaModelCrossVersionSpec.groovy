@@ -60,7 +60,9 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     def "custom source sets are not added as source directories by default"() {
 
         buildFile.text = '''
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 sourceSets {
     main {
@@ -111,8 +113,10 @@ sourceSets {
     def "accepts source directories of custom source sets as source directories"() {
 
         buildFile.text = '''
-apply plugin: 'idea'
-apply plugin: 'java'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 sourceSets {
     main {

@@ -55,7 +55,10 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
 '''
 
         file('buildSrc/build.gradle') << '''
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             assert gradle.parent != null
             classes {
                 doLast {

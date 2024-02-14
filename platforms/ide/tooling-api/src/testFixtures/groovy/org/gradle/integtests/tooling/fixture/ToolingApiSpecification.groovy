@@ -19,9 +19,9 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
+import org.gradle.integtests.fixtures.build.RootBuildTestFile
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -150,23 +150,23 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         projectDir.file(path)
     }
 
-    BuildTestFile populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
+    RootBuildTestFile populate(String projectName, @DelegatesTo(RootBuildTestFile) Closure cl) {
         new BuildTestFixture(projectDir).withBuildInSubDir().populate(projectName, cl)
     }
 
-    TestFile singleProjectBuildInSubfolder(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+    TestFile singleProjectBuildInSubfolder(String projectName, @DelegatesTo(RootBuildTestFile) Closure cl = {}) {
         new BuildTestFixture(projectDir).withBuildInSubDir().singleProjectBuild(projectName, cl)
     }
 
-    TestFile singleProjectBuildInRootFolder(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+    TestFile singleProjectBuildInRootFolder(String projectName, @DelegatesTo(RootBuildTestFile) Closure cl = {}) {
         new BuildTestFixture(projectDir).withBuildInRootDir().singleProjectBuild(projectName, cl)
     }
 
-    TestFile multiProjectBuildInSubFolder(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+    TestFile multiProjectBuildInSubFolder(String projectName, List<String> subprojects, @DelegatesTo(RootBuildTestFile) Closure cl = {}) {
         new BuildTestFixture(projectDir).withBuildInSubDir().multiProjectBuild(projectName, subprojects, cl)
     }
 
-    void multiProjectBuildInRootFolder(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+    void multiProjectBuildInRootFolder(String projectName, List<String> subprojects, @DelegatesTo(RootBuildTestFile) Closure cl = {}) {
         new BuildTestFixture(projectDir).withBuildInRootDir().multiProjectBuild(projectName, subprojects, cl)
     }
 

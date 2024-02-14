@@ -41,7 +41,10 @@ class JUnit4TestExecutionIntegrationTest extends AbstractJUnitTestExecutionInteg
     def "test thread name is reset after test execution"() {
         when:
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

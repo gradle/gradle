@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
+import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -390,16 +392,10 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2313")
     def "can clean test after extracting class file"() {
+        // org.testng.Converter did not exist until this version
+        Assume.assumeTrue(VersionNumber.parse(version) >= VersionNumber.parse("5.14.7"))
+
         when:
-        buildFile << """
-            apply plugin: "java"
-            ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.testng:testng:6.3.1'
-            }
-            test.useTestNG()
-        """
-        and:
         file("src/test/java/SomeTest.java") << """
             public class SomeTest extends org.testng.Converter {
                 @org.testng.annotations.Test

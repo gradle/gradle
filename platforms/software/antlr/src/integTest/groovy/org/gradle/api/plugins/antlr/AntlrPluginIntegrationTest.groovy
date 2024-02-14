@@ -29,8 +29,10 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
     def "can handle grammar in nested folders"() {
         given:
         buildFile << """
-            apply plugin: "java"
-            apply plugin: "antlr"
+            plugins {
+                id("java-library")
+                id("antlr")
+            }
 
             ${mavenCentralRepository()}
         """
@@ -65,8 +67,10 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
     def "can configure antlr source set extension in Groovy scripts"() {
         given:
         buildFile << """
-            apply plugin: "java"
-            apply plugin: "antlr"
+            plugins {
+                id("java-library")
+                id("antlr")
+            }
 
             ${mavenCentralRepository(GROOVY)}
 
@@ -86,8 +90,8 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
         given:
         buildKotlinFile << """
             plugins {
-                java
-                antlr
+                id("java-library")
+                id("antlr")
             }
 
             ${mavenCentralRepository(KOTLIN)}

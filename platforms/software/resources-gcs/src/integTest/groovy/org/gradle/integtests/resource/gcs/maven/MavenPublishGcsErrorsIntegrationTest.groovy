@@ -49,8 +49,10 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractMavenPublishIntegTest
         settingsFile << "rootProject.name = '${projectName}'"
 
         buildFile << """
-    apply plugin: 'java'
-    apply plugin: 'maven-publish'
+    plugins {
+        id("java-library")
+        id("maven-publish")
+    }
 
     group = "org.gradle"
     version = '${mavenVersion}'

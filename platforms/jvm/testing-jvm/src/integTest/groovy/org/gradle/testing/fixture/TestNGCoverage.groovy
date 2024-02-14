@@ -72,7 +72,10 @@ class TestNGCoverage {
      */
     static void enableTestNG(File buildFile, version = NEWEST) {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${RepoScriptBlockUtil.mavenCentralRepository()}
             testing {
                 suites {

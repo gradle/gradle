@@ -43,8 +43,10 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'signing'
+            plugins {
+                id("java-library")
+                id("signing")
+            }
 
             base {
                 archivesName = '$artifactId'

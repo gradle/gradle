@@ -31,7 +31,7 @@ project(":infra") {
 }
 
 project(":http") {
-    apply(plugin = "java")
+    apply(plugin = "java-library")
     apply(plugin = "io.ratpack.ratpack-java")
     repositories { mavenCentral() }
     val ratpack = the<RatpackExtension>()

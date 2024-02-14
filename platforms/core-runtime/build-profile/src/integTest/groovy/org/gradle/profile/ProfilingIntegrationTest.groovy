@@ -33,7 +33,7 @@ class ProfilingIntegrationTest extends AbstractIntegrationSpec {
         file('settings.gradle') << 'include "a", "b", "c"'
         buildFile << '''
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     task fooTask
     task barTask
 }

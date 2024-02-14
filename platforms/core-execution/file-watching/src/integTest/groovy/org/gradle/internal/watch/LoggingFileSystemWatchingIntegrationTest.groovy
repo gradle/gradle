@@ -34,7 +34,9 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
 
     def "verbose VFS logging can be enabled"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
         when:
         withWatchFs().run("assemble", "-D${StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY}=true")
@@ -146,7 +148,7 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
     def "logs handled events between builds only if something changed in the VFS"() {
         buildFile << """
             plugins {
-                id('java')
+                id("java-library")
             }
         """
         def sourceFile = file("src/main/java/MyClass.java")

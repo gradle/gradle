@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id("java-library")
-}
 
-repositories {
-    mavenCentral()
-}
+package org.gradle.integtests.fixtures.build
 
-dependencies {
-    testImplementation "io.cucumber:cucumber-java:6.8.1"
-    testImplementation "io.cucumber:cucumber-junit:6.8.1"
-}
 
-test {
-    testLogging.showStandardStreams = true
-    testLogging.events 'started', 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
-    reports.junitXml.required = true
-    reports.html.required = true
+import org.gradle.test.fixtures.file.TestFile
+
+class RootBuildTestFile extends BuildTestFile {
+    public group = "org.test"
+    public version = "1.0"
+
+    RootBuildTestFile(TestFile rootDir, String projectName) {
+        super(rootDir, projectName)
+    }
 }

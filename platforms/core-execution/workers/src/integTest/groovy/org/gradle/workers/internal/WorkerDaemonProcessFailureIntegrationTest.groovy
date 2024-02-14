@@ -49,7 +49,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${dependsOnPidCapturingAnnotationProcessor}
@@ -95,7 +95,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         """
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${dependsOnPidCapturingAnnotationProcessor}
@@ -120,7 +120,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         """
         file ('other/build.gradle') << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${dependsOnPidCapturingAnnotationProcessor}
@@ -167,7 +167,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${dependsOnPidCapturingAnnotationProcessor}
@@ -239,7 +239,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
     private void writeAnnotationProcessorProject() {
         file("${ANNOTATION_PROCESSOR_PROJECT_NAME}/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
         """
         file("${ANNOTATION_PROCESSOR_PROJECT_NAME}/src/main/java/WorkerPid.java") << """

@@ -45,7 +45,10 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
             ${settings}
         """
         repo.file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.test'
             version = '1.2'
         """
@@ -64,7 +67,10 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
             }
         """
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             dependencies { implementation 'org.test:${dependencyName}:1.2' }
         """
 

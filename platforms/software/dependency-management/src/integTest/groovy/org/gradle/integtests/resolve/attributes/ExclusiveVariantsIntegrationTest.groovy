@@ -24,7 +24,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             configurations {
@@ -88,7 +88,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             configurations {
@@ -132,7 +132,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name = 'sample'"
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             group = 'org.gradle'
@@ -176,7 +176,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name = 'sample'"
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             group = 'org.gradle'
@@ -217,7 +217,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             configurations {
@@ -260,7 +260,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             configurations {
@@ -283,7 +283,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         def subBDir = createDir("subB")
         subBDir.file("build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             configurations {
@@ -324,7 +324,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             configurations {
@@ -347,7 +347,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         def subBDir = createDir("sample")
         subBDir.file("build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             group = 'org.gradle'
@@ -385,7 +385,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             configurations {
@@ -417,7 +417,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             configurations {

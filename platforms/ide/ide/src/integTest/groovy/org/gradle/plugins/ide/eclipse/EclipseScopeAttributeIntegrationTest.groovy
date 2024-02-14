@@ -32,8 +32,10 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
     def "Source set defined on dependencies"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
             ${mavenCentralRepository()}
 
@@ -58,8 +60,10 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
     def "Source sets defined on source folders"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
         """
         file('src/main/java').mkdirs()
         file('src/test/java').mkdirs()
@@ -77,8 +81,10 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
     def "Source set information is customizable in whenMerged block"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
             ${mavenCentralRepository()}
 
@@ -110,8 +116,10 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
     def "Source dirs have default output locations"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
             sourceSets {
                 integTest {
@@ -143,8 +151,10 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
     def "Source folder output location can be customized in whenMerged block"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
             eclipse.classpath.file.whenMerged {
                 entries.find { entry -> entry.path == 'src/main/java' }.output = null
@@ -167,8 +177,10 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
     def "Overlapping default and source folder output paths are deduplicated"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
             sourceSets {
                 "default" {
@@ -202,8 +214,10 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
     def "custom source set defined on dependencies"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
 
             ${mavenCentralRepository()}
 
@@ -230,8 +244,8 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
         setup:
         buildFile << """
             plugins {
-                id 'java'
-                id 'eclipse'
+                id("java-library")
+                id("eclipse")
             }
             eclipse {
                 classpath {

@@ -454,12 +454,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
         file("build.gradle") << """
             plugins {
-                id("java")
+                id("java-library")
             }
         """
         file("b/build.gradle") << """
             plugins {
-                id("java")
+                id("java-library")
             }
             dependencies {
                 implementation(project(":"))
@@ -703,16 +703,16 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "resources.text.fromFile('1.txt', 'UTF-8')"                | ""
         "fromTask"                                                 | "def fromTask = new Object() { def buildDependencies = tasks.help.taskDependencies }"
         "artifacts.add('default', new File('a.txt'))"              | "configurations.create('default')"
-        "dependencies.project([path: ':', configuration: 'test'])" | "plugins { id('java') }"
-        "configurations.compileClasspath"                          | "plugins { id('java') }"
-        "configurations.compileClasspath.dependencies"             | "plugins { id('java') }"
-        "sourceSets.main.java"                                     | "plugins { id('java') }"
-        "sourceSets.main.output"                                   | "plugins { id('java') }"
-        "configurations.apiElements.allArtifacts"                  | "plugins { id('java') }"
-        "configurations.apiElements.allArtifacts.toList()[0]"      | "plugins { id('java') }"
-        "testing.suites.test"                                      | "plugins { id('java'); id('jvm-test-suite') }"
-        "testing.suites.test.targets.toList()[0]"                  | "plugins { id('java'); id('jvm-test-suite') }"
-        "publishing.publications.maven.artifacts.toList()[0]"      | "plugins { id('java'); id('maven-publish') }; publishing.publications.create('maven', MavenPublication) { from(components['java']) }"
+        "dependencies.project([path: ':', configuration: 'test'])" | "plugins { id('java-library') }"
+        "configurations.compileClasspath"                          | "plugins { id('java-library') }"
+        "configurations.compileClasspath.dependencies"             | "plugins { id('java-library') }"
+        "sourceSets.main.java"                                     | "plugins { id('java-library') }"
+        "sourceSets.main.output"                                   | "plugins { id('java-library') }"
+        "configurations.apiElements.allArtifacts"                  | "plugins { id('java-library') }"
+        "configurations.apiElements.allArtifacts.toList()[0]"      | "plugins { id('java-library') }"
+        "testing.suites.test"                                      | "plugins { id('java-library'); id('jvm-test-suite') }"
+        "testing.suites.test.targets.toList()[0]"                  | "plugins { id('java-library'); id('jvm-test-suite') }"
+        "publishing.publications.maven.artifacts.toList()[0]"      | "plugins { id('java-library'); id('maven-publish') }; publishing.publications.create('maven', MavenPublication) { from(components['java']) }"
     }
 
     def "mentions the specific project and build file in getDependencies(...) problems"() {

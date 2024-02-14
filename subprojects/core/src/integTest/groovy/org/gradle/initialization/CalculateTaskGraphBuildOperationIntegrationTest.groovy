@@ -120,7 +120,9 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         file("buildSrc/settings.gradle").createFile()
 
         buildFile << """
-            apply plugin:'java'
+            plugins {
+                id("java-library")
+            }
 
             dependencies {
                 implementation "org.acme:b:1.0"
@@ -230,8 +232,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
             import org.gradle.api.artifacts.transform.TransformAction
 
             plugins {
-                id 'java'
-                id 'application'
+                id("application")
             }
 
             def artifactType = Attribute.of('artifactType', String)

@@ -128,13 +128,19 @@ class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
             includeBuild 'included'
         """
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 implementation 'org.example:included:0.1'
             }
         """
         file('included/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.example'
             version = '0.1'
         """
@@ -146,7 +152,7 @@ class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
         runBuild(':compileJava')
 
         then:
-        task(':compileJava').dependencies == tasks(':included:jar')
+        task(':compileJava').dependencies == tasks(':included:compileJava')
     }
 
     @TargetGradleVersion('>=3.0 <5.1')

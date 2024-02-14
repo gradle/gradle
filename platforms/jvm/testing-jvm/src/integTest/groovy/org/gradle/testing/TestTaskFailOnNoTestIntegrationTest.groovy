@@ -52,7 +52,11 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test is skipped if no test source detected"() {
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
 
         file("src/test/java/not_a_test.txt")
 
@@ -66,8 +70,8 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
     def createBuildFileWithJUnitJupiter() {
         buildFile << """
             plugins {
-                id 'java'
-                id 'jvm-test-suite'
+                id("java-library")
+                id("jvm-test-suite")
             }
             ${mavenCentralRepository()}
             dependencies {

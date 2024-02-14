@@ -44,7 +44,9 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task runWithTask(type: JavaExec) {
                 classpath = files(jar)

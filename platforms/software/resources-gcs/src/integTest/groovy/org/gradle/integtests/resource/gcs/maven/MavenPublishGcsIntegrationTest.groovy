@@ -47,8 +47,10 @@ class MavenPublishGcsIntegrationTest extends AbstractMavenPublishIntegTest {
         def mavenRepo = new MavenGcsRepository(server, file("repo"), "/maven", "testGcsBucket")
         settingsFile << 'rootProject.name = "publishGcsTest"'
         buildFile << """
-apply plugin: 'java'
-apply plugin: 'maven-publish'
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
 
 group = 'org.gradle.test'
 version = '1.0'

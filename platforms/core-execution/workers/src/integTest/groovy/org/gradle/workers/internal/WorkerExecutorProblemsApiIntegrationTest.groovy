@@ -38,7 +38,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
     def setupBuild(Jvm javaVersion) {
         file('buildSrc/build.gradle') << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             dependencies {

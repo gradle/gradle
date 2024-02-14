@@ -31,16 +31,19 @@ class ToolingApiEclipseModelSourceDirectoryExcludeIncludePatternCrossVersionSpec
     def "Old versions throw runtime exception when querying exclude and include patterns"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile <<
-            """apply plugin: 'java'
-           sourceSets {
-               main {
-                   java {
-                       exclude 'excludePattern'
-                       include 'includePattern'
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            sourceSets {
+                main {
+                    java {
+                        exclude 'excludePattern'
+                        include 'includePattern'
+                    }
+                }
+            }
         """
         file('src/main/java').mkdirs()
         EclipseProject project = loadToolingModel(EclipseProject)
@@ -62,7 +65,11 @@ class ToolingApiEclipseModelSourceDirectoryExcludeIncludePatternCrossVersionSpec
     def "Source folder has no exclude and include patterns defined"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         file('src/main/java').mkdirs()
 
         when:
@@ -79,16 +86,19 @@ class ToolingApiEclipseModelSourceDirectoryExcludeIncludePatternCrossVersionSpec
         def excludePatterns = excludes.collect { "exclude '$it'" }.join('\n')
         def includePatterns = includes.collect { "include '$it'" }.join('\n')
         settingsFile << 'rootProject.name = "root"'
-        buildFile <<
-        """apply plugin: 'java'
-           sourceSets {
-               main {
-                   java {
-                       $excludePatterns
-                       $includePatterns
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            sourceSets {
+                main {
+                    java {
+                        $excludePatterns
+                        $includePatterns
+                    }
+                }
+            }
         """
         file('src/main/java').mkdirs()
 

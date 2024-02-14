@@ -344,7 +344,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * passed to the closure as a parameter.
      *
      * <pre class='autoTested'>
-     * apply plugin: 'java'
+     * apply plugin: 'java-library'
      *
      * test {
      *    onOutput { descriptor, event -&gt;
@@ -406,7 +406,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Allows to set options related to which test events are logged to the console, and on which detail level. For example, to show more information about exceptions use:
      *
      * <pre class='autoTested'>
-     * apply plugin: 'java'
+     * apply plugin: 'java-library'
      *
      * test.testLogging {
      *     exceptionFormat "full"
@@ -427,7 +427,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
      *
      * <pre class='autoTested'>
-     * apply plugin: 'java'
+     * apply plugin: 'java-library'
      *
      * // makes the standard streams (err and out) visible at console when running tests
      * test.testLogging {
@@ -445,7 +445,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
      *
      * <pre class='autoTested'>
-     * apply plugin: 'java'
+     * apply plugin: 'java-library'
      *
      * // makes the standard streams (err and out) visible at console when running tests
      * test.testLogging {

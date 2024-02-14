@@ -24,7 +24,9 @@ class CompositeBuildCleanupIntegrationTest extends AbstractCompositeBuildIntegra
 
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         includedBuilds << buildB

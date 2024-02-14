@@ -31,11 +31,16 @@ class SourceDependencyIdentityIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = 'buildA'
         """
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         repo.file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.test'
             version = '1.2'
         """
@@ -90,8 +95,9 @@ Required by:
         repo.file("settings.gradle") << """
             ${settings}
         """
+        repo.file("src/main/java/SomeClass.java") << "public class SomeClass {}"
         repo.file("build.gradle") << """
-            classes.doLast {
+            compileJava.doLast {
                 throw new RuntimeException("broken")
             }
         """
@@ -103,7 +109,7 @@ Required by:
         fails(":assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':${buildName}:classes'.")
+        failure.assertHasDescription("Execution failed for task ':${buildName}:compileJava'.")
         failure.assertHasCause("broken")
 
         where:
@@ -128,7 +134,7 @@ Required by:
         dependency(dependencyName)
 
         buildFile << """
-            classes.doLast {
+            assemble.doLast {
                 def components = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 3
                 assert components[0].build.buildPath == ':'

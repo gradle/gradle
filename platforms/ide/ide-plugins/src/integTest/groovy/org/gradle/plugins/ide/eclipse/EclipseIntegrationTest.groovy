@@ -106,9 +106,10 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
         expectedOrder.each { testFile(it).mkdirs() }
 
         runEclipseTask """
-apply plugin: "java"
-apply plugin: "groovy"
-apply plugin: "eclipse"
+plugins {
+    id("groovy")
+    id("eclipse")
+}
 
 sourceSets {
     integTest {
@@ -127,7 +128,12 @@ sourceSets {
     @Test
     @ToBeFixedForConfigurationCache
     void outputDirDefaultsToEclipseDefault() {
-        runEclipseTask("apply plugin: 'java'; apply plugin: 'eclipse'")
+        runEclipseTask("""
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+        """)
 
         def classpath = parseClasspathFile()
 
@@ -145,8 +151,10 @@ sourceSets {
         def artifact2 = mavenRepo.module("myGroup", "myArtifact2", "1.0").dependsOn("myGroup", "myArtifact1", "1.0").publish().artifactFile
 
         runEclipseTask """
-apply plugin: "java"
-apply plugin: "eclipse"
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -165,8 +173,10 @@ dependencies {
     void canConfigureTargetRuntimeName() {
 
         runEclipseTask """
-apply plugin: "java"
-apply plugin: "eclipse"
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -217,9 +227,10 @@ eclipse {
         //this test is a bit peculiar as it has assertions inside the gradle script
         //couldn't find a better way of asserting on before/when configured hooks
         runEclipseTask('''
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+plugins {
+    id("war")
+    id("eclipse-wtp")
+}
 
 def beforeConfiguredObjects = 0
 def whenConfiguredObjects = 0
@@ -278,8 +289,10 @@ tasks.eclipse {
         mavenRepo.module("myGroup", "myArtifact2", "1.0").publish()
 
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -304,8 +317,10 @@ dependencies {
         mavenRepo.module("myGroup", "myArtifact2", "1.0").publish()
 
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -332,8 +347,10 @@ dependencies {
     @ToBeFixedForConfigurationCache
     void addsLinkToTheProjectFile() {
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse.project {
     linkedResource name: 'one', type: '2', location: '/xyz'
@@ -355,8 +372,10 @@ eclipse.project {
     @ToBeFixedForConfigurationCache
     void allowsConfiguringJavaVersionWithSimpleTypes() {
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse.jdt {
     sourceCompatibility = '1.4'
@@ -373,8 +392,10 @@ eclipse.jdt {
     @ToBeFixedForConfigurationCache
     void sourceAndTargetCompatibilityDefaultIsCurrentJavaVersion() {
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 '''
         def jdt = parseJdtFile()
         def javaVersion = JavaVersion.current()
@@ -387,8 +408,11 @@ apply plugin: 'eclipse'
     @ToBeFixedForConfigurationCache
     void sourceAndTargetCompatibilityDefinedInPluginConvention() {
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
+
 java {
     sourceCompatibility = 1.4
     targetCompatibility = 1.3
@@ -403,8 +427,11 @@ java {
     @ToBeFixedForConfigurationCache
     void jdtSettingsHasPrecedenceOverJavaPluginConvention() {
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
+
 java {
     sourceCompatibility = 1.4
     targetCompatibility = 1.5
@@ -425,8 +452,10 @@ eclipse {
     @ToBeFixedForConfigurationCache
     void dslAllowsShortFormsForProject() {
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse.project.name = 'x'
 assert eclipse.project.name == 'x'
@@ -448,8 +477,10 @@ eclipse.project {
     @ToBeFixedForConfigurationCache
     void dslAllowsShortForms() {
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse.classpath.downloadSources = false
 assert eclipse.classpath.downloadSources == false
@@ -472,8 +503,10 @@ eclipse {
         repoDir.createFile("lib-1.0.jar")
 
         runEclipseTask """
-apply plugin: "java"
-apply plugin: "eclipse"
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
 	flatDir { dirs "${TextUtil.escapeString(repoDir)}" }
@@ -492,8 +525,10 @@ dependencies {
         mavenRepo.module("some", "lib", "1.0").publish()
 
         runEclipseTask """
-apply plugin: "java"
-apply plugin: "eclipse"
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo}" }

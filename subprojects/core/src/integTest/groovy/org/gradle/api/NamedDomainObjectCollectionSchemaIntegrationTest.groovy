@@ -66,7 +66,9 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
 
     def "built-in container types presents public type in schema"() {
         buildFile """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             repositories {
                 maven {}
@@ -86,10 +88,12 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
                     )
                     assertSchemaIs(configurations,
                         'annotationProcessor':'Configuration',
+                        'api':'Configuration',
                         'apiElements':'Configuration',
                         'archives':'Configuration',
                         'compileClasspath':'Configuration',
                         'compileOnly':'Configuration',
+                        'compileOnlyApi':'Configuration',
                         'default':'Configuration',
                         'implementation':'Configuration',
                         'runtimeClasspath':'Configuration',

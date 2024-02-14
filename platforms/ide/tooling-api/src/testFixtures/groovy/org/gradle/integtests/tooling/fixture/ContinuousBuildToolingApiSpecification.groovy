@@ -84,7 +84,11 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
 
     def setup() {
-        buildFile.text = "apply plugin: 'java'\n"
+        buildFile.text = """
+            plugins {
+                id("java-library")
+            }
+        """
         sourceDir = file("src/main/java").createDir()
     }
 

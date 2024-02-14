@@ -42,8 +42,8 @@ class EclipseDependenciesCreatorTest extends AbstractProjectBuilderSpec {
 
     def "compile dependency on child project"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
-        childProject.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
+        childProject.apply(plugin: 'java-library')
 
         eclipseClasspath.setProjectDependenciesOnly(true)
         eclipseClasspath.plusConfigurations = [project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath]
@@ -59,8 +59,8 @@ class EclipseDependenciesCreatorTest extends AbstractProjectBuilderSpec {
 
     def "testCompile dependency on current project (self-dependency)"() {
         applyPluginToProjects()
-        project.apply(plugin: 'java')
-        childProject.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
+        childProject.apply(plugin: 'java-library')
 
         eclipseClasspath.setProjectDependenciesOnly(true)
         eclipseClasspath.plusConfigurations = [project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath]

@@ -117,7 +117,9 @@ class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptM
 
         and:
         def pluginFile = withPrecompiledKotlinScript("plugin.gradle.kts", """
-            plugins { java }
+            plugins {
+                id("java-library")
+            }
         """)
 
         expect:

@@ -126,8 +126,11 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
     def initBuild() {
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
+
             group = 'org.gradle'
             version = '2'
 

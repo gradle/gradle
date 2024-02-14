@@ -31,8 +31,8 @@ class CheckstylePluginExternalDTDOptionIntegrationTest extends AbstractIntegrati
     def setup() {
         buildFile << """
             plugins {
-                id 'java'
-                id 'checkstyle'
+                id("java-library")
+                id("checkstyle")
             }
 
             ${mavenCentralRepository()}

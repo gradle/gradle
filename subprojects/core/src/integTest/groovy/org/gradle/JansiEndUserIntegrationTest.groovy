@@ -136,7 +136,9 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec implements Jav
 
     static String basicJavaProject() {
         """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
         """

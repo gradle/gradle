@@ -690,8 +690,8 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             plugins {
-                id 'java'
-                id 'foo'
+                id("java-library")
+                id("foo")
             }
         """
 
@@ -709,7 +709,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         file("buildSrc/src/main/groovy/foo.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             sourceSets.main.java.srcDir 'src'

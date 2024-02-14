@@ -43,7 +43,9 @@ class TestTaskRelocationIntegrationTest extends AbstractProjectRelocationIntegra
         """
 
         projectDir.file("build.gradle") << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 

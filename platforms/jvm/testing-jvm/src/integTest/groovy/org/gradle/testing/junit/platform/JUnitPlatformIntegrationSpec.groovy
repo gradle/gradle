@@ -32,7 +32,9 @@ class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
 
     def buildScriptWithJupiterDependencies(script, String version = LATEST_JUPITER_VERSION) {
         buildScript("""
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
             dependencies {

@@ -124,7 +124,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
     private void setupSubproject(String subprojectName, String className, JvmVendor vendor) {
         file("${subprojectName}/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             java {
@@ -170,8 +170,8 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
     private String buildConfigForBuildWithIncludedBuilds() {
         return """
             plugins {
-                id 'java'
-                id 'org.example.plugin1'
+                id("java-library")
+                id("org.example.plugin1")
             }
 
             $TOOLCHAIN_WITH_VERSION

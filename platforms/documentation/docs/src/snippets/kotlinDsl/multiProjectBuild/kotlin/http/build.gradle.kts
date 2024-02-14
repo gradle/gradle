@@ -1,5 +1,5 @@
 plugins {
-    java
+    id("java-library")
     id("io.ratpack.ratpack-java")
 }
 

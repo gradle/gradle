@@ -46,7 +46,10 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
     def 'test task is up-to-date when #property is changed because it should not impact output'() {
         given:
         buildScript """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             testing {
                 suites {
@@ -74,7 +77,10 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildScript """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             testing {
                 suites {
@@ -118,7 +124,10 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
     def "re-executes test when #property is changed"() {
         given:
         buildScript """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             testing {
                 suites {
@@ -146,7 +155,10 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildScript """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             testing {
                 suites {

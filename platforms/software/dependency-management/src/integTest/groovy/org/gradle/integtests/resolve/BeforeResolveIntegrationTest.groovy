@@ -167,7 +167,7 @@ task copyFiles(type:Copy) {
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             repositories {
@@ -179,7 +179,7 @@ task copyFiles(type:Copy) {
                 testImplementation('org.test:module2:1.0')
             }
 
-            configurations.all { configuration -> 
+            configurations.all { configuration ->
                 if (configuration.canBeResolved) {
                     configuration.incoming.beforeResolve { resolvableDependencies ->
                         resolvableDependencies.dependencies.each { dependency ->

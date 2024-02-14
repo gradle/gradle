@@ -29,8 +29,8 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
 
             plugins {
-                id 'java' // or 'groovy' Must be explicitly applied
-                id 'com.github.johnrengelman.shadow' version '$version'
+                id("java-library") // or 'groovy' Must be explicitly applied
+                id("com.github.johnrengelman.shadow") version '$version'
             }
 
             ${mavenCentralRepository()}

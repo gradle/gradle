@@ -27,12 +27,12 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRep
 @TargetGradleVersion(">=4.0")
 class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCrossVersionSpec {
 
-    def "generates plugin application events for single project build"() {
+    def "generates plugin application events for single project build applied imperatively"() {
         given:
         def events = ProgressEvents.create()
         settingsFile << "rootProject.name = 'single'"
         buildFile << """
-            apply plugin: 'java'
+            apply plugin: 'java-library'
         """
 
         when:
@@ -47,12 +47,14 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def applyBuildGradle = events.operation(applyBuildScriptRootProject())
 
         def help = events.operation("Apply plugin org.gradle.help-tasks to root project 'single'")
-        def java = events.operation("Apply plugin org.gradle.java to root project 'single'")
+        def javaLibrary = events.operation("Apply plugin org.gradle.java-library to root project 'single'")
+        def java = events.operation("Apply plugin org.gradle.api.plugins.JavaPlugin to root project 'single'")
         def javaBase = events.operation("Apply plugin org.gradle.api.plugins.JavaBasePlugin to root project 'single'")
         def base = events.operation("Apply plugin org.gradle.api.plugins.BasePlugin to root project 'single'")
 
         help.parent == configureRootProject
-        java.parent == applyBuildGradle
+        javaLibrary.parent == applyBuildGradle
+        java.parent == javaLibrary
         javaBase.parent == java
         base.parent == javaBase
     }
@@ -63,7 +65,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         settingsFile << "rootProject.name = 'single'"
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
         """
 
@@ -79,12 +81,14 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def applyBuildGradle = events.operation(applyBuildScriptRootProject())
 
         def help = events.operation("Apply plugin org.gradle.help-tasks to root project 'single'")
-        def java = events.operation("Apply plugin org.gradle.java to root project 'single'")
+        def javaLibrary = events.operation("Apply plugin org.gradle.java-library to root project 'single'")
+        def java = events.operation("Apply plugin org.gradle.api.plugins.JavaPlugin to root project 'single'")
         def javaBase = events.operation("Apply plugin org.gradle.api.plugins.JavaBasePlugin to root project 'single'")
         def base = events.operation("Apply plugin org.gradle.api.plugins.BasePlugin to root project 'single'")
 
         help.parent == configureRootProject
-        java.parent == applyBuildGradle
+        javaLibrary.parent == applyBuildGradle
+        java.parent == javaLibrary
         javaBase.parent == java
         base.parent == javaBase
     }
@@ -185,7 +189,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         buildFile << ""
         initScript << """
             rootProject {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 
@@ -201,12 +205,14 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         def rootOperation = events.operations[0]
 
-        def java = events.operation("Apply plugin org.gradle.java to root project 'single'")
+        def javaLibrary = events.operation("Apply plugin org.gradle.java-library to root project 'single'")
+        def java = events.operation("Apply plugin org.gradle.api.plugins.JavaPlugin to root project 'single'")
         def javaBase = events.operation("Apply plugin org.gradle.api.plugins.JavaBasePlugin to root project 'single'")
         def base = events.operation("Apply plugin org.gradle.api.plugins.BasePlugin to root project 'single'")
         def rootProjectAction = rootOperation.descendant("Execute 'rootProject {}' action")
 
-        java.parent == rootProjectAction.child("Cross-configure project :")
+        javaLibrary.parent == rootProjectAction.child("Cross-configure project :")
+        java.parent == javaLibrary
         javaBase.parent == java
         base.parent == javaBase
     }
@@ -220,7 +226,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         buildFile << ""
         initScript << """
             rootProject {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 
@@ -236,12 +242,14 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         def rootOperation = events.operations[0]
 
-        def java = events.operation("Apply plugin org.gradle.java to root project 'single'")
+        def javaLibrary = events.operation("Apply plugin org.gradle.java-library to root project 'single'")
+        def java = events.operation("Apply plugin org.gradle.api.plugins.JavaPlugin to root project 'single'")
         def javaBase = events.operation("Apply plugin org.gradle.api.plugins.JavaBasePlugin to root project 'single'")
         def base = events.operation("Apply plugin org.gradle.api.plugins.BasePlugin to root project 'single'")
         def rootProjectAction = rootOperation.descendant("Execute 'rootProject {}' action")
 
-        java.parent == rootProjectAction.child("Cross-configure project :").child('Execute Gradle.rootProject listener')
+        javaLibrary.parent == rootProjectAction.child("Cross-configure project :").child('Execute Gradle.rootProject listener')
+        java.parent == javaLibrary
         javaBase.parent == java
         base.parent == javaBase
     }
@@ -255,7 +263,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         buildFile << ""
         initScript << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 
@@ -271,12 +279,14 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         def rootOperation = events.operations[0]
 
-        def java = events.operation("Apply plugin org.gradle.java to root project 'single'")
+        def javaLibrary = events.operation("Apply plugin org.gradle.java-library to root project 'single'")
+        def java = events.operation("Apply plugin org.gradle.api.plugins.JavaPlugin to root project 'single'")
         def javaBase = events.operation("Apply plugin org.gradle.api.plugins.JavaBasePlugin to root project 'single'")
         def base = events.operation("Apply plugin org.gradle.api.plugins.BasePlugin to root project 'single'")
         def rootProjectAction = rootOperation.descendant("Execute 'rootProject {}' action")
 
-        java.parent == rootProjectAction.child("Cross-configure project :").child("Execute 'allprojects {}' action").child("Cross-configure project :")
+        javaLibrary.parent == rootProjectAction.child("Cross-configure project :").child("Execute 'allprojects {}' action").child("Cross-configure project :")
+        java.parent == javaLibrary
         javaBase.parent == java
         base.parent == javaBase
     }
@@ -290,7 +300,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         buildFile << ""
         initScript << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 
@@ -306,16 +316,18 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         def rootOperation = events.operations[0]
 
-        def java = events.operation("Apply plugin org.gradle.java to root project 'single'")
+        def javaLibrary = events.operation("Apply plugin org.gradle.java-library to root project 'single'")
+        def java = events.operation("Apply plugin org.gradle.api.plugins.JavaPlugin to root project 'single'")
         def javaBase = events.operation("Apply plugin org.gradle.api.plugins.JavaBasePlugin to root project 'single'")
         def base = events.operation("Apply plugin org.gradle.api.plugins.BasePlugin to root project 'single'")
         def rootProjectAction = rootOperation.descendant("Execute 'rootProject {}' action")
 
-        java.parent == rootProjectAction.
+        javaLibrary.parent == rootProjectAction.
             child("Cross-configure project :").
             child('Execute Gradle.allprojects listener').
             child("Execute 'allprojects {}' action").
             child("Cross-configure project :")
+        java.parent == javaLibrary
         javaBase.parent == java
         base.parent == javaBase
     }
@@ -385,7 +397,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
             include 'a', 'b'
         """
         buildFile << """
-            allprojects { apply plugin: 'java' }
+            allprojects { apply plugin: 'java-library' }
         """
 
 
@@ -413,9 +425,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         configureB.child("Apply plugin org.gradle.help-tasks to project ':b'")
         configureB.children("Apply plugin'org.gradle.java' to project ':b'").empty
 
-        applyBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :").child("Apply plugin org.gradle.java to root project 'multi'")
-        applyBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :a").child("Apply plugin org.gradle.java to project ':a'")
-        applyBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :b").child("Apply plugin org.gradle.java to project ':b'")
+        applyBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :").child("Apply plugin org.gradle.java-library to root project 'multi'").child("Apply plugin org.gradle.api.plugins.JavaPlugin to root project 'multi'")
+        applyBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :a").child("Apply plugin org.gradle.java-library to project ':a'").child("Apply plugin org.gradle.api.plugins.JavaPlugin to project ':a'")
+        applyBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :b").child("Apply plugin org.gradle.java-library to project ':b'").child("Apply plugin org.gradle.api.plugins.JavaPlugin to project ':b'")
     }
 
     def "generates plugin application events where project configuration is subprojects closure"() {
@@ -426,7 +438,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
             include 'a', 'b'
         """
         buildFile << """
-            subprojects { apply plugin: 'java' }
+            subprojects { apply plugin: 'java-library' }
         """
 
         when:
@@ -439,8 +451,8 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         def applyBuildGradle = events.operation(applyBuildScriptRootProject("multi"))
 
-        applyBuildGradle.child("Execute 'subprojects {}' action").child("Cross-configure project :a").child("Apply plugin org.gradle.java to project ':a'")
-        applyBuildGradle.child("Execute 'subprojects {}' action").child("Cross-configure project :b").child("Apply plugin org.gradle.java to project ':b'")
+        applyBuildGradle.child("Execute 'subprojects {}' action").child("Cross-configure project :a").child("Apply plugin org.gradle.java-library to project ':a'").child("Apply plugin org.gradle.api.plugins.JavaPlugin to project ':a'")
+        applyBuildGradle.child("Execute 'subprojects {}' action").child("Cross-configure project :b").child("Apply plugin org.gradle.java-library to project ':b'").child("Apply plugin org.gradle.api.plugins.JavaPlugin to project ':b'")
     }
 
     def "generates plugin application events where project configuration is project closure"() {
@@ -451,7 +463,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
             include 'a', 'b'
         """
         buildFile << """
-            project(':a') { apply plugin: 'java' }
+            project(':a') { apply plugin: 'java-library' }
         """
 
         when:
@@ -464,7 +476,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         def applyBuildGradle = events.operation(applyBuildScriptRootProject("multi"))
 
-        applyBuildGradle.child("Cross-configure project :a").child("Apply plugin org.gradle.java to project ':a'")
+        applyBuildGradle.child("Cross-configure project :a").child("Apply plugin org.gradle.java-library to project ':a'").child("Apply plugin org.gradle.api.plugins.JavaPlugin to project ':a'")
     }
 
     def "generates plugin application events where project configuration is project configuration action"() {
@@ -475,7 +487,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
             include 'a', 'b'
         """
         buildFile << """
-            project(':b', new Action<Project>() { void execute(Project project) { project.apply plugin: 'java' } })
+            project(':b', new Action<Project>() { void execute(Project project) { project.apply plugin: 'java-library' } })
         """
 
         when:
@@ -488,7 +500,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         def applyBuildGradle = events.operation(applyBuildScriptRootProject("multi"))
 
-        applyBuildGradle.child("Cross-configure project :b").child("Apply plugin org.gradle.java to project ':b'")
+        applyBuildGradle.child("Cross-configure project :b").child("Apply plugin org.gradle.java-library to project ':b'").child("Apply plugin org.gradle.api.plugins.JavaPlugin to project ':b'")
     }
 
     def "generates plugin application events for buildSrc"() {
@@ -496,7 +508,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         buildSrc()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -530,8 +544,8 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
 
         groovyPlugin.child("Apply plugin org.gradle.api.plugins.GroovyBasePlugin to project ':buildSrc'")
 
-        applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc:a").child("Apply plugin org.gradle.java to project ':buildSrc:a'")
-        applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc:b").child("Apply plugin org.gradle.java to project ':buildSrc:b'")
+        applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc:a").child("Apply plugin org.gradle.java-library to project ':buildSrc:a'").child("Apply plugin org.gradle.api.plugins.JavaPlugin to project ':buildSrc:a'")
+        applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc:b").child("Apply plugin org.gradle.java-library to project ':buildSrc:b'").child("Apply plugin org.gradle.api.plugins.JavaPlugin to project ':buildSrc:b'")
     }
 
     @TargetGradleVersion(">=4.0 <6.0")
@@ -540,7 +554,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         buildSrc()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -565,7 +581,9 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         def events = ProgressEvents.create()
         buildSrc()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -587,7 +605,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         file("buildSrc/settings.gradle") << "include 'a', 'b'"
         file("buildSrc/build.gradle") << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             dependencies {
                 implementation project(':a')

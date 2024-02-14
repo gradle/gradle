@@ -16,8 +16,8 @@
 
 // tag::apply-jvm-test-suite[]
 plugins {
-    java
-    `jvm-test-suite`
+    id("java-library")
+    id("jvm-test-suite")
 }
 // end::apply-jvm-test-suite[]
 

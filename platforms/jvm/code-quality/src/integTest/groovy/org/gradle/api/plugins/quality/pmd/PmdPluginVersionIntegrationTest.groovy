@@ -31,7 +31,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
     def setup() {
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
                 id("pmd")
             }
 

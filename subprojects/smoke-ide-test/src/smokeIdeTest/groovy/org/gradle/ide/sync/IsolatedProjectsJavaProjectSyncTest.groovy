@@ -66,7 +66,7 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
 
         file("app/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             dependencies {
@@ -76,7 +76,7 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
 
         file("lib/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
         """
     }

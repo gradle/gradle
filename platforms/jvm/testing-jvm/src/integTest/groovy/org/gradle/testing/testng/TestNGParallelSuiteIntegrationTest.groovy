@@ -27,7 +27,10 @@ import spock.lang.Issue
 class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.testng:testng:$version'

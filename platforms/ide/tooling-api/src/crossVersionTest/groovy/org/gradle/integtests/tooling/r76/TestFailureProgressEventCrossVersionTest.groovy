@@ -416,7 +416,10 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
     def "Emits test failure events for TestNG tests"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${RepoScriptBlockUtil.mavenCentralRepository()}
             testing {
                 suites {

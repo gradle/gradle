@@ -26,7 +26,10 @@ class TestNGPreserveOrderNotSupportedIntegrationTest extends AbstractIntegration
     def "run tests using TestNG version not supporting preserveOrder"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { testImplementation 'org.testng:testng:5.14.4' }
             test { useTestNG { preserveOrder true } }

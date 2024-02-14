@@ -32,7 +32,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
     def setup() {
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 
                 repositories {
                     mavenCentral()

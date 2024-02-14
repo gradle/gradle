@@ -59,7 +59,10 @@ executed Test ${maybeParentheses('test')}(AÆTest)
 """
 
         file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

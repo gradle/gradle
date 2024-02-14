@@ -119,17 +119,17 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         given:
         file("buildSrc/build.gradle") << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
         file("included/build.gradle") << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 
@@ -149,7 +149,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         given:
         def escapedRootDir = escapeString(projectDir.absolutePath)
         file("script.gradle") << """
-            apply plugin: 'java'
+            apply plugin: 'java-library'
         """
         file("buildSrc/build.gradle") << """
             allprojects {
@@ -182,7 +182,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     def "reports plugin configuration results for subprojects"() {
         given:
         file("script.gradle") << """
-            apply plugin: 'java'
+            apply plugin: 'java-library'
         """
         file("b/build.gradle") << """
             apply from: "\$rootDir/script.gradle"
@@ -198,7 +198,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     def "reports plugin configuration results in reliable order"() {
         given:
         file("script.gradle") << """
-            apply plugin: 'java'
+            apply plugin: 'java-library'
         """
         file("build.gradle") << """
             apply from: "script.gradle"
@@ -213,7 +213,8 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
             assert plugins == [
                 "org.gradle.help-tasks", "org.gradle.build-init", "org.gradle.wrapper",
                 "build.gradle", "script.gradle",
-                "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
+                "org.gradle.java-library", "org.gradle.api.plugins.JavaPlugin",
+                "org.gradle.api.plugins.JavaBasePlugin",
                 "org.gradle.api.plugins.BasePlugin",
                 "org.gradle.language.base.plugins.LifecycleBasePlugin",
                 "org.gradle.api.plugins.JvmEcosystemPlugin",
@@ -226,7 +227,8 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
             assert plugins == [
                 "org.gradle.help-tasks", "org.gradle.build-init", "org.gradle.wrapper",
                 "build.gradle", "script.gradle",
-                "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
+                "org.gradle.java-library", "org.gradle.api.plugins.JavaPlugin",
+                "org.gradle.api.plugins.JavaBasePlugin",
                 "org.gradle.api.plugins.BasePlugin",
                 "org.gradle.language.base.plugins.LifecycleBasePlugin",
                 "org.gradle.api.plugins.JvmEcosystemPlugin",
@@ -283,7 +285,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         server.start()
         def scriptUri = server.uri("script.gradle")
         server.expect(server.get("script.gradle").send("""
-            apply plugin: 'java'
+            apply plugin: 'java-library'
         """))
         file("build.gradle") << """
             apply from: '$scriptUri'
@@ -423,9 +425,13 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     ProjectConfigurationOperationResult containsPluginApplicationResultsForJavaPlugin(String displayName) {
         def result = getPluginConfigurationOperationResult(displayName)
         with(result) {
+            def javaLibraryPluginResult = pluginApplicationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.JavaLibraryPlugin" }
+            assert javaLibraryPluginResult.plugin.pluginId == "org.gradle.java-library"
+            assert javaLibraryPluginResult.plugin.displayName == "org.gradle.java-library"
+            assert javaLibraryPluginResult.totalConfigurationTime >= Duration.ZERO
             def javaPluginResult = pluginApplicationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.JavaPlugin" }
-            assert javaPluginResult.plugin.pluginId == "org.gradle.java"
-            assert javaPluginResult.plugin.displayName == "org.gradle.java"
+            assert javaPluginResult.plugin.pluginId == null
+            assert javaPluginResult.plugin.displayName == "org.gradle.api.plugins.JavaPlugin"
             assert javaPluginResult.totalConfigurationTime >= Duration.ZERO
             def basePluginResult = pluginApplicationResults.find { it.plugin instanceof BinaryPluginIdentifier && it.plugin.className == "org.gradle.api.plugins.BasePlugin" }
             assert basePluginResult.plugin.pluginId == null

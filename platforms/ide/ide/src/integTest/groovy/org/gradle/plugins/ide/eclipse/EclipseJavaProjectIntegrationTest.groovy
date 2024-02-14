@@ -23,8 +23,10 @@ class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     def "generates default JRE container paths recognized by Eclipse"(String version, String expectedContainer) {
         settingsFile << "rootProject.name = 'java'"
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
             java.targetCompatibility = $version
         """
 
@@ -53,8 +55,10 @@ class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     def "generated JDT preferences have correct compiler version"(String version, String expectedVersion) {
         settingsFile << "rootProject.name = 'java'"
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
             java.sourceCompatibility = $version
         """
 
@@ -84,8 +88,10 @@ class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     def "generated JDT preferences have correct target platform version"(String version, String expectedVersion) {
         settingsFile << "rootProject.name = 'java'"
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
             java.targetCompatibility = $version
         """
 

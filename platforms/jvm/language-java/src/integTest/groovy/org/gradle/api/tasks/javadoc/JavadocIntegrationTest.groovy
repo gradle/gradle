@@ -61,7 +61,10 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
 
     def "writes header"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             javadoc.options.header = "<!-- Hey Joe! -->"
         """
 
@@ -76,7 +79,10 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Issue("gradle/gradle#1090")
     def "can use single quote character in #option"() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             javadoc.options.$option = "'some text'"
         """
 
@@ -95,7 +101,10 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
     def "can configure options with an Action"() {
         given:
         buildFile << '''
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             javadoc.options({ MinimalJavadocOptions options ->
                 options.header = 'myHeader'
             } as Action<MinimalJavadocOptions>)
@@ -116,7 +125,10 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3099")
     def "writes multiline header"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             javadoc.options.header = \"\"\"
                 <!-- Hey
 Joe! -->
@@ -218,7 +230,10 @@ Joe!""")
     @Issue("https://github.com/gradle/gradle/issues/1456")
     def "can use custom JavadocOptionFileOption type"() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext;
 
             class CustomJavadocOptionFileOption implements JavadocOptionFileOption<String> {
@@ -258,7 +273,9 @@ Joe!""")
     @Issue("https://github.com/gradle/gradle/issues/1484")
     def "can use various multi-value options"() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             javadoc {
                 options {
@@ -303,7 +320,10 @@ Joe!""")
     @Issue("https://github.com/gradle/gradle/issues/1502")
     def "can pass Jflags to javadoc"() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             javadoc.options.JFlags = ["-Dpublic.api=com.sample.tools.VisibilityPublic"]
         """
         writeSourceFile()
@@ -315,7 +335,9 @@ Joe!""")
     @Issue("https://github.com/gradle/gradle/issues/2235")
     def "can pass offline links"() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             javadoc {
                 options {
@@ -517,7 +539,7 @@ Joe!""")
         def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             javadoc {
                 options.bootClasspath = [file('$bootClasspath')]
@@ -537,7 +559,7 @@ Joe!""")
     def "can use custom stylesheet file"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             javadoc {
                 options.stylesheetFile = file('src/docs/custom.css')
@@ -575,7 +597,7 @@ Joe!""")
     def "can use custom stylesheet file with a different name"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             javadoc {
                 options.stylesheetFile = file('src/docs/custom.css')
@@ -614,7 +636,7 @@ Joe!""")
     def "can exclude a package by source path"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             javadoc {
                 exclude("pkg/internal/**")

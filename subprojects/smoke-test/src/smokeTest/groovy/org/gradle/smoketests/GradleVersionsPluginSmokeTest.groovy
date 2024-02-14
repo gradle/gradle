@@ -33,7 +33,7 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             }
 
             subprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 
                 ${mavenCentralRepository()}
             }

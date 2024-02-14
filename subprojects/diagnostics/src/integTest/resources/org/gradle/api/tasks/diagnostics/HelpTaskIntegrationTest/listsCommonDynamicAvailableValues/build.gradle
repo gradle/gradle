@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.options.OptionValues
 
-subprojects{
+subprojects {
     task hello(type: CustomTask)
 }
 

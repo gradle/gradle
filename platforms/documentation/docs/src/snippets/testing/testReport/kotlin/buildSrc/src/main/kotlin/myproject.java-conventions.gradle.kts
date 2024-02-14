@@ -1,6 +1,6 @@
 // tag::test-report[]
 plugins {
-    id("java")
+    id("java-library")
 }
 
 // Disable the test report for the individual test task

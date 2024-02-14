@@ -448,8 +448,10 @@ The following types/formats are supported:
         file("customFile.txt") << "some content"
         settingsFile << "rootProject.name = 'ivyPublish'"
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             group = 'org.gradle.test'
             version = '2.4'

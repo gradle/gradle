@@ -1,6 +1,6 @@
 // tag::plugins[]
 plugins {
-    id 'java'
+    id("java-library")
 }
 // end::plugins[]
 

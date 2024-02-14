@@ -25,7 +25,7 @@ class JavaCompileLineEndingSensitivityIntegrationTest extends AbstractIntegratio
     def setup() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
         """
     }

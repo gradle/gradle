@@ -25,7 +25,9 @@ class ExecutionResultExecTaskDeprecationIntegrationTest extends AbstractExecutio
     @Override
     protected void makeExecProject() {
         buildFile.text = """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task run(type: Exec) {
                 dependsOn(compileJava)

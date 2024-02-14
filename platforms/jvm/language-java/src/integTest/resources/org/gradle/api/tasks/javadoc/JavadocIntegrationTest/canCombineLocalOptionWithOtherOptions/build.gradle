@@ -1,6 +1,8 @@
-import org.gradle.internal.jvm.Jvm
+plugins {
+    id("java-library")
+}
 
-apply plugin: "java"
+import org.gradle.internal.jvm.Jvm
 
 sourceSets {
     taglet

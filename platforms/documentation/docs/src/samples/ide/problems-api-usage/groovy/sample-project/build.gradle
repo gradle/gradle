@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
-    id 'reporters.standard.plugin'
-    id 'reporters.script.plugin'
+    id("java-library")
+    id("reporters.standard.plugin")
+    id("reporters.script.plugin")
 }

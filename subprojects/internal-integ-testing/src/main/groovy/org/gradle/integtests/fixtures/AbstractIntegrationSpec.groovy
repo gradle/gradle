@@ -20,8 +20,8 @@ import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails
-import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.fixtures.build.RootBuildTestFile
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -60,6 +60,7 @@ import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFA
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.Matchers.normalizedLineSeparators
+
 /**
  * Spockified version of AbstractIntegrationTest.
  *
@@ -268,15 +269,15 @@ abstract class AbstractIntegrationSpec extends Specification {
         return 'init.gradle'
     }
 
-    def singleProjectBuild(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    def singleProjectBuild(String projectName, @DelegatesTo(value = RootBuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         buildTestFixture.singleProjectBuild(projectName, cl)
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(value = RootBuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         multiProjectBuild(projectName, subprojects, CompiledLanguage.JAVA, cl)
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    def multiProjectBuild(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(value = RootBuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         buildTestFixture.multiProjectBuild(projectName, subprojects, language, cl)
     }
 

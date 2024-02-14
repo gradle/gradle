@@ -72,12 +72,18 @@ class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceD
     def "can map to a repository containing multiple separate builds"() {
         repo.file("settings.gradle").delete()
         repo.file("foo/build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.test'
             version = '2.0'
         """
         repo.file("bar/build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.test'
             version = '3.0'
         """

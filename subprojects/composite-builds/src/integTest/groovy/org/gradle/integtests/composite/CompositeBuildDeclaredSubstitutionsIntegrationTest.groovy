@@ -36,10 +36,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         resolve = new ResolveTestFixture(buildA.buildFile).expectDefaultConfiguration("runtime")
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
+            version = "2.0"
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
-                    version "2.0"
+                    apply plugin: 'java-library'
 
                     repositories {
                         maven { url "${mavenRepo.uri}" }
@@ -50,8 +50,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
     }
 
@@ -156,7 +158,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         then:
         result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":buildC:jar")
+        result.assertTaskExecuted(":buildC:compileJava")
     }
 
     def "can substitute arbitrary coordinates for included build"() {
@@ -184,7 +186,9 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
             rootProject.name = 'buildB2'
 """
         buildB2.file('build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
             group = 'org.test'
             version = '1.0'
 """

@@ -25,7 +25,7 @@ class ToolingApiHonorsProjectCustomizationsCrossVersionSpec extends ToolingApiSp
 
         file('build.gradle').text = '''
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 }
 
@@ -54,7 +54,7 @@ project(':impl') {
     def "should deduplicate project names"() {
         file('build.gradle').text = '''
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 '''
         createDirs("services", "services/api", "contrib", "contrib/api")
@@ -71,8 +71,10 @@ allprojects {
 
     def "can have overlapping source and resource directories"() {
         file('build.gradle').text = '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 sourceSets {
     main {
@@ -105,8 +107,11 @@ sourceSets {
 
     def "can enable download of Javadoc for external dependencies"() {
         file('build.gradle').text = """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
+
 ${mavenCentralRepository()}
 dependencies {
     ${implementationConfiguration} 'commons-lang:commons-lang:2.5'

@@ -105,7 +105,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractKotlinIntegrationTes
             "buildSrc/build.gradle",
             """
             plugins {
-                id("java")
+                id("java-library")
                 id("java-gradle-plugin")
             }
             gradlePlugin {
@@ -239,7 +239,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractKotlinIntegrationTes
             "buildSrc/build.gradle",
             """
             plugins {
-                id("java")
+                id("java-library")
                 id("java-gradle-plugin")
             }
             gradlePlugin {

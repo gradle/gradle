@@ -1,6 +1,6 @@
 import org.gradle.api.tasks.options.Option
 
-allprojects{
+allprojects {
     task hello(type: CustomTask)
 }
 

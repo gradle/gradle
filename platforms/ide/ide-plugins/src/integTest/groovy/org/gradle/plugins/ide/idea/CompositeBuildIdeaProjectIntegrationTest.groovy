@@ -35,8 +35,10 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         buildTestFixture.withBuildInSubDir()
         buildA = singleProjectBuild("buildA") {
             buildFile << """
-                apply plugin: 'java'
-                apply plugin: 'idea'
+                plugins {
+                    id("java-library")
+                    id("idea")
+                }
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
@@ -149,8 +151,10 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-                apply plugin: 'idea'
+                plugins {
+                    id("java-library")
+                    id("idea")
+                }
 """
         }
         includeBuild buildC
@@ -187,13 +191,13 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
                 api "org.test:b1:1.0"
             }
             project(':b1') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 dependencies {
                     api "org.test:b2:1.0"
                 }
             }
             project(':b2') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 dependencies {
                     api "org.test:b1:1.0"
                 }
@@ -233,8 +237,10 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = 'buildC'
 """
         buildC.file('build.gradle') << """
-            apply plugin: 'java'
-            apply plugin: 'idea'
+            plugins {
+                id("java-library")
+                id("idea")
+            }
 
             group = 'org.test'
             version = '1.0'
@@ -255,8 +261,10 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-                apply plugin: 'idea'
+                plugins {
+                    id("java-library")
+                    id("idea")
+                }
 """
         }
         includeBuild buildC
@@ -306,8 +314,10 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includeBuild buildC
 
@@ -330,7 +340,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         def buildC = multiProjectBuild("buildC", ['c1', 'c2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     repositories {
                         maven { url "${mavenRepo.uri}" }
                     }
@@ -338,7 +348,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
                 project(":c2") {
                     apply plugin: 'idea'
                 }
-"""
+            """
         }
 
         includeBuild buildC
@@ -360,22 +370,24 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         dependency "org.buildD:b1:1.0"
 
         def buildC = multiProjectBuild("buildC", ['b1']) {
+            group = "org.buildC"
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     apply plugin: 'idea'
-                    group = 'org.buildC'
                 }
-"""
+            """
         }
         includeBuild buildC
 
         def buildD = singleProjectBuild("b1") {
+            group = "org.buildD"
             buildFile << """
-                apply plugin: 'java'
-                apply plugin: 'idea'
-                group = 'org.buildD'
-"""
+                plugins {
+                    id("java-library")
+                    id("idea")
+                }
+            """
         }
         includeBuild buildD
 
@@ -403,30 +415,29 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
                 implementation project(':b1')
                 implementation 'org.test:b1:1.0'
             }
-"""
+        """
 
         buildA.addChildDir("b1")
         buildA.settingsFile << """
             include 'b1'
-"""
+        """
         buildA.buildFile << """
             subprojects {
                 apply plugin: 'idea'
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 
                 group = 'org.buildA'
             }
-"""
+        """
 
         def buildC = multiProjectBuild("buildC", ["buildA"]) {
+            group = "org.buildC"
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     apply plugin: 'idea'
-
-                    group = 'org.buildC'
                 }
-"""
+            """
         }
         includeBuild buildC
 
@@ -455,23 +466,25 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         dependency "org.buildD:b1:1.0"
 
         def buildC = multiProjectBuild("buildC", ['b1']) {
+            group = "org.buildC"
             buildFile << """
                 // Idea plugin only applied to root
                 apply plugin: 'idea'
 
                 allprojects {
-                    apply plugin: 'java'
-                    group = 'org.buildC'
+                    apply plugin: 'java-library'
                 }
-"""
+            """
         }
         includeBuild buildC
 
         def buildD = singleProjectBuild("b1") {
+            group = "org.buildD"
             buildFile << """
-                apply plugin: 'java'
-                group = 'org.buildD'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includeBuild buildD
 

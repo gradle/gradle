@@ -25,7 +25,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         // create single project with java plugin
         buildFile << """
             plugins {
-              id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}

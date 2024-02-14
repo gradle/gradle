@@ -110,7 +110,10 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -193,7 +196,10 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkJUnit3Dependencies}

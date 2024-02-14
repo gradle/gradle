@@ -33,7 +33,11 @@ class ToolingApiEclipseModelSourceDirectoryAccessRuleCrossVersionSpec extends To
 
     @TargetGradleVersion(">=2.6 <3.0")
     def "Older versions throw runtime exception when querying access rules"() {
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         file('src/main/java').mkdirs()
 
         when:
@@ -45,7 +49,11 @@ class ToolingApiEclipseModelSourceDirectoryAccessRuleCrossVersionSpec extends To
     }
 
     def "Has no access rules"() {
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         file('src/main/java').mkdirs()
 
         when:
@@ -57,21 +65,25 @@ class ToolingApiEclipseModelSourceDirectoryAccessRuleCrossVersionSpec extends To
     }
 
     def "Has some access rules defined"() {
-        buildFile <<
-        """import org.gradle.plugins.ide.eclipse.model.AccessRule
-           apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                       whenMerged { classpath ->
-                           def sourceDir = classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }
-                           sourceDir.accessRules.add(new AccessRule('0', 'accessibleFilesPattern'))
-                           sourceDir.accessRules.add(new AccessRule('1', 'nonAccessibleFilesPattern'))
-                       }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            import org.gradle.plugins.ide.eclipse.model.AccessRule
+
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            def sourceDir = classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }
+                            sourceDir.accessRules.add(new AccessRule('0', 'accessibleFilesPattern'))
+                            sourceDir.accessRules.add(new AccessRule('1', 'nonAccessibleFilesPattern'))
+                        }
+                    }
+                }
+            }
         """
         file('src/main/java').mkdirs()
 

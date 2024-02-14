@@ -35,7 +35,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
     @Override
     String getApplyAndConfigure() {
         return """
-            apply plugin: "java"
+            apply plugin: "java-library"
         """
     }
 

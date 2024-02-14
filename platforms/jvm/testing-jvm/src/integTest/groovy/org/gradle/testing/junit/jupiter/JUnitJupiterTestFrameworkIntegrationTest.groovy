@@ -24,7 +24,10 @@ class JUnitJupiterTestFrameworkIntegrationTest extends AbstractTestFrameworkInte
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'

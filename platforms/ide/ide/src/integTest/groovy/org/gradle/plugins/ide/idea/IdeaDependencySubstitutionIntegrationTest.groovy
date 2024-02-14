@@ -32,7 +32,7 @@ class IdeaDependencySubstitutionIntegrationTest extends AbstractIdeIntegrationTe
         createDirs("project1", "project2")
         runTask("idea", "include 'project1', 'project2'", """
 allprojects {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "idea"
 }
 
@@ -64,7 +64,7 @@ project(":project2") {
         createDirs("project1", "project2")
         runTask("idea", "include 'project1', 'project2'", """
 allprojects {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "idea"
 }
 
@@ -98,7 +98,7 @@ project(":project2") {
         createDirs("project1", "project2")
         runTask("idea", "include 'project1', 'project2'", """
 allprojects {
-    apply plugin: "java"
+    apply plugin: "java-library"
     apply plugin: "idea"
 }
 

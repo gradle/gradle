@@ -31,8 +31,10 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         def description = identifier.decorate("description")
         settingsFile << "rootProject.name = '${artifactId}'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = '${groupId}'
             version = '${sq(version)}'
@@ -76,8 +78,10 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         and:
         settingsFile << "rootProject.name = '${artifactId}'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = '${groupId}'
             version = '${sq(version)}'
@@ -114,8 +118,10 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
 
     def "fails with reasonable error message for invalid identifier value"() {
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = ''
             version = ''
@@ -141,8 +147,10 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
     def "fails with reasonable error message for invalid #invalidComponent name"() {
         settingsFile << "rootProject.name = 'invalid'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'org.test'
             version = '1.0'

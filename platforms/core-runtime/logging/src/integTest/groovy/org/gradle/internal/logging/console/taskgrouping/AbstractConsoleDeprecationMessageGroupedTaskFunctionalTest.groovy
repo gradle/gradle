@@ -34,7 +34,9 @@ abstract class AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest extend
         def normalizedJavaSourceFilePath = normaliseFileSeparators(javaSourceFile.absolutePath)
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             compileJava {
                 options.compilerArgs = ['-Xlint:all']

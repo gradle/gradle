@@ -69,8 +69,8 @@ $settingsFile.text
 """
         buildFile.text = """
 plugins {
-    id 'java'
-    id 'test-plugin'
+    id("java-library")
+    id("test-plugin")
 }
 
 repositories {
@@ -143,8 +143,8 @@ $settingsFile.text
 """
         buildFile.text = """
 plugins {
-    id 'java'
-    id 'test-plugin'
+    id("java-library")
+    id("test-plugin")
 }
 
 repositories {

@@ -23,8 +23,10 @@ class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecifi
     def "can build linked resources"() {
 
         file('build.gradle').text = '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 eclipse.project {
     linkedResource name: 'foo', location: '/path/to/foo', type : '2'

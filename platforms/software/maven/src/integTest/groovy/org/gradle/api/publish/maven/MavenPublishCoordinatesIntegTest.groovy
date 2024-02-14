@@ -31,8 +31,10 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -82,8 +84,10 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -148,9 +152,10 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
         given:
         settingsFile << "rootProject.name = 'duplicate-publications'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
-
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
             group = 'org.example'
             version = '1.0'
 
@@ -205,7 +210,7 @@ include 'projectB'
         buildFile << """
         subprojects {
             apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             group = 'org.example'
             version = '1.0'
@@ -235,8 +240,10 @@ include 'projectB'
         given:
         settingsFile << "rootProject.name = 'duplicate-repos'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'org.example'
             version = '1.0'

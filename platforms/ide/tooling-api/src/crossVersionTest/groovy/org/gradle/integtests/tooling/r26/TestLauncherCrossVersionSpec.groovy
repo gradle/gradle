@@ -524,8 +524,8 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
     String simpleJavaProject() {
         """
-        allprojects{
-            apply plugin: 'java'
+        allprojects {
+            apply plugin: 'java-library'
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
         }

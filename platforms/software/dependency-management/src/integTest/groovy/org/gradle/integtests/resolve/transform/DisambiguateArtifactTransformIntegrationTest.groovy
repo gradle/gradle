@@ -78,7 +78,7 @@ project(':lib') {
 }
 
 project(':app') {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     dependencies {
         implementation 'test:test:1.3'
@@ -171,7 +171,7 @@ project(':lib') {
 }
 
 project(':app') {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     dependencies {
         implementation 'test:test:1.3'
@@ -359,10 +359,12 @@ task resolveTestClasses {
 
         given:
         buildFile << """
+plugins {
+    id("java-library")
+}
+
 def artifactType = Attribute.of('artifactType', String)
 def minified = Attribute.of('minified', Boolean)
-
-apply plugin: 'java'
 
 allprojects {
     repositories {

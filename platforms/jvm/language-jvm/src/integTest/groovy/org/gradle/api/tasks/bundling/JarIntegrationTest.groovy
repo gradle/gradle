@@ -401,7 +401,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
     def "JAR task is skipped when compiler output is unchanged"() {
         file("src/main/java/Main.java") << "public class Main {}\n"
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         succeeds "jar"

@@ -104,8 +104,10 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -170,8 +172,10 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -224,8 +228,10 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         and:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -311,8 +317,10 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'org.gradle.test'
             version = '1.0'
@@ -388,8 +396,10 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'
@@ -425,8 +435,8 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         """
         buildFile << """
             plugins {
-                id 'java'
-                id 'maven-publish'
+                id("java-library")
+                id("maven-publish")
             }
 
             tasks.compileJava {
@@ -467,8 +477,8 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
         """
         buildFile << """
             plugins {
-                id 'java'
-                id 'maven-publish'
+                id("java-library")
+                id("maven-publish")
             }
 
             group = 'com.acme'

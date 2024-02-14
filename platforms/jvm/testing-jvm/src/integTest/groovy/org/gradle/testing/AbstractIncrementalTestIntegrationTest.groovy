@@ -23,7 +23,9 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         executer.noExtraLogging()
         executer.withRepositoryMirrors()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 
@@ -129,7 +131,9 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
             }
         """.stripIndent()
         buildFile.text = """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 

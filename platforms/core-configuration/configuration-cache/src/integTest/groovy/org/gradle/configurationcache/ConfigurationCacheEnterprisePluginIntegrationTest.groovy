@@ -35,7 +35,9 @@ class ConfigurationCacheEnterprisePluginIntegrationTest extends AbstractConfigur
         '''
 
         buildFile '''
-            plugins { id("java") }
+            plugins {
+                id("java-library")
+            }
         '''
     }
 

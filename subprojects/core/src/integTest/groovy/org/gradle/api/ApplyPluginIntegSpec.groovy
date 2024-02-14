@@ -150,7 +150,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
                 static Project createProject(File gradleUserHome) {
                     def project = ProjectBuilder.builder().withGradleUserHomeDir(gradleUserHome).build()
-                    project.plugins.apply('java')
+                    project.plugins.apply('java-library')
                     project.dependencies.add('implementation', project.dependencies.gradleApi())
                     project
                 }

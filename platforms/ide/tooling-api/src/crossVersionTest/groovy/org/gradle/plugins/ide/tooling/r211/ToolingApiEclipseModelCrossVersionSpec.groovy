@@ -33,7 +33,11 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "Java project has target bytecode level"() {
         given:
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
@@ -45,7 +49,9 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "Java project has jdk"() {
         given:
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 """
@@ -61,9 +67,12 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
     def "target bytecode level respects explicit targetCompatibility configuration"() {
         given:
         buildFile << """
-        apply plugin:'java'
+        plugins {
+            id("java-library")
+        }
+
         ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
-"""
+        """
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
 
@@ -74,8 +83,10 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
     def "target bytecode level respects explicit configured eclipse config"() {
         given:
         buildFile << """
-        apply plugin:'java'
-        apply plugin:'eclipse'
+        plugins {
+            id("java-library")
+            id("eclipse")
+        }
 
         ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
 
@@ -121,11 +132,11 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 
         buildFile << """
             project(':subproject-a') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_1)}
             }
             project(':subproject-b') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'eclipse'
                 eclipse {
                     jdt {
@@ -134,7 +145,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
                 }
             }
             project(':subproject-c') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'eclipse'
                 ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
                 eclipse {

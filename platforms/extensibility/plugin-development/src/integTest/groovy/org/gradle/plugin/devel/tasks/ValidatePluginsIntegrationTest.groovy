@@ -245,7 +245,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             }
 
             project(':lib') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 
                 dependencies {
                     implementation 'com.typesafe:config:1.3.2'
@@ -1091,7 +1091,11 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     def "missing Java Toolchain plugin causes a deprecation warning"() {
         given:
         source("producer/settings.gradle") << ""
-        source("producer/build.gradle") << "plugins { id 'java' }"
+        source("producer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
         source("producer/src/main/java/Test.java") << "public class Test {}"
 
         source("consumer/settings.gradle") << ""

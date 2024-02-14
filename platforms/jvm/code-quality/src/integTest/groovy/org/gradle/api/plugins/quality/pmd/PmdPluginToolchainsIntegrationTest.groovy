@@ -123,9 +123,8 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
     private void writeBuildFile() {
         buildFile << """
             plugins {
-                id 'groovy'
-                id 'java'
-                id 'pmd'
+                id("groovy")
+                id("pmd")
             }
 
             dependencies {
@@ -147,8 +146,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
     private void writeBuildFileWithoutApplyingPmdPlugin() {
         buildFile << """
             plugins {
-                id 'groovy'
-                id 'java'
+                id("groovy")
             }
 
             ${mavenCentralRepository()}

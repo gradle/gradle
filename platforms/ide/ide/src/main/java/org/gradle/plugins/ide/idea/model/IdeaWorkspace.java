@@ -29,8 +29,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'idea'
+ *     id("java-library")
+ *     id("idea")
  * }
  *
  * idea.workspace.iws.withXml { provider -&gt;

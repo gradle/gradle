@@ -37,9 +37,9 @@ class FindBrokenInternalLinksTest extends Specification {
 
         new File(projectDir, "build.gradle") << """
             plugins {
-                id 'java'
-                id 'checkstyle'
-                id 'gradlebuild.documentation'
+                id("java-library")
+                id("checkstyle")
+                id("gradlebuild.documentation")
             }
 
             gradleDocumentation {

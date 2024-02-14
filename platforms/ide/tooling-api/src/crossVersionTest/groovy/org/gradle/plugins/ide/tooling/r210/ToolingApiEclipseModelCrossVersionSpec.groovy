@@ -51,7 +51,11 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "Java project returns default source compatibility"() {
         given:
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
@@ -63,7 +67,10 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "source language level is explicitly defined"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
         """
 
@@ -78,11 +85,11 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
             project(':subproject-a') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_1)}
             }
             project(':subproject-b') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'eclipse'
                 eclipse {
                     jdt {
@@ -91,7 +98,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
             project(':subproject-c') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'eclipse'
                 ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
                 eclipse {

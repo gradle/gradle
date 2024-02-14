@@ -28,7 +28,9 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
     def "internal exception should not be thrown"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 

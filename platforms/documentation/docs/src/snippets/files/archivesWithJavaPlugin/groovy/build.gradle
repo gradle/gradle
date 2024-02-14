@@ -1,6 +1,6 @@
 // tag::create-uber-jar-example[]
 plugins {
-    id 'java'
+    id("java-library")
 }
 
 version = '1.0.0'

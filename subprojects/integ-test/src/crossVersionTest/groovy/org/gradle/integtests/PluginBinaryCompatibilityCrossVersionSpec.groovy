@@ -50,7 +50,7 @@ class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationS
 
             class SomePlugin implements Plugin<Project> {
                 void apply(Project p) {
-                    p.apply plugin: 'java'
+                    p.apply plugin: 'java-library'
                     p.apply plugin: 'idea'
 
                     // Verify can use the types with and without various type declarations

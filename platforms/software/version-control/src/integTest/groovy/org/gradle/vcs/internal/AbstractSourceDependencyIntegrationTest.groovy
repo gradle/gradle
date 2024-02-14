@@ -38,7 +38,10 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.gradle'
             version = '2.0'
 
@@ -55,8 +58,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         depProject = singleProjectBuild("dep") {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
-                    group = 'org.test'
+                    apply plugin: 'java-library'
                 }
             """
             file("src/main/java/Dep.java") << "public class Dep {}"
@@ -148,7 +150,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         def pluginBuilder = new PluginBuilder(file("plugin"))
         pluginBuilder.addSettingsPlugin """
             settings.gradle.allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 group = 'org.test'
                 version = '1.0'
             }
@@ -170,7 +172,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
     def 'injected plugin can apply other plugins to source dependency build'() {
         def pluginBuilder = new PluginBuilder(file("plugin"))
         pluginBuilder.addPlugin """
-            project.apply plugin: 'java'
+            project.apply plugin: 'java-library'
             project.group = 'org.test'
             project.version = '1.0'
         """, "org.gradle.test.MyProjectPlugin", "MyProjectPlugin"

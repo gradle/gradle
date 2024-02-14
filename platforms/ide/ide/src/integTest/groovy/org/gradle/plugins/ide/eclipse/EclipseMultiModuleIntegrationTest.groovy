@@ -58,7 +58,7 @@ include 'contrib:services:util'
         def buildFile = file("build.gradle")
         buildFile << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 }
 
@@ -122,7 +122,7 @@ project(':services:utilities') {
         def buildFile = file("build.gradle")
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 if (project.name != 'nonEclipse') {
                     apply plugin: 'eclipse'
                 }
@@ -165,7 +165,7 @@ project(':services:utilities') {
 
         file("build.gradle") << """
             subprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'eclipse'
 
                 eclipse {

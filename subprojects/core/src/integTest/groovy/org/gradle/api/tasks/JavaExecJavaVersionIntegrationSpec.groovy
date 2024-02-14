@@ -90,7 +90,9 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
 
     private void setupRunHelloWorldTask() {
         buildScript '''
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task runHelloWorld(type: JavaExec) {
                 classpath = sourceSets.main.runtimeClasspath

@@ -38,17 +38,19 @@ class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseInteg
 
         settingsFile << "rootProject.name = 'ear'"
 
-        buildFile <<
-        """apply plugin: 'eclipse-wtp'
-           apply plugin: 'ear'
-           apply plugin: 'java'
+        buildFile << """
+            plugins {
+                id("eclipse-wtp")
+                id("ear")
+                id("java")
+            }
 
-           repositories { $localMaven }
+            repositories { $localMaven }
 
-           dependencies {
-               earlib 'org.example:lib1-impl:1.0'
-               deploy 'org.example:lib2-impl:2.0'
-           }
+            dependencies {
+                earlib 'org.example:lib1-impl:1.0'
+                deploy 'org.example:lib2-impl:2.0'
+            }
         """
 
         when:
@@ -85,20 +87,22 @@ class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseInteg
     def "ear deployment location can be configured via libDirName"() {
         settingsFile << "rootProject.name = 'ear'"
 
-        buildFile <<
-        """apply plugin: 'eclipse-wtp'
-           apply plugin: 'ear'
-           apply plugin: 'java'
+        buildFile << """
+            plugins {
+                id("eclipse-wtp")
+                id("ear")
+                id("java")
+            }
 
-           repositories { $localMaven }
+            repositories { $localMaven }
 
-           dependencies {
-               earlib 'org.example:lib1-impl:1.0'
-               deploy 'org.example:lib2-impl:2.0'
-           }
+            dependencies {
+                earlib 'org.example:lib1-impl:1.0'
+                deploy 'org.example:lib2-impl:2.0'
+            }
             ear {
-               libDirName = 'APP-INF/lib'
-           }
+                libDirName = 'APP-INF/lib'
+            }
         """
 
         when:

@@ -26,8 +26,8 @@ include 'consumer'
 """
         buildFile << """
 plugins {
-    id 'java'
-    id 'maven-publish'
+    id("java-library")
+    id("maven-publish")
 }
 
 group = "com.example"
@@ -51,7 +51,7 @@ publishing {
 """
         file("consumer/build.gradle") << """
 plugins {
-    id 'java'
+    id("java-library")
 }
 
 repositories {

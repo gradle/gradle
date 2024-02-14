@@ -192,7 +192,9 @@ task check {
 
         and:
         buildFile.write """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task echoDefaultEncoding(type: JavaExec) {
                 classpath = project.layout.files(compileJava)

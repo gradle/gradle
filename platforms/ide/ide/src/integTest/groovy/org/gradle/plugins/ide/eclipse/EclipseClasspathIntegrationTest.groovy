@@ -46,8 +46,10 @@ class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -85,8 +87,10 @@ dependencies {
 
         //when
         ExecutionResult result = runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -134,8 +138,10 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
 
         //when:
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -169,7 +175,7 @@ dependencies {
         createDirs("a", "b", "c")
         runEclipseTask """include 'a', 'b', 'c'""", """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 
     repositories {
@@ -216,7 +222,7 @@ configure(project(":c")){
         createDirs("a", "b", "c")
         runEclipseTask """include 'a', 'b', 'c'""", """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 
     repositories {
@@ -261,7 +267,7 @@ configure(project(":c")){
         createDirs("a", "b", "c")
         runEclipseTask """include 'a', 'b', 'c'""", """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 
     repositories {
@@ -294,7 +300,7 @@ configure(project(":b")){
         createDirs("a", "b", "c")
         runEclipseTask """include 'a', 'b', 'c'""", """
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 
     repositories {
@@ -398,8 +404,10 @@ configure(project(":b")){
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -433,8 +441,10 @@ eclipse {
     void canCustomizeTheClasspathModel() {
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 sourceSets.main.java.srcDirs.each { it.mkdirs() }
 sourceSets.main.resources.srcDirs.each { it.mkdirs() }
@@ -494,8 +504,10 @@ eclipse {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -534,8 +546,10 @@ dependencies {
     void handlesPlusMinusConfigurationsForSelfResolvingDeps() {
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 configurations {
   someConfig
@@ -568,7 +582,7 @@ eclipse.classpath {
         runEclipseTask "include 'foo', 'bar', 'unwanted'",
             """
 allprojects {
-  apply plugin: 'java'
+  apply plugin: 'java-library'
   apply plugin: 'eclipse'
 }
 
@@ -603,8 +617,10 @@ eclipse.classpath {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 configurations {
   someConfig
@@ -646,8 +662,10 @@ eclipse.classpath {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -683,8 +701,10 @@ eclipse.classpath {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -724,8 +744,10 @@ eclipse.classpath {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 dependencies {
   implementation files('newDependency.jar')
@@ -744,8 +766,10 @@ dependencies {
     void canConstructAndReconstructClasspathFromJavaSourceSets() {
         given:
         def buildFile = file("build.gradle") << """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 """
         createJavaSourceDirs(buildFile)
 
@@ -770,8 +794,10 @@ apply plugin: 'eclipse'
     void handlesExcludeOnSharedSourceFolders() {
         given:
         def buildFile = file("build.gradle") << """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 sourceSets {
     main {
@@ -797,8 +823,10 @@ sourceSets {
 
         when:
         buildFile.text = """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 sourceSets {
     main {
@@ -826,8 +854,10 @@ sourceSets {
     void handlesIncludesOnSharedSourceFolders() {
         given:
         def buildFile = file("build.gradle") << """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 sourceSets {
     main {
@@ -855,8 +885,10 @@ sourceSets {
 
         when:
         buildFile.text = """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 sourceSets {
     main {
@@ -897,8 +929,10 @@ sourceSets {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 def hooks = []
 
@@ -948,7 +982,7 @@ eclipseClasspath.doLast() {
         def buildFile = file('build.gradle')
         buildFile << """
 allprojects {
-  apply plugin: 'java'
+  apply plugin: 'java-library'
   apply plugin: 'eclipse'
   apply plugin: 'groovy'
 }
@@ -984,8 +1018,10 @@ project(':api') {
 
         //when
         runEclipseTask '''
-apply plugin: "java"
-apply plugin: "eclipse"
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 sourceSets.main.output.dir "$buildDir/generated/main"
 sourceSets.test.output.dir "$buildDir/generated/test"
@@ -1002,8 +1038,10 @@ sourceSets.test.output.dir "$buildDir/generated/test"
     void theBuiltByTaskBeExecuted() {
         //when
         def result = runEclipseTask('''
-apply plugin: "java"
-apply plugin: "eclipse"
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 sourceSets.main.output.dir "$buildDir/generated/main", builtBy: 'generateForMain'
 sourceSets.test.output.dir "$buildDir/generated/test", builtBy: 'generateForTest'
@@ -1028,7 +1066,7 @@ task generateForTest
         //when
         runEclipseTask """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 }
 
@@ -1097,8 +1135,10 @@ dependencies {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 """
         //then
         assert classpath.entries.size() == 2
@@ -1115,8 +1155,10 @@ apply plugin: 'eclipse'
 
         // when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -1144,7 +1186,7 @@ dependencies {
         createDirs("a", "b")
         runEclipseTask "include 'a', 'b'", """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 
     repositories {
@@ -1187,7 +1229,7 @@ project(':b') {
         createDirs("a", "b")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'eclipse'
 
                 repositories {
@@ -1235,7 +1277,7 @@ project(':b') {
         createDirs("a", "b")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'eclipse'
 
                 repositories {
@@ -1283,7 +1325,7 @@ project(':b') {
         createDirs("a", "b")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'eclipse'
 
                 repositories {
@@ -1331,7 +1373,7 @@ project(':b') {
         createDirs("a", "b")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'eclipse'
 
                 repositories {

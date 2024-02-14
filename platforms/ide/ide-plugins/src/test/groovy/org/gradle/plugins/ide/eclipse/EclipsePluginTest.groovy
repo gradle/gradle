@@ -54,7 +54,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         checkEclipseJdt()
 
         when:
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         then:
         checkEclipseClasspath([project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath])
@@ -114,7 +114,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
     def "configures internal class folders"() {
         when:
         eclipsePlugin.apply(project)
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
 
         project.sourceSets.main.output.dir 'generated-folder'
         project.sourceSets.main.output.dir 'ws-generated'
@@ -132,7 +132,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
     def "configures internal class folders for custom source sets"() {
         when:
         eclipsePlugin.apply(project)
-        project.apply(plugin: 'java')
+        project.apply(plugin: 'java-library')
         project.sourceSets.create('custom')
         project.sourceSets.custom.output.dir 'custom-output'
 

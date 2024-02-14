@@ -45,7 +45,10 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         Assume.assumeNotNull(target)
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             java {
                 toolchain {

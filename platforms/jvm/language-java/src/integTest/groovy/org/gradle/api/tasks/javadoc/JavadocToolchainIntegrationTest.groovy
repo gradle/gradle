@@ -43,7 +43,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
 
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             javadoc {
@@ -184,7 +184,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
     private TestFile configureProjectWithJavaPlugin() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             javadoc {

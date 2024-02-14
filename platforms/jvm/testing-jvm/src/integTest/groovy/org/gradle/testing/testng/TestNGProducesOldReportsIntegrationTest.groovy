@@ -41,7 +41,10 @@ public class MixedMethodsTest {
 """
         def buildFile = file('build.gradle')
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 ${mavenCentralRepository()}
 dependencies { testImplementation 'org.testng:testng:6.3.1' }
 
@@ -69,7 +72,10 @@ public class SomeTest {
 """
         def buildFile = file('build.gradle')
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 ${mavenCentralRepository()}
 dependencies { testImplementation 'org.testng:testng:6.3.1' }
 test {

@@ -43,7 +43,7 @@ class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec {
               assert file('stop.txt').createNewFile()
             }
             subprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             project(":a") {
                 compileJava.doFirst { waitForStop() }

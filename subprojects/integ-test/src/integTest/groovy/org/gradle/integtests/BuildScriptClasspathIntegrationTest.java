@@ -53,7 +53,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     public void buildSrcProjectCanReferToSourceOutsideBuildSrcDir() {
         testFile("gradle/src/BuildClass.java").writelns("public class BuildClass { }");
         testFile("buildSrc/build.gradle").writelns(
-                "apply plugin: 'java'",
+                "apply plugin: 'java-library'",
                 "sourceSets.main.java.srcDirs = ['../gradle/src']"
         );
         testFile("build.gradle").writelns(

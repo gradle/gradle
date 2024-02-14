@@ -29,7 +29,7 @@ class JavadocCachingIntegrationTest extends AbstractIntegrationSpec implements D
         projectDir.file('settings.gradle') << "rootProject.name = 'test-project'"
         projectDir.file("build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}

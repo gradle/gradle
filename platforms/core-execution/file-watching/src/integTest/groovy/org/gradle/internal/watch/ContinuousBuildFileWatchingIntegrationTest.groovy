@@ -46,7 +46,7 @@ class ContinuousBuildFileWatchingIntegrationTest extends AbstractContinuousInteg
         when:
         buildFile << """
             plugins {
-                id('java')
+                id("java-library")
             }
         """
         def sourceFile = file("src/main/java/Thing.java")

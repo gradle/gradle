@@ -216,7 +216,6 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def "nag with deprecation warnings when using legacy TestReport APIs"() {
         given:
         buildScript """
-            apply plugin: 'java'
             $junitSetup
             tasks.register('otherTests', Test) {
                 binaryResultsDirectory = file("bin")
@@ -251,8 +250,6 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def "test report task can handle tests tasks not having been executed"() {
         when:
         buildScript """
-            apply plugin: 'java'
-
             $junitSetup
 
             tasks.register('testReport', TestReport) {
@@ -275,7 +272,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def "test report task is skipped when there are no results"() {
         given:
         buildFile << """
-            ${junitSetup}
+            $junitSetup
             tasks.register('testReport', TestReport) {
                 testResults.from(tasks.named('test', Test))
                 destinationDirectory = reporting.baseDirectory.dir('tr')
@@ -364,7 +361,6 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def "using deprecated testReport elements emits deprecation warnings"() {
         when:
         buildScript """
-            apply plugin: 'java'
             $junitSetup
             // Need a second test task to reportOn
             tasks.register('otherTests', Test) {
@@ -392,7 +388,10 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     protected static String getJunitSetup() {
         """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'junit:junit:${LATEST_JUNIT4_VERSION}'

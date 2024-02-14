@@ -32,7 +32,7 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
 
         withBuildScript(
             """
-            plugins { java }
+            plugins { id("java-library") }
             dependencies {
                 compileOnly(gradleKotlinDsl())
             }
@@ -164,7 +164,7 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
     fun `non-static inner class for component metadata rule fails with a reasonable error message`() {
         withBuildScript("""
             plugins {
-                id("java")
+                id("java-library")
             }
             ${mavenCentralRepository(KOTLIN)}
             dependencies {
@@ -208,7 +208,7 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
             println(java.sourceCompatibility)
         """)
         withBuildScript("""
-            plugins { java }
+            plugins { id("java-library") }
             apply(from = "applied.gradle.kts")
         """)
         buildAndFail("help").apply {

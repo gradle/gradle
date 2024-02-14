@@ -37,7 +37,9 @@ abstract class AbstractJUnitJnaIntegrationTest extends AbstractTestingMultiVersi
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 

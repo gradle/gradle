@@ -32,7 +32,11 @@ class ConfigurationCacheSettingsFinalizedBuildOperationIntegTest extends Abstrac
         file("buildSrc/src/main/java/Thing.java") << "class Thing {}"
         createDir("plugin") {
             file("settings.gradle") << ""
-            file("build.gradle") << "plugins { id 'java' }"
+            file("build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
+            """
             file("buildSrc/src/main/java/Thing.java") << "class Thing {}"
             file("src/main/java/Thing.java") << "class Thing {}"
         }

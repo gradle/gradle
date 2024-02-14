@@ -29,7 +29,9 @@ class EclipseModelWithFlatRepoCrossVersionSpec extends ToolingApiSpecification i
         repoDir.createFile("lib-1.0.jar")
 
         projectDir.file("build.gradle") << """
-apply plugin: "java"
+plugins {
+    id("java-library")
+}
 
 repositories {
 	flatDir dirs: file("${repoDir.toURI()}")

@@ -97,7 +97,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
                 ${mavenCentralRepository()}
             }
             project(":java") {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             project(":scala") {
                 apply plugin: 'scala'

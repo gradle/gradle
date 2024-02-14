@@ -25,8 +25,10 @@ import static org.hamcrest.CoreMatchers.containsString
 class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
     def setup() {
         buildFile << """
-            apply plugin: "java"
-            apply plugin: "pmd"
+            plugins {
+                id("java-library")
+                id("pmd")
+            }
 
             ${mavenCentralRepository()}
 

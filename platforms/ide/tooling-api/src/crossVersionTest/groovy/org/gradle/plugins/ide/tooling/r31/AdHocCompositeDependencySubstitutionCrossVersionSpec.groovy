@@ -37,7 +37,9 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
 
         buildA = singleProjectBuildInRootFolder("buildA") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     ${testImplementationConfiguration} "org.test:b1:1.0"
                 }
@@ -47,7 +49,7 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
         buildB = multiProjectBuildInSubFolder("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }

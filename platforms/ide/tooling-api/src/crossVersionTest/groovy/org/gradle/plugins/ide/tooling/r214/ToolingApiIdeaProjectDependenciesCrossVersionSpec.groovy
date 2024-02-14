@@ -35,7 +35,7 @@ rootProject.name = 'root'
 '''
         projectDir.file('build.gradle').text = '''
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 project(':a') {
     dependencies {

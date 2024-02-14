@@ -30,8 +30,8 @@ class SpotBugsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             import com.github.spotbugs.snom.SpotBugsTask
 
             plugins {
-                id 'java'
-                id 'com.github.spotbugs' version '${TestedVersions.spotbugs}'
+                id("java-library")
+                id("com.github.spotbugs") version '${TestedVersions.spotbugs}'
             }
 
             ${mavenCentralRepository()}

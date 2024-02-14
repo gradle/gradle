@@ -55,8 +55,10 @@ class CompositeBuildClassloadingIntegrationTest extends AbstractCompositeBuildIn
 
         BuildTestFile buildB = singleProjectBuild("buildB") {
             buildFile << """
-                apply plugin: 'java'
-            """.stripIndent()
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includedBuilds << buildB
 

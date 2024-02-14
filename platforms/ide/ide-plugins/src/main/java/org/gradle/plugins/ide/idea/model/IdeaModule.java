@@ -48,8 +48,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'idea'
+ *     id("java-library")
+ *     id("idea")
  * }
  *
  * //for the sake of this example, let's introduce a 'performanceTestCompile' configuration
@@ -122,8 +122,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'idea'
+ *     id("java-library")
+ *     id("idea")
  * }
  *
  * idea {
@@ -272,8 +272,8 @@ public abstract class IdeaModule {
      * Example how to use scopes property to enable 'performanceTestCompile' dependencies in the output *.iml file:
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
-     *     id 'idea'
+     *     id("java-library")
+     *     id("idea")
      * }
      *
      * configurations {

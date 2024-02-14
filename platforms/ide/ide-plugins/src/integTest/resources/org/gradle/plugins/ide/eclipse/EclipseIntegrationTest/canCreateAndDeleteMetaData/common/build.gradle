@@ -1,4 +1,6 @@
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 java.sourceCompatibility = 1.6
 

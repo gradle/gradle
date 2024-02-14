@@ -67,7 +67,10 @@ abstract class AbstractJUnit4TestClassDetectionIntegrationTest extends AbstractJ
         """.stripIndent()
         writeCustomRunnerClass('CustomRunnerOrExtension')
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

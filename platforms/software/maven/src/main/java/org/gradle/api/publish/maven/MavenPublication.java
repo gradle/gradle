@@ -58,8 +58,8 @@ import org.gradle.internal.HasInternalProtocol;
  * <h4>Example of publishing a Java module with a source artifact and a customized POM</h4>
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'maven-publish'
+ *     id("java-library")
+ *     id("maven-publish")
  * }
  *
  * task sourceJar(type: Jar) {
@@ -137,8 +137,8 @@ public interface MavenPublication extends Publication {
      * The following example demonstrates how to publish the 'java' component to a Maven repository.
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
-     *     id 'maven-publish'
+     *     id("java-library")
+     *     id("maven-publish")
      * }
      *
      * publishing {
@@ -237,8 +237,8 @@ public interface MavenPublication extends Publication {
      * For example, to exclude the dependencies declared by a component and instead use a custom set of artifacts:
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
-     *     id 'maven-publish'
+     *     id("java-library")
+     *     id("maven-publish")
      * }
      *
      * task sourceJar(type: Jar) {
@@ -301,8 +301,8 @@ public interface MavenPublication extends Publication {
      * For example, to use resolved versions for runtime dependencies:
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
-     *     id 'maven-publish'
+     *     id("java-library")
+     *     id("maven-publish")
      * }
      *
      * publishing {

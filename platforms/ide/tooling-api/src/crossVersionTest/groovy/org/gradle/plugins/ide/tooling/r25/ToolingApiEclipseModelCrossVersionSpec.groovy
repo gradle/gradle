@@ -31,9 +31,10 @@ rootProject.name = 'root'
 '''
 
         projectDir.file('build.gradle').text = """
-
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 ${mavenCentralRepository()}
 
@@ -54,7 +55,7 @@ eclipse {
 }
 
 configure(project(':a')){
-    apply plugin:'java'
+    apply plugin:'java-library'
 }"""
 
         when:
@@ -80,7 +81,7 @@ rootProject.name = 'root'
         projectDir.file('build.gradle').text = """
 
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 
     repositories {

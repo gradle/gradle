@@ -41,7 +41,11 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
 
     def "Java project has default output location"() {
         setup:
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         EclipseProject project = loadToolingModel(EclipseProject)
 
         when:

@@ -36,7 +36,11 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     def "older Gradle versions infer project source settings from default idea plugin language level"() {
         given:
         if (projectAppliesJavaPlugin) {
-            buildFile << "apply plugin: 'java'"
+            buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         }
 
         when:
@@ -57,7 +61,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
             apply plugin: 'idea'
-            ${applyJavaPlugin ? "apply plugin: 'java'" : ""}
+            ${applyJavaPlugin ? "apply plugin: 'java-library'" : ""}
             idea {
                 project {
                     languageLevel = '1.3'
@@ -138,12 +142,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
             }
 
             project(':child2') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_2)}
             }
 
             project(':child3') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
@@ -177,12 +181,11 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
             }
 
             project(':child2') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_2)}
             }
 
-            project(':child3') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
@@ -202,7 +205,9 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     def "can query java sdk for idea project"() {
         given:
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 """
@@ -221,7 +226,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
         buildFile << """
             allprojects {
-                apply plugin:'java'
+                apply plugin:'java-library'
                 apply plugin:'idea'
                 ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
@@ -246,7 +251,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
         buildFile << """
             allprojects {
-                apply plugin:'java'
+                apply plugin:'java-library'
                 apply plugin:'idea'
                 ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
@@ -268,21 +273,24 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         given:
         settingsFile << "\ninclude 'root', 'child1', ':child2:child3', 'child4'"
         buildFile << """
-            apply plugin:'java'
+            plugins {
+                id("java-library")
+            }
+
             ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
 
             project(':child1') {
-                apply plugin:'java'
+                apply plugin:'java-library'
                 ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
             project(':child2') {
-                apply plugin:'java'
+                apply plugin:'java-library'
                 ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
             }
 
             project(':child2:child3') {
-                apply plugin:'java'
+                apply plugin:'java-library'
                 ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_7)}
             }
             project(':child4') {

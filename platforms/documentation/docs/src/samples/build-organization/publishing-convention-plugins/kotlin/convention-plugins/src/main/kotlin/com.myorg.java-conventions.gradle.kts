@@ -3,8 +3,8 @@
 
 // tag::apply-external-plugin[]
 plugins {
-    java
-    checkstyle
+    id("java-library")
+    id("checkstyle")
 
     // NOTE: external plugin version is specified in implementation dependency artifact of the project's build file
     id("com.github.spotbugs")

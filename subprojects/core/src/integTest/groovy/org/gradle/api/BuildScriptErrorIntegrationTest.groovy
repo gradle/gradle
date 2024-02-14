@@ -132,7 +132,7 @@ def doSomething() {
     def "referencing a non-existing closure-taking method yields a helpful error message"() {
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
 
             java {
@@ -151,7 +151,7 @@ def doSomething() {
     def "referencing non-existing method within a closure yields a helpful error message"() {
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
             testing {
                 suites {

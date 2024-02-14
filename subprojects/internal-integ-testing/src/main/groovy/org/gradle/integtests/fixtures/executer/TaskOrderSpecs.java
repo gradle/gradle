@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Provides common assertions for querying task order.
@@ -83,7 +84,7 @@ public class TaskOrderSpecs {
             } else {
                 throw new IllegalArgumentException();
             }
-            assert index > lastIndex : String.format("%s does not occur in expected order (expected: %s, actual %s)", constraint, this.toString(), executedTaskPaths);
+            assert index > lastIndex : String.format("%s does not occur in expected order.\nExpected: %s\nActual [%s]", constraint, this.toString(), executedTaskPaths.stream().map(x -> '"' + x + '"').collect(Collectors.joining(", ")));
             return index;
         }
 

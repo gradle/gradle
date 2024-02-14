@@ -185,7 +185,9 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
     def "reports when task field references an object of type #baseType"() {
         buildFile << """
-            plugins { id "java" }
+            plugins {
+                id("java-library")
+            }
 
             abstract class SomeBuildService implements $BuildService.name<${BuildServiceParameters.name}.None> {
             }
@@ -319,7 +321,9 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
     def "reports when task field is declared with type #baseType"() {
         buildFile << """
-            plugins { id "java" }
+            plugins {
+                id("java-library")
+            }
 
             class SomeBean {
                 private ${baseType.name} badField

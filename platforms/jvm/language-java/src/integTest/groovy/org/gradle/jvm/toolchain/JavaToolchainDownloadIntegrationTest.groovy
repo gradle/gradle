@@ -37,7 +37,9 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -76,7 +78,9 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """${applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())}"""
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -114,7 +118,9 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """${applyToolchainResolverPlugin("CustomToolchainResolver", unsecuredToolchainResolverCode())}"""
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {

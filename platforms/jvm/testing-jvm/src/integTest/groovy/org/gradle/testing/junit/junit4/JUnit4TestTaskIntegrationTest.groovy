@@ -28,7 +28,7 @@ class JUnit4TestTaskIntegrationTest extends AbstractJUnit4TestTaskIntegrationTes
         file("src/test/java/Slow.java") << """public interface Slow {}"""
 
         settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """apply plugin: 'java'
+        buildFile << """
             test {
                 options {
                     excludeCategories = ["Slow"]

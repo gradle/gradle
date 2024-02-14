@@ -37,7 +37,7 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
 
         buildFile << """
             project(':project-lib') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             configurations {
                 compile

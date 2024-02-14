@@ -32,7 +32,10 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
 
     def setup() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
 
             testing {

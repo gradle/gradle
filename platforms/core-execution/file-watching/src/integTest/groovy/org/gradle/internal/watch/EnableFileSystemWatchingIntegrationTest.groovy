@@ -31,7 +31,9 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
     def "is enabled by default"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -43,7 +45,9 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
     def "can be enabled via gradle.properties (enabled: #enabled)"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -61,7 +65,9 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
     def "can be enabled via system property (enabled: #enabled)"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -78,7 +84,9 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
     def "can be enabled via #commandLineOption"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -95,7 +103,9 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
     def "setting to #watchMode via command-line init script has no effect"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         def initScript = file("init.gradle") << """
@@ -114,7 +124,9 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
     def "setting to #watchMode via init script in user home has no effect"() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         requireOwnGradleUserHomeDir()

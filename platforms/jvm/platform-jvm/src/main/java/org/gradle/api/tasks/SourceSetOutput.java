@@ -29,7 +29,7 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
+ *     id("java-library")
  * }
  *
  * sourceSets {
@@ -54,7 +54,7 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * plugins {
- *   id 'java'
+ *   id("java-library")
  * }
  *
  * def generateResourcesTask = tasks.register("generate-resources", GenerateResourcesTask) {

@@ -27,7 +27,11 @@ import org.gradle.util.internal.TextUtil
 class ContinuousBuildCancellationIntegrationTest extends AbstractContinuousIntegrationTest {
 
     TestFile setupJavaProject() {
-        buildFile.text = "apply plugin: 'java'"
+        buildFile.text = """
+            plugins {
+                id("java-library")
+            }
+        """
         testDirectory.createDir('src/main/java')
     }
 

@@ -25,7 +25,6 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
 
     void theUsualFiles() {
         buildFile << """
-            apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

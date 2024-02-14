@@ -30,7 +30,7 @@ class ForceRealizedMetadataIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             repositories {

@@ -99,7 +99,9 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             """
 
             file('lib/build.gradle') << """
-                plugins { id 'java' }
+                plugins {
+                    id("java-library")
+                }
                 group = 'org.test'
                 version = '1.0'
 
@@ -273,7 +275,9 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             """
 
             file('build.gradle') << """
-                plugins { id 'java' }
+                plugins {
+                    id("java-library")
+                }
                 group = 'org.test'
                 version = '1.0'
             """
@@ -293,8 +297,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             """
             file('build.gradle') << """
                 plugins {
-                    id 'java'
-                    id 'application'
+                    id("application")
                 }
                 application {
                    mainClass = 'Main'

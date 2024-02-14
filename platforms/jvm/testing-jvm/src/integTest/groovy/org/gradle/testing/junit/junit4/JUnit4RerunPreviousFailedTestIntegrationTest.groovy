@@ -27,10 +27,11 @@ class JUnit4RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSp
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
-
 
             dependencies {
                 testImplementation 'junit:junit:4.13'

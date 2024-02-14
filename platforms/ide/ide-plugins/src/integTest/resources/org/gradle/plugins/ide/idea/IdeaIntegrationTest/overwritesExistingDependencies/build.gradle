@@ -1,5 +1,7 @@
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 repositories {
     mavenCentral()

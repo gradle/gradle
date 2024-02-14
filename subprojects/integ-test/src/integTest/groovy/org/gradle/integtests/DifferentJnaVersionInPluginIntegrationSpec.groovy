@@ -26,7 +26,7 @@ class DifferentJnaVersionInPluginIntegrationSpec extends AbstractIntegrationSpec
         given:
         buildScript """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}

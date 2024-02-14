@@ -35,7 +35,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
             include 'a', 'b'
         """
         buildFile << """
-            allprojects { apply plugin: 'java' }
+            allprojects { apply plugin: 'java-library' }
 
             evaluationDependsOn(':a')
 """
@@ -74,7 +74,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         given:
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${mavenCentralRepository()}
                 dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             }
@@ -119,7 +119,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
     def "generates events for failed dependency resolution"() {
         given:
         buildFile << """
-            allprojects { apply plugin: 'java' }
+            allprojects { apply plugin: 'java-library' }
             dependencies { ${implementationConfiguration} 'thing:thing:1.0' }
 """
         file("src/main/java/Thing.java") << """class Thing { }"""
@@ -151,7 +151,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
     def "does not include dependency resolution that is a child of a task when task events are not included"() {
         given:
         buildFile << """
-            allprojects { apply plugin: 'java' }
+            allprojects { apply plugin: 'java-library' }
 """
         file("src/main/java/Thing.java") << """class Thing { }"""
         file("src/test/java/Thing.java") << """class ThingTest { }"""
@@ -178,7 +178,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
             include 'a', 'b'
         """
         buildFile << """
-            allprojects { apply plugin: 'java' }
+            allprojects { apply plugin: 'java-library' }
             dependencies {
                 compile project(':a')
             }

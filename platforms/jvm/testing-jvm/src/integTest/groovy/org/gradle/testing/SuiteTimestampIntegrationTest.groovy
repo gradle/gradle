@@ -25,9 +25,12 @@ class SuiteTimestampIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-2730")
     void "test logging is included in XML results"() {
         file("build.gradle") << """
-            apply plugin: 'java'
-                ${mavenCentralRepository()}
-                dependencies { testImplementation '$testJunitCoordinates' }
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+            dependencies { testImplementation '$testJunitCoordinates' }
         """
 
         file("src/test/java/SomeTest.java") << """

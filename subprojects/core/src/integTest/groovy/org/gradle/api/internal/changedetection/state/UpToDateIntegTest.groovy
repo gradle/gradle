@@ -106,7 +106,9 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
     def "task without actions is reported as up-to-date when it's up-to-date"() {
         file("src/main/java/Main.java") << "public class Main {}"
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         expect:

@@ -47,10 +47,11 @@ class PmdRelocationIntegrationTest extends AbstractProjectRelocationIntegrationT
             }
             """
 
-
         projectDir.file("build.gradle") << """
-            apply plugin: "java"
-            apply plugin: "pmd"
+            plugins {
+                id("java-library")
+                id("pmd")
+            }
 
             ${mavenCentralRepository()}
 

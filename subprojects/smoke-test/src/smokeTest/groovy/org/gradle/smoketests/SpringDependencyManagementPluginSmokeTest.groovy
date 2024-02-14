@@ -24,8 +24,8 @@ class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidating
         given:
         buildFile << """
             plugins {
-                id 'java'
-                id 'io.spring.dependency-management' version '${TestedVersions.springDependencyManagement}' // TODO:Finalize Upload Removal - Issue #21439
+                id("java-library")
+                id("io.spring.dependency-management") version '${TestedVersions.springDependencyManagement}' // TODO:Finalize Upload Removal - Issue #21439
             }
 
             ${mavenCentralRepository()}

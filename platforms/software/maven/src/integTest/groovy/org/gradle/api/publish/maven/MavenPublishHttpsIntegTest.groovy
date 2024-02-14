@@ -125,8 +125,11 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
     def initBuild() {
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'maven-publish'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
             group = 'org.gradle'
             version = '2'
 

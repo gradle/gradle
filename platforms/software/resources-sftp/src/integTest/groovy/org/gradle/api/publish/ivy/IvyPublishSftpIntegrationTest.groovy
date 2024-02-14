@@ -39,8 +39,10 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
     private void buildAndSettingsFilesForPublishing() {
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             version = '2'
             group = 'org.group.name'
@@ -69,8 +71,10 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         settingsFile << 'rootProject.name = "publish"'
         configureRepositoryCredentials("sftp", "sftp", "ivy")
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             version = '2'
             group = 'org.group.name'
@@ -138,8 +142,10 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         settingsFile << 'rootProject.name = "publish"'
         configureRepositoryCredentials("sftp", "sftp", "ivy")
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
 
             version = '2'
             group = 'org.group.name'

@@ -28,8 +28,8 @@ class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends Toolin
     def setup() {
         buildFile << """
             plugins {
-                id "java"
-                id "eclipse"
+                id("java-library")
+                id("eclipse")
             }
         """
         file("src/main/java").mkdirs()

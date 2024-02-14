@@ -30,8 +30,10 @@ class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
         using m2
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'group'
             version = '1.0'

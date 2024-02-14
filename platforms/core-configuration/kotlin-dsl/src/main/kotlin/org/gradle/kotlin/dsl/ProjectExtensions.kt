@@ -311,13 +311,13 @@ fun Project.gradleKotlinDsl(): Dependency =
  * Nested `plugins` blocks are **NOT** allowed, for example:
  * ```
  * project(":core") {
- *   plugins { java }
+ *   plugins { id("java-library") }
  * }
  * ```
  * If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead.
  * ```
  * project(":core") {
- *   apply(plugin = "java")
+ *   apply(plugin = "java-library")
  * }
  * ```
  * @since 6.0

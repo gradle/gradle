@@ -24,7 +24,10 @@ abstract class AbstractJUnitClassLevelFilteringIntegrationTest extends AbstractT
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

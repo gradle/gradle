@@ -90,7 +90,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildKotlinFile << """
         plugins {
-            java
+            id("java-library")
         }
 
         dependencies {
@@ -223,8 +223,9 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         def gradleHomeDirPath = otherVersion.gradleHomeDir.absolutePath
 
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'application'
+            plugins {
+                id("application")
+            }
 
             repositories {
                 maven { url "${buildContext.localRepository.toURI()}" }

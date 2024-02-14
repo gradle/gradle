@@ -54,7 +54,7 @@ import org.gradle.internal.HasInternalProtocol;
  * in order to get hold of all dependencies (e.g. jars, but only)
  * <pre class='autoTested'>
  *   plugins {
- *       id 'java' //so that I can use 'implementation', 'compileClasspath' configuration
+ *       id("java-library") // Adds 'implementation' and 'compileClasspath' configurations
  *   }
  *
  *   dependencies {
@@ -72,7 +72,7 @@ import org.gradle.internal.HasInternalProtocol;
  * An example showing how to declare and configure configurations
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that I can use 'implementation', 'testImplementation' configurations
+ *     id("java-library") // Adds 'implementation' and 'testImplementation' configurations
  * }
  *
  * configurations {

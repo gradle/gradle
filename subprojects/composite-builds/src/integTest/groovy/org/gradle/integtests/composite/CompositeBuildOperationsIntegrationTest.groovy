@@ -44,9 +44,9 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
-"""
+            """
         }
         includedBuilds << buildB
     }
@@ -59,12 +59,12 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         execute(buildA, ":jar")
 
         then:
-        executed ":buildB:jar"
+        executed ":buildB:compileJava"
 
         and:
         List<BuildOperationRecord> allOps = operations.all(ExecuteTaskBuildOperationType)
 
-        allOps.find { it.details.buildPath == ":buildB" && it.details.taskPath == ":jar" }
+        allOps.find { it.details.buildPath == ":buildB" && it.details.taskPath == ":compileJava" }
         allOps.find { it.details.buildPath == ":" && it.details.taskPath == ":jar" }
 
         for (BuildOperationRecord operationRecord : allOps) {
@@ -84,7 +84,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         execute(buildA, ":jar")
 
         then:
-        executed ":buildB:jar"
+        executed ":buildB:compileJava"
 
         and:
         def root = operations.root(RunBuildBuildOperationType)
@@ -158,7 +158,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }
@@ -171,7 +171,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         execute(buildA, ":jar")
 
         then:
-        executed ":buildB:jar", ":buildC:jar"
+        executed ":buildB:compileJava", ":buildC:compileJava"
 
         and:
         def root = operations.root(RunBuildBuildOperationType)
@@ -213,7 +213,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }
@@ -288,7 +288,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         execute(buildA, ":jar")
 
         then:
-        executed ":buildB:b1:jar", ":buildB:b2:jar"
+        executed ":buildB:b1:jar", ":buildB:b2:compileJava"
 
         and:
         def root = operations.root(RunBuildBuildOperationType)
@@ -367,7 +367,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }
@@ -400,7 +400,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """ << registration("buildC")
         }

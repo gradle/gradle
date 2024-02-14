@@ -116,7 +116,9 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
             include 'my-plugin'
         """
         file('my-lib/build.gradle') << """
-            plugins { id 'java' }
+            plugins {
+                id("java-library")
+            }
         """
         file('my-plugin/build.gradle') << """
             plugins { id 'java-gradle-plugin' }

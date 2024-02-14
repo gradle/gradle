@@ -603,7 +603,9 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         root {
             buildSrc {
                 'build.gradle'('''
-                    apply plugin: 'java'
+                    plugins {
+                        id("java-library")
+                    }
                 ''')
                 src {
                     main {

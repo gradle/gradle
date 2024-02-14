@@ -137,7 +137,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def path = TextUtil.normaliseFileSeparators(earlierJdk.javaHome.absolutePath.toString() + appendPath)
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             compileJava {
                 options.fork = true
@@ -170,7 +172,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -216,7 +220,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def jdk = Jvm.current()
         def prevJavaVersion = JavaVersion.toVersion(jdk.javaVersion.majorVersion.toInteger() - 1)
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             java {
                 sourceCompatibility = JavaVersion.toVersion('$prevJavaVersion')
@@ -262,7 +268,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -288,7 +296,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -313,7 +323,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -339,7 +351,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -379,8 +393,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def jdk17 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
 
         buildFile << """
-            apply plugin: "java"
-            apply plugin: "application"
+            plugins {
+                id("application")
+            }
 
             application.mainClass = "Main"
 
@@ -440,7 +455,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -467,7 +484,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -492,7 +511,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -526,7 +547,9 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {

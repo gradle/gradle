@@ -164,8 +164,10 @@ class BuildProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
 
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'maven-publish'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
             version = '1'
             group = 'group'
 
@@ -205,7 +207,11 @@ class BuildProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
     def "generate events for task actions"() {
         given:
         settingsFile << "rootProject.name = 'single'"
-        buildFile << 'apply plugin:"java"'
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         file("src/main/java/Thing.java") << """class Thing { }"""
 
         when:

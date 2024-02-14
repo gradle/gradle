@@ -246,7 +246,10 @@ ant.importBuild('build.xml')
 </project>
 """
         testFile('build.gradle') << """
-apply plugin:'java'
+plugins {
+    id("java-library")
+}
+
 ant.importBuild(file('build.xml')) { antTaskName ->
     'ant-'+antTaskName
 }

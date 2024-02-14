@@ -1,9 +1,9 @@
 // tag::apply-plugin[]
 plugins {
     // end::apply-plugin[]
-    java
+    id("java-library")
 // tag::apply-plugin[]
-    jacoco
+    id("jacoco")
 }
 // end::apply-plugin[]
 

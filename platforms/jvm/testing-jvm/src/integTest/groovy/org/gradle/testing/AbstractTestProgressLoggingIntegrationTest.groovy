@@ -25,7 +25,10 @@ abstract class AbstractTestProgressLoggingIntegrationTest extends AbstractTestin
 
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

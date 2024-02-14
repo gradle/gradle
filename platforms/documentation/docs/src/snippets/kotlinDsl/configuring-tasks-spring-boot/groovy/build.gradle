@@ -2,8 +2,8 @@
 // tag::lazy[]
 // tag::accessors[]
 plugins {
-    id 'java'
-    id 'org.springframework.boot' version '2.7.8'
+    id("application")
+    id("org.springframework.boot") version '2.7.8'
 }
 
 // end::lazy[]

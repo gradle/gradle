@@ -27,7 +27,9 @@ class JacocoPluginGoodBehaviourTest extends WellBehavedPluginTest {
 
     def setup(){
         buildFile << """
-            apply plugin:'java'
+            plugins {
+                id("java-library")
+            }
         """
     }
 }

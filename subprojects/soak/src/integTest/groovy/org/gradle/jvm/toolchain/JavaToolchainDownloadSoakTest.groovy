@@ -61,7 +61,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         buildFile << """
             plugins {
-                id "java"
+                id("java-library")
             }
 
             $TOOLCHAIN_WITH_VERSION

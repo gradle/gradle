@@ -37,7 +37,9 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 
         buildA = singleProjectBuildInRootFolder("buildA") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     ${testImplementationConfiguration} "org.test:b1:1.0"
                 }
@@ -51,7 +53,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         buildB = multiProjectBuildInSubFolder("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
                 project(':b1') {
                     dependencies {
@@ -63,7 +65,9 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 
         buildC = singleProjectBuildInSubfolder("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
     }
@@ -186,17 +190,16 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
             }
 """
         def buildD = multiProjectBuildInSubFolder("buildD", ["b1", "buildC"]) {
+            group = 'org.buildD'
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
-
-                    group = 'org.buildD'
+                    apply plugin: 'java-library'
                 }
-"""
+            """
         }
         settingsFile << """
             includeBuild 'buildD'
-"""
+        """
 
         when:
         def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }

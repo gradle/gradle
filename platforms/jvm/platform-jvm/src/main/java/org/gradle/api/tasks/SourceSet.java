@@ -35,7 +35,7 @@ import javax.annotation.Nullable;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
+ *     id("java-library")
  * }
  *
  * sourceSets {

@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  * Examples:
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that there are some configurations
+ *     id("java-library") // Adds some configurations
  * }
  *
  * configurations.all {
@@ -73,7 +73,7 @@ public interface ResolutionStrategy {
      *
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java' // so that there are some configurations
+     *     id("java-library") // Adds some configurations
      * }
      *
      * configurations.all {
@@ -131,7 +131,7 @@ public interface ResolutionStrategy {
      *
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java' // so that there are some configurations
+     *     id("java-library") // Adds some configurations
      * }
      *
      * configurations.all {
@@ -192,7 +192,7 @@ public interface ResolutionStrategy {
      * Example:
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java' // so that there are some configurations
+     *     id("java-library") // Adds some configurations
      * }
      *
      * configurations.all {
@@ -215,7 +215,7 @@ public interface ResolutionStrategy {
      * Example:
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java' // so that there are some configurations
+     *     id("java-library") // Adds some configurations
      * }
      *
      * configurations.all {

@@ -27,8 +27,10 @@ class IdeaWorkspaceIntegrationTest extends AbstractIdeIntegrationTest {
     void enablesCustomizationOfIws() {
         //when
         runIdeaTask '''
-apply plugin: "java"
-apply plugin: "idea"
+plugins {
+    id("java-library")
+    id("idea")
+}
 
 idea.workspace.iws.withXml { it.asNode().appendNode('foo', 'bar') }
 

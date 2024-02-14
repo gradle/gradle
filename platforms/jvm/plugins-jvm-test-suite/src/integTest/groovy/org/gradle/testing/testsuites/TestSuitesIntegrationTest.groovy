@@ -32,7 +32,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "new test suites adds appropriate test tasks"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -53,7 +53,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "built-in test suite does not have any testing framework set at the test suite level"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -73,7 +73,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "configuring test framework on built-in test suite is honored in task and dependencies with JUnit"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -102,7 +102,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "configuring test framework on built-in test suite is honored in task and dependencies with JUnit and explicit version"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -131,7 +131,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "configuring test framework on built-in test suite using a Provider is honored in task and dependencies with JUnit and explicit version"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -162,7 +162,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "configuring test framework on built-in test suite is honored in task and dependencies with JUnit Jupiter"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -192,7 +192,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "configuring test framework on built-in test suite is honored in task and dependencies with JUnit Jupiter with explicit version"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -221,7 +221,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "configuring test framework on built-in test suite using a Provider is honored in task and dependencies with JUnit Jupiter with explicit version"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -252,7 +252,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "conventional test framework on custom test suite is JUnit Jupiter"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             ${mavenCentralRepository()}
             testing {
@@ -278,7 +278,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "configuring test framework on custom test suite is honored in task and dependencies with #testingFrameworkDeclaration"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             ${mavenCentralRepository()}
             testing {
@@ -317,7 +317,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "configuring test framework on custom test suite using a Provider is honored in task and dependencies with #testingFrameworkMethod version #testingFrameworkVersion"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
             ${mavenCentralRepository()}
             Provider<String> frameworkVersion = project.provider(() -> '$testingFrameworkVersion')
@@ -352,7 +352,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "can override previously configured test framework on a test suite"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -401,7 +401,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -449,7 +449,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -492,7 +492,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 // realize all test tasks
             }
             tasks.register("mytest", Test)
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             ${mavenCentralRepository()}
 
@@ -559,7 +559,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             def first = testing.suites.test.getTestToolchain()
@@ -617,7 +617,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "eagerly iterating over dependency scope does not break automatic dependencies for test suite"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -827,7 +827,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         and: "an application project with a test suite using the platform"
         file('app/build.gradle') << """
             plugins {
-                 id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -901,7 +901,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         and: "an application project with a test suite using a project dependency"
         file('app/build.gradle') << """
             plugins {
-                 id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -956,7 +956,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         """
         file('app/build.gradle') << """
             plugins {
-                 id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -1046,7 +1046,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "configuring different test suites with different framework versions is allowed"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}

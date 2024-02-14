@@ -37,7 +37,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             allprojects {
                 apply plugin: 'idea'
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
 
             idea {
@@ -97,7 +97,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 
@@ -148,7 +148,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 

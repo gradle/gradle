@@ -37,7 +37,9 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
             rootProject.name = 'somelib'
         """
         buildFile << """
-            plugins { id 'java' }
+            plugins {
+                id("java-library")
+            }
         """
 
         when:
@@ -82,7 +84,9 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
             rootProject.name = 'somelib'
         """
         buildFile << """
-            plugins { id 'java' }
+            plugins {
+                id("java-library")
+            }
         """
         // Should be ignored by the Java source set excludes
         file("src/main/java/thing.kt") << "class Thing(val name: String)"
@@ -287,7 +291,9 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
             rootProject.name = 'somelib'
         """
         buildFile << """
-            plugins { id 'java' }
+            plugins {
+                id("java-library")
+            }
 
             sourceSets.main.java.srcDir("src/common/java")
         """
@@ -335,7 +341,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
             include("a", "b")
         """
         buildFile << """
-            allprojects { apply plugin: 'java' }
+            allprojects { apply plugin: 'java-library' }
             project(":b") {
                 dependencies {
                     implementation(project(":a"))
@@ -372,7 +378,9 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
     def "processResources on Java project honors task outputs"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
         file("src/main/resources/answer.txt") << "42"
 
@@ -511,7 +519,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         given:
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             jar {
@@ -625,7 +633,9 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
             rootProject.name = 'somelib'
         """
         buildFile << """
-            plugins { id 'java' }
+            plugins {
+                id("java-library")
+            }
         """
         file("src/main/java/Thing.java") << """
             class Thing {

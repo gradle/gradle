@@ -191,7 +191,7 @@ task check {
 """
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 repositories { maven { url "${mavenRepo.uri}" } }
             }
 

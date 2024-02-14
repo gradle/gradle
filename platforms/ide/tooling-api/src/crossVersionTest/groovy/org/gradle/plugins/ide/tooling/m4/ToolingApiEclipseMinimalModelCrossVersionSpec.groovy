@@ -24,14 +24,17 @@ class ToolingApiEclipseMinimalModelCrossVersionSpec extends ToolingApiSpecificat
         createDirs("child")
         file('settings.gradle').text = 'include "child"'
         file('build.gradle').text = """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 dependencies {
     ${implementationConfiguration} project(':child')
     ${implementationConfiguration} files { throw new RuntimeException() }
     ${implementationConfiguration} 'this.lib.surely.does.not.exist:indeed:1.0'
 }
 project(':child') {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     dependencies {
         ${implementationConfiguration} files { throw new RuntimeException() }
         ${implementationConfiguration} 'this.lib.surely.does.not.exist:indeed:2.0'
@@ -49,7 +52,9 @@ project(':child') {
 
     def "minimal Eclipse model does not attempt to call any tasks"() {
         file('build.gradle').text = '''
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 sourceSets.main.output.dir "$buildDir/foo", builtBy: 'generateResources'
 

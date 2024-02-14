@@ -158,7 +158,10 @@ abstract class AbstractTestReportIntegrationTest extends AbstractTestingMultiVer
 
     protected String getJunitSetup() {
         """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

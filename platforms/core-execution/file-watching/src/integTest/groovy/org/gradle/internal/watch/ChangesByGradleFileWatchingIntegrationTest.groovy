@@ -174,7 +174,7 @@ class ChangesByGradleFileWatchingIntegrationTest extends AbstractFileSystemWatch
     def "detects changes to manifest"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             jar {

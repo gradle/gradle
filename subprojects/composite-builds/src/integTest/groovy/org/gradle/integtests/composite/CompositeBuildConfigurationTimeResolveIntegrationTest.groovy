@@ -46,7 +46,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
             buildFile << """
                 println "Configured buildB"
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                     repositories {
                         maven { url "${mavenRepo.uri}" }
                     }
@@ -59,8 +59,10 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
 
         buildC = singleProjectBuild("buildC") {
             buildFile << """
+                plugins {
+                    id("java-library")
+                }
                 println "Configured buildC"
-                apply plugin: 'java'
 """
         }
         includedBuilds << buildC
@@ -89,7 +91,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         execute buildA, ":resolve"
 
         then:
-        executedInOrder ":buildB:jar", ":resolve"
+        executedInOrder ":buildB:compileJava", ":resolve"
         outputContains "[$buildBjar]"
 
         configured("buildB") == 1
@@ -103,11 +105,11 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         execute buildA, ":resolve"
 
         then:
-        executedInOrder ":buildB:b1:jar", ":resolve"
+        executedInOrder ":buildB:b1:compileJava", ":resolve"
         notExecuted ":buildB:jar"
 
         outputContains("[$buildBjar]")
-        assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
+        assertResolved buildB.file('b1/build/classes/java/main/Dummy.class')
 
         configured("buildB") == 1
     }

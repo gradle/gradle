@@ -69,7 +69,10 @@ abstract class AbstractJUnitSmokeMultiVersionIntegrationTest extends AbstractTes
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

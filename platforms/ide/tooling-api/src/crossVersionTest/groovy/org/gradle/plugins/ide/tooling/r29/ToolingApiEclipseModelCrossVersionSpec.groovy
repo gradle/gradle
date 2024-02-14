@@ -64,7 +64,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "multi-module build defines different natures for each modules"() {
         given:
         buildFile << """
-            project(':java-project') { apply plugin: 'java' }
+            project(':java-project') { apply plugin: 'java-library' }
             project(':groovy-project') { apply plugin: 'groovy' }
             project(':scala-project') { apply plugin: 'scala' }
         """
@@ -111,8 +111,10 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "Java project returns Java nature along with custom natures"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
             eclipse {
                 project {
                     natures << 'sample.nature.a'
@@ -169,7 +171,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "multi-module build defines different build commands for each modules"(){
         given:
         buildFile << """
-            project(':java-project') { apply plugin: 'java' }
+            project(':java-project') { apply plugin: 'java-library' }
             project(':scala-project') { apply plugin: 'scala' }
         """
         createDirs("java-project", "scala-project")
@@ -221,8 +223,10 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     def "Java project returns Java build command along with custom ones"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
             eclipse {
                 project {
                     buildCommand 'customBuildCommand'

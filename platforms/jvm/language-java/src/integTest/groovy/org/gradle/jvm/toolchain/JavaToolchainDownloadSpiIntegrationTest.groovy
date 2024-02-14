@@ -40,7 +40,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -77,7 +79,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -127,7 +131,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -174,7 +180,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -218,7 +226,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -262,7 +272,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -309,7 +321,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -361,7 +375,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -405,7 +421,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {

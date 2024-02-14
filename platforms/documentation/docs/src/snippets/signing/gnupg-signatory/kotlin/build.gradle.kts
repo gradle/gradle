@@ -1,6 +1,6 @@
 plugins {
-    java
-    signing
+    id("java-library")
+    id("signing")
 }
 
 group = "gradle"

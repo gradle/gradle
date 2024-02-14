@@ -47,7 +47,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         def otherJdk = AvailableJavaHomes.differentVersion
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         if (tool != null) {
@@ -126,7 +128,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         def selectJdk = { it == "other" ? otherJdk : it == "current" ? currentJdk : null }
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         if (withTool != null) {
@@ -224,7 +228,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         def compatibilityVersion = [currentJdk, otherJdk].collect { it.javaVersion }.min()
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             compileJava {
                 options.fork = true
@@ -256,7 +262,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         def path = TextUtil.normaliseFileSeparators(otherJvm.javaHome.absolutePath + appendPath)
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             compileJava {
                 // we do not set `options.fork = true`
@@ -283,7 +291,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
 
     def 'fails when requesting not available toolchain'() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -312,7 +322,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
     def "can use toolchains to compile java 1.7 code"() {
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7)
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -334,7 +346,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         def jdk = Jvm.current()
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -355,7 +369,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
     def "fails if no toolchain has a matching vendor"() {
         def version = Jvm.current().javaVersion.majorVersion
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -381,7 +397,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
     def "can use compile daemon with tools jar"() {
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -405,7 +423,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
 
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
 
             java {
@@ -437,7 +455,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
 
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
             java {
                 toolchain {
@@ -495,7 +513,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
 
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
 
             java {

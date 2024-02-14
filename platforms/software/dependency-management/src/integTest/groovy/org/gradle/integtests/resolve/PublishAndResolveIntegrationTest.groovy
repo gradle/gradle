@@ -26,7 +26,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'ivy-publish'
 
                 group = 'org.gradle.test'

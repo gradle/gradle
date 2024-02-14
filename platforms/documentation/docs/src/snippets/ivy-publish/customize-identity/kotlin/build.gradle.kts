@@ -1,6 +1,6 @@
 plugins {
-    java
-    `ivy-publish`
+    id("java-library")
+    id("ivy-publish")
 }
 
 // tag::customize-identity[]

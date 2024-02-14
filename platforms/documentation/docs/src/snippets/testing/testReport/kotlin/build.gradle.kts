@@ -1,6 +1,5 @@
 plugins {
-    // because this snippet is used in TestReportIntegrationTest which rewrites build files for different JUnit flavors
-    java
+    id("java-library")
 }
 
 // tag::test-report[]

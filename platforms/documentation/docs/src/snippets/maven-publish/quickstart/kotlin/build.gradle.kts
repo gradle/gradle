@@ -1,9 +1,9 @@
 
 // tag::use-plugin[]
 plugins {
-    `maven-publish`
+    id("maven-publish")
 // end::use-plugin[]
-    java
+    id("java-library")
 // tag::use-plugin[]
 }
 // end::use-plugin[]

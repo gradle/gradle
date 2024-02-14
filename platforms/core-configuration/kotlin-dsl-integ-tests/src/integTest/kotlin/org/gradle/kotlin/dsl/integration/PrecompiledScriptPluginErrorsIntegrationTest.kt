@@ -45,7 +45,7 @@ class PrecompiledScriptPluginErrorsIntegrationTest : AbstractKotlinIntegrationTe
             "build.gradle",
             """
             plugins {
-                java
+                id("java-library")
             }
             """
         )

@@ -45,8 +45,8 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             """
             file("application/build.gradle") << """
                 plugins {
-                    id 'java'
-                    id 'jacoco'
+                    id("java-library")
+                    id("jacoco")
                 }
 
                 dependencies {
@@ -81,8 +81,8 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
             file("direct/build.gradle") << """
                 plugins {
-                    id 'java'
-                    id 'jacoco'
+                    id("java-library")
+                    id("jacoco")
                 }
 
                 dependencies {
@@ -116,8 +116,8 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             """
             file("transitive/build.gradle") << """
                 plugins {
-                    id 'java'
-                    id 'jacoco'
+                    id("java-library")
+                    id("jacoco")
                 }
             """
             file("transitive/src/main/java/transitive/Powerize.java").java """

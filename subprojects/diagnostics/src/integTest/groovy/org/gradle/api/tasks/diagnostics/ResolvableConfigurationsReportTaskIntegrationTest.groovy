@@ -490,7 +490,7 @@ Extended Configurations
         given: "A compatibility rule applying to the alphabetically first named attribute in the list"
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             def flavor = Attribute.of('flavor', String)
@@ -539,7 +539,7 @@ The following Attributes have compatibility rules defined.
         given: "A disambiguation rule applying to the alphabetically first named attribute in the list"
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             def flavor = Attribute.of('flavor', String)
@@ -590,7 +590,7 @@ The following Attributes have disambiguation rules defined.
         given: "A disambiguation rule applying to the alphabetically first named attribute in the list"
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             def flavor = Attribute.of('flavor', String)
@@ -653,7 +653,7 @@ The following Attributes have disambiguation rules defined.
         given: "A disambiguation rule applying to the alphabetically first named attribute in the list"
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             def flavor = Attribute.of('flavor', String)

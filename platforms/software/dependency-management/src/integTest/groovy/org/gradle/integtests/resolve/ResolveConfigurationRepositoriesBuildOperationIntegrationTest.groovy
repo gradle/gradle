@@ -35,7 +35,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toASCIIString())}
             task resolve {
                 def files = configurations.compileClasspath
@@ -161,8 +164,8 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 dependencies { classpath "org.example.plugin:plugin2:1.0" }
             }
             plugins {
-                id 'org.example.plugin' version '1.0'
-                id 'java'
+                id("org.example.plugin") version '1.0'
+                id("java-library")
             }
             apply plugin: 'org.example.plugin2'
             repositories { maven { url = '$mavenRepo.uri' } }
@@ -189,7 +192,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         """
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${mavenCentralRepoBlock()}
                 task resolve {
                     def files = configurations.compileClasspath
@@ -210,7 +213,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     def "maven repository attributes are stored"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             repositories {
                 maven {
                     name = 'custom repo'
@@ -254,7 +260,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     def "maven repository must define a URL property"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             repositories {
                 maven {
                     name = 'custom repo'
@@ -277,7 +286,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     def "ivy repository attributes are stored"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             repositories {
                 ivy {
                     name = 'custom repo'
@@ -338,7 +350,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     def "ivy repository must define a URL property, or at least one artifact pattern"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             repositories {
                 ivy {
                     name = 'custom repo'
@@ -403,7 +418,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     def "flat-dir repository attributes are stored"() {
         setup:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             repositories {
                 flatDir {
                     name = 'custom repo'

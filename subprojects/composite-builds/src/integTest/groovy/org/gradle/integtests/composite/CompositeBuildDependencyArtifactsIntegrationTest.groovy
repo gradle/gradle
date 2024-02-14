@@ -42,9 +42,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
-"""
+            """
         }
         includedBuilds << buildB
     }
@@ -130,8 +130,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 """
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includedBuilds << buildC
 
@@ -156,8 +158,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 """
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includedBuilds << buildC
 
@@ -387,8 +391,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
 
         buildB.buildFile << """
@@ -412,11 +418,11 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         // Need to assert order separately to cater for parallel execution
-        executedInOrder ":buildC:jar", ":b1:classes", ":b1:jar"
-        executedInOrder ":buildC:jar", ":b2:classes", ":b2:jar"
+        executedInOrder ":buildC:compileJava", ":b1:classes", ":b1:jar"
+        executedInOrder ":buildC:compileJava", ":b2:classes", ":b2:jar"
 
-        executedInOrder ":buildC:compileJava", ":buildC:jar", ":b1:compileJava", ":b1:jar"
-        executedInOrder ":buildC:compileJava", ":buildC:jar", ":b2:compileJava", ":b2:jar"
+        executedInOrder ":buildC:compileJava", ":b1:compileJava", ":b1:jar"
+        executedInOrder ":buildC:compileJava", ":b2:compileJava", ":b2:jar"
     }
 
     def "builds multiple configurations for the same project via separate dependency paths"() {
@@ -430,7 +436,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     implementation group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
                 }
@@ -465,11 +473,13 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     implementation 'org.test:b2:1.0'
                 }
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -493,7 +503,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         execute(buildA, ":jar")
 
         then:
-        executedInOrder ":buildB:compileJava", ":buildB:classes", ":compileJava", ":jar"
+        executedInOrder ":buildB:compileJava", ":compileJava", ":jar"
     }
 
     def "substitutes and builds transitive compileOnly dependency"() {
@@ -508,8 +518,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includedBuilds << buildC
 
@@ -517,7 +529,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildC:jar", ":buildB:jar"
+        executedInOrder ":buildC:compileJava", ":buildB:jar"
     }
 
     def "only builds dependency once when included as transitive compile and compileOnly dependency"() {
@@ -527,7 +539,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     compileOnly 'org.test:buildB:1.0'
                 }
@@ -539,7 +553,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executedInOrder ":buildB:compileJava", ":buildB:jar", ":buildC:compileJava", ":buildC:jar"
+        executedInOrder ":buildB:compileJava", ":buildC:compileJava", ":buildC:jar"
     }
 
     def "handles compileOnly dependencies for different subprojects from the same build included via separate dependency paths"() {
@@ -549,11 +563,13 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     compileOnly 'org.test:b2:1.0'
                 }
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -562,7 +578,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executed ":buildB:b1:jar", ":buildB:b2:jar", ":buildC:jar"
+        executed ":buildB:b1:jar", ":buildB:b2:compileJava", ":buildC:jar"
         executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
     }
 
@@ -578,12 +594,14 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies {
                     implementation 'org.test:b1:1.0'
                     compileOnly 'org.test:b2:1.0'
                 }
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -592,7 +610,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         executedInOrder ":buildB:b1:jar", ":buildC:compileJava", ":buildC:jar"
-        executedInOrder ":buildB:b2:jar", ":buildC:compileJava", ":buildC:jar"
+        executedInOrder ":buildB:b2:compileJava", ":buildC:compileJava", ":buildC:jar"
     }
 
     def "reports failure to build dependent artifact"() {
@@ -624,11 +642,13 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 """
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 jar.doLast {
                     throw new GradleException("jar task failed")
                 }
-"""
+            """
         }
         includedBuilds << buildC
 
@@ -664,7 +684,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildB.buildFile << """
             project(':b2') {
-                jar.doLast {
+                compileJava.doLast {
                     ${server.callFromTaskAction("b2")}
                     throw new GradleException("jar task failed")
                 }
@@ -677,8 +697,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':buildB:b2:jar'.")
-        executed(":buildB:b1:jar", ":resolve", ":buildB:b2:jar")
+        failure.assertHasDescription("Execution failed for task ':buildB:b2:compileJava'.")
+        executed(":buildB:b1:jar", ":resolve", ":buildB:b2:compileJava")
         notExecuted(":resolveCompile")
     }
 
@@ -695,7 +715,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         firstLevel.each { buildName ->
             def build = singleProjectBuild(buildName) {
                 buildFile << """
-                    apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                     dependencies {
                         //compileOnly ensures that this is not already found in the dependency graph of the root build
                         compileOnly 'org.test:secondLevel:1.0'
@@ -706,7 +728,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         }
         def secondLevel = singleProjectBuild("secondLevel") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         includeBuild secondLevel
@@ -715,7 +739,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         execute(buildA, "jar")
 
         then:
-        executed(":secondLevel:jar")
+        executed(":secondLevel:compileJava")
     }
 
     private void resolveArtifacts() {

@@ -33,7 +33,7 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
     def setup() {
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 
                 repositories {
                     mavenCentral()
@@ -228,7 +228,7 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
             class StaticallyCompiledPlugin implements Plugin<Project> {
                 @Override
                 void apply(Project project) {
-                    project.apply plugin: 'java'
+                    project.apply plugin: 'java-library'
                     Test test = (Test) project.tasks.getByName("test")
                     if (test.reports.junitXml.outputLocation.asFile.get().exists()) {
                         println 'JUnit XML report exists!'

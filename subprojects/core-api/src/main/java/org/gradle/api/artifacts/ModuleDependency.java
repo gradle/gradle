@@ -54,7 +54,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java' // so that I can declare 'implementation' dependencies
+     *     id("java-library") // Adds 'implementation' configuration
      * }
      *
      * dependencies {

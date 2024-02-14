@@ -49,7 +49,9 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {
@@ -103,7 +105,9 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
         )
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             java {
                 toolchain {

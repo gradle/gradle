@@ -101,7 +101,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
         given:
         buildScript """
             plugins {
-                id 'java'
+                id("java-library")
             }
             repositories {
                 maven { url "$mavenHttpRepo.uri" }

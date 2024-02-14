@@ -313,9 +313,11 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
         buildScript """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
+            plugins {
+                id("java-library")
+                id("idea")
+                id("eclipse")
+            }
 
             dependencies {
                 implementation gradleApi()
@@ -339,9 +341,11 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
         buildScript """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
+            plugins {
+                id("java-library")
+                id("idea")
+                id("eclipse")
+            }
 
             dependencies {
                 implementation gradleApi()
@@ -364,9 +368,11 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildScript """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
+            plugins {
+                id("java-library")
+                id("idea")
+                id("eclipse")
+            }
 
             dependencies {
                 implementation localGroovy()
@@ -400,9 +406,11 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildScript """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
+            plugins {
+                id("java-library")
+                id("idea")
+                id("eclipse")
+            }
 
             dependencies {
                 implementation gradleApi()
@@ -427,9 +435,11 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildScript """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
+            plugins {
+                id("java-library")
+                id("idea")
+                id("eclipse")
+            }
 
             dependencies {
                 implementation gradleTestKit()
@@ -449,9 +459,11 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
 
         buildScript """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
+            plugins {
+                id("java-library")
+                id("idea")
+                id("eclipse")
+            }
 
             dependencies {
                 implementation localGroovy()
@@ -474,10 +486,11 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
 
         buildScript """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
+            plugins {
+                id("java-library")
+                id("idea")
+                id("eclipse")
+            }
             dependencies {
                 implementation localGroovy()
             }
@@ -502,9 +515,11 @@ dependencies {
         """
 
         buildScript """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
+            plugins {
+                id("java-library")
+                id("idea")
+                id("eclipse")
+            }
 
             dependencies {
                 implementation localGroovy()
@@ -581,9 +596,11 @@ dependencies {
 
     String getBaseBuildScript() {
         """
-apply plugin: "java"
-apply plugin: "idea"
-apply plugin: "eclipse"
+plugins {
+    id("java-library")
+    id("idea")
+    id("eclipse")
+}
 
 dependencies {
     implementation("some:module:1.0")

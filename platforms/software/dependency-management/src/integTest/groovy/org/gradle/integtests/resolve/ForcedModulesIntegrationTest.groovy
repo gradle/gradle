@@ -21,16 +21,14 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
     private ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
 
-    def setup() {
-        resolve.addDefaultVariantDerivationStrategy()
-    }
-
     void "can force the version of a particular module"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
@@ -60,7 +58,10 @@ task checkDeps {
         mavenRepo.module("org", "bar", '1.0').publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
@@ -92,7 +93,7 @@ task checkDeps {
 
         buildFile << """
 allprojects {
-	apply plugin: 'java'
+    apply plugin: 'java-library'
 	repositories { maven { url "${mavenRepo.uri}" } }
 }
 
@@ -142,7 +143,7 @@ allprojects {
 
         buildFile << """
 allprojects {
-	apply plugin: 'java'
+    apply plugin: 'java-library'
 	repositories { maven { url "${mavenRepo.uri}" } }
 	group = 'org.foo.unittests'
 	version = '1.0'
@@ -205,7 +206,7 @@ allprojects {
 
         buildFile << """
 allprojects {
-	apply plugin: 'java'
+    apply plugin: 'java-library'
 	repositories { maven { url "${mavenRepo.uri}" } }
 }
 
@@ -250,7 +251,10 @@ project(':tool') {
         mavenRepo.module("hello", "world", '1.4.4').publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {
@@ -277,7 +281,10 @@ task checkDeps {
         mavenRepo.module("org", "foo", '1.9').publish()
 
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
+
 repositories { maven { url "${mavenRepo.uri}" } }
 
 dependencies {

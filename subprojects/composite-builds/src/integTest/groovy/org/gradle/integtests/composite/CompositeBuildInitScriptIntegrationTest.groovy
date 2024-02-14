@@ -29,8 +29,10 @@ class CompositeBuildInitScriptIntegrationTest extends AbstractCompositeBuildInte
 
         buildB = singleProjectBuild("buildB") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         file('gradle-user-home/init.gradle') << """
 allprojects { project ->
@@ -54,7 +56,7 @@ allprojects { project ->
         execute(buildA, ":jar", ["-I../gradle-user-home/init.gradle"])
 
         then:
-        executed ":buildB:jar"
+        executed ":buildB:compileJava"
     }
 
     def "uses conventional init-script in included build"() {
@@ -72,6 +74,6 @@ allprojects { project ->
         execute(buildA, ":jar")
 
         then:
-        executed ":buildB:jar"
+        executed ":buildB:compileJava"
     }
 }

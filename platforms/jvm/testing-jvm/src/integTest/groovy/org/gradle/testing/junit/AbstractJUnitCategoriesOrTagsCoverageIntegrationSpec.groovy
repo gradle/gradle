@@ -29,7 +29,9 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
     def setup() {
         executer.noExtraLogging()
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             repositories {
                 mavenCentral()

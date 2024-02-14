@@ -25,7 +25,7 @@ class ConfigurationCacheProcessResourcesIntegrationTest extends AbstractConfigur
         given:
         buildFile '''
             plugins {
-                id 'java'
+                id("java-library")
             }
             sourceSets {
                 main.resources.srcDir 'src/main/java'

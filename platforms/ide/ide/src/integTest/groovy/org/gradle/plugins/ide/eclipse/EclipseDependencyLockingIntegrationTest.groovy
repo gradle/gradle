@@ -34,8 +34,10 @@ class EclipseDependencyLockingIntegrationTest extends AbstractEclipseIntegration
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mvnRepo.uri}" }
@@ -71,8 +73,10 @@ dependencies {
 
         //when
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+plugins {
+    id("java-library")
+    id("eclipse")
+}
 
 repositories {
     maven { url "${mvnRepo.uri}" }

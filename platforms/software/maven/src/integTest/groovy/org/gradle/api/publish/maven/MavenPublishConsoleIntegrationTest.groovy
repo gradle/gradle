@@ -36,8 +36,11 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest {
 
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'maven-publish'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
             version = '1.2'
             group = 'org.test'
 

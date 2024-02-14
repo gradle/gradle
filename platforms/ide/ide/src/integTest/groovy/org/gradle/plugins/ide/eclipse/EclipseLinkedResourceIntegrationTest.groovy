@@ -48,7 +48,7 @@ include 'projectC'
 """
         buildFile.text = """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'eclipse'
 }
 

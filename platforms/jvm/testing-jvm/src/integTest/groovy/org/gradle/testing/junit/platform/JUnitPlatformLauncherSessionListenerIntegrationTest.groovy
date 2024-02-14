@@ -34,7 +34,7 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
         settingsFile << "include 'other'"
         file("other/build.gradle") << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -62,7 +62,7 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
 
         buildFile.text = """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}

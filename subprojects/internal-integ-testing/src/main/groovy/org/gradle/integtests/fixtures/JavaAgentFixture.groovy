@@ -49,7 +49,7 @@ class JavaAgentFixture {
     String getBuildScriptContent() {
         return """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             jar {

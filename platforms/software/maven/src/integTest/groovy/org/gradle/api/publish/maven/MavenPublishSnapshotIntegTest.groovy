@@ -25,8 +25,10 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
     def "can publish snapshot versions"() {
         settingsFile << 'rootProject.name = "snapshotPublish"'
         buildFile << """
-    apply plugin: 'java'
-    apply plugin: 'maven-publish'
+    plugins {
+        id("java-library")
+        id("maven-publish")
+    }
 
     group = 'org.gradle'
     version = '1.0-SNAPSHOT'
@@ -116,8 +118,10 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
 
         settingsFile << 'rootProject.name = "snapshotInstall"'
         buildFile << """
-    apply plugin: 'java'
-    apply plugin: 'maven-publish'
+    plugins {
+        id("java-library")
+        id("maven-publish")
+    }
 
     group = 'org.gradle'
     version = '1.0-SNAPSHOT'

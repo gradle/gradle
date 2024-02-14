@@ -27,7 +27,11 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
 
     def "Source folder contains source set information in classpath attributes"() {
         setup:
-        buildFile << "apply plugin: 'java'"
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+        """
         file('src/main/java').mkdirs()
         file('src/test/java').mkdirs()
 
@@ -44,19 +48,22 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
     }
 
     def "Source folder defines additional classpath attributes"() {
-        buildFile <<
-            """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                       whenMerged { classpath ->
-                           classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.key1 = 'value1'
-                           classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.key2 = 'value2'
-                       }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.key1 = 'value1'
+                            classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }.entryAttributes.key2 = 'value2'
+                        }
+                    }
+                }
+            }
         """
         file('src/main/java').mkdirs()
 
@@ -74,20 +81,23 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
 
 
     def "Source dir information can be modified in whenMerged block"() {
-        buildFile <<
-            """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   file {
-                       whenMerged { classpath ->
-                           def entry = classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }
-                           entry.entryAttributes['gradle_scope'] = 'foo'
-                           entry.entryAttributes['gradle_used_by_scope'] = 'foo,bar'
-                       }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            def entry = classpath.entries.find { it.kind == 'src' && it.path == 'src/main/java' }
+                            entry.entryAttributes['gradle_scope'] = 'foo'
+                            entry.entryAttributes['gradle_used_by_scope'] = 'foo,bar'
+                        }
+                    }
+                }
+            }
         """
         file('src/main/java').mkdirs()
 

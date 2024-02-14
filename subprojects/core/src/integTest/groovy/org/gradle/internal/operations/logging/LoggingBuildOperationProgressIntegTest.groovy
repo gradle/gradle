@@ -66,7 +66,9 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         """
 
         file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             repositories {
                 maven { url "${mavenHttpRepository.uri}" }
@@ -404,7 +406,9 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             }
         """
         file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
             dependencies {

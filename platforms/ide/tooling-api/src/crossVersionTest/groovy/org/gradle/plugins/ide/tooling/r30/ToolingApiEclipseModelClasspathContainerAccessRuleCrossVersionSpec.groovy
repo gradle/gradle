@@ -31,14 +31,17 @@ class ToolingApiEclipseModelClasspathContainerAccessRuleCrossVersionSpec extends
     }
 
     def "Has no access rules"() {
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   containers 'classpathContainerPath'
-               }
-           }
+        buildFile <<"""
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    containers 'classpathContainerPath'
+                }
+            }
         """
 
         when:
@@ -49,22 +52,26 @@ class ToolingApiEclipseModelClasspathContainerAccessRuleCrossVersionSpec extends
     }
 
     def "Has some access rules"() {
-        buildFile <<
-        """import org.gradle.plugins.ide.eclipse.model.AccessRule
-           apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   containers 'classpathContainerPath'
-                   file {
-                       whenMerged { classpath ->
-                           def container = classpath.entries.find { it.kind == 'con' && it.path == 'classpathContainerPath' }
-                           container.accessRules.add(new AccessRule('0', 'accessibleFilesPattern'))
-                           container.accessRules.add(new AccessRule('1', 'nonAccessibleFilesPattern'))
-                       }
-                   }
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            import org.gradle.plugins.ide.eclipse.model.AccessRule
+
+            eclipse {
+                classpath {
+                    containers 'classpathContainerPath'
+                    file {
+                        whenMerged { classpath ->
+                            def container = classpath.entries.find { it.kind == 'con' && it.path == 'classpathContainerPath' }
+                            container.accessRules.add(new AccessRule('0', 'accessibleFilesPattern'))
+                            container.accessRules.add(new AccessRule('1', 'nonAccessibleFilesPattern'))
+                        }
+                    }
+                }
+            }
         """
 
         when:

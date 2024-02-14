@@ -31,7 +31,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification imp
         mavenRepo.module("org.example", "example-lib", "1.0").publish()
 
         settingsFile << "rootProject.name = 'root'; include 'sub'"
-        buildFile << """allprojects { apply plugin: 'java' }
+        buildFile << """allprojects { apply plugin: 'java-library' }
 repositories { maven { url '${mavenRepo.uri}' } }
 dependencies {
     ${implementationConfiguration} project(':sub')

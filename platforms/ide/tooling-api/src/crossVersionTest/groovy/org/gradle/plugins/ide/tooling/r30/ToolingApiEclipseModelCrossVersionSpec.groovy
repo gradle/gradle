@@ -40,22 +40,24 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification imp
     def "respects manipulation done in the eclipse.classpath.whenMerged closure"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-
-           repositories { $localMaven }
-           dependencies { ${implementationConfiguration} 'org.example:example-lib:1.0' }
-
-           eclipse {
-               classpath {
-                   file {
-                       whenMerged { classpath ->
-                           classpath.entries.find { it.kind == "lib" }.entryAttributes['customkey'] = 'whenMerged'
-                       }
-                   }
-               }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
             }
+
+            repositories { $localMaven }
+            dependencies { ${implementationConfiguration} 'org.example:example-lib:1.0' }
+
+            eclipse {
+                classpath {
+                    file {
+                        whenMerged { classpath ->
+                            classpath.entries.find { it.kind == "lib" }.entryAttributes['customkey'] = 'whenMerged'
+                        }
+                    }
+                }
+             }
         """
 
         when:

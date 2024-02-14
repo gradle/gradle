@@ -37,7 +37,7 @@ class IdeaCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             allprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 apply plugin: 'idea'
             }
 
@@ -56,19 +56,23 @@ class IdeaCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         """
         buildTestFixture.withBuildInSubDir()
         singleProjectBuild("util") {
+            group = "test"
+            version = "1.3"
             settingsFile << "rootProject.name = '${rootProjectName}'"
             buildFile << """
-                apply plugin: 'java'
-                apply plugin: 'idea'
-                group = 'test'
-                version = '1.3'
+                plugins {
+                    id("java-library")
+                    id("idea")
+                }
             """
         }
         singleProjectBuild("other") {
             settingsFile << "rootProject.name = '${rootProjectName}'"
             buildFile << """
-                apply plugin: 'java'
-                apply plugin: 'idea'
+                plugins {
+                    id("java-library")
+                    id("idea")
+                }
             """
         }
 

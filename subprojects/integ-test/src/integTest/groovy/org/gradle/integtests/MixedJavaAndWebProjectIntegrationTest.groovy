@@ -29,7 +29,7 @@ class MixedJavaAndWebProjectIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'war'
             }
             project(":b") {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 dependencies {
                     implementation project(":a")
                 }
@@ -73,7 +73,7 @@ class MixedJavaAndWebProjectIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             project(":b") {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 dependencies {
                     implementation project(':c')
                     compileOnly project(':e')
@@ -86,10 +86,10 @@ class MixedJavaAndWebProjectIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             project(":d") {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             project(":e") {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
         """
 
@@ -122,7 +122,7 @@ class MixedJavaAndWebProjectIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             project(":c") {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 dependencies {
                     implementation project(':d')
                 }

@@ -31,7 +31,9 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
         given:
         generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             task run {
                 dependsOn 'compileJava'
@@ -59,7 +61,9 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
         given:
         generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             task run(type: JavaExec) {
                 dependsOn 'compileJava'

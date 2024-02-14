@@ -30,7 +30,7 @@ class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name = 'client-runner'"
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             repositories {

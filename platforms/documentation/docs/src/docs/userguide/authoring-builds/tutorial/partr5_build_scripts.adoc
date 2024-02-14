@@ -111,7 +111,7 @@ Plugins, which enhance your build capabilities, are included like this:
 [source,kotlin]
 ----
 plugins {
-    id("java")                          // core plugin, no version required
+    id("java-library")                  // core plugin, no version required
     id("org.some.plugin") version "2.8" // community plugin, version required
 }
 ----

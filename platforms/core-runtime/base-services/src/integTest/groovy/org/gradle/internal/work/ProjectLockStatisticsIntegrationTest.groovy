@@ -25,7 +25,9 @@ class ProjectLockStatisticsIntegrationTest extends AbstractIntegrationSpec {
             include ':child'
         """
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             task wait {
                 doLast {

@@ -22,7 +22,9 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     def "can customize model late in the configuration phase"() {
         projectDir.file('build.gradle').text = """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 gradle.projectsEvaluated {
     ${mavenCentralRepository()}

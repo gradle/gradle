@@ -31,9 +31,8 @@ class DockerPluginSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id 'java'
-                id 'application'
-                id "com.bmuschko.docker-java-application" version "${TestedVersions.docker}"
+                id("application")
+                id("com.bmuschko.docker-java-application") version "${TestedVersions.docker}"
             }
 
             application.mainClass = 'org.gradle.JettyMain'

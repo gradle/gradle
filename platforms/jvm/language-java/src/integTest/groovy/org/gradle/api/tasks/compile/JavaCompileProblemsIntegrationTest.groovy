@@ -49,7 +49,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             tasks {

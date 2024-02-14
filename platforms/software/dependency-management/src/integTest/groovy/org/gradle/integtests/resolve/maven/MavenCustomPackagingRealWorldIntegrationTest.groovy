@@ -53,9 +53,10 @@ class MavenCustomPackagingRealWorldIntegrationTest extends AbstractIntegrationSp
 
     def 'resolve maven module with non-existing custom packaging artifact - applies java plugin'() {
         given:
-        buildFile.text = '''plugins {
-            id 'java'
-        }
+        buildFile.text = '''
+            plugins {
+                id("java-library")
+            }
         '''.stripIndent() + buildFile.text
 
         buildFile << """
@@ -105,9 +106,10 @@ class MavenCustomPackagingRealWorldIntegrationTest extends AbstractIntegrationSp
 
     def 'resolve maven module with valid custom packaging artifact - applies java plugin'() {
         given:
-        buildFile.text = '''plugins {
-            id 'java'
-        }
+        buildFile.text = '''
+            plugins {
+                id("java-library")
+            }
         '''.stripIndent() + buildFile.text
 
         buildFile << """

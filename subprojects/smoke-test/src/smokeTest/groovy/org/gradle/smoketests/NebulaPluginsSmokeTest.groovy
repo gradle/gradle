@@ -30,8 +30,8 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         when:
         buildFile << """
             plugins {
-                id "java"
-                id "com.netflix.nebula.dependency-recommender" version "${TestedVersions.nebulaDependencyRecommender}"
+                id("java-library")
+                id("com.netflix.nebula.dependency-recommender") version "${TestedVersions.nebulaDependencyRecommender}"
             }
 
             ${mavenCentralRepository()}
@@ -85,10 +85,9 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
             }
 
             plugins {
-                id "com.netflix.nebula.lint" version "${TestedVersions.nebulaLint}"
+                id("com.netflix.nebula.lint") version "${TestedVersions.nebulaLint}"
+                id("java-library")
             }
-
-            apply plugin: 'java'
 
             gradleLint.rules = ['dependency-parentheses']
 
@@ -101,7 +100,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         def result = runner('autoLintGradle').build()
 
         then:
-        int numOfRepoBlockLines = 14 + mavenCentralRepository().readLines().size()
+        int numOfRepoBlockLines = 13 + mavenCentralRepository().readLines().size()
         result.output.contains("parentheses are unnecessary for dependencies")
         result.output.contains("warning   dependency-parentheses")
         result.output.contains("build.gradle:$numOfRepoBlockLines")

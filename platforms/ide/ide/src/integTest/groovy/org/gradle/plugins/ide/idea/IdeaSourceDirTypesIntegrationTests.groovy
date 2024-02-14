@@ -31,8 +31,8 @@ class IdeaSourceDirTypesIntegrationTests extends AbstractIntegrationSpec {
 
         buildFile << """
             plugins {
-                id 'java'
-                id 'idea'
+                id("java-library")
+                id("idea")
             }
 
             ${mavenCentralRepository()}

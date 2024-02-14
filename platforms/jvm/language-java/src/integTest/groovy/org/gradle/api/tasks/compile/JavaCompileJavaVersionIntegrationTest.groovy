@@ -42,7 +42,9 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
     def "not up-to-date when default Java version changes"() {
         given:
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             sourceCompatibility = "1.8"
             targetCompatibility = "1.8"
@@ -112,7 +114,9 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
     private static String forkedJavaCompilation(Jvm jdk) {
         def javaHome = TextUtil.escapeString(jdk.getJavaHome().absolutePath)
         """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             sourceCompatibility = "1.8"
             targetCompatibility = "1.8"

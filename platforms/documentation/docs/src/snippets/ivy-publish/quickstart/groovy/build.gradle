@@ -1,9 +1,9 @@
 // tag::use-plugin[]
 plugins {
 // end::use-plugin[]
-    id 'java'
+    id("java-library")
 // tag::use-plugin[]
-    id 'ivy-publish'
+    id("ivy-publish")
 }
 // end::use-plugin[]
 

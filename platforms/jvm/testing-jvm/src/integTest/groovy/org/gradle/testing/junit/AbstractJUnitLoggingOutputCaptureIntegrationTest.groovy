@@ -25,7 +25,10 @@ import static org.hamcrest.CoreMatchers.is
 abstract class AbstractJUnitLoggingOutputCaptureIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def setup() {
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

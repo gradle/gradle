@@ -635,10 +635,13 @@ ${compilerConfiguration()}
 
     def writeAnnotationProcessorProject() {
         file("processor").create {
-            file("build.gradle") << """apply plugin: 'java'
+            file("build.gradle") << """
+                plugins {
+                    id("java-library")
+                }
 
-${annotationProcessorExtraSetup()}
-"""
+                ${annotationProcessorExtraSetup()}
+            """
             "src/main" {
                 file("resources/META-INF/services/javax.annotation.processing.Processor") << "com.test.SimpleAnnotationProcessor"
                 "java/com/test/" {

@@ -103,7 +103,10 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
             includeBuild 'nested'
         """
         buildFile << """
-            apply plugin:'java'
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 implementation 'org.acme:nested-changed:+'
             }

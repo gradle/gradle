@@ -39,7 +39,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
             file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
 """
         }
@@ -58,7 +58,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         execute(buildA, ":jar", [])
 
         then:
-        executed ":buildB:jar"
+        executed ":buildB:compileJava"
 
         and:
         def root = operations.root(RunBuildBuildOperationType)
@@ -163,7 +163,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         execute(buildA, ":jar", [])
 
         then:
-        executed ":buildB:jar"
+        executed ":buildB:compileJava"
 
         and:
         def root = operations.root(RunBuildBuildOperationType)

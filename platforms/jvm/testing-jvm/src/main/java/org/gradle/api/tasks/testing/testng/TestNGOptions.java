@@ -278,7 +278,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * Configuring extra listener:
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
+     *     id("java-library")
      * }
      *
      * test {
@@ -350,7 +350,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      *
      * <pre class='autoTested'>
      * plugins {
-     *     id 'java'
+     *     id("java-library")
      * }
      *
      * test {

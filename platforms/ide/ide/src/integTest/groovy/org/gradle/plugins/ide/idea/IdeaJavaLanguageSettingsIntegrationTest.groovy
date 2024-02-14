@@ -41,7 +41,7 @@ include ':child1', ':child2', ':child3'
         buildFile << """
 allprojects {
     apply plugin:'idea'
-    apply plugin:'java'
+    apply plugin:'java-library'
 
     java.sourceCompatibility = "1.7"
 }
@@ -63,7 +63,7 @@ allprojects {
         buildFile << """
 allprojects {
     apply plugin:'idea'
-    apply plugin:'java'
+    apply plugin:'java-library'
 
     java.sourceCompatibility = 1.6
 }
@@ -97,7 +97,7 @@ project(':child3') {
         buildFile << """
 allprojects {
     apply plugin:'idea'
-    apply plugin:'java'
+    apply plugin:'java-library'
 
     java.sourceCompatibility = 1.4
     java.targetCompatibility = 1.4
@@ -157,7 +157,7 @@ project(':child3') {
         buildFile.text = """
         allprojects {
             apply plugin:'idea'
-            apply plugin:'java'
+            apply plugin:'java-library'
 
             java.sourceCompatibility = 1.4
             java.targetCompatibility = 1.4
@@ -177,7 +177,7 @@ allprojects {
     apply plugin: 'idea'
 }
 subprojects {
-    apply plugin:'java'
+    apply plugin:'java-library'
     java.sourceCompatibility = 1.7
 }
 """
@@ -196,7 +196,7 @@ subprojects {
     void "module languageLevel always exposed when no idea root project found"() {
         buildFile << """
 subprojects {
-    apply plugin:'java'
+    apply plugin:'java-library'
     apply plugin: 'idea'
     java.sourceCompatibility = 1.7
 }
@@ -225,7 +225,7 @@ include 'subprojectC'
 
         buildFile << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
     java.targetCompatibility = '1.6'
 }
@@ -259,7 +259,7 @@ include 'subprojectC'
 
         buildFile << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
     java.targetCompatibility = '1.7'
 }
@@ -290,7 +290,7 @@ include 'subprojectA'
 
         buildFile << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
 }
 
@@ -323,7 +323,7 @@ include 'child1'
         buildFile << """
 allprojects {
     apply plugin: 'idea'
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 
 project(':') {
@@ -353,7 +353,7 @@ include 'child1'
 
         buildFile << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     java.sourceCompatibility = 1.7
 }
 
@@ -383,19 +383,19 @@ include 'subprojectD'
 
         buildFile << """
 configure(project(':subprojectA')) {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
     java.targetCompatibility = '1.6'
 }
 
 configure(project(':subprojectB')) {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
     java.targetCompatibility = '1.7'
 }
 
 configure(project(':subprojectC')) {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'idea'
     java.targetCompatibility = '1.8'
 }
@@ -436,7 +436,7 @@ java.targetCompatibility=1.3
         buildFile << """
 allprojects {
     apply plugin:'idea'
-    apply plugin:'java'
+    apply plugin:'java-library'
 }
 """
         when:

@@ -141,7 +141,7 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
     def setUpProject(String task, String outputStream = "System.out") {
         buildFile """
         plugins {
-            id("java")
+            id("java-library")
         }
 
         $task

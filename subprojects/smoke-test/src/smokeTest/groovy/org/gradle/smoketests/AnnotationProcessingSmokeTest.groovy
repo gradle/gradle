@@ -25,7 +25,7 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
             ${mavenCentralRepository()}
             dependencies {

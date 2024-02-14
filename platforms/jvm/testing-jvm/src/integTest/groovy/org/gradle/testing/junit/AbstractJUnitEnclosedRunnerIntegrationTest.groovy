@@ -23,7 +23,10 @@ import spock.lang.Issue
 abstract class AbstractJUnitEnclosedRunnerIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def setup() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}

@@ -183,7 +183,9 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
     def "cannot declare option for task dependency of another task"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         when:

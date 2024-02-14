@@ -26,7 +26,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         def buildB = singleProjectBuild("buildB") {
@@ -34,7 +36,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
                 includeBuild('${buildC.toURI()}')
             """
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies { implementation 'org.test:buildC:1.2' }
             """
         }
@@ -44,8 +48,8 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildB:jar")
+        result.assertTaskExecuted(":buildC:compileJava")
+        result.assertTaskExecuted(":buildB:compileJava")
         result.assertTaskExecuted(":jar")
     }
 
@@ -56,7 +60,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
 
@@ -65,7 +71,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
                 includeBuild('${buildC.toURI()}')
             """
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies { implementation 'org.test:buildD:1.2' }
                 dependencies { implementation 'org.test:buildC:1.2' }
             """
@@ -74,7 +82,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
 
         def buildD = singleProjectBuild("buildD") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies { implementation 'org.test:buildC:1.2' }
             """
         }
@@ -84,9 +94,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildD:jar")
-        result.assertTaskExecuted(":buildB:jar")
+        result.assertTaskExecuted(":buildC:compileJava")
+        result.assertTaskExecuted(":buildD:compileJava")
+        result.assertTaskExecuted(":buildB:compileJava")
         result.assertTaskExecuted(":jar")
     }
 
@@ -96,7 +106,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
         }
         includeBuild(buildC)
@@ -105,7 +117,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
                 includeBuild('${buildC.toURI()}')
             """
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
                 dependencies { implementation 'org.test:buildC:1.2' }
             """
         }
@@ -115,8 +129,8 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildB:jar")
+        result.assertTaskExecuted(":buildC:compileJava")
+        result.assertTaskExecuted(":buildB:compileJava")
         result.assertTaskExecuted(":jar")
     }
 
@@ -126,7 +140,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
                 rootProject.name = 'libc'
             """
             buildFile << """
-                apply plugin: 'java'
+                plugins {
+                    id("java-library")
+                }
             """
             file("src/main/java/LibC.java") << """
                 public class LibC { }

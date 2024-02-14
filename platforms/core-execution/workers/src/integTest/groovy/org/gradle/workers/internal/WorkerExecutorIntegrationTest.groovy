@@ -700,8 +700,8 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         buildFile << """
             plugins {
-                id 'java'
-                id 'test.worker-running-plugin'
+                id("java-library")
+                id("test.worker-running-plugin")
             }
         """
 
@@ -801,7 +801,9 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         given:
         file('ext-lib/settings.gradle') << "rootProject.name = 'ext'"
         file('ext-lib/build.gradle') << """
-            plugins { id 'java' }
+            plugins {
+                id("java-library")
+            }
             group = 'com.acme'
         """
         file('ext-lib/src/main/java/ext/External.java') << '''

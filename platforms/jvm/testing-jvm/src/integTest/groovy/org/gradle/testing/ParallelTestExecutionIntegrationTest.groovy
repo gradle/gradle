@@ -34,7 +34,9 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << 'rootProject.name = "root"'
         buildFile << """
-            plugins { id "java" }
+            plugins {
+                id("java-library")
+            }
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation localGroovy()
@@ -111,7 +113,9 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
         ["a", "b"].collect { file(it) }.each { TestFile build ->
             build.file("build.gradle") << """
-                plugins { id "java" }
+            plugins {
+                id("java-library")
+            }
                 ${mavenCentralRepository()}
                 dependencies {
                     testImplementation "junit:junit:${LATEST_JUNIT4_VERSION}"
@@ -136,8 +140,8 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         withBlockingJUnitTests(2, "other")
         buildScript """
             plugins {
-                id "java"
-                id "jvm-test-suite"
+                id("java-library")
+                id("jvm-test-suite")
             }
             ${mavenCentralRepository()}
             testing.suites {

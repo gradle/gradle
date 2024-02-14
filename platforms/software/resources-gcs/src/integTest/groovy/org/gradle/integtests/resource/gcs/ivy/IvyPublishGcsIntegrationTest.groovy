@@ -40,8 +40,10 @@ class IvyPublishGcsIntegrationTest extends AbstractIvyPublishIntegTest {
 
         settingsFile << 'rootProject.name = "publishGcsTest"'
         buildFile << """
-apply plugin: 'java'
-apply plugin: 'ivy-publish'
+plugins {
+    id("java-library")
+    id("ivy-publish")
+}
 
 group = 'org.gradle.test'
 version = '1.0'

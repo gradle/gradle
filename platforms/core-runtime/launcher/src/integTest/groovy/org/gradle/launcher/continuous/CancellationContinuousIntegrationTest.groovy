@@ -23,7 +23,11 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 class CancellationContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
-        buildFile.text = "apply plugin: 'java'"
+        buildFile.text = """
+            plugins {
+                id("java-library")
+            }
+        """
 
         file("src/main/java/MyClass.java") << "public class MyClass {}"
     }

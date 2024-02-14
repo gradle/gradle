@@ -34,7 +34,7 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include ${projectNames.collect { "'$it'" }.join(', ')}"
         buildFile << """
             subprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
 
                 ${mavenCentralRepository()}
 

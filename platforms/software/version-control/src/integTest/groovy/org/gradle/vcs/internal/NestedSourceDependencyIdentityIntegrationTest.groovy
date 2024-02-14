@@ -42,18 +42,27 @@ class NestedSourceDependencyIdentityIntegrationTest extends AbstractIntegrationS
             }
         """
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             dependencies { implementation 'org.test:buildB:1.2' }
         """
 
         repoB.file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.test'
             version = '1.2'
         """
 
         repoC.file("build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             group = 'org.test'
             version = '1.2'
         """
@@ -111,8 +120,9 @@ Required by:
         repoC.file("settings.gradle") << """
             ${settings}
         """
+        repoC.file("src/main/java/SomeClass.java") << "public class SomeClass {}"
         repoC.file("build.gradle") << """
-            classes.doLast {
+            compileJava.doLast {
                 throw new RuntimeException("broken")
             }
         """
@@ -127,7 +137,7 @@ Required by:
         fails(":assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':${buildName}:classes'.")
+        failure.assertHasDescription("Execution failed for task ':${buildName}:compileJava'.")
         failure.assertHasCause("broken")
 
         where:
@@ -155,7 +165,7 @@ Required by:
         repoB.createLightWeightTag("1.2")
 
         buildFile << """
-            classes.doLast {
+            assemble.doLast {
                 def components = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 4
                 assert components[0].build.buildPath == ':'

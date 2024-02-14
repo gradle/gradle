@@ -182,20 +182,20 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
     }
 """
         buildB.buildFile << """
-    allprojects {
-        apply plugin: 'java'
-    }
+            allprojects {
+                apply plugin: 'java-library'
+            }
 
-    dependencies {
-        implementation "org.test:b1:1.0"
-    }
-"""
+            dependencies {
+                implementation "org.test:b1:1.0"
+            }
+        """
 
         when:
         execute(buildA, ":delegate")
 
         then:
-        executed ":buildB:b1:jar", ":buildB:jar"
+        executed ":buildB:b1:compileJava", ":buildB:jar"
     }
 
     def "reports failure when included build does not exist for composite"() {

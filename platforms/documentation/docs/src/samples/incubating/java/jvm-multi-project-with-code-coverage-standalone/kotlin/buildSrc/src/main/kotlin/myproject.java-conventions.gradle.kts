@@ -1,6 +1,6 @@
 plugins {
-    java
-    jacoco
+    id("java-library")
+    id("jacoco")
 }
 
 version = "1.0.2"

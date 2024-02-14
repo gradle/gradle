@@ -29,16 +29,18 @@ class ToolingApiEclipseModelClasspathAttributesCrossVersionSpec extends ToolingA
     def "Eclipse model provides javadoc location via classpath attributes"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           ${mavenCentralRepository()}
-           dependencies { ${implementationConfiguration} 'com.google.guava:guava:18.0' }
-           eclipse {
-               classpath {
-                   downloadJavadoc = true
-               }
-           }
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+            ${mavenCentralRepository()}
+            dependencies { ${implementationConfiguration} 'com.google.guava:guava:18.0' }
+            eclipse {
+                classpath {
+                    downloadJavadoc = true
+                }
+            }
         """
 
         when:
@@ -52,19 +54,22 @@ class ToolingApiEclipseModelClasspathAttributesCrossVersionSpec extends ToolingA
     def "Eclipse model provides classpath container attributes"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           eclipse {
-               classpath {
-                   containers 'containerPath'
-                   file {
-                       whenMerged { classpath ->
-                           classpath.entries.find { it.path == 'containerPath' }.entryAttributes.customKey = 'customValue'
-                       }
-                   }
-               }
-           }
+        buildFile <<"""
+            plugins {
+                id("java-library")
+                id("eclipse")
+            }
+
+            eclipse {
+                classpath {
+                    containers 'containerPath'
+                    file {
+                        whenMerged { classpath ->
+                            classpath.entries.find { it.path == 'containerPath' }.entryAttributes.customKey = 'customValue'
+                        }
+                    }
+                }
+            }
         """
 
         when:

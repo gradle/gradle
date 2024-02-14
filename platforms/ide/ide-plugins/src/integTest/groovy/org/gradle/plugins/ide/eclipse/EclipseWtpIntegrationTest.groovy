@@ -75,13 +75,14 @@ dependencies {
 
         // when:
         createDirs("sub")
-        runEclipseTask "include 'sub'",
-        """apply plugin: 'java'
-           apply plugin: 'war'
-           apply plugin: 'eclipse-wtp'
+        runEclipseTask "include 'sub'", """
+            plugins {
+                id("war")
+                id("eclipse-wtp")
+            }
 
            project(':sub') {
-               apply plugin : 'java'
+               apply plugin : 'java-library'
            }
 
            repositories {
@@ -126,7 +127,7 @@ dependencies {
     private createIncludedBuild() {
         file("includedBuild/build.gradle.kts") << """
             plugins {
-                id("java")
+                id("java-library")
             }
             group = "org.example"
             version = "1.0-SNAPSHOT"
@@ -152,7 +153,7 @@ dependencies {
     private createRootProject() {
         file("build.gradle.kts") << """
             plugins {
-                id("java")
+                id("java-library")
                 id("eclipse")
                 id("ear")
             }
@@ -223,9 +224,11 @@ dependencies {
         def java1BuildFile = getFile(project: "java1", "build.gradle")
         createJavaSourceDirs(java1BuildFile)
 
-        java1BuildFile << """
-apply plugin: "eclipse-wtp"
-apply plugin: "java"
+        java1BuildFile.text = """
+plugins {
+    id("eclipse-wtp")
+    id("java-library")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }
@@ -240,9 +243,11 @@ dependencies {
         def java2BuildFile = getFile(project: "java2", "build.gradle")
         createJavaSourceDirs(java2BuildFile)
 
-        java2BuildFile << """
-apply plugin: "eclipse-wtp"
-apply plugin: "java"
+        java2BuildFile.text = """
+plugins {
+    id("eclipse-wtp")
+    id("java-library")
+}
 
 repositories {
     maven { url "${repoDir.toURI()}" }
@@ -257,9 +262,11 @@ dependencies {
         createJavaSourceDirs(groovyBuildFile)
         groovyBuildFile.parentFile.file("src/main/groovy").createDir()
 
-        groovyBuildFile << """
-apply plugin: "eclipse-wtp"
-apply plugin: "groovy"
+        groovyBuildFile.text = """
+plugins {
+    id("eclipse-wtp")
+    id("groovy")
+}
         """
 
         executer.withTasks("eclipse").run()

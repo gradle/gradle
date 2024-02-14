@@ -80,7 +80,7 @@ import java.util.concurrent.Callable;
  *
  * <pre class='autoTested'>
  *     plugins {
- *         id 'java'
+ *         id("java-library")
  *     }
  *
  *     tasks.withType(JavaCompile).configureEach {

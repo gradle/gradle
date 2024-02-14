@@ -58,7 +58,7 @@ import org.gradle.api.provider.ProviderConvertible;
  * </p>
  * <pre>
  * plugins {
- *   id 'java'
+ *   id("java-library")
  * }
  * </pre>
  * <p>
@@ -66,7 +66,7 @@ import org.gradle.api.provider.ProviderConvertible;
  * </p>
  * <pre>
  * plugins {
- *   id 'org.gradle.java'
+ *   id("org.gradle.java-library")
  * }
  * </pre>
  * <p>

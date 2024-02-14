@@ -28,8 +28,10 @@ class CompositeBuildDetectionIntegrationTest extends AbstractCompositeBuildInteg
         dependency('org.test:buildB:1.0')
         buildB = singleProjectBuild("buildB") {
             buildFile << """
-                apply plugin: 'java'
-"""
+                plugins {
+                    id("java-library")
+                }
+            """
         }
         includedBuilds << buildB
 

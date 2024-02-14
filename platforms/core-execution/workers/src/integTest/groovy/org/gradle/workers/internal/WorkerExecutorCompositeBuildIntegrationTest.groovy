@@ -45,6 +45,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractWorkerExecutor
                 includeBuild "../plugin"
             }
         """
+        lib.file("src/main/java/Example.java") << "public class Example {}"
         lib.file("build.gradle") << """
             buildscript {
                 dependencies {
@@ -53,22 +54,20 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractWorkerExecutor
             }
 
             plugins {
-                id "java"
-                id "org.gradle.test.${pluginId}"
+                id("java-library")
+                id("org.gradle.test.${pluginId}")
             }
 
             group = "org.gradle.test"
             version = "1.0"
 
-            jar {
-                from runWork
-            }
+            tasks.compileJava.dependsOn(tasks.runWork)
         """
 
         buildFile << """
             plugins {
-                id "java"
-                id "org.gradle.test.${pluginId}"
+                id("java-library")
+                id("org.gradle.test.${pluginId}")
             }
 
             dependencies {

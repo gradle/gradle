@@ -33,7 +33,7 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
         file('lib/file-lib.jar') << 'content'
         buildFile << """
             project(':project-lib') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             configurations {
                 compile

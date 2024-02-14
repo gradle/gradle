@@ -25,7 +25,11 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def "captures plugin application events"() {
         given:
-        file("build.gradle") << "apply plugin: 'java'"
+        file("build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
 
         when:
         succeeds "build"
@@ -43,7 +47,8 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             // This tests runs in :core using a reduced distribution
             // "org.gradle.buildinit.plugins.BuildInitPlugin": "org.gradle.build-init",
             // "org.gradle.buildinit.plugins.WrapperPlugin": "org.gradle.wrapper",
-            "org.gradle.api.plugins.JavaPlugin": "org.gradle.java",
+            "org.gradle.api.plugins.JavaPlugin": null,
+            "org.gradle.api.plugins.JavaLibraryPlugin": "org.gradle.java-library",
             "org.gradle.api.plugins.JavaBasePlugin": null,
             "org.gradle.api.plugins.JvmEcosystemPlugin": null,
             "org.gradle.api.plugins.JvmToolchainsPlugin": null,

@@ -40,7 +40,9 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
 
             ${mavenCentralRepository()}
 

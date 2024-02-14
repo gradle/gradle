@@ -47,8 +47,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         }
         testSourceGenerator.writeAllSources(testSources)
         buildFile << """
-            apply plugin: "java"
-
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -112,8 +110,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
 
         """
         buildFile << """
-            apply plugin: "java"
-
             ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
@@ -154,8 +150,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
             }
         """.stripIndent()
         buildFile << """
-            apply plugin: 'java'
-
             ${mavenCentralRepository()}
 
             dependencies {
@@ -192,7 +186,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         testSourceGenerator.writeAllSources(testSources)
         buildFile << """
             testing {
-               apply plugin: 'java'
                ${mavenCentralRepository()}
                suites {
                    $suiteDeclaration {
@@ -218,8 +211,7 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         executedAndNotSkipped ":$task"
 
         when:
-        buildFile.text = """
-            apply plugin: 'java'
+        buildFile << """
             ${mavenCentralRepository()}
             testing {
                suites {
@@ -264,7 +256,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         }
         testSourceGenerator.writeAllSources(testSources)
         buildFile << """
-            apply plugin: 'java'
             ${mavenCentralRepository()}
             testing {
                suites {

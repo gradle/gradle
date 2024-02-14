@@ -44,15 +44,22 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
         """
 
         annotationProjectDir.file("build.gradle") << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
         """
 
         processorProjectDir.file("build.gradle") << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             dependencies {
                 implementation project(':annotation')
             }

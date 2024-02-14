@@ -24,7 +24,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             Property<String> sampleProperty = project.objects.property(String)
@@ -61,7 +61,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
     def "providers used as attribute values with mismatched value types fail properly"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             Provider<Integer> testProvider = project.provider { 1 }
@@ -88,7 +88,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
     def "providers used as attribute values with mismatched Attribute types fail properly"() {
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             Provider<String> testProvider = project.provider { "test" }

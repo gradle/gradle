@@ -50,8 +50,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * import org.gradle.plugins.ide.idea.model.*
  *
  * plugins {
- *     id 'java'
- *     id 'idea'
+ *     id("java-library")
+ *     id("idea")
  * }
  *
  * idea {
@@ -88,8 +88,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java'
- *     id 'idea'
+ *     id("java-library")
+ *     id("idea")
  * }
  *
  * idea {

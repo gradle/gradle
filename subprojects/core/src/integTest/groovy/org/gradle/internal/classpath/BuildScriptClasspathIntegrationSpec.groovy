@@ -332,8 +332,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         createDir("mrjar") {
             file("build.gradle") << """
                 plugins {
-                    id("java")
-                    id 'me.champeau.mrjar' version "0.1.1"
+                    id("java-library")
+                    id("me.champeau.mrjar") version "0.1.1"
                 }
 
                 multiRelease {

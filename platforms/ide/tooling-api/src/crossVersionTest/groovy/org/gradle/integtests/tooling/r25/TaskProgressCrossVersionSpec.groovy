@@ -146,7 +146,10 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
     def "receive task progress events for failed tasks"() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
@@ -371,7 +374,10 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
 
     def goodCode() {
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
+
             compileJava.options.fork = true  // forked as 'Gradle Test Executor 1'
         """
 

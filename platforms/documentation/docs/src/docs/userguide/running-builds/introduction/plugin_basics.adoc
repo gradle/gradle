@@ -59,7 +59,7 @@ To apply the `java` plugin to a project:
 [source,build.gradle.kts]
 ----
 plugins {
-    id("java")
+    id("java-library")
 }
 ----
 

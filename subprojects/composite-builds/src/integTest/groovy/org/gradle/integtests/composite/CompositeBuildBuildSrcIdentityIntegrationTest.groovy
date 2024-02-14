@@ -26,7 +26,7 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
             file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
+                    apply plugin: 'java-library'
                 }
             """
         }
@@ -66,7 +66,7 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
             include 'b1', 'b2'
         """
         buildB.file("buildSrc/build.gradle") << """
-            allprojects { apply plugin: 'java' }
+            allprojects { apply plugin: 'java-library' }
             dependencies { implementation project(':b1') }
             project(':b1') { dependencies { implementation project(':b2') } }
             classes.dependsOn tasks.dependencies
@@ -144,7 +144,7 @@ Required by:
         """
         buildB.file("buildSrc/build.gradle") << """
             project(':a') {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
             }
             dependencies {
                 implementation project(':a')

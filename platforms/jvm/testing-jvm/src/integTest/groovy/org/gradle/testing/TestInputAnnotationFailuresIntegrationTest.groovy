@@ -27,7 +27,7 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
             import groovy.transform.CompileStatic
 
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -72,7 +72,7 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
             import groovy.transform.CompileStatic
 
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -110,7 +110,7 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
             import groovy.transform.CompileStatic
 
             plugins {
-                id 'java'
+                id("java-library")
             }
 
             ${mavenCentralRepository()}

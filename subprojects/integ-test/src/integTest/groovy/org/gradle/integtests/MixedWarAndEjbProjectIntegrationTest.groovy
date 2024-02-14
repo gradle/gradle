@@ -26,7 +26,7 @@ class MixedWarAndEjbProjectIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 project(":a") {
     apply plugin: 'ear'
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 }
 project(":b") {
     apply plugin: 'war'
@@ -34,7 +34,7 @@ project(":b") {
         implementation project(":a")
     }
     compileJava.doFirst {
-        assert classpath.collect { it.name } == ['a.jar']
+        assert classpath.collect { it.name } == ['main']
     }
 }
 """
@@ -61,9 +61,11 @@ class PersonImpl implements Person { }
 
         and:
         buildFile << """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'ear'
+plugins {
+    id("java-library")
+    id("war")
+    id("ear")
+}
 """
 
         when:

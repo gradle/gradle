@@ -1,5 +1,5 @@
 plugins {
-    java
+    id("java-library")
 }
 
 // tag::locking-all[]

@@ -21,7 +21,9 @@ class JavaProjectCrossVersionIntegrationTest extends CrossVersionIntegrationSpec
     def "can upgrade and downgrade Gradle version used to build Java project"() {
         given:
         buildFile << """
-apply plugin: 'java'
+plugins {
+    id("java-library")
+}
 
 task custom(type: org.gradle.CustomTask)
         """
