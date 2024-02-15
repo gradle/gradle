@@ -83,7 +83,7 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
         run("reportProblem")
 
         then:
-        def locations = (collectedProblem['context']["locations"] as Collection)
+        def locations = (collectedProblem["locations"] as Collection)
         locations[0]["pluginId"] == "test.plugin"
     }
 }

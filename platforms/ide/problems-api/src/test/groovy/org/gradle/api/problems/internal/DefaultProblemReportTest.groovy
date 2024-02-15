@@ -29,10 +29,10 @@ class DefaultProblemReportTest extends Specification {
         expect:
         newProblem.definition.category == problem.definition.category
         newProblem.definition.label == problem.definition.label
-        newProblem.context.additionalData == problem.context.additionalData
-        newProblem.context.details == problem.context.details
-        newProblem.context.exception == problem.context.exception
-        newProblem.context.locations == problem.context.locations
+        newProblem.additionalData == problem.additionalData
+        newProblem.details == problem.details
+        newProblem.exception == problem.exception
+        newProblem.locations == problem.locations
         newProblem.definition.severity == problem.definition.severity
         newProblem.definition.solutions == problem.definition.solutions
         newProblem == problem
@@ -63,10 +63,10 @@ class DefaultProblemReportTest extends Specification {
         1 * emitter.emit(newProblem, operationId)
         newProblem.definition.category == problem.definition.category
         newProblem.definition.label == problem.definition.label
-        newProblem.context.additionalData == problem.context.additionalData
-        newProblem.context.details == problem.context.details
-        newProblem.context.exception == problem.context.exception
-        newProblem.context.locations == problem.context.locations
+        newProblem.additionalData == problem.additionalData
+        newProblem.details == problem.details
+        newProblem.exception == problem.exception
+        newProblem.locations == problem.locations
         newProblem.definition.severity == problem.definition.severity
         newProblem.definition.solutions == ["solution"]
         newProblem.class == DefaultProblemReport
@@ -81,14 +81,12 @@ class DefaultProblemReportTest extends Specification {
                 [],
                 DefaultProblemCategory.create('a', 'b', 'c')
             ),
-            new DefaultProblemContext(
-                null,
-                [],
-                [],
-                'description',
-                new RuntimeException('cause'),
-                additionalData
-            )
+            null,
+            [],
+            [],
+            'description',
+            new RuntimeException('cause'),
+            additionalData
         )
     }
 
@@ -102,14 +100,12 @@ class DefaultProblemReportTest extends Specification {
                 [],
                 DefaultProblemCategory.create('a', 'b', 'c')
             ),
-            new DefaultProblemContext(
-                'contextual label',
-                ['contextual solution'],
-                [],
-                'description',
-                new RuntimeException('cause'),
-                [:]
-            )
+            'contextual label',
+            ['contextual solution'],
+            [],
+            'description',
+            new RuntimeException('cause'),
+            [:]
         )
 
         when:

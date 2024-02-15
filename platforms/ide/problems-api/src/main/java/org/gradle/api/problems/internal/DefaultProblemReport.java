@@ -21,18 +21,34 @@ import org.gradle.api.NonNullApi;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @NonNullApi
 public class DefaultProblemReport implements Serializable, Problem {
     private final ProblemDefinition problemDefinition;
-    private final ProblemContext problemContext;
+    private final String contextualLabel;
+    private final List<String> contextualSolutions;
+    private final List<ProblemLocation> problemLocations;
+    private final String details;
+    private final RuntimeException exception;
+    private final Map<String, Object> additionalData;
 
     protected DefaultProblemReport(
         ProblemDefinition problemDefinition,
-        ProblemContext problemContext
+        String contextualLabel,
+        List<String> contextualSolutions,
+        List<ProblemLocation> problemLocations, String details,
+        RuntimeException exception,
+        Map<String, Object> additionalData
     ) {
         this.problemDefinition = problemDefinition;
-        this.problemContext = problemContext;
+        this.contextualLabel = contextualLabel;
+        this.contextualSolutions = contextualSolutions;
+        this.problemLocations = problemLocations;
+        this.details = details;
+        this.exception = exception;
+        this.additionalData = additionalData;
     }
 
     @Override
@@ -40,9 +56,37 @@ public class DefaultProblemReport implements Serializable, Problem {
         return problemDefinition;
     }
 
+    @Nullable
     @Override
-    public ProblemContext getContext() {
-        return problemContext;
+    public String getContextualLabel() {
+        return contextualLabel;
+    }
+
+    @Override
+    public List<String> getContextualSolutions() {
+        return contextualSolutions;
+    }
+
+    @Nullable
+    @Override
+    public String getDetails() {
+        return details;
+    }
+
+    @Override
+    public List<ProblemLocation> getLocations() {
+        return problemLocations;
+    }
+
+    @Nullable
+    @Override
+    public RuntimeException getException() {
+        return exception;
+    }
+
+    @Override
+    public Map<String, Object> getAdditionalData() {
+        return additionalData;
     }
 
     @Override
@@ -64,12 +108,12 @@ public class DefaultProblemReport implements Serializable, Problem {
         }
         DefaultProblemReport that = (DefaultProblemReport) o;
         return equals(problemDefinition, that.problemDefinition) &&
-            equals(problemContext, that.problemContext);
+            equals(contextualLabel, that.contextualLabel);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{problemDefinition, problemContext});
+        return Arrays.hashCode(new Object[]{problemDefinition, contextualLabel});
     }
 
 }

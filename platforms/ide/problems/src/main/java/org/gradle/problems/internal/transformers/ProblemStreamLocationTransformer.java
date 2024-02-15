@@ -34,7 +34,7 @@ public class ProblemStreamLocationTransformer implements ProblemTransformer {
 
     @Override
     public Problem transform(Problem problem, OperationIdentifier id) {
-        ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(problem.getContext().getException());
+        ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(problem.getException());
         Location loc = problemDiagnostics.getLocation();
         InternalProblemBuilder builder = problem.toBuilder();
         if (loc != null) {

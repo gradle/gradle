@@ -252,10 +252,10 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
                 throw new IllegalArgumentException("Unknown severity: ${severity}")
         }
 
-        def details = problem['context']["details"] as String
+        def details = problem["details"] as String
         assert details: "Expected details to be non-null, but was null"
 
-        def locations = problem['context']["locations"] as List<Map<String, Object>>
+        def locations = problem["locations"] as List<Map<String, Object>>
         assert locations.size() == 1: "Expected one location, but received ${locations.size()}"
 
         def fileLocation = locations.find {

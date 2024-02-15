@@ -46,14 +46,14 @@ public class TypeValidationProblemRenderer {
 
     public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getContext().getAdditionalData()) + endLineWithDot(Optional.ofNullable(problem.getContext().getContextualLabel()).orElseGet(() -> problem.getDefinition().getLabel())));
-        ofNullable(problem.getContext().getDetails()).ifPresent(reason -> {
+        formatter.node(introductionFor(problem.getAdditionalData()) + endLineWithDot(Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getLabel())));
+        ofNullable(problem.getDetails()).ifPresent(reason -> {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getContext().getDetails())));
+            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         });
         if (renderSolutions) {
-            List<String> allSolutions = new ArrayList<>(problem.getDefinition().getSolutions().size() + problem.getContext().getContextualSolutions().size());
-            allSolutions.addAll(problem.getContext().getContextualSolutions());
+            List<String> allSolutions = new ArrayList<>(problem.getDefinition().getSolutions().size() + problem.getContextualSolutions().size());
+            allSolutions.addAll(problem.getContextualSolutions());
             allSolutions.addAll(problem.getDefinition().getSolutions());
             renderSolutions(formatter, allSolutions);
         }

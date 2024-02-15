@@ -16,6 +16,10 @@
 
 package org.gradle.api.problems.internal;
 
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Interface for describing structured information about a problem.
  */
@@ -26,10 +30,40 @@ public interface Problem {
      */
     ProblemDefinition getDefinition();
 
+    @Nullable
+    String getContextualLabel();
+
     /**
-     * Returns the contextual information associated with this problem.
+     * Returns solutions and advice that contain context-sensitive data, e.g. the message contains references to variables, locations, etc.
      */
-    ProblemContext getContext();
+    List<String> getContextualSolutions();
+
+    /**
+     * A long description detailing the problem.
+     * <p>
+     * Details can elaborate on the problem, and provide more information about the problem.
+     * They can be multiple lines long, but should not detail solutions; for that, use {@link ProblemDefinition#getSolutions()}.
+     */
+    @Nullable
+    String getDetails();
+
+    /**
+     * Return the location data associated available for this problem.
+     */
+    List<ProblemLocation> getLocations();
+
+    /**
+     * The exception that caused the problem.
+     */
+    @Nullable
+    RuntimeException getException();
+
+    /**
+     * Additional data attached to the problem.
+     * <p>
+     * The only supported value type is {@link String}.
+     */
+    Map<String, Object> getAdditionalData();
 
     /**
      * Returns a problem builder with fields initialized with values from this instance.

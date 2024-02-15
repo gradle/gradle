@@ -100,14 +100,14 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
             cerateDefaultProblemDescriptor(buildOperationId),
             new DefaultProblemDetails(
                 toInternalCategory(problem.getDefinition().getCategory()),
-                toInternalLabel(problem.getDefinition().getLabel(), problem.getContext().getContextualLabel()),
-                toInternalDetails(problem.getContext().getDetails()),
+                toInternalLabel(problem.getDefinition().getLabel(), problem.getContextualLabel()),
+                toInternalDetails(problem.getDetails()),
                 toInternalSeverity(problem.getDefinition().getSeverity()),
-                toInternalLocations(problem.getContext().getLocations()),
+                toInternalLocations(problem.getLocations()),
                 toInternalDocumentationLink(problem.getDefinition().getDocumentationLink()),
-                toInternalSolutions(problem.getDefinition().getSolutions(), problem.getContext().getContextualSolutions()),
-                toInternalAdditionalData(problem.getContext().getAdditionalData()),
-                toInternalFailure(problem.getContext().getException())
+                toInternalSolutions(problem.getDefinition().getSolutions(), problem.getContextualSolutions()),
+                toInternalAdditionalData(problem.getAdditionalData()),
+                toInternalFailure(problem.getException())
             )
         );
     }

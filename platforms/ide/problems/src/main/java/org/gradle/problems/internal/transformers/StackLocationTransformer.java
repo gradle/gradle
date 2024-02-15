@@ -32,11 +32,11 @@ public class StackLocationTransformer implements ProblemTransformer {
 
     @Override
     public Problem transform(Problem problem, OperationIdentifier id) {
-        if (problem.getContext().getException() == null) {
+        if (problem.getException() == null) {
             return problem;
         }
 
-        ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(problem.getContext().getException());
+        ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(problem.getException());
         Location loc = problemDiagnostics.getLocation();
         if (loc != null) {
             return problem.toBuilder().lineInFileLocation(loc.getSourceLongDisplayName().getDisplayName(), loc.getLineNumber()).build();
