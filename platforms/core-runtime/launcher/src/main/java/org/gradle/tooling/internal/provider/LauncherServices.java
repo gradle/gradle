@@ -215,14 +215,16 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
 
     static class ToolingBuildTreeScopeServices {
 
-        ProblemStream createProblemStream(StartParameter parameter, ProblemDiagnosticsFactory diagnosticsFactory){
-            return  parameter.getWarningMode().shouldDisplayMessages()? diagnosticsFactory.newUnlimitedStream() : diagnosticsFactory.newStream();
+        ProblemStream createProblemStream(StartParameter parameter, ProblemDiagnosticsFactory diagnosticsFactory) {
+            return parameter.getWarningMode().shouldDisplayMessages() ? diagnosticsFactory.newUnlimitedStream() : diagnosticsFactory.newStream();
         }
+
         BuildTreeActionExecutor createActionExecutor(
             List<BuildActionRunner> buildActionRunners,
             StyledTextOutputFactory styledTextOutputFactory,
             BuildStateRegistry buildStateRegistry,
             BuildOperationProgressEventEmitter eventEmitter,
+            BuildOperationListenerManager buildOperationListenerManager,
             ListenerManager listenerManager,
             BuildStartedTime buildStartedTime,
             BuildRequestMetaData buildRequestMetaData,
@@ -259,11 +261,14 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                 new BuildOutcomeReportingBuildActionRunner(
                                     styledTextOutputFactory,
                                     listenerManager,
-                                    new ProblemReportingBuildActionRunner(
-                                        new ChainingBuildActionRunner(buildActionRunners),
-                                        exceptionAnalyser,
-                                        buildLayout,
-                                        problemReporters
+                                    new ProblemRenderingBuildActionRunner(
+                                        buildOperationListenerManager,
+                                        new ProblemReportingBuildActionRunner(
+                                            new ChainingBuildActionRunner(buildActionRunners),
+                                            exceptionAnalyser,
+                                            buildLayout,
+                                            problemReporters
+                                        )
                                     ),
                                     buildStartedTime,
                                     buildRequestMetaData,

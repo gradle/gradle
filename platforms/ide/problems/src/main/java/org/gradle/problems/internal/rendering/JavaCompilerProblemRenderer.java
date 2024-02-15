@@ -16,6 +16,7 @@
 
 package org.gradle.problems.internal.rendering;
 
+import org.gradle.api.logging.Logger;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.problems.rendering.ProblemRenderer;
 
@@ -23,7 +24,9 @@ import java.util.List;
 
 public class JavaCompilerProblemRenderer implements ProblemRenderer {
 
-    private static final String JAVA_COMPILER_CATEGORY = "org.gradle.java-compiler";
+    Logger logger;
+
+    private static final String JAVA_COMPILER_CATEGORY = "org.gradle:compilation:java";
 
     @Override
     public void render(List<Problem> problems) {
@@ -39,6 +42,6 @@ public class JavaCompilerProblemRenderer implements ProblemRenderer {
     }
 
     private static boolean isJavaCompilerProblem(Problem problem) {
-        return problem.getCategory().getCategory().startsWith(JAVA_COMPILER_CATEGORY);
+        return problem.getCategory().toString().startsWith(JAVA_COMPILER_CATEGORY);
     }
 }
