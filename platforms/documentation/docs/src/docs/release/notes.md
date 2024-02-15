@@ -97,6 +97,20 @@ In such a case, Gradle should retry the auto-provisioning process with other con
 This was also not the case before the fix.
 
 
+<a name="other"></a>
+### Other improvements
+
+#### Tests metadata improvements in tooling API
+
+IDEs and other tools can use tooling API to get information about tests Gradle runs.
+Each test event sent by tooling API contains a test descriptor that contains test metadata: human-readable name, class name, method name, etc.
+
+For JUnit5 and Spock, we updated the test descriptor for dynamic and parametrized tests to include the data about the class name and method name containing the test.
+We also improved the display names, so they are passed transparently from the frameworks and can be used by IDEs without transformations.
+
+These changes would allow IDEs to provide better navigation and reporting for dynamic and parametrized tests.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
