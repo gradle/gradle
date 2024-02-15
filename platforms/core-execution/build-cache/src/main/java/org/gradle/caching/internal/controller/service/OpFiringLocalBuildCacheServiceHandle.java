@@ -125,6 +125,8 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
         public LocalStoreDetails(BuildCacheKey key, File file) {
             this.key = key;
+            // We need to calculate the size eagerly here, since the file will already be gone
+            // (aka in the local cache), when the DV plugin queries the value.
             this.archiveSize = file.length();
         }
 
