@@ -289,7 +289,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     @Issue("https://github.com/gradle/gradle/issues/13816")
     def "classpath can contain badly formed jar"() {
         given:
-        executer.requireOwnGradleUserHomeDir()
         file("broken.jar") << "not a jar"
         buildFile << """
             buildscript { dependencies { classpath files("broken.jar") } }

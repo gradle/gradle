@@ -52,15 +52,21 @@ public class TransformedClassPath implements ClassPath {
      */
     public static final String INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME = ".gradle-instrumented-classpath.marker";
     /**
-     * A marker file put next to the instrumented entry to indicate that it is instrumented.
+     * A marker file put next to the instrumented entry to indicate that it is using agent instrumentation.
      */
     public static final String AGENT_INSTRUMENTATION_MARKER_FILE_NAME = ".gradle-agent-instrumented.marker";
+    /**
+     * A marker file put next to the instrumented entry to indicate that it is using legacy instrumentation.
+     */
     public static final String LEGACY_INSTRUMENTATION_MARKER_FILE_NAME = ".gradle-legacy-instrumented.marker";
+    /**
+     * A marker file put next to the instrumented entry to indicate that original file doesn't exist so there was no instrumentation.
+     */
     public static final String ORIGINAL_FILE_DOES_NOT_EXIST_MARKER = ".original-file-does-not-exist.marker";
     /**
      * A marker file put next to the instrumented entry to indicate that original entry should be retrieved from original classpath.
      */
-    public static final String ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX = ".original-entry-placeholder.marker";
+    public static final String ORIGINAL_FILE_PLACEHOLDER_MARKER = ".original-file-placeholder.marker";
     public static final String INSTRUMENTED_DIR_NAME = "instrumented";
     public static final String ORIGINAL_DIR_NAME = "original";
 

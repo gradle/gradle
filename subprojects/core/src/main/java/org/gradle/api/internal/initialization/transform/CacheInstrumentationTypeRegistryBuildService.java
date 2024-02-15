@@ -49,6 +49,11 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 
 public abstract class CacheInstrumentationTypeRegistryBuildService implements BuildService<CacheInstrumentationTypeRegistryBuildService.Parameters> {
 
+    /**
+     * Can be removed once we actually have some upgrades, but without upgrades we currently can't test this
+     */
+    public static final String GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY = "org.gradle.internal.instrumentation.generateClassHierarchyWithoutUpgrades";
+
     public interface Parameters extends BuildServiceParameters {
         ConfigurableFileCollection getClassHierarchy();
         ConfigurableFileCollection getOriginalClasspath();
@@ -63,7 +68,7 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
 
     public InstrumentationTypeRegistry getInstrumentingTypeRegistry(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
-        if (gradleCoreInstrumentationTypeRegistry.isEmpty()) {
+        if (!Boolean.getBoolean(GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY) && gradleCoreInstrumentationTypeRegistry.isEmpty()) {
             // In case core types registry is empty, it means we don't have any upgrades
             // in Gradle core, so we can return empty registry
             return InstrumentationTypeRegistry.empty();
@@ -139,6 +144,7 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
                 return null;
             }
 
+            hasher.putHash(snapshot.getHash());
             hasher.putString(file.getName());
             hasher.putBoolean(services.getGlobalCacheLocations().isInsideGlobalCache(file.getAbsolutePath()));
             return hasher.hash().toString();

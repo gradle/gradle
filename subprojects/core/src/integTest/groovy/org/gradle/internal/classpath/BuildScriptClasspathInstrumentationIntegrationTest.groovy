@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
@@ -25,6 +26,7 @@ import java.nio.file.Files
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
+import static org.gradle.api.internal.initialization.transform.CacheInstrumentationTypeRegistryBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -93,6 +95,32 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["CollectDirectClassSuperTypesTransform", "MergeSuperTypesTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
         gradleUserHomeOutput("instrumented/commons-lang3-3.8.1-instrumented.jar").exists()
+    }
+
+    def "should merge class hierarchies"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        multiProjectJavaBuild("subproject") {
+            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
+            file("$it/api/src/main/java/B.java") << "public class B {}"
+        }
+        buildFile << """
+            buildscript {
+                dependencies {
+                    // Add them as separate jars
+                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
+                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
+                }
+            }
+        """
+
+        when:
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks")
+
+        then:
+        gradleUserHomeOutput("instrumented/impl-1.0-instrumented.jar").exists()
+        gradleUserHomeOutput("instrumented/api-1.0-instrumented.jar").exists()
     }
 
     def "directories should be instrumented"() {
@@ -184,6 +212,109 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         ]
     }
 
+    def "should collect and merge class hierarchies"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        multiProjectJavaBuild("subproject") {
+            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
+            file("$it/api/src/main/java/B.java") << "public class B {}"
+        }
+        buildFile << """
+            buildscript {
+                dependencies {
+                    // Add them as separate jars
+                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
+                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
+                }
+            }
+        """
+
+        when:
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        gradleUserHomeOutput("instrumented/impl-1.0-instrumented.jar").exists()
+        gradleUserHomeOutput("instrumented/api-1.0-instrumented.jar").exists()
+        def implTypes = gradleUserHomeOutput("merged/impl-1.0.jar.super-types")
+        implTypes.readLines().drop(1) == [
+            "A=A,B",
+        ]
+        def apiTypes = gradleUserHomeOutput("merged/api-1.0.jar.super-types")
+        apiTypes.readLines().drop(1) == []
+    }
+
+    def "should re-instrument jar if hierarchy changes"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        multiProjectJavaBuild("subproject") {
+            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
+            file("$it/api/src/main/java/B.java") << "public class B {}"
+        }
+        buildFile << """
+            buildscript {
+                dependencies {
+                    // Add them as separate jars
+                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
+                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
+                }
+            }
+        """
+
+        when:
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        gradleUserHomeOutputs("instrumented/api-1.0-instrumented.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/impl-1.0-instrumented.jar").size() == 1
+
+        when:
+        file("subproject/api/src/main/java/B.java").text = "public class B extends C {}"
+        file("subproject/api/src/main/java/C.java") << "public class C {}"
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        gradleUserHomeOutputs("instrumented/api-1.0-instrumented.jar").size() == 2
+        gradleUserHomeOutputs("instrumented/impl-1.0-instrumented.jar").size() == 2
+    }
+
+    def "should not re-instrument jar if classpath changes but hierarchy doesn't"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        multiProjectJavaBuild("subproject") {
+            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
+            file("$it/api/src/main/java/B.java") << "public class B {}"
+        }
+        buildFile << """
+            buildscript {
+                dependencies {
+                    // Add them as separate jars
+                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
+                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
+                }
+            }
+        """
+
+        when:
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        gradleUserHomeOutputs("instrumented/api-1.0-instrumented.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/impl-1.0-instrumented.jar").size() == 1
+
+        when:
+        file("subproject/api/src/main/java/C.java") << "public class C {}"
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        gradleUserHomeOutputs("instrumented/api-1.0-instrumented.jar").size() == 2
+        gradleUserHomeOutputs("instrumented/impl-1.0-instrumented.jar").size() == 1
+    }
+
     def withBuildSrc() {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
         file("buildSrc/settings.gradle") << "\n"
@@ -202,6 +333,32 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         settingsFile << """
             includeBuild("./$folderName")
         """
+    }
+
+    def multiProjectJavaBuild(String projectName = "included", Action<String> init) {
+        file("$projectName/api/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "org.test"
+            version = "1.0"
+        """
+        file("$projectName/impl/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "org.test"
+            version = "1.0"
+
+            dependencies {
+                implementation project(":api")
+            }
+        """
+        file("$projectName/settings.gradle") << """
+            rootProject.name = '$projectName'
+            include("api", "impl")
+        """
+        init(projectName)
     }
 
     List<String> allTransformsFor(String fileName) {

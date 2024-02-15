@@ -49,7 +49,7 @@ import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DI
 import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.LEGACY_INSTRUMENTATION_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_PLACEHOLDER_MARKER;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
 
 /**
@@ -85,6 +85,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         if (isAgentSupported()) {
             // When agent is supported, we output an instrumented jar and an original jar,
             // so we can then later reconstruct instrumented jars classpath and original jars classpath
+            createNewFile(outputs.file(AGENT_INSTRUMENTATION_MARKER_FILE_NAME));
             doTransformForAgent(artifactToInstrument, outputs, injectedServices);
         } else {
             // When agent is not supported, we have only one classpath so we output just an instrumented jar
@@ -94,10 +95,6 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     }
 
     private void doTransformForAgent(File input, TransformOutputs outputs, InjectedInstrumentationServices injectedServices) {
-        // A marker file that indicates that the result is instrumented jar,
-        // this is important so TransformedClassPath can correctly filter instrumented jars.
-        createNewFile(outputs.file(AGENT_INSTRUMENTATION_MARKER_FILE_NAME));
-
         // Instrument jars
         doTransform(input, outputs, injectedServices);
 
@@ -107,7 +104,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             // Directories are ok to use outside the cache, since they are not locked by the daemon.
             // Jars that are already in the global cache don't need to be copied, since
             // the global caches are additive only and jars shouldn't be deleted or changed during the build.
-            createNewFile(outputs.file(ORIGINAL_DIR_NAME + "/" + ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX));
+            createNewFile(outputs.file(ORIGINAL_DIR_NAME + "/" + ORIGINAL_FILE_PLACEHOLDER_MARKER));
         } else {
             // Jars that are in some mutable location (e.g. build/ directory) need to be copied to the global cache,
             // since daemon keeps them locked when loading them to a classloader, which prevents e.g. deleting the build directory on windows

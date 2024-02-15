@@ -72,7 +72,7 @@ import static org.gradle.api.internal.initialization.DefaultScriptClassPathResol
 import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.LEGACY_INSTRUMENTATION_MARKER_FILE_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_PLACEHOLDER_MARKER;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
@@ -91,9 +91,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     public static final Attribute<InstrumentationPhase> INSTRUMENTATION_PHASE_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumentation.phase", InstrumentationPhase.class);
-    public static final String NOT_INSTRUMENTED_ATTRIBUTE_VALUE = "not-instrumented";
-    private static final String INSTRUMENTED_EXTERNAL_DEPENDENCY_ATTRIBUTE = "instrumented-external-dependency";
-    private static final String INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE = "instrumented-project-dependency";
     private final NamedObjectInstantiator instantiator;
     private final AgentStatus agentStatus;
     private final ConfigurableFileCollection classHierarchy;
@@ -214,21 +211,21 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static FileCollection getHierarchyView(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, COLLECTED_DIRECT_SUPER_TYPES));
-            config.componentFilter(componentId -> !isGradleApi(componentId) && !isProject(componentId));
+            config.componentFilter(componentId -> !isGradleApi(componentId) && !isProjectDependency(componentId));
         }).getFiles();
     }
 
     private static ArtifactCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, INSTRUMENTED_AND_UPGRADED));
-            config.componentFilter(componentId -> !isGradleApi(componentId) && !isProject(componentId));
+            config.componentFilter(DefaultScriptClassPathResolver::isExternalDependency);
         }).getArtifacts();
     }
 
     private static ArtifactCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, INSTRUMENTED_ONLY));
-            config.componentFilter(DefaultScriptClassPathResolver::isProject);
+            config.componentFilter(DefaultScriptClassPathResolver::isProjectDependency);
         }).getArtifacts();
     }
 
@@ -240,8 +237,12 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return false;
     }
 
-    private static boolean isProject(ComponentIdentifier componentId) {
+    private static boolean isProjectDependency(ComponentIdentifier componentId) {
         return componentId instanceof ProjectComponentIdentifier;
+    }
+
+    private static boolean isExternalDependency(ComponentIdentifier componentId) {
+        return !isGradleApi(componentId) && !isProjectDependency(componentId);
     }
 
     /**
@@ -249,12 +250,12 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
      */
     public static ClassPath combineClassPaths(ArtifactCollection originalClasspath, ArtifactCollection transformedExternalDependencies, ArtifactCollection transformedProjectDependencies) {
         List<ResolvedArtifactResult> originalExternalArtifacts = originalClasspath.getArtifacts().stream()
-            .filter(artifact -> !isGradleApi(artifact.getId().getComponentIdentifier()) && !isProject(artifact.getId().getComponentIdentifier()))
+            .filter(artifact -> isExternalDependency(artifact.getId().getComponentIdentifier()))
             .collect(Collectors.toList());
         List<File> files = new ArrayList<>(combine(originalExternalArtifacts, transformedExternalDependencies));
 
         List<ResolvedArtifactResult> originalProjectArtifacts = originalClasspath.getArtifacts().stream()
-            .filter(artifact -> isProject(artifact.getId().getComponentIdentifier()))
+            .filter(artifact -> isProjectDependency(artifact.getId().getComponentIdentifier()))
             .collect(Collectors.toList());
         files.addAll(combine(originalProjectArtifacts, transformedProjectDependencies));
 
@@ -297,7 +298,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     private static List<File> resolveAgentInstrumentationFiles(File original, File first, File second) {
-        if (first.getName().equals(ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX)) {
+        if (first.getName().equals(ORIGINAL_FILE_PLACEHOLDER_MARKER)) {
             return Arrays.asList(original, second);
         } else {
             return Arrays.asList(first, second);
