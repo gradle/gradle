@@ -93,8 +93,6 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
         Set<String> defaultExcludes = new HashSet<String>(Arrays.asList(DirectoryScanner.getDefaultExcludes()));
         if (defaultExcludeSpecCache.isEmpty()) {
             updateDefaultExcludeSpecCache(defaultExcludes);
-        } else if(previousDefaultExcludes.size() < defaultExcludes.size()) {
-            updateDefaultExcludeSpecCache(previousDefaultExcludes);
         } else if (invalidChangeOfExcludes(defaultExcludes)) {
             failOnChangedDefaultExcludes(previousDefaultExcludes, defaultExcludes);
         }
