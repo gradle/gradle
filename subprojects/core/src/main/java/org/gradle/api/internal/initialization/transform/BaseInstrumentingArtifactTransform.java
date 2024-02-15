@@ -36,17 +36,21 @@ import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
 import static com.google.common.base.Strings.nullToEmpty;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.InstrumentArtifactTransformParameters;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_MARKER_FILE_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.LEGACY_INSTRUMENTATION_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
 
 /**
  * Base artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
@@ -70,15 +74,10 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
 
     protected abstract BytecodeInterceptorFilter provideInterceptorFilter();
 
-    /**
-     * Original input file, either a jar or a directory.
-     */
-    protected abstract File originalInput();
-
-    @Override
-    public void transform(TransformOutputs outputs) {
-        File originalInput = originalInput();
-        if (!originalInput.exists()) {
+    protected void execute(@Nullable File artifactToInstrument, TransformOutputs outputs) {
+        createInstrumentationClasspathMarker(outputs);
+        if (artifactToInstrument == null || !artifactToInstrument.exists()) {
+            createNewFile(outputs.file(ORIGINAL_FILE_DOES_NOT_EXIST_MARKER));
             return;
         }
 
@@ -86,17 +85,18 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         if (isAgentSupported()) {
             // When agent is supported, we output an instrumented jar and an original jar,
             // so we can then later reconstruct instrumented jars classpath and original jars classpath
-            doTransformForAgent(originalInput, outputs, injectedServices);
+            doTransformForAgent(artifactToInstrument, outputs, injectedServices);
         } else {
             // When agent is not supported, we have only one classpath so we output just an instrumented jar
-            doTransform(originalInput, outputs, injectedServices);
+            createNewFile(outputs.file(LEGACY_INSTRUMENTATION_MARKER_FILE_NAME));
+            doTransform(artifactToInstrument, outputs, injectedServices);
         }
     }
 
     private void doTransformForAgent(File input, TransformOutputs outputs, InjectedInstrumentationServices injectedServices) {
         // A marker file that indicates that the result is instrumented jar,
         // this is important so TransformedClassPath can correctly filter instrumented jars.
-        createNewFile(outputs.file(INSTRUMENTED_MARKER_FILE_NAME));
+        createNewFile(outputs.file(AGENT_INSTRUMENTATION_MARKER_FILE_NAME));
 
         // Instrument jars
         doTransform(input, outputs, injectedServices);
@@ -107,7 +107,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             // Directories are ok to use outside the cache, since they are not locked by the daemon.
             // Jars that are already in the global cache don't need to be copied, since
             // the global caches are additive only and jars shouldn't be deleted or changed during the build.
-            createNewFile(outputs.file(ORIGINAL_DIR_NAME + "/" + input.getName() + ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX));
+            createNewFile(outputs.file(ORIGINAL_DIR_NAME + "/" + ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX));
         } else {
             // Jars that are in some mutable location (e.g. build/ directory) need to be copied to the global cache,
             // since daemon keeps them locked when loading them to a classloader, which prevents e.g. deleting the build directory on windows

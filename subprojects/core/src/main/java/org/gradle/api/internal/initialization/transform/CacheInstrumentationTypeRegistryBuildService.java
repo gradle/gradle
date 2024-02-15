@@ -45,7 +45,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
 
 public abstract class CacheInstrumentationTypeRegistryBuildService implements BuildService<CacheInstrumentationTypeRegistryBuildService.Parameters> {
 

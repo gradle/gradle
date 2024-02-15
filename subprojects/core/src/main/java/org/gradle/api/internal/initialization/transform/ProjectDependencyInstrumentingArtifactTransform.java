@@ -17,6 +17,7 @@
 package org.gradle.api.internal.initialization.transform;
 
 import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -42,7 +43,8 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
     }
 
     @Override
-    protected File originalInput() {
-        return getInputMetadata().get().getAsFile();
+    public void transform(TransformOutputs outputs) {
+        File input = getInputMetadata().get().getAsFile();
+        execute(input, outputs);
     }
 }

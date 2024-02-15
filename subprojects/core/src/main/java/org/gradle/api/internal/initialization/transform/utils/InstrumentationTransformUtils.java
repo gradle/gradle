@@ -16,30 +16,33 @@
 
 package org.gradle.api.internal.initialization.transform.utils;
 
+import org.gradle.api.artifacts.transform.TransformOutputs;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.stream.Stream;
+
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
 public class InstrumentationTransformUtils {
 
-    public static File findFirstWithSuffix(File directory, String suffix) {
-        try (Stream<Path> entries = Files.list(directory.toPath())) {
-            return entries
-                .filter(p -> p.toFile().getName().endsWith(suffix))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("No file found in " + directory + " with extension: " + suffix))
-                .toFile();
+    public static final String SUPER_TYPES_SUFFIX = ".super-types";
+    public static final String FILE_HASH_PROPERTY_NAME = "-hash-";
+    public static final String FILE_MISSING_HASH = "<missing-hash>";
+
+    public static boolean createNewFile(File file) {
+        try {
+            return file.createNewFile();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public static boolean createNewFile(File file) {
+    public static void createInstrumentationClasspathMarker(TransformOutputs outputs) {
         try {
-            return file.createNewFile();
+            // Mark the folder, so we know that this is a folder with super types files.
+            // The only use case right now currently is, that we do not delete folders with such file for performance testing.
+            outputs.file(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME).createNewFile();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

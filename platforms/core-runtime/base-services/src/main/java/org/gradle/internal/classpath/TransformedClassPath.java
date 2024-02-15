@@ -47,9 +47,16 @@ import static org.apache.commons.io.FilenameUtils.removeExtension;
 public class TransformedClassPath implements ClassPath {
 
     /**
+     * A marker file put next to the instrumentation entry to indicate that this is part of instrumentation.
+     * This is currently used just to not delete the folders for performance testing.
+     */
+    public static final String INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME = ".gradle-instrumented-classpath.marker";
+    /**
      * A marker file put next to the instrumented entry to indicate that it is instrumented.
      */
-    public static final String INSTRUMENTED_MARKER_FILE_NAME = ".gradle-instrumented.marker";
+    public static final String AGENT_INSTRUMENTATION_MARKER_FILE_NAME = ".gradle-agent-instrumented.marker";
+    public static final String LEGACY_INSTRUMENTATION_MARKER_FILE_NAME = ".gradle-legacy-instrumented.marker";
+    public static final String ORIGINAL_FILE_DOES_NOT_EXIST_MARKER = ".original-file-does-not-exist.marker";
     /**
      * A marker file put next to the instrumented entry to indicate that original entry should be retrieved from original classpath.
      */
@@ -255,8 +262,8 @@ public class TransformedClassPath implements ClassPath {
      * Constructs a TransformedClassPath out of the ordinary JAR/directory list, potentially produced by the instrumenting ArtifactTransform.
      * The list is interpreted as follows:
      * <ul>
-     *     <li>An entry after {@link TransformedClassPath#INSTRUMENTED_MARKER_FILE_NAME} is considered an instrumented entry and the following entry is considered the original of this instrumented entry.</li>
-     *     <li>A "jar" or directory entry not preceded by {@link TransformedClassPath#INSTRUMENTED_MARKER_FILE_NAME} is considered non-transformed original entry and is appended to the resulting classpath as is.</li>
+     *     <li>An entry after {@link TransformedClassPath#AGENT_INSTRUMENTATION_MARKER_FILE_NAME} is considered an instrumented entry and the following entry is considered the original of this instrumented entry.</li>
+     *     <li>A "jar" or directory entry not preceded by {@link TransformedClassPath#AGENT_INSTRUMENTATION_MARKER_FILE_NAME} is considered non-transformed original entry and is appended to the resulting classpath as is.</li>
      *     <li>The order of entries is kept intact.</li>
      * </ul>
      * <p>
@@ -345,7 +352,7 @@ public class TransformedClassPath implements ClassPath {
     }
 
     private static boolean isInstrumentedMarkerFile(File classPathEntry) {
-        return classPathEntry.getName().equals(INSTRUMENTED_MARKER_FILE_NAME);
+        return classPathEntry.getName().equals(AGENT_INSTRUMENTATION_MARKER_FILE_NAME);
     }
 
     /**

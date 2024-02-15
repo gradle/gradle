@@ -39,14 +39,19 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_MISSING_HASH;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_SUFFIX;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 
 /**
  * TODO: This class has similar implementation in build-logic/packaging/src/main/kotlin/gradlebuild/instrumentation/transforms/CollectDirectClassSuperTypesTransform.kt.
@@ -59,11 +64,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
         @Internal
         Property<CacheInstrumentationTypeRegistryBuildService> getBuildService();
     }
-
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang");
-    public static final String SUPER_TYPES_MARKER_FILE_NAME = ".gradle-super-types.marker";
-    public static final String DIRECT_SUPER_TYPES_SUFFIX = ".direct-super-types";
-    public static final String FILE_HASH_PROPERTY_NAME = "-hash-";
 
     @Inject
     protected abstract ObjectFactory getObjects();
@@ -79,6 +80,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
             // Files can be passed to the artifact transform even if they don't exist,
             // in the case when user adds a file classpath via files("path/to/jar").
             // Unfortunately we don't filter them out before the artifact transform is run.
+            writeOutput(inputFile, outputs, Collections.emptyMap());
             return;
         }
 
@@ -101,23 +103,29 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
             } catch (FileException ignored) {
                 // We support badly formatted jars on the build classpath
                 // see: https://github.com/gradle/gradle/issues/13816
+                writeOutput(inputFile, outputs, Collections.emptyMap());
                 return;
             }
 
+            writeOutput(inputFile, outputs, superTypes);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void writeOutput(File inputFile, TransformOutputs outputs, Map<String, Set<String>> superTypes) {
+        try {
             CacheInstrumentationTypeRegistryBuildService buildService = getParameters().getBuildService().get();
-            File outputDir = outputs.dir("supertypes");
-            File output = new File(outputDir, inputFile.getName() + DIRECT_SUPER_TYPES_SUFFIX);
+            File output = outputs.file("direct/" + inputFile.getName() + SUPER_TYPES_SUFFIX);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
-                String hash = checkNotNull(buildService.getArtifactHash(inputFile));
+                String hash = firstNonNull(buildService.getArtifactHash(inputFile), FILE_MISSING_HASH);
                 writer.write(FILE_HASH_PROPERTY_NAME + "=" + hash + "\n");
                 for (Map.Entry<String, Set<String>> entry : superTypes.entrySet()) {
                     writer.write(entry.getKey() + "=" + String.join(",", entry.getValue()) + "\n");
                 }
             }
 
-            // Mark the folder so we know that this is a folder with super types files
-            // This is currently used just to not delete the folders for performance testing
-            new File(outputDir, SUPER_TYPES_MARKER_FILE_NAME).createNewFile();
+            createInstrumentationClasspathMarker(outputs);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

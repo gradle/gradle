@@ -45,10 +45,9 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.DIRECT_SUPER_TYPES_SUFFIX;
-import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
-import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.SUPER_TYPES_MARKER_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.findFirstWithSuffix;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
 /**
  * A transform that merges all instrumentation related super types for classes from a single artifact to a single file.
@@ -62,8 +61,6 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
  */
 @DisableCachingByDefault(because = "Not worth caching.")
 public abstract class MergeSuperTypesTransform implements TransformAction<MergeSuperTypesTransform.InstrumentArtifactTransformParameters> {
-
-    public static final String MERGED_SUPER_TYPES_SUFFIX = ".merged-super-types";
 
     public interface InstrumentArtifactTransformParameters extends TransformParameters {
         @Internal
@@ -87,30 +84,32 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
 
     @Override
     public void transform(TransformOutputs outputs) {
-        File input = findFirstWithSuffix(getInput().get().getAsFile(), DIRECT_SUPER_TYPES_SUFFIX);
-        File outputDir = outputs.dir("supertypes");
-        File output = new File(outputDir, input.getName().replace(DIRECT_SUPER_TYPES_SUFFIX, MergeSuperTypesTransform.MERGED_SUPER_TYPES_SUFFIX));
-        InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
+        File input = getInput().get().getAsFile();
+        if (input.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME)) {
+            return;
+        }
 
+        createInstrumentationClasspathMarker(outputs);
+        File output = outputs.file("merged/" + input.getName());
+        InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
         try (InputStream inputStream = Files.newInputStream(input.toPath());
              BufferedWriter outputWriter = new BufferedWriter(new FileWriter(output))
         ) {
             Properties properties = loadProperties(inputStream);
             outputWriter.write(FILE_HASH_PROPERTY_NAME + "=" + properties.getProperty(FILE_HASH_PROPERTY_NAME) + "\n");
-
-            InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry(services);
-            for (String className : getSortedClassNames(properties)) {
-                Set<String> superTypes = registry.getSuperTypes(className);
-                if (!superTypes.isEmpty()) {
-                    outputWriter.write(className + "=" + superTypes.stream().sorted().collect(Collectors.joining(",")) + "\n");
-                }
-            }
-
-            // Mark the folder so we know that this is a folder with super types files
-            // This is currently used just to not delete the folders for performance testing
-            new File(outputDir, SUPER_TYPES_MARKER_FILE_NAME).createNewFile();
+            writeSuperTypes(outputWriter, services, properties);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    private void writeSuperTypes(BufferedWriter outputWriter, InjectedInstrumentationServices services, Properties properties) throws IOException {
+        InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry(services);
+        for (String className : getSortedClassNames(properties)) {
+            Set<String> superTypes = registry.getSuperTypes(className);
+            if (!superTypes.isEmpty()) {
+                outputWriter.write(className + "=" + superTypes.stream().sorted().collect(Collectors.joining(",")) + "\n");
+            }
         }
     }
 

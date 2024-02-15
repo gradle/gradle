@@ -126,6 +126,20 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         ]
     }
 
+    def "classpath can contain non-existing file"() {
+        given:
+        executer.requireOwnGradleUserHomeDir()
+        buildFile << """
+            buildscript { dependencies { classpath files("does-not-exist.jar") } }
+        """
+
+        when:
+        succeeds()
+
+        then:
+        noExceptionThrown()
+    }
+
     def "should collect super types for artifacts"() {
         given:
         // We test content in the global cache
@@ -161,7 +175,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
         then:
         allTransformsFor("animals-1.0.jar") ==~ ["MergeSuperTypesTransform", "CollectDirectClassSuperTypesTransform", "ExternalDependencyInstrumentingArtifactTransform"]
-        def output = gradleUserHomeOutput("animals-1.0.jar.direct-super-types")
+        def output = gradleUserHomeOutput("direct/animals-1.0.jar.super-types")
         output.exists()
         output.readLines().drop(1) == [
             "org/gradle/test/Dog=org/gradle/test/Mammal",

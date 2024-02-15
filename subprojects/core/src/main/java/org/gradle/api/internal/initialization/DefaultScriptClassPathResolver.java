@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
@@ -55,21 +56,24 @@ import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.COLLECTED_DIRECT_SUPER_TYPES;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.MERGED_SUPER_TYPES;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED;
+import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.LEGACY_INSTRUMENTATION_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
@@ -241,29 +245,62 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     /**
-     * Combines the original classpath with the external and project dependencies.
+     * Combines the original classpath with transformed external and project dependencies.
      */
-    public static ClassPath combineClassPaths(ArtifactCollection originalClasspath, ArtifactCollection externalDependencies, ArtifactCollection projectDependencies) {
-        Map<ComponentIdentifier, Set<File>> originalArtifact = new HashMap<>(originalClasspath.getArtifacts().size());
-        originalClasspath.getArtifacts().forEach(artifact -> {
-            // One component identifier can have multiple files with different names,
-            // e.q. when we resolve multiple variants in the same classpath
-            ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
-            originalArtifact.computeIfAbsent(componentIdentifier, __ -> new HashSet<>()).add(artifact.getFile());
-        });
-        List<File> files = new ArrayList<>();
-        Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream()).forEach(artifact -> {
-            if (artifact.getFile().getName().endsWith(ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX)) {
-                String name = artifact.getFile().getName().replace(ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX, "");
-                File original = originalArtifact.get(artifact.getVariant().getOwner()).stream()
-                    .filter(file -> file.getName().equals(name))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("Original artifact not found for " + artifact));
-                files.add(original);
-            } else {
-                files.add(artifact.getFile());
-            }
-        });
+    public static ClassPath combineClassPaths(ArtifactCollection originalClasspath, ArtifactCollection transformedExternalDependencies, ArtifactCollection transformedProjectDependencies) {
+        List<ResolvedArtifactResult> originalExternalArtifacts = originalClasspath.getArtifacts().stream()
+            .filter(artifact -> !isGradleApi(artifact.getId().getComponentIdentifier()) && !isProject(artifact.getId().getComponentIdentifier()))
+            .collect(Collectors.toList());
+        List<File> files = new ArrayList<>(combine(originalExternalArtifacts, transformedExternalDependencies));
+
+        List<ResolvedArtifactResult> originalProjectArtifacts = originalClasspath.getArtifacts().stream()
+            .filter(artifact -> isProject(artifact.getId().getComponentIdentifier()))
+            .collect(Collectors.toList());
+        files.addAll(combine(originalProjectArtifacts, transformedProjectDependencies));
+
         return DefaultClassPath.of(files);
+    }
+
+    private static List<File> combine(List<ResolvedArtifactResult> originalArtifacts, ArtifactCollection transformedCollection) {
+        List<File> transformedArtifacts = transformedCollection.getArtifacts().stream()
+            .map(ResolvedArtifactResult::getFile)
+            .filter(file -> !file.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME))
+            .collect(Collectors.toList());
+        checkArgument(originalArtifacts.size() <= transformedArtifacts.size(), "Unexpected number of transformed artifacts");
+
+        int i = 0;
+        List<File> files = new ArrayList<>();
+        for (ResolvedArtifactResult originalArtifact : originalArtifacts) {
+            File original = originalArtifact.getFile();
+            File markerFile = transformedArtifacts.get(i++);
+            switch (markerFile.getName()) {
+                case ORIGINAL_FILE_DOES_NOT_EXIST_MARKER:
+                    // skip
+                    break;
+                case AGENT_INSTRUMENTATION_MARKER_FILE_NAME:
+                    // Agent instrumentation always contain 3 entries:
+                    // [a marker, a copy of original file or placeholder, a transformed file]
+                    File first = transformedArtifacts.get(i++);
+                    File second = transformedArtifacts.get(i++);
+                    files.addAll(resolveAgentInstrumentationFiles(original, first, second));
+                    break;
+                case LEGACY_INSTRUMENTATION_MARKER_FILE_NAME:
+                    // Legacy instrumentation always contain 2 entries:
+                    // [a marker, a transformed file]
+                    files.add(transformedArtifacts.get(i++));
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected marker file: " + markerFile);
+            }
+        }
+        return files;
+    }
+
+    private static List<File> resolveAgentInstrumentationFiles(File original, File first, File second) {
+        if (first.getName().equals(ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX)) {
+            return Arrays.asList(original, second);
+        } else {
+            return Arrays.asList(first, second);
+        }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.initialization.transform;
 
 import com.google.common.io.Files;
+import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -25,9 +26,10 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 
-import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
-import static org.gradle.api.internal.initialization.transform.MergeSuperTypesTransform.MERGED_SUPER_TYPES_SUFFIX;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.findFirstWithSuffix;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_MISSING_HASH;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
 /**
  * Artifact transform that instruments external plugins with Gradle instrumentation.
@@ -41,13 +43,21 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
     }
 
     @Override
-    protected File originalInput() {
+    public void transform(TransformOutputs outputs) {
+        File input = getInputMetadata().get().getAsFile();
+        if (input.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME)) {
+            return;
+        }
+
         try {
-            File input = findFirstWithSuffix(getInputMetadata().get().getAsFile(), MERGED_SUPER_TYPES_SUFFIX);
             String hash = Files.asCharSource(input, StandardCharsets.UTF_8)
                 .readFirstLine()
                 .replace(FILE_HASH_PROPERTY_NAME + "=", "");
-            return getParameters().getBuildService().get().getOriginalFile(hash);
+            if (hash.equals(FILE_MISSING_HASH)) {
+                execute(null, outputs);
+            } else {
+                execute(checkNotNull(getParameters().getBuildService().get().getOriginalFile(hash)), outputs);
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

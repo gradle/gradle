@@ -26,7 +26,7 @@ import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 
 import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.SUPER_TYPES_MARKER_FILE_NAME
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_MARKER_FILE_NAME
+import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME
 /**
  * A mutator that cleans up the artifact transform cache directory, but leaves folders with the instrumented jars.
  *
@@ -42,7 +42,7 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends ClearArt
         Files.walkFileTree(cacheDir.toPath(), new FileVisitor<Path>() {
             @Override
             FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                if (Files.exists(dir.resolve("transformed/$INSTRUMENTED_MARKER_FILE_NAME")) || Files.exists(dir.resolve("transformed/$SUPER_TYPES_MARKER_FILE_NAME"))) {
+                if (Files.exists(dir.resolve("transformed/$AGENT_INSTRUMENTATION_MARKER_FILE_NAME")) || Files.exists(dir.resolve("transformed/$SUPER_TYPES_MARKER_FILE_NAME"))) {
                     return FileVisitResult.SKIP_SUBTREE
                 }
                 return FileVisitResult.CONTINUE
