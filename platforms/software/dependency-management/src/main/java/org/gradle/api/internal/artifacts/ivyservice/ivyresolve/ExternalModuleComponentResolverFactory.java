@@ -22,9 +22,9 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
+import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.MetadataResolutionContext;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -48,6 +48,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -64,11 +65,11 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
- * Creates resolver that can resolve module components from repositories.
+ * Creates resolvers that can resolve module components from repositories.
  */
-public class ResolveIvyFactory {
+public class ExternalModuleComponentResolverFactory {
 
-    private final static Logger LOGGER = Logging.getLogger(ResolveIvyFactory.class);
+    private final static Logger LOGGER = Logging.getLogger(ExternalModuleComponentResolverFactory.class);
 
     private final ModuleRepositoryCacheProvider cacheProvider;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
@@ -79,11 +80,13 @@ public class ResolveIvyFactory {
     private final VersionParser versionParser;
     private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final ImmutableAttributesFactory attributesFactory;
+    private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
 
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final ChangingValueDependencyResolutionListener listener;
 
-    public ResolveIvyFactory(
+    public ExternalModuleComponentResolverFactory(
         ModuleRepositoryCacheProvider cacheProvider,
         StartParameterResolutionOverride startParameterResolutionOverride,
         DependencyVerificationOverride dependencyVerificationOverride,
@@ -92,9 +95,11 @@ public class ResolveIvyFactory {
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         RepositoryDisabler repositoryBlacklister,
         VersionParser versionParser,
-        ChangingValueDependencyResolutionListener listener,
+        ListenerManager listenerManager,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        ImmutableAttributesFactory attributesFactory,
+        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
     ) {
         this.cacheProvider = cacheProvider;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
@@ -104,27 +109,31 @@ public class ResolveIvyFactory {
         this.repositoryBlacklister = repositoryBlacklister;
         this.versionParser = versionParser;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
-        this.listener = listener;
+        this.listener = listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class);
         this.moduleResolveStateFactory = moduleResolveStateFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.attributesFactory = attributesFactory;
+        this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
-    public ComponentResolvers create(
-        ResolutionStrategyInternal resolutionStrategy,
+    /**
+     * Creates component resolvers for the given repositories.
+     */
+    public ComponentResolvers createResolvers(
         Collection<? extends ResolutionAwareRepository> repositories,
         ComponentMetadataProcessorFactory metadataProcessor,
+        ComponentSelectionRulesInternal componentSelectionRules,
+        boolean dependencyVerificationEnabled,
+        CachePolicy cachePolicy,
         AttributeContainer consumerAttributes,
-        AttributesSchema attributesSchema,
-        ImmutableAttributesFactory attributesFactory,
-        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
+        AttributesSchema consumerSchema
     ) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
 
-        CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
-        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, resolutionStrategy.getComponentSelection(), versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
-        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
+        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, componentSelectionRules, versionParser, consumerAttributes, consumerSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
+        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, consumerSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
 
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
@@ -142,7 +151,7 @@ public class ResolveIvyFactory {
                 ModuleComponentRepository<ModuleComponentResolveMetadata> overrideRepository = startParameterResolutionOverride.overrideModuleVersionRepository(baseRepository);
                 moduleComponentRepository = new CachingModuleComponentRepository(overrideRepository, cacheProvider.getPersistentCaches(), moduleResolveStateFactory, cachePolicy, timeProvider, componentMetadataProcessor, listener);
             }
-            moduleComponentRepository = cacheProvider.getResolvedArtifactCaches().provideResolvedArtifactCache(moduleComponentRepository, resolutionStrategy.isDependencyVerificationEnabled());
+            moduleComponentRepository = cacheProvider.getResolvedArtifactCaches().provideResolvedArtifactCache(moduleComponentRepository, dependencyVerificationEnabled);
 
             if (baseRepository.isDynamicResolveMode()) {
                 moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository, moduleResolveStateFactory);
@@ -150,7 +159,7 @@ public class ResolveIvyFactory {
 
             moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
             moduleComponentRepository = filterRepository(repository, moduleComponentRepository);
-            moduleComponentRepository = maybeApplyDependencyVerification(moduleComponentRepository, resolutionStrategy.isDependencyVerificationEnabled());
+            moduleComponentRepository = maybeApplyDependencyVerification(moduleComponentRepository, dependencyVerificationEnabled);
 
             moduleResolver.add(moduleComponentRepository);
             parentModuleResolver.add(moduleComponentRepository);
