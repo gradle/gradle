@@ -19,7 +19,7 @@ package org.gradle.api.problems.internal;
 /**
  * Interface for describing structured information about a problem.
  */
-public interface ProblemReport {
+public interface Problem {
 
     /**
      * Returns the problem definition, i.e. the data that is independent of the report context.

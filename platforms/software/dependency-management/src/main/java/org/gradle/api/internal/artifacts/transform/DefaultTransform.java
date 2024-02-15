@@ -36,7 +36,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
@@ -374,7 +374,7 @@ public class DefaultTransform implements Transform {
             })
         );
 
-        ImmutableList<ProblemReport> validationMessages = validationContext.getProblems();
+        ImmutableList<Problem> validationMessages = validationContext.getProblems();
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1

@@ -18,7 +18,7 @@ package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -34,7 +34,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
     public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
     private final boolean reportCacheabilityProblems;
-    private final ImmutableList.Builder<ProblemReport> problems = ImmutableList.builder();
+    private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
 
     public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable) {
         return new DefaultTypeValidationContext(rootType, cacheable);
@@ -61,18 +61,18 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
 
     @Override
-    protected void recordProblem(ProblemReport problem) {
+    protected void recordProblem(Problem problem) {
         if (onlyAffectsCacheableWork(problem.getDefinition().getCategory()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
             return;
         }
         problems.add(problem);
     }
 
-    public ImmutableList<ProblemReport> getProblems() {
+    public ImmutableList<Problem> getProblems() {
         return problems.build();
     }
 
-    public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<ProblemReport> validationMessages) {
+    public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<Problem> validationMessages) {
         if (!validationMessages.isEmpty()) {
             String formatString = validationMessages.size() == 1
                 ? "A problem was found with the configuration of %s."

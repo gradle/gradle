@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.api.problems.internal.ProblemReport
+import org.gradle.api.problems.internal.Problem
 import org.gradle.api.problems.Severity
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
@@ -148,7 +148,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
 
         then:
         _ * buildOperationProgressEventEmitter.emitNowIfCurrent(_ as Object) >> {}
-        1 * warningReporter.recordValidationWarnings(work, { List<ProblemReport> warnings ->
+        1 * warningReporter.recordValidationWarnings(work, { List<Problem> warnings ->
             convertToSingleLine(renderMinimalInformationAbout(warnings.first(), false, false)) == expectedWarning
         })
         1 * virtualFileSystem.invalidateAll()

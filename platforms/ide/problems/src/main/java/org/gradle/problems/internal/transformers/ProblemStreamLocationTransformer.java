@@ -17,7 +17,7 @@
 package org.gradle.problems.internal.transformers;
 
 import org.gradle.api.problems.internal.InternalProblemBuilder;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemTransformer;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.Location;
@@ -33,7 +33,7 @@ public class ProblemStreamLocationTransformer implements ProblemTransformer {
     }
 
     @Override
-    public ProblemReport transform(ProblemReport problem, OperationIdentifier id) {
+    public Problem transform(Problem problem, OperationIdentifier id) {
         ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(problem.getContext().getException());
         Location loc = problemDiagnostics.getLocation();
         InternalProblemBuilder builder = problem.toBuilder();

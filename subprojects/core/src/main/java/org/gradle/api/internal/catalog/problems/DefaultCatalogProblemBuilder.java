@@ -22,7 +22,7 @@ import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemContext;
 import org.gradle.api.problems.internal.ProblemDefinition;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nonnull;
@@ -38,17 +38,17 @@ public class DefaultCatalogProblemBuilder {
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     public static final String VERSION_CATALOG_PROBLEMS = "version_catalog_problems";
 
-    public static void maybeThrowError(InternalProblems problemsService, String error, Collection<ProblemReport> problems) {
+    public static void maybeThrowError(InternalProblems problemsService, String error, Collection<Problem> problems) {
         if (!problems.isEmpty()) {
             throw throwError(problemsService, error, problems);
         }
     }
 
-    public static RuntimeException throwError(InternalProblems problemsService, String error, Collection<ProblemReport> problems) {
+    public static RuntimeException throwError(InternalProblems problemsService, String error, Collection<Problem> problems) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(error);
         formatter.startChildren();
-        for (ProblemReport problem : problems) {
+        for (Problem problem : problems) {
             formatter.node(getProblemString(problem));
             problemsService.getInternalReporter().report(problem);
         }
@@ -56,7 +56,7 @@ public class DefaultCatalogProblemBuilder {
         throw new InvalidUserDataException(formatter.toString());
     }
 
-    public static String getProblemString(ProblemReport problem) {
+    public static String getProblemString(Problem problem) {
         ProblemDefinition definition = problem.getDefinition();
         ProblemContext context = problem.getContext();
         String contextualLabel = context.getContextualLabel();

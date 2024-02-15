@@ -16,7 +16,7 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.ArrayList;
@@ -36,15 +36,15 @@ import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class TypeValidationProblemRenderer {
 
-    public static String renderMinimalInformationAbout(ProblemReport problem) {
+    public static String renderMinimalInformationAbout(Problem problem) {
         return renderMinimalInformationAbout(problem, true);
     }
 
-    public static String renderMinimalInformationAbout(ProblemReport problem, boolean renderDocLink) {
+    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink) {
         return renderMinimalInformationAbout(problem, renderDocLink, true);
     }
 
-    public static String renderMinimalInformationAbout(ProblemReport problem, boolean renderDocLink, boolean renderSolutions) {
+    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(introductionFor(problem.getContext().getAdditionalData()) + endLineWithDot(Optional.ofNullable(problem.getContext().getContextualLabel()).orElseGet(() -> problem.getDefinition().getLabel())));
         ofNullable(problem.getContext().getDetails()).ifPresent(reason -> {

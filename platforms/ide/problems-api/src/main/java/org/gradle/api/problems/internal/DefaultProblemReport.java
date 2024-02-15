@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 @NonNullApi
-public class DefaultProblemReport implements Serializable, ProblemReport {
+public class DefaultProblemReport implements Serializable, Problem {
     private final ProblemDefinition problemDefinition;
     private final ProblemContext problemContext;
 

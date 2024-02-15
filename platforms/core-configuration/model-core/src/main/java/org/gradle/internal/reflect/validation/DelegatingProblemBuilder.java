@@ -21,7 +21,7 @@ import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 
 import javax.annotation.Nullable;
 
@@ -35,7 +35,7 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public ProblemReport build() {
+    public Problem build() {
         return delegate.build();
     }
 

@@ -41,7 +41,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
 
-    public DefaultProblemBuilder(ProblemReport problem) {
+    public DefaultProblemBuilder(Problem problem) {
         this.label = problem.getDefinition().getLabel();
         this.contextualLabel = problem.getContext().getContextualLabel();
         this.contextualSolutions = new ArrayList<String>(problem.getContext().getContextualSolutions());
@@ -64,7 +64,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public ProblemReport build() {
+    public Problem build() {
         // Label is mandatory
         if (label == null) {
             return missingLabelProblem();
@@ -87,15 +87,15 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return new DefaultProblemReport(problemDefinition, problemContext);
     }
 
-    private ProblemReport missingLabelProblem() {
+    private Problem missingLabelProblem() {
         return invalidProblem("problem label must be specified", "missing-label");
     }
 
-    private ProblemReport missingCategoryProblem() {
+    private Problem missingCategoryProblem() {
         return invalidProblem("problem category must be specified", "missing-category");
     }
 
-    private ProblemReport invalidProblem(String label, String subcategory) {
+    private Problem invalidProblem(String label, String subcategory) {
         category("validation", "problems-api", subcategory).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, Severity.WARNING, null, Collections.<String>emptyList(), category);
         ProblemContext problemContext = new DefaultProblemContext(null, Collections.<String>emptyList(), Collections.<ProblemLocation>emptyList(), null, getExceptionForProblemInstantiation(), Collections.<String, Object>emptyMap());
