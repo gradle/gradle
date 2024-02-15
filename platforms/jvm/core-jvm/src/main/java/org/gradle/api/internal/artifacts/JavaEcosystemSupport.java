@@ -155,7 +155,6 @@ public abstract class JavaEcosystemSupport {
         viewSchema.getCompatibilityRules().add(CompileViewCompatibilityRules.class);
         viewSchema.getDisambiguationRules().add(CompileViewDisambiguationRules.class, actionConfiguration -> {
             actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_API));
-            actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_IMPLEMENTATION));
         });
     }
 
@@ -171,24 +170,12 @@ public abstract class JavaEcosystemSupport {
                 details.compatible();
                 return;
             }
-            if (consumerValue.getName().equals(producerValue.getName())) {
-                // The consumer and producer values are the same, so they are compatible.
-                details.compatible();
-                return;
-            }
 
-            if (consumerValue.getName().equals(CompileView.JAVA_API)) {
-                // The user requested the API. The implementation is a superset of the API, so it is compatible.
-                if (CompileView.JAVA_API.equals(producerValue.getName()) ||
-                    CompileView.JAVA_IMPLEMENTATION.equals(producerValue.getName())
-                ) {
-                    details.compatible();
-                }
-            } else if (consumerValue.getName().equals(CompileView.JAVA_IMPLEMENTATION)) {
-                // The user requested the implementation. The API is a subset of the implementation, so it is not compatible.
-                if (CompileView.JAVA_IMPLEMENTATION.equals(producerValue.getName())) {
-                    details.compatible();
-                }
+            // The user requested the API. The implementation is a superset of the API, so it is compatible.
+            if (CompileView.JAVA_API.equals(consumerValue.getName()) &&
+                CompileView.JAVA_IMPLEMENTATION.equals(producerValue.getName())
+            ) {
+                details.compatible();
             }
         }
     }
@@ -197,15 +184,10 @@ public abstract class JavaEcosystemSupport {
     static class CompileViewDisambiguationRules implements AttributeDisambiguationRule<CompileView>, ReusableAction {
 
         final CompileView javaApi;
-        final CompileView javaImplementation;
 
         @Inject
-        public CompileViewDisambiguationRules(
-            CompileView javaApi,
-            CompileView javaImplementation
-        ) {
+        public CompileViewDisambiguationRules(CompileView javaApi) {
             this.javaApi = javaApi;
-            this.javaImplementation = javaImplementation;
         }
 
         @Override

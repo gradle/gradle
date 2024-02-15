@@ -122,15 +122,12 @@ class JavaEcosystemSupportTest extends Specification {
         null                            | CompileView.JAVA_API            | true
         null                            | CompileView.JAVA_IMPLEMENTATION | true
         null                            | "other"                         | true
-        CompileView.JAVA_API            | CompileView.JAVA_API            | true
         CompileView.JAVA_API            | CompileView.JAVA_IMPLEMENTATION | true
         CompileView.JAVA_API            | "other"                         | false
         CompileView.JAVA_IMPLEMENTATION | CompileView.JAVA_API            | false
-        CompileView.JAVA_IMPLEMENTATION | CompileView.JAVA_IMPLEMENTATION | true
         CompileView.JAVA_IMPLEMENTATION | "other"                         | false
         "other"                         | CompileView.JAVA_API            | false
         "other"                         | CompileView.JAVA_IMPLEMENTATION | false
-        "other"                         | "other"                         | true
         "other"                         | "something"                     | false
     }
 
@@ -138,10 +135,7 @@ class JavaEcosystemSupportTest extends Specification {
         MultipleCandidatesDetails details = Mock(MultipleCandidatesDetails)
 
         when:
-        new JavaEcosystemSupport.CompileViewDisambiguationRules(
-            compileView(CompileView.JAVA_API),
-            compileView(CompileView.JAVA_IMPLEMENTATION)
-        ).execute(details)
+        new JavaEcosystemSupport.CompileViewDisambiguationRules(compileView(CompileView.JAVA_API)).execute(details)
 
         then:
         1 * details.getConsumerValue() >> compileView(consumer)
