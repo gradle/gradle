@@ -121,11 +121,11 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
     private static class LocalStoreDetails implements BuildCacheLocalStoreBuildOperationType.Details {
         private final BuildCacheKey key;
-        private final File file;
+        private final long archiveSize;
 
         public LocalStoreDetails(BuildCacheKey key, File file) {
             this.key = key;
-            this.file = file;
+            this.archiveSize = file.length();
         }
 
         @Override
@@ -135,7 +135,7 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
         @Override
         public long getArchiveSize() {
-            return file.length();
+            return archiveSize;
         }
     }
 }
