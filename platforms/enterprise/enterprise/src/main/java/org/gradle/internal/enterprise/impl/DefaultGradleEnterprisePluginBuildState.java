@@ -28,7 +28,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scopes.BuildTree.class)
 public class DefaultGradleEnterprisePluginBuildState implements GradleEnterprisePluginBuildState {
 
     private final Clock clock;

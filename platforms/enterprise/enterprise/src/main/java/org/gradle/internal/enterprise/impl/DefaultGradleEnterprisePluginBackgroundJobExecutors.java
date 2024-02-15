@@ -33,7 +33,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scopes.BuildTree.class)
 public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements GradleEnterprisePluginBackgroundJobExecutors {
     private final ManagedExecutor executorService = createExecutor();
     private final InputTrackingState inputTrackingState;
