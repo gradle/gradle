@@ -106,7 +106,6 @@ dependencies {
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":core-api")))
-    testImplementation(project(":core-jvm"))
     testImplementation(testFixtures(project(":execution")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":resources-http")))
@@ -154,8 +153,8 @@ dependencies {
         because("Groovy compiler bug leaks internals")
     }
 
-    testRuntimeOnly(project(":distributions-core")) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
+    testRuntimeOnly(project(":distributions-jvm")) {
+        because("JVM Services needed for testing.")
     }
     integTestImplementation(project(":launcher")) {
         because("Daemon fixtures need DaemonRegistry")
