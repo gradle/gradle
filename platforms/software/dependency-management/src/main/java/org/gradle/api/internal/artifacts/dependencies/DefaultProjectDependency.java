@@ -105,6 +105,8 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
      * for this failure is abstract, we need to create an anonymous instance of it ourselves here, since there are
      * no instantiator types available here.
      *
+     * NOTE: This should all be going away in Gradle 9, so it's okay to remain ugly for a little while.
+     *
      * @param selectedConfiguration the non-consumable configuration that was selected
      */
     private void failDueToNonConsumableConfigurationSelection(Configuration selectedConfiguration) {
