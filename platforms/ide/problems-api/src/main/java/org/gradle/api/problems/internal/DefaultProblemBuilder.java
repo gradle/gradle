@@ -85,7 +85,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, getSeverity(), docLink, solutions, category);
-        return new DefaultProblemReport(problemDefinition, contextualLabel, contextualSolutions, locations, details, getExceptionForProblemInstantiation(), additionalData);
+        return new DefaultProblem(problemDefinition, contextualLabel, contextualSolutions, locations, details, getExceptionForProblemInstantiation(), additionalData);
     }
 
     private Problem missingLabelProblem() {
@@ -99,7 +99,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private Problem invalidProblem(String label, String subcategory) {
         category("validation", "problems-api", subcategory).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, Severity.WARNING, null, Collections.<String>emptyList(), category);
-        return new DefaultProblemReport(problemDefinition, null,
+        return new DefaultProblem(problemDefinition, null,
             ImmutableList.<String>of(),
             ImmutableList.<ProblemLocation>of(),
             null,
