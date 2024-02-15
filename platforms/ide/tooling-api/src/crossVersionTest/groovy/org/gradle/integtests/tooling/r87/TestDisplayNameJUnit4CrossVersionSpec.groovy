@@ -132,10 +132,10 @@ public class ParameterizedTests {
                     suite("Gradle Test Executor") {
                         testClass("org.example.ParameterizedTests") {
                             displayName "ParameterizedTests"
-                            generatedTest("parametrized_test[0]") {
+                            test("parametrized_test[0]") {
                                 displayName "parametrized_test[0]" // JUnit4 does not provide detailed information for parameterized tests
                             }
-                            generatedTest("parametrized_test[1]") {
+                            test("parametrized_test[1]") {
                                 displayName "parametrized_test[1]"
                             }
                         }

@@ -126,10 +126,10 @@ class ParameterizedTests extends Specification {
                             displayName "ParameterizedTests"
                             testMethodSuite("length of #name is #length") {
                                 displayName "length of #name is #length"
-                                generatedTest("length of Spock is 5") {
+                                test("length of Spock is 5") {
                                     displayName "length of Spock is 5"
                                 }
-                                generatedTest("length of junit5 is 6") {
+                                test("length of junit5 is 6") {
                                     displayName "length of junit5 is 6"
                                 }
                             }

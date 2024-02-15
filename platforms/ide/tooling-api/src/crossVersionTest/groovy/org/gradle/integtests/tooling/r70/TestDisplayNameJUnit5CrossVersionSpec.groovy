@@ -266,19 +266,19 @@ public class ParameterizedTests {
                             displayName "Parameterized test"
                             testMethodSuite("test1(String)") {
                                 displayName "1st test"
-                                generatedTest("test1(String)[1]") {
+                                test("test1(String)[1]") {
                                     displayName "[1] foo"
                                 }
-                                generatedTest("test1(String)[2]") {
+                                test("test1(String)[2]") {
                                     displayName "[2] bar"
                                 }
                             }
                             testMethodSuite("test2(String)") {
                                 displayName "2nd test"
-                                generatedTest("test2(String)[1]") {
+                                test("test2(String)[1]") {
                                     displayName "1 ==> the test for 'foo'"
                                 }
-                                generatedTest("test2(String)[2]") {
+                                test("test2(String)[2]") {
                                     displayName "2 ==> the test for 'bar'"
                                 }
                             }
@@ -348,10 +348,10 @@ public class DynamicTests {
                                     displayName "some container"
                                     testMethodSuite("testFactory()[1][1]") {
                                         displayName "some nested container"
-                                        generatedTest("testFactory()[1][1][1]") {
+                                        test("testFactory()[1][1][1]") {
                                             displayName "foo"
                                         }
-                                        generatedTest("testFactory()[1][1][2]") {
+                                        test("testFactory()[1][1][2]") {
                                             displayName "bar"
                                         }
                                     }
@@ -359,7 +359,7 @@ public class DynamicTests {
                             }
                             testMethodSuite("anotherTestFactory()") {
                                 displayName "another test factory"
-                                generatedTest("anotherTestFactory()[1]") {
+                                test("anotherTestFactory()[1]") {
                                     displayName "foo"
                                 }
                             }
@@ -434,19 +434,19 @@ public class ComplexTests {
                             }
                             testMethodSuite("parametrized_test(int, String)") {
                                 displayName "parametrized test (int, String)"
-                                generatedTest("parametrized_test(int, String)[1]") {
+                                test("parametrized_test(int, String)[1]") {
                                     displayName "[1] 10, first"
                                 }
-                                generatedTest("parametrized_test(int, String)[2]") {
+                                test("parametrized_test(int, String)[2]") {
                                     displayName "[2] 20, second"
                                 }
                             }
                             testMethodSuite("ugly_parametrized_test(int, String)") {
                                 displayName "pretty parametrized test"
-                                generatedTest("ugly_parametrized_test(int, String)[1]") {
+                                test("ugly_parametrized_test(int, String)[1]") {
                                     displayName "[1] 30, third"
                                 }
-                                generatedTest("ugly_parametrized_test(int, String)[2]") {
+                                test("ugly_parametrized_test(int, String)[2]") {
                                     displayName "[2] 40, fourth"
                                 }
                             }
