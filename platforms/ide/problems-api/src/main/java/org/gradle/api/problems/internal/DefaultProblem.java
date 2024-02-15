@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblemReport implements Serializable, Problem {
+public class DefaultProblem implements Serializable, Problem {
     private final ProblemDefinition problemDefinition;
     private final String contextualLabel;
     private final List<String> contextualSolutions;
@@ -34,11 +34,12 @@ public class DefaultProblemReport implements Serializable, Problem {
     private final RuntimeException exception;
     private final Map<String, Object> additionalData;
 
-    protected DefaultProblemReport(
+    protected DefaultProblem(
         ProblemDefinition problemDefinition,
         String contextualLabel,
         List<String> contextualSolutions,
-        List<ProblemLocation> problemLocations, String details,
+        List<ProblemLocation> problemLocations,
+        String details,
         RuntimeException exception,
         Map<String, Object> additionalData
     ) {
@@ -106,7 +107,7 @@ public class DefaultProblemReport implements Serializable, Problem {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultProblemReport that = (DefaultProblemReport) o;
+        DefaultProblem that = (DefaultProblem) o;
         return equals(problemDefinition, that.problemDefinition) &&
             equals(contextualLabel, that.contextualLabel);
     }
