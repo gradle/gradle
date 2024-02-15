@@ -38,7 +38,7 @@ import org.gradle.api.problems.internal.LineInFileLocation;
 import org.gradle.api.problems.internal.OffsetInFileLocation;
 import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.ProblemLocation;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nonnull;
@@ -55,7 +55,7 @@ import java.util.stream.Stream;
 public class ValidationProblemSerialization {
     private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
-    public static List<? extends ProblemReport> parseMessageList(String lines) {
+    public static List<? extends Problem> parseMessageList(String lines) {
         Gson gson = GSON_BUILDER.create();
         Type type = new TypeToken<List<DefaultProblemReport>>() {}.getType();
         return gson.<List<DefaultProblemReport>>fromJson(lines, type);
@@ -72,7 +72,7 @@ public class ValidationProblemSerialization {
         return gsonBuilder;
     }
 
-    public static Stream<String> toPlainMessage(List<? extends ProblemReport> problems) {
+    public static Stream<String> toPlainMessage(List<? extends Problem> problems) {
         return problems.stream()
             .map(problem -> problem.getDefinition().getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
