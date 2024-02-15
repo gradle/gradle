@@ -298,8 +298,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     private static List<File> resolveAgentInstrumentationFiles(File original, File first, File second) {
-        if (first.getName().equals(ORIGINAL_FILE_PLACEHOLDER_MARKER)) {
-            return Arrays.asList(original, second);
+        if (second.getName().equals(ORIGINAL_FILE_PLACEHOLDER_MARKER)) {
+            return Arrays.asList(first, original);
         } else {
             return Arrays.asList(first, second);
         }
