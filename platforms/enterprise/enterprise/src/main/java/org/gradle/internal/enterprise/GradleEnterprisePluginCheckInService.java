@@ -16,11 +16,15 @@
 
 package org.gradle.internal.enterprise;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * The plugin uses this to announce its presence and provide its service.
  *
  * It is obtained via the settings object's service registry for the root build only.
  */
+@ServiceScope(Scopes.Gradle.class)
 public interface GradleEnterprisePluginCheckInService {
 
     /**

@@ -16,9 +16,13 @@
 
 package org.gradle.internal.enterprise;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * Information eagerly conveyed about the plugin from Gradle to the plugin.
  */
+@ServiceScope(Scopes.Gradle.class)
 public interface GradleEnterprisePluginConfig {
 
     enum BuildScanRequest {
