@@ -49,7 +49,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             namespace: 'org.example.plugin',
             category: 'validation',
             subcategories: ['problems-api', 'missing-label']]
-        problem['context']['locations'] == [
+        problem['locations'] == [
             [length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
     }
 
@@ -72,7 +72,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             namespace: 'org.example.plugin',
             category: 'validation',
             subcategories: ['problems-api', 'missing-category']]
-        problem['context']['locations'] == [
+        problem['locations'] == [
             [length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
     }
 
@@ -95,7 +95,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         problem['definition']['category'] == [
             namespace: 'org.example.plugin',
             category: 'type', subcategories: []]
-        problem['context']['locations'] == [
+        problem['locations'] == [
             [length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
     }
 
@@ -119,7 +119,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         problem['definition']['category'] == [
             namespace: 'org.example.plugin',
             category: 'type', subcategories: []]
-        problem['context']['locations'] == [[length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
+        problem['locations'] == [[length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
     }
 
     def "can emit a problem with documentation"() {
@@ -153,7 +153,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        collectedProblem['context']["locations"] == [['path': 'test-location', 'offset': 1, 'length': 2],
+        collectedProblem["locations"] == [['path': 'test-location', 'offset': 1, 'length': 2],
                                           [length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
     }
 
@@ -171,7 +171,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        collectedProblem['context']["locations"] == [["path": "test-location", "line": 1, "column": 2, 'length': -1],
+        collectedProblem["locations"] == [["path": "test-location", "line": 1, "column": 2, 'length': -1],
                                           [length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
     }
 
@@ -189,7 +189,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        collectedProblem['context']["locations"] == [
+        collectedProblem["locations"] == [
             ["pluginId": "org.example.pluginid"],
             [length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
     }
@@ -246,8 +246,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def problem = collectedProblem
-        problem['context']["exception"]["message"] == "test"
-        !(problem['context']["exception"]["stackTrace"] as List<String>).isEmpty()
+        problem["exception"]["message"] == "test"
+        !(problem["exception"]["stackTrace"] as List<String>).isEmpty()
     }
 
     def "can emit a problem with additional data"() {
@@ -264,7 +264,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        collectedProblem['context']['additionalData'] == ['key': 'value']
+        collectedProblem['additionalData'] == ['key': 'value']
     }
 
     def "cannot emit a problem with invalid additional data"() {
@@ -288,7 +288,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             namespace: 'org.example.plugin',
             category: 'validation',
             subcategories: ['problems-api', 'invalid-additional-data']]
-        problem['context']['locations'] == [[length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
+        problem['locations'] == [[length: -1, column: -1, line: 11, path: "build file '$buildFile.absolutePath'"]]
     }
 
     def "can throw a problem with a wrapper exception"() {
@@ -305,7 +305,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         fails('reportProblem')
 
         then:
-        collectedProblem['context']['exception']['message'] == 'test'
+        collectedProblem['exception']['message'] == 'test'
     }
 
     def "can rethrow an exception"() {
@@ -321,7 +321,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         fails('reportProblem')
 
         then:
-        collectedProblem['context']['exception']['message'] == 'test'
+        collectedProblem['exception']['message'] == 'test'
     }
 
     def "can rethrow a caught exception"() {

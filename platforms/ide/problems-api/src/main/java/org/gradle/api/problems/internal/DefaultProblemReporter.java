@@ -47,7 +47,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
         Problem problem = problemBuilder.build();
-        RuntimeException exception = problem.getContext().getException();
+        RuntimeException exception = problem.getException();
         if (exception == null) {
             throw new IllegalStateException("Exception must be non-null");
         } else {

@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
@@ -43,16 +45,16 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     public DefaultProblemBuilder(Problem problem) {
         this.label = problem.getDefinition().getLabel();
-        this.contextualLabel = problem.getContext().getContextualLabel();
-        this.contextualSolutions = new ArrayList<String>(problem.getContext().getContextualSolutions());
+        this.contextualLabel = problem.getContextualLabel();
+        this.contextualSolutions = new ArrayList<String>(problem.getContextualSolutions());
         this.category = problem.getDefinition().getCategory();
         this.severity = problem.getDefinition().getSeverity();
-        this.locations = new ArrayList<ProblemLocation>(problem.getContext().getLocations());
-        this.details = problem.getContext().getDetails();
+        this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
+        this.details = problem.getDetails();
         this.docLink = problem.getDefinition().getDocumentationLink();
         this.solutions = new ArrayList<String>(problem.getDefinition().getSolutions());
-        this.exception = problem.getContext().getException();
-        this.additionalData = new HashMap<String, Object>(problem.getContext().getAdditionalData());
+        this.exception = problem.getException();
+        this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
         this.namespace = problem.getDefinition().getCategory().getNamespace();
     }
 
@@ -83,8 +85,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, getSeverity(), docLink, solutions, category);
-        ProblemContext problemContext = new DefaultProblemContext(contextualLabel, contextualSolutions, locations, details, getExceptionForProblemInstantiation(), additionalData);
-        return new DefaultProblemReport(problemDefinition, problemContext);
+        return new DefaultProblemReport(problemDefinition, contextualLabel, contextualSolutions, locations, details, getExceptionForProblemInstantiation(), additionalData);
     }
 
     private Problem missingLabelProblem() {
@@ -98,8 +99,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private Problem invalidProblem(String label, String subcategory) {
         category("validation", "problems-api", subcategory).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, Severity.WARNING, null, Collections.<String>emptyList(), category);
-        ProblemContext problemContext = new DefaultProblemContext(null, Collections.<String>emptyList(), Collections.<ProblemLocation>emptyList(), null, getExceptionForProblemInstantiation(), Collections.<String, Object>emptyMap());
-        return new DefaultProblemReport(problemDefinition, problemContext);
+        return new DefaultProblemReport(problemDefinition, null,
+            ImmutableList.<String>of(),
+            ImmutableList.<ProblemLocation>of(),
+            null,
+            getExceptionForProblemInstantiation(),
+            ImmutableMap.<String, Object>of());
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
