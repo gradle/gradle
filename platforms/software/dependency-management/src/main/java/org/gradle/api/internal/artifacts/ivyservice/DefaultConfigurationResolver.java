@@ -202,7 +202,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
 
-        ComponentResolvers resolvers = new ComponentResolversChain(getResolvers(resolveContext, Collections.emptyList()));
+        ComponentResolvers resolvers = getResolvers(resolveContext, Collections.emptyList());
         DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder, resolvers);
 
         ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, localComponentsVisitor, artifactsGraphVisitor);
@@ -270,7 +270,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             resolutionStrategy.confirmUnlockedConfigurationResolved(resolveContext.getName());
         }
 
-        ComponentResolvers resolvers = new ComponentResolversChain(getResolvers(resolveContext, getFilteredRepositories(resolveContext)));
+        ComponentResolvers resolvers = getResolvers(resolveContext, getFilteredRepositories(resolveContext));
         CompositeDependencyArtifactsVisitor artifactVisitors = new CompositeDependencyArtifactsVisitor(ImmutableList.of(
             oldModelVisitor, fileDependencyVisitor, artifactsBuilder
         ));
@@ -411,7 +411,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     /**
      * Get component resolvers that resolve local and external components.
      */
-    private List<ComponentResolvers> getResolvers(ResolveContext resolveContext, List<ResolutionAwareRepository> repositories) {
+    private ComponentResolvers getResolvers(ResolveContext resolveContext, List<ResolutionAwareRepository> repositories) {
         List<ComponentResolvers> resolvers = new ArrayList<>(3);
         for (ResolverProviderFactory factory : resolverFactories) {
             factory.create(resolvers, localComponentRegistry);
@@ -432,7 +432,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             consumerSchema
         ));
 
-        return resolvers;
+        return new ComponentResolversChain(resolvers);
     }
 
     /**

@@ -146,7 +146,10 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             })
             .collect(Collectors.toList());
 
+        // We use a resolution strategy here in order to use the same defaults for dependency verification,
+        // caching, etc. that a normal dependency resolution would use.
         ResolutionStrategyInternal resolutionStrategy = resolutionStrategyFactory.create();
+
         ComponentResolvers componentResolvers = externalResolverFactory.createResolvers(
             filteredRepositories,
             metadataHandler.getComponentMetadataProcessorFactory(),
