@@ -45,7 +45,7 @@ interface CollectionSupplier<T, C extends Collection<? extends T>> extends Value
     ExecutionTimeValue<? extends C> calculateExecutionTimeValue();
 
     /**
-     * Returns a view of this supplier that will calculate its value as empty if it would be missing.
+     * Returns a view of this supplier that may calculate its value as empty if it would be missing.
      */
-    CollectionSupplier<T, C> ignoringAbsent();
+    CollectionSupplier<T, C> absentIgnoring(boolean ignoreAbsent);
 }

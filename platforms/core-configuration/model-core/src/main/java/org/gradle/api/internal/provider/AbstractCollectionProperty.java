@@ -196,11 +196,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     private void addExplicitCollector(Collector<T> collector, boolean ignoreAbsent) {
         assertCanMutate();
-        CollectionSupplier<T, C> explicitValue = getExplicitValue(defaultValue);
-        if (ignoreAbsent) {
-            explicitValue = explicitValue.ignoringAbsent();
-        }
-        setSupplier(explicitValue.plus(collector));
+        CollectionSupplier<T, C> explicitValue = getExplicitValue(defaultValue).absentIgnoring(ignoreAbsent);
+        setSupplier(explicitValue.plus(collector.absentIgnoring(ignoreAbsent)));
     }
 
     @Nullable
@@ -350,8 +347,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> ignoringAbsent() {
-            return Cast.uncheckedCast(emptySupplier().ignoringAbsent());
+        public CollectionSupplier<T, C> absentIgnoring(boolean ignoreAbsent) {
+            return ignoreAbsent ? Cast.uncheckedCast(emptySupplier()) : this;
         }
 
         @Override
@@ -410,8 +407,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> ignoringAbsent() {
-            return ignoreAbsent ? this : new EmptySupplier(true);
+        public CollectionSupplier<T, C> absentIgnoring(boolean ignoreAbsent) {
+            return this.ignoreAbsent == ignoreAbsent ? this : new EmptySupplier(ignoreAbsent);
         }
 
         @Override
@@ -440,8 +437,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> ignoringAbsent() {
-            return this;
+        public CollectionSupplier<T, C> absentIgnoring(boolean ignoreAbsent) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -480,7 +477,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         private final boolean ignoreAbsent;
 
         public CollectingSupplier(Collector<T> value, boolean ignoreAbsent) {
-            this.value = ignoreAbsent ? value.absentIgnoring() : value;
+            this.value = value.absentIgnoring(ignoreAbsent);
             this.ignoreAbsent = ignoreAbsent;
         }
 
@@ -506,12 +503,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> newCollector) {
-            return new CollectingSupplier(new PlusCollector<>(value, ignoreAbsent ? newCollector.absentIgnoring() : newCollector), false);
+            return new CollectingSupplier(new PlusCollector<>(value, newCollector), false);
         }
 
         @Override
-        public CollectionSupplier<T, C> ignoringAbsent() {
-            return ignoreAbsent ? this : new CollectingSupplier(value, true);
+        public CollectionSupplier<T, C> absentIgnoring(boolean ignoreAbsent) {
+            return this.ignoreAbsent == ignoreAbsent ? this : new CollectingSupplier(value, ignoreAbsent);
         }
 
         @Override

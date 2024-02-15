@@ -40,7 +40,10 @@ public interface Collector<T> extends ValueSupplier {
     /**
      * Returns a collector that never returns a missing value.
      */
-    default Collector<T> absentIgnoring() {
+    default Collector<T> absentIgnoring(boolean ignoreAbsent) {
+        if (!ignoreAbsent) {
+            return this;
+        }
         Collector<T> delegate = this;
         return new Collector<T>() {
             @Override
@@ -81,6 +84,11 @@ public interface Collector<T> extends ValueSupplier {
             public boolean calculatePresence(ValueConsumer consumer) {
                 // always present
                 return true;
+            }
+
+            @Override
+            public Collector<T> absentIgnoring(boolean ignoreAbsent) {
+                return this;
             }
         };
     }

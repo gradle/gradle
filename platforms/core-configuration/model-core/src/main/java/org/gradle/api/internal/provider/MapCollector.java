@@ -42,9 +42,12 @@ public interface MapCollector<K, V> extends ValueSupplier {
     void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor);
 
     /**
-     * Returns a collector that never returns a missing value.
+     * Returns a collector that may never return a missing value.
      */
-    default MapCollector<K, V> absentIgnoring() {
+    default MapCollector<K, V> absentIgnoring(boolean ignoreAbsent) {
+        if (!ignoreAbsent) {
+            return this;
+        }
         MapCollector<K, V> delegate = this;
         return new MapCollector<K, V>() {
             @Override
@@ -94,7 +97,7 @@ public interface MapCollector<K, V> extends ValueSupplier {
             }
 
             @Override
-            public MapCollector<K, V> absentIgnoring() {
+            public MapCollector<K, V> absentIgnoring(boolean ignoreAbsent) {
                 return this;
             }
         };
