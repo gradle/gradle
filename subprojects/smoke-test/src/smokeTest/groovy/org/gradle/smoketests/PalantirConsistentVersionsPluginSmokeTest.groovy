@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
@@ -23,6 +24,7 @@ import org.gradle.util.GradleVersion
 @Requires(UnitTestPreconditions.Jdk11OrLater)
 class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
 
+    @ToBeFixedForConfigurationCache
     def 'basic functionality'() {
         given:
         buildFile << """
