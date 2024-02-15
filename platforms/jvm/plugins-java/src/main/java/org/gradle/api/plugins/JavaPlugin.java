@@ -48,10 +48,12 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.testing.base.TestingExtension;
+import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -275,6 +277,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         configureTestTaskOrdering(project.getTasks());
         configureDiagnostics(project, javaComponent.getMainFeature());
         configureBuild(project);
+        disableImplementationCompileElementsForKmp(project, javaComponent.getMainFeature());
     }
 
     private static JvmFeatureInternal createMainFeature(ProjectInternal project, SourceSetContainer sourceSets) {
@@ -421,5 +424,21 @@ public abstract class JavaPlugin implements Plugin<Project> {
         Project project = task.getProject();
         final Configuration configuration = project.getConfigurations().getByName(configurationName);
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
+    }
+
+    /**
+     * Older versions of KMP, when using the {@code withJava} method of the jvm target, intentionally add
+     * configurations which are ambiguous with the ones added by this plugin. They get around the ambiguity
+     * by setting the configurations to not be consumable. These old versions are not aware of this configuration
+     * and thus are not able to set it to non-consumable.
+     *
+     * We maintain compatibility with these old kmp versions by setting this configuration to non-consumable ourselves.
+     */
+    private static void disableImplementationCompileElementsForKmp(Project project, JvmFeatureInternal feature) {
+        assert GradleVersion.current().compareTo(GradleVersion.version("9.0")) < 0; // Delete this method in 9.0
+        project.getPlugins().withId("org.jetbrains.kotlin.multiplatform", a -> {
+            Configuration conf = feature.getImplementationCompileElementsConfiguration();
+            DeprecationLogger.whileDisabled(() -> conf.setCanBeConsumed(false));
+        });
     }
 }

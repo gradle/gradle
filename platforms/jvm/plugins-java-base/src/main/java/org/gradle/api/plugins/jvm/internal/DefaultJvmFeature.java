@@ -17,7 +17,6 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -106,7 +105,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     // Outgoing variants
     private final Configuration apiElements;
     private final Configuration runtimeElements;
-    private final NamedDomainObjectProvider<ConsumableConfiguration> implementationCompileElements;
+    private final Configuration implementationCompileElements;
 
     // Configurable outgoing variants
     private Configuration javadocElements;
@@ -267,12 +266,12 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         return runtimeElements;
     }
 
-    private NamedDomainObjectProvider<ConsumableConfiguration> createImplementationCompileElements(
+    private Configuration createImplementationCompileElements(
         RoleBasedConfigurationContainerInternal configurations,
         PublishArtifact jarArtifact
     ) {
          String configName = getConfigurationName(JvmConstants.IMPLEMENTATION_COMPILE_ELEMENTS_CONFIGURATION_NAME);
-         return configurations.consumable(configName, conf -> {
+         return configurations.consumableUnlocked(configName, conf -> {
             jvmLanguageUtilities.useDefaultTargetPlatformInference(conf, compileJava);
             jvmPluginServices.configureAsImplementationCompileElements(conf);
             capabilities.forEach(conf.getOutgoing()::capability);
@@ -464,7 +463,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     }
 
     @Override
-    public NamedDomainObjectProvider<ConsumableConfiguration> getImplementationCompileElementsConfiguration() {
+    public Configuration getImplementationCompileElementsConfiguration() {
         return implementationCompileElements;
     }
 
