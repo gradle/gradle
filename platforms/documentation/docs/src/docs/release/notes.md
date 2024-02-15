@@ -93,6 +93,10 @@ gradle init --use-defaults --type kotlin-library --no-comments
 
 It is possible to persist the preference by setting the `org.gradle.buildinit.comments` property to `false`.
 
+#### Emitting separate problems for each issue found in a TOML catalog file
+
+When a TOML catalog files are used with invalid TOML syntax every distinct problem is emitted separately via the Problems API.
+This used to be a combined problem for all issues found in the file.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
