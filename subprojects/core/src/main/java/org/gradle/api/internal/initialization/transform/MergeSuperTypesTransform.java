@@ -29,7 +29,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -91,7 +90,7 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
         File input = findFirstWithSuffix(getInput().get().getAsFile(), DIRECT_SUPER_TYPES_SUFFIX);
         File outputDir = outputs.dir("supertypes");
         File output = new File(outputDir, input.getName().replace(DIRECT_SUPER_TYPES_SUFFIX, MergeSuperTypesTransform.MERGED_SUPER_TYPES_SUFFIX));
-        InjectedInternalServices services = getObjects().newInstance(InjectedInternalServices.class);
+        InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
 
         try (InputStream inputStream = Files.newInputStream(input.toPath());
              BufferedWriter outputWriter = new BufferedWriter(new FileWriter(output))
@@ -115,9 +114,9 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
         }
     }
 
-    private InstrumentationTypeRegistry getInstrumentationTypeRegistry(InjectedInternalServices internalServices) {
+    private InstrumentationTypeRegistry getInstrumentationTypeRegistry(InjectedInstrumentationServices internalServices) {
         CacheInstrumentationTypeRegistryBuildService buildService = getParameters().getBuildService().get();
-        return buildService.getInstrumentingTypeRegistry(internalServices.gradleCoreInstrumentingTypeRegistry);
+        return buildService.getInstrumentingTypeRegistry(internalServices.getGradleCoreInstrumentingTypeRegistry());
     }
 
     private static Properties loadProperties(InputStream inputStream) throws IOException {
@@ -130,15 +129,5 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
         Set<String> types = new TreeSet<>(properties.stringPropertyNames());
         types.remove(FILE_HASH_PROPERTY_NAME);
         return types;
-    }
-
-    static class InjectedInternalServices {
-
-        private final GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry;
-
-        @Inject
-        public InjectedInternalServices(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry) {
-            this.gradleCoreInstrumentingTypeRegistry = gradleCoreInstrumentingTypeRegistry;
-        }
     }
 }

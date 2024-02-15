@@ -28,19 +28,11 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.cache.GlobalCacheLocations;
-import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.InPlaceClasspathBuilder;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
-import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
-import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
-import org.gradle.internal.file.Stat;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
-import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -147,48 +139,5 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
 
     private boolean isAgentSupported() {
         return getParameters().getAgentSupported().get();
-    }
-
-    static class InjectedInstrumentationServices {
-
-        private final ClasspathElementTransformFactoryForAgent transformFactory;
-        private final ClasspathElementTransformFactoryForLegacy legacyTransformFactory;
-        private final GlobalCacheLocations globalCacheLocations;
-        private final GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry;
-        private final FileSystemAccess fileSystemAccess;
-
-        @Inject
-        public InjectedInstrumentationServices(
-            Stat stat,
-            GlobalCacheLocations globalCacheLocations,
-            GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry,
-            FileSystemAccess fileSystemAccess
-        ) {
-            this.transformFactory = new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
-            this.legacyTransformFactory = new ClasspathElementTransformFactoryForLegacy(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
-            this.globalCacheLocations = globalCacheLocations;
-            this.gradleCoreInstrumentingTypeRegistry = gradleCoreInstrumentingTypeRegistry;
-            this.fileSystemAccess = fileSystemAccess;
-        }
-
-        public ClasspathElementTransformFactory getTransformFactory(boolean isAgentSupported) {
-            return isAgentSupported ? transformFactory : legacyTransformFactory;
-        }
-
-        public GlobalCacheLocations getGlobalCacheLocations() {
-            return globalCacheLocations;
-        }
-
-        public GradleCoreInstrumentationTypeRegistry getGradleCoreInstrumentingTypeRegistry() {
-            return gradleCoreInstrumentingTypeRegistry;
-        }
-    }
-
-    protected static class OriginalArtifact {
-        private final File file;
-
-        public OriginalArtifact(File file) {
-            this.file = file;
-        }
     }
 }

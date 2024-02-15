@@ -245,7 +245,12 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
      */
     public static ClassPath combineClassPaths(ArtifactCollection originalClasspath, ArtifactCollection externalDependencies, ArtifactCollection projectDependencies) {
         Map<ComponentIdentifier, Set<File>> originalArtifact = new HashMap<>(originalClasspath.getArtifacts().size());
-        originalClasspath.getArtifacts().forEach(artifact -> originalArtifact.computeIfAbsent(artifact.getId().getComponentIdentifier(), __ -> new HashSet<>()).add(artifact.getFile()));
+        originalClasspath.getArtifacts().forEach(artifact -> {
+            // One component identifier can have multiple files with different names,
+            // e.q. when we resolve multiple variants in the same classpath
+            ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
+            originalArtifact.computeIfAbsent(componentIdentifier, __ -> new HashSet<>()).add(artifact.getFile());
+        });
         List<File> files = new ArrayList<>();
         Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream()).forEach(artifact -> {
             if (artifact.getFile().getName().endsWith(ORIGINAL_ENTRY_PLACEHOLDER_FILE_SUFFIX)) {

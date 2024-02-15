@@ -30,8 +30,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.file.FileException;
-import org.gradle.internal.file.Stat;
-import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.work.DisableCachingByDefault;
 import org.objectweb.asm.ClassReader;
 
@@ -106,10 +104,11 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
                 return;
             }
 
+            CacheInstrumentationTypeRegistryBuildService buildService = getParameters().getBuildService().get();
             File outputDir = outputs.dir("supertypes");
             File output = new File(outputDir, inputFile.getName() + DIRECT_SUPER_TYPES_SUFFIX);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
-                String hash = checkNotNull(getParameters().getBuildService().get().hash(inputFile));
+                String hash = checkNotNull(buildService.getArtifactHash(inputFile));
                 writer.write(FILE_HASH_PROPERTY_NAME + "=" + hash + "\n");
                 for (Map.Entry<String, Set<String>> entry : superTypes.entrySet()) {
                     writer.write(entry.getKey() + "=" + String.join(",", entry.getValue()) + "\n");
@@ -128,25 +127,5 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
         return Stream.concat(Stream.of(reader.getSuperName()), Stream.of(reader.getInterfaces()))
             .filter(ACCEPTED_TYPES)
             .collect(toImmutableSortedSet(Ordering.natural()));
-    }
-
-    static class InjectedInstrumentationServices {
-
-        private final ClasspathWalker classpathWalker;
-        private final FileSystemAccess fileSystemAccess;
-
-        @Inject
-        public InjectedInstrumentationServices(Stat stat, FileSystemAccess fileSystemAccess) {
-            this.classpathWalker = new ClasspathWalker(stat);
-            this.fileSystemAccess = fileSystemAccess;
-        }
-
-        public ClasspathWalker getClasspathWalker() {
-            return classpathWalker;
-        }
-
-        public FileSystemAccess getFileSystemAccess() {
-            return fileSystemAccess;
-        }
     }
 }

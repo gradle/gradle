@@ -28,7 +28,6 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -43,6 +42,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform.FILE_HASH_PROPERTY_NAME;
@@ -59,7 +59,8 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
 
     private volatile InstrumentationTypeRegistry instrumentingTypeRegistry;
     private volatile Map<String, File> originalFiles;
-    private final Lazy<FileSystemAccess> fileSystemAccess = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInternalServices.class).getFileSystemAccess());
+    private volatile Map<File, String> hashCache;
+    private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
 
     public InstrumentationTypeRegistry getInstrumentingTypeRegistry(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
         if (gradleCoreInstrumentationTypeRegistry.isEmpty()) {
@@ -99,13 +100,17 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
         return classHierarchy;
     }
 
+    /**
+     * Returns the original file for the given hash. It's possible that multiple files have the same content,
+     * so this method returns just one. For instrumentation is not important which one is returned.
+     */
     public File getOriginalFile(String hash) {
         if (originalFiles == null) {
             synchronized (this) {
                 if (originalFiles == null) {
                     Map<String, File> originalFiles = new HashMap<>(getParameters().getOriginalClasspath().getFiles().size());
                     getParameters().getOriginalClasspath().forEach(file -> {
-                        String fileHash = hash(file);
+                        String fileHash = getArtifactHash(file);
                         if (fileHash != null) {
                             originalFiles.put(fileHash, file);
                         }
@@ -118,27 +123,32 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
     }
 
     @Nullable
-    public String hash(File file) {
-        Hasher hasher = Hashing.newHasher();
-        FileSystemLocationSnapshot snapshot = fileSystemAccess.get().read(file.getAbsolutePath());
-        if (snapshot.getType() == FileType.Missing) {
-            return null;
+    public String getArtifactHash(File file) {
+        if (hashCache == null) {
+            synchronized (this) {
+                if (hashCache == null) {
+                    this.hashCache = new ConcurrentHashMap<>();
+                }
+            }
         }
+        return hashCache.computeIfAbsent(file, __ -> {
+            Hasher hasher = Hashing.newHasher();
+            InjectedInstrumentationServices services = internalServices.get();
+            FileSystemLocationSnapshot snapshot = services.getFileSystemAccess().read(file.getAbsolutePath());
+            if (snapshot.getType() == FileType.Missing) {
+                return null;
+            }
 
-        hasher.putHash(fileSystemAccess.get().read(file.getAbsolutePath()).getHash());
-        hasher.putString(file.getName());
-        return hasher.hash().toString();
+            hasher.putString(file.getName());
+            hasher.putBoolean(services.getGlobalCacheLocations().isInsideGlobalCache(file.getAbsolutePath()));
+            return hasher.hash().toString();
+        });
     }
 
     public void clear() {
-        // Remove the reference to the registry, so that it can be garbage collected,
-        // since build service instance is not deregistered
+        // Clear mutable data since service can be reused to resolve other configuration
         instrumentingTypeRegistry = null;
         originalFiles = null;
-    }
-
-    interface InjectedInternalServices {
-        @Inject
-        FileSystemAccess getFileSystemAccess();
+        hashCache = null;
     }
 }
