@@ -43,16 +43,6 @@ abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGr
         run([':kotlin-dsl:generateKotlinDependencyExtensions'])
     }
 
-    @Override
-    protected void assertConfigurationCacheStateStored() {
-        assert result.output.count("Calculating task graph as no cached configuration is available") == 1
-    }
-
-    @Override
-    protected void assertConfigurationCacheStateLoaded() {
-        assert result.output.count("Reusing configuration cache") == 1
-    }
-
     TestExecutionResult assertTestClassExecutedIn(String subProjectDir, String testClass) {
         new DefaultTestExecutionResult(file(subProjectDir), "build", "", "", "embeddedIntegTest")
             .assertTestClassesExecuted(testClass)

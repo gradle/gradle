@@ -31,7 +31,7 @@ class GradleBuildSoakTestConfigurationCacheSmokeTest extends AbstractGradleBuild
         configurationCacheRun(tasks, 0)
 
         then:
-        assertConfigurationCacheStateStored()
+        result.assertConfigurationCacheStateStored()
 
         when:
         run([":soak:clean"])
@@ -40,7 +40,7 @@ class GradleBuildSoakTestConfigurationCacheSmokeTest extends AbstractGradleBuild
         configurationCacheRun(tasks, 1)
 
         then:
-        assertConfigurationCacheStateLoaded()
+        result.assertConfigurationCacheStateLoaded()
         result.task(":soak:forkingIntegTest").outcome == TaskOutcome.FROM_CACHE
     }
 }
