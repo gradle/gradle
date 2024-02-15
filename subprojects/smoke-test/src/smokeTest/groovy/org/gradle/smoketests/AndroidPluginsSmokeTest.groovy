@@ -116,7 +116,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
             expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(agpVersionNumber)
             expectClientModuleDeprecationWarning(agpVersion)
-            expectConfigurationMutationDeprecationWarning(agpVersion, mutatedConfigurations)
+            expectConfigurationMutationDeprecationWarnings(agpVersion, mutatedConfigurations)
         }.build()
 
         then:
@@ -143,7 +143,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(agpVersionNumber)
                 expectClientModuleDeprecationWarning(agpVersion)
-                expectConfigurationMutationDeprecationWarning(agpVersion, mutatedConfigurations)
+                expectConfigurationMutationDeprecationWarnings(agpVersion, mutatedConfigurations)
             }
         }.build()
 
@@ -171,7 +171,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(agpVersionNumber)
                 expectClientModuleDeprecationWarning(agpVersion)
-                expectConfigurationMutationDeprecationWarning(agpVersion, mutatedConfigurations)
+                expectConfigurationMutationDeprecationWarnings(agpVersion, mutatedConfigurations)
             }
         }.build()
 
@@ -207,7 +207,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(agpVersionNumber)
                 expectClientModuleDeprecationWarning(agpVersion)
-                expectConfigurationMutationDeprecationWarning(agpVersion, mutatedConfigurations)
+                expectConfigurationMutationDeprecationWarnings(agpVersion, mutatedConfigurations)
             }
         }.build()
 

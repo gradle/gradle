@@ -106,7 +106,7 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         )
     }
 
-    void expectConfigurationMutationDeprecationWarning(String agpVersion, List<String> confs) {
+    void expectConfigurationMutationDeprecationWarnings(String agpVersion, List<String> confs) {
         confs.each { conf ->
             runner.expectLegacyDeprecationWarningIf(
                 versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CONFIGURATION_MUTATION),
@@ -120,7 +120,7 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         }
     }
 
-    void maybeExpectConfigurationMutationDeprecationWarning(String agpVersion, List<String> confs) {
+    void maybeexpectConfigurationMutationDeprecationWarnings(String agpVersion, List<String> confs) {
         confs.each { conf ->
             runner.maybeExpectLegacyDeprecationWarningIf(
                 versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CONFIGURATION_MUTATION),

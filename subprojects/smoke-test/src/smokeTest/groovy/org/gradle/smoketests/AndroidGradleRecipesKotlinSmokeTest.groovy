@@ -212,7 +212,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
             expectBasePluginConventionDeprecation(agpVersion)
             expectBasePluginExtensionArchivesBaseNameDeprecation(kotlinVersionNumber, VersionNumber.parse(agpVersion))
             expectClientModuleDeprecationWarning(agpVersion)
-            expectConfigurationMutationDeprecationWarning(agpVersion, [":app:debugCompileClasspath"])
+            expectConfigurationMutationDeprecationWarnings(agpVersion, [":app:debugCompileClasspath"])
         }
     }
 }

@@ -751,7 +751,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // Mark all affected configurations as observed
                 markParentsObserved(GRAPH_RESOLVED);
 
-                // TODO: Currently afterResolve runs if there is not an non-unresolved-dependency failure
+                // TODO: Currently afterResolve runs if there are unresolved dependencies, which are
+                //       resolution failures. However, they are not run for other failures.
                 //       We should either _always_ run afterResolve, or only run it if _no_ failure occurred
                 if (!results.getVisitedGraph().getResolutionFailure().isPresent()) {
                     dependencyResolutionListeners.getSource().afterResolve(getIncoming());
@@ -855,6 +856,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return null;
     }
 
+    /**
+     * Run the {@link ResolvableDependencies#beforeResolve(Action)} hook.
+     */
     private void runBeforeResolve() {
         DependencyResolutionListener dependencyResolutionListener = dependencyResolutionListeners.getSource();
         insideBeforeResolve = true;
@@ -1116,10 +1120,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         runActionInHierarchy(conf -> {
-            conf.configurationAttributes.freeze();
-            conf.outgoing.preventFromFurtherMutation();
-            conf.preventUsageMutation();
-            conf.observed = true;
+            if (!conf.observed) {
+                conf.configurationAttributes.freeze();
+                conf.outgoing.preventFromFurtherMutation();
+                conf.preventUsageMutation();
+                conf.observed = true;
+            }
         });
     }
 

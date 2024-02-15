@@ -73,7 +73,7 @@ public interface ResolveContext extends DependencyMetaDataProvider {
 
     /**
      * Marks this resolve context as observed, meaning its state has been seen by some external operation
-     * and further changes to this context that would change its public state should be forbidden.
+     * and further changes to this context that would change its public state are forbidden.
      */
     void markAsObserved();
 }
