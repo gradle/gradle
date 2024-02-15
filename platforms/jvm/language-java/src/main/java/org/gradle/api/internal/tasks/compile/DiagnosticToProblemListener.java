@@ -16,10 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.problems.ProblemReporter;
-import org.gradle.api.problems.ProblemSpec;
+import com.sun.tools.javac.api.ClientCodeWrapper;
+import com.sun.tools.javac.api.DiagnosticFormatter;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.JavacMessages;
+import com.sun.tools.javac.util.Log;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -31,16 +37,23 @@ import java.util.Locale;
  *
  * @since 8.5
  */
+@ClientCodeWrapper.Trusted
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
 
-    private final ProblemReporter problemReporter;
+    private final InternalProblemReporter problemReporter;
+    private final Context context;
 
-    public DiagnosticToProblemListener(ProblemReporter problemReporter) {
+    public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
         this.problemReporter = problemReporter;
+        this.context = context;
     }
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+        DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
+        Locale locale = JavacMessages.instance(context).getCurrentLocale();
+        String formatted = formatter.format((JCDiagnostic) diagnostic, locale);
+
         String message = diagnostic.getMessage(Locale.getDefault());
         String label = mapKindToLabel(diagnostic.getKind());
 
@@ -50,11 +63,15 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         int length = Math.toIntExact(diagnostic.getEndPosition() - diagnostic.getStartPosition());
         Severity severity = mapKindToSeverity(diagnostic.getKind());
 
-        problemReporter.reporting(problem -> {
-            ProblemSpec spec = problem
+        problemReporter.reporting(spec -> {
+            spec
                 .label(label)
                 .severity(severity)
                 .details(message);
+
+            ((InternalProblemSpec) spec).additionalData(
+                "formatted", formatted
+            );
 
             // The category of the problem depends on the severity
             switch (severity) {
