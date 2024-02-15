@@ -320,6 +320,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
      * Running the dependencyInsight report can also generate a variant selection failure, but this
      * does <strong>NOT</strong> cause the task to fail.
      */
+    @ToBeFixedForConfigurationCache
     def "demonstrate dependencyInsight report no matching capabilities failure"() {
         setupDependencyInsightFailure()
 

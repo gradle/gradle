@@ -402,6 +402,7 @@ task show {
         "incoming.artifactView({componentFilter { true }}).artifacts" | _
     }
 
+    @ToBeFixedForConfigurationCache
     def "reports failure when multiple compatible variants available"() {
         buildFile << """
 allprojects {
