@@ -36,7 +36,7 @@ public interface Problem {
     /**
      * Returns solutions and advice that contain context-sensitive data, e.g. the message contains references to variables, locations, etc.
      */
-    List<String> getContextualSolutions();
+    List<String> getSolutions();
 
     /**
      * A long description detailing the problem.

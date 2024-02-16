@@ -359,8 +359,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             .category(DefaultProblemCategory.VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_FIELD))
                             .severity(ERROR)
                             .details("Annotations on fields are only used if there's a corresponding getter for the field")
-                            .contextualSolution("Add a getter for field '" + fieldName + "'")
-                            .contextualSolution("Remove the annotations on '" + fieldName + "'")
+                            .solution("Add a getter for field '" + fieldName + "'")
+                            .solution("Remove the annotations on '" + fieldName + "'")
                     );
                 });
         }
@@ -471,7 +471,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER))
                     .severity(ERROR)
                     .details("Properties of type '" + setterType.getName() + "' are already mutable")
-                    .contextualSolution("Remove the '" + setterMethod.getName() + "' method")
+                    .solution("Remove the '" + setterMethod.getName() + "' method")
             );
         }
     }
@@ -622,7 +622,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                 .severity(ERROR)
                                 .details("A property is ignored but also has input annotations")
                                 .solution("Remove the input annotations")
-                                .contextualSolution("Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
+                                .solution("Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
                         );
                     }
                     return ImmutableMap.of(TYPE, declaredType);

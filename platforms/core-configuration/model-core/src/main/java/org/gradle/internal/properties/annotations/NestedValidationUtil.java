@@ -106,7 +106,7 @@ public class NestedValidationUtil {
                     .category(DefaultProblemCategory.VALIDATION, "property", "nested-map-unsupported-key-type")
                     .severity(WARNING)
                     .details("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
-                    .contextualSolution("Change type of key to one of the following types: " + getSupportedKeyTypes())
+                    .solution("Change type of key to one of the following types: " + getSupportedKeyTypes())
             );
         }
     }

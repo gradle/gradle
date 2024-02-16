@@ -182,9 +182,9 @@ public class MissingTaskDependencyDetector {
                     consumer,
                     producer
                 ))
-                .contextualSolution("Declare task '" + producer + "' as an input of '" + consumer + "'")
-                .contextualSolution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
-                .contextualSolution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
+                .solution("Declare task '" + producer + "' as an input of '" + consumer + "'")
+                .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
+                .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
         );
     }
 

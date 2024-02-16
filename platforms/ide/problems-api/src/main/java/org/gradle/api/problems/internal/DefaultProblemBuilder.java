@@ -32,7 +32,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private final String namespace;
     private String label;
     private String contextualLabel;
-    private List<String> contextualSolutions;
     private ProblemCategory category;
     private Severity severity;
     private final List<ProblemLocation> locations;
@@ -46,7 +45,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     public DefaultProblemBuilder(Problem problem) {
         this.label = problem.getDefinition().getLabel();
         this.contextualLabel = problem.getContextualLabel();
-        this.contextualSolutions = new ArrayList<String>(problem.getContextualSolutions());
+        this.solutions = new ArrayList<String>(problem.getSolutions());
         this.category = problem.getDefinition().getCategory();
         this.severity = problem.getDefinition().getSeverity();
         this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
@@ -61,7 +60,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     public DefaultProblemBuilder(String namespace) {
         this.namespace = namespace;
         this.locations = new ArrayList<ProblemLocation>();
-        this.contextualSolutions = new ArrayList<String>();
+        this.solutions = new ArrayList<String>();
         this.additionalData = new HashMap<String, Object>();
     }
 
@@ -85,7 +84,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, getSeverity(), docLink, solutions, category);
-        return new DefaultProblem(problemDefinition, contextualLabel, contextualSolutions, locations, details, getExceptionForProblemInstantiation(), additionalData);
+        return new DefaultProblem(problemDefinition, contextualLabel, solutions, locations, details, getExceptionForProblemInstantiation(), additionalData);
     }
 
     private Problem missingLabelProblem() {
@@ -127,12 +126,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     public InternalProblemBuilder contextualLabel(String contextualLabel) {
         this.contextualLabel = contextualLabel;
-        return this;
-    }
-
-    @Override
-    public InternalProblemSpec contextualSolution(String contextualSolution) {
-        this.contextualSolutions.add(contextualSolution);
         return this;
     }
 

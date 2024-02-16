@@ -105,7 +105,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                 toInternalSeverity(problem.getDefinition().getSeverity()),
                 toInternalLocations(problem.getLocations()),
                 toInternalDocumentationLink(problem.getDefinition().getDocumentationLink()),
-                toInternalSolutions(problem.getDefinition().getSolutions(), problem.getContextualSolutions()),
+                toInternalSolutions(problem.getDefinition().getSolutions(), problem.getSolutions()),
                 toInternalAdditionalData(problem.getAdditionalData()),
                 toInternalFailure(problem.getException())
             )
