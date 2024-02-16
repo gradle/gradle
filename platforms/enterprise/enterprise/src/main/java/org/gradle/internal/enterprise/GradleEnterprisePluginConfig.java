@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Information eagerly conveyed about the plugin from Gradle to the plugin.
  */
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scopes.BuildTree.class)
 public interface GradleEnterprisePluginConfig {
 
     enum BuildScanRequest {
