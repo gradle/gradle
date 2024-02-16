@@ -79,6 +79,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static final NativeServices INSTANCE = new NativeServices();
 
+    public static final String NATIVE_SERVICES_OPTION = "org.gradle.native";
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
 
     private boolean initialized;
@@ -132,15 +133,16 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
 
         public static NativeIntegrationEnabled fromSystemProperties() {
-            return fromValue(System.getProperty("org.gradle.native", "true"));
+            return fromValue(System.getProperty(NATIVE_SERVICES_OPTION));
         }
 
         public static NativeIntegrationEnabled fromProperties(Map<String, String> properties) {
-            return fromValue(properties.get("org.gradle.native"));
+            return fromValue(properties.get(NATIVE_SERVICES_OPTION));
         }
 
-        private static NativeIntegrationEnabled fromValue(String value) {
-            // Default to enabled, make it false only if explicitly set to "false"
+        private static NativeIntegrationEnabled fromValue(@Nullable String value) {
+            // Default to enabled, make it disabled only if explicitly set to "false"
+            value = (value == null ? "true" : value).trim();
             return from(!"false".equalsIgnoreCase(value));
         }
     }

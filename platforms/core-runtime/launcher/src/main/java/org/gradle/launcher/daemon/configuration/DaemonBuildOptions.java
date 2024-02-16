@@ -35,6 +35,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
+import static org.gradle.internal.nativeintegration.services.NativeServices.NATIVE_SERVICES_OPTION;
+
 public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
     private static List<BuildOption<DaemonParameters>> options = ImmutableList.of(
@@ -243,10 +245,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
     @NonNullApi
     public static class NativeServicesOption extends BooleanBuildOption<DaemonParameters> {
-        public static final String GRADLE_PROPERTY = "org.gradle.native";
-
         public NativeServicesOption() {
-            super(GRADLE_PROPERTY);
+            super(NATIVE_SERVICES_OPTION);
         }
 
         @Override

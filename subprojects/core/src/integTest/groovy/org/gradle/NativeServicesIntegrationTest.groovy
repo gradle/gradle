@@ -50,6 +50,26 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         nativeDir.directory
     }
 
+    def "native services are #description with systemProperties == #systemProperties"() {
+        given:
+        executer.requireOwnGradleUserHomeDir().withNoExplicitNativeServicesDir()
+        nativeDir = new File(executer.gradleUserHomeDir, 'native')
+        executer.withArguments(systemProperties)
+
+        when:
+        succeeds("help")
+
+        then:
+        nativeDir.exists() == initialized
+
+        where:
+        description       | systemProperties              | initialized
+        "initialized"     | ["-Dorg.gradle.native=true"]  | true
+        "not initialized" | ["-Dorg.gradle.native=false"] | false
+        "initialized"     | ["-Dorg.gradle.native=''"]    | true
+        "initialized"     | []                            | true
+    }
+
     @Issue("GRADLE-3573")
     def "jansi library is unpacked to gradle user home dir and isn't overwritten if existing"() {
         String tmpDirJvmOpt = "-Djava.io.tmpdir=$tmpDir.testDirectory.absolutePath"
