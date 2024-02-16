@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -31,10 +32,13 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.console.DefaultUserInput;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -46,9 +50,12 @@ import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
+import org.gradle.launcher.daemon.client.DaemonClientInputForwarder;
 import org.gradle.launcher.daemon.client.NotifyDaemonAboutChangedPathsClient;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.protocol.InputMessage;
+import org.gradle.launcher.daemon.protocol.UserResponse;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -103,11 +110,20 @@ public class ProviderConnection {
     private final ServiceRegistry sharedServices;
     private final JvmVersionDetector jvmVersionDetector;
     private final FileCollectionFactory fileCollectionFactory;
+    private final DefaultUserInput userInput;
+    private final UserInputReader userInputReader;
     private GradleVersion consumerVersion;
 
     public ProviderConnection(
-        ServiceRegistry sharedServices, BuildLayoutFactory buildLayoutFactory, DaemonClientFactory daemonClientFactory,
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor, PayloadSerializer payloadSerializer, JvmVersionDetector jvmVersionDetector, FileCollectionFactory fileCollectionFactory
+        ServiceRegistry sharedServices,
+        BuildLayoutFactory buildLayoutFactory,
+        DaemonClientFactory daemonClientFactory,
+        BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor,
+        PayloadSerializer payloadSerializer,
+        JvmVersionDetector jvmVersionDetector,
+        FileCollectionFactory fileCollectionFactory,
+        DefaultUserInput userInput,
+        UserInputReader userInputReader
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
@@ -116,6 +132,8 @@ public class ProviderConnection {
         this.sharedServices = sharedServices;
         this.jvmVersionDetector = jvmVersionDetector;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.userInput = userInput;
+        this.userInputReader = userInputReader;
     }
 
     public void configure(ProviderConnectionParameters parameters, GradleVersion consumerVersion) {
@@ -269,7 +287,28 @@ public class ProviderConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.captureSystemSources();
-            executer = new SystemPropertySetterExecuter(new StdInSwapExecuter(standardInput, embeddedExecutor));
+            InputStream finalStandardInput = standardInput;
+            executer = new SystemPropertySetterExecuter(new StdInSwapExecuter(standardInput, new BuildActionExecuter<BuildActionParameters, BuildRequestContext>() {
+                @Override
+                public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext buildRequestContext) {
+                    userInputReader.startInput();
+                    DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(finalStandardInput, new Dispatch<InputMessage>() {
+                        @Override
+                        public void dispatch(InputMessage message) {
+                            if (message instanceof UserResponse) {
+                                userInputReader.putInput(new UserInputReader.TextResponse(((UserResponse) message).getResponse()));
+                            }
+                        }
+                    }, userInput, new DefaultExecutorFactory());
+                    inputForwarder.start();
+                    try {
+                        return embeddedExecutor.execute(action, actionParameters, buildRequestContext);
+                    } finally {
+                        userInputReader.putInput(UserInputReader.END_OF_INPUT);
+                        inputForwarder.stop();
+                    }
+                }
+            }));
         } else {
             LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
             loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
