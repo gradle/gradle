@@ -19,6 +19,7 @@ package org.gradle.performance.generator
 import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.language.Language
 
+import static org.gradle.test.fixtures.dsl.GradleDsl.DECLARATIVE
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @CompileStatic
@@ -83,6 +84,13 @@ enum JavaTestProjectGenerator {
         .assembleChangeFile()
         .testChangeFile(450, 2250, 45000)
         .withDsl(KOTLIN)
+        .create()),
+
+    LARGE_EMPTY_MULTI_PROJECT_DECLARATIVE_DSL(new TestProjectGeneratorConfigurationBuilder("largeEmptyMultiProjectDeclarativeDsl", "largeEmptyMultiProject")
+        .withSubProjects(10)
+        .withDsl(DECLARATIVE)
+        .withDaemonMemory('512m')
+        .withCompilerMemory('1g')
         .create()),
 
     MEDIUM_MONOLITHIC_JAVA_PROJECT(new TestProjectGeneratorConfigurationBuilder("mediumMonolithicJavaProject")
