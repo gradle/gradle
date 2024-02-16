@@ -111,7 +111,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
                         .label("property missing")
-                        .label("is missing " + displayName)
+                        .contextualLabel("is missing " + displayName)
                         .documentedAt(userManual("validation_problems", MISSING_ANNOTATION.toLowerCase()))
                         .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(MISSING_ANNOTATION))
                         .severity(ERROR)
