@@ -37,6 +37,10 @@ public class PolyglotDslTestInterceptor extends AbstractMultiTestInterceptor {
     @Override
     protected void createExecutions() {
         for (GradleDsl dsl : GradleDsl.values()) {
+            if (GradleDsl.DECLARATIVE == dsl) {
+                // TODO: Declarative DSL needs more feature in order to run these tests
+                continue;
+            }
             add(new DslExecution(dsl));
         }
     }
