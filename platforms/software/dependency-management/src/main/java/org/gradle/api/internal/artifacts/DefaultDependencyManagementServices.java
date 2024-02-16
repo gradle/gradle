@@ -373,14 +373,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             CollectionCallbackActionDecorator callbackDecorator,
             DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
             DefaultConfigurationFactory defaultConfigurationFactory,
-            ResolutionStrategyFactory resolutionStrategyFactory
+            ResolutionStrategyFactory resolutionStrategyFactory,
+            DomainObjectContext domainObjectContext
         ) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 instantiator,
                 callbackDecorator,
                 rootComponentMetadataBuilderFactory,
                 defaultConfigurationFactory,
-                resolutionStrategyFactory
+                resolutionStrategyFactory,
+                domainObjectContext
             );
         }
 

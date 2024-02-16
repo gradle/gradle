@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.internal.Actions;
@@ -59,6 +60,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
+    private final DomainObjectContext domainObjectContext;
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
@@ -67,13 +69,15 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         CollectionCallbackActionDecorator callbackDecorator,
         DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
-        ResolutionStrategyFactory resolutionStrategyFactory
+        ResolutionStrategyFactory resolutionStrategyFactory,
+        DomainObjectContext domainObjectContext
     ) {
         super(Configuration.class, instantiator, new Configuration.Namer(), callbackDecorator);
 
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
+        this.domainObjectContext = domainObjectContext;
         this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
         this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
@@ -99,6 +103,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public void visitAll(Consumer<ConfigurationInternal> visitor) {
+        assert domainObjectContext.getModel().hasMutableState();
         for (Configuration configuration : this) {
             visitor.accept((ConfigurationInternal) configuration);
         }
