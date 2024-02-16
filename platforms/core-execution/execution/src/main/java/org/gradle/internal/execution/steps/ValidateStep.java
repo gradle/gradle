@@ -145,7 +145,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
                 .details(unknownImplSnapshot.getReasonDescription())
-                .contextualSolution(unknownImplSnapshot.getSolutionDescription())
+                .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
             );
         }
@@ -161,7 +161,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .category(DefaultProblemCategory.VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION))
                 .details(unknownImplSnapshot.getReasonDescription())
-                .contextualSolution(unknownImplSnapshot.getSolutionDescription())
+                .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
             );
         }

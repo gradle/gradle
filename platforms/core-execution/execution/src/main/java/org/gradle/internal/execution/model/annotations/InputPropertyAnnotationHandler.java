@@ -82,7 +82,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                     .details("Properties of primitive type cannot be optional")
                     .severity(Severity.ERROR)
                     .solution("Remove the @Optional annotation")
-                    .contextualSolution("Use the " + JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType).getName() + " type instead")
+                    .solution("Use the " + JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType).getName() + " type instead")
             );
         }
     }

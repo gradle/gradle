@@ -20,7 +20,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
-import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.Problem;
 
 import javax.annotation.Nullable;
@@ -47,11 +46,6 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     @Override
     public InternalProblemBuilder contextualLabel(String contextualLabel) {
         return validateDelegate(delegate).contextualLabel(contextualLabel);
-    }
-
-    @Override
-    public InternalProblemSpec contextualSolution(String contextualSolution) {
-        return validateDelegate(delegate).contextualSolution(contextualSolution);
     }
 
     @Override

@@ -155,8 +155,8 @@ Type 'SomeType' property 'someProperty' annotated with @Internal should not be a
 Reason: A property is ignored but also has input annotations.
 
 Possible solutions:
-  1. Remove the @Internal annotation.
-  2. Remove the input annotations.
+  1. Remove the input annotations.
+  2. Remove the @Internal annotation.
 
 ${validationMessage("ignored_property_must_not_be_annotated")}
 """
@@ -198,8 +198,8 @@ Type 'SomeType' property 'prop' is annotated with invalid property type @Invalid
 Reason: The '@Invalid' annotation cannot be used in this context.
 
 Possible solutions:
-  1. Use a different annotation, e.g one of @Inject, @InputArtifact or @InputArtifactDependencies.
-  2. Remove the property.
+  1. Remove the property.
+  2. Use a different annotation, e.g one of @Inject, @InputArtifact or @InputArtifactDependencies.
 
 ${validationMessage("annotation_invalid_in_context")}
 """
@@ -217,8 +217,8 @@ Type 'SomeType' property 'prop' is annotated with invalid property type @Invalid
 Reason: The '@Invalid' annotation cannot be used in this context.
 
 Possible solutions:
-  1. Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference.
-  2. Remove the property.
+  1. Remove the property.
+  2. Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference.
 """
 
         when:
@@ -235,8 +235,8 @@ Type 'SomeType' property 'prop' is annotated with invalid property type @Invalid
 Reason: The '@Invalid' annotation cannot be used in this context.
 
 Possible solutions:
-  1. Use a different annotation, e.g one of @Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy or @ServiceReference.
-  2. Remove the property.
+  1. Remove the property.
+  2. Use a different annotation, e.g one of @Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy or @ServiceReference.
 """
     }
 
@@ -681,8 +681,8 @@ Type 'Person' property 'age' of type int shouldn't be annotated with @Optional.
 Reason: Properties of primitive type cannot be optional.
 
 Possible solutions:
-  1. Use the java.lang.Integer type instead.
-  2. Remove the @Optional annotation.
+  1. Remove the @Optional annotation.
+  2. Use the java.lang.Integer type instead.
 
 ${validationMessage("cannot_use_optional_on_primitive_types")}
 """

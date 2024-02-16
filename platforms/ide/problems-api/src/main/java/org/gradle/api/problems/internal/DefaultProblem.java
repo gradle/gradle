@@ -28,7 +28,7 @@ import java.util.Map;
 public class DefaultProblem implements Serializable, Problem {
     private final ProblemDefinition problemDefinition;
     private final String contextualLabel;
-    private final List<String> contextualSolutions;
+    private final List<String> solutions;
     private final List<ProblemLocation> problemLocations;
     private final String details;
     private final RuntimeException exception;
@@ -36,16 +36,16 @@ public class DefaultProblem implements Serializable, Problem {
 
     protected DefaultProblem(
         ProblemDefinition problemDefinition,
-        String contextualLabel,
-        List<String> contextualSolutions,
+        @Nullable String contextualLabel,
+        List<String> solutions,
         List<ProblemLocation> problemLocations,
-        String details,
+        @Nullable String details,
         RuntimeException exception,
         Map<String, Object> additionalData
     ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
-        this.contextualSolutions = contextualSolutions;
+        this.solutions = solutions;
         this.problemLocations = problemLocations;
         this.details = details;
         this.exception = exception;
@@ -64,8 +64,8 @@ public class DefaultProblem implements Serializable, Problem {
     }
 
     @Override
-    public List<String> getContextualSolutions() {
-        return contextualSolutions;
+    public List<String> getSolutions() {
+        return solutions;
     }
 
     @Nullable

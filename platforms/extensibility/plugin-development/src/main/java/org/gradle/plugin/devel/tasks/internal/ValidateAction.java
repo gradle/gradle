@@ -188,8 +188,8 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                             .category(DefaultProblemCategory.VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON))
                             .severity(WARNING)
                             .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")
-                            .contextualSolution("Add " + disableCachingAnnotation + "(because = ...)")
-                            .contextualSolution("Add " + cacheableAnnotation);
+                            .solution("Add " + disableCachingAnnotation + "(because = ...)")
+                            .solution("Add " + cacheableAnnotation);
                         if (isTask) {
                             builder.solution("Add " + untrackedTaskAnnotation + "(because = ...)");
                         }
