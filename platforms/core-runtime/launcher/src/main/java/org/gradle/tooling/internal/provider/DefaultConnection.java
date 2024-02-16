@@ -24,6 +24,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationEnabled;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.tooling.UnsupportedVersionException;
@@ -63,8 +64,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
-
-import static org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationCondition.RESOLVE_FROM_SYSTEM_PROPERTY;
 
 @SuppressWarnings("deprecation")
 public class DefaultConnection implements ConnectionVersion4,
@@ -113,7 +112,7 @@ public class DefaultConnection implements ConnectionVersion4,
     }
 
     private void initializeServices(File gradleUserHomeDir) {
-        NativeServices.initializeOnClient(gradleUserHomeDir, RESOLVE_FROM_SYSTEM_PROPERTY);
+        NativeServices.initializeOnClient(gradleUserHomeDir, NativeIntegrationEnabled.fromSystemProperties());
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         services = ServiceRegistryBuilder.builder()
             .displayName("Connection services")

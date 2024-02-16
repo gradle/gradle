@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -240,6 +241,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
     }
 
+    @NonNullApi
     public static class NativeServicesOption extends BooleanBuildOption<DaemonParameters> {
         public static final String GRADLE_PROPERTY = "org.gradle.native";
 
