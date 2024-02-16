@@ -156,6 +156,25 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                 .map(file -> new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, providerFactory.provider(() -> file)))
                 .collect(Collectors.toList());
         });
+
+        return variant;
+    }
+
+    @Override
+    public ConfigurationVariant configureClassesAndResourcesDirectoryVariant(Configuration configuration, SourceSet sourceSet) {
+        ConfigurationPublications publications = configuration.getOutgoing();
+        ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("classesAndResources");
+        variant.setDescription("Directories containing compiled class files and resources for " + sourceSet.getName() + ".");
+        variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES));
+
+        // Classes
+        variant.artifactsProvider(() -> {
+            FileCollection dirs = sourceSet.getOutput();
+            return dirs.getFiles().stream()
+                .map(file -> new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.DIRECTORY_TYPE, dirs, providerFactory.provider(() -> file)))
+                .collect(Collectors.toList());
+        });
+
         return variant;
     }
 

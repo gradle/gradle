@@ -302,19 +302,20 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (i)
+    Secondary Variant classesAndResources (i)
     --------------------------------------------------
-    Directories containing compiled class files for main.
+    Directories containing compiled class files and resources for main.
 
     Attributes
         - org.gradle.category            = library
         - org.gradle.compile-view        = java-implementation
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-        - org.gradle.libraryelements     = classes
+        - org.gradle.libraryelements     = classes+resources
         - org.gradle.usage               = java-api
     Artifacts
-        - $builtMainClassesPath (artifactType = java-classes-directory)
+        - $builtMainClassesPath (artifactType = directory)
+        - $builtMainResourcesPath (artifactType = directory)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
@@ -496,19 +497,20 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (i)
+    Secondary Variant classesAndResources (i)
     --------------------------------------------------
-    Directories containing compiled class files for main.
+    Directories containing compiled class files and resources for main.
 
     Attributes
         - org.gradle.category            = library
         - org.gradle.compile-view        = java-implementation
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-        - org.gradle.libraryelements     = classes
+        - org.gradle.libraryelements     = classes+resources
         - org.gradle.usage               = java-api
     Artifacts
-        - $builtMainClassesPath (artifactType = java-classes-directory)
+        - $builtMainClassesPath (artifactType = directory)
+        - $builtMainResourcesPath (artifactType = directory)
 
 --------------------------------------------------
 Variant javadocElements
@@ -719,19 +721,20 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (i)
+    Secondary Variant classesAndResources (i)
     --------------------------------------------------
-    Directories containing compiled class files for main.
+    Directories containing compiled class files and resources for main.
 
     Attributes
         - org.gradle.category            = library
         - org.gradle.compile-view        = java-implementation
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-        - org.gradle.libraryelements     = classes
+        - org.gradle.libraryelements     = classes+resources
         - org.gradle.usage               = java-api
     Artifacts
-        - $builtMainClassesPath (artifactType = java-classes-directory)
+        - $builtMainClassesPath (artifactType = directory)
+        - $builtMainResourcesPath (artifactType = directory)
 
 --------------------------------------------------
 Variant javadocElements
@@ -1005,19 +1008,20 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (i)
+    Secondary Variant classesAndResources (i)
     --------------------------------------------------
-    Directories containing compiled class files for main.
+    Directories containing compiled class files and resources for main.
 
     Attributes
         - org.gradle.category            = library
         - org.gradle.compile-view        = java-implementation
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-        - org.gradle.libraryelements     = classes
+        - org.gradle.libraryelements     = classes+resources
         - org.gradle.usage               = java-api
     Artifacts
-        - $builtMainClassesPath (artifactType = java-classes-directory)
+        - $builtMainClassesPath (artifactType = directory)
+        - $builtMainResourcesPath (artifactType = directory)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
@@ -1193,19 +1197,20 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (i)
+    Secondary Variant classesAndResources (i)
     --------------------------------------------------
-    Directories containing compiled class files for main.
+    Directories containing compiled class files and resources for main.
 
     Attributes
         - org.gradle.category            = library
         - org.gradle.compile-view        = java-implementation
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-        - org.gradle.libraryelements     = classes
+        - org.gradle.libraryelements     = classes+resources
         - org.gradle.usage               = java-api
     Artifacts
-        - $builtMainClassesPath (artifactType = java-classes-directory)
+        - $builtMainClassesPath (artifactType = directory)
+        - $builtMainResourcesPath (artifactType = directory)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
@@ -1491,19 +1496,20 @@ Artifacts
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes (i)
+    Secondary Variant classesAndResources (i)
     --------------------------------------------------
-    Directories containing compiled class files for main.
+    Directories containing compiled class files and resources for main.
 
     Attributes
         - org.gradle.category            = library
         - org.gradle.compile-view        = java-implementation
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
-        - org.gradle.libraryelements     = classes
+        - org.gradle.libraryelements     = classes+resources
         - org.gradle.usage               = java-api
     Artifacts
-        - $builtMainClassesPath (artifactType = java-classes-directory)
+        - $builtMainClassesPath (artifactType = directory)
+        - $builtMainResourcesPath (artifactType = directory)
 
 --------------------------------------------------
 Variant mainSourceElements (i)

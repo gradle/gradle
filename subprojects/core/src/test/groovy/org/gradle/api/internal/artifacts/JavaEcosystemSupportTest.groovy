@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.CompileView
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult
@@ -100,6 +101,82 @@ class JavaEcosystemSupportTest extends Specification {
         // while unlikely that a candidate would expose both JAVA_API_JARS and JAVA_API,
         // this confirms that JAVA_API_JARS takes precedence, per JavaEcosystemSupport
         Usage.JAVA_API          | [JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS, Usage.JAVA_API, JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS] | JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS
+    }
+
+    def "check library elements compatibility rules consumer=#consumer and producer=#producer compatible=#compatible"() {
+        CompatibilityCheckDetails details = Mock(CompatibilityCheckDetails)
+
+        when:
+        new JavaEcosystemSupport.LibraryElementsCompatibilityRules().execute(details)
+
+        then:
+        1 * details.getConsumerValue() >> libraryElements(consumer)
+        1 * details.getProducerValue() >> libraryElements(producer)
+        if (compatible) {
+            1 * details.compatible()
+        } else {
+            0 * _
+        }
+
+        where:
+        consumer                              | producer                              | compatible
+        null                                  | LibraryElements.CLASSES               | true
+        null                                  | LibraryElements.RESOURCES             | true
+        null                                  | LibraryElements.CLASSES_AND_RESOURCES | true
+        null                                  | LibraryElements.JAR                   | true
+        null                                  | "other"                               | true
+        LibraryElements.CLASSES               | LibraryElements.RESOURCES             | false
+        LibraryElements.CLASSES               | LibraryElements.CLASSES_AND_RESOURCES | true
+        LibraryElements.CLASSES               | LibraryElements.JAR                   | true
+        LibraryElements.CLASSES               | "other"                               | false
+        LibraryElements.RESOURCES             | LibraryElements.CLASSES               | false
+        LibraryElements.RESOURCES             | LibraryElements.CLASSES_AND_RESOURCES | true
+        LibraryElements.RESOURCES             | LibraryElements.JAR                   | true
+        LibraryElements.RESOURCES             | "other"                               | false
+        LibraryElements.CLASSES_AND_RESOURCES | LibraryElements.CLASSES               | false
+        LibraryElements.CLASSES_AND_RESOURCES | LibraryElements.RESOURCES             | false
+        LibraryElements.CLASSES_AND_RESOURCES | LibraryElements.JAR                   | true
+        LibraryElements.CLASSES_AND_RESOURCES | "other"                               | false
+        "other"                               | LibraryElements.CLASSES               | false
+        "other"                               | LibraryElements.RESOURCES             | false
+        "other"                               | LibraryElements.CLASSES_AND_RESOURCES | false
+        "other"                               | LibraryElements.JAR                   | false
+        "other"                               | "something"                           | false
+    }
+
+    def "check library elements disambiguation rules consumer=#consumer and candidates=#candidates chooses=#expected"() {
+        MultipleCandidatesDetails details = Mock(MultipleCandidatesDetails)
+
+        when:
+        new JavaEcosystemSupport.LibraryElementsDisambiguationRules(libraryElements(LibraryElements.JAR), libraryElements(LibraryElements.CLASSES_AND_RESOURCES)).execute(details)
+
+        then:
+        1 * details.getConsumerValue() >> libraryElements(consumer)
+        1 * details.getCandidateValues() >> candidates.collect { libraryElements(it) }
+        if (expected != null) {
+            1 * details.closestMatch({ assert it.name == expected })
+        }
+
+        where:
+        consumer                              | candidates                                                                                                                 | expected
+        null                                  | [LibraryElements.CLASSES, LibraryElements.RESOURCES, LibraryElements.CLASSES_AND_RESOURCES, LibraryElements.JAR, "other"]  | LibraryElements.JAR
+        null                                  | [LibraryElements.CLASSES, LibraryElements.RESOURCES, LibraryElements.CLASSES_AND_RESOURCES, "other"]                       | null
+        LibraryElements.CLASSES               | [LibraryElements.CLASSES, LibraryElements.RESOURCES, LibraryElements.CLASSES_AND_RESOURCES, LibraryElements.JAR, "other"]  | LibraryElements.CLASSES
+        LibraryElements.CLASSES               | [LibraryElements.RESOURCES, LibraryElements.CLASSES_AND_RESOURCES, LibraryElements.JAR, "other"]                           | LibraryElements.CLASSES_AND_RESOURCES
+        LibraryElements.CLASSES               | [LibraryElements.RESOURCES, LibraryElements.JAR, "other"]                                                                  | LibraryElements.JAR
+        LibraryElements.CLASSES               | [LibraryElements.RESOURCES, "other"]                                                                                       | null
+        LibraryElements.RESOURCES             | [LibraryElements.CLASSES, LibraryElements.RESOURCES, LibraryElements.CLASSES_AND_RESOURCES, LibraryElements.JAR, "other"]  | LibraryElements.RESOURCES
+        LibraryElements.RESOURCES             | [LibraryElements.CLASSES, LibraryElements.CLASSES_AND_RESOURCES, LibraryElements.JAR, "other"]                             | LibraryElements.CLASSES_AND_RESOURCES
+        LibraryElements.RESOURCES             | [LibraryElements.CLASSES, LibraryElements.JAR, "other"]                                                                    | LibraryElements.JAR
+        LibraryElements.RESOURCES             | [LibraryElements.CLASSES, "other"]                                                                                         | null
+        LibraryElements.CLASSES_AND_RESOURCES | [LibraryElements.CLASSES, LibraryElements.RESOURCES, LibraryElements.CLASSES_AND_RESOURCES, LibraryElements.JAR, "other"]  | LibraryElements.CLASSES_AND_RESOURCES
+        LibraryElements.CLASSES_AND_RESOURCES | [LibraryElements.CLASSES, LibraryElements.RESOURCES, LibraryElements.JAR, "other"]                                         | LibraryElements.JAR
+        LibraryElements.CLASSES_AND_RESOURCES | [LibraryElements.CLASSES, LibraryElements.RESOURCES, "other"]                                                              | null
+        LibraryElements.JAR                   | [LibraryElements.CLASSES, LibraryElements.RESOURCES, LibraryElements.CLASSES_AND_RESOURCES, LibraryElements.JAR, "other"]  | LibraryElements.JAR
+        LibraryElements.JAR                   | [LibraryElements.CLASSES, LibraryElements.RESOURCES, LibraryElements.CLASSES_AND_RESOURCES, "other"]                       | null
+        "other"                               | [LibraryElements.CLASSES, LibraryElements.RESOURCES, LibraryElements.CLASSES_AND_RESOURCES, LibraryElements.JAR, "other"]  | "other"
+        "other"                               | [LibraryElements.CLASSES, LibraryElements.RESOURCES, LibraryElements.CLASSES_AND_RESOURCES, LibraryElements.JAR]           | null
+
     }
 
     def "check compile view compatibility rules consumer=#consumer and producer=#producer compatible=#compatible"() {
@@ -224,6 +301,14 @@ class JavaEcosystemSupportTest extends Specification {
             null
         } else {
             TestUtil.objectFactory().named(Usage, value)
+        }
+    }
+
+    private LibraryElements libraryElements(String value) {
+        if (value == null) {
+            null
+        } else {
+            TestUtil.objectFactory().named(LibraryElements, value)
         }
     }
 

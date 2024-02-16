@@ -281,7 +281,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
 
             // Configure variants
             addJarArtifactToConfiguration(conf, jarArtifact);
-            jvmPluginServices.configureClassesDirectoryVariant(conf, sourceSet);
+            jvmPluginServices.configureClassesAndResourcesDirectoryVariant(conf, sourceSet);
         });
     }
 

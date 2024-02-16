@@ -499,7 +499,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
     def createImplementationCompileElements(int version) {
         return [
             attributes(Usage.JAVA_API, LibraryElements.JAR, version, CompileView.JAVA_IMPLEMENTATION),
-            attributes(Usage.JAVA_API, LibraryElements.CLASSES, version, CompileView.JAVA_IMPLEMENTATION)
+            attributes(Usage.JAVA_API, LibraryElements.CLASSES_AND_RESOURCES, version, CompileView.JAVA_IMPLEMENTATION)
         ]
     }
 

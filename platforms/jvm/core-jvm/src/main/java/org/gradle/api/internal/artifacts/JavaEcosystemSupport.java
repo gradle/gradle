@@ -147,6 +147,7 @@ public abstract class JavaEcosystemSupport {
         libraryElementsSchema.getCompatibilityRules().add(LibraryElementsCompatibilityRules.class);
         libraryElementsSchema.getDisambiguationRules().add(LibraryElementsDisambiguationRules.class, actionConfiguration -> {
             actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.JAR));
+            actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES));
         });
     }
 
@@ -299,10 +300,12 @@ public abstract class JavaEcosystemSupport {
     @VisibleForTesting
     static class LibraryElementsDisambiguationRules implements AttributeDisambiguationRule<LibraryElements>, ReusableAction {
         final LibraryElements jar;
+        final LibraryElements classesAndResources;
 
         @Inject
-        LibraryElementsDisambiguationRules(LibraryElements jar) {
+        LibraryElementsDisambiguationRules(LibraryElements jar, LibraryElements classesAndResources) {
             this.jar = jar;
+            this.classesAndResources = classesAndResources;
         }
 
         @Override
@@ -317,6 +320,25 @@ public abstract class JavaEcosystemSupport {
             } else if (candidateValues.contains(consumerValue)) {
                 // Use what they requested, if available
                 details.closestMatch(consumerValue);
+            } else {
+                // The requested library elements are not available. Try to find a superset.
+                if (consumerValue.getName().equals(LibraryElements.CLASSES)) {
+                    if (candidateValues.contains(classesAndResources)) {
+                        details.closestMatch(classesAndResources);
+                    } else if (candidateValues.contains(jar)) {
+                        details.closestMatch(jar);
+                    }
+                } else if (consumerValue.getName().equals(LibraryElements.RESOURCES)) {
+                    if (candidateValues.contains(classesAndResources)) {
+                        details.closestMatch(classesAndResources);
+                    } else if (candidateValues.contains(jar)) {
+                        details.closestMatch(jar);
+                    }
+                } else if (consumerValue.getName().equals(LibraryElements.CLASSES_AND_RESOURCES)) {
+                    if (candidateValues.contains(jar)) {
+                        details.closestMatch(jar);
+                    }
+                }
             }
         }
     }
@@ -335,9 +357,16 @@ public abstract class JavaEcosystemSupport {
             }
             String consumerValueName = consumerValue.getName();
             String producerValueName = producerValue.getName();
-            if (LibraryElements.CLASSES.equals(consumerValueName) || LibraryElements.RESOURCES.equals(consumerValueName) || LibraryElements.CLASSES_AND_RESOURCES.equals(consumerValueName)) {
-                // JAR is compatible with classes or resources
-                if (LibraryElements.JAR.equals(producerValueName)) {
+
+            if (LibraryElements.CLASSES_AND_RESOURCES.equals(producerValueName)) {
+                // If we want just classes or just resources, classes and resources works.
+                if (LibraryElements.CLASSES.equals(consumerValueName) || LibraryElements.RESOURCES.equals(consumerValueName)) {
+                    details.compatible();
+                    return;
+                }
+            } else if (LibraryElements.JAR.equals(producerValueName)) {
+                // If we want just classes, just resources, or both, a JAR works.
+                if (LibraryElements.CLASSES.equals(consumerValueName) || LibraryElements.RESOURCES.equals(consumerValueName) || LibraryElements.CLASSES_AND_RESOURCES.equals(consumerValueName)) {
                     details.compatible();
                     return;
                 }

@@ -40,12 +40,20 @@ public interface JvmPluginServices extends JvmEcosystemUtilities {
     ConfigurationVariant configureResourcesDirectoryVariant(Configuration configuration, SourceSet sourceSet);
 
     /**
-     * Registers a variant on {@code configuration} which exposes the classses defined by {@code sourceSet}.
+     * Registers a variant on {@code configuration} which exposes the classes defined by {@code sourceSet}.
      *
      * @param configuration The {@link Configuration} for which a classes variant should be exposed.
      * @param sourceSet The {@link SourceSet} which will contribute classes to this variant.
      */
     ConfigurationVariant configureClassesDirectoryVariant(Configuration configuration, SourceSet sourceSet);
+
+    /**
+     * Registers a variant on {@code configuration} which exposes the classes and resources defined by {@code sourceSet}.
+     *
+     * @param configuration The {@link Configuration} for which a classes and resources variant should be exposed.
+     * @param sourceSet The {@link SourceSet} which will contribute classes and resources to this variant.
+     */
+    ConfigurationVariant configureClassesAndResourcesDirectoryVariant(Configuration configuration, SourceSet sourceSet);
 
     /**
      * Configures a configuration with reasonable defaults to be resolved as a compile classpath.
