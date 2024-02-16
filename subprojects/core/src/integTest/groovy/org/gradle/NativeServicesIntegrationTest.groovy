@@ -17,12 +17,15 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.nativeintegration.jansi.JansiStorageLocator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
+
+import static org.gradle.internal.nativeintegration.services.NativeServices.NATIVE_SERVICES_OPTION
 
 @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "needs to run a distribution from scratch to not have native services on the classpath already")
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
@@ -54,7 +57,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         given:
         executer.requireOwnGradleUserHomeDir().withNoExplicitNativeServicesDir()
         nativeDir = new File(executer.gradleUserHomeDir, 'native')
-        executer.withArguments(systemProperties)
+        executer.withArguments(systemProperties.collect { it.toString() })
 
         when:
         succeeds("help")
@@ -63,11 +66,38 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         nativeDir.exists() == initialized
 
         where:
-        description       | systemProperties              | initialized
-        "initialized"     | ["-Dorg.gradle.native=true"]  | true
-        "not initialized" | ["-Dorg.gradle.native=false"] | false
-        "initialized"     | ["-Dorg.gradle.native=''"]    | true
-        "initialized"     | []                            | true
+        description       | systemProperties                    | initialized
+        "initialized"     | ["-D$NATIVE_SERVICES_OPTION=true"]  | true
+        "not initialized" | ["-D$NATIVE_SERVICES_OPTION=false"] | false
+        "initialized"     | ["-D$NATIVE_SERVICES_OPTION=''"]    | true
+        "initialized"     | []                                  | true
+    }
+
+    def "daemon with different native services flag is not reused"() {
+        given:
+        executer.requireDaemon()
+        executer.requireIsolatedDaemons()
+
+        when:
+        executer.withArguments("-D$NATIVE_SERVICES_OPTION=$firstRunNativeServicesOption")
+        succeeds()
+
+        then:
+        daemons.daemon.becomesIdle()
+
+        when:
+        executer.withArguments("-D$NATIVE_SERVICES_OPTION=$secondRunNativeServicesOption")
+        succeeds()
+
+        then:
+        daemons.daemons.size() == expectedDaemonCount
+
+        where:
+        firstRunNativeServicesOption | secondRunNativeServicesOption | expectedDaemonCount | reuseDescription
+        true                         | true                          | 1                   | "reused"
+        false                        | false                         | 1                   | "reused"
+        true                         | false                         | 2                   | "not reused"
+        false                        | true                          | 2                   | "not reused"
     }
 
     @Issue("GRADLE-3573")
@@ -94,5 +124,9 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     private void assertNoFilesInTmp() {
         assert tmpDir.testDirectory.listFiles().length == 0
+    }
+
+    private DaemonLogsAnalyzer getDaemons() {
+        new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
 }
