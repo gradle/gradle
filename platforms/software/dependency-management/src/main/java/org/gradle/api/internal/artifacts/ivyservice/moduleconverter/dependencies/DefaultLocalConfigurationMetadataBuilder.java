@@ -86,6 +86,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
+        assert model.hasMutableState();
         // Ensure all actions are executed against this configuration and its hierarchy before reading its state.
         // Dependency actions may modify the hierarchy.
         runDependencyActionsInHierarchy(configuration);
