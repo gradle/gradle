@@ -51,12 +51,6 @@ public final class ProblemReportAdapterFactory implements TypeAdapterFactory {
                 DefaultProblemDefinition.class,
                 gson.getAdapter(JsonElement.class),
                 gson.getDelegateAdapter(this, TypeToken.get(DefaultProblemDefinition.class))).nullSafe();
-//        } else if (ProblemContext.class.equals(rawType)) {
-//            return (TypeAdapter<T>) new SingleImplTypeAdapter<>(
-//                ProblemContext.class,
-//                DefaultProblemContext.class,
-//                gson.getAdapter(JsonElement.class),
-//                gson.getDelegateAdapter(this, TypeToken.get(DefaultProblemContext.class))).nullSafe();
         } else {
             return null;
         }

@@ -109,7 +109,12 @@ public class DefaultProblem implements Serializable, Problem {
         }
         DefaultProblem that = (DefaultProblem) o;
         return equals(problemDefinition, that.problemDefinition) &&
-            equals(contextualLabel, that.contextualLabel);
+            equals(contextualLabel, that.contextualLabel) &&
+            equals(solutions, that.solutions) &&
+            equals(problemLocations, that.problemLocations) &&
+            equals(details, that.details) &&
+            equals(exception, that.exception) &&
+            equals(additionalData, that.additionalData);
     }
 
     @Override
