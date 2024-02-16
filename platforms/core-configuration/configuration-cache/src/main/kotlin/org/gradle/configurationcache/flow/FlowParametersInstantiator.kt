@@ -78,8 +78,8 @@ class FlowParametersInstantiator(
                                     (problemsService as InternalProblems).internalReporter.create {
                                         label("Property cannot carry dependency")
                                         contextualLabel("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
-                                            .category("validation", "property", "invalid-dependency")
-                                            .severity(Severity.ERROR)
+                                        category("validation", "property", "invalid-dependency")
+                                        severity(Severity.ERROR)
                                     })
                             }
 

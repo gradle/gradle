@@ -37,13 +37,13 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
         String label,
         Severity severity,
         @Nullable DocLink documentationUrl,
-        @Nullable List<String> solutions, // TODO (donat) this should not be nullable
+        List<String> solutions,
         ProblemCategory problemCategory
     ) {
         this.label = label;
         this.severity = severity;
         this.documentationLink = documentationUrl;
-        this.solutions = solutions == null ? ImmutableList.<String>of() : ImmutableList.copyOf(solutions);
+        this.solutions = ImmutableList.copyOf(solutions);
         this.problemCategory = problemCategory;
     }
 
