@@ -58,9 +58,28 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir().withNoExplicitNativeServicesDir()
         nativeDir = new File(executer.gradleUserHomeDir, 'native')
         executer.withArguments(systemProperties.collect { it.toString() })
+        buildFile << """
+            import org.gradle.workers.WorkParameters
+
+            tasks.register("doWork", WorkerTask)
+
+            abstract class WorkerTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @TaskAction
+                void executeTask() {
+                    workerExecutor.processIsolation().submit(NoOpWorkAction) { }
+                }
+            }
+
+            abstract class NoOpWorkAction implements WorkAction<WorkParameters.None> {
+                public void execute() {}
+            }
+        """
 
         when:
-        succeeds("help")
+        succeeds("doWork")
 
         then:
         nativeDir.exists() == initialized
@@ -71,6 +90,49 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         "not initialized" | ["-D$NATIVE_SERVICES_OPTION=false"] | false
         "initialized"     | ["-D$NATIVE_SERVICES_OPTION=''"]    | true
         "initialized"     | []                                  | true
+    }
+
+    def "native services flag should be passed to the daemon and to the worker"() {
+        given:
+        executer.withArguments(systemProperties.collect { it.toString() })
+        buildScript("""
+            import org.gradle.workers.WorkParameters
+            import org.gradle.internal.nativeintegration.services.NativeServices
+            import org.gradle.internal.nativeintegration.NativeCapabilities
+
+            tasks.register("doWork", WorkerTask)
+            println("Uses native integration in daemon: " + NativeServices.instance.createNativeCapabilities().useNativeIntegrations())
+
+            abstract class WorkerTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @TaskAction
+                void executeTask() {
+                    workerExecutor.processIsolation().submit(NoOpWorkAction) { }
+                }
+            }
+
+            abstract class NoOpWorkAction implements WorkAction<WorkParameters.None> {
+                void execute() {
+                    println("Uses native integration in worker: " + NativeServices.instance.createNativeCapabilities().useNativeIntegrations())
+                }
+            }
+        """)
+
+        when:
+        succeeds("doWork")
+
+        then:
+        outputContains("Uses native integration in daemon: $usesNativeIntegration")
+        outputContains("Uses native integration in worker: $usesNativeIntegration")
+
+        where:
+        systemProperties                    | usesNativeIntegration
+        ["-D$NATIVE_SERVICES_OPTION=true"]  | true
+        ["-D$NATIVE_SERVICES_OPTION=false"] | false
+        ["-D$NATIVE_SERVICES_OPTION=''"]    | true
+        []                                  | true
     }
 
     def "daemon with different native services flag is not reused"() {

@@ -133,14 +133,14 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
 
         public static NativeIntegrationEnabled fromSystemProperties() {
-            return fromValue(System.getProperty(NATIVE_SERVICES_OPTION));
+            return fromString(System.getProperty(NATIVE_SERVICES_OPTION));
         }
 
         public static NativeIntegrationEnabled fromProperties(Map<String, String> properties) {
-            return fromValue(properties.get(NATIVE_SERVICES_OPTION));
+            return fromString(properties.get(NATIVE_SERVICES_OPTION));
         }
 
-        private static NativeIntegrationEnabled fromValue(@Nullable String value) {
+        public static NativeIntegrationEnabled fromString(@Nullable String value) {
             // Default to enabled, make it disabled only if explicitly set to "false"
             value = (value == null ? "true" : value).trim();
             return from(!"false".equalsIgnoreCase(value));
@@ -170,9 +170,9 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      *
      * Initializes all the services needed for the CLI or the Tooling API.
      */
-    public static void initializeOnWorker(File userHomeDir) {
+    public static void initializeOnWorker(File userHomeDir, NativeIntegrationEnabled condition) {
         // Native integration is disabled since we don't initialize any native feature
-        INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class), NativeIntegrationEnabled.DISABLED);
+        INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class), condition);
     }
 
     public static void logFileSystemWatchingUnavailable(NativeIntegrationUnavailableException ex) {
@@ -429,7 +429,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return new FallbackFileMetadataAccessor();
     }
 
-    protected NativeCapabilities createNativeCapabilities() {
+    public NativeCapabilities createNativeCapabilities() {
         return new NativeCapabilities() {
             @Override
             public boolean useNativeIntegrations() {
