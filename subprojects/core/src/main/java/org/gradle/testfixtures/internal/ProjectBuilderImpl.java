@@ -78,6 +78,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
+import static org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationCondition.RESOLVE_FROM_SYSTEM_PROPERTY;
 
 public class ProjectBuilderImpl {
     private static ServiceRegistry globalServices;
@@ -108,7 +109,7 @@ public class ProjectBuilderImpl {
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameter.setGradleUserHomeDir(userHomeDir);
-        NativeServices.initializeOnDaemon(userHomeDir);
+        NativeServices.initializeOnDaemon(userHomeDir, RESOLVE_FROM_SYSTEM_PROPERTY);
 
         final ServiceRegistry globalServices = getGlobalServices();
 

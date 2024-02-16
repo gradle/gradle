@@ -219,7 +219,7 @@ public class DaemonParameters {
         return this;
     }
 
-    public boolean isUseNativeServices() {
+    public boolean useNativeServices() {
         return useNativeServices;
     }
 

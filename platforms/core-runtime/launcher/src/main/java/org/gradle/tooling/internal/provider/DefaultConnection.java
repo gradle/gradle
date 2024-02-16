@@ -64,6 +64,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
+import static org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationCondition.RESOLVE_FROM_SYSTEM_PROPERTY;
+
 @SuppressWarnings("deprecation")
 public class DefaultConnection implements ConnectionVersion4,
     ConfigurableConnection, InternalCancellableConnection, InternalParameterAcceptingConnection,
@@ -111,7 +113,7 @@ public class DefaultConnection implements ConnectionVersion4,
     }
 
     private void initializeServices(File gradleUserHomeDir) {
-        NativeServices.initializeOnClient(gradleUserHomeDir);
+        NativeServices.initializeOnClient(gradleUserHomeDir, RESOLVE_FROM_SYSTEM_PROPERTY);
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         services = ServiceRegistryBuilder.builder()
             .displayName("Connection services")

@@ -48,6 +48,7 @@ import static java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
+import static org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationCondition.RESOLVE_FROM_SYSTEM_PROPERTY;
 
 @Fork(1)
 @Warmup(iterations = 10)
@@ -74,7 +75,7 @@ public class ChmodBenchmark {
     @Setup(Level.Trial)
     public void setupTrial() throws IOException {
         this.tempRootDir = Files.createTempDirectory("chmod-benchmark");
-        NativeServices.initializeOnDaemon(tempRootDir.toFile());
+        NativeServices.initializeOnDaemon(tempRootDir.toFile(), RESOLVE_FROM_SYSTEM_PROPERTY);
         this.fileSystem = FileSystems.getDefault();
     }
 

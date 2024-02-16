@@ -118,13 +118,40 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         public abstract boolean initialize(File nativeBaseDir, boolean canUseNativeIntegrations);
     }
 
+    public enum NativeIntegrationCondition {
+        ENABLED {
+            @Override
+            public boolean isNativeIntegrationsEnabled() {
+                return true;
+            }
+        },
+        DISABLED {
+            @Override
+            public boolean isNativeIntegrationsEnabled() {
+                return false;
+            }
+        },
+        RESOLVE_FROM_SYSTEM_PROPERTY {
+            @Override
+            public boolean isNativeIntegrationsEnabled() {
+                return resolveFrom(System.getProperty("org.gradle.native", "true")).isNativeIntegrationsEnabled();
+            }
+        };
+
+        public static NativeIntegrationCondition resolveFrom(String value) {
+            return "true".equalsIgnoreCase(value) ? ENABLED : DISABLED;
+        }
+
+        public abstract boolean isNativeIntegrationsEnabled();
+    }
+
     /**
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
      *
      * Initializes all the services needed for the Gradle daemon.
      */
-    public static void initializeOnDaemon(File userHomeDir) {
-        INSTANCE.initialize(userHomeDir, EnumSet.allOf(NativeFeatures.class));
+    public static void initializeOnDaemon(File userHomeDir, NativeIntegrationCondition condition) {
+        INSTANCE.initialize(userHomeDir, EnumSet.allOf(NativeFeatures.class), condition);
     }
 
     /**
@@ -132,8 +159,8 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      *
      * Initializes all the services needed for the CLI or the Tooling API.
      */
-    public static void initializeOnClient(File userHomeDir) {
-        INSTANCE.initialize(userHomeDir, EnumSet.of(NativeFeatures.JANSI));
+    public static void initializeOnClient(File userHomeDir, NativeIntegrationCondition condition) {
+        INSTANCE.initialize(userHomeDir, EnumSet.of(NativeFeatures.JANSI), condition);
     }
 
     /**
@@ -142,7 +169,8 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      * Initializes all the services needed for the CLI or the Tooling API.
      */
     public static void initializeOnWorker(File userHomeDir) {
-        INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class));
+        // Native integration is disabled since we don't initialize any native feature
+        INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class), NativeIntegrationCondition.DISABLED);
     }
 
     public static void logFileSystemWatchingUnavailable(NativeIntegrationUnavailableException ex) {
@@ -158,10 +186,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      *
      * @param requestedFeatures Whether to initialize additional native libraries like jansi and file-events.
      */
-    private void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures) {
+    private void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeIntegrationCondition condition) {
         if (!initialized) {
             try {
-                initializeNativeIntegrations(userHomeDir);
+                initializeNativeIntegrations(userHomeDir, condition);
                 initialized = true;
                 initializeFeatures(requestedFeatures);
             } catch (RuntimeException e) {
@@ -170,9 +198,9 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
     }
 
-    private void initializeNativeIntegrations(File userHomeDir) {
+    private void initializeNativeIntegrations(File userHomeDir, NativeIntegrationCondition nativeIntegrationCondition) {
         this.userHomeDir = userHomeDir;
-        useNativeIntegrations = isNativeIntegrationsEnabled();
+        useNativeIntegrations = nativeIntegrationCondition.isNativeIntegrationsEnabled();
         nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
         if (useNativeIntegrations) {
             try {
@@ -198,7 +226,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     private void initializeFeatures(EnumSet<NativeFeatures> requestedFeatures) {
-        if (isNativeIntegrationsEnabled()) {
+        if (useNativeIntegrations) {
             for (NativeFeatures requestedFeature : requestedFeatures) {
                 if (initializedFeatures.add(requestedFeature)) {
                     if (requestedFeature.initialize(nativeBaseDir, useNativeIntegrations)) {
@@ -207,10 +235,6 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 }
             }
         }
-    }
-
-    private static boolean isNativeIntegrationsEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
     }
 
     private boolean isFeatureEnabled(NativeFeatures feature) {

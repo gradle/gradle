@@ -36,4 +36,6 @@ public interface DaemonServerConfiguration {
     boolean isSingleUse();
 
     boolean isInstrumentationAgentAllowed();
+
+    boolean useNativeServices();
 }

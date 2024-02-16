@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
 
+import static org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationCondition.RESOLVE_FROM_SYSTEM_PROPERTY;
+
 public class NativeServicesTestFixture {
     // Collect this early, as the process' current directory can change during embedded test execution
     private static final TestFile TEST_DIR = new TestFile(new File(".").toURI());
@@ -31,7 +33,7 @@ public class NativeServicesTestFixture {
         if (!initialized) {
             System.setProperty("org.gradle.native", "true");
             File nativeDir = getNativeServicesDir();
-            NativeServices.initializeOnDaemon(nativeDir);
+            NativeServices.initializeOnDaemon(nativeDir, RESOLVE_FROM_SYSTEM_PROPERTY);
             initialized = true;
         }
     }
