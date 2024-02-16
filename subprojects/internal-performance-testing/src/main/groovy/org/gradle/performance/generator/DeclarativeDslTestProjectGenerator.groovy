@@ -60,6 +60,7 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
 
         file projectDir, config.dsl.fileNameFor('build'), generateBuildGradle(subProjectNumber)
         file projectDir, config.dsl.fileNameFor('settings'), generateSettingsGradle(isRoot)
+        file projectDir, "gradle.properties", generateGradleProperties(isRoot)
     }
 
     def generateLibProject(File projectDir) {
@@ -115,6 +116,23 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
 
             // comment to make each file different $subProjectNumber
         """.stripIndent()
+    }
+
+    String generateGradleProperties(boolean isRoot) {
+        if (!isRoot) {
+            return null
+        }
+        """
+        org.gradle.jvmargs=-Xms${config.daemonMemory} -Xmx${config.daemonMemory} -Dfile.encoding=UTF-8
+        org.gradle.parallel=${config.parallel}
+        org.gradle.workers.max=${config.maxWorkers}
+        compilerMemory=${config.compilerMemory}
+        testRunnerMemory=${config.testRunnerMemory}
+        testForkEvery=${config.testForkEvery}
+        ${->
+            config.systemProperties.entrySet().collect { "systemProp.${it.key}=${it.value}" }.join("\n")
+        }
+        """
     }
 
     static void main(String[] args) {
