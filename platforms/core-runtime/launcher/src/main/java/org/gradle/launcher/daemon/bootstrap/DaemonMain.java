@@ -108,7 +108,6 @@ public class DaemonMain extends EntryPoint {
             throw new UncheckedIOException(e);
         }
 
-        // Native services are set before the daemon is initialized
         NativeServices.initializeOnDaemon(gradleHomeDir, NativeIntegrationEnabled.from(useNativeServices));
         DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupOpts, useNativeServices);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
