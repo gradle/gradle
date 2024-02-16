@@ -34,7 +34,6 @@ import java.util.List;
  * <p>
  * The category and the label uniquely identify the problem definition, the remaining fields only supply additional information.
  * <p>
- * The context for reported problems is stored in {@link ProblemContext}.
  */
 public interface ProblemDefinition {
 

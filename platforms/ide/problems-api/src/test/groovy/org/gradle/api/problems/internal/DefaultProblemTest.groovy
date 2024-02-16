@@ -29,12 +29,13 @@ class DefaultProblemTest extends Specification {
         expect:
         newProblem.definition.category == problem.definition.category
         newProblem.definition.label == problem.definition.label
+        newProblem.definition.severity == problem.definition.severity
+        newProblem.definition.solutions == problem.definition.solutions
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details
         newProblem.exception == problem.exception
         newProblem.locations == problem.locations
-        newProblem.definition.severity == problem.definition.severity
-        newProblem.definition.solutions == problem.definition.solutions
+
         newProblem == problem
 
         where:
@@ -42,6 +43,28 @@ class DefaultProblemTest extends Specification {
         Severity.WARNING | [:]
         Severity.ERROR   | [data1: "data2"]
     }
+
+    def "unbound builder result with modified #changedAspect is not equal"() {
+        def problem = createTestProblem()
+
+
+        when:
+        def builder = problem.toBuilder()
+        changeClosure.curry(builder).run()
+        def newProblem = builder.build()
+
+        then:
+
+        newProblem != problem
+
+        where:
+        changedAspect | changeClosure
+        "severity"    | { it.severity(Severity.WARNING) }
+        "additionalData" | { it.additionalData("asdf", "adsf") }
+        "locations"   | { it.fileLocation("file") }
+        "details"     | { it.details("details") }
+    }
+
 
     def "unbound builder result with a change and check report"() {
         given:
@@ -72,7 +95,7 @@ class DefaultProblemTest extends Specification {
         newProblem.class == DefaultProblem
     }
 
-    private static createTestProblem(Severity severity, Map<String, String> additionalData) {
+    private static createTestProblem(Severity severity = Severity.ERROR, Map<String, String> additionalData = [data1: "data2"]) {
         new DefaultProblem(
             new DefaultProblemDefinition(
                 'message',
