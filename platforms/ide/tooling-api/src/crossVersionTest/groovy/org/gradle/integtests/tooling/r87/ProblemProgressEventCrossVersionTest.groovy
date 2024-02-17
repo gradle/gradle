@@ -16,15 +16,16 @@
 
 package org.gradle.integtests.tooling.r87
 
-
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
-import org.gradle.integtests.tooling.r85.ProblemProgressEventCrossVersionTest.ProblemProgressListener
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.events.problems.ProblemDescriptor
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.problems.ProblemEvent
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.assertProblemDetailsForTAPIProblemEvent
@@ -47,7 +48,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(listener)
                 .run()
         }
-        return listener.problems.collect { (ProblemDescriptor) it }
+        return listener.problems
     }
 
     @TargetGradleVersion(">=8.5")
@@ -80,7 +81,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         listener.problems.size() == 2
     }
 
-    @TargetGradleVersion(">=8.6")
+    @TargetGradleVersion(">=8.5")
+    @ToolingApiVersion("=8.7")
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
@@ -98,10 +100,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         when:
 
-        def problems = runTask()
+        def problems = runTask().collect{ it.descriptor }
 
         then:
         assertProblemDetailsForTAPIProblemEvent(problems, expectedDetails, expecteDocumentation)
+        def location = problems[0].locations[1]
         problems[0].failure == null
 
         where:
@@ -133,7 +136,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         listener.problems.size() == 0
     }
 
-    @TargetGradleVersion(">=8.7")
+    @TargetGradleVersion("=8.7")
     def "Can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {
@@ -152,10 +155,51 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        def problems = listener.problems.collect { it as ProblemDescriptor }
+        def problems = listener.problems
+        validateCompilationProblem(problems, buildFile)
+        problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
+    }
+
+    static void validateCompilationProblem(List<ProblemEvent> problems, TestFile buildFile) {
         problems.size() == 1
         problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
         problems[0].category.category == 'compilation'
-        problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
     }
+
+    @TargetGradleVersion("=8.6")
+    def "8.6 version doesn't send failure"() {
+        buildFile """
+            tasks.register("foo) {
+        """
+
+        given:
+        def listener = new ProblemProgressListener()
+
+        when:
+        withConnection {
+            it.model(CustomModel)
+                .setJavaHome(jdk17.javaHome)
+                .addProgressListener(listener)
+                .get()
+        }
+
+        then:
+        thrown(BuildException)
+        def problems = listener.problems
+        validateCompilationProblem(problems, buildFile)
+        problems[0].failure == null
+    }
+
+    class ProblemProgressListener implements ProgressListener {
+
+        List<?> problems = []
+
+        @Override
+        void statusChanged(ProgressEvent event) {
+            if (event instanceof ProblemEvent) {
+                this.problems.add(event)
+            }
+        }
+    }
+
 }
