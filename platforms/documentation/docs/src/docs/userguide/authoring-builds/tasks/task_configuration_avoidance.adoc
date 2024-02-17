@@ -373,7 +373,7 @@ task anEagerTask {
 | Returns a `TaskProvider` instead of a `Task`.
 
 | link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType()]
-| OK to use because it does not require tasks to be created immediately.
+| OK to use.
 
 | link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach-org.gradle.api.Action-[DomainObjectCollection.configureEach()]
 | Returns `void`, so it cannot be chained.
@@ -387,6 +387,9 @@ task anEagerTask {
 | API
 | Note
 
+| `task myTask(type: MyTask) {}`
+| Do not use the shorthand notation.
+
 | link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.util.Map-[TaskContainer.create()]
 | Use `register()` instead.
 
@@ -394,13 +397,22 @@ task anEagerTask {
 | Do not use.
 
 | link:{javadocPath}/org/gradle/api/NamedDomainObjectCollection.html#findByName-java.lang.String-[NamedDomainObjectCollection.findByName()]
-| `named()` is the closest equivalent, but will fail if the task does not exist. Using `findByName()` will cause tasks registered with the new API to be created/configured.
+| Do not use. `named()` is the closest equivalent, but will fail if the task does not exist.
 
 | link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#findByPath-java.lang.String-[TaskContainer.findByPath()]
 | Do not use.
 
 | link:{javadocPath}/org/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-[TaskCollection.getByName()]
-| Do not use.
+| Use `named()` instead.
+
+| link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)]
+| Use `configureEach()` instead.
+
+| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#whenTaskAdded-org.gradle.api.Action-[TaskCollection.whenTaskAdded(org.gradle.api.Action)]
+| Use `configureEach()` instead.
+
+| link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#whenObjectAdded-org.gradle.api.Action-[DomainObjectCollection.whenObjectAdded(org.gradle.api.Action)]
+| Use `configureEach()` instead.
 
 | link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html#findAll-groovy.lang.Closure-[NamedDomainObjectSet.findAll()]
 | Avoid calling this method. `matching()` and `configureEach()` are more appropriate in most cases.
@@ -410,15 +422,15 @@ task anEagerTask {
 `matching()` requires all tasks to be created, so try to limit the impact by restricting the type of task, like `withType().matching()`.
 
 | link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getAt-java.lang.String-[TaskCollection.getAt()]
-| Avoid calling this directly as it's a Groovy convenience method. The alternative returns a `TaskProvider` instead of a `Task`.
+| Use `named()` instead.
 
 | `iterator()` or implicit iteration over the `Task` collection
 | Avoid doing this as it requires creating and configuring all tasks.
 
 | `remove()`
-| Avoid calling this.
+| Avoid calling this. The behavior may change in the future.
 
 | link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#replace-java.lang.String-[TaskContainer.replace()]
-| Avoid calling this.
+| Avoid calling this. The behavior may change in the future.
 
 |===
