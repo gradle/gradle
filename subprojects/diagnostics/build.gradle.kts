@@ -18,25 +18,28 @@ errorprone {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":functional"))
-    implementation(project(":logging"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":reporting"))
-    implementation(project(":platform-base"))
-    implementation(project(":snapshots"))
-    implementation(project(":dependency-management"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":build-option"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":enterprise-logging"))
+    api(project(":file-collections"))
+    api(project(":logging"))
+    api(project(":model-core"))
+    api(project(":platform-base"))
+    api(project(":reporting"))
 
-    implementation(libs.groovy)
+    api(libs.groovy)
+    api(libs.jsr305)
+    api(libs.inject)
+
+    implementation(project(":functional"))
+    implementation(project(":logging-api"))
+
     implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
     implementation(libs.jatl)
 
     testImplementation(project(":process-services"))

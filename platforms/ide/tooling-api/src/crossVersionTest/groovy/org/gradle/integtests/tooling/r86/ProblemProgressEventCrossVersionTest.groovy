@@ -25,13 +25,10 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.problems.FileLocation
 import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.OffsetInFileLocation
-import org.gradle.tooling.events.problems.ProblemAggregationDescriptor
-import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.TaskPathLocation
-import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor
 
-@ToolingApiVersion(">=8.6")
+@ToolingApiVersion("=8.6")
 @TargetGradleVersion(">=8.6")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
@@ -58,6 +55,38 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
             tasks.register("reportProblem", ProblemReportingTask)
         """
+    }
+
+    def runTask() {
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+        return listener.problems.collect { it.descriptor }
+    }
+
+    static def assertProblemDetailsForTAPIProblemEvent(List<?> problems, String expectedDetails = null, String expectedDocumentation = null) {
+        problems.size() == 1
+        problems[0].category.namespace == 'org.example.plugin'
+        problems[0].category.category == 'main'
+        problems[0].category.subcategories == ['sub', 'id']
+        problems[0].additionalData.asMap == ['aKey': 'aValue']
+        problems[0].label.label == 'shortProblemMessage'
+        problems[0].details.details == expectedDetails
+        problems[0].severity == Severity.WARNING
+        problems[0].locations.size() == 2
+        problems[0].locations[0] instanceof LineInFileLocation
+        def lineInFileLocation = problems[0].locations[0] as LineInFileLocation
+        lineInFileLocation.path == '/tmp/foo'
+        lineInFileLocation.line == 1
+        lineInFileLocation.column == 2
+        lineInFileLocation.length == 3
+        problems[0].locations[1] instanceof TaskPathLocation
+        problems[0].documentationLink.url == expectedDocumentation
+        problems[0].solutions.size() == 1
+        problems[0].solutions[0].solution == 'try this instead'
     }
 
     @TargetGradleVersion("=8.3")
@@ -115,11 +144,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems.size() == 2
 
 
-        def firstProblem = (ProblemDescriptor) problems[0]
+        def firstProblem = problems[0].getDescriptor()
         firstProblem.label.label == "The 'standard-plugin' is deprecated"
         firstProblem.details.details == null
 
-        def aggregatedProblems = (ProblemAggregationDescriptor) problems[1]
+        def aggregatedProblems = problems[1].getDescriptor()
 
         def aggregations = aggregatedProblems.aggregations
         aggregations.size() == 1
@@ -127,7 +156,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         aggregations[0].problemDescriptors.size() == 10
     }
 
-    @TargetGradleVersion("=8.6")
     def "Problems expose details via Tooling API events"() {
         given:
         withReportProblemTask """
@@ -154,40 +182,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
-    }
-
-    static def assertProblemDetailsForTAPIProblemEvent(List<ProblemDescriptor> problems, String expectedDetails = null, String expecteDocumentation = null) {
-        problems.size() == 1
-        problems[0].category.namespace == 'org.example.plugin'
-        problems[0].category.category == 'main'
-        problems[0].category.subcategories == ['sub', 'id']
-        ((DefaultProblemsOperationDescriptor) problems[0]).additionalData.asMap == ['aKey': 'aValue']
-        problems[0].label.label == 'shortProblemMessage'
-        problems[0].details.details == expectedDetails
-        problems[0].severity == Severity.WARNING
-            problems[0].locations.size() == 2
-        problems[0].locations[0] instanceof LineInFileLocation
-        def lineInFileLocation = problems[0].locations[0] as LineInFileLocation
-        lineInFileLocation.path == '/tmp/foo'
-        lineInFileLocation.line == 1
-        lineInFileLocation.column == 2
-        lineInFileLocation.length == 3
-        problems[0].locations[1] instanceof TaskPathLocation
-        problems[0].documentationLink.url == expecteDocumentation
-        problems[0].solutions.size() == 1
-        problems[0].solutions[0].solution == 'try this instead'
-
-    }
-
-
-    def runTask() {
-        def listener = new ProblemProgressListener()
-        withConnection { connection ->
-            connection.newBuild().forTasks('reportProblem')
-                .addProgressListener(listener)
-                .run()
-        }
-        return listener.problems.collect { (ProblemDescriptor) it }
     }
 
     def "Problems expose file locations with file path only"() {

@@ -76,16 +76,6 @@ public class DependenciesExtensionModule {
     private static final String VERSION = "version";
     private static final Set<String> MODULE_LEGAL_MAP_KEYS = ImmutableSet.of(GROUP, NAME, VERSION);
 
-    private static void validateModuleMap(Map<String, CharSequence> map) {
-        if (!MODULE_LEGAL_MAP_KEYS.containsAll(map.keySet())) {
-            CollectionUtils.SetDiff<String> diff = CollectionUtils.diffSetsBy(MODULE_LEGAL_MAP_KEYS, map.keySet(), k -> k);
-            throw new IllegalArgumentException("The map must not contain the following keys: " + diff.rightOnly);
-        }
-        if (!map.containsKey(NAME)) {
-            throw new IllegalArgumentException("The map must contain a name key.");
-        }
-    }
-
     /**
      * Creates an {@link ExternalModuleDependency} from the given Map notation. This emulates named parameters in Groovy DSL.
      * <p>
@@ -104,39 +94,18 @@ public class DependenciesExtensionModule {
      * @return the dependency
      */
     public static ExternalModuleDependency module(Dependencies self, Map<String, CharSequence> map) {
-        validateModuleMap(map);
+        if (!MODULE_LEGAL_MAP_KEYS.containsAll(map.keySet())) {
+            CollectionUtils.SetDiff<String> diff = CollectionUtils.diffSetsBy(MODULE_LEGAL_MAP_KEYS, map.keySet(), k -> k);
+            throw new IllegalArgumentException("The map must not contain the following keys: " + diff.rightOnly);
+        }
+        if (!map.containsKey(NAME)) {
+            throw new IllegalArgumentException("The map must contain a name key.");
+        }
         String group = extract(map, GROUP);
         String name = extract(map, NAME);
         String version = extract(map, VERSION);
         assert name != null : "Just for types, this is not possible";
         return self.module(group, name, version);
-    }
-
-    /**
-     * Creates a {@link DependencyConstraint} from the given Map notation. This emulates named parameters in Groovy DSL.
-     * <p>
-     * The map may contain:
-     * <ul>
-     *   <li>{@code group}</li>
-     *   <li>{@code version}</li>
-     * </ul>
-     *
-     * It must contain at least the following keys:
-     * <ul>
-     *   <li>{@code name}</li>
-     * </ul>
-     *
-     * @param map a map of configuration parameters for the dependency
-     * @return the dependency
-     * @since 8.7
-     */
-    public static DependencyConstraint constraint(Dependencies self, Map<String, CharSequence> map) {
-        validateModuleMap(map);
-        String group = extract(map, GROUP);
-        String name = extract(map, NAME);
-        String version = extract(map, VERSION);
-        assert name != null : "Just for types, this is not possible";
-        return self.constraint(group, name, version);
     }
 
     @Nullable
