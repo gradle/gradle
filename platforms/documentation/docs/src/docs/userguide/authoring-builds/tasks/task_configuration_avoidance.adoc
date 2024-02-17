@@ -359,121 +359,66 @@ task anEagerTask {
 [[sec:task_configuration_avoidance_backward_compatibility_migration]]
 
 [[sec:old_vs_new_configuration_api_overview]]
-== Old vs Current API
-
-* Methods that take a `groovy.lang.Closure` are covered in the new API with methods taking `org.gradle.api.Action`.
-* More convenience methods may be added based on user feedback.
-* Some old API methods may never be directly replaced by the new API.
-* Some APIs may be restricted when accessed in a configuration action registered via the configuration avoidance methods.
+== Recommended APIs
 
 [cols="a,a", options="header"]
 |===
-| Old API
-| New API
+| API
+| Note
 
-| `task myTask(type: MyTask) {}`
-| `tasks.register("myTask", MyTask) {}`
-2+| No direct replacement. There is not a shorthand Groovy DSL for using the new API.
+| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register()]
+| Returns a `TaskProvider` instead of a `Task`.
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.util.Map-[TaskContainer.create(java.util.Map)]
-| No direct equivalent.
-2+| Use one of the alternatives below.
+| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named()]
+| Returns a `TaskProvider` instead of a `Task`.
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.util.Map-groovy.lang.Closure-[TaskContainer.create(java.util.Map, groovy.lang.Closure)]
-| No direct equivalent.
-2+| Use one of the alternatives below.
+| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType()]
+| OK to use because it does not require tasks to be created immediately.
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-[TaskContainer.create(java.lang.String)]
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)]
-2+| The new API returns a `TaskProvider` instead of a `Task`.
+| link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach-org.gradle.api.Action-[DomainObjectCollection.configureEach()]
+| Returns `void`, so it cannot be chained.
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-groovy.lang.Closure-[TaskContainer.create(java.lang.String, groovy.lang.Closure)]
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-org.gradle.api.Action-[TaskContainer.register(java.lang.String, org.gradle.api.Action)]
-2+| The new API returns a `TaskProvider` instead of a `Task`.
+|===
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-java.lang.Class-[TaskContainer.create(java.lang.String, java.lang.Class)]
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[TaskContainer.register(java.lang.String, java.lang.Class)]
-2+| The new API returns a `TaskProvider` instead of a `Task`.
+== APIs to avoid
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.create(java.lang.String, java.lang.Class, org.gradle.api.Action)]
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.register(java.lang.String, java.lang.Class, org.gradle.api.Action)]
-2+| The new API returns a `TaskProvider` instead of a `Task`.
+[cols="a,a", options="header"]
+|===
+| API
+| Note
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-java.lang.Class-java.lang.Object++...++-[TaskContainer.create(java.lang.String, java.lang.Class, java.lang.Object...)]
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-java.lang.Object++...++-[TaskContainer.register(java.lang.String, java.lang.Class, java.lang.Object...)]
-2+| The new API returns a `TaskProvider` instead of a `Task`.
+| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.util.Map-[TaskContainer.create()]
+| Use `register()` instead.
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-[TaskCollection.getByName(java.lang.String)]
-| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)]
-2+| The new API returns a `TaskProvider` instead of a `Task`.
+| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#getByPath-java.lang.String-[TaskContainer.getByPath()]
+| Do not use.
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-groovy.lang.Closure-[TaskCollection.getByName(java.lang.String, groovy.lang.Closure)]
-| `named(java.lang.String, Action)`
-2+| The new API returns a `TaskProvider` instead of a `Task`.
+| link:{javadocPath}/org/gradle/api/NamedDomainObjectCollection.html#findByName-java.lang.String-[NamedDomainObjectCollection.findByName()]
+| `named()` is the closest equivalent, but will fail if the task does not exist. Using `findByName()` will cause tasks registered with the new API to be created/configured.
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#getByPath-java.lang.String-[TaskContainer.getByPath(java.lang.String)]
-| No direct equivalent.
-2+| Accessing tasks from another project requires a specific ordering of project evaluation.
+| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#findByPath-java.lang.String-[TaskContainer.findByPath()]
+| Do not use.
 
-| link:{javadocPath}/org/gradle/api/NamedDomainObjectCollection.html#findByName-java.lang.String-[NamedDomainObjectCollection.findByName(java.lang.String)]
-| No direct equivalent.
-2+| `named(String)` is the closest equivalent, but will fail if the task does not exist. Using `findByName(String)` will cause tasks registered with the new API to be created/configured.
+| link:{javadocPath}/org/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-[TaskCollection.getByName()]
+| Do not use.
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#findByPath-java.lang.String-[TaskContainer.findByPath(java.lang.String)]
-| No direct equivalent.
-2+| See `getByPath(String)` above.
+| link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html#findAll-groovy.lang.Closure-[NamedDomainObjectSet.findAll()]
+| Avoid calling this method. `matching()` and `configureEach()` are more appropriate in most cases.
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)]
-| _OK_
-2+| This is OK to use because it does not require tasks to be created immediately.
+| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#matching-groovy.lang.Closure-[TaskCollection.matching()]
+| If you are matching based on the name, use `named()` instead which will be lazy.
+`matching()` requires all tasks to be created, so try to limit the impact by restricting the type of task, like `withType().matching()`.
 
-| `withType(java.lang.Class).getByName(java.lang.String)`
-| `named(java.lang.String, java.lang.Class)`
-2+| The new API returns a `TaskProvider` instead of a `Task`.
-
-| link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-org.gradle.api.Action-[DomainObjectCollection.withType(java.lang.Class, org.gradle.api.Action)]
-| `withType(java.lang.Class).configureEach(org.gradle.api.Action)`
-2+| The new API returns `void`, so it cannot be chained.
-
-| link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)]
-| link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach-org.gradle.api.Action-[DomainObjectCollection.configureEach(org.gradle.api.Action)]
-2+| The new API returns `void`, so it cannot be chained.
-
-| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#whenTaskAdded-org.gradle.api.Action-[TaskCollection.whenTaskAdded(org.gradle.api.Action)]
-| link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach-org.gradle.api.Action-[DomainObjectCollection.configureEach(org.gradle.api.Action)]
-2+| The new API returns `void`, so it cannot be chained.
-
-| link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#whenObjectAdded-org.gradle.api.Action-[DomainObjectCollection.whenObjectAdded(org.gradle.api.Action)]
-| link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach-org.gradle.api.Action-[DomainObjectCollection.configureEach(org.gradle.api.Action)]
-2+| The new API returns `void`, so it cannot be chained.
-
-| link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html#findAll-groovy.lang.Closure-[NamedDomainObjectSet.findAll(groovy.lang.Closure)]
-| _OK_, with issues.
-2+| Avoid calling this method. `matching(Spec)` and `configureEach(Action)` are more appropriate in most cases.
-
-| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#matching-groovy.lang.Closure-[TaskCollection.matching(groovy.lang.Closure)]
-| _OK_, with issues.
-2+| If you are matching based on the name, use `named(Spec<String>)` instead which will be lazy.
-`matching(Spec)` requires all tasks to be created, so try to limit the impact by restricting the type of task, like `withType(java.lang.Class).matching(Spec)`.
-
-| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getAt-java.lang.String-[TaskCollection.getAt(java.lang.String)]
-| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)]
-2+| Avoid calling this directly as it's a Groovy convenience method. The alternative returns a `TaskProvider` instead of a `Task`.
+| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getAt-java.lang.String-[TaskCollection.getAt()]
+| Avoid calling this directly as it's a Groovy convenience method. The alternative returns a `TaskProvider` instead of a `Task`.
 
 | `iterator()` or implicit iteration over the `Task` collection
-| _OK_, with issues.
-2+| Avoid doing this as it requires creating and configuring all tasks. See `findAll(Closure)` above.
+| Avoid doing this as it requires creating and configuring all tasks.
 
-| `remove(org.gradle.api.Task)`
-| _OK_, with issues.
-2+| Avoid calling this. The behavior of `remove` with the new API may change in the future.
+| `remove()`
+| Avoid calling this.
 
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#replace-java.lang.String-[TaskContainer.replace(java.lang.String)]
-| _OK_, with issues.
-2+| Avoid calling this. The behavior of `replace` with the new API may change in the future.
-
-| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#replace-java.lang.String-java.lang.Class-[TaskContainer.replace(java.lang.String, java.lang.Class)]
-| _OK_, with issues.
-2+| Avoid calling this. The behavior of `replace` with the new API may change in the future.
+| link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#replace-java.lang.String-[TaskContainer.replace()]
+| Avoid calling this.
 
 |===
