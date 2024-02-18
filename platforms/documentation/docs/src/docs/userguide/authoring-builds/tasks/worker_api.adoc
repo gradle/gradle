@@ -21,6 +21,7 @@ image::writing-tasks-5.png[]
 
 This allows Gradle to fully utilize the resources available and complete builds faster.
 
+[[worker_api]]
 == The Worker API
 The Worker API provides the ability to break up the execution of a task action into discrete units of work and then execute that work concurrently and asynchronously.
 

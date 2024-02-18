@@ -402,7 +402,7 @@ task anEagerTask {
 | link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#findByPath-java.lang.String-[TaskContainer.findByPath()]
 | Do not use.
 
-| link:{javadocPath}/org/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-[TaskCollection.getByName()]
+| link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-[TaskCollection.getByName()]
 | Use `named()` instead.
 
 | link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)]
