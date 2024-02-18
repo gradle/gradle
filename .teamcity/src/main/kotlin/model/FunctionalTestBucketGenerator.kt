@@ -191,7 +191,8 @@ fun onlyNativeSubprojectsForIntelMacs(
 ): Boolean {
     return if (testCoverage.os == Os.MACOS && testCoverage.arch == Arch.AMD64) {
         subprojectName.contains("native") ||
-            subprojectName in listOf("file-watching", "snapshots", "workers", "logging")
+            // Include precondition-tester here so we understand that tests do run on macOS intel as well
+            subprojectName in listOf("file-watching", "snapshots", "workers", "logging", "precondition-tester")
     } else {
         true
     }
