@@ -16,8 +16,9 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.api.problems.internal.Problem
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.Problem
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
@@ -27,7 +28,6 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.vfs.VirtualFileSystem
 
 import static com.google.common.collect.ImmutableList.of
-import static org.gradle.integtests.fixtures.validation.ValidationProblemPropertyAnnotationHandler.TEST_PROBLEM
 import static org.gradle.internal.RenderingUtils.oxfordListOf
 import static org.gradle.internal.deprecation.Documentation.userManual
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
@@ -78,9 +78,8 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             validationContext.forType(JobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .label("Validation error")
+                    .id("test-problem", "Validation error", GradleCoreProblemGroup.validation())
                     .documentedAt(userManual("id", "section"))
-                    .category(TEST_PROBLEM)
                     .details("Test")
                     .severity(Severity.ERROR)
             }
@@ -108,18 +107,16 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             validationContext.forType(JobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .label("Validation error #1")
+                    .id("test-problem-1", "Validation error #1", GradleCoreProblemGroup.validation())
                     .documentedAt(userManual("id", "section"))
-                    .category(TEST_PROBLEM)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
             validationContext.forType(SecondaryJobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .label("Validation error #2")
+                    .id("test-problem-2", "Validation error #2", GradleCoreProblemGroup.validation())
                     .documentedAt(userManual("id", "section"))
-                    .category(TEST_PROBLEM)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
@@ -138,9 +135,8 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             validationContext.forType(JobType, true).visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .label("Validation warning")
+                    .id("test-problem", "Validation warning", GradleCoreProblemGroup.validation())
                     .documentedAt(userManual("id", "section"))
-                    .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
@@ -161,10 +157,10 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
     }
 
     def "reports deprecation warning even when there's also an error"() {
-        String expectedWarning = convertToSingleLine(dummyValidationProblemWithLink('java.lang.Object', null, 'Validation warning', 'Test').trim())
+        String expectedWarning = convertToSingleLine(dummyValidationProblemWithLink('java.lang.Object', null, 'Validation problem', 'Test').trim())
         // errors are reindented but not warnings
         expectReindentedValidationMessage()
-        String expectedError = dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test')
+        String expectedError = dummyValidationProblemWithLink('java.lang.Object', null, 'Validation problem', 'Test')
 
         when:
         step.execute(work, context)
@@ -175,18 +171,16 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             typeContext.visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .label("Validation error")
+                    .id("test-problem", "Validation problem", GradleCoreProblemGroup.validation())
                     .documentedAt(userManual("id", "section"))
-                    .category(TEST_PROBLEM)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
             typeContext.visitTypeProblem {
                 it
                     .withAnnotationType(Object)
-                    .label("Validation warning")
+                    .id("test-problem", "Validation problem", GradleCoreProblemGroup.validation())
                     .documentedAt(userManual("id", "section"))
-                    .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }

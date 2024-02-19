@@ -18,7 +18,6 @@ package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -35,7 +34,6 @@ import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
@@ -45,6 +43,7 @@ import java.lang.annotation.Annotation;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.reflect.DefaultTypeValidationContext.MISSING_NORMALIZATION_ANNOTATION;
+import static org.gradle.internal.reflect.DefaultTypeValidationContext.MISSING_NORMALIZATION_ID;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
 
@@ -116,10 +115,9 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
                 String propertyName = propertyMetadata.getPropertyName();
                 problem
                     .forProperty(propertyName)
-                    .label("psroperty has missing normalization strategy")
+                    .id(MISSING_NORMALIZATION_ID.getId(), MISSING_NORMALIZATION_ID.getDisplayName(), MISSING_NORMALIZATION_ID.getParent())
                     .contextualLabel(String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
                     .documentedAt(userManual("validation_problems", MISSING_NORMALIZATION_ANNOTATION.toLowerCase()))
-                    .category(DefaultProblemCategory.VALIDATION, DefaultTypeValidationContext.MISSING_NORMALIZATION_CATEGORY_DETAILS)
                     .severity(Severity.ERROR)
                     .details("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
                     .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath");

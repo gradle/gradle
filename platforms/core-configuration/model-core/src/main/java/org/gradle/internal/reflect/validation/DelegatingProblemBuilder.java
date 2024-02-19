@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
@@ -39,8 +40,13 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder label(String label) {
-        return validateDelegate(delegate).label(label);
+    public InternalProblemBuilder id(String id, String displayName) {
+        return validateDelegate(delegate).id(id, displayName);
+    }
+
+    @Override
+    public InternalProblemBuilder id(String id, String displayName, ProblemGroup parent) {
+        return validateDelegate(delegate).id(id, displayName, parent);
     }
 
     @Override
@@ -91,11 +97,6 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     @Override
     public InternalProblemBuilder stackLocation() {
         return validateDelegate(delegate.stackLocation());
-    }
-
-    @Override
-    public InternalProblemBuilder category(String category, String... details) {
-        return validateDelegate(delegate.category(category, details));
     }
 
     @Override

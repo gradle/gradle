@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@
 
 package org.gradle.api.problems.internal;
 
-/**
- * Task path location.
- */
-public interface TaskPathLocation extends ProblemLocation {
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 
-    /**
-     * Returns the absolute build tree path of the task reporting the problem.
-     *
-     * @return the build tree path
-     */
-    String getBuildTreePath();
+public class DefaultProblemId extends DefaultProblemGroup implements ProblemId {
+
+    public DefaultProblemId(String id, String displayName, ProblemGroup parent) {
+        super(id, displayName, parent);
+    }
 }

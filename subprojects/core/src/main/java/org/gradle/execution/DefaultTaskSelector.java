@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.InternalProblemBuilder;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
@@ -99,11 +99,10 @@ public class DefaultTaskSelector implements TaskSelector {
         String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
             matcher.formatErrorMessage("task", searchContext));
 
-        throw getProblemsService().getInternalReporter().throwing(builder -> ((InternalProblemBuilder)builder) // TODO (donat) fix internal reporter or expose contextualLabel on public API
-            .label("cannot locate task")
+        throw getProblemsService().getInternalReporter().throwing(builder -> builder
+            .id("no-matches", "cannot locate task", GradleCoreProblemGroup.taskSelection())
             .contextualLabel(message)
             .fileLocation(Objects.requireNonNull(context.getOriginalPath().getName()))
-            .category("task-selection", "no-matches")
             .severity(Severity.ERROR)
             .withException(new TaskSelectionException(message)) // this instead of cause
         );

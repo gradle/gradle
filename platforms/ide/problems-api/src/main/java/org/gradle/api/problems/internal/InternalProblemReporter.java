@@ -42,7 +42,7 @@ public interface InternalProblemReporter extends ProblemReporter {
      * Reports the target problem with an explicit operation identifier.
      *
      * @param problem The problem to report.
-     * @param id      The operation identifier.
+     * @param id The operation identifier.
      */
     void report(Problem problem, OperationIdentifier id);
 }

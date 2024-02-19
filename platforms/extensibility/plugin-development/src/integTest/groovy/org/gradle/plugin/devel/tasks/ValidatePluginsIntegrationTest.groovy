@@ -157,6 +157,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     def "can enable stricter validation"() {
+        enableProblemsApiCheck()
         buildFile << """
             dependencies {
                 implementation localGroovy()

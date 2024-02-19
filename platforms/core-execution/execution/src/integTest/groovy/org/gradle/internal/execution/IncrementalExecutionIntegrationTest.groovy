@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
@@ -242,8 +243,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 context
                     .forType(UnitOfWork, false)
                     .visitPropertyProblem {
-                        it.category("test.problem")
-                            .label("Validation problem")
+                        it.id("test-problem", "Validation problem", GradleCoreProblemGroup.validation())
                             .severity(Severity.WARNING)
                             .documentedAt(Documentation.userManual("id", "section"))
                             .details("Test")
@@ -552,9 +552,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 validationContext.forType(Object, true).visitTypeProblem {
                     it
                         .withAnnotationType(Object)
-                        .label("Validation error")
+                        .id("test-problem", "Validation error", GradleCoreProblemGroup.validation())
                         .documentedAt(Documentation.userManual("id", "section"))
-                        .category("test.problem")
                         .details("Test")
                         .severity(Severity.ERROR)
                 }

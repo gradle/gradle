@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public interface Problem {
      * A long description detailing the problem.
      * <p>
      * Details can elaborate on the problem, and provide more information about the problem.
-     * They can be multiple lines long, but should not detail solutions; for that, use {@link ProblemDefinition#getSolutions()}.
+     * They can be multiple lines long, but should not detail solutions; for that, use {@link #getSolutions()}.
      */
     @Nullable
     String getDetails();

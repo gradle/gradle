@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DocLink;
@@ -25,9 +27,9 @@ import org.gradle.api.problems.internal.LineInFileLocation;
 import org.gradle.api.problems.internal.OffsetInFileLocation;
 import org.gradle.api.problems.internal.PluginIdLocation;
 import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.api.problems.internal.TaskPathLocation;
+import org.gradle.internal.Pair;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
@@ -54,6 +56,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,13 +102,13 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         return new DefaultProblemEvent(
             cerateDefaultProblemDescriptor(buildOperationId),
             new DefaultProblemDetails(
-                toInternalCategory(problem.getDefinition().getCategory()),
-                toInternalLabel(problem.getDefinition().getLabel(), problem.getContextualLabel()),
+                toInternalCategory(problem.getDefinition().getId()),
+                toInternalLabel(problem.getDefinition().getId().getDisplayName(), problem.getContextualLabel()),
                 toInternalDetails(problem.getDetails()),
                 toInternalSeverity(problem.getDefinition().getSeverity()),
                 toInternalLocations(problem.getLocations()),
                 toInternalDocumentationLink(problem.getDefinition().getDocumentationLink()),
-                toInternalSolutions(problem.getDefinition().getSolutions(), problem.getSolutions()),
+                toInternalSolutions(problem.getSolutions()),
                 toInternalAdditionalData(problem.getAdditionalData()),
                 toInternalFailure(problem.getException())
             )
@@ -126,8 +129,22 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
             parentBuildOperationId);
     }
 
-    private static InternalProblemCategory toInternalCategory(ProblemCategory category) {
-        return new DefaultProblemCategory(category.getNamespace(), category.getCategory(), category.getSubcategories());
+    private static InternalProblemCategory toInternalCategory(ProblemId problemId) {
+        Pair<String, List<String>> categories = categories(problemId);
+        String rootCategory = categories.getLeft();
+        List<String> subcategories = categories.getRight();
+        return new DefaultProblemCategory("", rootCategory, subcategories); // TODO look at problem category in Tooling API events
+    }
+
+    private static Pair<String, List<String>> categories(ProblemGroup problemId) {
+        List<String> subcategories = new ArrayList<>();
+        ProblemGroup current = problemId;
+        while (current.getParent() != null) {
+            subcategories.add(current.getId());
+            current = current.getParent();
+        }
+        Collections.reverse(subcategories);
+        return Pair.of(current.getId(), subcategories);
     }
 
     private static InternalLabel toInternalLabel(String label, @Nullable String contextualLabel) {
@@ -179,11 +196,8 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         return (link == null || link.getUrl() == null) ? null : new DefaultDocumentationLink(link.getUrl());
     }
 
-    private static List<InternalSolution> toInternalSolutions(List<String> solutions, List<String> contextualSolutions) {
-        ArrayList<String> allSolutions = new ArrayList<>(solutions.size() + contextualSolutions.size());
-        allSolutions.addAll(solutions);
-        allSolutions.addAll(contextualSolutions);
-        return allSolutions.stream()
+    private static List<InternalSolution> toInternalSolutions(List<String> solutions) {
+        return solutions.stream()
             .map(DefaultSolution::new)
             .collect(toImmutableList());
     }

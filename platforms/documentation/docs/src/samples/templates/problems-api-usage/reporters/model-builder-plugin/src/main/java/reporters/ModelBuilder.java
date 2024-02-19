@@ -24,8 +24,7 @@ public class ModelBuilder implements ToolingModelBuilder {
     @Override
     public Object buildAll(String modelName, Project project) {
         problems.forNamespace("reporters.model.builder").reporting(problem -> problem
-            .label("Demo model")
-            .category("unused")
+            .id("unused", "Demo model")
             .severity(Severity.WARNING)
             .details("This is a demo model and doesn't do anything useful")
         );

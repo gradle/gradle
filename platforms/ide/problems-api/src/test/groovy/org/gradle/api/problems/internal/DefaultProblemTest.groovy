@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal
 
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.SharedProblemGroup
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Specification
@@ -27,10 +28,10 @@ class DefaultProblemTest extends Specification {
 
         def newProblem = problem.toBuilder().build()
         expect:
-        newProblem.definition.category == problem.definition.category
-        newProblem.definition.label == problem.definition.label
+        newProblem.definition.id.id == problem.definition.id.id
+        newProblem.definition.id.displayName == problem.definition.id.displayName
         newProblem.definition.severity == problem.definition.severity
-        newProblem.definition.solutions == problem.definition.solutions
+        newProblem.solutions == problem.solutions
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details
         newProblem.exception == problem.exception
@@ -69,7 +70,7 @@ class DefaultProblemTest extends Specification {
     def "unbound builder result with a change and check report"() {
         given:
         def emitter = Mock(ProblemEmitter)
-        def problemReporter = new DefaultProblemReporter(emitter, [], "core")
+        def problemReporter = new DefaultProblemReporter(emitter, [])
         def problem = createTestProblem(Severity.WARNING, [:])
         def builder = problem.toBuilder()
         def newProblem = builder
@@ -84,25 +85,23 @@ class DefaultProblemTest extends Specification {
         // We are not running this test as an integration test, so we won't have a BuildOperationId available,
         // i.e. the OperationId will be null
         1 * emitter.emit(newProblem, operationId)
-        newProblem.definition.category == problem.definition.category
-        newProblem.definition.label == problem.definition.label
+        newProblem.definition.id.id == problem.definition.id.id
+        newProblem.definition.id.displayName == problem.definition.id.displayName
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details
         newProblem.exception == problem.exception
         newProblem.locations == problem.locations
         newProblem.definition.severity == problem.definition.severity
-        newProblem.definition.solutions == ["solution"]
+        newProblem.solutions == ["solution"]
         newProblem.class == DefaultProblem
     }
 
     private static createTestProblem(Severity severity = Severity.ERROR, Map<String, String> additionalData = [data1: "data2"]) {
         new DefaultProblem(
             new DefaultProblemDefinition(
-                'message',
+                new DefaultProblemId('message', "displayName", SharedProblemGroup.generic()),
                 severity,
                 Documentation.userManual('id'),
-                [],
-                DefaultProblemCategory.create('a', 'b', 'c')
             ),
             null,
             [],
@@ -117,11 +116,9 @@ class DefaultProblemTest extends Specification {
         given:
         def problem = new DefaultProblem(
             new DefaultProblemDefinition(
-                'message',
+                new DefaultProblemId('message', "displayName", SharedProblemGroup.generic()),
                 Severity.WARNING,
                 Documentation.userManual('id'),
-                [],
-                DefaultProblemCategory.create('a', 'b', 'c')
             ),
             'contextual label',
             ['contextual solution'],

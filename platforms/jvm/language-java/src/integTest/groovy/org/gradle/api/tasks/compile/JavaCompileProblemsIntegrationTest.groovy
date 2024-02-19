@@ -243,10 +243,10 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         assert problem['definition']["severity"] == severity: "Expected severity to be ${severity}, but was ${problem['definition']["severity"]}"
         switch (severity) {
             case "ERROR":
-                assert problem['definition']["label"] == "Java compilation error": "Expected label 'Java compilation error', but was ${problem['definition']["label"]}"
+                assert problem['definition']["id"]["displayName"] == "Java compilation error": "Expected label 'Java compilation error', but was ${problem['definition']["id"]["displayName"]}"
                 break
             case "WARNING":
-                assert problem['definition']["label"] == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem['definition']["message"]}"
+                assert problem['definition']["id"]["displayName"] == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem['definition']["id"]["displayName"]}"
                 break
             default:
                 throw new IllegalArgumentException("Unknown severity: ${severity}")

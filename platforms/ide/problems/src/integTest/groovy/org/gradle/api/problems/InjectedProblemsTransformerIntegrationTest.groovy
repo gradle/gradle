@@ -48,9 +48,7 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
 
                 public void apply(Project project) {
                     getProblems().forNamespace("org.example.plugin").reporting(builder ->
-                        builder
-                            .label("label")
-                            .category("type")
+                        builder.id("type", "label")
                     );
                     project.getTasks().register("reportProblem", t -> {
                         t.doLast(t2 -> {

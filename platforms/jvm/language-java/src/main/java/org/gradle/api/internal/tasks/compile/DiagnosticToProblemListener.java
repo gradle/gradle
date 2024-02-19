@@ -21,6 +21,7 @@ import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -47,7 +48,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @VisibleForTesting
     static void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        spec.label(mapKindToLabel(diagnostic.getKind()));
+        spec.id(mapKindToId(diagnostic.getKind()), mapKindToLabel(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
         spec.details(diagnostic.getMessage(Locale.getDefault()));
 
         addCategory(spec, diagnostic);
@@ -127,6 +128,22 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private static String getPath(JavaFileObject fileObject) {
         return fileObject.getName();
+    }
+
+    private static String mapKindToId(Diagnostic.Kind kind) {
+        switch (kind) {
+            case ERROR:
+                return "java-compilation-error";
+            case WARNING:
+            case MANDATORY_WARNING:
+                return "java-compilation-warning";
+            case NOTE:
+                return "java-compilation-note";
+            case OTHER:
+                return "java-compilation-problem";
+            default:
+                return"unknown-java-compilation-problem";
+        }
     }
 
     private static String mapKindToLabel(Diagnostic.Kind kind) {

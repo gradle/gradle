@@ -16,18 +16,11 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 
 public interface InternalProblemSpec extends ProblemSpec {
-
-    /**
-     * Declares a short, but context-dependent message for this problem.
-     *
-     * @param contextualLabel the short message
-     * @return this
-     */
-    InternalProblemSpec contextualLabel(String contextualLabel);
 
     /**
      * Specifies arbitrary data associated with this problem.
@@ -47,7 +40,6 @@ public interface InternalProblemSpec extends ProblemSpec {
      */
     InternalProblemSpec taskPathLocation(String buildTreePath);
 
-
     /**
      * Declares the documentation for this problem.
      *
@@ -56,10 +48,13 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec documentedAt(DocLink doc);
 
     @Override
-    InternalProblemSpec label(String label);
+    InternalProblemSpec id(String id, String displayName);
 
     @Override
-    InternalProblemSpec category(String category, String... details);
+    InternalProblemSpec id(String id, String displayName, ProblemGroup parent);
+
+    @Override
+    InternalProblemSpec contextualLabel(String contextualLabel);
 
     @Override
     InternalProblemSpec documentedAt(String url);

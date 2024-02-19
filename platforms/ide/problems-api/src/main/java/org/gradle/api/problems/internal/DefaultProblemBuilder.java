@@ -18,21 +18,20 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.SharedProblemGroup;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class DefaultProblemBuilder implements InternalProblemBuilder {
-
-    private final String namespace;
-    private String label;
+    private ProblemId id;
     private String contextualLabel;
-    private ProblemCategory category;
     private Severity severity;
     private final List<ProblemLocation> locations;
     private String details;
@@ -43,22 +42,18 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private boolean collectLocation = false;
 
     public DefaultProblemBuilder(Problem problem) {
-        this.label = problem.getDefinition().getLabel();
+        this.id = problem.getDefinition().getId();
         this.contextualLabel = problem.getContextualLabel();
         this.solutions = new ArrayList<String>(problem.getSolutions());
-        this.category = problem.getDefinition().getCategory();
         this.severity = problem.getDefinition().getSeverity();
         this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
         this.details = problem.getDetails();
         this.docLink = problem.getDefinition().getDocumentationLink();
-        this.solutions = new ArrayList<String>(problem.getDefinition().getSolutions());
         this.exception = problem.getException();
         this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
-        this.namespace = problem.getDefinition().getCategory().getNamespace();
     }
 
-    public DefaultProblemBuilder(String namespace) {
-        this.namespace = namespace;
+    public DefaultProblemBuilder() {
         this.locations = new ArrayList<ProblemLocation>();
         this.solutions = new ArrayList<String>();
         this.additionalData = new HashMap<String, Object>();
@@ -67,37 +62,29 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     public Problem build() {
         // Label is mandatory
-        if (label == null) {
-            return missingLabelProblem();
-        }
-
-        // Description is mandatory
-        if (category == null) {
-            return missingCategoryProblem();
+        if (id == null) {
+            return invalidProblem("missing-id", "Problem id must be specified");
+        } else if (id.getParent() == null) {
+            return invalidProblem("missing-parent", "Problem id must have a parent");
         }
 
         // We need to explicitly manage serializing the data from the daemon to the tooling API client, hence the restriction.
         for (Object value : additionalData.values()) {
             if (!(value instanceof String)) {
-                return invalidProblem("ProblemBuilder.additionalData() supports values of type String, but " + value.getClass().getName() + " as given.", "invalid-additional-data");
+                return invalidProblem("invalid-additional-data", "ProblemBuilder.additionalData() only supports values of type String");
             }
         }
 
-        ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, getSeverity(), docLink, solutions, category);
+        ProblemDefinition problemDefinition = new DefaultProblemDefinition(id, getSeverity(), docLink);
         return new DefaultProblem(problemDefinition, contextualLabel, solutions, locations, details, getExceptionForProblemInstantiation(), additionalData);
     }
 
-    private Problem missingLabelProblem() {
-        return invalidProblem("problem label must be specified", "missing-label");
-    }
-
-    private Problem missingCategoryProblem() {
-        return invalidProblem("problem category must be specified", "missing-category");
-    }
-
-    private Problem invalidProblem(String label, String subcategory) {
-        category("validation", "problems-api", subcategory).stackLocation();
-        ProblemDefinition problemDefinition = new DefaultProblemDefinition(label, Severity.WARNING, null, Collections.<String>emptyList(), category);
+    private Problem invalidProblem(String id, String displayName) {
+        id(id, displayName, new DefaultProblemGroup(
+            "problems-api",
+            "Problems API")
+        ).stackLocation();
+        ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.id, Severity.WARNING, null);
         return new DefaultProblem(problemDefinition, null,
             ImmutableList.<String>of(),
             ImmutableList.<ProblemLocation>of(),
@@ -115,12 +102,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             return Severity.WARNING;
         }
         return this.severity;
-    }
-
-    @Override
-    public InternalProblemBuilder label(String label) {
-        this.label = label;
-        return this;
     }
 
     @Override
@@ -196,16 +177,27 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
+    public InternalProblemBuilder id(String id, String displayName) {
+        this.id = new DefaultProblemId(id, displayName, cloneGroup(SharedProblemGroup.generic()));
+        return this;
+    }
+
+    @Override
+    public InternalProblemBuilder id(String id, String displayName, ProblemGroup parent) {
+        this.id = new DefaultProblemId(id, displayName, cloneGroup(parent));
+        return this;
+    }
+
+    private static ProblemGroup cloneGroup(ProblemGroup original) {
+        return new DefaultProblemGroup(original.getId(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
+    }
+
+    @Override
     public InternalProblemBuilder documentedAt(String url) {
         this.docLink = new DefaultDocLink(url);
         return this;
     }
 
-    @Override
-    public InternalProblemBuilder category(String category, String... details) {
-        this.category = DefaultProblemCategory.create(namespace, category, details);
-        return this;
-    }
 
     @Override
     public InternalProblemBuilder solution(@Nullable String solution) {
@@ -231,10 +223,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Nullable
     RuntimeException getException() {
         return exception;
-    }
-
-    protected String getLabel() {
-        return label;
     }
 
     protected void addLocation(ProblemLocation location) {

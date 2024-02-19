@@ -18,6 +18,7 @@ package org.gradle.api.problems.internal
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.SharedProblemGroup
 import org.gradle.internal.deprecation.Documentation
 import spock.lang.Specification
 
@@ -62,20 +63,10 @@ class DefaultProblemDefinitionReport extends Specification {
         pd1 != pd2
     }
 
-    def "Changed locations causes equal to be false"() {
-        when:
-        def pd1 = createProblemDefinition()
-
-        def pd2 = createProblemDefinition("label", Severity.ERROR, asdfManual, ImmutableList.of(new DefaultFileLocation("a")))
-
-        then:
-        pd1 != pd2
-    }
-
     def "Changed category causes equal to be false"() {
         when:
         def pd1 = createProblemDefinition()
-        def pd2 = createProblemDefinition("label", Severity.ERROR, asdfManual, ImmutableList.of(), new DefaultProblemCategory("a", "c"))
+        def pd2 = createProblemDefinition("label2", Severity.ERROR, asdfManual, ImmutableList.of())
 
         then:
         pd1 != pd2
@@ -88,8 +79,9 @@ class DefaultProblemDefinitionReport extends Specification {
         String label = "label",
         Severity severity = Severity.ERROR,
         Documentation documentation = asdfManual,
-        List<ProblemLocation> locations = ImmutableList.of(),
-        DefaultProblemCategory defaultProblemCategory = new DefaultProblemCategory("a", "b")) {
-        new DefaultProblemDefinition(label, severity, documentation, locations, defaultProblemCategory)
+        List<String> solutions = ImmutableList.of(),
+        String displayName = "display name"
+    ) {
+            new DefaultProblemDefinition(new DefaultProblemId(label, displayName, SharedProblemGroup.generic()), severity, documentation)
     }
 }

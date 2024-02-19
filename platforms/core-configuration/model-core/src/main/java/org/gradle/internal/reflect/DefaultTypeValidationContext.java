@@ -18,9 +18,10 @@ package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.DefaultProblemId;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.ProblemCategory;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
@@ -49,20 +50,16 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
-    public static final String[] MISSING_NORMALIZATION_CATEGORY_DETAILS = new String[]
-        {"property", "missing-normalization-annotation"};
-    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = DefaultProblemCategory.create(DefaultProblemCategory.GRADLE_CORE_NAMESPACE, DefaultProblemCategory.VALIDATION, MISSING_NORMALIZATION_CATEGORY_DETAILS);
+    public static final ProblemId MISSING_NORMALIZATION_ID = new DefaultProblemId("missing-normalization-annotation", "Missing normalization", GradleCoreProblemGroup.validation().property());
 
-    public static boolean onlyAffectsCacheableWork(ProblemCategory problemCategory) {
-        return MISSING_NORMALIZATION_CATEGORY.equals(problemCategory);
+    public static boolean onlyAffectsCacheableWork(ProblemId id) {
+        return MISSING_NORMALIZATION_ID.equals(id);
     }
-
-
 
 
     @Override
     protected void recordProblem(Problem problem) {
-        if (onlyAffectsCacheableWork(problem.getDefinition().getCategory()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
+        if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
             return;
         }
         problems.add(problem);
