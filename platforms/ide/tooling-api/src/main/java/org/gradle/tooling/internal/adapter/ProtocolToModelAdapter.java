@@ -331,7 +331,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
     private static class ViewGraphDetails implements Serializable {
         // Transient, don't serialize all the views that happen to have been visited, recreate them when visited via the deserialized view
-        private transient WeakIdentityHashMap<Object, HashMap<ViewKey, WeakReference<Object>>> views = new WeakIdentityHashMap<>();
+        private transient WeakIdentityHashMap<Object, Map<ViewKey, WeakReference<Object>>> views = new WeakIdentityHashMap<>();
         private final TargetTypeProvider typeProvider;
 
         ViewGraphDetails(TargetTypeProvider typeProvider) {
@@ -339,10 +339,10 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         private void putViewFor(Object sourceObject, ViewKey key, Object proxy) {
-            HashMap<ViewKey, WeakReference<Object>> viewsForSource = views.computeIfAbsent(sourceObject,
-                new WeakIdentityHashMap.AbsentValueProvider<HashMap<ViewKey, WeakReference<Object>>>() {
+            Map<ViewKey, WeakReference<Object>> viewsForSource = views.computeIfAbsent(sourceObject,
+                new WeakIdentityHashMap.AbsentValueProvider<Map<ViewKey, WeakReference<Object>>>() {
                     @Override
-                    public HashMap<ViewKey, WeakReference<Object>> provide() {
+                    public Map<ViewKey, WeakReference<Object>> provide() {
                         return new HashMap<>();
                     }
                 });
@@ -352,7 +352,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         @Nullable
         private Object getViewFor(Object sourceObject, ViewKey key) {
-            HashMap<ViewKey, WeakReference<Object>> viewsForSource = views.get(sourceObject);
+            Map<ViewKey, WeakReference<Object>> viewsForSource = views.get(sourceObject);
 
             if (viewsForSource == null) {
                 return null;
@@ -848,7 +848,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private Object instance;
         private final Class<?> mixInClass;
         private final MethodInvoker next;
-        private final ThreadLocal<MethodInvocation> current = new ThreadLocal<MethodInvocation>();
+        private final ThreadLocal<MethodInvocation> current = new ThreadLocal<>();
 
         ClassMixInMethodInvoker(Class<?> mixInClass, MethodInvoker next) {
             this.mixInClass = mixInClass;

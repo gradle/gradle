@@ -226,7 +226,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.builderWithExpectedSize;
@@ -834,10 +833,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         for (InternalLocation location : locations) {
             if (location instanceof InternalLineInFileLocation) {
                 InternalLineInFileLocation l = (InternalLineInFileLocation) location;
-                result.add(new DefaultLineInFileLocation(l.getPath(), Objects.requireNonNull(l.getLine()), l.getColumn(), l.getLength()));
+                result.add(new DefaultLineInFileLocation(l.getPath(), l.getLine(), l.getColumn(), l.getLength()));
             } else if (location instanceof InternalOffsetInFileLocation) {
                 InternalOffsetInFileLocation l = (InternalOffsetInFileLocation) location;
-                result.add(new DefaultOffsetInFileLocation(l.getPath(), l.getOffset(), Objects.requireNonNull(l.getLength())));
+                result.add(new DefaultOffsetInFileLocation(l.getPath(), l.getOffset(), l.getLength()));
             } else if (location instanceof InternalFileLocation) {
                 InternalFileLocation l = (InternalFileLocation) location;
                 result.add(new DefaultFileLocation(l.getPath()));

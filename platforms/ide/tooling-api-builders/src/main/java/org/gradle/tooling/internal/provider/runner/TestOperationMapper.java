@@ -112,7 +112,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
         String className = descriptor.getClassName();
         String methodName = descriptor.getName();
         String displayName = descriptor.getDisplayName();
-        if (methodName != null && methodName.equals(displayName) || className != null && className.equals(displayName)) {
+        if ((methodName != null && methodName.equals(displayName)) || (className != null && className.equals(displayName))) {
             return descriptor.toString();
         }
         return displayName;

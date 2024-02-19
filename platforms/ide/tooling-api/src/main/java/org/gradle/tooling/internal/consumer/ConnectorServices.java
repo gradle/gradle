@@ -57,6 +57,7 @@ public class ConnectorServices {
         singletonRegistry = new ConnectorServiceRegistry();
     }
 
+    @SuppressWarnings("UnusedMethod")
     private static class ConnectorServiceRegistry extends DefaultServiceRegistry {
         protected Factory<DefaultGradleConnector> createConnectorFactory(final ConnectionFactory connectionFactory, final DistributionFactory distributionFactory) {
             return new Factory<DefaultGradleConnector>() {

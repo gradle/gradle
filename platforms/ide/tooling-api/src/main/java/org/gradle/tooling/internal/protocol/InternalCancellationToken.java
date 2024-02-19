@@ -27,7 +27,7 @@ public interface InternalCancellationToken {
      * Adds a callback that will be executed when cancel event is triggered.
      * It can be run synchronously if the token is already cancelled.
      *
-     * @param cancellationHandler
+     * @param cancellationHandler callback to be executed when cancel is requested.
      * @return current state of cancellation request before callback was added.
      */
     boolean addCallback(Runnable cancellationHandler);
