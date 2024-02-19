@@ -15,7 +15,7 @@
  */
 
 /**
- * A package that contains utils for transforms for build logic classpath.
+ * A package that contains services for transforms for build logic classpath.
  */
 @org.gradle.api.NonNullApi
-package org.gradle.api.internal.initialization.transform.utils;
+package org.gradle.api.internal.initialization.transform.services;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.initialization.transform;
+package org.gradle.api.internal.initialization.transform.services;
 
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.classpath.ClasspathWalker;
@@ -28,7 +28,7 @@ import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.inject.Inject;
 
-abstract class InjectedInstrumentationServices {
+public abstract class InjectedInstrumentationServices {
     private final Lazy<ClasspathElementTransformFactoryForAgent> transformFactory = Lazy.locking().of(
         () -> new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), getClasspathWalker())
     );

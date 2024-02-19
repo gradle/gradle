@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationTypeRegistryBuildService;
+import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;

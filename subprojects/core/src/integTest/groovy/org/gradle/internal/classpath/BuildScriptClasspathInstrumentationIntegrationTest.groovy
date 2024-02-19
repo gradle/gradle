@@ -26,7 +26,7 @@ import java.nio.file.Files
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
-import static org.gradle.api.internal.initialization.transform.CacheInstrumentationTypeRegistryBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
+import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationTypeRegistryBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {

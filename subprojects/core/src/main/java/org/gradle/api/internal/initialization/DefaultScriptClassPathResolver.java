@@ -36,7 +36,7 @@ import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
-import org.gradle.api.internal.initialization.transform.CacheInstrumentationTypeRegistryBuildService;
+import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationTypeRegistryBuildService;
 import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.ExternalDependencyInstrumentingArtifactTransform;
 import org.gradle.api.internal.initialization.transform.MergeSuperTypesTransform;
