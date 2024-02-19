@@ -38,7 +38,6 @@ import org.objectweb.asm.ClassReader;
 import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.Writer;
@@ -59,6 +58,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.newBufferedUtf8Writer;
 import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 /**
@@ -172,7 +172,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
     }
 
     private static void writeOutput(File outputFile, IoConsumer<Writer> writerConsumer) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
+        try (BufferedWriter writer = newBufferedUtf8Writer(outputFile)) {
             writerConsumer.accept(writer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

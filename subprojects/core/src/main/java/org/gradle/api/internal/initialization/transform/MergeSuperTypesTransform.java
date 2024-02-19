@@ -35,7 +35,6 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.Writer;
@@ -48,6 +47,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.newBufferedUtf8Writer;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
 /**
@@ -91,12 +91,12 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
         }
 
         createInstrumentationClasspathMarker(outputs);
-        File outputDir = outputs.file("merged");
+        File outputDir = outputs.dir("merged");
         File dependenciesSuperTypes = new File(outputDir, DEPENDENCIES_SUPER_TYPES_FILE_NAME);
         InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
-        try (BufferedWriter outputWriter = new BufferedWriter(new FileWriter(dependenciesSuperTypes))) {
+        try (BufferedWriter writer = newBufferedUtf8Writer(dependenciesSuperTypes)) {
             File dependencies = new File(input, DEPENDENCIES_FILE_NAME);
-            writeDependenciesSuperTypes(dependencies, outputWriter, services);
+            writeDependenciesSuperTypes(dependencies, writer, services);
             Files.copy(new File(input, METADATA_FILE_NAME).toPath(), new File(outputDir, METADATA_FILE_NAME).toPath());
         } catch (IOException e) {
             throw new UncheckedIOException(e);

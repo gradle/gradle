@@ -72,7 +72,7 @@ import static org.gradle.api.internal.initialization.DefaultScriptClassPathResol
 import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.LEGACY_INSTRUMENTATION_MARKER_FILE_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_PLACEHOLDER_MARKER;
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_PLACEHOLDER_SUFFIX;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
@@ -298,7 +298,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     private static List<File> resolveAgentInstrumentationFiles(File original, File first, File second) {
-        if (second.getName().equals(ORIGINAL_FILE_PLACEHOLDER_MARKER)) {
+        if (second.getName().equals(ORIGINAL_FILE_PLACEHOLDER_SUFFIX)) {
             return Arrays.asList(first, original);
         } else {
             return Arrays.asList(first, second);

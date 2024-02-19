@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -35,16 +36,32 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
     @Override
     @Classpath
     @InputArtifact
-    public abstract Provider<FileSystemLocation> getInputMetadata();
-
-    @Override
-    protected BytecodeInterceptorFilter provideInterceptorFilter() {
-        return BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
-    }
+    public abstract Provider<FileSystemLocation> getInput();
 
     @Override
     public void transform(TransformOutputs outputs) {
-        File input = getInputMetadata().get().getAsFile();
-        execute(input, outputs);
+        File input = getInput().get().getAsFile();
+        execute(input, outputs, __ -> {
+            if (input.isDirectory()) {
+                outputs.dir(input);
+            } else {
+                outputs.file(input);
+            }
+        });
+    }
+
+    @Override
+    protected InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter() {
+        return new InterceptorTypeRegistryAndFilter() {
+            @Override
+            public InstrumentationTypeRegistry getRegistry() {
+                return InstrumentationTypeRegistry.EMPTY;
+            }
+
+            @Override
+            public BytecodeInterceptorFilter getFilter() {
+                return BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
+            }
+        };
     }
 }

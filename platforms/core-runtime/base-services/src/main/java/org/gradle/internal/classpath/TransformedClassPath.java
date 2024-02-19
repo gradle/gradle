@@ -66,7 +66,7 @@ public class TransformedClassPath implements ClassPath {
     /**
      * A marker file put next to the instrumented entry to indicate that original entry should be retrieved from original classpath.
      */
-    public static final String ORIGINAL_FILE_PLACEHOLDER_MARKER = ".original-file-placeholder.marker";
+    public static final String ORIGINAL_FILE_PLACEHOLDER_SUFFIX = ".original-file-placeholder.marker";
     public static final String INSTRUMENTED_DIR_NAME = "instrumented";
     public static final String ORIGINAL_DIR_NAME = "original";
 

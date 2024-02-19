@@ -18,9 +18,13 @@ package org.gradle.api.internal.initialization.transform.utils;
 
 import org.gradle.api.artifacts.transform.TransformOutputs;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
@@ -51,5 +55,9 @@ public class InstrumentationTransformUtils {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public static BufferedWriter newBufferedUtf8Writer(File file) throws IOException {
+        return new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(file.toPath()), StandardCharsets.UTF_8));
     }
 }
