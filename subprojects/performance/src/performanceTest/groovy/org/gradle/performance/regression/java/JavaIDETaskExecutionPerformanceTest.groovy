@@ -28,7 +28,7 @@ import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MO
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeAndroidBuild"])
+    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeAndroidBuild", "nowInAndroidBuild"])
 )
 class JavaIDETaskExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
