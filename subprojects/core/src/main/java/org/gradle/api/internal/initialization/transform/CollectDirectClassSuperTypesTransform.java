@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -30,6 +31,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.file.FileException;
+import org.gradle.internal.io.IoConsumer;
 import org.gradle.work.DisableCachingByDefault;
 import org.objectweb.asm.ClassReader;
 
@@ -39,10 +41,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -50,8 +54,9 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_MISSING_HASH;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_SUFFIX;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_NAME_PROPERTY_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
+import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 /**
  * TODO: This class has similar implementation in build-logic/packaging/src/main/kotlin/gradlebuild/instrumentation/transforms/CollectDirectClassSuperTypesTransform.kt.
@@ -80,60 +85,94 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
             // Files can be passed to the artifact transform even if they don't exist,
             // in the case when user adds a file classpath via files("path/to/jar").
             // Unfortunately we don't filter them out before the artifact transform is run.
-            writeOutput(inputFile, outputs, Collections.emptyMap());
+            writeOutput(outputs, Collections.emptyMap(), Collections.emptySet());
             return;
         }
 
         try {
-            // We cannot inject internal services in to the transform directly, but we can create them via object factory
-            InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
-            ClasspathWalker walker = services.getClasspathWalker();
             Map<String, Set<String>> superTypes = new TreeMap<>();
-            try {
-                walker.visit(inputFile, entry -> {
-                    if (entry.getName().endsWith(".class")) {
-                        ClassReader reader = new ClassReader(entry.getContent());
-                        String className = reader.getClassName();
-                        Set<String> classSuperTypes = getSuperTypes(reader);
-                        if (!classSuperTypes.isEmpty()) {
-                            superTypes.put(className, classSuperTypes);
-                        }
-                    }
-                });
-            } catch (FileException ignored) {
-                // We support badly formatted jars on the build classpath
-                // see: https://github.com/gradle/gradle/issues/13816
-                writeOutput(inputFile, outputs, Collections.emptyMap());
-                return;
-            }
-
-            writeOutput(inputFile, outputs, superTypes);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            Set<String> dependencies = new TreeSet<>();
+            analyzeArtifact(inputFile, superTypes, dependencies);
+            writeOutput(outputs, superTypes, dependencies);
+        } catch (IOException | FileException ignored) {
+            // We support badly formatted jars on the build classpath
+            // see: https://github.com/gradle/gradle/issues/13816
+            writeOutput(outputs, Collections.emptyMap(), Collections.emptySet());
         }
     }
 
-    private void writeOutput(File inputFile, TransformOutputs outputs, Map<String, Set<String>> superTypes) {
-        try {
-            CacheInstrumentationTypeRegistryBuildService buildService = getParameters().getBuildService().get();
-            File output = outputs.file("direct/" + inputFile.getName() + SUPER_TYPES_SUFFIX);
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
-                String hash = firstNonNull(buildService.getArtifactHash(inputFile), FILE_MISSING_HASH);
-                writer.write(FILE_HASH_PROPERTY_NAME + "=" + hash + "\n");
-                for (Map.Entry<String, Set<String>> entry : superTypes.entrySet()) {
-                    writer.write(entry.getKey() + "=" + String.join(",", entry.getValue()) + "\n");
+    private void analyzeArtifact(File artifact, Map<String, Set<String>> superTypesCollector, Set<String> dependenciesCollector) throws IOException {
+        // We cannot inject internal services in to the transform directly, but we can create them via object factory
+        InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
+        ClasspathWalker walker = services.getClasspathWalker();
+        walker.visit(artifact, entry -> {
+            if (entry.getName().endsWith(".class") && isInUnsupportedMrJarVersionedDirectory(entry)) {
+                ClassReader reader = new ClassReader(entry.getContent());
+                String className = reader.getClassName();
+                Set<String> classSuperTypes = getSuperTypes(reader);
+                collectArtifactClassDependencies(reader, dependenciesCollector);
+                if (!classSuperTypes.isEmpty()) {
+                    superTypesCollector.put(className, classSuperTypes);
                 }
             }
-
-            createInstrumentationClasspathMarker(outputs);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        });
     }
 
     private static Set<String> getSuperTypes(ClassReader reader) {
         return Stream.concat(Stream.of(reader.getSuperName()), Stream.of(reader.getInterfaces()))
             .filter(ACCEPTED_TYPES)
             .collect(toImmutableSortedSet(Ordering.natural()));
+    }
+
+    private static void collectArtifactClassDependencies(ClassReader reader, Set<String> collector) {
+        ClassAnalysisUtils.getClassDependencies(reader, dependencyDescriptor -> {
+            if (ACCEPTED_TYPES.test(dependencyDescriptor)) {
+                collector.add(dependencyDescriptor);
+            }
+        });
+    }
+
+    private void writeOutput(TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
+        File outputDir = outputs.dir("analysis");
+        File metadata = new File(outputDir, "metadata.properties");
+        writeMetadata(new File(outputDir, "metadata.properties"), metadata);
+        File superTypesFile = new File(outputDir, "super-types.properties");
+        writeSuperTypes(superTypes, superTypesFile);
+        File dependenciesFile = new File(outputDir, "dependencies.txt");
+        writeDependencies(dependencies, dependenciesFile);
+        createInstrumentationClasspathMarker(outputs);
+    }
+
+    private void writeMetadata(File artifact, File metadata) {
+        CacheInstrumentationTypeRegistryBuildService buildService = getParameters().getBuildService().get();
+        writeOutput(metadata, writer -> {
+            String hash = firstNonNull(buildService.getArtifactHash(artifact), FILE_MISSING_HASH);
+            writer.write(FILE_NAME_PROPERTY_NAME + "=" + artifact.getName() + "\n");
+            writer.write(FILE_HASH_PROPERTY_NAME + "=" + hash + "\n");
+        });
+    }
+
+    private static void writeSuperTypes(Map<String, Set<String>> superTypes, File metadata) {
+        writeOutput(metadata, writer -> {
+            for (Map.Entry<String, Set<String>> entry : superTypes.entrySet()) {
+                writer.write(entry.getKey() + "=" + String.join(",", entry.getValue()) + "\n");
+            }
+        });
+    }
+
+    private static void writeDependencies(Set<String> dependencies, File metadata) {
+        writeOutput(metadata, writer -> {
+            for (String dependency : dependencies) {
+                writer.write(dependency + "\n");
+            }
+        });
+    }
+
+    private static void writeOutput(File outputFile, IoConsumer<Writer> writerConsumer) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
+            writerConsumer.accept(writer);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

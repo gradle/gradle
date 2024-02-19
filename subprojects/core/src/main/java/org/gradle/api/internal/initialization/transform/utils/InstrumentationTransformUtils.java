@@ -27,6 +27,7 @@ import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION
 public class InstrumentationTransformUtils {
 
     public static final String SUPER_TYPES_SUFFIX = ".super-types";
+    public static final String FILE_NAME_PROPERTY_NAME = "-name-";
     public static final String FILE_HASH_PROPERTY_NAME = "-hash-";
     public static final String FILE_MISSING_HASH = "<missing-hash>";
 
