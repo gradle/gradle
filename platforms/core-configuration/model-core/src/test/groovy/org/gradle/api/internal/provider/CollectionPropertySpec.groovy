@@ -23,7 +23,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.util.internal.TextUtil
-import org.spockframework.lang.SpreadWildcard
 import org.spockframework.lang.Wildcard
 
 import java.util.function.Consumer
@@ -1405,6 +1404,8 @@ The value of this property is derived from: <source>""")
         ["0", "1"]  | null          | ["0"]         | "append to unset value w/ non-empty convention"   | { it.append("1") }
         null        | notDefined()  | _             | "add to missing"                                  | { it.add("1") }
         ["1"]       | notDefined()  | _             | "append to missing"                               | { it.append("1") }
+        null        | notDefined()  | ["0"]         | "add to missing w/ non-empty convention"          | { it.add("1") }
+        ["1"]       | notDefined()  | ["0"]         | "append to missing w/ non-empty convention"       | { it.append("1") }
         null        | []            | _             | "add missing to empty value"                      | { it.add(notDefined()) }
         []          | []            | _             | "append missing to empty value"                   | { it.append(notDefined()) }
         null        | _             | _             | "add missing"                                     | { it.add(notDefined()) }
