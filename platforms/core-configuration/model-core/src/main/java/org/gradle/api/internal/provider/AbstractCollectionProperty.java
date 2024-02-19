@@ -99,7 +99,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private CollectionSupplier<T, C> emptySupplier() {
-        return new EmptySupplier(false);
+        return new EmptySupplier();
     }
 
     private CollectionSupplier<T, C> noValueSupplier() {
@@ -384,11 +384,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private class EmptySupplier implements CollectionSupplier<T, C> {
-        private final boolean ignoreAbsent;
-
-        private EmptySupplier(boolean ignoreAbsent) {
-            this.ignoreAbsent = ignoreAbsent;
-        }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
@@ -403,12 +398,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
             // empty + something = something
-            return new CollectingSupplier(collector, ignoreAbsent);
+            return new CollectingSupplier(collector, false);
         }
 
         @Override
         public CollectionSupplier<T, C> absentIgnoring(boolean ignoreAbsent) {
-            return this.ignoreAbsent == ignoreAbsent ? this : new EmptySupplier(ignoreAbsent);
+            return this;
         }
 
         @Override
@@ -474,6 +469,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     private class CollectingSupplier implements CollectionSupplier<T, C> {
         private final Collector<T> value;
+        // TODO-RC: can we get rid of this? Can we only keep this in Collectors? Changing execution time value is the only case that needs this.
         private final boolean ignoreAbsent;
 
         public CollectingSupplier(Collector<T> value, boolean ignoreAbsent) {

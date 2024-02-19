@@ -398,7 +398,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> absentIgnoring(boolean ignoreAbsent) {
-            return ignoreAbsent ? new EmptySupplier(false) : this;
+            return ignoreAbsent ? new EmptySupplier() : this;
         }
 
         @Override
@@ -439,19 +439,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     private class EmptySupplier implements MapSupplier<K, V> {
-        private final boolean ignoreAbsent;
-
-        EmptySupplier() {
-            this(false);
-        }
-
-        public EmptySupplier(boolean ignoreAbsent) {
-            this.ignoreAbsent = ignoreAbsent;
-        }
-
         @Override
         public MapSupplier<K, V> absentIgnoring(boolean ignoreAbsent) {
-            return ignoreAbsent == this.ignoreAbsent ? this : new EmptySupplier(ignoreAbsent);
+            return this;
         }
 
         @Override
@@ -472,7 +462,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
             // empty + something = something
-            return new CollectingSupplier(collector, ignoreAbsent);
+            return new CollectingSupplier(collector, false);
         }
 
         @Override
