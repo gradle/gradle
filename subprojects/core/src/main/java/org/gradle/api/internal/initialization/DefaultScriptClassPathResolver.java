@@ -59,7 +59,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.COLLECTED_DIRECT_SUPER_TYPES;
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACTS;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.MERGED_SUPER_TYPES;
@@ -75,7 +75,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     public enum InstrumentationPhase {
         NOT_INSTRUMENTED,
-        COLLECTED_DIRECT_SUPER_TYPES,
+        ANALYZED_ARTIFACTS,
         MERGED_SUPER_TYPES,
         INSTRUMENTED_AND_UPGRADED,
         INSTRUMENTED_ONLY
@@ -110,7 +110,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             CollectDirectClassSuperTypesTransform.class,
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, NOT_INSTRUMENTED);
-                spec.getTo().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, COLLECTED_DIRECT_SUPER_TYPES);
+                spec.getTo().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, ANALYZED_ARTIFACTS);
                 spec.parameters(params -> params.getBuildService().set(service));
             }
         );
@@ -118,7 +118,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         dependencyHandler.registerTransform(
             MergeSuperTypesTransform.class,
             spec -> {
-                spec.getFrom().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, COLLECTED_DIRECT_SUPER_TYPES);
+                spec.getFrom().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, ANALYZED_ARTIFACTS);
                 spec.getTo().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, MERGED_SUPER_TYPES);
                 spec.parameters(params -> {
                     params.getBuildService().set(service);
@@ -155,7 +155,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return gradle.getSharedServices().registerIfAbsent(
             CacheInstrumentationTypeRegistryBuildService.class.getName() + "@" + System.identityHashCode(this),
             CacheInstrumentationTypeRegistryBuildService.class,
-            spec -> spec.getParameters().getClassHierarchy().setFrom(classHierarchy)
+            spec -> spec.getParameters().getAnalyzeResult().setFrom(classHierarchy)
         );
     }
 
@@ -183,7 +183,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return runAndClearBuildServiceAfter(() -> {
             // We resolve class hierarchy before instrumentation, otherwise the resolution can block the whole build
             CacheInstrumentationTypeRegistryBuildService buildService = getOrRegisterNewService().get();
-            buildService.getParameters().getClassHierarchy().setFrom(getHierarchyView(classpathConfiguration));
+            buildService.getParameters().getAnalyzeResult().setFrom(getAnalyzeResult(classpathConfiguration));
             buildService.getParameters().getOriginalClasspath().setFrom(classpathConfiguration);
             FileCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             FileCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
@@ -199,9 +199,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return value;
     }
 
-    private static FileCollection getHierarchyView(Configuration classpathConfiguration) {
+    private static FileCollection getAnalyzeResult(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, COLLECTED_DIRECT_SUPER_TYPES));
+            config.attributes(it -> it.attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, ANALYZED_ARTIFACTS));
             config.componentFilter(componentId -> !isGradleApi(componentId) && !isProjectDependency(componentId));
         }).getFiles();
     }

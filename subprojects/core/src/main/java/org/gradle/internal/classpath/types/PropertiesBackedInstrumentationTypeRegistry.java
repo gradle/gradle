@@ -16,20 +16,15 @@
 
 package org.gradle.internal.classpath.types;
 
-import com.google.common.base.Splitter;
 import org.gradle.internal.lazy.Lazy;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.readSuperTypes;
 
 public class PropertiesBackedInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
 
@@ -50,22 +45,6 @@ public class PropertiesBackedInstrumentationTypeRegistry implements Instrumentat
     }
 
     public static InstrumentationTypeRegistry of(File properties) {
-        return new PropertiesBackedInstrumentationTypeRegistry(() -> loadRegistry(properties));
-    }
-
-    private static Map<String, Set<String>> loadRegistry(File properties) {
-        Map<String, Set<String>> registry = new HashMap<>();
-        try (Stream<String> stream = Files.lines(properties.toPath())) {
-            stream.forEach(line -> {
-                String[] splitted = line.split("=");
-                Set<String> superTypes = Splitter.on(",")
-                    .splitToStream(splitted[1])
-                    .collect(Collectors.toSet());
-                registry.put(splitted[0], superTypes);
-            });
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return registry;
+        return new PropertiesBackedInstrumentationTypeRegistry(() -> readSuperTypes(properties));
     }
 }

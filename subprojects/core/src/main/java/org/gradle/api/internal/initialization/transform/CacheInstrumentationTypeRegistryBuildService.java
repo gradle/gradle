@@ -32,20 +32,15 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.readSuperTypes;
 
 public abstract class CacheInstrumentationTypeRegistryBuildService implements BuildService<CacheInstrumentationTypeRegistryBuildService.Parameters> {
 
@@ -55,7 +50,7 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
     public static final String GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY = "org.gradle.internal.instrumentation.generateClassHierarchyWithoutUpgrades";
 
     public interface Parameters extends BuildServiceParameters {
-        ConfigurableFileCollection getClassHierarchy();
+        ConfigurableFileCollection getAnalyzeResult();
         ConfigurableFileCollection getOriginalClasspath();
     }
 
@@ -77,32 +72,20 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
         if (instrumentingTypeRegistry == null) {
             synchronized (this) {
                 if (instrumentingTypeRegistry == null) {
-                    Map<String, Set<String>> classHierarchy = readClassHierarchy();
-                    instrumentingTypeRegistry = new ExternalPluginsInstrumentationTypeRegistry(classHierarchy, gradleCoreInstrumentationTypeRegistry);
+                    Map<String, Set<String>> directSuperTypes = readDirectSuperTypes();
+                    instrumentingTypeRegistry = new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentationTypeRegistry);
                 }
             }
         }
         return instrumentingTypeRegistry;
     }
 
-    private Map<String, Set<String>> readClassHierarchy() {
-        Set<File> files = getParameters().getClassHierarchy().getFiles();
-        Map<String, Set<String>> classHierarchy = new HashMap<>();
-        files.forEach(file -> {
-            Properties properties = new Properties();
-            try (InputStream inputStream = Files.newInputStream(file.toPath())) {
-                properties.load(inputStream);
-                properties.entrySet().stream()
-                    .filter(entry -> !entry.getKey().equals(FILE_HASH_PROPERTY_NAME))
-                    .forEach(e -> {
-                        Set<String> keyTypes = classHierarchy.computeIfAbsent((String) e.getKey(), __ -> new HashSet<>());
-                        Collections.addAll(keyTypes, ((String) e.getValue()).split(","));
-                    });
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
-        return classHierarchy;
+    private Map<String, Set<String>> readDirectSuperTypes() {
+        Set<File> directories = getParameters().getAnalyzeResult().getFiles();
+        return directories.stream()
+            .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))
+            .flatMap(file -> readSuperTypes(file).entrySet().stream())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> first));
     }
 
     /**
