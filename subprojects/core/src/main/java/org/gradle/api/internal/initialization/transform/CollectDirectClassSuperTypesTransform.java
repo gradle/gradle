@@ -52,9 +52,12 @@ import java.util.stream.Stream;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_MISSING_HASH;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_NAME_PROPERTY_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
@@ -80,24 +83,24 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
 
     @Override
     public void transform(TransformOutputs outputs) {
-        File inputFile = getInput().get().getAsFile();
-        if (!inputFile.exists()) {
+        File artifact = getInput().get().getAsFile();
+        if (!artifact.exists()) {
             // Files can be passed to the artifact transform even if they don't exist,
             // in the case when user adds a file classpath via files("path/to/jar").
             // Unfortunately we don't filter them out before the artifact transform is run.
-            writeOutput(outputs, Collections.emptyMap(), Collections.emptySet());
+            writeOutput(artifact, outputs, Collections.emptyMap(), Collections.emptySet());
             return;
         }
 
         try {
             Map<String, Set<String>> superTypes = new TreeMap<>();
             Set<String> dependencies = new TreeSet<>();
-            analyzeArtifact(inputFile, superTypes, dependencies);
-            writeOutput(outputs, superTypes, dependencies);
+            analyzeArtifact(artifact, superTypes, dependencies);
+            writeOutput(artifact, outputs, superTypes, dependencies);
         } catch (IOException | FileException ignored) {
             // We support badly formatted jars on the build classpath
             // see: https://github.com/gradle/gradle/issues/13816
-            writeOutput(outputs, Collections.emptyMap(), Collections.emptySet());
+            writeOutput(artifact, outputs, Collections.emptyMap(), Collections.emptySet());
         }
     }
 
@@ -132,13 +135,13 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
         });
     }
 
-    private void writeOutput(TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
+    private void writeOutput(File artifact, TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
         File outputDir = outputs.dir("analysis");
-        File metadata = new File(outputDir, "metadata.properties");
-        writeMetadata(new File(outputDir, "metadata.properties"), metadata);
-        File superTypesFile = new File(outputDir, "super-types.properties");
+        File metadata = new File(outputDir, METADATA_FILE_NAME);
+        writeMetadata(artifact, metadata);
+        File superTypesFile = new File(outputDir, SUPER_TYPES_FILE_NAME);
         writeSuperTypes(superTypes, superTypesFile);
-        File dependenciesFile = new File(outputDir, "dependencies.txt");
+        File dependenciesFile = new File(outputDir, DEPENDENCIES_FILE_NAME);
         writeDependencies(dependencies, dependenciesFile);
         createInstrumentationClasspathMarker(outputs);
     }

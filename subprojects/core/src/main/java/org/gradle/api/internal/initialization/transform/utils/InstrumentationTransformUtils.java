@@ -30,6 +30,10 @@ public class InstrumentationTransformUtils {
     public static final String FILE_NAME_PROPERTY_NAME = "-name-";
     public static final String FILE_HASH_PROPERTY_NAME = "-hash-";
     public static final String FILE_MISSING_HASH = "<missing-hash>";
+    public static final String METADATA_FILE_NAME = "metadata.properties";
+    public static final String DEPENDENCIES_FILE_NAME = "dependencies.txt";
+    public static final String SUPER_TYPES_FILE_NAME = "super-types.properties";
+    public static final String DEPENDENCIES_SUPER_TYPES_FILE_NAME = "dependencies-super-types.properties";
 
     public static boolean createNewFile(File file) {
         try {

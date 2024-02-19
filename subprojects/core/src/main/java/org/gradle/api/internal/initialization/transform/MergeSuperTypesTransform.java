@@ -37,15 +37,16 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.io.Writer;
 import java.nio.file.Files;
-import java.util.Properties;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
@@ -90,43 +91,40 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
         }
 
         createInstrumentationClasspathMarker(outputs);
-        File output = outputs.file("merged/" + input.getName());
+        File outputDir = outputs.file("merged");
+        File dependenciesSuperTypes = new File(outputDir, DEPENDENCIES_SUPER_TYPES_FILE_NAME);
         InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
-        try (InputStream inputStream = Files.newInputStream(input.toPath());
-             BufferedWriter outputWriter = new BufferedWriter(new FileWriter(output))
-        ) {
-            Properties properties = loadProperties(inputStream);
-            outputWriter.write(FILE_HASH_PROPERTY_NAME + "=" + properties.getProperty(FILE_HASH_PROPERTY_NAME) + "\n");
-            writeSuperTypes(outputWriter, services, properties);
+        try (BufferedWriter outputWriter = new BufferedWriter(new FileWriter(dependenciesSuperTypes))) {
+            File dependencies = new File(input, DEPENDENCIES_FILE_NAME);
+            writeDependenciesSuperTypes(dependencies, outputWriter, services);
+            Files.copy(new File(input, METADATA_FILE_NAME).toPath(), new File(outputDir, METADATA_FILE_NAME).toPath());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private void writeSuperTypes(BufferedWriter outputWriter, InjectedInstrumentationServices services, Properties properties) throws IOException {
+    private void writeDependenciesSuperTypes(File dependencies, Writer writer, InjectedInstrumentationServices services) throws IOException {
         InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry(services);
-        for (String className : getSortedClassNames(properties)) {
-            Set<String> superTypes = registry.getSuperTypes(className);
-            if (!superTypes.isEmpty()) {
-                outputWriter.write(className + "=" + superTypes.stream().sorted().collect(Collectors.joining(",")) + "\n");
-            }
+        try (Stream<String> stream = Files.lines(dependencies.toPath())) {
+            stream.forEach(className -> {
+                Set<String> superTypes = registry.getSuperTypes(className);
+                if (!superTypes.isEmpty()) {
+                    writeDependencySuperTypes(className, superTypes, writer);
+                }
+            });
+        }
+    }
+
+    private static void writeDependencySuperTypes(String className, Set<String> superTypes, Writer writer) {
+        try {
+            writer.write(className + "=" + superTypes.stream().sorted().collect(Collectors.joining(",")) + "\n");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
     private InstrumentationTypeRegistry getInstrumentationTypeRegistry(InjectedInstrumentationServices internalServices) {
         CacheInstrumentationTypeRegistryBuildService buildService = getParameters().getBuildService().get();
         return buildService.getInstrumentingTypeRegistry(internalServices.getGradleCoreInstrumentingTypeRegistry());
-    }
-
-    private static Properties loadProperties(InputStream inputStream) throws IOException {
-        Properties properties = new Properties();
-        properties.load(inputStream);
-        return properties;
-    }
-
-    private static Set<String> getSortedClassNames(Properties properties) {
-        Set<String> types = new TreeSet<>(properties.stringPropertyNames());
-        types.remove(FILE_HASH_PROPERTY_NAME);
-        return types;
     }
 }
