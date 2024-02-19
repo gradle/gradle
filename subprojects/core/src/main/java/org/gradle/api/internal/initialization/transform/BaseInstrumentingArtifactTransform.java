@@ -41,8 +41,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.function.Consumer;
 
-import static com.google.common.base.Strings.nullToEmpty;
-import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.InstrumentArtifactTransformParameters;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
@@ -122,17 +120,12 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         transform.transform(output);
     }
 
+    private static String getOutputPath(File input) {
+        return INSTRUMENTED_DIR_NAME + "/" + input.getName();
+    }
+
     protected abstract InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter();
 
-    private static String getOutputPath(File input) {
-        // We add "-instrumented" suffix to the name of the instrumented jar,
-        // since we need a unique combination of ComponentIdentifier and file name when we reconstruct the classpath.
-        String extension = nullToEmpty(getExtension(input.getName()));
-        String instrumentedName = extension.isEmpty()
-            ? input.getName() + "-instrumented"
-            : input.getName().substring(0, input.getName().length() - extension.length() - 1) + "-instrumented." + extension;
-        return INSTRUMENTED_DIR_NAME + "/" + instrumentedName;
-    }
 
     private boolean isAgentSupported() {
         return getParameters().getAgentSupported().get();

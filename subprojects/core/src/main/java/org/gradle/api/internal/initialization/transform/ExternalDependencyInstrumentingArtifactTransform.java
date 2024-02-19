@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_MISSING_HASH;
@@ -56,7 +55,7 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
         if (hash.equals(FILE_MISSING_HASH)) {
             execute(null, outputs, __ -> {});
         } else {
-            File originalArtifact = checkNotNull(getParameters().getBuildService().get().getOriginalFile(hash));
+            File originalArtifact = getParameters().getBuildService().get().getOriginalFile(hash);
             execute(originalArtifact, outputs, __ -> writeOriginalFilePlaceholder(hash, outputs));
         }
     }

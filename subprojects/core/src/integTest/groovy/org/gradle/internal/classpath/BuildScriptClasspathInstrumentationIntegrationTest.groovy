@@ -50,9 +50,9 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
         then:
         gradleUserHomeOutput("original/buildSrc.jar").exists()
-        gradleUserHomeOutput("instrumented/buildSrc-instrumented.jar").exists()
+        gradleUserHomeOutput("instrumented/buildSrc.jar").exists()
         gradleUserHomeOutput("original/included-1.0.jar").exists()
-        gradleUserHomeOutput("instrumented/included-1.0-instrumented.jar").exists()
+        gradleUserHomeOutput("instrumented/included-1.0.jar").exists()
     }
 
     def "buildSrc and included build should be just instrumented and not upgraded"() {
@@ -94,7 +94,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["CollectDirectClassSuperTypesTransform", "MergeSuperTypesTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
-        gradleUserHomeOutput("instrumented/commons-lang3-3.8.1-instrumented.jar").exists()
+        gradleUserHomeOutput("instrumented/commons-lang3-3.8.1.jar").exists()
     }
 
     def "should merge class hierarchies"() {
@@ -119,8 +119,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks")
 
         then:
-        gradleUserHomeOutput("instrumented/impl-1.0-instrumented.jar").exists()
-        gradleUserHomeOutput("instrumented/api-1.0-instrumented.jar").exists()
+        gradleUserHomeOutput("instrumented/impl-1.0.jar").exists()
+        gradleUserHomeOutput("instrumented/api-1.0.jar").exists()
     }
 
     def "directories should be instrumented"() {
@@ -234,8 +234,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        gradleUserHomeOutput("instrumented/impl-1.0-instrumented.jar").exists()
-        gradleUserHomeOutput("instrumented/api-1.0-instrumented.jar").exists()
+        gradleUserHomeOutput("instrumented/impl-1.0.jar").exists()
+        gradleUserHomeOutput("instrumented/api-1.0.jar").exists()
         def implTypes = gradleUserHomeOutput("merged/impl-1.0.jar.super-types")
         implTypes.readLines().drop(1) == [
             "A=A,B",
@@ -266,8 +266,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        gradleUserHomeOutputs("instrumented/api-1.0-instrumented.jar").size() == 1
-        gradleUserHomeOutputs("instrumented/impl-1.0-instrumented.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 1
 
         when:
         file("subproject/api/src/main/java/B.java").text = "public class B extends C {}"
@@ -276,8 +276,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        gradleUserHomeOutputs("instrumented/api-1.0-instrumented.jar").size() == 2
-        gradleUserHomeOutputs("instrumented/impl-1.0-instrumented.jar").size() == 2
+        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 2
+        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 2
     }
 
     def "should not re-instrument jar if classpath changes but hierarchy doesn't"() {
@@ -302,8 +302,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        gradleUserHomeOutputs("instrumented/api-1.0-instrumented.jar").size() == 1
-        gradleUserHomeOutputs("instrumented/impl-1.0-instrumented.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 1
 
         when:
         file("subproject/api/src/main/java/C.java") << "public class C {}"
@@ -311,8 +311,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        gradleUserHomeOutputs("instrumented/api-1.0-instrumented.jar").size() == 2
-        gradleUserHomeOutputs("instrumented/impl-1.0-instrumented.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 2
+        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 1
     }
 
     def withBuildSrc() {

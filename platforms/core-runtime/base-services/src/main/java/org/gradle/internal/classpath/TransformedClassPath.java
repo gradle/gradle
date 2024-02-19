@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.apache.commons.io.FilenameUtils.removeExtension;
 
 /**
  * A special ClassPath that keeps track of the transformed "doubles" of the original classpath entries (JARs and class directories).
@@ -301,11 +300,6 @@ public class TransformedClassPath implements ClassPath {
         }
 
         int resultSize = computeResultSizeOfInstrumentingArtifactTransformOutput(classPath);
-        if (resultSize == classPath.getAsFiles().size()) {
-            // There is no instrumented entries in the list, so the classpath can be used without transformation.
-            return classPath;
-        }
-
         return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, resultSize);
     }
 
@@ -315,12 +309,16 @@ public class TransformedClassPath implements ClassPath {
     private static int computeResultSizeOfInstrumentingArtifactTransformOutput(ClassPath classPath) {
         int resultSize = 0;
         for (int i = 0; i < classPath.getAsFiles().size(); ++i) {
-            File inputFile = classPath.getAsFiles().get(i);
-            if (isInstrumentedMarkerFile(inputFile)) {
+            File markerFile = classPath.getAsFiles().get(i);
+            if (markerFile.getName().equals(AGENT_INSTRUMENTATION_MARKER_FILE_NAME)) {
                 // Marker file will be followed by instrumented entry and original entry.
                 i += 2;
+                ++resultSize;
+            } else if (markerFile.getName().equals(LEGACY_INSTRUMENTATION_MARKER_FILE_NAME)) {
+                // Marker file will be followed by instrumented entry.
+                ++i;
+                ++resultSize;
             }
-            ++resultSize;
         }
         return resultSize;
     }
@@ -329,21 +327,31 @@ public class TransformedClassPath implements ClassPath {
         List<File> inputFiles = classPath.getAsFiles();
 
         Builder result = builderWithExactSize(resultSize);
-        for (int i = 0; i < inputFiles.size(); ++i) {
-            File inputFile = inputFiles.get(i);
-            if (isInstrumentedMarkerFile(inputFile)) {
-                checkArgument(i + 2 < inputFiles.size(), "Missing the instrumented or original entry for classpath %s", inputFiles);
-                File instrumentedEntry = inputFiles.get(i + 1);
-                File originalEntry = inputFiles.get(i + 2);
+        for (int i = 0; i < inputFiles.size();) {
+            File markerFile = inputFiles.get(i++);
+            if (markerFile.getName().equals(AGENT_INSTRUMENTATION_MARKER_FILE_NAME)) {
+                // Agent instrumentation always contain 3 entries:
+                // [a marker, a transformed file, a copy of original file or placeholder]
+                checkArgument(i + 1 < inputFiles.size(), "Missing the instrumented or original entry for classpath %s", inputFiles);
+                File instrumentedEntry = inputFiles.get(i++);
+                File originalEntry = inputFiles.get(i++);
                 checkArgument(
                     areInstrumentedAndOriginalEntriesValid(instrumentedEntry, originalEntry),
                     "Instrumented entry %s doesn't match original entry %s",
                     instrumentedEntry.getAbsolutePath(),
-                    originalEntry.getAbsolutePath());
+                    originalEntry.getAbsolutePath()
+                );
                 result.add(originalEntry, instrumentedEntry);
-                i += 2;
-            } else {
-                result.addUntransformed(inputFile);
+            } else if (markerFile.getName().equals(LEGACY_INSTRUMENTATION_MARKER_FILE_NAME)) {
+                // Legacy instrumentation always contain 2 entries:
+                // [a marker, a transformed file]
+                checkArgument(i < inputFiles.size(), "Missing the instrumented entry for classpath %s", inputFiles);
+                result.addUntransformed(inputFiles.get(i++));
+            } else if (!markerFile.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME)
+                && !markerFile.getName().equals(ORIGINAL_FILE_DOES_NOT_EXIST_MARKER)) {
+                // INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME and ORIGINAL_FILE_DOES_NOT_EXIST_MARKER
+                // are ignored, everything else should be an error
+                throw new IllegalStateException("Unexpected marker file: " + markerFile);
             }
         }
 
@@ -354,7 +362,7 @@ public class TransformedClassPath implements ClassPath {
         return instrumentedEntry.getParentFile() != null
             && instrumentedEntry.getParentFile().getName().equals(INSTRUMENTED_DIR_NAME)
             && !originalEntry.equals(instrumentedEntry)
-            && instrumentedEntry.getName().startsWith(removeExtension(originalEntry.getName()));
+            && instrumentedEntry.getName().equals(originalEntry.getName());
     }
 
     private static boolean isInstrumentedMarkerFile(File classPathEntry) {
