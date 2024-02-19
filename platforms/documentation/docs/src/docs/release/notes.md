@@ -8,13 +8,25 @@ Additionally, this release includes improvements to [lazy configuration](#lazy-c
 
 See the full release notes for details.
 
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
-
- THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Aleksandr Postnov](https://github.com/alex-postnov),
+[Björn Kautler](https://github.com/Vampire),
+[Brice Dutheil](https://github.com/bric3),
+[Denis Buzmakov](https://github.com/bacecek),
+[Federico La Penna](https://github.com/flapenna),
+[Gregor Dschung](https://github.com/chkpnt),
+[Hal Deadman](https://github.com/hdeadman),
+[Hélio Fernandes Sebastião](https://github.com/helfese),
+[Ivan Gavrilovic](https://github.com/gavra0),
+[Jendrik Johannes](https://github.com/jjohannes),
+[Jörgen Andersson](https://github.com/jorander),
+[Marie](https://github.com/NyCodeGHG),
+[pandaninjas](https://github.com/pandaninjas),
+[Philip Wedemann](https://github.com/hfhbd),
+[Ryan Schmitt](https://github.com/rschmitt),
+[Steffen Yount](https://github.com/steffenyount),
+[Tyler Kinkade](https://github.com/tyknkd),
+[Zed Spencer-Milnes](https://github.com/GingerGeek)
 
 Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
