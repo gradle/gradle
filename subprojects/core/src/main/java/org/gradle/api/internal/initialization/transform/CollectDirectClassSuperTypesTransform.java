@@ -53,6 +53,7 @@ import java.util.stream.Stream;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_MISSING_HASH;
@@ -74,7 +75,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
         @Internal
         Property<CacheInstrumentationTypeRegistryBuildService> getBuildService();
     }
-    private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang");
+    private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang/");
 
     @Inject
     protected abstract ObjectFactory getObjects();
@@ -111,11 +112,11 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
         InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
         ClasspathWalker walker = services.getClasspathWalker();
         walker.visit(artifact, entry -> {
-            if (entry.getName().endsWith(".class") && isInUnsupportedMrJarVersionedDirectory(entry)) {
+            if (entry.getName().endsWith(".class") && !isInUnsupportedMrJarVersionedDirectory(entry)) {
                 ClassReader reader = new ClassReader(entry.getContent());
                 String className = reader.getClassName();
                 Set<String> classSuperTypes = getSuperTypes(reader);
-                collectArtifactClassDependencies(reader, dependenciesCollector);
+                collectArtifactClassDependencies(className, reader, dependenciesCollector);
                 if (!classSuperTypes.isEmpty()) {
                     superTypesCollector.put(className, classSuperTypes);
                 }
@@ -129,16 +130,16 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
             .collect(toImmutableSortedSet(Ordering.natural()));
     }
 
-    private static void collectArtifactClassDependencies(ClassReader reader, Set<String> collector) {
+    private static void collectArtifactClassDependencies(String className, ClassReader reader, Set<String> collector) {
         ClassAnalysisUtils.getClassDependencies(reader, dependencyDescriptor -> {
-            if (ACCEPTED_TYPES.test(dependencyDescriptor)) {
+            if (!dependencyDescriptor.equals(className) && ACCEPTED_TYPES.test(dependencyDescriptor)) {
                 collector.add(dependencyDescriptor);
             }
         });
     }
 
     private void writeOutput(File artifact, TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
-        File outputDir = outputs.dir("analysis");
+        File outputDir = outputs.dir(ANALYSIS_OUTPUT_DIR);
         File metadata = new File(outputDir, METADATA_FILE_NAME);
         writeMetadata(artifact, metadata);
         File superTypesFile = new File(outputDir, SUPER_TYPES_FILE_NAME);

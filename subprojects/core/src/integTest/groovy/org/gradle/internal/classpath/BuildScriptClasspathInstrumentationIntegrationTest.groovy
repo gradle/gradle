@@ -27,6 +27,11 @@ import java.util.regex.Pattern
 import java.util.stream.Collectors
 
 import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationTypeRegistryBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_NAME_PROPERTY_NAME
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -168,32 +173,45 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         noExceptionThrown()
     }
 
-    def "should collect super types for artifacts"() {
+    def "should analyze plugin artifacts"() {
         given:
         // We test content in the global cache
         requireOwnGradleUserHomeDir()
-        File jarFile = mavenRepo.module("test", "animals", "1.0").publish().getArtifactFile()
-        artifactBuilder().with {
-            it.sourceFile("org/gradle/test/Dogs.java").createFile().text = '''
-                package org.gradle.test;
+        multiProjectJavaBuild("subproject", "api", "animals") {
+            file("$it/api/src/main/java/org/gradle/api/Plugin.java") << "package org.gradle.api; public interface Plugin {}"
+            file("$it/api/src/main/java/org/gradle/api/Task.java") << "package org.gradle.api; public interface Task {}"
+            file("$it/api/src/main/java/org/gradle/api/DefaultTask.java") << "package org.gradle.api; public class DefaultTask implements Task {}"
+            file("$it/api/src/main/java/org/gradle/api/GradleException.java") << "package org.gradle.api; public class GradleException {}"
+            file("$it/animals/src/main/java/test/gradle/test/Dogs.java").createFile().text = """
+                package test.gradle.test;
+                import org.gradle.api.*;
+
                 class GermanShepherd extends Dog implements Animal {
+                    public void plugin() {
+                        ((Plugin) null).toString();
+                        new GradleException();
+                    }
                 }
                 abstract class Dog implements Mammal {
+                    public void task() {
+                        ((Task) null).toString();
+                        ((DefaultTask) null).toString();
+                    }
                 }
                 interface Mammal extends Animal {
                 }
                 interface Animal {
                 }
-            '''
-            it.buildJar(jarFile)
+            """
         }
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
         buildFile << """
             buildscript {
                  repositories {
                     maven { url "$mavenRepo.uri" }
                 }
                 dependencies {
-                    classpath "test:animals:1.0"
+                    classpath(files("./subproject/animals/build/libs/animals-1.0.jar"))
                 }
             }
         """
@@ -203,12 +221,21 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
         then:
         allTransformsFor("animals-1.0.jar") ==~ ["MergeSuperTypesTransform", "CollectDirectClassSuperTypesTransform", "ExternalDependencyInstrumentingArtifactTransform"]
-        def output = gradleUserHomeOutput("direct/animals-1.0.jar.super-types")
-        output.exists()
-        output.readLines().drop(1) == [
-            "org/gradle/test/Dog=org/gradle/test/Mammal",
-            "org/gradle/test/GermanShepherd=org/gradle/test/Animal,org/gradle/test/Dog",
-            "org/gradle/test/Mammal=org/gradle/test/Animal"
+        def analyzeDir = analyzeOutput("animals-1.0.jar")
+        analyzeDir.exists()
+        analyzeDir.file(SUPER_TYPES_FILE_NAME).readLines() == [
+            "test/gradle/test/Dog=test/gradle/test/Mammal",
+            "test/gradle/test/GermanShepherd=test/gradle/test/Animal,test/gradle/test/Dog",
+            "test/gradle/test/Mammal=test/gradle/test/Animal"
+        ]
+        analyzeDir.file(DEPENDENCIES_FILE_NAME).readLines() == [
+            "org/gradle/api/DefaultTask",
+            "org/gradle/api/GradleException",
+            "org/gradle/api/Plugin",
+            "org/gradle/api/Task",
+            "test/gradle/test/Animal",
+            "test/gradle/test/Dog",
+            "test/gradle/test/Mammal"
         ]
     }
 
@@ -234,13 +261,13 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        gradleUserHomeOutput("instrumented/impl-1.0.jar").exists()
-        gradleUserHomeOutput("instrumented/api-1.0.jar").exists()
-        def implTypes = gradleUserHomeOutput("merged/impl-1.0.jar.super-types")
+        analyzeOutput("instrumented/impl-1.0.jar").exists()
+        analyzeOutput("instrumented/api-1.0.jar").exists()
+        def implTypes = analyzeOutput("merged/impl-1.0.jar.super-types")
         implTypes.readLines().drop(1) == [
             "A=A,B",
         ]
-        def apiTypes = gradleUserHomeOutput("merged/api-1.0.jar.super-types")
+        def apiTypes = analyzeOutput("merged/api-1.0.jar.super-types")
         apiTypes.readLines().drop(1) == []
     }
 
@@ -335,15 +362,33 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         """
     }
 
-    def multiProjectJavaBuild(String projectName = "included", Action<String> init) {
-        file("$projectName/api/build.gradle") << """
+    def javaBuild(String projectName = "included", Action<String> init) {
+        file("$projectName/build.gradle") << """
             plugins {
                 id("java-library")
             }
             group = "org.test"
             version = "1.0"
         """
-        file("$projectName/impl/build.gradle") << """
+        file("$projectName/settings.gradle") << """
+            rootProject.name = '$projectName'
+        """
+        init(projectName)
+    }
+
+    def multiProjectJavaBuild(String projectName = "included", Action<String> init) {
+        multiProjectJavaBuild(projectName, "api", "impl", init)
+    }
+
+    def multiProjectJavaBuild(String rootName = "included", String apiProjectName, String implProjectName, Action<String> init) {
+        file("$rootName/$apiProjectName/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "org.test"
+            version = "1.0"
+        """
+        file("$rootName/$implProjectName/build.gradle") << """
             plugins {
                 id("java-library")
             }
@@ -351,14 +396,14 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
             version = "1.0"
 
             dependencies {
-                implementation project(":api")
+                implementation project(":$apiProjectName")
             }
         """
-        file("$projectName/settings.gradle") << """
-            rootProject.name = '$projectName'
-            include("api", "impl")
+        file("$rootName/settings.gradle") << """
+            rootProject.name = '$rootName'
+            include("$apiProjectName", "$implProjectName")
         """
-        init(projectName)
+        init(rootName)
     }
 
     List<String> allTransformsFor(String fileName) {
@@ -371,6 +416,20 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
             }
         }
         return transforms
+    }
+
+    Set<TestFile> analyzeOutputs(String artifactName, File cacheDir = getCacheDir()) {
+        return findOutputs("$ANALYSIS_OUTPUT_DIR/$METADATA_FILE_NAME", cacheDir).findAll {
+            it.text.contains("$FILE_NAME_PROPERTY_NAME=$artifactName")
+        }.collect { it.parentFile } as Set<TestFile>
+    }
+
+    TestFile analyzeOutput(String artifactName, File cacheDir = getCacheDir()) {
+        def dirs = analyzeOutputs(artifactName, cacheDir)
+        if (dirs.size() == 1) {
+            return dirs.first()
+        }
+        throw new AssertionError("Could not find exactly one analyze directory for $artifactName: $dirs")
     }
 
     TestFile gradleUserHomeOutput(String outputEndsWith, File cacheDir = getCacheDir()) {
