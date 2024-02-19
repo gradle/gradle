@@ -49,12 +49,12 @@ class JavaIDETaskExecutionPerformanceTest extends AbstractCrossVersionPerformanc
                     // do nothing, just force the daemon to send all events
                 }
             })
-            builder.addProgressListener(new org.gradle.tooling.ProgressListener() {
-                @Override
-                void statusChanged(org.gradle.tooling.ProgressEvent event) {
-                    // do nothing, just force the daemon to send all events
-                }
-            })
+//            builder.addProgressListener(new org.gradle.tooling.ProgressListener() {
+//                @Override
+//                void statusChanged(org.gradle.tooling.ProgressEvent event) {
+//                    // do nothing, just force the daemon to send all events
+//                }
+//            })
             builder.forTasks("clean", "assemble")
             builder.run()
         }
