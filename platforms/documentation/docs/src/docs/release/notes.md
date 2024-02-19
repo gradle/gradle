@@ -95,7 +95,7 @@ It is possible to persist the preference by setting the `org.gradle.buildinit.co
 
 #### Emitting separate problems for each issue found in a TOML catalog file
 
-When a TOML catalog files are used with invalid TOML syntax every distinct problem is emitted separately via the Problems API.
+When TOML catalog files with invalid TOML syntax are used, each distinct problem is reported separately using the Problems API.
 This used to be a combined problem for all issues found in the file.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
