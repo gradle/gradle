@@ -176,8 +176,8 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].definition.category.toString() == "org.gradle:type"
         deserialized[0].locations == [] as List
         deserialized[0].definition.documentationLink == null
-        deserialized[0].definition.solutions[0] == "solution 0"
-        deserialized[0].definition.solutions[1] == "solution 1"
+        deserialized[0].solutions[0] == "solution 0"
+        deserialized[0].solutions[1] == "solution 1"
     }
 
     def "can serialize and deserialize a validation problem with additional data"() {

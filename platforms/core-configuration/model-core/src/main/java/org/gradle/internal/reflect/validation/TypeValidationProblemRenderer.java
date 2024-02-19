@@ -52,7 +52,7 @@ public class TypeValidationProblemRenderer {
             formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         });
         if (renderSolutions) {
-            List<String> allSolutions = new ArrayList<>(problem.getDefinition().getSolutions().size() + problem.getSolutions().size());
+            List<String> allSolutions = new ArrayList<>(problem.getSolutions().size() + problem.getSolutions().size());
             allSolutions.addAll(problem.getSolutions());
             renderSolutions(formatter, allSolutions);
         }

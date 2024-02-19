@@ -59,7 +59,7 @@ public class DefaultCatalogProblemBuilder {
         ProblemDefinition definition = problem.getDefinition();
         String contextualLabel = problem.getContextualLabel();
         String renderedLabel = contextualLabel == null ? definition.getLabel() : contextualLabel;
-        return getProblemString(renderedLabel, problem.getDetails(), definition.getSolutions(), definition.getDocumentationLink());
+        return getProblemString(renderedLabel, problem.getDetails(), problem.getSolutions(), definition.getDocumentationLink());
     }
 
     public static String getProblemString(String label, String details, List<String> solutions, DocLink documentationLink) {

@@ -30,7 +30,7 @@ class DefaultProblemTest extends Specification {
         newProblem.definition.category == problem.definition.category
         newProblem.definition.label == problem.definition.label
         newProblem.definition.severity == problem.definition.severity
-        newProblem.definition.solutions == problem.definition.solutions
+        newProblem.solutions == problem.solutions
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details
         newProblem.exception == problem.exception
@@ -91,7 +91,7 @@ class DefaultProblemTest extends Specification {
         newProblem.exception == problem.exception
         newProblem.locations == problem.locations
         newProblem.definition.severity == problem.definition.severity
-        newProblem.definition.solutions == ["solution"]
+        newProblem.solutions == ["solution"]
         newProblem.class == DefaultProblem
     }
 

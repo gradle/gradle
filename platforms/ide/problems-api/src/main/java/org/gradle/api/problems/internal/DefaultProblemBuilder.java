@@ -51,7 +51,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
         this.details = problem.getDetails();
         this.docLink = problem.getDefinition().getDocumentationLink();
-        this.solutions = new ArrayList<String>(problem.getDefinition().getSolutions());
         this.exception = problem.getException();
         this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
         this.namespace = problem.getDefinition().getCategory().getNamespace();

@@ -53,7 +53,6 @@ import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -105,7 +104,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                 toInternalSeverity(problem.getDefinition().getSeverity()),
                 toInternalLocations(problem.getLocations()),
                 toInternalDocumentationLink(problem.getDefinition().getDocumentationLink()),
-                toInternalSolutions(problem.getDefinition().getSolutions(), problem.getSolutions()),
+                toInternalSolutions(problem.getSolutions()),
                 toInternalAdditionalData(problem.getAdditionalData()),
                 toInternalFailure(problem.getException())
             )
@@ -179,11 +178,8 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         return (link == null || link.getUrl() == null) ? null : new DefaultDocumentationLink(link.getUrl());
     }
 
-    private static List<InternalSolution> toInternalSolutions(List<String> solutions, List<String> contextualSolutions) {
-        ArrayList<String> allSolutions = new ArrayList<>(solutions.size() + contextualSolutions.size());
-        allSolutions.addAll(solutions);
-        allSolutions.addAll(contextualSolutions);
-        return allSolutions.stream()
+    private static List<InternalSolution> toInternalSolutions(List<String> solutions) {
+        return solutions.stream()
             .map(DefaultSolution::new)
             .collect(toImmutableList());
     }
