@@ -37,7 +37,6 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
-import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
@@ -215,17 +214,17 @@ public class ProviderConnection {
     }
 
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ProviderOperationParameters providerParameters) {
-        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
+        LoggingServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
-        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices.get(OutputEventListener.class), params.daemonParams);
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(requestSpecificLoggingServices, params.daemonParams);
         NotifyDaemonAboutChangedPathsClient client = clientServices.get(NotifyDaemonAboutChangedPathsClient.class);
         client.notifyDaemonsAboutChangedPaths(changedPaths);
     }
 
     public void stopWhenIdle(ProviderOperationParameters providerParameters) {
-        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
+        LoggingServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
-        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices.get(OutputEventListener.class), params.daemonParams);
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(requestSpecificLoggingServices, params.daemonParams);
         ((ShutdownCoordinator) clientServices.find(ShutdownCoordinator.class)).stop();
     }
 
@@ -284,9 +283,9 @@ public class ProviderConnection {
             loggingManager.captureSystemSources();
             executer = new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor));
         } else {
-            LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
-            loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
-            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class), params.daemonParams, standardInput);
+            LoggingServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
+            loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
+            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, standardInput);
             executer = clientServices.get(DaemonClient.class);
         }
         return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer), loggingManager);

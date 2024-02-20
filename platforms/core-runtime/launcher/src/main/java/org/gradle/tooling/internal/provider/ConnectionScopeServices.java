@@ -23,7 +23,6 @@ import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
-import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -52,8 +51,8 @@ public class ConnectionScopeServices {
         serviceRegistration.addProvider(new DaemonClientGlobalServices());
     }
 
-    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonClientFactory daemonClientFactory, OutputEventListener outputEventListener, FileCollectionFactory fileCollectionFactory) {
-        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(outputEventListener, new DaemonParameters(new BuildLayoutConverter().defaultValues(), fileCollectionFactory));
+    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonClientFactory daemonClientFactory, ServiceRegistry services, FileCollectionFactory fileCollectionFactory) {
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(services, new DaemonParameters(new BuildLayoutConverter().defaultValues(), fileCollectionFactory));
         DaemonStopClient client = clientServices.get(DaemonStopClient.class);
         ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(client);
         listenerManager.addListener(shutdownCoordinator);
