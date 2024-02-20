@@ -155,59 +155,62 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         }).getArtifacts();
     }
 
+    /**
+     * Combines external dependencies and project dependencies to one classpath that is sorted based on the original classpath.
+     */
     private static ClassPath combineToClasspath(Configuration classpathConfiguration, ArtifactCollection externalDependencies, ArtifactCollection projectDependencies) {
         // Artifact transform returns entries that are unique based on the ComponentIdentifier + file name + original file name.
         // That is why we de-duplicate pairs of ComponentIdentifier + file name pairs in the original classpath for ordering.
         Set<ResolvedArtifactResult> originalArtifacts = classpathConfiguration.getIncoming().getArtifacts().getArtifacts();
-        List<ScriptClassPathSortableArtifactIdentifier> identifiers = originalArtifacts.stream()
-            .map(ScriptClassPathSortableArtifactIdentifier::of)
+        List<ClassPathArtifactIdentifier> identifiers = originalArtifacts.stream()
+            .map(ClassPathArtifactIdentifier::of)
             .distinct()
             .collect(Collectors.toList());
 
-        Ordering<ScriptClassPathSortableArtifactIdentifier> ordering = Ordering.explicit(identifiers);
+        Ordering<ClassPathArtifactIdentifier> ordering = Ordering.explicit(identifiers);
         List<File> classpath = Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream())
-            .map(ScriptClassPathTransformedArtifact::ofTransformedArtifact)
-            // We sort based on the original classpath, so that we keep the original order
+            .map(ClassPathTransformedArtifact::ofTransformedArtifact)
+            // We sort based on the original classpath to we keep the original order
             .sorted((first, second) -> ordering.compare(first.originalIdentifier, second.originalIdentifier))
             .map(artifact -> artifact.file)
             .collect(Collectors.toList());
         return DefaultClassPath.of(classpath);
     }
 
-    private static class ScriptClassPathTransformedArtifact {
+    private static class ClassPathTransformedArtifact {
         private final File file;
-        private final ScriptClassPathSortableArtifactIdentifier originalIdentifier;
+        private final ClassPathArtifactIdentifier originalIdentifier;
 
-        private ScriptClassPathTransformedArtifact(File file, ScriptClassPathSortableArtifactIdentifier originalIdentifier) {
+        private ClassPathTransformedArtifact(File file, ClassPathArtifactIdentifier originalIdentifier) {
             this.file = file;
             this.originalIdentifier = originalIdentifier;
         }
 
-        public static ScriptClassPathTransformedArtifact ofTransformedArtifact(ResolvedArtifactResult transformedArtifact) {
+        public static ClassPathTransformedArtifact ofTransformedArtifact(ResolvedArtifactResult transformedArtifact) {
             checkArgument(transformedArtifact.getId() instanceof ComponentFileArtifactIdentifierWithOriginal);
             ComponentFileArtifactIdentifierWithOriginal identifier = (ComponentFileArtifactIdentifierWithOriginal) transformedArtifact.getId();
-            return new ScriptClassPathTransformedArtifact(
+            return new ClassPathTransformedArtifact(
                 transformedArtifact.getFile(),
-                ScriptClassPathSortableArtifactIdentifier.of(identifier.getOriginalFileName(), identifier.getComponentIdentifier())
+                ClassPathArtifactIdentifier.of(identifier.getOriginalFileName(), identifier.getComponentIdentifier())
             );
         }
     }
 
-    private static class ScriptClassPathSortableArtifactIdentifier {
+    private static class ClassPathArtifactIdentifier {
         private final String fileName;
         private final ComponentIdentifier componentIdentifier;
 
-        private ScriptClassPathSortableArtifactIdentifier(String fileName, ComponentIdentifier componentIdentifier) {
+        private ClassPathArtifactIdentifier(String fileName, ComponentIdentifier componentIdentifier) {
             this.fileName = fileName;
             this.componentIdentifier = componentIdentifier;
         }
 
-        private static ScriptClassPathSortableArtifactIdentifier of(String fileName, ComponentIdentifier componentIdentifier) {
-            return new ScriptClassPathSortableArtifactIdentifier(fileName, componentIdentifier);
+        private static ClassPathArtifactIdentifier of(String fileName, ComponentIdentifier componentIdentifier) {
+            return new ClassPathArtifactIdentifier(fileName, componentIdentifier);
         }
 
-        private static ScriptClassPathSortableArtifactIdentifier of(ResolvedArtifactResult artifact) {
-            return new ScriptClassPathSortableArtifactIdentifier(artifact.getFile().getName(), artifact.getId().getComponentIdentifier());
+        private static ClassPathArtifactIdentifier of(ResolvedArtifactResult artifact) {
+            return new ClassPathArtifactIdentifier(artifact.getFile().getName(), artifact.getId().getComponentIdentifier());
         }
 
         @Override
@@ -218,7 +221,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            ScriptClassPathSortableArtifactIdentifier that = (ScriptClassPathSortableArtifactIdentifier) o;
+            ClassPathArtifactIdentifier that = (ClassPathArtifactIdentifier) o;
             return Objects.equals(fileName, that.fileName) && Objects.equals(componentIdentifier, that.componentIdentifier);
         }
 
