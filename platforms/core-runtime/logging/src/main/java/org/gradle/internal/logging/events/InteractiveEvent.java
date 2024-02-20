@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.logging.events;
 
-import org.gradle.api.logging.LogLevel;
-
-public class UserInputResumeEvent extends OutputEvent implements InteractiveEvent {
-
-    @Override
-    public LogLevel getLogLevel() {
-        return LogLevel.QUIET;
-    }
+/**
+ * A marker interface to indicate that the event should be handled as quickly as possible, and not buffered.
+ */
+public interface InteractiveEvent {
 }

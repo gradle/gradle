@@ -21,6 +21,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +49,7 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
         } else if (event instanceof PromptOutputEvent) {
             PromptOutputEvent promptOutputEvent = (PromptOutputEvent) event;
             handlePrompt(promptOutputEvent);
-            if (!promptOutputEvent.getPrompt().trim().isEmpty()) {
+            if (!promptOutputEvent.getPrompt().equals(TextUtil.getPlatformLineSeparator())) {
                 userInput.readAndForwardText();
             }
             return;

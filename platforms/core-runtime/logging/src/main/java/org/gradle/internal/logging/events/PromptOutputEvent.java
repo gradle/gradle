@@ -25,7 +25,7 @@ import org.gradle.internal.operations.OperationIdentifier;
  *
  * The response is delivered to the {@link UserInputReader} service.
  */
-public class PromptOutputEvent extends RenderableOutputEvent {
+public class PromptOutputEvent extends RenderableOutputEvent implements InteractiveEvent {
     private final String prompt;
 
     public PromptOutputEvent(long timestamp, String prompt) {
@@ -44,7 +44,7 @@ public class PromptOutputEvent extends RenderableOutputEvent {
 
     @Override
     public String toString() {
-        return "[" + getLogLevel() + "] [" + getCategory() + "] " + prompt;
+        return "[" + getLogLevel() + "] [" + getCategory() + "] '" + prompt + "'";
     }
 
     @Override
