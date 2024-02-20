@@ -2086,7 +2086,6 @@ Class <org.gradle.internal.jvm.JavaHomeException> is not annotated (directly or 
 Class <org.gradle.internal.jvm.JavaInfo> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JavaInfo.java:0)
 Class <org.gradle.internal.jvm.JavaModuleDetector$ModuleInfoLocator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JavaModuleDetector.java:0)
 Class <org.gradle.internal.jvm.JavaModuleDetector> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JavaModuleDetector.java:0)
-Class <org.gradle.internal.jvm.JpmsConfiguration> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JpmsConfiguration.java:0)
 Class <org.gradle.internal.jvm.Jvm> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Jvm.java:0)
 Class <org.gradle.internal.jvm.UnsupportedJavaRuntimeException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (UnsupportedJavaRuntimeException.java:0)
 Class <org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CachingJvmMetadataDetector.java:0)
