@@ -32,8 +32,6 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
-import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -50,12 +48,9 @@ import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
-import org.gradle.launcher.daemon.client.DaemonClientInputForwarder;
 import org.gradle.launcher.daemon.client.NotifyDaemonAboutChangedPathsClient;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.protocol.InputMessage;
-import org.gradle.launcher.daemon.protocol.UserResponse;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -287,28 +282,7 @@ public class ProviderConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.captureSystemSources();
-            InputStream finalStandardInput = standardInput;
-            executer = new SystemPropertySetterExecuter(new StdInSwapExecuter(standardInput, new BuildActionExecuter<BuildActionParameters, BuildRequestContext>() {
-                @Override
-                public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext buildRequestContext) {
-                    userInputReader.startInput();
-                    DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(finalStandardInput, new Dispatch<InputMessage>() {
-                        @Override
-                        public void dispatch(InputMessage message) {
-                            if (message instanceof UserResponse) {
-                                userInputReader.putInput(new UserInputReader.TextResponse(((UserResponse) message).getResponse()));
-                            }
-                        }
-                    }, userInput, new DefaultExecutorFactory());
-                    inputForwarder.start();
-                    try {
-                        return embeddedExecutor.execute(action, actionParameters, buildRequestContext);
-                    } finally {
-                        userInputReader.putInput(UserInputReader.END_OF_INPUT);
-                        inputForwarder.stop();
-                    }
-                }
-            }));
+            executer = new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInput, userInputReader, standardInput, embeddedExecutor));
         } else {
             LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
             loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
