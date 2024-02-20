@@ -20,7 +20,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
 
 public class UserInputStandardOutputRenderer extends AbstractUserInputRenderer {
-    public UserInputStandardOutputRenderer(OutputEventListener delegate, UserInput userInput) {
+    public UserInputStandardOutputRenderer(OutputEventListener delegate, UserInputReceiver userInput) {
         super(delegate, userInput);
     }
 

@@ -16,13 +16,13 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-@ServiceScope(Scope.Global.class)
-public interface UserInput {
+/**
+ * Controls how user input is routed to the daemon.
+ */
+public interface UserInputReceiver {
     /**
-     * Reads a line of text and forwards it to the daemon.
+     * Requests that a line of text should be received from the user, for example via this process' stdin, and forwarded to the daemon.
+     * Does not block waiting for the input.
      */
-    void forwardResponse();
+    void readAndForwardText();
 }

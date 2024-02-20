@@ -21,8 +21,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.io.TextStream;
-import org.gradle.internal.logging.console.DefaultUserInput;
-import org.gradle.internal.logging.console.UserInput;
+import org.gradle.internal.logging.console.GlobalUserInputReceiver;
+import org.gradle.internal.logging.console.UserInputReceiver;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.InputMessage;
@@ -42,11 +42,12 @@ public class DaemonClientInputForwarder implements Stoppable {
 
     public static final int DEFAULT_BUFFER_SIZE = 8192;
     private final InputForwarder forwarder;
+    private final GlobalUserInputReceiver userInput;
 
     public DaemonClientInputForwarder(
         InputStream inputStream,
         Dispatch<? super InputMessage> dispatch,
-        DefaultUserInput userInput,
+        GlobalUserInputReceiver userInput,
         ExecutorFactory executorFactory
     ) {
         this(inputStream, dispatch, userInput, executorFactory, DEFAULT_BUFFER_SIZE);
@@ -55,13 +56,14 @@ public class DaemonClientInputForwarder implements Stoppable {
     public DaemonClientInputForwarder(
         InputStream inputStream,
         Dispatch<? super InputMessage> dispatch,
-        DefaultUserInput userInput,
+        GlobalUserInputReceiver userInput,
         ExecutorFactory executorFactory,
         int bufferSize
     ) {
+        this.userInput = userInput;
         ForwardTextStreamToConnection handler = new ForwardTextStreamToConnection(dispatch);
         forwarder = new InputForwarder(inputStream, handler, executorFactory, bufferSize);
-        userInput.delegateTo(new ForwardingUserInput(handler));
+        userInput.dispatchTo(new ForwardingUserInput(handler));
     }
 
     public void start() {
@@ -70,10 +72,11 @@ public class DaemonClientInputForwarder implements Stoppable {
 
     @Override
     public void stop() {
+        userInput.stopDispatching();
         forwarder.stop();
     }
 
-    private static class ForwardingUserInput implements UserInput {
+    private static class ForwardingUserInput implements UserInputReceiver {
         private final ForwardTextStreamToConnection handler;
 
         public ForwardingUserInput(ForwardTextStreamToConnection handler) {
@@ -81,7 +84,7 @@ public class DaemonClientInputForwarder implements Stoppable {
         }
 
         @Override
-        public void forwardResponse() {
+        public void readAndForwardText() {
             handler.forwardResponse();
         }
     }

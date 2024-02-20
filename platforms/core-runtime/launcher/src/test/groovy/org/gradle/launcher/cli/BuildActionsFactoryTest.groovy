@@ -20,7 +20,7 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Actions
 import org.gradle.internal.Factory
 import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.logging.console.DefaultUserInput
+import org.gradle.internal.logging.console.GlobalUserInputReceiver
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -56,7 +56,7 @@ class BuildActionsFactoryTest extends Specification {
     def setup() {
         def factory = Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
         loggingServices.add(OutputEventListener, Mock(OutputEventListener))
-        loggingServices.add(DefaultUserInput, Mock(DefaultUserInput))
+        loggingServices.add(GlobalUserInputReceiver, Mock(GlobalUserInputReceiver))
         loggingServices.add(StyledTextOutputFactory, Mock(StyledTextOutputFactory))
         loggingServices.addProvider(new Object() {
             Factory<LoggingManagerInternal> createFactory() {

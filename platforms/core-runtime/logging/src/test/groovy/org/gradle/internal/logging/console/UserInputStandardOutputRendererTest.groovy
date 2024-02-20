@@ -26,7 +26,7 @@ import spock.lang.Subject
 
 class UserInputStandardOutputRendererTest  extends Specification {
     def listener = Mock(OutputEventListener)
-    def userInput = Mock(UserInput)
+    def userInput = Mock(UserInputReceiver)
     @Subject def renderer = new UserInputStandardOutputRenderer(listener, userInput)
 
     def "can handle user input request and resume events"() {

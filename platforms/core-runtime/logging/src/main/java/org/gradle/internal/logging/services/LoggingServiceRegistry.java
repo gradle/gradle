@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.gradle.internal.logging.config.LoggingSystemAdapter;
-import org.gradle.internal.logging.console.DefaultUserInput;
+import org.gradle.internal.logging.console.DefaultUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
@@ -55,7 +55,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     private TextStreamOutputEventListener stdoutListener;
 
-    private final DefaultUserInput userInput = new DefaultUserInput();
+    private final DefaultUserInputReceiver userInput = new DefaultUserInputReceiver();
     protected final OutputEventRenderer renderer = makeOutputEventRenderer();
     protected final OutputEventListenerManager outputEventListenerManager = new OutputEventListenerManager(renderer);
 
@@ -151,7 +151,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         return outputEventListenerManager;
     }
 
-    protected DefaultUserInput createUserInput() {
+    protected DefaultUserInputReceiver createUserInput() {
         return userInput;
     }
 

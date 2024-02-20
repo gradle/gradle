@@ -16,21 +16,18 @@
 
 package org.gradle.internal.logging.console;
 
-import java.util.concurrent.atomic.AtomicReference;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public class DefaultUserInput implements UserInput {
-    private final AtomicReference<UserInput> delegate = new AtomicReference<UserInput>();
+import javax.annotation.concurrent.ThreadSafe;
 
-    @Override
-    public void forwardResponse() {
-        UserInput userInput = delegate.get();
-        if (userInput == null) {
-            throw new IllegalStateException("User input has not been initialized");
-        }
-        userInput.forwardResponse();
-    }
+/**
+ * The shared {@link UserInputReceiver} instance.
+ */
+@ServiceScope(Scope.Global.class)
+@ThreadSafe
+public interface GlobalUserInputReceiver extends UserInputReceiver {
+    void dispatchTo(UserInputReceiver userInput);
 
-    public void delegateTo(UserInput userInput) {
-        delegate.set(userInput);
-    }
+    void stopDispatching();
 }
