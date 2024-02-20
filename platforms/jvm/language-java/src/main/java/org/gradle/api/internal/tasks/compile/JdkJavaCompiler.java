@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -70,7 +71,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
         // We check here if the Problems API is used
         // If it's not used, the compiler interfaces interpret "null" as "use the default diagnostic listener"
-//        DiagnosticListener<JavaFileObject> diagnosticListener = shouldUseProblemsApiReporting() ? diagnosticToProblemListener : null;
+        DiagnosticListener<JavaFileObject> diagnosticListener = shouldUseProblemsApiReporting() ? diagnosticToProblemListener : null;
 
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         // This means that JavacToolProvider cannot be used directly, as it was introduced in Java 9
@@ -78,12 +79,12 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
 
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         Charset charset = compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null;
-        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(diagnosticToProblemListener, null, charset);
+        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(diagnosticListener, null, charset);
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
 
-        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticToProblemListener, options, spec.getClassesToProcess(), compilationUnits, context);
+        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticListener, options, spec.getClassesToProcess(), compilationUnits, context);
 //        if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
 //            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
 //                task,
