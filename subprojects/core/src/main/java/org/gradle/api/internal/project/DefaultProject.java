@@ -26,6 +26,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.PathValidation;
+import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
@@ -73,6 +74,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.DeclarativeExtension;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -266,6 +268,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
 
         dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
+
+        getExtensions().setRealizationAction(clazz -> {
+            if (clazz.isAnnotationPresent(DeclarativeExtension.class)) {
+                Class<? extends Plugin<?>> pluginClass = clazz.getAnnotation(DeclarativeExtension.class).pluginClass();
+                getPluginManager().apply(pluginClass);
+            }
+        });
     }
 
     @SuppressWarnings("unused")

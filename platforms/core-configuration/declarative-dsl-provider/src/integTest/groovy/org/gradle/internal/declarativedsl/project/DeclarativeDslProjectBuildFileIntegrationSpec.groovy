@@ -314,9 +314,7 @@ secondaryAccess { three, true, true}"""
                 @Override
                 public void apply(Settings settings) {
                     settings.getGradle().beforeProject(project ->
-                        project.getExtensions().register("restricted", Extension.class,
-                            () -> project.getPlugins().apply(RestrictedPlugin.class))
-                    );
+                        project.getExtensions().register("restricted", Extension.class));
                 }
             }
         """
@@ -331,10 +329,12 @@ secondaryAccess { three, true, true}"""
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
+            import org.gradle.api.plugins.DeclarativeExtension;
 
             import javax.inject.Inject;
 
             @Restricted
+            @DeclarativeExtension(pluginClass = RestrictedPlugin.class)
             public abstract class Extension {
                 private final Access primaryAccess;
                 public abstract ListProperty<Access> getSecondaryAccess();

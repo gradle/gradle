@@ -57,6 +57,8 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
     private Map<String, Object> plugins;
     private Map<Object, BeanDynamicObject> dynamicObjects;
 
+    private Action<Class<?>> realizationAction;
+
     public DefaultConvention(InstanceGenerator instanceGenerator) {
         this.instanceGenerator = instanceGenerator;
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
@@ -154,18 +156,18 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
     }
 
     @Override
-    public <T> void register(Class<T> publicType, String name, Class<? extends T> instanceType, Runnable initializationAction, Object... constructionArguments) {
-        extensionsStorage.register(typeOf(publicType), name, new InitializingSupplier<>(instanceType, name, initializationAction, constructionArguments));
+    public <T> void register(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+        extensionsStorage.register(typeOf(publicType), name, new InitializingSupplier<>(instanceType, name, constructionArguments));
     }
 
     @Override
-    public <T> void register(TypeOf<T> publicType, String name, Class<? extends T> instanceType, Runnable initializationAction, Object... constructionArguments) {
-        extensionsStorage.register(publicType, name, new InitializingSupplier<>(instanceType, name, initializationAction, constructionArguments));
+    public <T> void register(TypeOf<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments) {
+        extensionsStorage.register(publicType, name, new InitializingSupplier<>(instanceType, name, constructionArguments));
     }
 
     @Override
-    public <T> void register(String name, Class<T> type, Runnable initializationAction, Object... constructionArguments) {
-        extensionsStorage.register(typeOf(type), name, new InitializingSupplier<>(type, name, initializationAction, constructionArguments));
+    public <T> void register(String name, Class<T> type, Object... constructionArguments) {
+        extensionsStorage.register(typeOf(type), name, new InitializingSupplier<>(type, name, constructionArguments));
     }
 
     @Override
@@ -243,6 +245,11 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
 
     private <T> T instantiate(Class<? extends T> instanceType, String name, Object[] constructionArguments) {
         return instanceGenerator.newInstanceWithDisplayName(instanceType, Describables.withTypeAndName("extension", name), constructionArguments);
+    }
+
+    @Override
+    public void setRealizationAction(Action<Class<?>> action) {
+        this.realizationAction = action;
     }
 
     private class ExtensionsDynamicObject extends AbstractDynamicObject {
@@ -413,15 +420,13 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
 
         private final String name;
 
-        private final Runnable initializationAction;
         private final Object[] constructionArguments;
 
         private T instance;
 
-        public InitializingSupplier(Class<? extends T> instanceType, String name, Runnable initializationAction, Object[] constructionArguments) {
+        public InitializingSupplier(Class<? extends T> instanceType, String name, Object[] constructionArguments) {
             this.instanceType = instanceType;
             this.name = name;
-            this.initializationAction = initializationAction;
             this.constructionArguments = constructionArguments;
         }
 
@@ -429,7 +434,9 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         public T get() {
             if (instance == null) {
                 instance = instantiate(instanceType, name, constructionArguments);
-                initializationAction.run();
+                if (realizationAction != null) {
+                    realizationAction.execute(instanceType);
+                }
             }
             return instance;
         }
