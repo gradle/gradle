@@ -28,7 +28,6 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
-import org.gradle.problems.internal.rendering.DefaultProblemRenderer;
 import org.gradle.problems.internal.rendering.JavaCompilerProblemRenderer;
 import org.gradle.problems.rendering.ProblemRenderer;
 
@@ -45,7 +44,6 @@ public class ProblemRenderingBuildActionRunner implements BuildActionRunner, Bui
     public ProblemRenderingBuildActionRunner(BuildOperationListenerManager listenerManager, BuildActionRunner delegate) {
         this.delegate = delegate;
         this.renderers.add(new JavaCompilerProblemRenderer());
-        this.renderers.add(new DefaultProblemRenderer());
 
         listenerManager.addListener(this);
     }
