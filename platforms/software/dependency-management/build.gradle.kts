@@ -153,8 +153,8 @@ dependencies {
         because("Groovy compiler bug leaks internals")
     }
 
-    testRuntimeOnly(project(":distributions-jvm")) {
-        because("JVM Services needed for testing.")
+    testRuntimeOnly(project(":distributions-core")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestImplementation(project(":launcher")) {
         because("Daemon fixtures need DaemonRegistry")
