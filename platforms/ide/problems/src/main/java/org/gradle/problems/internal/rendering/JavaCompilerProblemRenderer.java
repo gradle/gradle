@@ -16,15 +16,12 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.logging.Logger;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.problems.rendering.ProblemRenderer;
 
 import java.util.List;
 
 public class JavaCompilerProblemRenderer implements ProblemRenderer {
-
-    Logger logger;
 
     private static final String JAVA_COMPILER_CATEGORY = "org.gradle:compilation:java";
 
