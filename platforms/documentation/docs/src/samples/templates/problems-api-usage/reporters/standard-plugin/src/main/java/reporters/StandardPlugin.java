@@ -21,11 +21,12 @@ public class StandardPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project target) {
+        // TODO check rendered sample content
         // tag::problems-api-report[]
         problems.forNamespace("reporters.standard.plugin").reporting(problem -> problem
-                .label("The 'standard-plugin' is deprecated")
+                .id("Plugin is deprecated")
+                .contextualMessage("The 'standard-plugin' is deprecated")
                 .documentedAt("https://github.com/gradle/gradle/README.md")
-                .category("deprecation", "plugin")
                 .severity(Severity.WARNING)
                 .solution("Please use a more recent plugin version")
         );

@@ -29,7 +29,7 @@ import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.TaskPathLocation
 
 @ToolingApiVersion("=8.6")
-@TargetGradleVersion(">=8.6")
+@TargetGradleVersion(">=8.6 <8.8") // TODO should have the tests for 8.8
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {

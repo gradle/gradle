@@ -27,12 +27,10 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     private final ProblemEmitter emitter;
     private final List<ProblemTransformer> transformers;
-    private final String namespace;
 
-    public DefaultProblemReporter(ProblemEmitter emitter, List<ProblemTransformer> transformers, String namespace) {
+    public DefaultProblemReporter(ProblemEmitter emitter, List<ProblemTransformer> transformers) {
         this.emitter = emitter;
         this.transformers = transformers;
-        this.namespace = namespace;
     }
 
     @Override
@@ -78,7 +76,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     // This method is only public to integrate with the existing task validation framework.
     // We should rework this integration and this method private.
     public DefaultProblemBuilder createProblemBuilder() {
-        return new DefaultProblemBuilder(namespace);
+        return new DefaultProblemBuilder();
     }
 
     private Problem transformProblem(Problem problem, OperationIdentifier id) {

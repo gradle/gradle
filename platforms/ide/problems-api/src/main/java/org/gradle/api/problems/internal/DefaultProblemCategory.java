@@ -32,7 +32,7 @@ public class DefaultProblemCategory implements ProblemCategory, Serializable {
     public static final String GRADLE_CORE_NAMESPACE = "org.gradle";
     private static final String SEPARATOR = Path.SEPARATOR;
 
-    public static final String DEPRECATION = "deprecation";
+    public static final String DEPRECATION = "deprecation"; // TODO we don't need this
     public static final String VALIDATION = "type-validation";
 
     private final String namespace;

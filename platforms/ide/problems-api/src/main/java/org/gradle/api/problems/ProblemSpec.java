@@ -34,57 +34,41 @@ public interface ProblemSpec {
      * The label is the main, human-readable representation of the problem.
      * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
      *
-     * @param label the short message
+     * @param id the short message
      * @return this
-     * @since 8.6
+     * @since 8.8
      */
-    ProblemSpec label(String label);
+    ProblemSpec id(ProblemId id);
+
 
     /**
-     * A category groups related problems together.
-     * <p>
-     * Category is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
-     * <p>
-     * A category defines the following hierarchical elements to distinguish instances:
-     * <ul>
-     *     <li>namespace</li>
-     *     <li>category</li>
-     *     <li>subcategories</li>
-     * </ul>
-     * <p>
-     * The namespace provides separation for identical problems emitted from different components.
-     * Problems emitted from Gradle core will use the {@code org.gradle} namespace.
-     * Third party plugins are expected to use their plugin id for namespace.
-     * Problems emitted from build scripts should use the {@code buildscript} namespace.
-     * The namespace is bound to {@link ProblemReporter}, hence it is absent from the argument list.
-     * <p>
-     * A category should contain the most broad term describing the problem.
-     * A few examples are: {@code compilation}, {@code deprecation}, {@code task-validation}.
-     * <p>
-     * The problem category can be refined with an optional hierarchy of subcategories.
-     * For example, a problem covering a java compilation warning can be denoted with the following subcategories: {@code [java, unused-variable]}.
-     * <p>
-     * The categorization depends on the domain and don't have any constraints. Clients (i.e. IDEs) receiving problems should use the category information for
-     * properly group and sort the received instances.
-     * However, we recommend to use the same conventions as the problems emitted from Gradle core use.
-     * <ul>
-     *     <li>Entries should be all-lowercase using a dash for separator (i.e. kebab-case)</li>
-     *     <li>Should be strictly hierarchical: the category declares the domain and subcategories provide further refinement</li>
-     * </ul>
-     * A few examples with a path-like notation (i.e. {@code category:subcategory1:subcategory2}).
-     * <ul>
-     *     <li>compilation:groovy-dsl</li>
-     *     <li>compilation:java:unused-import</li>
-     *     <li>deprecation:user-code-direct</li>
-     *     <li>task-selection:no-matches</li>
-     * </ul>
-     *
-     * @param category the type name
-     * @param subcategories the type subcategories
+     * TODO.
+     * @param label TODO.
      * @return this
-     * @since 8.6
+     * @since 8.8
      */
-    ProblemSpec category(String category, String... subcategories);
+    ProblemSpec id(String label);
+
+
+    /**
+     * TODO.
+     *
+     * @param id TODO.
+     * @param displayName TODO.
+     * @return this
+     * @since 8.8
+     */
+    ProblemSpec id(String id, String displayName);
+
+    /**
+     * TODO.
+     * @param id TODO.
+     * @param displayName TODO.
+     * @param parent TODO.
+     * @return this
+     * @since 8.8
+     */
+    ProblemSpec id(String id, String displayName, ProblemGroup parent);
 
     /**
      * Declares where this problem is documented.

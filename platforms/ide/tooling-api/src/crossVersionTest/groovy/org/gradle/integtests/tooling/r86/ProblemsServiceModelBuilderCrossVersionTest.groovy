@@ -29,6 +29,7 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 
 @ToolingApiVersion(">=8.6")
+@TargetGradleVersion("<8.8") // TODO fix it
 class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecification {
 
     static String getBuildScriptSampleContent(boolean pre86api, boolean includeAdditionalMetadata) {

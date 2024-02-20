@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 
@@ -55,11 +57,19 @@ public interface InternalProblemSpec extends ProblemSpec {
      */
     InternalProblemSpec documentedAt(DocLink doc);
 
-    @Override
-    InternalProblemSpec label(String label);
 
     @Override
-    InternalProblemSpec category(String category, String... details);
+    InternalProblemSpec id(ProblemId id);
+
+    @Override
+    InternalProblemSpec id(String label);
+
+    @Override
+    InternalProblemSpec id(String id, String displayName);
+
+    @Override
+    InternalProblemSpec id(String id, String displayName, ProblemGroup parent);
+
 
     @Override
     InternalProblemSpec documentedAt(String url);

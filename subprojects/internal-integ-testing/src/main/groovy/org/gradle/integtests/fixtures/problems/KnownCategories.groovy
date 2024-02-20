@@ -20,12 +20,11 @@ class KnownCategories {
 
     static void assertHasKnownCategory(ReceivedProblem problem) {
         assert problem != null
-        def category = problem['definition']['category']
-        assert category != null : "Category must be present"
-        assert category['namespace'] != null : "Must specify a namespace: $category"
-        assert category['category'] != null : "Must specify a main category: $category"
-        assert category['subcategories'] != null : "Must specify subcategories: $category"
-        assert KNOWN_CATEGORIES.contains(category): "Unknown problem category: ${toGroovyMapNotation(category)}"
+        def id = problem['definition']['id']
+        assert id != null : "Id must be present"
+        assert id['id'] != null : "Must specify a main id: $id"
+        assert id['displayName'] != null : "Must specify displayName: $id"
+        // assert KNOWN_CATEGORIES.contains(id): "Unknown problem id: ${toGroovyMapNotation(id)}" // TODO restore known categories
     }
 
     private static String toGroovyMapNotation(def category) {

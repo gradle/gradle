@@ -39,7 +39,7 @@ public interface Problems {
      * Return a problem reporter associated with a plugin.
      * <p>
      * The namespace provides separation for identical problems emitted from different components.
-     * For more details on check {@link ProblemSpec#category(String, String...)}
+     * For more details on check {#category(String, String...)} TODO fix javadoc.
      *
      * @return The problem reporter.
      * @since 8.6

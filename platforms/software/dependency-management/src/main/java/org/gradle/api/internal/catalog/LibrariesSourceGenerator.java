@@ -28,6 +28,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.SharedProblemGroup;
+import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
@@ -525,9 +527,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
-            .label(message)
+            .id(DefaultProblemId.from(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, SharedProblemGroup.DEPENDENCY_VERSION_CATALOG)) // TODO is message stable?
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
-            .category("dependency-version-catalog", TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()))
             .severity(ERROR);
     }
 

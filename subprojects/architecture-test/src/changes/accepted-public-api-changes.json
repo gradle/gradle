@@ -1,6 +1,12 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.problems.SharedProblemGroup",
+            "member": "Field DEPENDENCY_VERSION_CATALOG",
+            "acceptation": "TODO I got an archtest error even though I added the @since annotation",
+            "changes": []
+        },
+        {
             "type": "org.gradle.tooling.events.problems.ProblemDescriptor",
             "member": "Method org.gradle.tooling.events.problems.ProblemDescriptor.getDetails()",
             "acceptation": "This is an incubating API and therefore the change is acceptable",

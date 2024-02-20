@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * Defines the Gson serialization and deserialization for {@link ProblemDefinition} and for {@link ProblemContext} based on the assumption that they have exactly one implementation.
+ * Defines the Gson serialization and deserialization for {@link ProblemDefinition} based on the assumption that they have exactly one implementation.
  */
 public final class ProblemReportAdapterFactory implements TypeAdapterFactory {
 

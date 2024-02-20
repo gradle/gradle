@@ -22,6 +22,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.SharedProblemGroup;
+import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -44,8 +46,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static org.gradle.api.problems.Severity.WARNING;
-import static org.gradle.api.problems.internal.DefaultProblemCategory.DEPRECATION;
-import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -92,13 +92,11 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                 @Override
                 public void execute(InternalProblemSpec builder) {
                     ProblemSpec problemSpec = builder
-                        .label("Deprecated feature used")
+                        .id(DefaultProblemId.from("deprecated-feature-used", usage.getSummary(), SharedProblemGroup.DEPRECATION)) // TODO verify how can we get an id/label independent from the context
                         .contextualLabel(usage.getSummary())
                         .documentedAt(usage.getDocumentationUrl());
                     addPossibleLocation(diagnostics, problemSpec);
-                    // TODO (donat) we can further categorize deprecation warnings https://github.com/gradle/gradle/issues/26928
-                    problemSpec.category(DEPRECATION, screamingSnakeToKebabCase(usage.getType().name()))
-                        .severity(WARNING);
+                    problemSpec.severity(WARNING);
                     if(usage.getAdvice() != null) {
                         problemSpec.solution(usage.getAdvice());
                     }

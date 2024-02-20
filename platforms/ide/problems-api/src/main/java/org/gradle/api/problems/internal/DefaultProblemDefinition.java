@@ -18,6 +18,7 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
@@ -27,29 +28,27 @@ import java.util.List;
 
 @NonNullApi
 public class DefaultProblemDefinition implements Serializable, ProblemDefinition {
-    private final String label;
+
+    private DefaultProblemId id;
     private Severity severity;
     private final DocLink documentationLink;
     private final List<String> solutions;
-    private final ProblemCategory problemCategory;
 
     DefaultProblemDefinition(
-        String label,
+        ProblemId id,
         Severity severity,
         @Nullable DocLink documentationUrl,
-        List<String> solutions,
-        ProblemCategory problemCategory
+        List<String> solutions
     ) {
-        this.label = label;
+        this.id = DefaultProblemId.copy(id);
         this.severity = severity;
         this.documentationLink = documentationUrl;
         this.solutions = ImmutableList.copyOf(solutions);
-        this.problemCategory = problemCategory;
     }
 
     @Override
-    public String getLabel() {
-        return label;
+    public ProblemId getId() {
+        return id;
     }
 
     @Override
@@ -66,11 +65,6 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
     @Override
     public List<String> getSolutions() {
         return solutions;
-    }
-
-    @Override
-    public ProblemCategory getCategory() {
-        return problemCategory;
     }
 
     public void setSeverity(Severity severity) {
@@ -90,16 +84,15 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
             return false;
         }
         DefaultProblemDefinition that = (DefaultProblemDefinition) o;
-        return equals(label, that.label) &&
-            severity == that.severity &&
-            equals(problemCategory, that.problemCategory) &&
+        return severity == that.severity &&
+            equals(id, that.id) &&
             equals(documentationLink, that.documentationLink) &&
             equals(solutions, that.solutions);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, severity, documentationLink, solutions});
+        return Arrays.hashCode(new Object[]{id, severity, documentationLink, solutions});
     }
 
 }

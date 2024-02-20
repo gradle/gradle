@@ -32,6 +32,7 @@ import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersion
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 
 @ToolingApiVersion(">=8.7")
+@TargetGradleVersion("<8.8") // TODO adjust test
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {

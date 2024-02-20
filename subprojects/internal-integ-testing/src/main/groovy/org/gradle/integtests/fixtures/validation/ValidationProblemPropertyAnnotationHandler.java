@@ -17,6 +17,8 @@ package org.gradle.integtests.fixtures.validation;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.DefaultProblemGroup;
+import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
@@ -39,16 +41,15 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
     }
 
-    public static final String TEST_PROBLEM = "TEST_PROBLEM";
+    public static final String TEST_PROBLEM = "TEST_PROBLEM"; // TODO do we still need this?
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validationContext.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyMetadata.getPropertyName())
-                .label("test problem")
+                .id(DefaultProblemId.from("test-problem", "test problem", new DefaultProblemGroup("root", "root")))
                 .documentedAt(Documentation.userManual("id", "section"))
-                .category(TEST_PROBLEM)
                 .severity(annotationValue(propertyMetadata))
                 .details("this is a test")
         );

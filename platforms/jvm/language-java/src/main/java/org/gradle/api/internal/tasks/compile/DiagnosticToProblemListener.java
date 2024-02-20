@@ -20,6 +20,8 @@ import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.SharedProblemGroup;
+import org.gradle.api.problems.internal.DefaultProblemId;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -52,23 +54,9 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
         problemReporter.reporting(problem -> {
             ProblemSpec spec = problem
-                .label(label)
+                .id(DefaultProblemId.from(SharedProblemGroup.JAVA_COMPILATION.getId(), SharedProblemGroup.JAVA_COMPILATION.getDisplayName(), SharedProblemGroup.COMPILATION))
                 .severity(severity)
                 .details(message);
-
-            // The category of the problem depends on the severity
-            switch (severity) {
-                case ADVICE:
-                    spec.category("compilation", "java", "compilation-advice");
-                    break;
-                case WARNING:
-                    spec.category("compilation", "java", "compilation-warning");
-                    break;
-                case ERROR:
-                    spec.category("compilation", "java", "compilation-failed");
-                    break;
-            }
-
             // We only set the location if we have a resource to point to
             if (resourceName != null) {
                 spec.lineInFileLocation(resourceName, line, column, length);
