@@ -138,6 +138,12 @@ public interface ExtensionContainer {
      */
     <T> T create(String name, Class<T> type, Object... constructionArguments);
 
+    <T> void register(Class<T> publicType, String name, Class<? extends T> instanceType, Runnable initializationAction, Object... constructionArguments);
+
+    <T> void register(TypeOf<T> publicType, String name, Class<? extends T> instanceType, Runnable initializationAction, Object... constructionArguments);
+
+    <T> void register(String name, Class<T> type, Runnable initializationAction, Object... constructionArguments);
+
     /**
      * Provides access to the schema of all known extensions.
      *

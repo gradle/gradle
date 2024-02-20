@@ -41,6 +41,7 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static org.gradle.api.reflect.TypeOf.typeOf;
@@ -150,6 +151,21 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         T instance = instantiate(instanceType, name, constructionArguments);
         add(publicType, name, instance);
         return instance;
+    }
+
+    @Override
+    public <T> void register(Class<T> publicType, String name, Class<? extends T> instanceType, Runnable initializationAction, Object... constructionArguments) {
+        extensionsStorage.register(typeOf(publicType), name, new InitializingSupplier<>(instanceType, name, initializationAction, constructionArguments));
+    }
+
+    @Override
+    public <T> void register(TypeOf<T> publicType, String name, Class<? extends T> instanceType, Runnable initializationAction, Object... constructionArguments) {
+        extensionsStorage.register(publicType, name, new InitializingSupplier<>(instanceType, name, initializationAction, constructionArguments));
+    }
+
+    @Override
+    public <T> void register(String name, Class<T> type, Runnable initializationAction, Object... constructionArguments) {
+        extensionsStorage.register(typeOf(type), name, new InitializingSupplier<>(type, name, initializationAction, constructionArguments));
     }
 
     @Override
@@ -390,5 +406,32 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
             .nagUser();
+    }
+
+    private class InitializingSupplier<T> implements Supplier<T> {
+        private final Class<? extends T> instanceType;
+
+        private final String name;
+
+        private final Runnable initializationAction;
+        private final Object[] constructionArguments;
+
+        private T instance;
+
+        public InitializingSupplier(Class<? extends T> instanceType, String name, Runnable initializationAction, Object[] constructionArguments) {
+            this.instanceType = instanceType;
+            this.name = name;
+            this.initializationAction = initializationAction;
+            this.constructionArguments = constructionArguments;
+        }
+
+        @Override
+        public T get() {
+            if (instance == null) {
+                instance = instantiate(instanceType, name, constructionArguments);
+                initializationAction.run();
+            }
+            return instance;
+        }
     }
 }

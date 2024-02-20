@@ -287,6 +287,212 @@ secondaryAccess { three, true, true}"""
         )
     }
 
+    def 'can configure a custom plugin extension in declarative DSL via a settings plugin'() {
+        given:
+        file("build-logic/build.gradle") << """
+            plugins {
+                id('java-gradle-plugin')
+            }
+            gradlePlugin {
+                plugins {
+                    create("restrictedPlugin") {
+                        id = "com.example.restricted"
+                        implementationClass = "com.example.restricted.RestrictedSettingsPlugin"
+                    }
+                }
+            }
+        """
+
+        file("build-logic/src/main/java/com/example/restricted/RestrictedSettingsPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.initialization.Settings;
+
+            class RestrictedSettingsPlugin implements Plugin<Settings> {
+                @Override
+                public void apply(Settings settings) {
+                    settings.getGradle().beforeProject(project ->
+                        project.getExtensions().register("restricted", Extension.class,
+                            () -> project.getPlugins().apply(RestrictedPlugin.class))
+                    );
+                }
+            }
+        """
+
+        file("build-logic/src/main/java/com/example/restricted/Extension.java") << """
+            package com.example.restricted;
+
+            import org.gradle.declarative.dsl.model.annotations.Adding;
+            import org.gradle.declarative.dsl.model.annotations.Configuring;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.api.Action;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+
+            import javax.inject.Inject;
+
+            @Restricted
+            public abstract class Extension {
+                private final Access primaryAccess;
+                public abstract ListProperty<Access> getSecondaryAccess();
+                private final ObjectFactory objects;
+
+                public Access getPrimaryAccess() {
+                    return primaryAccess;
+                }
+
+                @Inject
+                public Extension(ObjectFactory objects) {
+                    this.objects = objects;
+                    this.primaryAccess = objects.newInstance(Access.class);
+                    this.primaryAccess.getName().set("primary");
+
+                    getId().convention("<no id>");
+                    getReferencePoint().convention(point(-1, -1));
+                }
+
+                @Restricted
+                public abstract Property<String> getId();
+
+                @Restricted
+                public abstract Property<Point> getReferencePoint();
+
+                @Configuring
+                public void primaryAccess(Action<? super Access> configure) {
+                    configure.execute(primaryAccess);
+                }
+
+                @Adding
+                public Access secondaryAccess(Action<? super Access> configure) {
+                    Access newAccess = objects.newInstance(Access.class);
+                    newAccess.getName().convention("<no name>");
+                    configure.execute(newAccess);
+                    getSecondaryAccess().add(newAccess);
+                    return newAccess;
+                }
+
+                @Restricted
+                public Point point(int x, int y) {
+                    return new Point(x, y);
+                }
+
+                public abstract static class Access {
+                    public Access() {
+                        getName().convention("<no name>");
+                        getRead().convention(false);
+                        getWrite().convention(false);
+                    }
+
+                    @Restricted
+                    public abstract Property<String> getName();
+
+                    @Restricted
+                    public abstract Property<Boolean> getRead();
+
+                    @Restricted
+                    public abstract Property<Boolean> getWrite();
+                }
+
+                public static class Point {
+                    public final int x;
+                    public final int y;
+
+                    public Point(int x, int y) {
+                        this.x = x;
+                        this.y = y;
+                    }
+                }
+            }
+        """
+
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+
+            public class RestrictedPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project target) {
+                    Extension restricted = target.getExtensions().getByType(Extension.class);
+
+                    target.getTasks().register("printConfiguration", DefaultTask.class, task -> {
+                        Property<Extension.Point> referencePoint = restricted.getReferencePoint();
+                        Extension.Access acc = restricted.getPrimaryAccess();
+                        ListProperty<Extension.Access> secondaryAccess = restricted.getSecondaryAccess();
+
+                        task.doLast("print restricted extension content", t -> {
+                            System.out.println("id = " + restricted.getId().get());
+                            Extension.Point point = referencePoint.getOrElse(restricted.point(-1, -1));
+                            System.out.println("referencePoint = (" + point.x + ", " + point.y + ")");
+                            System.out.println("primaryAccess = { " +
+                                    acc.getName().get() + ", " + acc.getRead().get() + ", " + acc.getWrite().get() + "}"
+                            );
+                            secondaryAccess.get().forEach(it -> {
+                                System.out.println("secondaryAccess { " +
+                                        it.getName().get() + ", " + it.getRead().get() + ", " + it.getWrite().get() +
+                                        "}"
+                                );
+                            });
+                        });
+                    });
+                }
+            }
+        """
+
+        file("build.gradle.something") << """
+            restricted {
+                id = "test"
+
+                referencePoint = point(1, 2)
+
+                primaryAccess {
+                    read = false
+                    write = false
+                }
+
+                secondaryAccess {
+                    name = "two"
+                    read = true
+                    write = false
+                }
+
+                secondaryAccess {
+                    name = "three"
+                    read = true
+                    write = true
+                }
+            }
+        """
+
+        file("settings.gradle") << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+
+            plugins {
+                id("com.example.restricted")
+            }
+        """
+
+        when:
+        run(":printConfiguration")
+
+        then:
+        outputContains("""id = test
+referencePoint = (1, 2)
+primaryAccess = { primary, false, false}
+secondaryAccess { two, true, false}
+secondaryAccess { three, true, true}"""
+        )
+    }
+
     def 'reports #kind errors in project file #part'() {
         given:
         file("build.gradle.something") << """
@@ -314,3 +520,4 @@ secondaryAccess { three, true, true}"""
         "semantic"         | "body"        | ""                       | "x = 1"               | "4:9: unresolved reference 'x'"
     }
 }
+

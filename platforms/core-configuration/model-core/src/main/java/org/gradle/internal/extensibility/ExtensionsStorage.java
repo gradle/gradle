@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -39,7 +40,15 @@ public class ExtensionsStorage {
             throw new IllegalArgumentException(
                 format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
         }
-        extensions.put(name, new ExtensionHolder<>(name, publicType, extension));
+        extensions.put(name, new ExtensionHolder<>(name, publicType, () -> extension));
+    }
+
+    public <T> void register(TypeOf<T> publicType, String name, Supplier<T> extensionSupplier) {
+        if (hasExtension(name)) {
+            throw new IllegalArgumentException(
+                format("Cannot add extension with name '%s', as there is an extension already registered with that name.", name));
+        }
+        extensions.put(name, new ExtensionHolder<>(name, publicType, extensionSupplier));
     }
 
     public boolean hasExtension(String name) {
@@ -151,12 +160,12 @@ public class ExtensionsStorage {
     private static class ExtensionHolder<T> implements ExtensionsSchema.ExtensionSchema {
         private final String name;
         private final TypeOf<T> publicType;
-        protected final T extension;
+        protected final Supplier<T> extensionSupplier;
 
-        private ExtensionHolder(String name, TypeOf<T> publicType, T extension) {
+        private ExtensionHolder(String name, TypeOf<T> publicType, Supplier<T> extensionSupplier) {
             this.name = name;
             this.publicType = publicType;
-            this.extension = extension;
+            this.extensionSupplier = extensionSupplier;
         }
 
         @Override
@@ -170,10 +179,11 @@ public class ExtensionsStorage {
         }
 
         public T get() {
-            return extension;
+            return extensionSupplier.get();
         }
 
         public T configure(Action<? super T> action) {
+            T extension = get();
             action.execute(extension);
             return extension;
         }
