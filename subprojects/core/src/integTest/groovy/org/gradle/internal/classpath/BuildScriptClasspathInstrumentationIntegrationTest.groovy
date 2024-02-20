@@ -51,9 +51,9 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
         then:
         gradleUserHomeOutput("original/buildSrc.jar").exists()
-        gradleUserHomeOutput("instrumented/buildSrc.jar").exists()
+        gradleUserHomeOutput("instrumented/instrumented-buildSrc.jar").exists()
         gradleUserHomeOutput("original/included-1.0.jar").exists()
-        gradleUserHomeOutput("instrumented/included-1.0.jar").exists()
+        gradleUserHomeOutput("instrumented/instrumented-included-1.0.jar").exists()
     }
 
     def "buildSrc and included build should be just instrumented and not upgraded"() {
@@ -95,7 +95,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         allTransformsFor("commons-lang3-3.8.1.jar") == ["ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
-        gradleUserHomeOutput("instrumented/commons-lang3-3.8.1.jar").exists()
+        gradleUserHomeOutput("instrumented/instrumented-commons-lang3-3.8.1.jar").exists()
     }
 
     def "directories should be instrumented"() {
