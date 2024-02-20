@@ -3262,6 +3262,7 @@ Class <org.gradle.launcher.daemon.protocol.DaemonMessageSerializer$FinishedSeria
 Class <org.gradle.launcher.daemon.protocol.DaemonMessageSerializer$ForwardInputSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonMessageSerializer.java:0)
 Class <org.gradle.launcher.daemon.protocol.DaemonMessageSerializer$OutputMessageSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonMessageSerializer.java:0)
 Class <org.gradle.launcher.daemon.protocol.DaemonMessageSerializer$SuccessSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonMessageSerializer.java:0)
+Class <org.gradle.launcher.daemon.protocol.DaemonMessageSerializer$UserResponseSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonMessageSerializer.java:0)
 Class <org.gradle.launcher.daemon.protocol.DaemonMessageSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonMessageSerializer.java:0)
 Class <org.gradle.launcher.daemon.protocol.DaemonUnavailable> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonUnavailable.java:0)
 Class <org.gradle.launcher.daemon.protocol.Failure> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Failure.java:0)

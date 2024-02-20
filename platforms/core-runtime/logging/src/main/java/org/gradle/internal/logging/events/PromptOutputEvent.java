@@ -27,19 +27,29 @@ import org.gradle.internal.operations.OperationIdentifier;
  */
 public class PromptOutputEvent extends RenderableOutputEvent implements InteractiveEvent {
     private final String prompt;
+    private final boolean newQuestion;
 
-    public PromptOutputEvent(long timestamp, String prompt) {
+    public PromptOutputEvent(long timestamp, String prompt, boolean newQuestion) {
         super(timestamp, "prompt", LogLevel.QUIET, null);
         this.prompt = prompt;
+        this.newQuestion = newQuestion;
     }
 
     @Override
     public void render(StyledTextOutput output) {
+        if (newQuestion) {
+            // Add a newline at the start of each question
+            output.println();
+        }
         output.text(prompt);
     }
 
     public String getPrompt() {
         return prompt;
+    }
+
+    public boolean isNewQuestion() {
+        return newQuestion;
     }
 
     @Override

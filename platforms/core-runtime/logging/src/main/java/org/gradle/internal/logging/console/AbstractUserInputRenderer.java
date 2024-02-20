@@ -21,7 +21,6 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
-import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,14 +43,11 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
             handleUserInputRequestEvent();
             return;
         } else if (event instanceof UserInputResumeEvent) {
-            handleUserInputResumeEvent();
+            handleUserInputResumeEvent((UserInputResumeEvent) event);
             return;
         } else if (event instanceof PromptOutputEvent) {
-            PromptOutputEvent promptOutputEvent = (PromptOutputEvent) event;
-            handlePrompt(promptOutputEvent);
-            if (!promptOutputEvent.getPrompt().equals(TextUtil.getPlatformLineSeparator())) {
-                userInput.readAndForwardText();
-            }
+            handlePrompt((PromptOutputEvent) event);
+            userInput.readAndForwardText();
             return;
         }
 
@@ -68,13 +64,13 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
         paused = true;
     }
 
-    private void handleUserInputResumeEvent() {
+    private void handleUserInputResumeEvent(UserInputResumeEvent event) {
         if (!paused) {
             throw new IllegalStateException("Cannot resume user input if not paused yet");
         }
 
         paused = false;
-        finishInput();
+        finishInput(event);
         replayEvents();
     }
 
@@ -95,5 +91,5 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
 
     abstract void handlePrompt(PromptOutputEvent event);
 
-    abstract void finishInput();
+    abstract void finishInput(UserInputResumeEvent event);
 }
