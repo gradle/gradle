@@ -345,7 +345,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public ConfigurableFileCollection from(Object... paths) {
-        getConfigurer().from(paths);
+        withActualValue(it -> it.from(paths));
         return this;
     }
 

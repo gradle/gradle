@@ -1922,6 +1922,16 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.explicit
     }
 
+    def "can incrementally set paths as convention to the collection using from"() {
+        when:
+        collection.convention("src0")
+        collection.from("src1", "src2")
+        collection.from("src3")
+        then:
+        collection.from as List == ["src0", "src1", "src2", "src3"]
+        collection.explicit
+    }
+
     def "can incrementally set explicit value"() {
         when:
         collection.setFrom("src1")
@@ -1978,7 +1988,6 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from as List == ["src0"]
     }
 
-
     def "can set convention as explicit value if unset"() {
         given:
         collection.convention("src0")
@@ -2032,15 +2041,6 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         then:
         collection.from as List == ["src3"]
         collection.explicit
-    }
-
-    def "conventions can be overridden with an explicit value using #from"() {
-        when:
-        collection.convention("src1", "src2")
-        collection.from("src3")
-        then:
-        collection.explicit
-        collection.from as List == ["src3"]
     }
 
     def "conventions are brought back if explicit value is unset"() {
