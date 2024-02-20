@@ -34,8 +34,9 @@ dependencies {
 
     integTestImplementation(testFixtures(project(":plugins-java-base")))
 
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(project(":distributions-full")) {
+        because("The full distribution is required to run the GroovyToJavaConversionIntegrationTest")
+    }
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
