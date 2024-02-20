@@ -23,6 +23,4 @@ description = "Core API classes that are only used by the JVM Platform"
 dependencies {
     api(project(":base-services"))
     api(project(":core-api"))
-
-    implementation(project(":base-annotations"))
 }
