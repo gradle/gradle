@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 @CompileStatic
 class TestProjectLocator {
@@ -26,9 +27,20 @@ class TestProjectLocator {
         if (!dir.directory) {
             throw new IllegalArgumentException("Did not find test project at: '$dir.absolutePath'. Please run 'gradlew $name' to generate the test project.")
         }
-        if (!new File(dir, "settings.gradle").file && !new File(dir, "settings.gradle.kts").file && !new File(dir, "settings.gradle.something").file) {
+
+        if (!hasSettingsScript(dir)) {
             throw new IllegalArgumentException("Test project at '$dir.absolutePath' does not have a settings script. Please add one.")
         }
         dir
     }
+
+    private static boolean hasSettingsScript(File dir) {
+        for (GradleDsl dsl : GradleDsl.values()) {
+            if (new File(dir, dsl.fileNameFor("settings")).file) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

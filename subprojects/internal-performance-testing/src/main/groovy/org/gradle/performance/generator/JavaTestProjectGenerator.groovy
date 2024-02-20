@@ -87,7 +87,7 @@ enum JavaTestProjectGenerator {
         .create()),
 
     LARGE_EMPTY_MULTI_PROJECT_DECLARATIVE_DSL(new TestProjectGeneratorConfigurationBuilder("largeEmptyMultiProjectDeclarativeDsl", "largeEmptyMultiProject")
-        .withSubProjects(250)
+        .withSubProjects(500)
         .withDsl(DECLARATIVE)
         .withDaemonMemory('512m')
         .withCompilerMemory('1g')

@@ -5,7 +5,7 @@ This project contains the Gradle performance test suite. For information about t
 
 A performance test scenario is made up of 2 parts:
 
-1. A test build to use. The test builds are generated from templates and are defined in the [`build-logic/performance/srcx/main/groovy/performance-templates.gradle`](build-logic/performance/src/main/groovy/performance-templates.gradle) plugin. 
+1. A test build to use. The test builds are generated from templates and are defined in the [`build-logic/performance/src/main/groovy/performance-templates.gradle`](build-logic/performance/src/main/groovy/performance-templates.gradle) plugin. 
 2. Details for how to invoke Gradle (or Maven). This includes the tasks to run, the JVM args, whether the daemon or tooling API should be used to invoke Gradle, and so on.
 
 A performance test configure various fixtures to describe each scenario. The fixtures will then run the scenario several times to warm up, and then several more times, capturing metrics.
