@@ -82,13 +82,13 @@ One common complaint was that adding values (using `ListProperty.add(...)`, `Set
 For example, in an applied plugin, a list property `ListProperty<String>` is configured with a convention:
 
 ```kotlin
-listProp.convention(listOf(“one”))
+listProp.convention(listOf("one"))
 ```
 
 In the build file, the build author adds elements to that list property:
 
 ```kotlin
-listProp.add(“two”)
+listProp.add("two")
 // listProp now only contains "two", that’s confusing
 ```
 
@@ -96,14 +96,14 @@ However, as explained in the snippet, the behavior is surprising.
 The newly introduced methods (such as `ListProperty.append(...)`, `SetProperty.append(...)` and `MapProperty.insert(...)`) allow the user to express that the convention should be preserved:
 
 ```kotlin
-listProp.append(“two”)
+listProp.append("two")
 // listProp now contains ["one", "two"], as expected
 ```
 
 ##### Empty provider values are ignored
 
 Another common source of confusion is how empty providers are handled in collection properties.
-For instance, adding an empty provider to a collection property using `add(...)` will result in the entire property to become void of any values as well.
+For instance, adding an empty provider to a collection property using `add(...)` will cause the entire property to become void of any values as well.
 
 ```kotlin
 listProp.add("one")
@@ -127,7 +127,6 @@ The new APIs introduced are:
 * [`MapProperty.insert*(...)`](javadoc/org/gradle/api/provider/MapProperty.html#insert-K-V-) which are meant as more convenient replacements for `MapProperty.put*(...)`.
 
 These APIs are currently **incubating**, but may become mandatory replacements for the original `ListProperty.add*(...)`, `SetProperty.add*(...)`, and `MapProperty.put*(...)` methods.
-
 
 #### Ability to set conventions on file collections
 
