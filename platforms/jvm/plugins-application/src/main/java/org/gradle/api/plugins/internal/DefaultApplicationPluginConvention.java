@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,6 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import javax.inject.Inject;
 import java.util.ArrayList;
 
-import static org.gradle.api.reflect.TypeOf.typeOf;
-
 public abstract class DefaultApplicationPluginConvention extends ApplicationPluginConvention implements HasPublicType {
     private String applicationName;
     private String mainClassName;
@@ -45,7 +43,7 @@ public abstract class DefaultApplicationPluginConvention extends ApplicationPlug
 
     @Override
     public TypeOf<?> getPublicType() {
-        return typeOf(ApplicationPluginConvention.class);
+        return TypeOf.typeOf(ApplicationPluginConvention.class);
     }
 
     @Override

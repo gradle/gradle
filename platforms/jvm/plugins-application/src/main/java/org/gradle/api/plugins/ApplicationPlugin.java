@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,8 +50,6 @@ import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
-import static org.gradle.api.distribution.plugins.DistributionPlugin.TASK_INSTALL_NAME;
-
 /**
  * <p>A {@link Plugin} which packages and runs a project as a Java Application.</p>
  *
@@ -80,7 +78,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         addRunTask(project, mainFeature, extension);
         addCreateScriptsTask(project, mainFeature, extension);
         configureJavaCompileTask(mainFeature.getCompileJavaTask(), extension);
-        configureInstallTask(project.getProviders(), tasks.named(TASK_INSTALL_NAME, Sync.class), extension);
+        configureInstallTask(project.getProviders(), tasks.named(DistributionPlugin.TASK_INSTALL_NAME, Sync.class), extension);
 
         DistributionContainer distributions = project.getExtensions().getByType(DistributionContainer.class);
         Distribution mainDistribution = distributions.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME);

@@ -66,4 +66,3 @@ public interface JavaAppStartScriptGenerationDetails {
     @Nullable
     String getAppNameSystemProperty();
 }
-

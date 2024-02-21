@@ -19,3 +19,33 @@ plugins {
 }
 
 description = "Contains the Application plugin, and its supporting classes.  This plugin is used for creating runnable Java application projects."
+
+dependencies {
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":language-java"))
+    api(project(":logging"))
+    api(project(":plugins-distribution"))
+    api(project(":plugins-java"))
+    api(project(":plugins-jvm-test-suite"))
+    api(project(":publish"))
+
+    api(libs.inject)
+
+    implementation(project(":base-services"))
+    implementation(project(":plugins-java-base"))
+    implementation(project(":tooling-api"))
+
+    implementation(libs.commonsLang)
+    implementation(libs.groovy)
+    implementation(libs.groovyTemplates)
+}
+
+strictCompile {
+    //ignoreRawTypes() // raw types used in public API
+    ignoreDeprecations() // TODO: uses deprecated software model types, suppress these warnings and remove ignore
+}
+
+packageCycles {
+    excludePatterns.add("org/gradle/api/plugins/**")
+}
