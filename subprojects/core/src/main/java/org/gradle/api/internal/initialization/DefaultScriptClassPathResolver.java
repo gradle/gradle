@@ -74,14 +74,24 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     );
 
     public enum InstrumentationPhase {
-        NOT_INSTRUMENTED,
-        ANALYZED_ARTIFACTS,
-        MERGED_SUPER_TYPES,
-        INSTRUMENTED_AND_UPGRADED,
-        INSTRUMENTED_ONLY
+        NOT_INSTRUMENTED("not-instrumented"),
+        ANALYZED_ARTIFACTS("analyzed-artifacts"),
+        MERGED_SUPER_TYPES("merged-super-types"),
+        INSTRUMENTED_AND_UPGRADED("instrumented-and-upgraded"),
+        INSTRUMENTED_ONLY("instrumented-only");
+
+        private final String value;
+
+        InstrumentationPhase(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
     }
 
-    public static final Attribute<InstrumentationPhase> INSTRUMENTATION_PHASE_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumentation.phase", InstrumentationPhase.class);
+    public static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
     private final NamedObjectInstantiator instantiator;
     private final AgentStatus agentStatus;
     private final ConfigurableFileCollection classHierarchy;
@@ -102,15 +112,15 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     @Override
     public void prepareDependencyHandler(DependencyHandler dependencyHandler) {
         ((DependencyHandlerInternal) dependencyHandler).getDefaultArtifactAttributes()
-            .attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, NOT_INSTRUMENTED);
+            .attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED.value);
 
         // Register instrumentation transforms
         Provider<CacheInstrumentationTypeRegistryBuildService> service = getOrRegisterNewService();
         dependencyHandler.registerTransform(
             CollectDirectClassSuperTypesTransform.class,
             spec -> {
-                spec.getFrom().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, NOT_INSTRUMENTED);
-                spec.getTo().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, ANALYZED_ARTIFACTS);
+                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED.value);
+                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACTS.value);
                 spec.parameters(params -> params.getBuildService().set(service));
             }
         );
@@ -118,8 +128,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         dependencyHandler.registerTransform(
             MergeSuperTypesTransform.class,
             spec -> {
-                spec.getFrom().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, ANALYZED_ARTIFACTS);
-                spec.getTo().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, MERGED_SUPER_TYPES);
+                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACTS.value);
+                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, MERGED_SUPER_TYPES.value);
                 spec.parameters(params -> {
                     params.getBuildService().set(service);
                     params.getOriginalClasspath().setFrom(service.map(it -> it.getParameters().getOriginalClasspath()));
@@ -141,8 +151,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         dependencyHandler.registerTransform(
             transform,
             spec -> {
-                spec.getFrom().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, fromPhase);
-                spec.getTo().attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, toPhase);
+                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, fromPhase.value);
+                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, toPhase.value);
                 spec.parameters(parameters -> {
                     parameters.getBuildService().set(service);
                     parameters.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled());
@@ -201,21 +211,21 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static FileCollection getAnalyzeResult(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, ANALYZED_ARTIFACTS));
+            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACTS.value));
             config.componentFilter(componentId -> !isGradleApi(componentId) && !isProjectDependency(componentId));
         }).getFiles();
     }
 
-    private static FileCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
+    private FileCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, INSTRUMENTED_AND_UPGRADED));
+            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_AND_UPGRADED.value));
             config.componentFilter(DefaultScriptClassPathResolver::isExternalDependency);
         }).getFiles();
     }
 
-    private static FileCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
+    private FileCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTATION_PHASE_ATTRIBUTE, INSTRUMENTED_ONLY));
+            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_ONLY.value));
             config.componentFilter(DefaultScriptClassPathResolver::isProjectDependency);
         }).getFiles();
     }
