@@ -19,7 +19,6 @@ package org.gradle.internal.classpath
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
-import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
@@ -29,8 +28,6 @@ import java.util.stream.Collectors
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
-
-    private static final String KOTLIN_VERSION = new KotlinGradlePluginVersions().latestsStable.last()
 
     def "buildSrc and included builds should be cached in global cache"() {
         given:
@@ -74,6 +71,40 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         allTransformsFor("buildSrc.jar") == ["ProjectDependencyInstrumentingArtifactTransform"]
         allTransformsFor("included-1.0.jar") == ["ProjectDependencyInstrumentingArtifactTransform"]
+    }
+
+    def "order of entries in the effective classpath stays the same as in the original classpath"() {
+        given:
+        withIncludedBuild()
+        mavenRepo.module("org", "commons", "3.2.1").publish()
+        buildFile << """
+            import java.nio.file.*
+
+            buildscript {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                dependencies {
+                    classpath "${first[0]}"
+                    classpath "${second[0]}"
+                }
+            }
+
+            Thread.currentThread().getContextClassLoader().getURLs()
+                .eachWithIndex { artifact, idx -> println "classpath[\$idx]==\${Paths.get(artifact.toURI()).toFile().name}" }
+        """
+
+        when:
+        run("help")
+
+        then:
+        outputContains("classpath[0]==${first[1]}")
+        outputContains("classpath[1]==${second[1]}")
+
+        where:
+        first                                      | second
+        ["org.test:included", "included-1.0.jar"]  | ["org:commons:3.2.1", "commons-3.2.1.jar"]
+        ["org:commons:3.2.1", "commons-3.2.1.jar"] | ["org.test:included", "included-1.0.jar"]
     }
 
     def "external dependencies should not be copied to the global artifact transform cache"() {
