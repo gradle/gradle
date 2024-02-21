@@ -21,7 +21,8 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.clientinput.ClientInputForwarder;
 
 /**
- * Listens for {@link org.gradle.launcher.daemon.protocol.ForwardInput} commands during execution and forwards them to this process' System.in and the relevant services.
+ * Listens for {@link org.gradle.launcher.daemon.protocol.InputMessage} commands during execution and forwards them to this process' System.in and services such
+ * as {@link UserInputReader}.
  */
 public class ForwardClientInput implements DaemonCommandAction {
     private final ClientInputForwarder forwarder;

@@ -22,12 +22,22 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The shared {@link UserInputReceiver} instance.
+ * The global {@link UserInputReceiver} instance.
  */
 @ServiceScope(Scope.Global.class)
 @ThreadSafe
 public interface GlobalUserInputReceiver extends UserInputReceiver {
+    /**
+     * Defines the {@link UserInputReceiver} instance for this service to delegate to.
+     *
+     * <p>Typically, the provided instance will be able to read from the console and forward the result to the daemon, but doesn't have to.
+     * The instance is not injected directly into this service as the instance will be constructed in some other scope.
+     * </p>
+     */
     void dispatchTo(UserInputReceiver userInput);
 
+    /**
+     * Discards the current {@link UserInputReceiver} instance used by this service.
+     */
     void stopDispatching();
 }
