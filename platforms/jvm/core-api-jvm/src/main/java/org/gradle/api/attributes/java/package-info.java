@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
-
-description = "Core API classes that are only used by the JVM Platform"
-
-dependencies {
-    api(project(":base-services"))
-    api(project(":core-api"))
-
-    implementation(project(":base-annotations"))
-}
+/**
+ * Attributes specific to the Java ecosystem.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.api.attributes.java;
