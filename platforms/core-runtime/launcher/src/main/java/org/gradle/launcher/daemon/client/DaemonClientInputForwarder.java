@@ -33,9 +33,8 @@ import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Eagerly consumes from an input stream, sending line by line ForwardInput
- * commands over the connection and finishing with a CloseInput command.
- * It also listens to cancel requests and forwards it too as Cancel command.
+ * Eagerly consumes from an input stream, sending each line as a commands over the connection and finishing with a {@link CloseInput} command.
+ * Each line is forwarded as either a {@link ForwardInput}, for non-interactive text, or a {@link UserResponse}, when expecting some interactive text.
  */
 public class DaemonClientInputForwarder implements Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DaemonClientInputForwarder.class);
@@ -85,7 +84,7 @@ public class DaemonClientInputForwarder implements Stoppable {
 
         @Override
         public void readAndForwardText() {
-            handler.forwardResponse();
+            handler.forwardNextLineAsUserResponse();
         }
     }
 
@@ -97,8 +96,10 @@ public class DaemonClientInputForwarder implements Stoppable {
             this.dispatch = dispatch;
         }
 
-        void forwardResponse() {
-            forwardResponse.set(true);
+        void forwardNextLineAsUserResponse() {
+            if (!forwardResponse.compareAndSet(false, true)) {
+                throw new IllegalStateException("Already expecting user input");
+            }
         }
 
         @Override

@@ -26,7 +26,7 @@ public class OutputMessage extends Message {
 
     @Override
     public String toString() {
-        return "{OutputMessage event=" + event + "}";
+        return getClass().getSimpleName() + "[event=" + event + "]";
     }
 
     public OutputEvent getEvent() {

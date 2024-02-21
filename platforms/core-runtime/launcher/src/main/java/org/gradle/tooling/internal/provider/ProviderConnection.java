@@ -32,6 +32,7 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -106,6 +107,7 @@ public class ProviderConnection {
     private final FileCollectionFactory fileCollectionFactory;
     private final GlobalUserInputReceiver userInputReceiver;
     private final UserInputReader userInputReader;
+    private final ExecutorFactory executorFactory;
     private GradleVersion consumerVersion;
 
     public ProviderConnection(
@@ -117,7 +119,8 @@ public class ProviderConnection {
         JvmVersionDetector jvmVersionDetector,
         FileCollectionFactory fileCollectionFactory,
         GlobalUserInputReceiver userInputReceiver,
-        UserInputReader userInputReader
+        UserInputReader userInputReader,
+        ExecutorFactory executorFactory
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
@@ -128,6 +131,7 @@ public class ProviderConnection {
         this.fileCollectionFactory = fileCollectionFactory;
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;
+        this.executorFactory = executorFactory;
     }
 
     public void configure(ProviderConnectionParameters parameters, GradleVersion consumerVersion) {
@@ -281,7 +285,7 @@ public class ProviderConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.captureSystemSources();
-            executer = new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor));
+            executer = new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor, executorFactory));
         } else {
             LoggingServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();

@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
@@ -43,12 +43,20 @@ class ForwardStdInToThisProcess implements BuildActionExecuter<BuildActionParame
     private final UserInputReader userInputReader;
     private final InputStream finalStandardInput;
     private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
+    private final ExecutorFactory executorFactory;
 
-    public ForwardStdInToThisProcess(GlobalUserInputReceiver userInputReceiver, UserInputReader userInputReader, InputStream finalStandardInput, BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
+    public ForwardStdInToThisProcess(
+        GlobalUserInputReceiver userInputReceiver,
+        UserInputReader userInputReader,
+        InputStream finalStandardInput,
+        BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate,
+        ExecutorFactory executorFactory
+    ) {
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;
         this.finalStandardInput = finalStandardInput;
         this.delegate = delegate;
+        this.executorFactory = executorFactory;
     }
 
     @Override
@@ -68,7 +76,7 @@ class ForwardStdInToThisProcess implements BuildActionExecuter<BuildActionParame
                         throw new IllegalArgumentException();
                     }
                 }
-            }, userInputReceiver, new DefaultExecutorFactory());
+            }, userInputReceiver, executorFactory);
             inputForwarder.start();
             try {
                 return delegate.execute(action, actionParameters, buildRequestContext);

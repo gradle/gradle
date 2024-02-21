@@ -41,6 +41,9 @@ public class DefaultUserInputReader implements UserInputReader {
                 if (pending != null) {
                     throw new IllegalStateException("Multiple responses received.");
                 }
+                if (finished) {
+                    throw new IllegalStateException("Response received after input closed.");
+                }
                 pending = input;
                 lock.notifyAll();
             }

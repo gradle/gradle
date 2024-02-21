@@ -16,9 +16,10 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import java.io.Serializable;
-
-public class UserResponse extends InputMessage implements Serializable {
+/**
+ * Carries the user's response to a {@link org.gradle.internal.logging.events.PromptOutputEvent}.
+ */
+public class UserResponse extends InputMessage {
     private final String response;
 
     public UserResponse(String response) {
