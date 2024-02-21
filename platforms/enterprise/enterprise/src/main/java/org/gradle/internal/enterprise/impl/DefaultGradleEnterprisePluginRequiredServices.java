@@ -17,6 +17,7 @@
 package org.gradle.internal.enterprise.impl;
 
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
+import org.gradle.internal.enterprise.DevelocityGradleService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginRequiredServices;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.scopes.Scopes;
@@ -28,15 +29,18 @@ public class DefaultGradleEnterprisePluginRequiredServices implements GradleEnte
     private final UserInputHandler userInputHandler;
     private final StyledTextOutputFactory styledTextOutputFactory;
     private final DefaultGradleEnterprisePluginBackgroundJobExecutors backgroundJobExecutors;
+    private final DevelocityGradleService develocityGradleService;
 
     public DefaultGradleEnterprisePluginRequiredServices(
         UserInputHandler userInputHandler,
         StyledTextOutputFactory styledTextOutputFactory,
-        DefaultGradleEnterprisePluginBackgroundJobExecutors backgroundJobExecutors
+        DefaultGradleEnterprisePluginBackgroundJobExecutors backgroundJobExecutors,
+        DevelocityGradleService develocityGradleService
     ) {
         this.userInputHandler = userInputHandler;
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.backgroundJobExecutors = backgroundJobExecutors;
+        this.develocityGradleService = develocityGradleService;
     }
 
     @Override
@@ -52,5 +56,10 @@ public class DefaultGradleEnterprisePluginRequiredServices implements GradleEnte
     @Override
     public DefaultGradleEnterprisePluginBackgroundJobExecutors getBackgroundJobExecutors() {
         return backgroundJobExecutors;
+    }
+
+    @Override
+    public DevelocityGradleService getGradleService() {
+        return develocityGradleService;
     }
 }
