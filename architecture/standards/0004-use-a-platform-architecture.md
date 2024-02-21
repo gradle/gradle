@@ -96,7 +96,7 @@ Provides cross-cutting Gradle documentation and samples, along with the infrastr
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Consequences
 

@@ -28,7 +28,7 @@ This ADR does not specify the owner of this new architecture module. However, as
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Consequences
 
