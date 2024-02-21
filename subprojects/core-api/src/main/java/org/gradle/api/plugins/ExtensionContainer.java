@@ -138,10 +138,48 @@ public interface ExtensionContainer {
      */
     <T> T create(String name, Class<T> type, Object... constructionArguments);
 
+    /**
+     * Registers a new extension to this container.
+     *
+     * The extension will not be created unless it is actually referenced.  If the extension is annotated with {@link DeclarativeExtension} and
+     * a {@code pluginClass} is specified, the plugin will automatically be applied when the extension is referenced.
+     *
+     * The extension will be exposed as {@code publicType}.
+     *
+     * @param publicType The extension public type
+     * @param name The name for the extension
+     * @param instanceType The extension instance type
+     * @param constructionArguments The arguments to be used to construct the extension instance
+     */
     <T> void register(Class<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments);
 
+    /**
+     * Registers a new extension to this container.
+     *
+     * The extension will not be created unless it is actually referenced.  If the extension is annotated with {@link DeclarativeExtension} and
+     * a {@code pluginClass} is specified, the plugin will automatically be applied when the extension is referenced.
+     *
+     * The extension will be exposed as {@code publicType}.
+     *
+     * @param publicType The extension public type
+     * @param name The name for the extension
+     * @param instanceType The extension instance type
+     * @param constructionArguments The arguments to be used to construct the extension instance
+     */
     <T> void register(TypeOf<T> publicType, String name, Class<? extends T> instanceType, Object... constructionArguments);
 
+    /**
+     * Registers a new extension to this container.
+     *
+     * The extension will not be created unless it is actually referenced.  If the extension is annotated with {@link DeclarativeExtension} and
+     * a {@code pluginClass} is specified, the plugin will automatically be applied when the extension is referenced.
+     *
+     * The extension will be exposed as {@code type} unless the extension itself declares a preferred public type via the {@link org.gradle.api.reflect.HasPublicType} protocol.
+     *
+     * @param name The name for the extension
+     * @param type The extension instance type
+     * @param constructionArguments The arguments to be used to construct the extension instance
+     */
     <T> void register(String name, Class<T> type, Object... constructionArguments);
 
     /**
