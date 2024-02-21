@@ -29,7 +29,9 @@ import java.util.stream.Collectors
 import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationTypeRegistryBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_NAME_PROPERTY_NAME
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
@@ -239,12 +241,13 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         ]
     }
 
-    def "should collect and merge class hierarchies"() {
+    def "should merge class dependencies hierarchy"() {
         given:
         requireOwnGradleUserHomeDir()
         multiProjectJavaBuild("subproject") {
             file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
-            file("$it/api/src/main/java/B.java") << "public class B {}"
+            file("$it/api/src/main/java/B.java") << "public class B extends C {}"
+            file("$it/api/src/main/java/C.java") << "public class C {}"
         }
         buildFile << """
             buildscript {
@@ -261,14 +264,16 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        analyzeOutput("instrumented/impl-1.0.jar").exists()
-        analyzeOutput("instrumented/api-1.0.jar").exists()
-        def implTypes = analyzeOutput("merged/impl-1.0.jar.super-types")
-        implTypes.readLines().drop(1) == [
-            "A=A,B",
+        mergeOutput("impl-1.0.jar").exists()
+        mergeOutput("api-1.0.jar").exists()
+        def implMergeDir = mergeOutput("impl-1.0.jar")
+        implMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME).readLines() == [
+            "B=B,C",
         ]
-        def apiTypes = analyzeOutput("merged/api-1.0.jar.super-types")
-        apiTypes.readLines().drop(1) == []
+        def apiMergeDir = mergeOutput("api-1.0.jar")
+        apiMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME).readLines() == [
+            "C=C"
+        ]
     }
 
     def "should re-instrument jar if hierarchy changes"() {
@@ -430,6 +435,20 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
             return dirs.first()
         }
         throw new AssertionError("Could not find exactly one analyze directory for $artifactName: $dirs")
+    }
+
+    Set<TestFile> mergeOutputs(String artifactName, File cacheDir = getCacheDir()) {
+        return findOutputs("$MERGE_OUTPUT_DIR/$METADATA_FILE_NAME", cacheDir).findAll {
+            it.text.contains("$FILE_NAME_PROPERTY_NAME=$artifactName")
+        }.collect { it.parentFile } as Set<TestFile>
+    }
+
+    TestFile mergeOutput(String artifactName, File cacheDir = getCacheDir()) {
+        def dirs = mergeOutputs(artifactName, cacheDir)
+        if (dirs.size() == 1) {
+            return dirs.first()
+        }
+        throw new AssertionError("Could not find exactly one merge directory for $artifactName: $dirs")
     }
 
     TestFile gradleUserHomeOutput(String outputEndsWith, File cacheDir = getCacheDir()) {

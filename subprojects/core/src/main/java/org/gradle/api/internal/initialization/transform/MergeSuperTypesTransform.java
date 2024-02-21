@@ -47,6 +47,7 @@ import java.util.stream.Stream;
 
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.newBufferedUtf8Writer;
@@ -93,7 +94,7 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
         }
 
         createInstrumentationClasspathMarker(outputs);
-        File outputDir = outputs.dir("merged");
+        File outputDir = outputs.dir(MERGE_OUTPUT_DIR);
         File dependenciesSuperTypes = new File(outputDir, DEPENDENCIES_SUPER_TYPES_FILE_NAME);
         InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
         try (BufferedWriter writer = newBufferedUtf8Writer(dependenciesSuperTypes)) {

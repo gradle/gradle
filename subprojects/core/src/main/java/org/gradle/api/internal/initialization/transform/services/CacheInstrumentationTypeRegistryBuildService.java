@@ -83,6 +83,7 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
     private Map<String, Set<String>> readDirectSuperTypes() {
         Set<File> directories = getParameters().getAnalyzeResult().getFiles();
         return directories.stream()
+            .filter(File::isDirectory)
             .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))
             .flatMap(file -> readSuperTypes(file).entrySet().stream())
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> first));
