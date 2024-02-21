@@ -176,7 +176,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         Ordering<OriginalArtifactIdentifier> ordering = Ordering.explicit(identifiers);
         List<File> classpath = Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream())
             .map(ClassPathTransformedArtifact::ofTransformedArtifact)
-            // We sort based on the original classpath to we keep the original order
+            // We sort based on the original classpath to we keep the original order,
+            // we also rely on the fact that for ordered streams `sorted()` method has stable sort.
             .sorted((first, second) -> ordering.compare(first.originalIdentifier, second.originalIdentifier))
             .map(artifact -> artifact.file)
             .collect(Collectors.toList());
