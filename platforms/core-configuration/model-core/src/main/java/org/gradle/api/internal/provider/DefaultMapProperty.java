@@ -796,6 +796,10 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
+    /**
+     * A plus collector that either produces a composition of both of its left and right sides,
+     * or Value.present() with empty content (if left or right side are missing).
+     */
     private static class AbsentIgnoringPlusCollector<K, V> extends AbstractPlusCollector<K, V> {
 
         private AbsentIgnoringPlusCollector(MapCollector<K, V> left, MapCollector<K, V> right) {

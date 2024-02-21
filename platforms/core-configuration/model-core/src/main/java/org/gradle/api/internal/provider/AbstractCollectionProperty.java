@@ -684,7 +684,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     /**
      * A plus collector that either produces a composition of both of its left and right sides,
-     * or Value.present().
+     * or Value.present() with empty content (if left or right side are missing).
      */
     private static class AbsentIgnoringPlusCollector<T> extends AbstractPlusCollector<T> {
 
