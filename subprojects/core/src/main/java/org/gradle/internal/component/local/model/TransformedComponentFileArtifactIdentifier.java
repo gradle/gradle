@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.DisplayName;
 
@@ -27,7 +28,7 @@ import java.util.Objects;
  *
  * <p>The original file name should refer to the name of the artifact at the beginning of the transform chain.</p>
  */
-public class TransformedComponentFileArtifactIdentifier implements ComponentFileArtifactIdentifierWithOriginal, DisplayName {
+public class TransformedComponentFileArtifactIdentifier implements ComponentArtifactIdentifier, DisplayName {
     private final ComponentIdentifier componentId;
     private final String fileName;
     private final String originalFileName;
@@ -43,12 +44,10 @@ public class TransformedComponentFileArtifactIdentifier implements ComponentFile
         return componentId;
     }
 
-    @Override
     public String getFileName() {
         return fileName;
     }
 
-    @Override
     public String getOriginalFileName() {
         return originalFileName;
     }

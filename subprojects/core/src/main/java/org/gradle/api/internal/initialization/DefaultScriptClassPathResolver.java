@@ -43,8 +43,8 @@ import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
-import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifierWithOriginal;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
@@ -194,7 +194,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         }
 
         public static ClassPathTransformedArtifact ofTransformedArtifact(ResolvedArtifactResult transformedArtifact) {
-            checkArgument(transformedArtifact.getId() instanceof ComponentFileArtifactIdentifierWithOriginal);
+            checkArgument(transformedArtifact.getId() instanceof TransformedComponentFileArtifactIdentifier);
             return new ClassPathTransformedArtifact(transformedArtifact.getFile(), OriginalArtifactIdentifier.of(transformedArtifact));
         }
     }
@@ -209,8 +209,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         }
 
         private static OriginalArtifactIdentifier of(ResolvedArtifactResult artifact) {
-            if (artifact.getId() instanceof ComponentFileArtifactIdentifierWithOriginal) {
-                ComponentFileArtifactIdentifierWithOriginal identifier = (ComponentFileArtifactIdentifierWithOriginal) artifact.getId();
+            if (artifact.getId() instanceof TransformedComponentFileArtifactIdentifier) {
+                TransformedComponentFileArtifactIdentifier identifier = (TransformedComponentFileArtifactIdentifier) artifact.getId();
                 return new OriginalArtifactIdentifier(identifier.getOriginalFileName(), identifier.getComponentIdentifier());
             } else {
                 return new OriginalArtifactIdentifier(artifact.getFile().getName(), artifact.getId().getComponentIdentifier());

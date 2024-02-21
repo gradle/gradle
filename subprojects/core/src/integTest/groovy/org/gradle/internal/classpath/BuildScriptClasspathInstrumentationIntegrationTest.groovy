@@ -128,7 +128,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         withIncludedBuild()
         mavenRepo.module("org", "commons", "3.2.1").publish()
         buildFile << """
-            import java.nio.file.*
+            import java.nio.file.Paths
 
             buildscript {
                 repositories {
@@ -158,7 +158,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     }
 
     @Issue("https://github.com/gradle/gradle/issues/28114")
-    def "buildSrc jar can monkey patch external plugins even after instrumentation"() {
+    def "buildSrc can monkey patch external plugins even after instrumentation"() {
         given:
         withExternalPlugin("myPlugin", "my.plugin") {
             """throw new RuntimeException("A bug in a plugin");"""
@@ -166,7 +166,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         withBuildSrc()
         file("buildSrc/src/main/java/test/gradle/MyPlugin.java") << """
             package test.gradle;
-            import org.gradle.api.*;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
 
             public class MyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
@@ -247,7 +248,9 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         """
         file("$folderName/src/main/java/test/gradle/${implementationClass}.java") << """
             package test.gradle;
-            import org.gradle.api.*;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
             public class $implementationClass implements Plugin<Project> {
                 public void apply(Project project) {
                     ${implementationBody.get()}
