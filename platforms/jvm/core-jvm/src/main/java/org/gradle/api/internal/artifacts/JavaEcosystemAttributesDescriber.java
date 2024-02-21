@@ -26,7 +26,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.api.internal.project.ProjectInternal;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;
@@ -44,6 +43,8 @@ import java.util.stream.Collectors;
  * in the same manner.
  */
 /* package */ final class JavaEcosystemAttributesDescriber implements AttributeDescriber {
+    private static final Attribute<String> STATUS_ATTRIBUTE = Attribute.of("org.gradle.status", String.class);
+
     private final ImmutableSet<Attribute<?>> describableAttributes = ImmutableSet.of(
         Usage.USAGE_ATTRIBUTE,
         Category.CATEGORY_ATTRIBUTE,
@@ -52,7 +53,7 @@ import java.util.stream.Collectors;
         TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
         TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
         DocsType.DOCS_TYPE_ATTRIBUTE,
-        ProjectInternal.STATUS_ATTRIBUTE
+        STATUS_ATTRIBUTE
     );
 
     /**
@@ -80,7 +81,7 @@ import java.util.stream.Collectors;
         Object targetJvmEnvironment = extractAttributeValue(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
         Object targetJvm = extractAttributeValue(attributes, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
         Object docsType = extractAttributeValue(attributes, DocsType.DOCS_TYPE_ATTRIBUTE);
-        Object status = extractAttributeValue(attributes, ProjectInternal.STATUS_ATTRIBUTE);
+        Object status = extractAttributeValue(attributes, STATUS_ATTRIBUTE);
 
         StringBuilder sb = new StringBuilder();
 
@@ -189,7 +190,7 @@ import java.util.stream.Collectors;
             sb.append("the documentation type (required ");
             describeDocsType(consumerValue, sb);
             sb.append(")");
-        } else if (haveSameName(ProjectInternal.STATUS_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(STATUS_ATTRIBUTE, attribute)) {
             sb.append("its status (required ");
             describeStatus(consumerValue, sb);
             sb.append(")");
@@ -215,7 +216,7 @@ import java.util.stream.Collectors;
             describeCategory(producerValue, sb);
         } else if (haveSameName(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
             describeDocsType(producerValue, sb);
-        } else if (haveSameName(ProjectInternal.STATUS_ATTRIBUTE, attribute)) {
+        } else if (haveSameName(STATUS_ATTRIBUTE, attribute)) {
             describeStatus(producerValue, sb);
         } else if (haveSameName(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
             describeBundling(producerValue, sb);

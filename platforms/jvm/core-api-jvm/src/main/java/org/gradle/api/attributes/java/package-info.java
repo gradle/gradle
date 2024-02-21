@@ -17,4 +17,5 @@
 /**
  * Attributes specific to the Java ecosystem.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.api.attributes.java;

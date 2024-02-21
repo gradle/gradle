@@ -14,7 +14,20 @@
  * limitations under the License.
  */
 
-/**
- * Attributes specific to the Java ecosystem.
- */
-package org.gradle.api.attributes.java;
+plugins {
+    id("gradlebuild.distribution.api-java")
+}
+
+description = "Implementations of Core API classes that are only used by the JVM Platform"
+
+dependencies {
+    api(project(":base-services"))
+    api(project(":core-api"))
+
+    api(libs.inject)
+
+    implementation(project(":core-api-jvm"))
+
+    implementation(libs.jsr305)
+    implementation(libs.guava)
+}
