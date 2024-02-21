@@ -290,7 +290,7 @@ gradle.settingsEvaluated {
 gradle.rootProject {
     tasks.register("architectureDoc", GeneratorTask::class.java) {
         description = "Generates the architecture documentation"
-        outputFile = layout.projectDirectory.file("architecture/readme.md")
+        outputFile = layout.projectDirectory.file("architecture/README.md")
         elements = provider { architectureElements.map { it.build() } }
     }
 }
