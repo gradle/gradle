@@ -17,8 +17,11 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 class FileCollectionConventionMappingIntegrationTest extends AbstractIntegrationSpec {
+    //TODO-RC re-enable for 8.8
+    @Ignore("https://github.com/gradle/gradle/pull/28135")
     def "convention mapping can be used with Configurable File Collection and an actual value"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {

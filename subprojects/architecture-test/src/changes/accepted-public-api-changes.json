@@ -1,14 +1,6 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.file.ConfigurableFileCollection",
-            "member": "Class org.gradle.api.file.ConfigurableFileCollection",
-            "acceptation": "Introduce SupportsConvention",
-            "changes": [
-                "org.gradle.api.provider.SupportsConvention"
-            ]
-        },
-        {
             "type": "org.gradle.api.provider.HasMultipleValues",
             "member": "Class org.gradle.api.provider.HasMultipleValues",
             "acceptation": "Introduce SupportsConvention",
