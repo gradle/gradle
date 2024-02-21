@@ -31,7 +31,7 @@ class GradleBuildUnitTestConfigurationCacheSmokeTest extends AbstractGradleBuild
         configurationCacheRun supportedTasks, 0
 
         then:
-        result.assertConfigurationCacheStateStored()
+        assertConfigurationCacheStateStored()
 
         when:
         run([":tooling-api:clean", ":base-services:clean"])
@@ -40,7 +40,7 @@ class GradleBuildUnitTestConfigurationCacheSmokeTest extends AbstractGradleBuild
         configurationCacheRun supportedTasks + ["--info"], 1
 
         then:
-        result.assertConfigurationCacheStateLoaded()
+        assertConfigurationCacheStateLoaded()
         result.output.contains("Starting build in new daemon")
         result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
     }

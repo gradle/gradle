@@ -229,7 +229,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
-    def "cleans up unused cached entries in the Jars cache"() {
+    def "cleans up unused cached JARs in the Jars cache"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
@@ -242,13 +242,13 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("showBuildscript")
 
         then:
-        def buildscriptClasses = inJarCache("proj/").assertExists()
+        def jar = inJarCache("proj.jar").assertExists()
         journal.assertExists()
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         jarsCacheGcFile.lastModified = daysAgo(2)
-        writeLastFileAccessTimeToJournal(buildscriptClasses.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(jar.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
 
         and:
         createBuildFileThatPrintsClasspathURLs()
@@ -256,7 +256,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         executer.withTasks("showBuildscript").start().waitForFinish()
 
         then:
-        buildscriptClasses.assertDoesNotExist()
+        jar.assertDoesNotExist()
 
         when:
         createBuildFileThatPrintsClasspathURLs("""
@@ -265,7 +265,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("showBuildscript")
 
         then:
-        buildscriptClasses.assertExists()
+        jar.assertExists()
     }
 
     def "cleans up unused versions of jars cache"() {

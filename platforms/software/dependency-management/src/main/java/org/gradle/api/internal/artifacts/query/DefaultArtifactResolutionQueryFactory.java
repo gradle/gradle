@@ -18,33 +18,43 @@ package org.gradle.api.internal.artifacts.query;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.RepositoriesSupplier;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
+import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 
 public class DefaultArtifactResolutionQueryFactory implements ArtifactResolutionQueryFactory {
-    private final ResolutionStrategyFactory resolutionStrategyFactory;
+    private final ConfigurationContainerInternal configurationContainer;
     private final RepositoriesSupplier repositoriesSupplier;
-    private final ExternalModuleComponentResolverFactory ivyFactory;
+    private final ResolveIvyFactory ivyFactory;
     private final GlobalDependencyResolutionRules metadataHandler;
     private final ComponentTypeRegistry componentTypeRegistry;
+    private final ImmutableAttributesFactory attributesFactory;
+    private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
 
-    public DefaultArtifactResolutionQueryFactory(
-        ResolutionStrategyFactory resolutionStrategyFactory,
-        RepositoriesSupplier repositoriesSupplier,
-        ExternalModuleComponentResolverFactory ivyFactory,
-        GlobalDependencyResolutionRules metadataHandler,
-        ComponentTypeRegistry componentTypeRegistry
-    ) {
-        this.resolutionStrategyFactory = resolutionStrategyFactory;
+    public DefaultArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer,
+                                                 RepositoriesSupplier repositoriesSupplier,
+                                                 ResolveIvyFactory ivyFactory,
+                                                 GlobalDependencyResolutionRules metadataHandler,
+                                                 ComponentTypeRegistry componentTypeRegistry,
+                                                 ImmutableAttributesFactory attributesFactory,
+                                                 ArtifactTypeRegistry artifactTypeRegistry,
+                                                 ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor) {
+        this.configurationContainer = configurationContainer;
         this.repositoriesSupplier = repositoriesSupplier;
         this.ivyFactory = ivyFactory;
         this.metadataHandler = metadataHandler;
         this.componentTypeRegistry = componentTypeRegistry;
+        this.attributesFactory = attributesFactory;
+        this.artifactTypeRegistry = artifactTypeRegistry;
+        this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
     @Override
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
-        return new DefaultArtifactResolutionQuery(resolutionStrategyFactory, repositoriesSupplier, ivyFactory, metadataHandler, componentTypeRegistry);
+        return new DefaultArtifactResolutionQuery(configurationContainer, repositoriesSupplier, ivyFactory, metadataHandler, componentTypeRegistry, attributesFactory, artifactTypeRegistry, componentMetadataSupplierRuleExecutor);
     }
 }

@@ -40,7 +40,7 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         configurationCacheRun(tasks, 0)
 
         then:
-        result.assertConfigurationCacheStateStored()
+        assertConfigurationCacheStateStored()
 
         when:
         run([
@@ -56,7 +56,7 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         configurationCacheRun(tasks, 1)
 
         then:
-        result.assertConfigurationCacheStateLoaded()
+        assertConfigurationCacheStateLoaded()
         result.task(":configuration-cache:runKtlintCheckOverMainSourceSet").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.UP_TO_DATE

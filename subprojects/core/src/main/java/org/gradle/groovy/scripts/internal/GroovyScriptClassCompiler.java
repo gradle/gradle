@@ -116,10 +116,10 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         ClassLoader classLoader = targetScope.getExportClassLoader();
         GroovyScriptCompilationOutput output = doCompile(target, templateId, sourceHashCode, remapped, classLoader, operation, verifier, scriptBaseClass);
 
-        File instrumentedOutput = output.getInstrumentedOutput();
+        File instrumentedJar = output.getInstrumentedJar();
         File metadataDir = output.getMetadataDir();
         // TODO: Remove the remapping or move remapping to an uncached unit of work?
-        ClassPath remappedClasses = remapClasses(instrumentedOutput, remapped);
+        ClassPath remappedClasses = remapClasses(instrumentedJar, remapped);
         return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
     }
 
@@ -271,8 +271,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         }
 
         @Override
-        public File instrumentedOutput(File workspace) {
-            return new File(workspace, "instrumented/" + operation.getId());
+        public File instrumentedJar(File workspace) {
+            return new File(workspace, "instrumented/" + operation.getId() + ".jar");
         }
 
         private File classesDir(File workspace) {
@@ -290,16 +290,16 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         static class GroovyScriptCompilationOutput {
 
-            private final File instrumentedOutput;
+            private final File instrumentedJar;
             private final File metadataDir;
 
-            public GroovyScriptCompilationOutput(File instrumentedOutput, File metadataDir) {
-                this.instrumentedOutput = instrumentedOutput;
+            public GroovyScriptCompilationOutput(File instrumentedJar, File metadataDir) {
+                this.instrumentedJar = instrumentedJar;
                 this.metadataDir = metadataDir;
             }
 
-            public File getInstrumentedOutput() {
-                return instrumentedOutput;
+            public File getInstrumentedJar() {
+                return instrumentedJar;
             }
 
             public File getMetadataDir() {

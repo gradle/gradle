@@ -17,7 +17,6 @@
 package org.gradle.plugin.use;
 
 import org.gradle.api.provider.Provider;
-import org.gradle.declarative.dsl.model.annotations.Builder;
 
 import javax.annotation.Nullable;
 
@@ -49,7 +48,6 @@ public interface PluginDependencySpec {
      * @param version the version string ({@code null} for no specified version, which is the default)
      * @return this
      */
-    @Builder
     PluginDependencySpec version(@Nullable String version);
 
     /**
@@ -92,7 +90,6 @@ public interface PluginDependencySpec {
      * @param apply whether to apply the plugin to the current project or not. Defaults to true
      * @return this
      */
-    @Builder
     PluginDependencySpec apply(boolean apply);
 
 }

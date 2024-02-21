@@ -31,7 +31,7 @@ class GradleBuildSmokeTestConfigurationCacheSmokeTest extends AbstractGradleBuil
         configurationCacheRun(tasks, 0)
 
         then:
-        result.assertConfigurationCacheStateStored()
+        assertConfigurationCacheStateStored()
 
         when:
         run([":smoke-test:clean"])
@@ -40,7 +40,7 @@ class GradleBuildSmokeTestConfigurationCacheSmokeTest extends AbstractGradleBuil
         configurationCacheRun(tasks, 1)
 
         then:
-        result.assertConfigurationCacheStateLoaded()
+        assertConfigurationCacheStateLoaded()
         result.task(":smoke-test:smokeTest").outcome == TaskOutcome.FROM_CACHE
     }
 }

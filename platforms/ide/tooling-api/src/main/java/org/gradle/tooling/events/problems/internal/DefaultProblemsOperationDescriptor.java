@@ -17,6 +17,8 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
@@ -27,12 +29,13 @@ import org.gradle.tooling.events.problems.ProblemCategory;
 import org.gradle.tooling.events.problems.ProblemDescriptor;
 import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.events.problems.Solution;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultProblemsOperationDescriptor implements ProblemDescriptor {
+public class DefaultProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
     private final ProblemCategory category;
     private final Label label;
     private final Details details;
@@ -41,9 +44,12 @@ public class DefaultProblemsOperationDescriptor implements ProblemDescriptor {
     private final DocumentationLink documentationLink;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
+    @Nullable
     private final FailureContainer exception;
 
     public DefaultProblemsOperationDescriptor(
+        InternalOperationDescriptor internalDescriptor,
+        OperationDescriptor parent,
         ProblemCategory category,
         Label label,
         @Nullable Details details,
@@ -54,6 +60,7 @@ public class DefaultProblemsOperationDescriptor implements ProblemDescriptor {
         AdditionalData additionalData,
         @Nullable FailureContainer exception
     ) {
+        super(internalDescriptor, parent);
         this.category = category;
         this.label = label;
         this.details = details;
@@ -75,7 +82,6 @@ public class DefaultProblemsOperationDescriptor implements ProblemDescriptor {
         return label;
     }
 
-    @Nullable
     @Override
     public Details getDetails() {
         return details;

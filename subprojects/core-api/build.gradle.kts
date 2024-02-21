@@ -30,7 +30,7 @@ dependencies {
     api(project(":files"))
     api(project(":resources"))
     api(project(":persistent-cache"))
-    api(project(":declarative-dsl-api"))
+
     api(libs.jsr305)
     api(libs.groovy)
     api(libs.groovyAnt)
@@ -38,12 +38,13 @@ dependencies {
     api(libs.ant)
     api(libs.inject)
 
+    compileOnly(libs.jetbrainsAnnotations)
+
     implementation(project(":base-services-groovy"))
     implementation(project(":logging"))
+
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
-
-    runtimeOnly(libs.futureKotlin("reflect"))
 
     testImplementation(libs.asm)
     testImplementation(libs.asmCommons)

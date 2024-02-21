@@ -47,7 +47,6 @@ import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.readStrings
-import org.gradle.configurationcache.serialization.readStringsSet
 import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.withIsolate
@@ -686,7 +685,7 @@ class ConfigurationCacheState(
 
     private
     fun DefaultReadContext.readFileSystemDefaultExcludes(gradle: GradleInternal) {
-        val defaultExcludes = readStringsSet()
+        val defaultExcludes = readStrings()
         gradle.serviceOf<FileSystemDefaultExcludesProvider>().updateCurrentDefaultExcludes(defaultExcludes)
     }
 

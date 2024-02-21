@@ -74,9 +74,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 spec.lineInFileLocation(resourceName, line, column, length);
             }
         });
-
-        // We need to print the message to stderr as well, as it was the default behavior of the compiler
-        System.err.println(message);
     }
 
     private static String getPath(JavaFileObject fileObject) {

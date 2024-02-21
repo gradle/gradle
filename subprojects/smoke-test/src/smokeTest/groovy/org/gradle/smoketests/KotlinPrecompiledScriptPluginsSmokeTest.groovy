@@ -68,17 +68,11 @@ class KotlinPrecompiledScriptPluginsSmokeTest extends AbstractSmokeTest {
                 main {}
             }
         """
-        def buildRunner = runner('publishAllPublicationsToPluginRepository')
+        runner('publishAllPublicationsToPluginRepository')
             .withGradleVersion(pluginPublishGradleVersion)
             .withProjectDir(file('plugin-build'))
             .forwardOutput()
-
-        if (pluginPublishGradleVersion.startsWith("6")) {
-            // Writing build operation traces is broken with Gradle 6.
-            buildRunner.withoutBuildOperationTracing()
-        }
-
-        buildRunner.build()
+            .build()
 
         and: 'a build consuming it'
         settingsFile << """

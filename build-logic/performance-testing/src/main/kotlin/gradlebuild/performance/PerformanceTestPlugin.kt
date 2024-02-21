@@ -18,6 +18,7 @@ package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
 import com.gradle.enterprise.gradleplugin.testretry.TestRetryExtension
+import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
@@ -54,7 +55,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.api.tasks.Delete
-import org.gradle.api.tasks.GroovySourceDirectorySet
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -287,7 +287,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
-                    testSources.from(performanceTestSourceSet.java.srcDirs, performanceTestSourceSet.the<GroovySourceDirectorySet>().srcDirs)
+                    testSources.from(performanceTestSourceSet.java.srcDirs, performanceTestSourceSet.groovy.srcDirs)
                     testResources.from(performanceTestSourceSet.resources.srcDirs)
                 }
             }

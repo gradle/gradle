@@ -76,12 +76,6 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
             Hasher hasher = Hashing.newHasher();
             hasher.putHash(configHash);
             hasher.putHash(fileHasher.hashOf(sourceSnapshot));
-            if (sourceSnapshot.getType() == FileType.Directory) {
-                // Prior to 8.7 we were combining instrumented classes from both directories and JARs into JARs.
-                // Now we store instrumented directories as directories, so we invalidate these.
-                // However, transformed JARs should be left intact.
-                hasher.putBoolean(true);
-            }
             return hasher.hash();
         };
     }
@@ -90,7 +84,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
-        String destFileName = source.getName();
+        String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
         File receipt = new File(destDir, destFileName + ".receipt");
         File transformed = new File(destDir, destFileName);
 

@@ -75,7 +75,7 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def war = new JarTestFixture(file('build/test.war'))
-        war.assertManifestPresentAndFirstEntry()
+        war.isManifestPresentAndFirstEntry()
         war.assertContainsFile('META-INF/MANIFEST.MF')
         war.assertContainsFile('META-INF/metainf1/file2.txt')
         war.assertContainsFile('content1/file1.jsp')

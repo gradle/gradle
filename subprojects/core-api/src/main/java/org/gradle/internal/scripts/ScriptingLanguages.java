@@ -32,10 +32,7 @@ public final class ScriptingLanguages {
         Collections.unmodifiableList(
             Arrays.asList(
                 scriptingLanguage(".gradle", null),
-                scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"),
-                scriptingLanguage(".gradle.something", "org.gradle.internal.declarativedsl.provider.DeclarativeDslScriptPluginFactory")
-            )
-        );
+                scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory")));
 
     public static List<ScriptingLanguage> all() {
         return ALL;

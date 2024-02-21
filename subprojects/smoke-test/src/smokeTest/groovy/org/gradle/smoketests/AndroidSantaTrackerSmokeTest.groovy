@@ -38,12 +38,10 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        def result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
+        buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
 
         then:
-        if (GradleContextualExecuter.isConfigCache()) {
-            result.assertConfigurationCacheStateStored()
-        }
+        assertConfigurationCacheStateStored()
 
         where:
         agpVersion << TESTED_AGP_VERSIONS
@@ -74,17 +72,15 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
 
         then:
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
-        if (GradleContextualExecuter.isConfigCache()) {
-            result.assertConfigurationCacheStateStored()
-        }
+        assertConfigurationCacheStateStored()
 
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         if (GradleContextualExecuter.notConfigCache) {
-            result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
+            buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
         } else {
-            result = buildLocationMaybeExpectingWorkerExecutorAndConfigUtilDeprecation(checkoutDir, agpVersion)
+            buildLocationMaybeExpectingWorkerExecutorAndConfigUtilDeprecation(checkoutDir, agpVersion)
         }
 
         def md5After = compiledClassFile.md5Hash
@@ -93,13 +89,9 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
         // TODO - this is here because AGP >=7.4 and <8.1.0 reads build/generated/source/kapt/debug at configuration time
         if (agpVersion.startsWith('7.3') || VersionNumber.parse(agpVersion) >= VersionNumber.parse('8.1.0')) {
-            if (GradleContextualExecuter.isConfigCache()) {
-                result.assertConfigurationCacheStateLoaded()
-            }
+            assertConfigurationCacheStateLoaded()
         } else {
-            if (GradleContextualExecuter.isConfigCache()) {
-                result.assertConfigurationCacheStateStored()
-            }
+            assertConfigurationCacheStateStored()
         }
         md5After != md5Before
 
@@ -140,9 +132,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         def result = runner.buildAndFail()
 
         then:
-        if (GradleContextualExecuter.isConfigCache()) {
-            result.assertConfigurationCacheStateStored()
-        }
+        assertConfigurationCacheStateStored()
         result.output.contains("Lint found errors in the project; aborting build.")
 
         when:
@@ -164,9 +154,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         result = runner.buildAndFail()
 
         then:
-        if (GradleContextualExecuter.isConfigCache()) {
-            result.assertConfigurationCacheStateLoaded()
-        }
+        assertConfigurationCacheStateLoaded()
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:

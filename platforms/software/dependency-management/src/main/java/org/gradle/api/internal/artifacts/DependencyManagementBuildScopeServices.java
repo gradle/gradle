@@ -30,7 +30,9 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.CachingVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -42,6 +44,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Depe
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleComponentResolveMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
@@ -99,6 +102,7 @@ import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureDescriberRegistry;
@@ -134,6 +138,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -178,7 +183,6 @@ class DependencyManagementBuildScopeServices {
         registration.add(DependencyGraphResolver.class);
         registration.add(ResolvedArtifactSetResolver.class);
         registration.add(DependencyGraphBuilder.class);
-        registration.add(ExternalModuleComponentResolverFactory.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(
@@ -346,6 +350,33 @@ class DependencyManagementBuildScopeServices {
         DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class), listenerManager.getBroadcaster(FileResourceListener.class));
         registerBuildFinishedHooks(listenerManager, override);
         return override;
+    }
+
+    ResolveIvyFactory createResolveIvyFactory(
+        StartParameterResolutionOverride startParameterResolutionOverride,
+        ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
+        DependencyVerificationOverride dependencyVerificationOverride,
+        BuildCommencedTimeProvider buildCommencedTimeProvider,
+        VersionComparator versionComparator,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        RepositoryDisabler repositoryBlacklister,
+        VersionParser versionParser,
+        ListenerManager listenerManager,
+        ModuleComponentGraphResolveStateFactory resolveStateFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
+        return new ResolveIvyFactory(
+            moduleRepositoryCacheProvider,
+            startParameterResolutionOverride,
+            dependencyVerificationOverride,
+            buildCommencedTimeProvider,
+            versionComparator,
+            moduleIdentifierFactory,
+            repositoryBlacklister,
+            versionParser,
+            listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class),
+            resolveStateFactory,
+            calculatedValueContainerFactory);
     }
 
     ResolvedVariantCache createResolvedVariantCache() {

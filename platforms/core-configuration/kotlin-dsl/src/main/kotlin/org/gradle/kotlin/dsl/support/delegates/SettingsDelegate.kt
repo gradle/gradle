@@ -134,10 +134,6 @@ abstract class SettingsDelegate : Settings {
     override fun getPluginManager(): PluginManager =
         delegate.pluginManager
 
-    override fun include(projectPath: String) {
-        delegate.include(projectPath)
-    }
-
     override fun include(projectPaths: Iterable<String>) =
         delegate.include(projectPaths)
 

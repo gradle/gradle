@@ -33,6 +33,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         def springVersion = springVersion
         def bomVersion = bomVersion
 
+        def settingsFile = new File(testProjectDir, 'settings.gradle')
         settingsFile << """
             rootProject.name = 'springbootproject'
         """

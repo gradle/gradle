@@ -20,13 +20,18 @@ import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.ProgressEvent;
 
 /**
+ * An event holding a {@link BaseProblemDescriptor}.
  *
- * An event representing a problem.
- *
+ * There are 2 sub types of a @link BaseProblemDescriptor}:
+ *<pre>
+ *  - {@link ProblemDescriptor} - describes a single problem that occurred during the build
+ *  - {@link ProblemAggregationDescriptor} - describes aggregated problems that happened more than once during the build
+ *</pre>
  * @since 8.4
  */
 @NonNullApi
 @Incubating
 public interface ProblemEvent extends ProgressEvent {
-
+    @Override
+    BaseProblemDescriptor getDescriptor();
 }

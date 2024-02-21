@@ -21,7 +21,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.internal.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -60,15 +59,6 @@ public class DefaultClasspathBuilder implements ClasspathBuilder {
         }
     }
 
-    @Override
-    public void directory(File destinationDir, Action action) {
-        try {
-            buildDirectory(destinationDir, action);
-        } catch (Exception e) {
-            throw new GradleException(String.format("Failed to create directory %s.", destinationDir), e);
-        }
-    }
-
     private void buildJar(File jarFile, Action action) throws IOException {
         File parentDir = jarFile.getParentFile();
         File tmpFile = temporaryFileProvider.createTemporaryFile(jarFile.getName(), ".tmp");
@@ -78,23 +68,6 @@ public class DefaultClasspathBuilder implements ClasspathBuilder {
             Files.move(tmpFile.toPath(), jarFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } finally {
             Files.deleteIfExists(tmpFile.toPath());
-        }
-    }
-
-    private void buildDirectory(File destinationDir, Action action) throws IOException {
-        File parentDir = destinationDir.getParentFile();
-        File tmpDir = temporaryFileProvider.createTemporaryDirectory(destinationDir.getName(), ".tmp");
-        try {
-            Files.createDirectories(parentDir.toPath());
-            inPlaceBuilder.directory(tmpDir, action);
-            if (destinationDir.exists()) {
-                GFileUtils.forceDelete(destinationDir);
-            }
-            GFileUtils.moveDirectory(tmpDir, destinationDir);
-        } finally {
-            if (tmpDir.exists()) {
-                GFileUtils.deleteDirectory(tmpDir);
-            }
         }
     }
 }

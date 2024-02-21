@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.accessors.groovy
+
 import org.gradle.plugins.ide.idea.model.IdeaModel
 
 /**
@@ -29,7 +31,6 @@ import org.gradle.plugins.ide.idea.model.IdeaModel
 plugins {
     `java-library`
     `java-test-fixtures`
-    groovy
     id("gradlebuild.dependency-modules")
 }
 

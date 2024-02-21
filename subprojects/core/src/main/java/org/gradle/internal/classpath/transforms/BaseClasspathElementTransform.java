@@ -33,7 +33,6 @@ import org.objectweb.asm.ClassWriter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.function.BiConsumer;
 
 /**
  * Base class for the transformations. Note that the order in which entries are visited is not defined.
@@ -43,9 +42,9 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
     private static final Logger LOGGER = Logging.getLogger(BaseClasspathElementTransform.class);
 
     protected final File source;
+    private final InstrumentingTypeRegistry typeRegistry;
     private final ClasspathBuilder classpathBuilder;
     private final ClasspathWalker classpathWalker;
-    private final InstrumentingTypeRegistry typeRegistry;
     private final ClassTransform transform;
 
     BaseClasspathElementTransform(
@@ -55,16 +54,16 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
         InstrumentingTypeRegistry typeRegistry,
         ClassTransform transform
     ) {
-        this.source = source;
         this.classpathBuilder = classpathBuilder;
         this.classpathWalker = classpathWalker;
+        this.source = source;
         this.typeRegistry = typeRegistry;
         this.transform = transform;
     }
 
     @Override
     public final void transform(File destination) {
-        resultBuilder().accept(destination, builder -> {
+        classpathBuilder.jar(destination, builder -> {
             try {
                 visitEntries(builder);
             } catch (FileException e) {
@@ -72,13 +71,6 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
                 LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
             }
         });
-    }
-
-    private BiConsumer<File, ClasspathBuilder.Action> resultBuilder() {
-        if (source.isDirectory()) {
-            return classpathBuilder::directory;
-        }
-        return classpathBuilder::jar;
     }
 
     private void visitEntries(ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {

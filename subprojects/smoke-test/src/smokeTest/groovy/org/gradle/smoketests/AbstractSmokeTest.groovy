@@ -22,12 +22,15 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMa
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
@@ -255,7 +258,6 @@ abstract class AbstractSmokeTest extends Specification {
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
         return new SmokeTestGradleRunner(gradleRunner)
-            .withBuildOperationTracing(file("operations").absolutePath)
     }
 
     private List<String> configurationCacheParameters() {
@@ -265,6 +267,7 @@ abstract class AbstractSmokeTest extends Specification {
             parameters += [
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
                 "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=$maxProblems".toString(),
+                "-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath()}".toString()
             ]
             if (maxProblems > 0) {
                 parameters += ["--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(),]
@@ -307,6 +310,30 @@ abstract class AbstractSmokeTest extends Specification {
 
     protected int maxConfigurationCacheProblems() {
         return 0
+    }
+
+    protected void assertConfigurationCacheStateStored() {
+        if (GradleContextualExecuter.isConfigCache()) {
+            newConfigurationCacheBuildOperationsFixture().assertStateStored()
+        }
+    }
+
+    protected void assertConfigurationCacheStateLoaded() {
+        if (GradleContextualExecuter.isConfigCache()) {
+            newConfigurationCacheBuildOperationsFixture().assertStateLoaded()
+        }
+    }
+
+    private ConfigurationCacheBuildOperationsFixture newConfigurationCacheBuildOperationsFixture() {
+        return new ConfigurationCacheBuildOperationsFixture(
+            new BuildOperationTreeFixture(
+                BuildOperationTrace.read(buildOperationTracePath())
+            )
+        )
+    }
+
+    private String buildOperationTracePath() {
+        return file("operations").absolutePath
     }
 
     protected void useSample(String sampleDirectory) {

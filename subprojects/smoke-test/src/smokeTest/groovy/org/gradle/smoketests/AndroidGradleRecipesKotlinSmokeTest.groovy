@@ -137,9 +137,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
         result.task(":app:$taskName").outcome == TaskOutcome.SUCCESS
 
         and:
-        if (GradleContextualExecuter.isConfigCache()) {
-            result.assertConfigurationCacheStateStored()
-        }
+        assertConfigurationCacheStateStored()
 
         when: 'running the build for the 2nd time'
         result = (
@@ -152,9 +150,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
         result.task(":app:$taskName").outcome == TaskOutcome.UP_TO_DATE
 
         and:
-        if (GradleContextualExecuter.isConfigCache()) {
-            result.assertConfigurationCacheStateLoaded()
-        }
+        assertConfigurationCacheStateLoaded()
 
         where:
         [agpVersion, provider] << [

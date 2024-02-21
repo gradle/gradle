@@ -66,6 +66,7 @@ import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseFinishEvent
 import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseOperationDescriptor;
 import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseStartEvent;
 import org.gradle.tooling.events.problems.AdditionalData;
+import org.gradle.tooling.events.problems.BaseProblemDescriptor;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.FailureContainer;
@@ -88,12 +89,13 @@ import org.gradle.tooling.events.problems.internal.DefaultLineInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultPluginIdLocation;
 import org.gradle.tooling.events.problems.internal.DefaultProblemAggregation;
-import org.gradle.tooling.events.problems.internal.DefaultProblemAggregationEvent;
+import org.gradle.tooling.events.problems.internal.DefaultProblemAggregationOperationDescriptor;
+import org.gradle.tooling.events.problems.internal.DefaultProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor;
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
-import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSolution;
 import org.gradle.tooling.events.problems.internal.DefaultTaskPathLocation;
+import org.gradle.tooling.events.problems.internal.DynamicProblemOperationDescriptor;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationResult;
@@ -561,81 +563,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private @Nullable ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {
         if (progressEvent instanceof InternalProblemEvent) {
-            InternalProblemEvent problemEvent = (InternalProblemEvent) progressEvent;
-            return createProblemEvent(problemEvent, descriptor);
+            BaseProblemDescriptor clientDescriptor = addDescriptor(progressEvent.getDescriptor(), toProblemDescriptor((InternalProblemEvent) progressEvent, descriptor));
+            return new DefaultProblemEvent(progressEvent.getEventTime(), clientDescriptor);
         }
         return null;
     }
-
-    private ProblemEvent createProblemEvent(InternalProblemEvent problemEvent, InternalProblemDescriptor descriptor) {
-        InternalProblemDetails details = problemEvent.getDetails();
-        OperationDescriptor parentDescriptor = getParentDescriptor(descriptor.getParentId());
-
-        if(details instanceof InternalBasicProblemDetails){
-            InternalBasicProblemDetails basicProblemDetails = (InternalBasicProblemDetails) details;
-            return new DefaultSingleProblemEvent(
-                problemEvent.getEventTime(),
-                parentDescriptor,
-                toProblemCategory(basicProblemDetails.getCategory()),
-                toProblemSeverity(basicProblemDetails.getSeverity()),
-                toProblemLabel(basicProblemDetails.getLabel()),
-                toProblemDetails(basicProblemDetails.getDetails()),
-                toLocations(basicProblemDetails.getLocations()),
-                toDocumentationLink(basicProblemDetails.getDocumentationLink()),
-                toSolutions(basicProblemDetails.getSolutions()),
-                toAdditionalData(basicProblemDetails.getAdditionalData()),
-                toFailureContainer(basicProblemDetails)
-            );
-        } else if(details instanceof InternalProblemAggregationDetails){
-            return new DefaultProblemAggregationEvent(
-                problemEvent.getEventTime(),
-                parentDescriptor,
-                toSummaries((InternalProblemAggregationDetails) details)
-            );
-        }
-
-        return null;
-    }
-
-    @Nonnull
-    private static DefaultProblemsOperationDescriptor toSingleProblemDescriptor(InternalBasicProblemDetails details) {
-        return new DefaultProblemsOperationDescriptor(
-            toProblemCategory(details.getCategory()),
-            toProblemLabel(details.getLabel()),
-            toProblemDetails(details.getDetails()),
-            toProblemSeverity(details.getSeverity()),
-            toLocations(details.getLocations()),
-            toDocumentationLink(details.getDocumentationLink()),
-            toSolutions(details.getSolutions()),
-            toAdditionalData(details.getAdditionalData()),
-            toFailureContainer(details)
-        );
-    }
-
-    private static List<ProblemAggregation> toSummaries(InternalProblemAggregationDetails details) {
-        Builder<ProblemAggregation> summaries = builderWithExpectedSize(details.getSummaries().size());
-        for (InternalProblemAggregation summary : details.getSummaries()) {
-            summaries.add(toSummary(summary));
-        }
-        return summaries.build();
-    }
-
-    private static ProblemAggregation toSummary(InternalProblemAggregation basicDetails) {
-        return new DefaultProblemAggregation(
-            toProblemCategory(basicDetails.getCategory()),
-            toProblemLabel(basicDetails.getLabel()),
-            toProblemDescriptors(basicDetails.getProblems()));
-    }
-
-    private static List<ProblemDescriptor> toProblemDescriptors(Collection<InternalProblemEvent> problems) {
-        Builder<ProblemDescriptor> result = builderWithExpectedSize(problems.size());
-        for (InternalProblemEvent problem : problems) {
-            result.add(toSingleProblemDescriptor((InternalBasicProblemDetails) problem.getDetails()));
-        }
-        return result.build();
-    }
-
-
 
     private @Nullable ProgressEvent toGenericProgressEvent(InternalProgressEvent event) {
         if (event instanceof InternalOperationStartedProgressEvent) {
@@ -800,6 +732,66 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         Destination destination = Destination.fromCode(event.getResult().getDestination());
         String message = event.getResult().getMessage();
         return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
+    }
+
+    private BaseProblemDescriptor toProblemDescriptor(InternalProblemEvent progressEvent, InternalProblemDescriptor descriptor) {
+        OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
+        InternalProblemDetails details = progressEvent.getDetails();
+
+        if (details instanceof InternalBasicProblemDetails) {
+            return toSingleProblemDescriptor(descriptor, (InternalBasicProblemDetails) details, parent);
+        } else if (details instanceof InternalProblemAggregationDetails) {
+            return new DefaultProblemAggregationOperationDescriptor(
+                descriptor,
+                parent,
+                toSummaries((InternalProblemAggregationDetails) details)
+            );
+        } else {
+            return new DynamicProblemOperationDescriptor(
+                descriptor,
+                parent
+            );
+        }
+    }
+
+    @Nonnull
+    private static DefaultProblemsOperationDescriptor toSingleProblemDescriptor(InternalProblemDescriptor descriptor, InternalBasicProblemDetails details, OperationDescriptor parent) {
+        return new DefaultProblemsOperationDescriptor(
+            descriptor,
+            parent,
+            toProblemCategory(details.getCategory()),
+            toProblemLabel(details.getLabel()),
+            toProblemDetails(details.getDetails()),
+            toProblemSeverity(details.getSeverity()),
+            toLocations(details.getLocations()),
+            toDocumentationLink(details.getDocumentationLink()),
+            toSolutions(details.getSolutions()),
+            toAdditionalData(details.getAdditionalData()),
+            toFailureContainer(details)
+        );
+    }
+
+    private static List<ProblemAggregation> toSummaries(InternalProblemAggregationDetails details) {
+        Builder<ProblemAggregation> summaries = builderWithExpectedSize(details.getSummaries().size());
+        for (InternalProblemAggregation summary : details.getSummaries()) {
+            summaries.add(toSummary(summary));
+        }
+        return summaries.build();
+    }
+
+    private static ProblemAggregation toSummary(InternalProblemAggregation basicDetails) {
+        return new DefaultProblemAggregation(
+            toProblemCategory(basicDetails.getCategory()),
+            toProblemLabel(basicDetails.getLabel()),
+            toProblemDescriptors(basicDetails.getProblems()));
+    }
+
+    private static List<ProblemDescriptor> toProblemDescriptors(Collection<InternalProblemEvent> problems) {
+        Builder<ProblemDescriptor> result = builderWithExpectedSize(problems.size());
+        for (InternalProblemEvent problem : problems) {
+            result.add(toSingleProblemDescriptor((InternalProblemDescriptor) problem.getDescriptor(), (InternalBasicProblemDetails) problem.getDetails(), null));
+        }
+        return result.build();
     }
 
     private static @Nullable FailureContainer toFailureContainer(@Nullable InternalBasicProblemDetails problemDetails) {

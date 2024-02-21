@@ -61,32 +61,32 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
     }
 
     public Spec<FileTreeElement> createIncludeSpec(PatternSet patternSet) {
-        Set<Spec<FileTreeElement>> includeSpecs = patternSet.getIncludeSpecsView();
-        List<Spec<FileTreeElement>> allIncludeSpecs = new ArrayList<>(1 + includeSpecs.size());
+        List<Spec<FileTreeElement>> allIncludeSpecs = new ArrayList<>(1 + patternSet.getIncludeSpecs().size());
 
-        Set<String> includes = patternSet.getIncludesView();
-        if (!includes.isEmpty()) {
-            allIncludeSpecs.add(createSpec(includes, true, patternSet.isCaseSensitive()));
+        if (!patternSet.getIncludes().isEmpty()) {
+            allIncludeSpecs.add(createSpec(patternSet.getIncludes(), true, patternSet.isCaseSensitive()));
         }
 
-        allIncludeSpecs.addAll(includeSpecs);
+        allIncludeSpecs.addAll(patternSet.getIncludeSpecs());
 
         return Specs.union(allIncludeSpecs);
     }
 
     public Spec<FileTreeElement> createExcludeSpec(PatternSet patternSet) {
-        Set<Spec<FileTreeElement>> excludeSpecs = patternSet.getExcludeSpecsView();
-        List<Spec<FileTreeElement>> allExcludeSpecs = new ArrayList<>(2 + excludeSpecs.size());
+        List<Spec<FileTreeElement>> allExcludeSpecs = new ArrayList<>(2 + patternSet.getExcludeSpecs().size());
 
-        Set<String> excludes = patternSet.getExcludesView();
-        if (!excludes.isEmpty()) {
-            allExcludeSpecs.add(createSpec(excludes, false, patternSet.isCaseSensitive()));
+        if (!patternSet.getExcludes().isEmpty()) {
+            allExcludeSpecs.add(createSpec(patternSet.getExcludes(), false, patternSet.isCaseSensitive()));
         }
 
         allExcludeSpecs.add(getDefaultExcludeSpec(CaseSensitivity.forCaseSensitive(patternSet.isCaseSensitive())));
-        allExcludeSpecs.addAll(excludeSpecs);
+        allExcludeSpecs.addAll(patternSet.getExcludeSpecs());
 
-        return Specs.union(allExcludeSpecs);
+        if (allExcludeSpecs.isEmpty()) {
+            return Specs.satisfyNone();
+        } else {
+            return Specs.union(allExcludeSpecs);
+        }
     }
 
     private synchronized Spec<FileTreeElement> getDefaultExcludeSpec(CaseSensitivity caseSensitivity) {

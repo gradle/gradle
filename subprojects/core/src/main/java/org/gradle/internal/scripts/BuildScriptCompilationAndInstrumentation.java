@@ -70,9 +70,9 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     protected abstract File compile(File workspace);
 
     /**
-     * Provides a File where instrumented output will be written to.
+     * Provides a File where instrumented jar will be written to.
      */
-    protected abstract File instrumentedOutput(File workspace);
+    protected abstract File instrumentedJar(File workspace);
 
     @Override
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
@@ -85,16 +85,18 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     @Override
     @OverridingMethodsMustInvokeSuper
     public void visitOutputs(File workspace, OutputVisitor visitor) {
-        File instrumentedOutput = instrumentedOutput(workspace);
-        OutputFileValueSupplier instrumentedOutputValue = OutputFileValueSupplier.fromStatic(instrumentedOutput, fileCollectionFactory.fixed(instrumentedOutput));
-        visitor.visitOutputProperty("instrumentedOutput", TreeType.DIRECTORY, instrumentedOutputValue);
+        File instrumentedJar = instrumentedJar(workspace);
+        OutputFileValueSupplier instrumentedJarValue = OutputFileValueSupplier.fromStatic(instrumentedJar, fileCollectionFactory.fixed(instrumentedJar));
+        visitor.visitOutputProperty("instrumentedJar", TreeType.FILE, instrumentedJarValue);
     }
 
     @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
         File workspace = executionRequest.getWorkspace();
         File compileOutput = compile(workspace);
-        instrument(compileOutput, instrumentedOutput(workspace));
+        // We should instrument output of classes directory to the classes directory instead of a jar,
+        // but currently instrumentation classloader doesn't support that yet.
+        instrument(compileOutput, instrumentedJar(workspace));
         return new UnitOfWork.WorkOutput() {
             @Override
             public WorkResult getDidWork() {
@@ -117,7 +119,7 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     @Nullable
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
-        return instrumentedOutput(workspace);
+        return instrumentedJar(workspace);
     }
 
     @Override

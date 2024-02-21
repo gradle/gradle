@@ -104,9 +104,6 @@ platform("core-configuration") {
     subproject("kotlin-dsl-integ-tests")
     subproject("model-core")
     subproject("model-groovy")
-    subproject("declarative-dsl-api")
-    subproject("declarative-dsl-provider")
-    subproject("declarative-dsl-core")
 }
 
 // Core Execution Platform
