@@ -35,6 +35,7 @@ dependencies {
     integTestImplementation(testFixtures(project(":plugins-java-base")))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
