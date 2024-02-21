@@ -26,7 +26,6 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
-    implementation(project(":core-api-jvm"))
     implementation(project(":core-jvm"))
     implementation(project(":dependency-management"))
     implementation(project(":execution"))

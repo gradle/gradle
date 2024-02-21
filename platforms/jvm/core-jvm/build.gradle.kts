@@ -26,7 +26,7 @@ dependencies {
 
     api(libs.inject)
 
-    implementation(project(":core-api-jvm"))
+    implementation(project(":jvm-services"))
 
     implementation(libs.jsr305)
     implementation(libs.guava)

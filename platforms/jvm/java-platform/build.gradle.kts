@@ -53,7 +53,6 @@ dependencies {
     }
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(project(":core-api-jvm"))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }

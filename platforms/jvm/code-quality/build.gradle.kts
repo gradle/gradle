@@ -54,7 +54,6 @@ dependencies {
 
     runtimeOnly(project(":language-jvm"))
 
-    testImplementation(project(":core-api-jvm"))
     testImplementation(project(":file-collections"))
     testImplementation(project(":plugins-java"))
     testImplementation(testFixtures(project(":core")))
