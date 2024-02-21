@@ -252,7 +252,7 @@ include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskChangedProper
 [[sec:storing_incremental_task_state]]
 
 [[sec:declaring_and_using_command_line_options]]
-== Command Line Options
+== Command Line options
 
 Sometimes, a user wants to declare the value of an exposed task property on the command line instead of the build script.
 Passing property values on the command line is particularly helpful if they change more frequently.
@@ -411,7 +411,7 @@ There's no programmatic equivalent for defining options.
 - If you specify a task option name that conflicts with the name of a built-in Gradle option, use the `--` delimiter before calling your task to reference that option.
 For more information, see <<command_line_interface.adoc#sec:disambiguate_task_options_from_built_in_options, Disambiguate Task Options from Built-in Options>>.
 
-== Verification Failures
+== Verification failures
 
 Normally, exceptions thrown during task execution result in a failure that immediately terminates a build.
 The outcome of the task will be `FAILED`, the result of the build will be `FAILED`, and no further tasks will be executed.

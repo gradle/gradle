@@ -419,9 +419,7 @@ public abstract class GenerateReportTask : DefaultTask() {
     @get:OutputFile
     lateinit var reportFile: File
 
-}
-----
-=====
+}=====
 [.multi-language-sample]
 =====
 .buildSrc/src/main/groovy/GenerateReportTask.groovy
@@ -443,6 +441,8 @@ public abstract class GenerateReportTask extends DefaultTask {
 ----
 =====
 ====
+
+----
 
 With inputs and outputs defined, the only thing that remains is the actual task action, which is implemented in a method annotated with `@TaskAction`.
 Inside this method, we write code accessing inputs and outputs using Gradle-specific APIs:
@@ -604,7 +604,7 @@ BUILD SUCCESSFUL in 1s
 13 actionable tasks: 10 executed, 3 up-to-date
 ----
 
-== Task Actions
+== Task actions
 
 A task action is the code that implements what a task is doing, as demonstrated in the previous section.
 For example, the `javaCompile` task action calls the Java compiler to transform source code into byte code.
