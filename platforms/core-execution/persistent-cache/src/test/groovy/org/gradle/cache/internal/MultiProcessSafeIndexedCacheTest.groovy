@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class MultiProcessSafeIndexedCacheTest extends Specification {
     final FileAccess fileAccess = Mock()
-    final Factory<BTreePersistentIndexedCache<String, String>> factory = Mock()
+    final groovy.util.Factory<BTreePersistentIndexedCache<String, String>> factory = Mock()
     final cache = new DefaultMultiProcessSafeIndexedCache<String, String>(factory, fileAccess)
     final BTreePersistentIndexedCache<String, String> backingCache = Mock()
 
@@ -46,7 +46,7 @@ class MultiProcessSafeIndexedCacheTest extends Specification {
         result == "result"
 
         and:
-        1 * fileAccess.readFile(!null) >> { Factory action -> action.create() }
+        1 * fileAccess.readFile(!null) >> { groovy.util.Factory action -> action.create() }
         1 * backingCache.get("value") >> "result"
         0 * _._
     }

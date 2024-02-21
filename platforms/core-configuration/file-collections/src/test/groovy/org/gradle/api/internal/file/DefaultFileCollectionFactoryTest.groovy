@@ -45,7 +45,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
     @ClassRule
     @Shared
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def factory = new DefaultFileCollectionFactory(TestFiles.pathToFileResolver(tmpDir.testDirectory), TestFiles.taskDependencyFactory(), TestFiles.directoryFileTreeFactory(), Stub(Factory), Stub(PropertyHost), TestFiles.fileSystem())
+    def factory = new DefaultFileCollectionFactory(TestFiles.pathToFileResolver(tmpDir.testDirectory), TestFiles.taskDependencyFactory(), TestFiles.directoryFileTreeFactory(), Stub(groovy.util.Factory), Stub(PropertyHost), TestFiles.fileSystem())
 
     def "lazily queries contents of collection created from MinimalFileSet"() {
         def contents = Mock(MinimalFileSet)

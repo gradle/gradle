@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import spock.lang.Issue
 
 class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -64,7 +65,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         '''
 
         when:
-        configurationCacheFails(WARN_PROBLEMS_CLI_OPT, 'report')
+        configurationCacheFails(AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT, 'report')
 
         then:
         problems.assertResultHasProblems(failure) {

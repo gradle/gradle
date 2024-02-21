@@ -207,7 +207,7 @@ class DeferredTaskCreationIntegrationTest extends AbstractDeferredTaskDefinition
 
     def "can construct a custom task with constructor arguments"() {
         given:
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << AbstractDeferredTaskDefinitionIntegrationTest.CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << "tasks.register('myTask', CustomTask, 'hello', 42)"
 
         when:

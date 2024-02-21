@@ -79,13 +79,13 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         """
 
         when:
-        run("assemble", ENABLE_SYS_PROP)
+        run("assemble", AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
 
         then:
         outputContains("script log statement")
 
         when:
-        run("assemble", ENABLE_SYS_PROP)
+        run("assemble", AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
 
         then:
         outputDoesNotContain("script log statement")
@@ -100,14 +100,14 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         """
 
         when:
-        toolingApiExecutor.withToolingApiJvmArgs(ENABLE_SYS_PROP)
+        toolingApiExecutor.withToolingApiJvmArgs(AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
         run("assemble")
 
         then:
         outputContains("script log statement")
 
         when:
-        toolingApiExecutor.withToolingApiJvmArgs(ENABLE_SYS_PROP)
+        toolingApiExecutor.withToolingApiJvmArgs(AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP)
         run("assemble")
 
         then:
@@ -211,7 +211,7 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
     }
 
     private void withConfigurationCacheEnabledInGradleProperties() {
-        file("gradle.properties").text = ENABLE_GRADLE_PROP
+        file("gradle.properties").text = AbstractConfigurationCacheIntegrationTest.ENABLE_GRADLE_PROP
     }
 
     private void buildWithSomeToolingModelAndScriptLogStatement() {

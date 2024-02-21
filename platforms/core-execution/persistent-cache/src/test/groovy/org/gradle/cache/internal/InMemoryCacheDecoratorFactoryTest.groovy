@@ -39,8 +39,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { groovy.util.Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { groovy.util.Factory task -> task.create() }
         1 * target.getIfPresent("key") >> "result"
         0 * target._
 
@@ -51,7 +51,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { groovy.util.Factory task -> task.create() }
         0 * target._
 
         when:
@@ -62,7 +62,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { groovy.util.Factory task -> task.create() }
         0 * target._
     }
 
@@ -77,8 +77,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result 1"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { groovy.util.Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { groovy.util.Factory task -> task.create() }
         1 * target.getIfPresent("key") >> "result 1"
         0 * target._
 
@@ -89,8 +89,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result 2"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { groovy.util.Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { groovy.util.Factory task -> task.create() }
         1 * target.getIfPresent("key") >> "result 2"
         0 * target._
     }
@@ -106,8 +106,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == null
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { groovy.util.Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { groovy.util.Factory task -> task.create() }
         1 * target.getIfPresent("key") >> null
         0 * target._
 
@@ -118,7 +118,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == null
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { groovy.util.Factory task -> task.create() }
         0 * target._
     }
 
@@ -135,8 +135,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { groovy.util.Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { groovy.util.Factory task -> task.create() }
         1 * target.getIfPresent("key") >> "result"
         0 * target._
 
@@ -157,7 +157,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "new value"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { groovy.util.Factory task -> task.create() }
         0 * target._
     }
 
@@ -174,8 +174,8 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == "result"
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
-        1 * asyncCacheAccess.read(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { groovy.util.Factory task -> task.create() }
+        1 * asyncCacheAccess.read(_) >> { groovy.util.Factory task -> task.create() }
         1 * target.getIfPresent("key") >> "result"
         0 * target._
 
@@ -196,7 +196,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         result == null
 
         and:
-        1 * crossProcessCacheAccess.withFileLock(_) >> { Factory task -> task.create() }
+        1 * crossProcessCacheAccess.withFileLock(_) >> { groovy.util.Factory task -> task.create() }
         0 * target._
     }
 

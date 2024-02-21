@@ -1,3 +1,4 @@
+package org.gradle.internal.logging.LoggingIntegrationTest.logging.project2
 
 buildscript {
     println('quietProject2ScriptClassPathOut')

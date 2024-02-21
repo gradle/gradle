@@ -1,3 +1,5 @@
+package org.gradle.internal.logging.LoggingIntegrationTest.logging.nestedBuild
+
 println 'nestedBuild quiet'
 logger.info 'nestedBuild info'
 

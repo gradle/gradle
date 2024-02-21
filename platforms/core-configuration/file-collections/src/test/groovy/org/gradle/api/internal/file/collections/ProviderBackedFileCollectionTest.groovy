@@ -31,7 +31,7 @@ class ProviderBackedFileCollectionTest extends Specification {
     def provider = Mock(ProviderInternal)
     def resolver = Mock(PathToFileResolver)
     def taskDependencyFactory = TestFiles.taskDependencyFactory()
-    def patternSetFactory = Mock(Factory)
+    def patternSetFactory = Mock(groovy.util.Factory)
     def fileCollection = new ProviderBackedFileCollection(provider, resolver, taskDependencyFactory, patternSetFactory, ProviderResolutionStrategy.REQUIRE_PRESENT)
 
     def "resolves task dependencies for provider with known producer"() {

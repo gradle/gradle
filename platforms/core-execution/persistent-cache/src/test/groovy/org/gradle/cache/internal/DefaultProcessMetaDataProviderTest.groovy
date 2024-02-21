@@ -19,7 +19,7 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment
 import spock.lang.Specification
 
 class DefaultProcessMetaDataProviderTest extends Specification {
-    final ProcessEnvironment processEnvironment = Mock()
+    final java.lang.ProcessEnvironment processEnvironment = Mock()
     final DefaultProcessMetaDataProvider provider = new DefaultProcessMetaDataProvider(processEnvironment)
 
     def "uses process PID as process identifier"() {

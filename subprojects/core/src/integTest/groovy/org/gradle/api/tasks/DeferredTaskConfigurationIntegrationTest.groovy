@@ -230,7 +230,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         succeeds "foo"
 
         where:
-        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+        [description, code] << AbstractDeferredTaskDefinitionIntegrationTest.INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
     def "can execute #description during task configuration action execution"() {
@@ -247,7 +247,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         succeeds "foo"
 
         where:
-        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+        [description, code] << AbstractDeferredTaskDefinitionIntegrationTest.INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
     def "can execute #description on another project during task creation action execution"() {
@@ -265,7 +265,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         succeeds "foo"
 
         where:
-        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+        [description, code] << AbstractDeferredTaskDefinitionIntegrationTest.INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
     def "realizes only the task of the given type when depending on a filtered task collection"() {
@@ -387,7 +387,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         succeeds "foo"
 
         where:
-        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+        [description, code] << AbstractDeferredTaskDefinitionIntegrationTest.INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
     def "can execute #description during eager configuration action with registered task"() {
@@ -402,7 +402,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         succeeds "foo"
 
         where:
-        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+        [description, code] << AbstractDeferredTaskDefinitionIntegrationTest.INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6319")

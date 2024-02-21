@@ -1,3 +1,5 @@
+package org.gradle.api.resource.TextResourceIntegrationTest.shared
+
 class MyTask extends DefaultTask {
     @Nested
     TextResource config

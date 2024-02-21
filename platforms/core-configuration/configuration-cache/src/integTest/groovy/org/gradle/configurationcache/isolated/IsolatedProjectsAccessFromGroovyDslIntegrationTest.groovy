@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.isolated
 
 import org.gradle.api.provider.Property
+import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import spock.lang.Issue
 
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
@@ -776,7 +777,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+        isolatedProjectsFails 'help', AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT
 
         then:
         failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':b' of type org.gradle.api.Project")
@@ -810,7 +811,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+        isolatedProjectsFails 'help', AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT
 
         then:
         failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':b' of type org.gradle.api.Project")

@@ -27,7 +27,7 @@ abstract class AbstractConsoleVerboseBasicFunctionalTest extends AbstractConsole
         given:
         def helloWorldMessage= 'Hello world'
         def byeWorldMessage= 'Bye world'
-        def hasSilenceTaskOutput = consoleType in [Verbose, Plain] || consoleType == Auto && !consoleAttachment.stdoutAttached
+        def hasSilenceTaskOutput = consoleType in [Verbose, Plain] || consoleType == Auto && !AbstractConsoleGroupedTaskFunctionalTest.consoleAttachment.stdoutAttached
 
         buildFile << """
             task helloWorld {
@@ -40,9 +40,9 @@ abstract class AbstractConsoleVerboseBasicFunctionalTest extends AbstractConsole
                     logger.quiet '$byeWorldMessage'
                 }
             }
-            
+
             task silence {}
-            
+
             task all {
                 dependsOn helloWorld, byeWorld, silence
             }

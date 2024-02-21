@@ -1,3 +1,5 @@
+package org.gradle.api.tasks.diagnostics.HelpTaskIntegrationTest.listsEnumAndBooleanCmdOptionValues
+
 import org.gradle.api.tasks.options.Option
 
 allprojects{

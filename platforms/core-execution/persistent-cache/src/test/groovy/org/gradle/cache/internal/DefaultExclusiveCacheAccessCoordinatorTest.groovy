@@ -339,7 +339,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "with file lock operation acquires lock but does not release it at the end of the operation"() {
-        Factory<String> action = Mock()
+        groovy.util.Factory<String> action = Mock()
         def access = newAccess(OnDemand)
 
         when:
@@ -362,7 +362,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "with file lock operation reuses existing file lock"() {
-        Factory<String> action = Mock()
+        groovy.util.Factory<String> action = Mock()
         def access = newAccess(OnDemand)
 
         when:
@@ -388,7 +388,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "nested with file lock operation does not release the lock"() {
-        Factory<String> action = Mock()
+        groovy.util.Factory<String> action = Mock()
         def access = newAccess(OnDemand)
 
         when:
@@ -413,7 +413,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "using cache pushes an operation and acquires lock but does not release it at the end of the operation"() {
-        Factory<String> action = Mock()
+        groovy.util.Factory<String> action = Mock()
         def access = newAccess(OnDemand)
 
         when:
@@ -438,7 +438,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "nested use cache operation does not release the lock"() {
-        Factory<String> action = Mock()
+        groovy.util.Factory<String> action = Mock()
         def access = newAccess(OnDemand)
 
         when:
@@ -458,7 +458,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "use cache operation reuses existing file lock"() {
-        Factory<String> action = Mock()
+        groovy.util.Factory<String> action = Mock()
         def access = newAccess(OnDemand)
 
         when:
@@ -489,7 +489,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         when:
-        access.useCache(Mock(Factory))
+        access.useCache(Mock(groovy.util.Factory))
 
         then:
         thrown(UnsupportedOperationException)
@@ -507,7 +507,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "contended action safely closes the lock when cache is not busy"() {
-        Factory<String> action = Mock()
+        groovy.util.Factory<String> action = Mock()
         def access = newAccess(OnDemand)
         def contendedAction
 

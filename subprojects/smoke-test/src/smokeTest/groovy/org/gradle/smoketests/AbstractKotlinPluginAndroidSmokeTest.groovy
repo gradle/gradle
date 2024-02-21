@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.internal.VersionNumber
 
@@ -65,7 +66,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
                     expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersionNumber, parallelTasksInProject, kotlinPluginVersionNumber)
                     expectReportDestinationPropertyDeprecation(androidPluginVersion)
                     expectKotlinCompileDestinationDirPropertyDeprecation(kotlinPluginVersionNumber)
-                    if (GradleContextualExecuter.configCache || (kotlinPluginVersionNumber >= KOTLIN_1_8_0 && kotlinPluginVersionNumber.baseVersion < KOTLIN_2_0_0)) {
+                    if (GradleContextualExecuter.configCache || (kotlinPluginVersionNumber >= KotlinGradlePluginVersions.KOTLIN_1_8_0 && kotlinPluginVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_0)) {
                         expectBuildIdentifierIsCurrentBuildDeprecation(androidPluginVersion)
                     }
                     2.times {

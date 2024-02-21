@@ -1,3 +1,4 @@
+package org.gradle.compile.daemon.ParallelCompilerDaemonIntegrationTest.shared
 /**
  * An immutable classpath.
  */

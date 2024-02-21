@@ -50,7 +50,7 @@ class PartialDirectoryNodeTest extends AbstractIncompleteFileSystemNodeTest<Part
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << IS_PREFIX_OF_CHILD + SAME_PATH
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.IS_PREFIX_OF_CHILD + AbstractFileSystemNodeWithChildrenTest.SAME_PATH
     }
 
     def "invalidate #vfsSpec.searchedPath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -71,7 +71,7 @@ class PartialDirectoryNodeTest extends AbstractIncompleteFileSystemNodeTest<Part
         }
 
         where:
-        vfsSpec << CHILD_IS_PREFIX
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.CHILD_IS_PREFIX
     }
 
     def "invalidate #vfsSpec.searchedPath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -90,7 +90,7 @@ class PartialDirectoryNodeTest extends AbstractIncompleteFileSystemNodeTest<Part
         }
 
         where:
-        vfsSpec << CHILD_IS_PREFIX
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.CHILD_IS_PREFIX
     }
 
     def "returns Directory for snapshot"() {

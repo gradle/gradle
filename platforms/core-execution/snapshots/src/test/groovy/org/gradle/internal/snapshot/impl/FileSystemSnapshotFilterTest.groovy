@@ -44,7 +44,7 @@ class FileSystemSnapshotFilterTest extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     FileSystemAccess fileSystemAccess = TestFiles.fileSystemAccess()
-    FileSystem fileSystem = TestFiles.fileSystem()
+    java.io.FileSystem fileSystem = TestFiles.fileSystem()
 
     def "filters correctly"() {
         given:

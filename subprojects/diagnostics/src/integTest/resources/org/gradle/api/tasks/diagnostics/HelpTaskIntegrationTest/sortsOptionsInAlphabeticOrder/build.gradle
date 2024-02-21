@@ -1,3 +1,5 @@
+package org.gradle.api.tasks.diagnostics.HelpTaskIntegrationTest.sortsOptionsInAlphabeticOrder
+
 import org.gradle.api.tasks.options.Option
 
 task hello(type: CustomTask)

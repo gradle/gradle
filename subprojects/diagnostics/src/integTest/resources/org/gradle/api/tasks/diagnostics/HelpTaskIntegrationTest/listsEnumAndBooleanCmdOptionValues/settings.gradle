@@ -1,2 +1,4 @@
+package org.gradle.api.tasks.diagnostics.HelpTaskIntegrationTest.listsEnumAndBooleanCmdOptionValues
+
 include ':proj1'
 include ':proj2'

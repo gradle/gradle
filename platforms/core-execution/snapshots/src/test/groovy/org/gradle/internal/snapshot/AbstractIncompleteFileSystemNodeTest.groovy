@@ -35,7 +35,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         addedNodes.empty
 
         where:
-        vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX).findAll { allowEmptyChildren || !it.childPaths.empty }
+        vfsSpec << (AbstractFileSystemNodeWithChildrenTest.NO_COMMON_PREFIX + AbstractFileSystemNodeWithChildrenTest.COMMON_PREFIX).findAll { allowEmptyChildren || !it.childPaths.empty }
     }
 
     def "store #fileType child with common prefix adds a new child with the shared prefix of type Directory (#vfsSpec)"() {
@@ -65,7 +65,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpecWithFileType << [COMMON_PREFIX, [FileType.RegularFile, FileType.Directory]].combinations()
+        vfsSpecWithFileType << [AbstractFileSystemNodeWithChildrenTest.COMMON_PREFIX, [FileType.RegularFile, FileType.Directory]].combinations()
         vfsSpec = vfsSpecWithFileType[0] as VirtualFileSystemTestSpec
         fileType = vfsSpecWithFileType[1] as FileType
     }
@@ -97,7 +97,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << COMMON_PREFIX
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.COMMON_PREFIX
     }
 
     def "store child with no common prefix adds it (#vfsSpec)"() {
@@ -119,7 +119,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << NO_COMMON_PREFIX.findAll { allowEmptyChildren || !it.childPaths.empty }
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.NO_COMMON_PREFIX.findAll { allowEmptyChildren || !it.childPaths.empty }
     }
 
     def "store parent #vfsSpec.searchedPath replaces child #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -141,7 +141,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << IS_PREFIX_OF_CHILD
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.IS_PREFIX_OF_CHILD
     }
 
     def "storing a file system snapshot with same path #vfsSpec.searchedPath does replace child (#vfsSpec)"() {
@@ -163,7 +163,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << SAME_PATH
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.SAME_PATH
     }
 
     def "storing a metadata snapshot with same path #vfsSpec.searchedPath does not replace a complete snapshot (#vfsSpec)"() {
@@ -185,7 +185,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         }
 
         where:
-        vfsSpec << SAME_PATH
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.SAME_PATH
     }
 
     def "storing a metadata snapshot with same path #vfsSpec.searchedPath does replace a metadata snapshot (#vfsSpec)"() {
@@ -209,7 +209,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         }
 
         where:
-        vfsSpec << SAME_PATH
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.SAME_PATH
     }
 
     def "storing the child #vfsSpec.searchedPath of #vfsSpec.selectedChildPath updates the child (#vfsSpec)"() {
@@ -232,7 +232,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         }
 
         where:
-        vfsSpec << CHILD_IS_PREFIX
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.CHILD_IS_PREFIX
     }
 
     def storeDescendantOfSelectedChild(MetadataSnapshot snapshot, FileSystemNode updatedChild) {
@@ -249,7 +249,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX + IS_PREFIX_OF_CHILD).findAll { allowEmptyChildren || !it.childPaths.empty}
+        vfsSpec << (AbstractFileSystemNodeWithChildrenTest.NO_COMMON_PREFIX + AbstractFileSystemNodeWithChildrenTest.COMMON_PREFIX + AbstractFileSystemNodeWithChildrenTest.IS_PREFIX_OF_CHILD).findAll { allowEmptyChildren || !it.childPaths.empty}
     }
 
     def "querying for non-existing child #vfsSpec.searchedPath finds nothings (#vfsSpec)"() {
@@ -262,7 +262,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX).findAll { allowEmptyChildren || !it.childPaths.empty}
+        vfsSpec << (AbstractFileSystemNodeWithChildrenTest.NO_COMMON_PREFIX + AbstractFileSystemNodeWithChildrenTest.COMMON_PREFIX).findAll { allowEmptyChildren || !it.childPaths.empty}
     }
 
     def "querying for parent #vfsSpec.searchedPath of child #vfsSpec.selectedChildPath finds adapted child (#vfsSpec)"() {
@@ -278,7 +278,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         }
 
         where:
-        vfsSpec << IS_PREFIX_OF_CHILD
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.IS_PREFIX_OF_CHILD
     }
 
     def "querying the snapshot for existing child #vfsSpec.searchedPath returns the snapshot for the child (#vfsSpec)"() {
@@ -296,7 +296,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         }
 
         where:
-        vfsSpec << SAME_PATH
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.SAME_PATH
     }
 
     def "querying the snapshot for existing child #vfsSpec.searchedPath without snapshot returns empty (#vfsSpec)"() {
@@ -312,7 +312,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         }
 
         where:
-        vfsSpec << SAME_PATH
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.SAME_PATH
     }
 
     def "querying for existing child #vfsSpec.searchedPath returns the child (#vfsSpec)"() {
@@ -328,7 +328,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         }
 
         where:
-        vfsSpec << SAME_PATH
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.SAME_PATH
     }
 
     def "querying the snapshot for descendant of child #vfsSpec.selectedChildPath queries the child (#vfsSpec)"() {
@@ -345,7 +345,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         }
 
         where:
-        vfsSpec << CHILD_IS_PREFIX
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.CHILD_IS_PREFIX
     }
 
     def "querying the snapshot for non-existing descendant of child #vfsSpec.selectedChildPath returns empty (#vfsSpec)"() {
@@ -361,7 +361,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         }
 
         where:
-        vfsSpec << CHILD_IS_PREFIX
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.CHILD_IS_PREFIX
     }
 
     def "querying for descendant of child #vfsSpec.selectedChildPath queries the child (#vfsSpec)"() {
@@ -378,7 +378,7 @@ abstract class AbstractIncompleteFileSystemNodeTest<T extends FileSystemNode> ex
         }
 
         where:
-        vfsSpec << CHILD_IS_PREFIX
+        vfsSpec << AbstractFileSystemNodeWithChildrenTest.CHILD_IS_PREFIX
     }
 
     static ChildMap<FileSystemNode> sortedChildren(String path1, FileSystemNode child1, String path2, FileSystemNode child2) {

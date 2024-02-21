@@ -1,3 +1,5 @@
+package org.gradle.integtests.ProjectLayoutIntegrationTest.canUseANonStandardBuildDir
+
 plugins {
     id("java")
 }

@@ -40,7 +40,7 @@ class OnDemandFileAccessTest extends Specification {
     }
 
     def "acquires shared lock to read file"() {
-        def action = {} as Factory
+        def action = {} as groovy.util.Factory
 
         when:
         lock.readFile(action)

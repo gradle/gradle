@@ -1,2 +1,4 @@
+package org.gradle.internal.logging.LoggingIntegrationTest.logging.buildSrc
+
 println 'main buildSrc quiet'
 logger.info 'main buildSrc info'

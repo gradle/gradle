@@ -118,7 +118,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
 
     def "fails to create custom task if constructor arguments are missing"() {
         given:
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << AbstractDeferredTaskDefinitionIntegrationTest.CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << "tasks.register('myTask', CustomTask, 'hello')"
 
         when:
@@ -132,7 +132,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
 
     def "fails to create custom task if all constructor arguments missing"() {
         given:
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << AbstractDeferredTaskDefinitionIntegrationTest.CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << "tasks.register('myTask', CustomTask)"
 
         when:
@@ -146,7 +146,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
 
     def "fails when #description constructor argument is wrong type"() {
         given:
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << AbstractDeferredTaskDefinitionIntegrationTest.CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << "tasks.register('myTask', CustomTask, $constructorArgs)"
 
         when:
@@ -164,7 +164,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
 
     def "fails to create when null passed as a constructor argument value at #position"() {
         given:
-        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << AbstractDeferredTaskDefinitionIntegrationTest.CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
         buildFile << script
 
         when:
@@ -194,7 +194,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
         failure.assertHasCause(mutationExceptionFor(description))
 
         where:
-        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+        [description, code] << AbstractDeferredTaskDefinitionIntegrationTest.INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
     def "cannot execute #description during lazy task configuration action execution"() {
@@ -212,7 +212,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
         failure.assertHasCause(mutationExceptionFor(description))
 
         where:
-        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+        [description, code] << AbstractDeferredTaskDefinitionIntegrationTest.INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
     def "cannot execute #description on another project during lazy task creation action execution"() {
@@ -232,7 +232,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
         failure.assertHasCause(mutationExceptionFor(description))
 
         where:
-        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+        [description, code] << AbstractDeferredTaskDefinitionIntegrationTest.INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
     def "cannot execute #description on another project during lazy task configuration action execution"() {
@@ -252,7 +252,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
         failure.assertHasCause(mutationExceptionFor(description))
 
         where:
-        [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
+        [description, code] << AbstractDeferredTaskDefinitionIntegrationTest.INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
     def "gets useful message when using improper type for named using #api"() {

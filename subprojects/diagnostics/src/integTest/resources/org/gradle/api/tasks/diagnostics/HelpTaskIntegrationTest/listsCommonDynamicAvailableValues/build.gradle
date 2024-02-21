@@ -1,3 +1,5 @@
+package org.gradle.api.tasks.diagnostics.HelpTaskIntegrationTest.listsCommonDynamicAvailableValues
+
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.options.OptionValues
 

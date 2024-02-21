@@ -1,1 +1,3 @@
+package org.gradle.integtests.CommandLineIntegrationTest.shared
+
 rootProject.name = 'commandLine'

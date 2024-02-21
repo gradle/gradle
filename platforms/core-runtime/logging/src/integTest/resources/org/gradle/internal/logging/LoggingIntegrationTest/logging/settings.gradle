@@ -1,3 +1,5 @@
+package org.gradle.internal.logging.LoggingIntegrationTest.logging
+
 include 'project1', 'project2'
 
 println 'settings quiet out'

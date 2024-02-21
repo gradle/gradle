@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.junit.Assume
 
 
@@ -26,6 +27,6 @@ class AutoConsoleBuildPhaseFunctionalTest extends AbstractConsoleBuildPhaseFunct
     @Override
     def setup() {
         // The dynamic content is written to stdout only when it is attached to a console
-        Assume.assumeTrue(consoleAttachment.stdoutAttached)
+        Assume.assumeTrue(AbstractConsoleGroupedTaskFunctionalTest.consoleAttachment.stdoutAttached)
     }
 }

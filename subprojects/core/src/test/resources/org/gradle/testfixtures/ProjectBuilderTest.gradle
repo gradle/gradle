@@ -1,1 +1,3 @@
+package org.gradle.testfixtures
+
 task hello { doLast { println 'hello' } }

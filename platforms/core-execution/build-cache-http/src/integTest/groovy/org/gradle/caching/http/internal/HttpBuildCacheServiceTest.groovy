@@ -185,7 +185,7 @@ class HttpBuildCacheServiceTest extends Specification {
         }
 
         then:
-        UncheckedIOException exception = thrown()
+        java.io.UncheckedIOException exception = thrown()
 
         exception.message == "Loading entry from '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
 
@@ -200,7 +200,7 @@ class HttpBuildCacheServiceTest extends Specification {
         cache.store(key, writer("".bytes))
 
         then:
-        UncheckedIOException exception = thrown()
+        java.io.UncheckedIOException exception = thrown()
 
         exception.message == "Storing entry at '${server.uri}/cache/${key.hashCode}' response status ${httpCode}: broken"
 
