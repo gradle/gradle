@@ -59,7 +59,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final BuildOperationListener buildOperationListener = Mock()
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
     final BuildOperationProgressEventEmitter progressBroadcaster = new DefaultBuildOperationProgressEventEmitter(
-        clock, currentBuildOperationRef, buildOperationListener)
+        clock::getCurrentTime, currentBuildOperationRef, buildOperationListener)
 
     def setup() {
         _ * diagnosticsFactory.newStream() >> problemStream

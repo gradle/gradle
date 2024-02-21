@@ -30,12 +30,12 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
     };
 
-    private final TimeSupplier clock;
+    private final BuildOperationTimeSupplier clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final BuildOperationExecutionListenerFactory listenerFactory;
 
-    public DefaultBuildOperationRunner(CurrentBuildOperationRef currentBuildOperationRef, TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerFactory listenerFactory) {
+    public DefaultBuildOperationRunner(CurrentBuildOperationRef currentBuildOperationRef, BuildOperationTimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerFactory listenerFactory) {
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.clock = clock;
         this.buildOperationIdFactory = buildOperationIdFactory;
@@ -173,10 +173,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     @Nullable
     private BuildOperationState getCurrentBuildOperation() {
         return (BuildOperationState) currentBuildOperationRef.get();
-    }
-
-    public interface TimeSupplier {
-        long getCurrentTime();
     }
 
     private static RuntimeException throwAsBuildOperationInvocationException(Throwable t) {
