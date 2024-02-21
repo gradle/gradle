@@ -1,0 +1,147 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+    "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+    "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+
+<suppressions>
+    <!-- These packages are duplicated in core-api, don't require a package-info.java in each place -->
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]base-annotations[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]model-core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]testfixtures[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platform-base[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]testfixtures[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]resources[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]resources[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]maven[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]plugins[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]reporting[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]diagnostics[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]plugins[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]process-services[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]process[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]plugins[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]jvm[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]scala[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]base-services[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]base-services-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]base-services-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]specs[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]language-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]javadoc[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]language-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]compile[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]language-java[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]compile[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]testing-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]jvm[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]testing-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]testing[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]language-java[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platform-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]toolchains-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platform-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]java-platform[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+
+    <!-- These packages are duplicated in ide-native from ide, don't require a package-info.java in each place -->
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]ide-native[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]plugins[/\\]ide[/\\]api[/\\][^/\\]+"/>
+
+    <!-- These packages are duplicated in platform-native from language-native, don't require a package-info.java in each place -->
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platform-native[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]language[/\\]swift[/\\][^/\\]+"/>
+
+    <!-- These packages are duplicated in core and war, don't require a package-info.java in each place -->
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]war[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]war[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]bundling[/\\][^/\\]+"/>
+
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]language-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]language-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-java[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-java[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-java-base[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-java-library[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-fixtures[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-suite[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-suite[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\]jvm[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-test-report-aggregation[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]software[/\\]plugins-version-catalog[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+
+    <!-- Don't require api docs for projects only used internally -->
+    <suppress checks="Javadoc.*"
+              files=".*[/\\]internal-.+[/\\]src[/\\]main[/\\].+"/>
+
+    <!-- JavaScript plugin is incubating -->
+    <suppress checks="Javadoc.*"
+              files=".*[/\\]javascript[/\\].+"/>
+
+    <!-- These packages are duplicated in ide and ide-plugins, don't require a package-info.java in each place -->
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]ide[/\\]ide-plugins[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]plugins[/\\]ide[/\\]eclipse[/\\][^/\\]+"/>
+
+    <!-- Protocol types may only define constants in interfaces -->
+    <suppress checks="InterfaceIsTypeCheck"
+              files=".*[/\\]tooling-api[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]tooling[/\\]internal[/\\]protocol.+"/>
+    <suppress checks="InterfaceIsTypeCheck"
+              files=".*[/\\]core-api[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]attributes[/\\]Usage.+"/>
+
+    <!-- We like it explicit -->
+    <suppress checks="ExplicitInitializationCheck"
+              files=".*"/>
+
+    <!-- Ignore code from maven subproject under org.apache -->
+    <suppress checks="RegexpSingleline"
+              files=".*[/\\]maven[/\\]src[/\\]main[/\\]java[/\\]org[/\\]apache[/\\].+"/>
+    <suppress checks="RegexpHeader"
+              files=".*[/\\]maven[/\\]src[/\\]main[/\\]java[/\\]org[/\\]apache[/\\].+"/>
+
+    <!-- Ignore constant name for architecture tests since we want to use snake case there -->
+    <suppress checks="ConstantName"
+              files=".*[/\\]architecture-test[/\\]src[/\\]test[/\\]java[/\\]org[/\\]gradle[/\\].+" />
+    <suppress checks="ConstantName"
+              files=".*[/\\]internal-architecture-testing[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\].+" />
+
+    <!-- Ignore all checks for the generated sources of org.gradle.samples plugin -->
+    <suppress checks=".*" files=".*[/\\]docs[/\\]build[/\\]generated-source-sets[/\\].+" />
+    <suppress checks=".*" files=".*[/\\].*[/\\]groovy-dsl-plugins[/\\].+" />
+</suppressions>
