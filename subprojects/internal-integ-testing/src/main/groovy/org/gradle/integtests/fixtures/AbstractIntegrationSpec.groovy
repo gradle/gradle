@@ -201,6 +201,10 @@ abstract class AbstractIntegrationSpec extends Specification {
         script
     }
 
+    void versionCatalogFile(@Language("toml") String script) {
+        versionCatalogFile << script
+    }
+
     TestFile getBuildKotlinFile() {
         testDirectory.file(defaultBuildKotlinFileName)
     }
@@ -254,6 +258,10 @@ abstract class AbstractIntegrationSpec extends Specification {
 
     protected TestFile getPropertiesFile() {
         testDirectory.file('gradle.properties')
+    }
+
+    protected TestFile getVersionCatalogFile() {
+        testDirectory.file('gradle/libs.versions.toml')
     }
 
     protected static String getSettingsFileName() {
