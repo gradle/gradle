@@ -22,6 +22,8 @@ This includes:
 - Build options infrastructure.
 - The console and CLI, as a specific implementation of these services.
 
+The UI architecture module uses the core runtime architecture module. It provides APIs that are used by the other modules and platforms. 
+
 This ADR does not specify the owner of this new architecture module. However, as a separate module it can be assigned ownership independently of the other core services.
 
 ## Status
