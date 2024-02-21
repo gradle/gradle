@@ -20,8 +20,10 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 import java.nio.file.Files
+import java.util.function.Supplier
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
@@ -155,6 +157,45 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         ]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/28114")
+    def "buildSrc jar can monkey patch external plugins even after instrumentation"() {
+        given:
+        withExternalPlugin("myPlugin", "my.plugin") {
+            """throw new RuntimeException("A bug in a plugin");"""
+        }
+        withBuildSrc()
+        file("buildSrc/src/main/java/test/gradle/MyPlugin.java") << """
+            package test.gradle;
+            import org.gradle.api.*;
+
+            public class MyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    System.out.println("MyPlugin patched from buildSrc");
+                }
+            }
+        """
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+        """
+        buildFile << """
+            plugins {
+                id("my.plugin") version "1.0"
+            }
+        """
+
+        when:
+        executer.inDirectory(file("external-plugin")).withTasks("publish").run()
+        run("help")
+
+        then:
+        outputContains("MyPlugin patched from buildSrc")
+    }
+
     def withBuildSrc() {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
         file("buildSrc/settings.gradle") << "\n"
@@ -173,6 +214,47 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         settingsFile << """
             includeBuild("./$folderName")
         """
+    }
+
+    def withExternalPlugin(String name, String pluginId, Supplier<String> implementationBody = {}) {
+        def implementationClass = name.capitalize()
+        def folderName = "external-plugin"
+        file("$folderName/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+                id("maven-publish")
+            }
+
+            group = "$pluginId"
+            version = "1.0"
+
+            publishing {
+                repositories {
+                    maven {
+                        url '${mavenRepo.uri}'
+                    }
+                }
+            }
+
+            gradlePlugin {
+                plugins {
+                    ${name} {
+                        id = '${pluginId}'
+                        implementationClass = 'test.gradle.$implementationClass'
+                    }
+                }
+            }
+        """
+        file("$folderName/src/main/java/test/gradle/${implementationClass}.java") << """
+            package test.gradle;
+            import org.gradle.api.*;
+            public class $implementationClass implements Plugin<Project> {
+                public void apply(Project project) {
+                    ${implementationBody.get()}
+                }
+            }
+        """
+        file("$folderName/settings.gradle") << "rootProject.name = '$folderName'"
     }
 
     List<String> allTransformsFor(String fileName) {
