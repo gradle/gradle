@@ -335,40 +335,55 @@ abstract class GeneratorTask : DefaultTask() {
             """
             $markerComment
             $startDiagram
-                graph TD
         """.trimIndent()
         )
+        val writer = NodeWriter(this, "    ")
+        writer.node("graph TD")
         for (element in elements) {
             if (element is Platform) {
-                platform(element)
+                writer.platform(element)
             } else {
-                element(element)
+                writer.element(element)
             }
         }
         println(endDiagram)
     }
 
-    private fun PrintWriter.platform(platform: Platform) {
+    private fun NodeWriter.platform(platform: Platform) {
         println()
-        println("subgraph ${platform.id}[\"${platform.name} platform\"]")
-        for (child in platform.children) {
-            element(child)
+        node("subgraph ${platform.id}[\"${platform.name} platform\"]") {
+            for (child in platform.children) {
+                element(child)
+            }
         }
-        println("end")
-        println("style ${platform.id} fill:#c2e0f4,stroke:#3498db,stroke-width:2px;")
+        node("end")
+        node("style ${platform.id} fill:#c2e0f4,stroke:#3498db,stroke-width:2px;")
         for (dep in platform.uses) {
-            println("${platform.id} --> $dep")
+            node("${platform.id} --> $dep")
         }
     }
 
-    private fun PrintWriter.element(element: ArchitectureElement) {
+    private fun NodeWriter.element(element: ArchitectureElement) {
         println()
-        println(
-            """
-            ${element.id}["${element.name} module"]
-            style ${element.id} stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px;
-        """.trimIndent()
-        )
+        node("${element.id}[\"${element.name} module\"]")
+        node("style ${element.id} stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px;")
+    }
+
+    private class NodeWriter(private val writer: PrintWriter, private val indent: String) {
+        fun println() {
+            writer.println()
+        }
+
+        fun node(node: String) {
+            writer.print(indent)
+            writer.println(node)
+        }
+
+        fun node(node: String, builder: NodeWriter.() -> Unit) {
+            writer.print(indent)
+            writer.println(node)
+            builder(NodeWriter(writer, "$indent    "))
+        }
     }
 }
 
