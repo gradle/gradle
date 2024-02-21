@@ -132,7 +132,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static ArtifactCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_EXTERNAL_DEPENDENCY_ATTRIBUTE));
-            config.componentFilter(componentId -> !isGradleApi(componentId) && !isProject(componentId));
+            config.componentFilter(DefaultScriptClassPathResolver::isExternalDependency);
         }).getArtifacts();
     }
 
@@ -144,14 +144,18 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return false;
     }
 
-    private static boolean isProject(ComponentIdentifier componentId) {
+    private static boolean isExternalDependency(ComponentIdentifier componentId) {
+        return !isGradleApi(componentId) && !isProjectDependency(componentId);
+    }
+
+    private static boolean isProjectDependency(ComponentIdentifier componentId) {
         return componentId instanceof ProjectComponentIdentifier;
     }
 
     private static ArtifactCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_PROJECT_DEPENDENCY_ATTRIBUTE));
-            config.componentFilter(DefaultScriptClassPathResolver::isProject);
+            config.componentFilter(DefaultScriptClassPathResolver::isProjectDependency);
         }).getArtifacts();
     }
 
@@ -159,15 +163,15 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
      * Combines external dependencies and project dependencies to one classpath that is sorted based on the original classpath.
      */
     private static ClassPath combineToClasspath(Configuration classpathConfiguration, ArtifactCollection externalDependencies, ArtifactCollection projectDependencies) {
-        // Artifact transform returns entries that are unique based on the ComponentIdentifier + file name + original file name.
-        // That is why we de-duplicate pairs of ComponentIdentifier + file name pairs in the original classpath for ordering.
-        Set<ResolvedArtifactResult> originalArtifacts = classpathConfiguration.getIncoming().getArtifacts().getArtifacts();
-        List<ClassPathArtifactIdentifier> identifiers = originalArtifacts.stream()
-            .map(ClassPathArtifactIdentifier::of)
+        Set<ResolvedArtifactResult> originalArtifacts = classpathConfiguration.getIncoming()
+            .artifactView(config -> config.componentFilter(id -> !isGradleApi(id)))
+            .getArtifacts().getArtifacts();
+        List<OriginalArtifactIdentifier> identifiers = originalArtifacts.stream()
+            .map(OriginalArtifactIdentifier::of)
             .distinct()
             .collect(Collectors.toList());
 
-        Ordering<ClassPathArtifactIdentifier> ordering = Ordering.explicit(identifiers);
+        Ordering<OriginalArtifactIdentifier> ordering = Ordering.explicit(identifiers);
         List<File> classpath = Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream())
             .map(ClassPathTransformedArtifact::ofTransformedArtifact)
             // We sort based on the original classpath to we keep the original order
@@ -179,38 +183,35 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static class ClassPathTransformedArtifact {
         private final File file;
-        private final ClassPathArtifactIdentifier originalIdentifier;
+        private final OriginalArtifactIdentifier originalIdentifier;
 
-        private ClassPathTransformedArtifact(File file, ClassPathArtifactIdentifier originalIdentifier) {
+        private ClassPathTransformedArtifact(File file, OriginalArtifactIdentifier originalIdentifier) {
             this.file = file;
             this.originalIdentifier = originalIdentifier;
         }
 
         public static ClassPathTransformedArtifact ofTransformedArtifact(ResolvedArtifactResult transformedArtifact) {
             checkArgument(transformedArtifact.getId() instanceof ComponentFileArtifactIdentifierWithOriginal);
-            ComponentFileArtifactIdentifierWithOriginal identifier = (ComponentFileArtifactIdentifierWithOriginal) transformedArtifact.getId();
-            return new ClassPathTransformedArtifact(
-                transformedArtifact.getFile(),
-                ClassPathArtifactIdentifier.of(identifier.getOriginalFileName(), identifier.getComponentIdentifier())
-            );
+            return new ClassPathTransformedArtifact(transformedArtifact.getFile(), OriginalArtifactIdentifier.of(transformedArtifact));
         }
     }
 
-    private static class ClassPathArtifactIdentifier {
-        private final String fileName;
+    private static class OriginalArtifactIdentifier {
+        private final String originalFileName;
         private final ComponentIdentifier componentIdentifier;
 
-        private ClassPathArtifactIdentifier(String fileName, ComponentIdentifier componentIdentifier) {
-            this.fileName = fileName;
+        private OriginalArtifactIdentifier(String originalFileName, ComponentIdentifier componentIdentifier) {
+            this.originalFileName = originalFileName;
             this.componentIdentifier = componentIdentifier;
         }
 
-        private static ClassPathArtifactIdentifier of(String fileName, ComponentIdentifier componentIdentifier) {
-            return new ClassPathArtifactIdentifier(fileName, componentIdentifier);
-        }
-
-        private static ClassPathArtifactIdentifier of(ResolvedArtifactResult artifact) {
-            return new ClassPathArtifactIdentifier(artifact.getFile().getName(), artifact.getId().getComponentIdentifier());
+        private static OriginalArtifactIdentifier of(ResolvedArtifactResult artifact) {
+            if (artifact.getId() instanceof ComponentFileArtifactIdentifierWithOriginal) {
+                ComponentFileArtifactIdentifierWithOriginal identifier = (ComponentFileArtifactIdentifierWithOriginal) artifact.getId();
+                return new OriginalArtifactIdentifier(identifier.getOriginalFileName(), identifier.getComponentIdentifier());
+            } else {
+                return new OriginalArtifactIdentifier(artifact.getFile().getName(), artifact.getId().getComponentIdentifier());
+            }
         }
 
         @Override
@@ -221,13 +222,13 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            ClassPathArtifactIdentifier that = (ClassPathArtifactIdentifier) o;
-            return Objects.equals(fileName, that.fileName) && Objects.equals(componentIdentifier, that.componentIdentifier);
+            OriginalArtifactIdentifier that = (OriginalArtifactIdentifier) o;
+            return Objects.equals(originalFileName, that.originalFileName) && Objects.equals(componentIdentifier, that.componentIdentifier);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(fileName, componentIdentifier);
+            return Objects.hash(originalFileName, componentIdentifier);
         }
     }
 }
