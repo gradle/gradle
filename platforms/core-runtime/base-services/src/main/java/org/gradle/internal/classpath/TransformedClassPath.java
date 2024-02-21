@@ -51,6 +51,7 @@ public class TransformedClassPath implements ClassPath {
     public static final String INSTRUMENTED_MARKER_FILE_NAME = ".gradle-instrumented.marker";
     public static final String INSTRUMENTED_JAR_DIR_NAME = "instrumented";
     public static final String ORIGINAL_JAR_DIR_NAME = "original";
+    public static final String INSTRUMENTED_ENTRY_PREFIX = "instrumented-";
 
     private final ClassPath originalClassPath;
     // mapping of original -> "double"
@@ -332,7 +333,7 @@ public class TransformedClassPath implements ClassPath {
         return instrumentedJar.getParentFile() != null
             && instrumentedJar.getParentFile().getName().equals(INSTRUMENTED_JAR_DIR_NAME)
             && !originalJar.equals(instrumentedJar)
-            && instrumentedJar.getName().equals(originalJar.getName());
+            && instrumentedJar.getName().equals(INSTRUMENTED_ENTRY_PREFIX + originalJar.getName());
     }
 
     private static boolean isInstrumentedMarkerFile(File classPathEntry) {
