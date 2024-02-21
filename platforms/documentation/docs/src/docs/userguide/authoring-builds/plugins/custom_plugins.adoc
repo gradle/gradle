@@ -13,14 +13,70 @@
 // limitations under the License.
 
 [[custom_plugins]]
-= Developing Custom Gradle Plugins
+= Plugins
+
+Gradle comes with a set of powerful core systems.
+But everything on top is a plugin.
 
 A Gradle plugin packages up reusable pieces of build logic, which can be used across many different projects and builds.
 Gradle allows you to implement your own plugins, so you can reuse your build logic, and share it with others.
 
-You can implement a Gradle plugin in any language you like, provided the implementation ends up compiled as JVM bytecode.
-In our examples, we are going to use Java as the implementation language for standalone plugin project and Groovy or Kotlin in the buildscript plugin examples.
-In general, a plugin implemented using Java or Kotlin, which are statically typed, will perform better than the same plugin implemented using Groovy.
+We can distinguish between three different kinds of plugins:
+
+1. *Core Plugins* - plugins that come from Gradle and are applied by a simple ID such as `java-library`.
+2. *Community Plugins* - public plugins that come from the Gradle Plugin Portal and are applied by an ID and a version such as `id("org.jetbrains.intellij") version "1.17.2"`.
+3. *Convention Plugins* - plugins that you write yourself.
+
+Plugins can reside in three places:
+
+[cols="*,*,*"]
+|===
+|Name | Source code location |Benefit
+
+|Build script plugins
+|Build script
+|Plugin is automatically compiled and included in the classpath of the build script
+
+|Precompiled script plugins
+|`buildSrc`
+|Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script.
+The plugin is visible to every build script used by the build.
+
+|Binary plugins
+|Standalone project
+|Produces and publishes a JAR which you can then use in multiple builds and share with others.
+|===
+
+== Build script plugins
+
+To create a Gradle plugin, you need to write a class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface.
+
+When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply()] method.
+
+The project object is passed as a parameter, which the plugin can use to configure the project however it needs to.
+
+The following sample contains a greeting plugin, which adds a `hello` task to the project:
+
+====
+include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[]"]
+====
+
+----
+$ gradle -q hello
+include::{snippetsPath}/customPlugins/customPlugin/tests/customPlugin.out[]
+----
+
+NOTE: A new instance of a plugin is created for each project it is applied to.
+
+The link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] class is a generic type.
+
+In this example, the plugin accepts the link:{groovyDslPath}/org.gradle.api.Project.html[Project] type as a type parameter. Alternatively, the plugin can accept a parameter of type link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] to be applied in a settings script, or a parameter of type link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] to be applied in an initialization script.
+
+== Precompiled script plugins
+
+== Binary plugins
+
 
 [[sec:packaging_a_plugin]]
 == Packaging a plugin
@@ -53,6 +109,7 @@ In our examples, we will start with the plugin in the build script, to keep thin
 To create a Gradle plugin, you need to write a class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface.
 When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply()] method.
 The project object is passed as a parameter, which the plugin can use to configure the project however it needs to.
+
 The following sample contains a greeting plugin, which adds a `hello` task to the project.
 
 .A custom plugin
