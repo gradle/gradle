@@ -819,6 +819,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             Map<K, V> candidates = new LinkedHashMap<>();
+            // we cannot use dest directly because we don't want to emit any entries if either left or right are missing
             Value<Void> leftValue = left.collectEntries(consumer, collector, candidates);
             if (leftValue.isMissing()) {
                 return Value.present();
