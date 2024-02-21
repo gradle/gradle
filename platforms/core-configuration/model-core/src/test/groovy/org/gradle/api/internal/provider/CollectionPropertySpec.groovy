@@ -1422,14 +1422,36 @@ The value of this property is derived from: <source>""")
         null        | ["0"]         | _             | "append to non-empty value, then add missing"     | { it.append("1") ; it.add(notDefined()) }
         ["1"]       | _             | ["0"]         | "add to non-empty convention, then append missing"| { it.add("1") ; it.append(notDefined()) }
         null        | _             | ["0"]         | "append to non-empty conventio, then add missing" | { it.append("1") ; it.add(notDefined()) }
-        ["1"]       | _             | _             | "add, then add missing to non-empty, then append" | { it.add("0") ; it.add(notDefined()) ; it.append("1") }
-        ["0", "1"]  | _             | _             | "add, then append missing to non-empty, then add" | { it.add("0") ; it.append(notDefined()) ; it.add("1") }
+        ["1"]       | _             | _             | "add, then add missing, then append"              | { it.add("0") ; it.add(notDefined()) ; it.append("1") }
+        ["0", "1"]  | _             | _             | "add, then append missing, then add"              | { it.add("0") ; it.append(notDefined()) ; it.add("1") }
+    }
+
+    def "property restores undefined-safe items"() {
+        given:
+        property.add("1")
+        property.appendAll(supplierWithChangingExecutionTimeValues(List, value, value))
+        property.add("3")
+
+        when:
+        def execTimeValue = property.calculateExecutionTimeValue()
+        def property2 = property()
+        property2.fromState(execTimeValue)
+
+        then:
+        assertValueIs(result, property2)
+
+        where:
+        value | result
+        ["2"] | ["1", "2", "3"]
+        null  | ["1", "3"]
     }
 
     def "property remains undefined-safe after restored"() {
         given:
-        property.add(notDefined())
+        property.append(notDefined())
         property.add("2")
+        property.append(notDefined())
+        property.append(notDefined())
         property.addAll(supplierWithChangingExecutionTimeValues(['3'], ['3a'], ['3b'], ['3c'], ['3d']))
         property.addAll(supplierWithValues(['4']))
         property.append(notDefined())
