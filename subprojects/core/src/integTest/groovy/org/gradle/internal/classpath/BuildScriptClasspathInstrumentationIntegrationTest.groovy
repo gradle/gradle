@@ -75,40 +75,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         allTransformsFor("included-1.0.jar") == ["ProjectDependencyInstrumentingArtifactTransform"]
     }
 
-    def "order of entries in the effective classpath stays the same as in the original classpath"() {
-        given:
-        withIncludedBuild()
-        mavenRepo.module("org", "commons", "3.2.1").publish()
-        buildFile << """
-            import java.nio.file.*
-
-            buildscript {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                dependencies {
-                    classpath "${first[0]}"
-                    classpath "${second[0]}"
-                }
-            }
-
-            Thread.currentThread().getContextClassLoader().getURLs()
-                .eachWithIndex { artifact, idx -> println "classpath[\$idx]==\${Paths.get(artifact.toURI()).toFile().name}" }
-        """
-
-        when:
-        run("help")
-
-        then:
-        outputContains("classpath[0]==${first[1]}")
-        outputContains("classpath[1]==${second[1]}")
-
-        where:
-        first                                      | second
-        ["org.test:included", "included-1.0.jar"]  | ["org:commons:3.2.1", "commons-3.2.1.jar"]
-        ["org:commons:3.2.1", "commons-3.2.1.jar"] | ["org.test:included", "included-1.0.jar"]
-    }
-
     def "external dependencies should not be copied to the global artifact transform cache"() {
         given:
         // We test content in the global cache
@@ -155,6 +121,40 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
             "ExternalDependencyInstrumentingArtifactTransform",
             "ExternalDependencyInstrumentingArtifactTransform"
         ]
+    }
+
+    def "order of entries in the effective classpath stays the same as in the original classpath"() {
+        given:
+        withIncludedBuild()
+        mavenRepo.module("org", "commons", "3.2.1").publish()
+        buildFile << """
+            import java.nio.file.*
+
+            buildscript {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                dependencies {
+                    classpath "${first[0]}"
+                    classpath "${second[0]}"
+                }
+            }
+
+            Thread.currentThread().getContextClassLoader().getURLs()
+                .eachWithIndex { artifact, idx -> println "classpath[\$idx]==\${Paths.get(artifact.toURI()).toFile().name}" }
+        """
+
+        when:
+        run("help")
+
+        then:
+        outputContains("classpath[0]==${first[1]}")
+        outputContains("classpath[1]==${second[1]}")
+
+        where:
+        first                                      | second
+        ["org.test:included", "included-1.0.jar"]  | ["org:commons:3.2.1", "commons-3.2.1.jar"]
+        ["org:commons:3.2.1", "commons-3.2.1.jar"] | ["org.test:included", "included-1.0.jar"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/28114")
