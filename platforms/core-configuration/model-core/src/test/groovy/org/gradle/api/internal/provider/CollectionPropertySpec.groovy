@@ -1426,6 +1426,25 @@ The value of this property is derived from: <source>""")
         ["0", "1"]  | _             | _             | "add, then append missing, then add"              | { it.add("0") ; it.append(notDefined()) ; it.add("1") }
     }
 
+    def "execution time value is present if only undefined-safe operations are performed"() {
+        given:
+        property.set(notDefined())
+        property.add(notDefined())
+        property.append("2")
+        property.addAll(['3'])
+        property.addAll(['4'])
+        property.append(notDefined())
+
+        expect:
+        assertValueIs(['2', '3', '4'])
+
+        when:
+        def execTimeValue = property.calculateExecutionTimeValue()
+
+        then:
+        assertCollectionIs(toImmutable(['2', '3', '4']), execTimeValue.toValue().get())
+    }
+
     def "property restores undefined-safe items"() {
         given:
         property.add("1")

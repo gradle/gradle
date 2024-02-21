@@ -247,12 +247,12 @@ public class Collectors {
         private final ProviderInternal<? extends Iterable<? extends T>> provider;
         private final boolean ignoreAbsent;
 
+        public ElementsFromCollectionProvider(ProviderInternal<? extends Iterable<? extends T>> provider) {
+            this(provider, false);
+        }
+
         private ElementsFromCollectionProvider(ProviderInternal<? extends Iterable<? extends T>> provider, boolean ignoreAbsent) {
-            if (!ignoreAbsent) {
-                this.provider = provider;
-            } else {
-                this.provider = neverMissing(Cast.uncheckedNonnullCast(provider));
-            }
+            this.provider = ignoreAbsent ? neverMissing(Cast.uncheckedNonnullCast(provider)) : provider;
             this.ignoreAbsent = ignoreAbsent;
         }
 
@@ -261,16 +261,9 @@ public class Collectors {
             return Cast.uncheckedNonnullCast(provider.orElse(ImmutableList.of()));
         }
 
-        public ElementsFromCollectionProvider(ProviderInternal<? extends Iterable<? extends T>> provider) {
-            this(provider, false);
-        }
-
         @Override
         public Collector<T> absentIgnoring() {
-            if (!ignoreAbsent) {
-                return new ElementsFromCollectionProvider<>(provider, true);
-            }
-            return this;
+            return ignoreAbsent ? this : new ElementsFromCollectionProvider<>(provider, true);
         }
 
         @Override

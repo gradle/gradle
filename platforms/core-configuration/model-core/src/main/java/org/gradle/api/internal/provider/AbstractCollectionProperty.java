@@ -399,7 +399,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
             // empty + something = something
-            return new CollectingSupplier(collector, false);
+            return new CollectingSupplier(collector);
         }
 
         @Override
@@ -508,7 +508,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> absentIgnoring() {
-            return this.ignoreAbsent ? this : new CollectingSupplier(value, true);
+            return ignoreAbsent ? this : new CollectingSupplier(value, true);
         }
 
         @Override
@@ -641,11 +641,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             return left + " + " + right;
         }
 
-        @Override
-        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
-            left.calculateExecutionTimeValue(visitor);
-            right.calculateExecutionTimeValue(visitor);
-        }
     }
 
     private static class PlusCollector<T> extends AbstractPlusCollector<T> {
@@ -680,6 +675,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 .withSideEffect(SideEffect.fixedFrom(rightValue));
         }
 
+        @Override
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            left.calculateExecutionTimeValue(visitor);
+            right.calculateExecutionTimeValue(visitor);
+        }
     }
 
     /**
@@ -698,28 +698,43 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
-            ImmutableList.Builder<T> leftElements = ImmutableList.builder();
-            Value<Void> leftValue = left.collectEntries(consumer, collector, leftElements);
-            if (leftValue.isMissing()) {
-                return Value.present();
-            }
-            ImmutableList.Builder<T> rightElements = ImmutableList.builder();
-            Value<Void> rightValue = right.collectEntries(consumer, collector, rightElements);
-            if (rightValue.isMissing()) {
-                return Value.present();
-            }
-            dest.addAll(leftElements.build());
-            dest.addAll(rightElements.build());
-            Value<Void> resultingValue = Value.present()
-                .withSideEffect(SideEffect.fixedFrom(leftValue))
-                .withSideEffect(SideEffect.fixedFrom(rightValue));
-            return resultingValue;
+        public Collector<T> absentIgnoring() {
+            return this;
         }
 
         @Override
-        public Collector<T> absentIgnoring() {
-            return this;
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            ImmutableList.Builder<T> candidateEntries = ImmutableList.builder();
+            Value<Void> leftValue = left.collectEntries(consumer, collector, candidateEntries);
+            if (leftValue.isMissing()) {
+                return Value.present();
+            }
+            Value<Void> rightValue = right.collectEntries(consumer, collector, candidateEntries);
+            if (rightValue.isMissing()) {
+                return Value.present();
+            }
+            dest.addAll(candidateEntries.build());
+            return Value.present()
+                .withSideEffect(SideEffect.fixedFrom(leftValue))
+                .withSideEffect(SideEffect.fixedFrom(rightValue));
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            boolean[] anyMissing = {false};
+            ImmutableList.Builder<ExecutionTimeValue<? extends Iterable<? extends T>>> toVisit = ImmutableList.builder();
+            Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> safeVisitor = value -> {
+                if (value.isMissing()) {
+                    anyMissing[0] = true;
+                } else {
+                    toVisit.add(value);
+                }
+            };
+            left.calculateExecutionTimeValue(safeVisitor);
+            right.calculateExecutionTimeValue(safeVisitor);
+            if (!anyMissing[0]) {
+                toVisit.build().forEach(it -> visitor.execute(it));
+            }
         }
     }
 
