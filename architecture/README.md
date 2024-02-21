@@ -1,5 +1,6 @@
 <!-- This is a generated file. Use `./gradlew :architectureDoc` to generate -->
 # Gradle platform architecture
+<!-- This diagram is generated. Use `./gradlew :architectureDoc` to update it -->
 ```mermaid
     graph TD
 

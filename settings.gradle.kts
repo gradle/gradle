@@ -296,6 +296,10 @@ gradle.rootProject {
 }
 
 abstract class GeneratorTask : DefaultTask() {
+    private val markerComment = "<!-- This diagram is generated. Use `./gradlew :architectureDoc` to update it -->"
+    private val startDiagram = "```mermaid"
+    private val endDiagram = "```"
+
     @get:OutputFile
     abstract val outputFile: RegularFileProperty
 
@@ -304,14 +308,23 @@ abstract class GeneratorTask : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        outputFile.asFile.get().bufferedWriter().use {
+        val markdownFile = outputFile.asFile.get()
+        val content = markdownFile.readText().lines()
+        val markerPos = content.indexOfFirst { it.contains(markerComment) }
+        if (markerPos < 0) {
+            throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
+        }
+        val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
+        if (endPos < 0) {
+            throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
+        }
+        val head = content.subList(0, markerPos)
+
+        markdownFile.bufferedWriter().use {
             PrintWriter(it).run {
-                println(
-                    """
-                    <!-- This is a generated file. Use `./gradlew :architectureDoc` to generate -->
-                    # Gradle platform architecture
-                """.trimIndent()
-                )
+                for (line in head) {
+                    println(line)
+                }
                 graph(elements.get())
             }
         }
@@ -320,7 +333,8 @@ abstract class GeneratorTask : DefaultTask() {
     private fun PrintWriter.graph(elements: List<ArchitectureElement>) {
         println(
             """
-            ```mermaid
+            $markerComment
+            $startDiagram
                 graph TD
         """.trimIndent()
         )
@@ -331,7 +345,7 @@ abstract class GeneratorTask : DefaultTask() {
                 element(element)
             }
         }
-        println("```")
+        println(endDiagram)
     }
 
     private fun PrintWriter.platform(platform: Platform) {
@@ -392,7 +406,7 @@ class ProjectScope(
     }
 }
 
-class ElementId(val id: String): Serializable {
+class ElementId(val id: String) : Serializable {
     override fun toString(): String {
         return id
     }
