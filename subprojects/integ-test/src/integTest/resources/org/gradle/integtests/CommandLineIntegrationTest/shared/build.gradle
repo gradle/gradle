@@ -1,5 +1,3 @@
-package org.gradle.integtests.CommandLineIntegrationTest.shared
-
 import org.gradle.internal.jvm.Jvm
 
 def guh = gradle.gradleUserHomeDir

@@ -1,5 +1,3 @@
-package org.gradle.play.integtest.fixtures.external.basicplayapp
-
 plugins {
     id 'org.gradle.playframework' version 'PLUGIN_VERSION'
 }

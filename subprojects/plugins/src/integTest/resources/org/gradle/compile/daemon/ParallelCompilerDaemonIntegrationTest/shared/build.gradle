@@ -1,5 +1,3 @@
-package org.gradle.compile.daemon.ParallelCompilerDaemonIntegrationTest.shared
-
 subprojects {
     apply plugin: "groovy"
 

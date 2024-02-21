@@ -38,12 +38,12 @@ class PatternSetTest extends AbstractTestForPatternSet {
     }
 
     def testConstructionFromMap() {
-        Map map = [includes: [AbstractTestForPatternSet.TEST_PATTERN_1], excludes: [AbstractTestForPatternSet.TEST_PATTERN_2]]
+        Map map = [includes: [TEST_PATTERN_1], excludes: [TEST_PATTERN_2]]
         PatternFilterable patternSet = new PatternSet(map)
 
         expect:
-        patternSet.includes == [AbstractTestForPatternSet.TEST_PATTERN_1] as Set
-        assertThat(patternSet.excludes, equalTo([AbstractTestForPatternSet.TEST_PATTERN_2] as Set))
+        patternSet.includes == [TEST_PATTERN_1] as Set
+        assertThat(patternSet.excludes, equalTo([TEST_PATTERN_2] as Set))
     }
 
     def patternSetsAreEqualWhenAllPropertiesAreEqual() {
