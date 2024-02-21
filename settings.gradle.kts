@@ -198,6 +198,7 @@ val jvm = platform("jvm") {
     subproject("java-platform")
     subproject("normalization-java")
     subproject("platform-jvm")
+    subproject("plugins-application")
     subproject("plugins-groovy")
     subproject("plugins-java")
     subproject("plugins-java-base")
