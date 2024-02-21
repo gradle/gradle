@@ -175,7 +175,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         file2 << '12345'
         def file3 = rootDir.createFile("a/b/3.txt")
         file3 << '12345'
-        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), NativeServicesTestFixture.getInstance().get(java.io.FileSystem), false)
+        def fileTree = new DirectoryFileTree(rootDir, new PatternSet(), NativeServicesTestFixture.getInstance().get(FileSystem), false)
         def visitedFiles = []
         def visitedDirectories = []
         def fileVisitor = [visitFile: { visitedFiles << it }, visitDir: { visitedDirectories << it }] as FileVisitor

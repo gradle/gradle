@@ -16,8 +16,6 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
-
 class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "build on Groovy project with JUnit tests"() {
@@ -123,7 +121,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         """
 
         when:
-        configurationCacheFails AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT, "assemble"
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "assemble"
 
         then:
         configurationCache.assertStateStored()

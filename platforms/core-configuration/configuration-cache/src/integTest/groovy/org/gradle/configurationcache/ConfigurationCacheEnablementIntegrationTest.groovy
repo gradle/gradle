@@ -40,14 +40,14 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
 
         where:
         origin            | argument
-        "long option"     | AbstractConfigurationCacheIntegrationTest.ENABLE_CLI_OPT
-        "system property" | AbstractConfigurationCacheIntegrationTest.ENABLE_SYS_PROP
+        "long option"     | ENABLE_CLI_OPT
+        "system property" | ENABLE_SYS_PROP
     }
 
     def "can enable with a property in root directory gradle.properties"() {
         given:
         file('gradle.properties') << """
-            $AbstractConfigurationCacheIntegrationTest.ENABLE_GRADLE_PROP
+            $ENABLE_GRADLE_PROP
         """
 
         when:
@@ -67,7 +67,7 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
         given:
         executer.requireOwnGradleUserHomeDir()
         executer.gradleUserHomeDir.file('gradle.properties') << """
-            $AbstractConfigurationCacheIntegrationTest.ENABLE_GRADLE_PROP
+            $ENABLE_GRADLE_PROP
         """
 
         when:
@@ -97,8 +97,8 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
 
         where:
         cliOrigin         | cliArgument
-        "long option"     | AbstractConfigurationCacheIntegrationTest.DISABLE_CLI_OPT
-        "system property" | AbstractConfigurationCacheIntegrationTest.DISABLE_SYS_PROP
+        "long option"     | DISABLE_CLI_OPT
+        "system property" | DISABLE_SYS_PROP
     }
 
     def "can enable configuration cache using incubating and final property variants"() {

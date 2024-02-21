@@ -306,7 +306,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock.close()
 
         when:
-        lock.readFile({} as groovy.util.Factory)
+        lock.readFile({} as Factory)
 
         then:
         thrown(IllegalStateException)

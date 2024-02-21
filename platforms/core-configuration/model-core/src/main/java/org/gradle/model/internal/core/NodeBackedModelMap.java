@@ -274,7 +274,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
 
     @Override
     public void put(String name, T instance) {
-        Class<T> type = uncheckedCast(instance.getClass());
+        Class<T> type = Cast.uncheckedCast(instance.getClass());
         ModelRuleDescriptor descriptor = sourceDescriptor.append("put()");
         if (instance instanceof ManagedInstance) {
             ManagedInstance target = (ManagedInstance) instance;

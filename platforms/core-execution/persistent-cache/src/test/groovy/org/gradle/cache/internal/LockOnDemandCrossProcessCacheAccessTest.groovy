@@ -42,7 +42,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "acquires lock then runs action and retains lock on completion"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def lock = Mock(FileLock)
 
         when:
@@ -59,7 +59,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "releases retained lock when no actions running on contention"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def lock = Mock(FileLock)
         def signal = Mock(FileLockReleasedSignal)
         def contendedAction
@@ -82,7 +82,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "releases retained lock at completion of action on contention"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def lock = Mock(FileLock)
         def signal = Mock(FileLockReleasedSignal)
         def contendedAction
@@ -102,7 +102,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "releases retained lock on close"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def lock = Mock(FileLock)
 
         given:
@@ -120,7 +120,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "releases lock after failed action"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def lock = Mock(FileLock)
         def signal = Mock(FileLockReleasedSignal)
         def failure = new RuntimeException()
@@ -155,8 +155,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "lock is acquired once when a thread nests actions"() {
-        def action1 = Mock(groovy.util.Factory)
-        def action2 = Mock(groovy.util.Factory)
+        def action1 = Mock(Factory)
+        def action2 = Mock(Factory)
         def lock = Mock(FileLock)
         def signal = Mock(FileLockReleasedSignal)
         def contendedAction
@@ -362,7 +362,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "initializes cache after lock is acquired"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def lock = Mock(FileLock)
         def signal = Mock(FileLockReleasedSignal)
         def initAction = Mock(CacheInitializationAction)
@@ -428,7 +428,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "releases file lock when init action fails"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def lock = Mock(FileLock)
         def failure = new RuntimeException()
         def initAction = Mock(CacheInitializationAction)
@@ -461,7 +461,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "notifies handler when lock is acquired and released"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def onOpen = Mock(Action)
         def onClose = Mock(Action)
         def lock = Mock(FileLock)
@@ -516,7 +516,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "notifies handler when lock released on close"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def onOpen = Mock(Action)
         def onClose = Mock(Action)
         def lock = Mock(FileLock)
@@ -547,7 +547,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "notifies handler when lock released on contention"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def onOpen = Mock(Action)
         def onClose = Mock(Action)
         def lock = Mock(FileLock)
@@ -588,7 +588,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "releases lock when acquire handler fails"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def onOpen = Mock(Action)
         def onClose = Mock(Action)
         def lock = Mock(FileLock)
@@ -619,7 +619,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "releases lock when release handler fails"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def onOpen = Mock(Action)
         def onClose = Mock(Action)
         def lock = Mock(FileLock)
@@ -663,7 +663,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "can acquire lock after previous acquire fails"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def lock = Mock(FileLock)
         def failure = new RuntimeException()
         def contendedAction
@@ -699,7 +699,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     }
 
     def "cannot close while holding the lock"() {
-        def action = Mock(groovy.util.Factory)
+        def action = Mock(Factory)
         def lock = Mock(FileLock)
 
         when:

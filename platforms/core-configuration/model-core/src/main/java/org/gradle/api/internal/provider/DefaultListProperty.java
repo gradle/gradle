@@ -32,7 +32,7 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     private static final SerializableSupplier<ImmutableCollection.Builder<Object>> FACTORY = ImmutableList::builder;
 
     public DefaultListProperty(PropertyHost host, Class<T> elementType) {
-        super(host, List.class, elementType, uncheckedNonnullCast(FACTORY));
+        super(host, List.class, elementType, Cast.uncheckedNonnullCast(FACTORY));
     }
 
     @Override

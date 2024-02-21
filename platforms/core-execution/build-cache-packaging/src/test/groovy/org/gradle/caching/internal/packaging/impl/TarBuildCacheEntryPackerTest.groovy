@@ -32,7 +32,7 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
     protected FilePermissionAccess createFilePermissionAccess() {
         new FilePermissionAccess() {
             @Delegate
-            java.io.FileSystem fs = TestFiles.fileSystem()
+            FileSystem fs = TestFiles.fileSystem()
         }
     }
 

@@ -46,7 +46,7 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
     }
 
     void configurationCacheRunLenient(String... tasks) {
-        run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT, *tasks)
+        run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, WARN_PROBLEMS_CLI_OPT, *tasks)
     }
 
     void configurationCacheFails(String... tasks) {

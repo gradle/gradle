@@ -1,5 +1,3 @@
-package org.gradle.internal.logging.LoggingIntegrationTest.logging
-
 def prefix = "init $gradle.identityPath"
 
 println "$prefix QUIET out"

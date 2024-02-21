@@ -35,7 +35,7 @@ import java.util.function.Consumer
 class UnpackingVisitorTest extends Specification {
     def context = Mock(Consumer)
     def resolver = Mock(PathToFileResolver)
-    def patternSetFactory = Mock(groovy.util.Factory)
+    def patternSetFactory = Mock(Factory)
     def visitor = new UnpackingVisitor(context, resolver, TestFiles.taskDependencyFactory(), patternSetFactory)
 
     def "resolves null"() {

@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.isolated
 
-import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.gradle.configurationcache.fixtures.SomeToolingModel
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
@@ -183,7 +182,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT)
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
         def model = fetchModel()
 
         then:
@@ -196,7 +195,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         }
 
         when:
-        executer.withArguments(ENABLE_CLI, AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT)
+        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
         def model2 = fetchModel()
 
         then:

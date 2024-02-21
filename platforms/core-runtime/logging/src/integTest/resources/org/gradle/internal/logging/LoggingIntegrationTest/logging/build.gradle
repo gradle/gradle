@@ -1,3 +1,1 @@
-package org.gradle.internal.logging.LoggingIntegrationTest.logging
-
 apply from: 'external.gradle'

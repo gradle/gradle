@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 
 class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -84,7 +83,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         addTasksWithProblems()
 
         when:
-        configurationCacheRun "declared", "$AbstractConfigurationCacheIntegrationTest.MAX_PROBLEMS_SYS_PROP=1"
+        configurationCacheRun "declared", "$MAX_PROBLEMS_SYS_PROP=1"
 
         then:
         result.assertTasksExecuted(":declared")
@@ -96,7 +95,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         addTasksWithProblems()
 
         when:
-        configurationCacheFails "declared", "notDeclared", "$AbstractConfigurationCacheIntegrationTest.MAX_PROBLEMS_SYS_PROP=2", AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT
+        configurationCacheFails "declared", "notDeclared", "$MAX_PROBLEMS_SYS_PROP=2", WARN_PROBLEMS_CLI_OPT
 
         then:
         fixture.problems.assertFailureHasTooManyProblems(failure) {

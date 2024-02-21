@@ -1,5 +1,3 @@
-package org.gradle.internal.logging.LoggingIntegrationTest.logging.project1
-
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 
 logger.quiet('An info log message which is always logged.')

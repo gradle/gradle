@@ -49,7 +49,7 @@ class UnknownFileSystemNodeTest extends AbstractIncompleteFileSystemNodeTest<Unk
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << (AbstractFileSystemNodeWithChildrenTest.IS_PREFIX_OF_CHILD + AbstractFileSystemNodeWithChildrenTest.SAME_PATH).findAll { it.childPaths.size() > 1 }
+        vfsSpec << (IS_PREFIX_OF_CHILD + SAME_PATH).findAll { it.childPaths.size() > 1 }
     }
 
     def "invalidating the only child by #vfsSpec.searchedPath removes the node (#vfsSpec)"() {
@@ -64,7 +64,7 @@ class UnknownFileSystemNodeTest extends AbstractIncompleteFileSystemNodeTest<Unk
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << (AbstractFileSystemNodeWithChildrenTest.IS_PREFIX_OF_CHILD + AbstractFileSystemNodeWithChildrenTest.SAME_PATH).findAll { it.childPaths.size() == 1 }
+        vfsSpec << (IS_PREFIX_OF_CHILD + SAME_PATH).findAll { it.childPaths.size() == 1 }
     }
 
     def "invalidate #vfsSpec.searchedPath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -84,7 +84,7 @@ class UnknownFileSystemNodeTest extends AbstractIncompleteFileSystemNodeTest<Unk
         }
 
         where:
-        vfsSpec << AbstractFileSystemNodeWithChildrenTest.CHILD_IS_PREFIX
+        vfsSpec << CHILD_IS_PREFIX
     }
 
     def "invalidate #vfsSpec.searchedPath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -103,7 +103,7 @@ class UnknownFileSystemNodeTest extends AbstractIncompleteFileSystemNodeTest<Unk
         }
 
         where:
-        vfsSpec << AbstractFileSystemNodeWithChildrenTest.CHILD_IS_PREFIX.findAll { it.childPaths.size() > 1 }
+        vfsSpec << CHILD_IS_PREFIX.findAll { it.childPaths.size() > 1 }
     }
 
     def "invalidate #vfsSpec.searchedPath removes the child #vfsSpec.selectedChildPath and the node with it (#vfsSpec)"() {
@@ -121,7 +121,7 @@ class UnknownFileSystemNodeTest extends AbstractIncompleteFileSystemNodeTest<Unk
         }
 
         where:
-        vfsSpec << AbstractFileSystemNodeWithChildrenTest.CHILD_IS_PREFIX.findAll { it.childPaths.size() == 1 }
+        vfsSpec << CHILD_IS_PREFIX.findAll { it.childPaths.size() == 1 }
     }
 
     def "returns empty for snapshot"() {

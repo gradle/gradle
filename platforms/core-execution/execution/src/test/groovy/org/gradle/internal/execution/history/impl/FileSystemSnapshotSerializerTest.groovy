@@ -39,7 +39,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec implements TestSna
 
     @Override
     Class<? extends AbstractEncoder> getEncoder() {
-        return Object.getEncoder()
+        return super.getEncoder()
     }
 
     def "reads and writes empty snapshots"() {

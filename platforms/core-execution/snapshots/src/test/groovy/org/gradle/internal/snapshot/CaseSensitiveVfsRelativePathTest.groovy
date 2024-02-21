@@ -54,7 +54,7 @@ class CaseSensitiveVfsRelativePathTest extends AbstractCaseVfsRelativePathTest {
         caseInsensitiveSorted == caseSensitiveSorted
 
         where:
-        children << AbstractCaseVfsRelativePathTest.CHILDREN_LISTS
+        children << CHILDREN_LISTS
     }
 
     def "children names #children are sorted the same with path sensitive and name only comparison"() {

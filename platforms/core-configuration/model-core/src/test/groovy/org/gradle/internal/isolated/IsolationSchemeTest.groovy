@@ -101,7 +101,7 @@ class IsolationSchemeTest extends Specification {
         injectedServices.get(serviceType)
 
         then:
-        def e = thrown(java.net.UnknownServiceException)
+        def e = thrown(UnknownServiceException)
         e.message == "Services of type ${serviceType.simpleName} are not available for injection into instances of type SomeAction."
 
         where:
@@ -124,7 +124,7 @@ class IsolationSchemeTest extends Specification {
         injectedServices.get(Instantiator)
 
         then:
-        def e = thrown(java.net.UnknownServiceException)
+        def e = thrown(UnknownServiceException)
         e.message == "Services of type Instantiator are not available for injection into instances of type SomeAction."
     }
 

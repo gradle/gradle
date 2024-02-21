@@ -124,8 +124,8 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         e.causes.size() == 2
     }
 
-    groovy.util.Factory fileFactory() {
-        return Stub(groovy.util.Factory) {
+    Factory fileFactory() {
+        return Stub(Factory) {
             create() >> Stub(File)
         }
     }

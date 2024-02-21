@@ -1,5 +1,3 @@
-package org.gradle.internal.logging.LoggingIntegrationTest.logging
-
 println 'external QUIET message'
 logging.captureStandardOutput LogLevel.INFO
 println 'external INFO message'

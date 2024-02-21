@@ -20,7 +20,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.invocation.Gradle
-import org.gradle.configurationcache.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.gradle.invocation.DefaultGradle
 import spock.lang.Ignore
 
@@ -149,7 +148,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        run(AbstractConfigurationCacheIntegrationTest.ENABLE_CLI_OPT, '--warn', 'doIt')
+        run(ENABLE_CLI_OPT, '--warn', 'doIt')
 
         then:
         testDirectory.file('out/reports/configuration-cache').isDirectory()
@@ -170,7 +169,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        run(AbstractConfigurationCacheIntegrationTest.ENABLE_CLI_OPT, '--info', 'doIt')
+        run(ENABLE_CLI_OPT, '--info', 'doIt')
 
         then:
         reportDir.isDirectory()
@@ -193,7 +192,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        run(AbstractConfigurationCacheIntegrationTest.ENABLE_CLI_OPT, AbstractConfigurationCacheIntegrationTest.LOG_REPORT_LINK_AS_WARNING, 'doIt')
+        run(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, 'doIt')
 
         then:
         reportDir.isDirectory()
@@ -256,7 +255,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        configurationCacheFails AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT, 'broken'
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'broken'
 
         then:
         failure.assertTasksExecuted()
@@ -317,7 +316,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        configurationCacheFails AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT, 'problems', 'broken'
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'problems', 'broken'
 
         then:
         failure.assertTasksExecuted()
@@ -572,7 +571,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(2)
 
         when:
-        configurationCacheFails AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT, 'all'
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'all'
 
         then:
         configurationCache.assertStateStored()
@@ -627,7 +626,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        configurationCacheFails AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT, "$AbstractConfigurationCacheIntegrationTest.MAX_PROBLEMS_SYS_PROP=2", 'all'
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=2", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -644,7 +643,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        configurationCacheFails AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT, "$AbstractConfigurationCacheIntegrationTest.MAX_PROBLEMS_SYS_PROP=5", 'all'
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=5", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -662,7 +661,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
 
         when:
-        configurationCacheRun AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT, "$AbstractConfigurationCacheIntegrationTest.MAX_PROBLEMS_SYS_PROP=6", 'all'
+        configurationCacheRun WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=6", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -679,7 +678,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        configurationCacheRun AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT, "$AbstractConfigurationCacheIntegrationTest.MAX_PROBLEMS_SYS_PROP=4", 'all'
+        configurationCacheRun WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=4", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -718,7 +717,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        configurationCacheFails "$AbstractConfigurationCacheIntegrationTest.MAX_PROBLEMS_SYS_PROP=2", 'all'
+        configurationCacheFails "$MAX_PROBLEMS_SYS_PROP=2", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -733,7 +732,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        configurationCacheFails "$AbstractConfigurationCacheIntegrationTest.MAX_PROBLEMS_SYS_PROP=2000", 'all'
+        configurationCacheFails "$MAX_PROBLEMS_SYS_PROP=2000", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -748,7 +747,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        configurationCacheRunLenient "$AbstractConfigurationCacheIntegrationTest.MAX_PROBLEMS_SYS_PROP=2000", 'all'
+        configurationCacheRunLenient "$MAX_PROBLEMS_SYS_PROP=2000", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -756,7 +755,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         postBuildOutputContains("Configuration cache entry stored with 6 problems.")
 
         when:
-        configurationCacheFails "$AbstractConfigurationCacheIntegrationTest.MAX_PROBLEMS_SYS_PROP=2000", 'all'
+        configurationCacheFails "$MAX_PROBLEMS_SYS_PROP=2000", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
@@ -1030,7 +1029,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        run AbstractConfigurationCacheIntegrationTest.ENABLE_CLI_OPT, AbstractConfigurationCacheOptInFeatureIntegrationTest.WARN_PROBLEMS_CLI_OPT, "foo"
+        run ENABLE_CLI_OPT, WARN_PROBLEMS_CLI_OPT, "foo"
 
         then:
         postBuildOutputContains("Configuration cache entry stored with 2 problems.")
