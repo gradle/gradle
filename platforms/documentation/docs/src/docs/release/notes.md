@@ -128,20 +128,6 @@ The new APIs introduced are:
 
 These APIs are currently **incubating**, but may become mandatory replacements for the original `ListProperty.add*(...)`, `SetProperty.add*(...)`, and `MapProperty.put*(...)` methods.
 
-#### Ability to set conventions on file collections
-
-Plugin-provided tasks often expose file collections that are meant be customized by build engineers (for instance, the classpath for the JavaCompile task).
-Up to now, in order for plugin authors to define default values for file collections, they had to resort to configuring those defaults as initial values.
-Conventions provide a better model for that: plugin authors recommend default values via conventions, and users choose to accept, add on top, or completely replace them when defining their actual value.
-
-
-This release introduces a  pair of [`convention(...)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#convention-java.lang.Object...-) methods on `ConfigurableFileCollection` that define the default value of a file collection, if no explicit value is set via `setFrom(...)` or `from(...)`.
-
-This feature caters to plugin developers.
-It is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Property.html#convention-T-) methods that have been available on lazy properties since Gradle 5.1.
-
-These APIs are currently **incubating**.
-
 <a name="error-warning"></a>
 ### Error and warning reporting improvements
 
