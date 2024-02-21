@@ -78,25 +78,25 @@ This platform provides specific support for Swift, C++ and C.
 
 There are some additional cross-cutting architecture modules that aren't themselves platforms:
 
-### Enterprise integration
+#### Enterprise integration
 
 Provides cross-cutting integration with Gradle's commercial product.
 
-### IDE integration
+#### IDE integration
 
 Provides cross-cutting integration with IDEs and other tooling.
 
-### Build infrastructure
+#### Build infrastructure
 
 Provides build logic, libraries, test suites and infrastructure to support developing and releasing Gradle.
 
-### Documentation
+#### Documentation
 
-Provides cross-cutting Gradle documentation and samples, along with the infrastructure to author, test, publish and host the documentation.
+Provides cross-cutting Gradle documentation and samples, along with the infrastructure to write, test, publish and host the documentation.
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Consequences
 
