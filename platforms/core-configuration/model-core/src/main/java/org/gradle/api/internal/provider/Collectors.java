@@ -22,7 +22,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.util.Arrays;
@@ -44,6 +46,12 @@ public class Collectors {
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return true;
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            // always present
+            return this;
         }
 
         @Override
@@ -95,6 +103,11 @@ public class Collectors {
 
         public ElementFromProvider(ProviderInternal<? extends T> provider) {
             this.provider = provider;
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            return new ElementsFromCollectionProvider<>(provider.map(ImmutableList::of), true);
         }
 
         @Override
@@ -181,6 +194,12 @@ public class Collectors {
         }
 
         @Override
+        public Collector<T> absentIgnoring() {
+            // always present
+            return this;
+        }
+
+        @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             collector.addAll(value, collection);
             return Value.present();
@@ -226,20 +245,52 @@ public class Collectors {
 
     public static class ElementsFromCollectionProvider<T> implements ProvidedCollector<T> {
         private final ProviderInternal<? extends Iterable<? extends T>> provider;
+        private final boolean ignoreAbsent;
+
+        private ElementsFromCollectionProvider(ProviderInternal<? extends Iterable<? extends T>> provider, boolean ignoreAbsent) {
+            if (!ignoreAbsent) {
+                this.provider = provider;
+            } else {
+                this.provider = neverMissing(Cast.uncheckedNonnullCast(provider));
+            }
+            this.ignoreAbsent = ignoreAbsent;
+        }
+
+        @Nonnull
+        private static <T> ProviderInternal<? extends Iterable<? extends T>> neverMissing(ProviderInternal<Iterable<? extends T>> provider) {
+            return Cast.uncheckedNonnullCast(provider.orElse(ImmutableList.of()));
+        }
 
         public ElementsFromCollectionProvider(ProviderInternal<? extends Iterable<? extends T>> provider) {
-            this.provider = provider;
+            this(provider, false);
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            if (!ignoreAbsent) {
+                return new ElementsFromCollectionProvider<>(provider, true);
+            }
+            return this;
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            return provider.calculatePresence(consumer);
+            return ignoreAbsent || provider.calculatePresence(consumer);
         }
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             Value<? extends Iterable<? extends T>> value = provider.calculateValue(consumer);
             return collectEntriesFromValue(collector, collection, value);
+        }
+
+        private <T> ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
+            if (value.isMissing()) {
+                return ignoreAbsent ? Value.present() : value.asType();
+            }
+
+            collector.addAll(value.getWithoutSideEffect(), collection);
+            return ValueSupplier.Value.present().withSideEffect(ValueSupplier.SideEffect.fixedFrom(value));
         }
 
         @Override
@@ -289,15 +340,6 @@ public class Collectors {
         }
     }
 
-    private static <T> ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
-        if (value.isMissing()) {
-            return value.asType();
-        }
-
-        collector.addAll(value.getWithoutSideEffect(), collection);
-        return ValueSupplier.Value.present().withSideEffect(ValueSupplier.SideEffect.fixedFrom(value));
-    }
-
     public static class ElementsFromArray<T> implements Collector<T> {
         private final T[] value;
 
@@ -308,6 +350,12 @@ public class Collectors {
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return true;
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            // always present
+            return this;
         }
 
         @Override
@@ -353,6 +401,11 @@ public class Collectors {
         @Nullable
         public Class<? extends T> getType() {
             return type;
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            throw new UnsupportedOperationException();
         }
 
         @Override
