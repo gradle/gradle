@@ -75,6 +75,12 @@ This should not impact catalogs that use the <<platforms.adoc#sub::toml-dependen
 
 === Deprecations
 
+==== Deprecated registration of plugin conventions
+
+Using plugin conventions has been emitting warnings since Gradle 8.2. 
+Now, registering plugin conventions will also trigger deprecation warnings.
+For more information, see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
 [[string_invoke]]
 ==== Referencing tasks and domain objects by `"name"()` in Kotlin DSL
 
