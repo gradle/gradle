@@ -35,7 +35,11 @@ interface MapSupplier<K, V> extends ValueSupplier {
     /**
      * Returns a view of this supplier that may calculate its value as empty if it would be missing.
      */
-    MapSupplier<K, V> absentIgnoring(boolean ignore);
+    MapSupplier<K, V> absentIgnoring();
+
+    default MapSupplier<K, V> absentIgnoringIfNeeded(boolean required) {
+        return required ? absentIgnoring() : this;
+    }
 
     ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue();
 }

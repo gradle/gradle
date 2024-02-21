@@ -1490,6 +1490,46 @@ The value of this property is derived from: <source>""")
         assertMapIs([b: '2', c: '3', d: '4'], execTimeValue.toValue().get())
     }
 
+    def "execution time value is missing if any undefined-safe operations are performed in the tail"() {
+        given:
+        property.set(notDefined())
+        property.put("a", notDefined())
+        property.insert("b", "2")
+        property.putAll([c: '3'])
+        property.putAll([d: '4'])
+        property.insert("e", notDefined())
+        property.put("f", notDefined())
+
+        expect:
+        !property.isPresent()
+
+        when:
+        def execTimeValue = property.calculateExecutionTimeValue()
+
+        then:
+        execTimeValue.toValue().isMissing()
+    }
+
+    def "property restores undefined-safe items"() {
+        given:
+        property.put("a", "1")
+        property.insertAll(supplierWithChangingExecutionTimeValues(Map, value, value))
+        property.put("c", "3")
+
+        when:
+        def execTimeValue = property.calculateExecutionTimeValue()
+        def property2 = property()
+        property2.fromState(execTimeValue)
+
+        then:
+        assertValueIs(result, property2)
+
+        where:
+        value       | result
+        [b: "2"]    | [a: "1", b: "2", c: "3"]
+        null        | [a: "1", c: "3"]
+    }
+
     def "property remains undefined-safe after restored"() {
         given:
         property.put("a", notDefined())
