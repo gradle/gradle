@@ -45,7 +45,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """
             plugins {
                 `kotlin-dsl`
-                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.8.0"
+                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.9.0"
             }
 
             $repositoriesBlock
