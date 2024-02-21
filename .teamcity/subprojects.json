@@ -739,14 +739,14 @@
     "path": "platforms/jvm/plugins-groovy",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "plugins-java",
     "path": "platforms/jvm/plugins-java",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "plugins-java-base",
