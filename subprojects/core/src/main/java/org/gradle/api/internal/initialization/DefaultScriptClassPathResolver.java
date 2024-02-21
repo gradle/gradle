@@ -168,6 +168,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             .getArtifacts().getArtifacts();
         List<OriginalArtifactIdentifier> identifiers = originalArtifacts.stream()
             .map(OriginalArtifactIdentifier::of)
+            // In some cases we end up with the same artifact multiple times in different locations,
+            // additional user's artifact transform can be injected in between and could produce multiple artifacts from one original artifact.
             .distinct()
             .collect(Collectors.toList());
 
