@@ -175,13 +175,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "core-api-jvm",
-    "path": "platforms/jvm/core-api-jvm",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "core-jvm",
     "path": "platforms/jvm/core-jvm",
     "unitTests": false,
