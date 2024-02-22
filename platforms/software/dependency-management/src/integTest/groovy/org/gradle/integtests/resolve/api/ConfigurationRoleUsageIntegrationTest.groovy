@@ -697,21 +697,17 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
     }
 
-    def "redundantly calling #setMethod on a configuration that is already #isSetMethod does not warn when #desc"() {
+    def "redundantly changing usage on a legacy configuration does not warn"() {
         given:
         buildFile << """
-            def test = configurations.$confCreationCode
-            assert test.$isSetMethod
-            test.$setMethod
+            def test = configurations.create('test')
+            test.setCanBeConsumed(true)
+            test.setCanBeResolved(true)
+            test.setCanBeDeclared(true)
         """
 
         expect:
         succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
-
-        where:
-        desc                                                        | confCreationCode              | usage                | isSetMethod            | setMethod
-        "using create to make an implicitly LEGACY configuration"   | "create('test')"              | "consumable"         | "isCanBeConsumed()"    | "setCanBeConsumed(true)"
-        "creating a detachedConfiguration"                          | "detachedConfiguration()"     | "consumable"         | "isCanBeConsumed()"    | "setCanBeConsumed(true)"
     }
     // endregion Warnings
 

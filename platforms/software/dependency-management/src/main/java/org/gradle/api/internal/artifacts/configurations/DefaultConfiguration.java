@@ -1649,6 +1649,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
+        // Error will be thrown later. Don't emit a duplicate warning.
+        if (!usageCanBeMutated && (current != newValue)) {
+            return;
+        }
+
         // KGP continues to set the already-set value for a given usage even though it is already set
         boolean redundantChange = current == newValue;
 
