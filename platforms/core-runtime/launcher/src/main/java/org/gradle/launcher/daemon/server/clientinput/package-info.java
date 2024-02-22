@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.events;
-
-import org.gradle.api.logging.LogLevel;
-
-import javax.annotation.Nullable;
-
-/**
- * Notifies output consumers that might be queueing messages to immediately flush their queues.
- */
-public class FlushOutputEvent extends OutputEvent implements InteractiveEvent {
-    @Nullable
-    @Override
-    public LogLevel getLogLevel() {
-        return null;
-    }
-}
+@org.gradle.api.NonNullApi
+package org.gradle.launcher.daemon.server.clientinput;

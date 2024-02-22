@@ -34,7 +34,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
-import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -117,14 +116,14 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
     private Runnable stopAllDaemons(DaemonParameters daemonParameters) {
         ServiceRegistry clientSharedServices = createGlobalClientServices(false);
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createMessageDaemonServices(loggingServices.get(OutputEventListener.class), daemonParameters);
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createMessageDaemonServices(loggingServices, daemonParameters);
         DaemonStopClient stopClient = clientServices.get(DaemonStopClient.class);
         return new StopDaemonAction(stopClient);
     }
 
     private Runnable showDaemonStatus(DaemonParameters daemonParameters) {
         ServiceRegistry clientSharedServices = createGlobalClientServices(false);
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createMessageDaemonServices(loggingServices.get(OutputEventListener.class), daemonParameters);
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createMessageDaemonServices(loggingServices, daemonParameters);
         ReportDaemonStatusClient statusClient = clientServices.get(ReportDaemonStatusClient.class);
         return new ReportDaemonStatusAction(statusClient);
     }
@@ -132,7 +131,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
     private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
         // Create a client that will match based on the daemon startup parameters.
         ServiceRegistry clientSharedServices = createGlobalClientServices(true);
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices.get(OutputEventListener.class), daemonParameters, System.in);
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices, daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }
@@ -168,9 +167,9 @@ class BuildActionsFactory implements CommandLineActionCreator {
         }
         //end of workaround.
 
-        // Create a client that will not match any existing daemons, so it will always startup a new one
+        // Create a client that will not match any existing daemons, so it will always start a new one
         ServiceRegistry clientSharedServices = createGlobalClientServices(true);
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(clientSharedServices.get(OutputEventListener.class), daemonParameters, System.in);
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(clientSharedServices, daemonParameters, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }
