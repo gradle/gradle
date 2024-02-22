@@ -58,7 +58,6 @@ public abstract class SimpleReport implements ConfigurableReport {
 
     @Deprecated
     @Override
-    @Deprecated
     public void setDestination(File file) {
         DeprecationLogger.deprecateProperty(Report.class, "destination")
                 .replaceWith("outputLocation")
