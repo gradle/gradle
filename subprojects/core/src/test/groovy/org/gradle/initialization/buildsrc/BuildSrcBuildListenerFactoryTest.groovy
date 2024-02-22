@@ -49,7 +49,6 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
         def listener = new BuildSrcBuildListenerFactory(action, new DefaultScriptClassPathResolver(
             TestUtil.objectInstantiator(),
             Stub(AgentStatus),
-            TestFiles.fileCollectionFactory(),
             Stub(Gradle)
         )).create()
 

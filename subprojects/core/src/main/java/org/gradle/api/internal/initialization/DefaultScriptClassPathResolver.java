@@ -30,18 +30,17 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
-import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
-import org.gradle.api.internal.initialization.transform.InstrumentationAnalysisTransform;
 import org.gradle.api.internal.initialization.transform.ExternalDependencyInstrumentingArtifactTransform;
+import org.gradle.api.internal.initialization.transform.InstrumentationAnalysisTransform;
 import org.gradle.api.internal.initialization.transform.MergeInstrumentationAnalysisTransform;
 import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform;
+import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.agents.AgentStatus;
@@ -49,6 +48,8 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
@@ -56,13 +57,12 @@ import java.io.File;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACTS;
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.MERGED_SUPER_TYPES;
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.MERGED_ARTIFACT_ANALYSIS;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_PLACEHOLDER_SUFFIX;
 
@@ -75,8 +75,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     public enum InstrumentationPhase {
         NOT_INSTRUMENTED("not-instrumented"),
-        ANALYZED_ARTIFACTS("analyzed-artifacts"),
-        MERGED_SUPER_TYPES("merged-super-types"),
+        ANALYZED_ARTIFACT("analyzed-artifact"),
+        MERGED_ARTIFACT_ANALYSIS("merged-artifact-analysis"),
         INSTRUMENTED_AND_UPGRADED("instrumented-and-upgraded"),
         INSTRUMENTED_ONLY("instrumented-only");
 
@@ -94,54 +94,60 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     public static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
     private final NamedObjectInstantiator instantiator;
     private final AgentStatus agentStatus;
-    private final ConfigurableFileCollection classHierarchy;
     private final Gradle gradle;
+    private final IdGenerator<Long> serviceId;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
         AgentStatus agentStatus,
-        FileCollectionFactory fileCollectionFactory,
         Gradle gradle
     ) {
         this.instantiator = instantiator;
         this.agentStatus = agentStatus;
-        this.classHierarchy = fileCollectionFactory.configurableFiles();
         this.gradle = gradle;
+        this.serviceId = new LongIdGenerator();
     }
 
     @Override
-    public void prepareDependencyHandler(DependencyHandler dependencyHandler) {
+    public ScriptClassPathResolutionContext prepareDependencyHandler(DependencyHandler dependencyHandler) {
         ((DependencyHandlerInternal) dependencyHandler).getDefaultArtifactAttributes()
             .attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED.value);
 
-        // Register instrumentation transforms
-        Provider<CacheInstrumentationDataBuildService> service = getOrRegisterNewService();
+        // Register instrumentation pipelines
+        Provider<CacheInstrumentationDataBuildService> service = registerNewService();
+        registerInstrumentationAndUpgradesPipeline(dependencyHandler, service);
+        registerInstrumentationOnlyPipeline(dependencyHandler);
+        return new ScriptClassPathResolutionContext(service, dependencyHandler);
+    }
+
+    private void registerInstrumentationAndUpgradesPipeline(DependencyHandler dependencyHandler, Provider<CacheInstrumentationDataBuildService> service) {
         dependencyHandler.registerTransform(
             InstrumentationAnalysisTransform.class,
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED.value);
-                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACTS.value);
+                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value);
                 spec.parameters(params -> params.getBuildService().set(service));
             }
         );
-
         dependencyHandler.registerTransform(
             MergeInstrumentationAnalysisTransform.class,
             spec -> {
-                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACTS.value);
-                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, MERGED_SUPER_TYPES.value);
+                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value);
+                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, MERGED_ARTIFACT_ANALYSIS.value);
                 spec.parameters(params -> {
                     params.getBuildService().set(service);
                     params.getOriginalClasspath().setFrom(service.map(it -> it.getParameters().getOriginalClasspath()));
                 });
             }
         );
-
-        registerTransform(dependencyHandler, ExternalDependencyInstrumentingArtifactTransform.class, service, MERGED_SUPER_TYPES, INSTRUMENTED_AND_UPGRADED);
-        registerTransform(dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, service, NOT_INSTRUMENTED, INSTRUMENTED_ONLY);
+        registerInstrumentingTransform(dependencyHandler, ExternalDependencyInstrumentingArtifactTransform.class, service, MERGED_ARTIFACT_ANALYSIS, INSTRUMENTED_AND_UPGRADED);
     }
 
-    private void registerTransform(
+    private void registerInstrumentationOnlyPipeline(DependencyHandler dependencyHandler) {
+        registerInstrumentingTransform(dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, Providers.notDefined(), NOT_INSTRUMENTED, INSTRUMENTED_ONLY);
+    }
+
+    private void registerInstrumentingTransform(
         DependencyHandler dependencyHandler,
         Class<? extends BaseInstrumentingArtifactTransform> transform,
         Provider<CacheInstrumentationDataBuildService> service,
@@ -161,16 +167,15 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         );
     }
 
-    private Provider<CacheInstrumentationDataBuildService> getOrRegisterNewService() {
+    private Provider<CacheInstrumentationDataBuildService> registerNewService() {
         return gradle.getSharedServices().registerIfAbsent(
-            CacheInstrumentationDataBuildService.class.getName() + "@" + System.identityHashCode(this),
-            CacheInstrumentationDataBuildService.class,
-            spec -> spec.getParameters().getAnalysisResult().setFrom(classHierarchy)
+            "__InternalCacheInstrumentationDataBuildService__::" + serviceId.generateId(),
+            CacheInstrumentationDataBuildService.class
         );
     }
 
     @Override
-    public void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler) {
+    public void prepareClassPath(Configuration configuration, ScriptClassPathResolutionContext resolutionContext) {
         // should ideally reuse the `JvmPluginServices` but this code is too low level
         // and this service is therefore not available!
         AttributeContainer attributes = configuration.getAttributes();
@@ -181,6 +186,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.parseInt(JavaVersion.current().getMajorVersion()));
         attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion()));
 
+        DependencyHandler dependencyHandler = resolutionContext.getDependencyHandler();
         configuration.getDependencyConstraints().add(dependencyHandler.getConstraints().create(Log4jBannedVersion.LOG4J2_CORE_COORDINATES, constraint -> constraint.version(version -> {
             version.require(Log4jBannedVersion.LOG4J2_CORE_REQUIRED_VERSION);
             version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
@@ -188,11 +194,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     @Override
-    public ClassPath resolveClassPath(Configuration classpathConfiguration) {
-        // Clear build service data after resolution so content can be garbage collected
-        return runAndClearBuildServiceAfter(() -> {
-            // We resolve class hierarchy before instrumentation, otherwise the resolution can block the whole build
-            CacheInstrumentationDataBuildService buildService = getOrRegisterNewService().get();
+    public ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
+        // Clear cached data after resolution, so it can be reused for other classpath resolutions
+        return resolutionContext.runAndClearCachedDataAfter(buildService -> {
             buildService.getParameters().getAnalysisResult().setFrom(getAnalysisResult(classpathConfiguration));
             buildService.getParameters().getOriginalClasspath().setFrom(classpathConfiguration);
             FileCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
@@ -202,16 +206,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         });
     }
 
-    private <T> T runAndClearBuildServiceAfter(Supplier<T> action) {
-        T value = action.get();
-        getOrRegisterNewService().get().clear();
-        classHierarchy.unset();
-        return value;
-    }
-
     private static FileCollection getAnalysisResult(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACTS.value));
+            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value));
             config.componentFilter(componentId -> !isGradleApi(componentId) && !isProjectDependency(componentId));
         }).getFiles();
     }
