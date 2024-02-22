@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.dependencies;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.internal.ImmutableActionSet;
 
-public interface DependencyConstraintInternal extends DependencyConstraint {
-    void setForce(boolean force);
-    boolean isForce();
-    DependencyConstraint copy();
+public abstract class AbstractDependencyConstraint implements DependencyConstraintInternal {
+    private ImmutableActionSet<DependencyConstraint> onMutate = ImmutableActionSet.empty();
+
+    @Override
+    public void addMutationValidator(Action<? super DependencyConstraint> action) {
+        this.onMutate = onMutate.add(action);
+    }
+
+    protected void validateMutation() {
+        onMutate.execute(this);
+    }
 }
