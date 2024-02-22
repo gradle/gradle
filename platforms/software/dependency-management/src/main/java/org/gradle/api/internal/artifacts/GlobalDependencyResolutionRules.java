@@ -18,26 +18,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 
 public interface GlobalDependencyResolutionRules {
-
-    ComponentMetadataProcessorFactory NO_OP_FACTORY = resolutionContext -> ComponentMetadataProcessor.NO_OP;
-
-    GlobalDependencyResolutionRules NO_OP = new GlobalDependencyResolutionRules() {
-        @Override
-        public ComponentMetadataProcessorFactory getComponentMetadataProcessorFactory() {
-            return NO_OP_FACTORY;
-        }
-
-        @Override
-        public ComponentModuleMetadataProcessor getModuleMetadataProcessor() {
-            return ComponentModuleMetadataProcessor.NO_OP;
-        }
-
-        @Override
-        public DependencySubstitutionRules getDependencySubstitutionRules() {
-            return DependencySubstitutionRules.NO_OP;
-        }
-    };
-
     ComponentMetadataProcessorFactory getComponentMetadataProcessorFactory();
     ComponentModuleMetadataProcessor getModuleMetadataProcessor();
     DependencySubstitutionRules getDependencySubstitutionRules();

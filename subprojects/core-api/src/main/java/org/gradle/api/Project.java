@@ -38,7 +38,6 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginAware;
@@ -150,7 +149,7 @@ import java.util.concurrent.Callable;
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
  *
  * <li>The <em>convention</em> properties added to the project by the plugins. A plugin can add properties and methods
- * to a project through the project's {@link Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
+ * to a project through the project's {@link org.gradle.api.plugins.Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
  *
  * <li>The tasks of the project.  A task is accessible by using its name as a property name.  The properties of this
  * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
@@ -204,7 +203,7 @@ import java.util.concurrent.Callable;
  * a closure or {@link org.gradle.api.Action} as a parameter.</li>
  *
  * <li>The <em>convention</em> methods added to the project by the plugins. A plugin can add properties and method to
- * a project through the project's {@link Convention} object.</li>
+ * a project through the project's {@link org.gradle.api.plugins.Convention} object.</li>
  *
  * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
  * taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
@@ -403,7 +402,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>The project object itself.  For example, the <code>rootDir</code> project property.</li>
      *
-     * <li>The project's {@link Convention} object.  For example, the <code>srcRootName</code> java plugin
+     * <li>The project's {@link org.gradle.api.plugins.Convention} object.  For example, the <code>srcRootName</code> java plugin
      * property.</li>
      *
      * <li>The project's extra properties.</li>
@@ -1264,7 +1263,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void artifacts(Action<? super ArtifactHandler> configureAction);
 
     /**
-     * <p>Returns the {@link Convention} for this project.</p> <p>You can access this property in your build file
+     * <p>Returns the {@link org.gradle.api.plugins.Convention} for this project.</p> <p>You can access this property in your build file
      * using <code>convention</code>. You can also access the properties and methods of the convention object
      * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
      *
@@ -1273,7 +1272,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see ExtensionAware#getExtensions()
      */
     @Deprecated
-    Convention getConvention();
+    org.gradle.api.plugins.Convention getConvention();
 
     /**
      * <p>Compares the nesting level of this project with another project of the multi-project hierarchy.</p>

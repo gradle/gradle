@@ -25,6 +25,6 @@ dependencies {
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.3.0")
     // This Kotlin version should only be updated when updating the above kotlin-dsl version
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22")
-    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
+    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation("org.gradle:test-retry-gradle-plugin:1.5.2")
 }

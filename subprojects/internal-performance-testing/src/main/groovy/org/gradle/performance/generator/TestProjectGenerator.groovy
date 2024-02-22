@@ -19,7 +19,7 @@ package org.gradle.performance.generator
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class TestProjectGenerator {
+class TestProjectGenerator extends AbstractTestProjectGenerator {
 
     TestProjectGeneratorConfiguration config
     FileContentGenerator fileContentGenerator
@@ -101,15 +101,6 @@ class TestProjectGenerator {
     private addDummyBuildSrcProject(File projectDir) {
         file projectDir, "buildSrc/src/main/${config.language.name}/Thing.${config.language.name}", "public class Thing {}"
         file projectDir, "buildSrc/build.gradle", "compileJava.options.incremental = true"
-    }
-
-    static void file(File dir, String name, String content) {
-        if (content == null) {
-            return
-        }
-        def file = new File(dir, name)
-        file.parentFile.mkdirs()
-        file.setText(content.stripIndent().trim())
     }
 
     static void main(String[] args) {

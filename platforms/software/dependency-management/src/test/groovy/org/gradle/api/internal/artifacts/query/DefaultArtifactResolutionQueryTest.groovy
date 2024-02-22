@@ -25,41 +25,31 @@ import org.gradle.api.component.Artifact
 import org.gradle.api.component.Component
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory
 import org.gradle.api.internal.component.ComponentTypeRegistration
 import org.gradle.api.internal.component.ComponentTypeRegistry
-import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentArtifactResolveState
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.resolver.ArtifactResolver
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
-import org.gradle.internal.serialize.Serializer
-import org.gradle.internal.snapshot.ValueSnapshotter
-import org.gradle.util.AttributeTestUtil
-import org.gradle.util.internal.BuildCommencedTimeProvider
 import spock.lang.Shared
 import spock.lang.Specification
 
 class DefaultArtifactResolutionQueryTest extends Specification {
-    def configurationContainerInternal = Stub(ConfigurationContainerInternal)
-    def resolveIvyFactory = Mock(ResolveIvyFactory)
+    def resolutionStrategyFactory = Stub(ResolutionStrategyFactory)
+    def externalResolverFactory = Mock(ExternalModuleComponentResolverFactory)
     def globalDependencyResolutionRules = Mock(GlobalDependencyResolutionRules)
     def componentTypeRegistry = Mock(ComponentTypeRegistry)
     def artifactResolver = Mock(ArtifactResolver)
-    def artifactTypeRegistry = Mock(ArtifactTypeRegistry)
     def repositoryChain = Mock(ComponentResolvers)
     def componentMetaDataResolver = Mock(ComponentMetaDataResolver)
-    def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(GlobalScopedCacheBuilderFactory), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
 
     @Shared
     ComponentTypeRegistry testComponentTypeRegistry = createTestComponentTypeRegistry()
@@ -136,7 +126,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     }
 
     private def withArtifactResolutionInteractions(int numberOfComponentsToResolve = 1) {
-        1 * resolveIvyFactory.create(_, _, _, _, _, _, _) >> repositoryChain
+        1 * externalResolverFactory.createResolvers(_, _, _, _, _, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
         def state = Mock(ComponentGraphResolveState)
@@ -152,7 +142,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     }
 
     private DefaultArtifactResolutionQuery createArtifactResolutionQuery(ComponentTypeRegistry componentTypeRegistry) {
-        new DefaultArtifactResolutionQuery(configurationContainerInternal, { [] }, resolveIvyFactory, globalDependencyResolutionRules, componentTypeRegistry, AttributeTestUtil.attributesFactory(), artifactTypeRegistry, ruleExecutor)
+        new DefaultArtifactResolutionQuery(resolutionStrategyFactory, { [] }, externalResolverFactory, globalDependencyResolutionRules, componentTypeRegistry)
     }
 
     private ComponentTypeRegistry createTestComponentTypeRegistry() {
