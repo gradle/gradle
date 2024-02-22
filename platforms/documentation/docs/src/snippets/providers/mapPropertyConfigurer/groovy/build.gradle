@@ -1,0 +1,31 @@
+abstract class Generator extends DefaultTask {
+    @Internal
+    abstract MapProperty<String, Integer> getProperties()
+
+    Generator() {
+        properties.convention([a: 1]).withActualValue {
+            putAll([b: 2, c: 3])
+        }
+    }
+
+    @TaskAction
+    void generate() {
+        properties.get().each { key, value ->
+            logger.quiet("${key} = ${value}")
+        }
+    }
+}
+
+// Some values to be configured later
+def c = 0
+
+tasks.register('generate', Generator) {
+    properties.withActualValue {
+        put("b", -2)
+        // Values have not been configured yet
+        putAll(providers.provider { [c: c, d: c + 1] })
+    }
+}
+
+// Configure the values. There is no need to reconfigure the task
+c = 3
