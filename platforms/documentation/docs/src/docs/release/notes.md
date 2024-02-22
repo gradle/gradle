@@ -82,13 +82,13 @@ One common complaint was that adding values (using `ListProperty.add(...)`, `Set
 For example, in an applied plugin, a list property `ListProperty<String>` is configured with a convention:
 
 ```kotlin
-listProp.convention(listOf(“one”))
+listProp.convention(listOf("one"))
 ```
 
 In the build file, the build author adds elements to that list property:
 
 ```kotlin
-listProp.add(“two”)
+listProp.add("two")
 // listProp now only contains "two", that’s confusing
 ```
 
@@ -96,14 +96,14 @@ However, as explained in the snippet, the behavior is surprising.
 The newly introduced methods (such as `ListProperty.append(...)`, `SetProperty.append(...)` and `MapProperty.insert(...)`) allow the user to express that the convention should be preserved:
 
 ```kotlin
-listProp.append(“two”)
+listProp.append("two")
 // listProp now contains ["one", "two"], as expected
 ```
 
 ##### Empty provider values are ignored
 
 Another common source of confusion is how empty providers are handled in collection properties.
-For instance, adding an empty provider to a collection property using `add(...)` will result in the entire property to become void of any values as well.
+For instance, adding an empty provider to a collection property using `add(...)` will cause the entire property to become void of any values as well.
 
 ```kotlin
 listProp.add("one")
@@ -127,21 +127,6 @@ The new APIs introduced are:
 * [`MapProperty.insert*(...)`](javadoc/org/gradle/api/provider/MapProperty.html#insert-K-V-) which are meant as more convenient replacements for `MapProperty.put*(...)`.
 
 These APIs are currently **incubating**, but may become mandatory replacements for the original `ListProperty.add*(...)`, `SetProperty.add*(...)`, and `MapProperty.put*(...)` methods.
-
-
-#### Ability to set conventions on file collections
-
-Plugin-provided tasks often expose file collections that are meant be customized by build engineers (for instance, the classpath for the JavaCompile task).
-Up to now, in order for plugin authors to define default values for file collections, they had to resort to configuring those defaults as initial values.
-Conventions provide a better model for that: plugin authors recommend default values via conventions, and users choose to accept, add on top, or completely replace them when defining their actual value.
-
-
-This release introduces a  pair of [`convention(...)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#convention-java.lang.Object...-) methods on `ConfigurableFileCollection` that define the default value of a file collection, if no explicit value is set via `setFrom(...)` or `from(...)`.
-
-This feature caters to plugin developers.
-It is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Property.html#convention-T-) methods that have been available on lazy properties since Gradle 5.1.
-
-These APIs are currently **incubating**.
 
 <a name="error-warning"></a>
 ### Error and warning reporting improvements
@@ -316,6 +301,16 @@ testing {
 ```
 
 Providing separate strings or using named arguments for each part is not supported currently.
+
+### Documentation improvements
+
+The [Gradle User Manual](userguide/userguide.html) is a comprehensive guide that provides detailed documentation and instructions for using Gradle.
+We are actively updating our manual to improve clarity, add new content, and enhance the overall user experience.
+
+#### Developing tasks
+
+The [Developing Tasks](userguide/more_about_tasks.html) section of the Authoring Gradle Builds chapter of the manual now clearly identifies and defines lifecycle tasks and actionable tasks.
+The updated pages clearly detail how to develop custom tasks, including parallel tasks, incremental tasks, lazy task configuration, and task configuration avoidance.
 
 ## Fixed issues
 
