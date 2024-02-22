@@ -19,7 +19,7 @@ The JVM Test Suite plugin (plugin id: `jvm-test-suite`) provides a DSL and API t
 
 For instance, this plugin can be used to define a group of Integration Tests, which might run much longer than unit tests and have different environmental requirements.
 
-NOTE: The JVM Test Suite plugin is an <<feature_lifecycle.adoc#sec:incubating_state,incubating>> API and is subject to changing in a future release.
+NOTE: The JVM Test Suite plugin is an <<feature_lifecycle.adoc#sec:incubating_state,incubating>> API and is subject to change in a future release.
 
 [[sec:jvm_test_suite_usage]]
 == Usage
