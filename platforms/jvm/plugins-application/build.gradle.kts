@@ -58,11 +58,10 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 strictCompile {
-    //ignoreRawTypes() // raw types used in public API
     ignoreDeprecations() // TODO: uses deprecated software model types, suppress these warnings and remove ignore
 }
 

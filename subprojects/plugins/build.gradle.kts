@@ -11,48 +11,26 @@ errorprone {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":file-collections"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":workers"))
-    implementation(project(":dependency-management"))
-    implementation(project(":reporting"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":language-jvm"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":logging"))
+    api(project(":platform-jvm"))
+
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
+    implementation(project(":base-annotations"))
+    implementation(project(":hashing"))
     implementation(project(":language-java"))
-    implementation(project(":language-groovy"))
-    implementation(project(":plugins-application"))
-    implementation(project(":plugins-distribution"))
+    implementation(project(":model-core"))
+    implementation(project(":persistent-cache"))
     implementation(project(":plugins-groovy"))
-    implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":plugins-java-library"))
-    implementation(project(":diagnostics"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
-    implementation(project(":test-suites-base"))
-    implementation(project(":snapshots"))
     implementation(project(":publish"))
-    implementation(project(":ivy"))
-    implementation(project(":maven"))
-    implementation(project(":execution")) {
-        because("We need it for BuildOutputCleanupRegistry")
-    }
-    implementation(project(":toolchains-jvm"))
-    implementation(project(":plugins-jvm-test-suite"))
-
-    implementation(libs.groovy)
-    implementation(libs.groovyTemplates)
-    implementation(libs.ant)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
-    implementation(libs.inject)
+    implementation(project(":snapshots"))
 
     integTestImplementation(testFixtures(project(":enterprise-operations")))
     integTestImplementation(testFixtures(project(":language-java")))
@@ -64,15 +42,4 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
-strictCompile {
-    ignoreRawTypes() // raw types used in public API
-    ignoreDeprecations() // uses deprecated software model types
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/**")
-}
-
-testFilesCleanup.reportOnly = true
-
-description = """Provides core Gradle plugins, as well as many JVM-related plugins for building different types of Java and Groovy projects."""
+description = """Provides some services and tasks used by plugins - this project is being emptied and new plugins should not be added here."""
