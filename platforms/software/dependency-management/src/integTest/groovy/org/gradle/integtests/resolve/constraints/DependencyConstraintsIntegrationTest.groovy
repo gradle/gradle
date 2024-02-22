@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.constraints
 
 import org.gradle.integtests.fixtures.AbstractPolyglotIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -753,7 +752,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @ToBeFixedForConfigurationCache
     void 'dependency constraint on failed variant resolution needs to be in the right state'() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         writeSpec {

@@ -52,7 +52,7 @@ class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
         def issueUrl = "https://github.com/gradle/gradle/issues/24895"
 
         when:
-        runner('--write-locks', '--stacktrace', '--no-configuration-cache')
+        runner('--write-locks', '--stacktrace')
             .expectDeprecationWarning("The org.gradle.api.plugins.Convention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions", issueUrl)
             .expectDeprecationWarning("The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#java_convention_deprecation", issueUrl)
             .expectDeprecationWarning("The compileClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
