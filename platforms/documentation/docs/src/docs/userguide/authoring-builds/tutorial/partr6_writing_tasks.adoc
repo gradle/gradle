@@ -120,7 +120,7 @@ This file contains text for an Apache license:
 */
 ----
 
-The task then looks for files with the extension `.java` and `.kt` and adds a license header.
+The task then looks for files with the extension `.java` and `.kts` and adds a license header.
 
 The task has a single input, the license file name, annotated with `@Input`.
 

@@ -273,7 +273,7 @@ include::{snippetsPath}/workerApi/md5ProcessIsolation/tests/md5Task2.out[]
 ----
 
 [[isolation-modes]]
-== Isolation Modes
+== Isolation modes
 
 Gradle provides three isolation modes that can be configured when creating a link:{javadocPath}/org/gradle/workers/WorkQueue.html[WorkQueue] and are specified using one of the following methods on link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor]:
 

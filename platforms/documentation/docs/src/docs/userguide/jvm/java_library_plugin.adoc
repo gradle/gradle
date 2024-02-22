@@ -411,7 +411,7 @@ This may lead to increased memory consumption for large projects, with the benef
 === Significant build performance drop on Windows for huge multi-projects
 
 Another side effect of the snapshotting of individual class files, only affecting Windows systems, is that the performance can significantly drop when processing a very large amount of class files on the compile classpath.
-This only concerns very large multi-projects where a lot of classes are present on the classpath by using many `api` dependencies.
+This only concerns very large multi-projects where a lot of classes are present on the classpath by using many `api` or (deprecated) `compile` dependencies.
 To mitigate this, you can set the `org.gradle.java.compile-classpath-packaging` system property to `true` to change the behavior of the Java Library plugin to use jars instead of class folders for everything on the compile classpath.
 Note, since this has other performance impacts and potentially side effects, by triggering all jar tasks at compile time, it is only recommended to activate this if you suffer from the described performance issue on Windows.
 
