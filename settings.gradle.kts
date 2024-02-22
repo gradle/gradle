@@ -357,7 +357,7 @@ abstract class GeneratorTask : DefaultTask() {
             }
         }
         node("end")
-        node("style ${platform.id} fill:#c2e0f4,stroke:#3498db,stroke-width:2px;")
+        node("style ${platform.id} fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;")
         for (dep in platform.uses) {
             node("${platform.id} --> $dep")
         }
@@ -366,7 +366,7 @@ abstract class GeneratorTask : DefaultTask() {
     private fun NodeWriter.element(element: ArchitectureElement) {
         println()
         node("${element.id}[\"${element.name} module\"]")
-        node("style ${element.id} stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px;")
+        node("style ${element.id} stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px,color:#000;")
     }
 
     private class NodeWriter(private val writer: PrintWriter, private val indent: String) {
