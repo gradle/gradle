@@ -19,7 +19,6 @@ package org.gradle.internal.extensibility;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProvider;
@@ -108,9 +107,6 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         } else if (target instanceof HasMultipleValues) {
             HasMultipleValues<Object> asCollectionProperty = Cast.uncheckedNonnullCast(target);
             asCollectionProperty.convention(new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue(_convention, _source))));
-        } else if (target instanceof ConfigurableFileCollection) {
-            ConfigurableFileCollection asFileCollection = Cast.uncheckedNonnullCast(target);
-            asFileCollection.convention((Callable) () -> mapping.getValue(_convention, _source));
         } else {
             return false;
         }
