@@ -54,13 +54,16 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
 /**
- * A transform that merges all instrumentation related super types for classes from a single artifact to a single file.
- * It uses hash of the original file as an id to link to the original artifact.<br><br>
+ * A transform that merges all instrumentation related metadata for a single artifact.<br><br>
  *
- * Output file looks like:<br>
- * -hash-=[hash]<br>
- * [class name 1]=[super type 1],[super type 2],...<br>
- * [class name 2]=[super type 1],[super type 2],...<br>
+ * Outputs 3 files:<br>
+ * 1. Instrumentation classpath marker file.<br>
+ * 2. A properties file with original file hash and original file name.<br>
+ * 3. A properties file with instrumented class dependencies in a file.<br><br>
+ *
+ * File with instrumented class dependencies is a properties file like:<br>
+ * [class name 1]=[instrumented super type 1],[instrumented super type 2],...<br>
+ * [class name 2]=[instrumented super type 1],[instrumented super type 2],...<br>
  * ...
  */
 @DisableCachingByDefault(because = "Not worth caching.")

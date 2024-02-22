@@ -65,8 +65,18 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 /**
- * TODO: This class has similar implementation in build-logic/packaging/src/main/kotlin/gradlebuild/instrumentation/transforms/CollectDirectClassSuperTypesTransform.kt.
- *  We could reuse the same class at some point.
+ * A transform that analyzes an artifact: it discovers all super types for classes in an artifact and all class dependencies.<br><br>
+ *
+ * Outputs 4 files:<br>
+ * 1. Instrumentation classpath marker file.<br>
+ * 2. A properties file with original file hash and original file name.<br>
+ * 3. A file with all classes that this artifact depends on.<br>
+ * 4. A properties file with all direct super types for every class in an artifact.<br><br>
+ *
+ * A file with all direct super types is a properties file like:<br>
+ * [class name 1]=[super type 1],[super type 2],...<br>
+ * [class name 2]=[super type 1],[super type 2],...<br>
+ * ...
  */
 @DisableCachingByDefault(because = "Not worth caching.")
 public abstract class CollectDirectClassSuperTypesTransform implements TransformAction<CollectDirectClassSuperTypesTransform.Parameters> {
