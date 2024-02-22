@@ -213,19 +213,6 @@ include::caching_android_projects.adoc[leveloffset=+2]
 include::build_cache_debugging.adoc[leveloffset=+2]
 include::common_caching_problems.adoc[leveloffset=+2]
 
-[[part:native_projects]]
-== **AUTHORING C++ / SWIFT BUILDS**
-
-include::building_cpp_projects.adoc[leveloffset=+2]
-include::cpp_testing.adoc[leveloffset=+2]
-include::building_swift_projects.adoc[leveloffset=+2]
-include::swift_testing.adoc[leveloffset=+2]
-
-== NATIVE PROJECTS USING THE SOFTWARE MODEL
-
-include::native_software.adoc[leveloffset=+2]
-include::rule_source.adoc[leveloffset=+2]
-
 [[part:gradle_on_ci]]
 == **GRADLE ON CI**
 
