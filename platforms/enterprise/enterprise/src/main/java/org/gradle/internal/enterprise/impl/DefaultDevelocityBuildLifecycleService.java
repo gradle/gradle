@@ -20,13 +20,13 @@ package org.gradle.internal.enterprise.impl;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.enterprise.DevelocityGradleService;
+import org.gradle.internal.enterprise.DevelocityBuildLifecycleService;
 
-public class DefaultDevelocityGradleService implements DevelocityGradleService {
+public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLifecycleService {
 
     private final Gradle gradle;
 
-    public DefaultDevelocityGradleService(Gradle gradle) {
+    public DefaultDevelocityBuildLifecycleService(Gradle gradle) {
         this.gradle = gradle;
     }
 

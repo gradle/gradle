@@ -22,12 +22,13 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Features for Develocity used during settings configuration.
+ * Features for Develocity used during settings configuration to register lifecycle callbacks.
  *
  * @since 8.8
  */
 @ServiceScope(Scopes.Gradle.class)
-public interface DevelocityGradleService {
+public interface DevelocityBuildLifecycleService {
+
     /**
      * Adds an action to be called immediately before a project is evaluated.
      * <p>
@@ -36,4 +37,5 @@ public interface DevelocityGradleService {
      * @param action The action to execute.
      */
     void beforeProject(Action<? super Project> action);
+
 }
