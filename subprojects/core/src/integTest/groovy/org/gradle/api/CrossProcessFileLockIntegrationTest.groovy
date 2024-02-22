@@ -30,26 +30,27 @@ class CrossProcessFileLockIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile """
-            def waitForStop() {
+            def projectDir = project.layout.projectDirectory
+            def waitForStop = {
               def sanityWaitUntil = System.currentTimeMillis() + 120000
               println 'waiting for file...'
-              while(!file('stop.txt').exists()) {
+              while(!projectDir.file('stop.txt').asFile.exists()) {
                 Thread.sleep(300)
                 assert System.currentTimeMillis() < sanityWaitUntil : "Timeout waiting for file"
               }
               println 'no more waiting!'
             }
-            def stopNow() {
-              assert file('stop.txt').createNewFile()
+            def stopNow = {
+              assert projectDir.file('stop.txt').asFile.createNewFile()
             }
             subprojects {
                 apply plugin: 'java'
             }
             project(":a") {
-                compileJava.doFirst { waitForStop() }
+                compileJava.doFirst(waitForStop)
             }
             project(":b") {
-                compileJava.doFirst { stopNow() }
+                compileJava.doFirst(stopNow)
             }
         """
 

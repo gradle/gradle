@@ -56,9 +56,11 @@ class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectCont
             toBeRealized.get()
 
             task verify {
+                def realizedByName = tasks.named("realized")
+                def toBeRealizedByName = tasks.named("toBeRealized")
                 doLast {
-                    assert tasks.findByName("realized") != null
-                    assert tasks.findByName("toBeRealized") != null
+                    realizedByName.get()
+                    toBeRealizedByName.get()
                 }
             }
         """

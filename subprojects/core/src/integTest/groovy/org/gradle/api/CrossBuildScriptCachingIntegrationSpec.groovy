@@ -528,14 +528,18 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
                 assertScriptOrigin(this, seen)
 
                 task one {
+                    var seen2 = seen
+                    def assertScriptOrigin2 = this.&assertScriptOrigin
                     doLast {
+                        def assertScriptOrigin3 = assertScriptOrigin2
                         { ->
-                            assertScriptOrigin(owner, seen) // hack to get a handle on the parent closure
+                            assertScriptOrigin3(owner, seen2) // hack to get a handle on the parent closure
                         }()
                     }
                 }
 
                 task two {
+                    var seen2 = seen
                     def v
                     v = { assertScriptOrigin(v, seen) }
                     doFirst(v)

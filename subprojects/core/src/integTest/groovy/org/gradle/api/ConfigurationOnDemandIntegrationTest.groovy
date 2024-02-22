@@ -338,9 +338,10 @@ project(':api') {
             configurations { conf }
             dependencies { conf project(path: ":b", configuration: "conf") }
             task resolveConf {
+                def conf = configurations.conf
                 doLast {
                     //resolves at execution time, forcing 'b' to get configured
-                    configurations.conf.files
+                    conf.files
                 }
             }
         """
@@ -537,6 +538,7 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":a", ":b", ":b:child")
     }
 
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://docs.gradle.org/current/userguide/configuration_cache.html#config_cache:requirements:task_extensions")
     def "extra properties defined in parent project are accessible to child"() {
         createDirs("a", "a/child")
         settingsFile << "include 'a', 'a:child'"
