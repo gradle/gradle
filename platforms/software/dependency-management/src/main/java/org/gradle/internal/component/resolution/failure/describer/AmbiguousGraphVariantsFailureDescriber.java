@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.attributes.AttributeDescriber;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
@@ -28,6 +29,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import static org.gradle.internal.exceptions.StyledException.style;
@@ -40,14 +42,14 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
     @Override
-    public VariantSelectionException describeFailure(VariantAwareAmbiguousResolutionFailure failure) {
-        String message = buildAmbiguousGraphVariantsFailureMsg(failure);
+    public VariantSelectionException describeFailure(VariantAwareAmbiguousResolutionFailure failure, Optional<AttributesSchemaInternal> schema) {
+        String message = buildAmbiguousGraphVariantsFailureMsg(failure, schema.orElseThrow(IllegalArgumentException::new));
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new VariantSelectionException(message, failure, resolutions);
     }
 
-    private String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure failure) {
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
+    private String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure failure, AttributesSchemaInternal schema) {
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
 
         Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = new TreeMap<>();
         for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {

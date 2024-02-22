@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.attributes.AttributeDescriber;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
@@ -24,6 +25,7 @@ import org.gradle.internal.component.resolution.failure.type.AmbiguousResolution
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousResolutionFailure}.
@@ -33,8 +35,8 @@ public abstract class AmbiguousArtifactVariantsFailureDescriber extends Abstract
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
     @Override
-    public ArtifactVariantSelectionException describeFailure(AmbiguousResolutionFailure failure) {
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
+    public ArtifactVariantSelectionException describeFailure(AmbiguousResolutionFailure failure, Optional<AttributesSchemaInternal> schema) {
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema.orElseThrow(IllegalArgumentException::new));
         String message = buildMultipleMatchingVariantsFailureMsg(failure, describer);
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new ArtifactVariantSelectionException(message, failure, resolutions);

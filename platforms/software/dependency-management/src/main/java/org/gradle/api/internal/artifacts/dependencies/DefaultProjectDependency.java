@@ -38,6 +38,7 @@ import org.gradle.util.internal.GUtil;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
@@ -118,7 +119,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
                 return new DocumentationRegistry();
             }
         };
-        throw describer.describeFailure(failure);
+        throw describer.describeFailure(failure, Optional.empty());
     }
 
     @Override

@@ -24,19 +24,13 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
  */
 public abstract class AbstractVariantSelectionFailure implements ResolutionFailure {
     private final String requestedName;
-    private final AttributesSchemaInternal schema;
 
     public AbstractVariantSelectionFailure(AttributesSchemaInternal schema, String requestedName) {
         this.requestedName = requestedName;
-        this.schema = schema;
     }
 
     @Override
     public String getRequestedName() {
         return requestedName;
-    }
-
-    public AttributesSchemaInternal getSchema() {
-        return schema;
     }
 }

@@ -16,10 +16,12 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link UnknownArtifactSelectionFailure}.
@@ -30,7 +32,7 @@ import java.util.List;
  */
 public abstract class UnknownArtifactSelectionFailureDescriber extends AbstractResolutionFailureDescriber<UnknownArtifactSelectionFailure> {
     @Override
-    public ArtifactVariantSelectionException describeFailure(UnknownArtifactSelectionFailure failure) {
+    public ArtifactVariantSelectionException describeFailure(UnknownArtifactSelectionFailure failure, Optional<AttributesSchemaInternal> schema) {
         final ArtifactVariantSelectionException result;
         if (failure.getCause() instanceof ArtifactVariantSelectionException) {
             result = (ArtifactVariantSelectionException) failure.getCause();

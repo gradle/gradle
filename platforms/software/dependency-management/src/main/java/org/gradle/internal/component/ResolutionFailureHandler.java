@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -184,7 +185,7 @@ public class ResolutionFailureHandler {
         @SuppressWarnings("unchecked")
         Class<FAILURE> failureType = (Class<FAILURE>) failure.getClass();
         List<ResolutionFailureDescriber<FAILURE>> describers = defaultFailureDescribers.getDescribers(failureType);
-        return describeFailure(describers, failure);
+        return describeFailure(describers, failure, Optional.empty());
     }
 
     private <FAILURE extends ResolutionFailure> AbstractResolutionFailureException describeFailure(AttributesSchemaInternal schema, FAILURE failure) {
@@ -193,14 +194,14 @@ public class ResolutionFailureHandler {
         List<ResolutionFailureDescriber<FAILURE>> describers = new ArrayList<>();
         describers.addAll(schema.getFailureDescribers(failureType));
         describers.addAll(defaultFailureDescribers.getDescribers(failureType));
-        return describeFailure(describers, failure);
+        return describeFailure(describers, failure, Optional.of(schema));
     }
 
-    private <FAILURE extends ResolutionFailure> AbstractResolutionFailureException describeFailure(List<ResolutionFailureDescriber<FAILURE>> describers, FAILURE failure) {
+    private <FAILURE extends ResolutionFailure> AbstractResolutionFailureException describeFailure(List<ResolutionFailureDescriber<FAILURE>> describers, FAILURE failure, Optional<AttributesSchemaInternal> schema) {
         return describers.stream()
             .filter(describer -> describer.canDescribeFailure(failure))
             .findFirst()
-            .map(describer -> describer.describeFailure(failure))
+            .map(describer -> describer.describeFailure(failure, schema))
             .orElseThrow(() -> new IllegalStateException("No describer found for failure: " + failure)); // TODO: a default describer at the end of the list that catches everything instead?
     }
 }

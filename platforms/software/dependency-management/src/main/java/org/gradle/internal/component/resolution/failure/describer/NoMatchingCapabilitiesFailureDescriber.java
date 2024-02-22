@@ -16,19 +16,21 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.NoMatchingCapabilitiesFailure;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link NoMatchingCapabilitiesFailure}.
  */
 public abstract class NoMatchingCapabilitiesFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingCapabilitiesFailure> {
     @Override
-    public VariantSelectionException describeFailure(NoMatchingCapabilitiesFailure failure) {
+    public VariantSelectionException describeFailure(NoMatchingCapabilitiesFailure failure, Optional<AttributesSchemaInternal> schema) {
         String message = buildNoMatchingCapabilitiesFailureMsg(failure);
         List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
         return new VariantSelectionException(message, failure, resolutions);

@@ -17,6 +17,7 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.attributes.AttributeDescriber;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
@@ -26,6 +27,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
@@ -37,8 +39,8 @@ public abstract class IncompatibleRequestedConfigurationFailureDescriber extends
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
 
     @Override
-    public VariantSelectionException describeFailure(IncompatibleRequestedConfigurationFailure failure) {
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
+    public VariantSelectionException describeFailure(IncompatibleRequestedConfigurationFailure failure, Optional<AttributesSchemaInternal> schema) {
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema.orElseThrow(IllegalArgumentException::new));
         String message = buildIncompatibleGraphVariantsFailureMsg(failure, describer);
         List<String> resolutions = buildResolutions(suggestSpecificDocumentation(INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION), suggestReviewAlgorithm());
         return new VariantSelectionException(message, failure, resolutions);
