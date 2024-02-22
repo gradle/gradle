@@ -23,19 +23,19 @@ import groovy.transform.SelfType
  */
 @SelfType(AbstractIntegrationSpec)
 trait ConfigurationUsageChangingFixture {
-    void expectConsumableChanging(String configurationPath, boolean current) {
-        expectChangingUsage(configurationPath, "consumable", current)
+    void expectConsumableChanging(String configurationPath, boolean value) {
+        expectChangingUsage(configurationPath, "setCanBeConsumed", value)
     }
 
-    void expectResolvableChanging(String configurationPath, boolean current) {
-        expectChangingUsage(configurationPath, "resolvable", current)
+    void expectResolvableChanging(String configurationPath, boolean value) {
+        expectChangingUsage(configurationPath, "setCanBeResolved", value)
     }
 
-    void expectDeclarableChanging(String configurationPath, boolean current) {
-        expectChangingUsage(configurationPath, "declarable", current)
+    void expectDeclarableChanging(String configurationPath, boolean value) {
+        expectChangingUsage(configurationPath, "setCanBeDeclared", value)
     }
 
-    void expectChangingUsage(String configurationPath, String usage, boolean current) {
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration '$configurationPath', $usage was ${!current} and is now $current. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+    void expectChangingUsage(String configurationPath, String method, boolean value) {
+        executer.expectDocumentedDeprecationWarning("Calling $method($value) on configuration '$configurationPath' has been deprecated. This will fail with an error in Gradle 9.0. This configuration's role was set upon creation should not be changed. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
     }
 }
