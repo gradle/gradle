@@ -241,13 +241,15 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         ]
     }
 
-    def "should merge class dependencies hierarchy"() {
+    def "should output only org.gradle supertypes for class dependencies"() {
         given:
         requireOwnGradleUserHomeDir()
         multiProjectJavaBuild("subproject") {
             file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
             file("$it/api/src/main/java/B.java") << "public class B extends C {}"
-            file("$it/api/src/main/java/C.java") << "public class C {}"
+            file("$it/api/src/main/java/C.java") << "import org.gradle.D; public class C extends D {}"
+            file("$it/api/src/main/java/org/gradle/D.java") << "package org.gradle; public class D extends E {}"
+            file("$it/api/src/main/java/org/gradle/E.java") << "package org.gradle; public class E {}"
         }
         buildFile << """
             buildscript {
@@ -268,15 +270,53 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         mergeOutput("api-1.0.jar").exists()
         def implMergeDir = mergeOutput("impl-1.0.jar")
         implMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME).readLines() == [
-            "B=B,C",
+            "B=org/gradle/D,org/gradle/E",
         ]
         def apiMergeDir = mergeOutput("api-1.0.jar")
         apiMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME).readLines() == [
-            "C=C"
+            "C=org/gradle/D,org/gradle/E",
+            "org/gradle/D=org/gradle/D,org/gradle/E",
+            "org/gradle/E=org/gradle/E"
         ]
     }
 
-    def "should re-instrument jar if hierarchy changes"() {
+    def "should re-instrument jar if classpath changes and class starts extending a Gradle core class transitively"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        multiProjectJavaBuild("subproject") {
+            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
+            file("$it/api/src/main/java/B.java") << "public class B {}"
+        }
+        buildFile << """
+            buildscript {
+                dependencies {
+                    // Add them as separate jars
+                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
+                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
+                }
+            }
+        """
+
+        when:
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 1
+
+        when:
+        file("subproject/api/src/main/java/B.java").text = "import org.gradle.C; public class B extends C {}"
+        file("subproject/api/src/main/java/org/gradle/C.java") << "package org.gradle; public class C {}"
+        executer.inDirectory(file("subproject")).withTasks("jar").run()
+        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
+
+        then:
+        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 2
+        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 2
+    }
+
+    def "should not re-instrument jar if classpath changes but class doesn't extend Gradle core class"() {
         given:
         requireOwnGradleUserHomeDir()
         multiProjectJavaBuild("subproject") {
@@ -303,41 +343,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
         when:
         file("subproject/api/src/main/java/B.java").text = "public class B extends C {}"
-        file("subproject/api/src/main/java/C.java") << "public class C {}"
-        executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
-
-        then:
-        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 2
-        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 2
-    }
-
-    def "should not re-instrument jar if classpath changes but hierarchy doesn't"() {
-        given:
-        requireOwnGradleUserHomeDir()
-        multiProjectJavaBuild("subproject") {
-            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
-            file("$it/api/src/main/java/B.java") << "public class B {}"
-        }
-        buildFile << """
-            buildscript {
-                dependencies {
-                    // Add them as separate jars
-                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
-                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
-                }
-            }
-        """
-
-        when:
-        executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
-
-        then:
-        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 1
-        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 1
-
-        when:
         file("subproject/api/src/main/java/C.java") << "public class C {}"
         executer.inDirectory(file("subproject")).withTasks("jar").run()
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
