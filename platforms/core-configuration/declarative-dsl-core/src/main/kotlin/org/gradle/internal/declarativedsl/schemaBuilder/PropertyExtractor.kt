@@ -23,6 +23,7 @@ import org.gradle.internal.declarativedsl.analysis.DataProperty
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import java.util.Locale
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
@@ -74,7 +75,8 @@ data class CollectedPropertyInformation(
     val propertyMode: DataProperty.PropertyMode,
     val hasDefaultValue: Boolean,
     val isHiddenInDeclarativeDsl: Boolean,
-    val isDirectAccessOnly: Boolean
+    val isDirectAccessOnly: Boolean,
+    val claimedFunctions: List<KFunction<*>>
 )
 
 
@@ -99,11 +101,11 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             val type = getter.returnType.toDataTypeRefOrError()
             val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
             val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
+            val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
             val mode = run {
-                val hasSetter = functionsByName["set$nameAfterGet"].orEmpty().any { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
-                if (hasSetter) DataProperty.PropertyMode.READ_WRITE else DataProperty.PropertyMode.READ_ONLY
+                if (setter != null) DataProperty.PropertyMode.READ_WRITE else DataProperty.PropertyMode.READ_ONLY
             }
-            CollectedPropertyInformation(propertyName, getter.returnType, type, mode, true, isHidden, isDirectAccessOnly)
+            CollectedPropertyInformation(propertyName, getter.returnType, type, mode, true, isHidden, isDirectAccessOnly, listOfNotNull(getter, setter))
         }
     }
 
@@ -130,7 +132,8 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
                 isReadOnly || property.annotationsWithGetters.any { it is HasDefaultValue }
             },
             isHiddenInDeclarativeDsl = isHidden,
-            isDirectAccessOnly = isDirectAccessOnly
+            isDirectAccessOnly = isDirectAccessOnly,
+            claimedFunctions = emptyList()
         )
     }
 }

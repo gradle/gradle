@@ -87,7 +87,8 @@ object PropertyTest {
                         DataProperty.PropertyMode.WRITE_ONLY,
                         hasDefaultValue = false,
                         isHiddenInDeclarativeDsl = false,
-                        isDirectAccessOnly = false
+                        isDirectAccessOnly = false,
+                        claimedFunctions = emptyList()
                     )
                 )
             } else emptyList()
@@ -97,7 +98,7 @@ object PropertyTest {
     private
     fun testPropertyContributor(name: String, type: KType) = object : PropertyExtractor {
         override fun extractProperties(kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
-            listOf(CollectedPropertyInformation(name, type, type.toDataTypeRefOrError(), DataProperty.PropertyMode.READ_WRITE, false, false, false))
+            listOf(CollectedPropertyInformation(name, type, type.toDataTypeRefOrError(), DataProperty.PropertyMode.READ_WRITE, false, false, false, emptyList()))
                 .filter { propertyNamePredicate(it.name) }
     }
 
