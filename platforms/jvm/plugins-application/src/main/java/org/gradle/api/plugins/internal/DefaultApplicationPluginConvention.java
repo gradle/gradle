@@ -18,7 +18,6 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.plugins.ApplicationPluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -26,7 +25,10 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import javax.inject.Inject;
 import java.util.ArrayList;
 
-public abstract class DefaultApplicationPluginConvention extends ApplicationPluginConvention implements HasPublicType {
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
+@SuppressWarnings("deprecation")
+public abstract class DefaultApplicationPluginConvention extends org.gradle.api.plugins.ApplicationPluginConvention implements HasPublicType {
     private String applicationName;
     private String mainClassName;
     private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();
@@ -42,8 +44,9 @@ public abstract class DefaultApplicationPluginConvention extends ApplicationPlug
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(ApplicationPluginConvention.class);
+        return typeOf(org.gradle.api.plugins.ApplicationPluginConvention.class);
     }
 
     @Override
@@ -112,8 +115,9 @@ public abstract class DefaultApplicationPluginConvention extends ApplicationPlug
         return project;
     }
 
+    @SuppressWarnings("deprecation")
     private static void logDeprecation() {
-        DeprecationLogger.deprecateType(ApplicationPluginConvention.class)
+        DeprecationLogger.deprecateType(org.gradle.api.plugins.ApplicationPluginConvention.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "application_convention_deprecation")
             .nagUser();

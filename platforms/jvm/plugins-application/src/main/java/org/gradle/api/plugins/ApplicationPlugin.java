@@ -50,6 +50,8 @@ import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
+import static org.gradle.api.distribution.plugins.DistributionPlugin.TASK_INSTALL_NAME;
+
 /**
  * <p>A {@link Plugin} which packages and runs a project as a Java Application.</p>
  *
@@ -78,7 +80,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         addRunTask(project, mainFeature, extension);
         addCreateScriptsTask(project, mainFeature, extension);
         configureJavaCompileTask(mainFeature.getCompileJavaTask(), extension);
-        configureInstallTask(project.getProviders(), tasks.named(DistributionPlugin.TASK_INSTALL_NAME, Sync.class), extension);
+        configureInstallTask(project.getProviders(), tasks.named(TASK_INSTALL_NAME, Sync.class), extension);
 
         DistributionContainer distributions = project.getExtensions().getByType(DistributionContainer.class);
         Distribution mainDistribution = distributions.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME);
@@ -132,8 +134,9 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private JavaApplication addExtension(Project project) {
-        ApplicationPluginConvention pluginConvention = project.getObjects().newInstance(DefaultApplicationPluginConvention.class, project);
+        @SuppressWarnings("deprecation") ApplicationPluginConvention pluginConvention = project.getObjects().newInstance(DefaultApplicationPluginConvention.class, project);
         DeprecationLogger.whileDisabled(() -> pluginConvention.setApplicationName(project.getName()));
         DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("application", pluginConvention));
         return project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
@@ -177,6 +180,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
+    @SuppressWarnings("deprecation")
     private void addCreateScriptsTask(Project project, JvmFeatureInternal mainFeature, JavaApplication pluginExtension) {
         project.getTasks().register(TASK_START_SCRIPTS_NAME, CreateStartScripts.class, startScripts -> {
             startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");

@@ -61,10 +61,6 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
-strictCompile {
-    ignoreDeprecations() // TODO: uses deprecated software model types, suppress these warnings and remove ignore
-}
-
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }

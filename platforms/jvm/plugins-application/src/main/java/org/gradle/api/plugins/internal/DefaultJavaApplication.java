@@ -18,18 +18,18 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.ApplicationPluginConvention;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class DefaultJavaApplication implements JavaApplication {
-    private final ApplicationPluginConvention convention;
+    @SuppressWarnings("deprecation")
+    private final org.gradle.api.plugins.ApplicationPluginConvention convention;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
 
-    public DefaultJavaApplication(ApplicationPluginConvention convention, ObjectFactory objectFactory, ProviderFactory providerFactory) {
+    public DefaultJavaApplication(@SuppressWarnings("deprecation") org.gradle.api.plugins.ApplicationPluginConvention convention, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         this.convention = convention;
         this.mainModule = objectFactory.property(String.class);
         this.mainClass = objectFactory.property(String.class).convention(providerFactory.provider(() -> DeprecationLogger.whileDisabled(convention::getMainClassName)));

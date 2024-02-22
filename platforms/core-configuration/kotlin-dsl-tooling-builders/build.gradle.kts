@@ -30,7 +30,7 @@ dependencies {
     crossVersionTestImplementation(libs.guava)
     crossVersionTestImplementation(libs.ant)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics")) {}
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm")) {
         because("Uses application plugin.")
     }

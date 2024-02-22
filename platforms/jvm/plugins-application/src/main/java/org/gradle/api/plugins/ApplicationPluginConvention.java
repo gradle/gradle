@@ -24,6 +24,7 @@ import org.gradle.api.file.CopySpec;
  *
  * @deprecated Use {@link JavaApplication} instead. This class is scheduled for removal in Gradle 9.0.
  */
+@SuppressWarnings("DeprecatedIsStillUsed")
 @Deprecated
 public abstract class ApplicationPluginConvention {
     /**
