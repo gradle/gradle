@@ -123,7 +123,7 @@ object AccessorTest {
     val schema = schemaFromTypes(
         MyReceiver::class,
         this::class.nestedClasses,
-        functionExtractor = DefaultFunctionExtractor(isPublicAndRestricted, configureLambdas) + functionContributorWithCustomAccessor
+        functionExtractor = DefaultFunctionExtractor(configureLambdas, isPublicAndRestricted) + functionContributorWithCustomAccessor
     )
 
     internal
