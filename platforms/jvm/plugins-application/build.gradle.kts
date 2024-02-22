@@ -23,22 +23,42 @@ description = "Contains the Application plugin, and its supporting classes.  Thi
 dependencies {
     api(project(":core"))
     api(project(":core-api"))
-    api(project(":language-java"))
-    api(project(":logging"))
-    api(project(":plugins-distribution"))
-    api(project(":plugins-java"))
-    api(project(":plugins-jvm-test-suite"))
-    api(project(":publish"))
 
     api(libs.inject)
+    api(libs.jsr305)
 
+    implementation(project(":base-annotations"))
     implementation(project(":base-services"))
+    implementation(project(":language-java"))
+    implementation(project(":language-jvm"))
+    implementation(project(":logging"))
+    implementation(project(":model-core"))
+    implementation(project(":platform-jvm"))
+    implementation(project(":plugins-distribution"))
+    implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
-    implementation(project(":tooling-api"))
+    implementation(project(":process-services"))
+    implementation(project(":toolchains-jvm"))
 
+    implementation(libs.ant)
     implementation(libs.commonsLang)
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
+    implementation(libs.guava)
+
+    testImplementation(testFixtures(project(":core")))
+
+    integTestImplementation(testFixtures(project(":enterprise-operations")))
+    integTestImplementation(testFixtures(project(":language-java")))
+    integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures(project(":plugins-java")))
+    integTestImplementation(testFixtures(project(":plugins-java-base")))
+    integTestImplementation(testFixtures(project(":resources-http")))
+
+    testRuntimeOnly(project(":distributions-core")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 strictCompile {
@@ -49,3 +69,6 @@ strictCompile {
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }
+
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true

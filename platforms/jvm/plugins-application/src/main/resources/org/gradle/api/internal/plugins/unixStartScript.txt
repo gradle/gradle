@@ -55,13 +55,13 @@
 #       Darwin, MinGW, and NonStop.
 #
 #   (3) This script is generated from the Groovy template
-#       https://github.com/gradle/gradle/blob/HEAD/subprojects/plugins/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt
+#       https://github.com/gradle/gradle/blob/HEAD/platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt
 #       within the Gradle project.
 #<% /*
 #       ... and if you're reading this, this IS the template just mentioned.
 #
 #       This template is processed by
-#       https://github.com/gradle/gradle/blob/HEAD/subprojects/plugins/src/main/java/org/gradle/api/internal/plugins/UnixStartScriptGenerator.java
+#       https://github.com/gradle/gradle/blob/HEAD/platforms/jvm/plugins-application/src/main/java/org/gradle/api/internal/plugins/UnixStartScriptGenerator.java
 #
 #       Gradle is a meta-build system used by the project that you're building
 #       or installing. It's like autoconf but for projects that are written in

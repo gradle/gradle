@@ -53,27 +53,6 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.inject)
 
-    testImplementation(project(":messaging"))
-    testImplementation(project(":native"))
-    testImplementation(project(":resources"))
-    testImplementation(libs.gson) {
-        because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
-    }
-    testImplementation(libs.jsoup)
-    testImplementation(libs.commonsIo)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":jvm-services")))
-
-    testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(project(":base-services-groovy"))
-    testFixturesImplementation(project(":file-collections"))
-    testFixturesImplementation(testFixtures(project(":language-groovy")))
-    testFixturesImplementation(project(":language-jvm"))
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":process-services"))
-    testFixturesImplementation(project(":resources"))
-    testFixturesImplementation(libs.guava)
-
     integTestImplementation(testFixtures(project(":enterprise-operations")))
     integTestImplementation(testFixtures(project(":language-java")))
     integTestImplementation(testFixtures(project(":model-core")))
@@ -81,9 +60,6 @@ dependencies {
     integTestImplementation(testFixtures(project(":plugins-java-base")))
     integTestImplementation(testFixtures(project(":resources-http")))
 
-    testRuntimeOnly(project(":distributions-core")) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
-    }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
@@ -96,7 +72,6 @@ packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 
 description = """Provides core Gradle plugins, as well as many JVM-related plugins for building different types of Java and Groovy projects."""
