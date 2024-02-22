@@ -42,7 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.readSuperTypes;
 
-public abstract class CacheInstrumentationTypeRegistryBuildService implements BuildService<CacheInstrumentationTypeRegistryBuildService.Parameters> {
+public abstract class CacheInstrumentationDataBuildService implements BuildService<CacheInstrumentationDataBuildService.Parameters> {
 
     /**
      * Can be removed once we actually have some upgrades, but without upgrades we currently can't test this
@@ -50,7 +50,7 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
     public static final String GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY = "org.gradle.internal.instrumentation.generateClassHierarchyWithoutUpgrades";
 
     public interface Parameters extends BuildServiceParameters {
-        ConfigurableFileCollection getAnalyzeResult();
+        ConfigurableFileCollection getAnalysisResult();
         ConfigurableFileCollection getOriginalClasspath();
     }
 
@@ -81,7 +81,7 @@ public abstract class CacheInstrumentationTypeRegistryBuildService implements Bu
     }
 
     private Map<String, Set<String>> readDirectSuperTypes() {
-        Set<File> directories = getParameters().getAnalyzeResult().getFiles();
+        Set<File> directories = getParameters().getAnalysisResult().getFiles();
         return directories.stream()
             .filter(File::isDirectory)
             .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))

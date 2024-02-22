@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationTypeRegistryBuildService;
+import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
 import org.gradle.api.model.ObjectFactory;
@@ -79,11 +79,11 @@ import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupporte
  * ...
  */
 @DisableCachingByDefault(because = "Not worth caching.")
-public abstract class CollectDirectClassSuperTypesTransform implements TransformAction<CollectDirectClassSuperTypesTransform.Parameters> {
+public abstract class InstrumentationAnalysisTransform implements TransformAction<InstrumentationAnalysisTransform.Parameters> {
 
     public interface Parameters extends TransformParameters {
         @Internal
-        Property<CacheInstrumentationTypeRegistryBuildService> getBuildService();
+        Property<CacheInstrumentationDataBuildService> getBuildService();
     }
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang/");
 
@@ -160,7 +160,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
     }
 
     private void writeMetadata(File artifact, File metadata) {
-        CacheInstrumentationTypeRegistryBuildService buildService = getParameters().getBuildService().get();
+        CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
         writeOutput(metadata, writer -> {
             String hash = firstNonNull(buildService.getArtifactHash(artifact), FILE_MISSING_HASH);
             writer.write(FILE_NAME_PROPERTY_NAME + "=" + artifact.getName() + "\n");

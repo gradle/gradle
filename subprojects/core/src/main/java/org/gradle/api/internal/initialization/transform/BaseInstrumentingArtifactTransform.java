@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationTypeRegistryBuildService;
+import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -43,7 +43,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.function.Consumer;
 
-import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.InstrumentArtifactTransformParameters;
+import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.Parameters;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
 import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME;
@@ -56,11 +56,11 @@ import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_D
  * Base artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache")
-public abstract class BaseInstrumentingArtifactTransform implements TransformAction<InstrumentArtifactTransformParameters> {
+public abstract class BaseInstrumentingArtifactTransform implements TransformAction<Parameters> {
 
-    public interface InstrumentArtifactTransformParameters extends TransformParameters {
+    public interface Parameters extends TransformParameters {
         @Internal
-        Property<CacheInstrumentationTypeRegistryBuildService> getBuildService();
+        Property<CacheInstrumentationDataBuildService> getBuildService();
         @Input
         Property<Boolean> getAgentSupported();
     }

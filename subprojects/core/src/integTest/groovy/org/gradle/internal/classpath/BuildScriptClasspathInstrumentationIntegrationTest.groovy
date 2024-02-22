@@ -26,7 +26,7 @@ import java.nio.file.Files
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
-import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationTypeRegistryBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
+import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME
@@ -99,7 +99,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["CollectDirectClassSuperTypesTransform", "MergeSuperTypesTransform", "ExternalDependencyInstrumentingArtifactTransform"]
+        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
         gradleUserHomeOutput("instrumented/commons-lang3-3.8.1.jar").exists()
     }
@@ -152,11 +152,11 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         allTransformsFor("main") ==~ [
             // Only the folder name is reported, so we cannot distinguish first and second
-            "CollectDirectClassSuperTypesTransform",
-            "MergeSuperTypesTransform",
+            "InstrumentationAnalysisTransform",
+            "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform",
-            "CollectDirectClassSuperTypesTransform",
-            "MergeSuperTypesTransform",
+            "InstrumentationAnalysisTransform",
+            "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform"
         ]
     }
@@ -222,7 +222,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("animals-1.0.jar") ==~ ["MergeSuperTypesTransform", "CollectDirectClassSuperTypesTransform", "ExternalDependencyInstrumentingArtifactTransform"]
+        allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         def analyzeDir = analyzeOutput("animals-1.0.jar")
         analyzeDir.exists()
         analyzeDir.file(SUPER_TYPES_FILE_NAME).readLines() == [

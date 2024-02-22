@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationTypeRegistryBuildService;
+import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -67,11 +67,11 @@ import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION
  * ...
  */
 @DisableCachingByDefault(because = "Not worth caching.")
-public abstract class MergeSuperTypesTransform implements TransformAction<MergeSuperTypesTransform.InstrumentArtifactTransformParameters> {
+public abstract class MergeInstrumentationAnalysisTransform implements TransformAction<MergeInstrumentationAnalysisTransform.Parameters> {
 
-    public interface InstrumentArtifactTransformParameters extends TransformParameters {
+    public interface Parameters extends TransformParameters {
         @Internal
-        Property<CacheInstrumentationTypeRegistryBuildService> getBuildService();
+        Property<CacheInstrumentationDataBuildService> getBuildService();
 
         /**
          * Original classpath is an input, since if original classpath changes that means
@@ -130,7 +130,7 @@ public abstract class MergeSuperTypesTransform implements TransformAction<MergeS
     }
 
     private InstrumentationTypeRegistry getInstrumentationTypeRegistry(InjectedInstrumentationServices internalServices) {
-        CacheInstrumentationTypeRegistryBuildService buildService = getParameters().getBuildService().get();
+        CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
         return buildService.getInstrumentingTypeRegistry(internalServices.getGradleCoreInstrumentingTypeRegistry());
     }
 }
