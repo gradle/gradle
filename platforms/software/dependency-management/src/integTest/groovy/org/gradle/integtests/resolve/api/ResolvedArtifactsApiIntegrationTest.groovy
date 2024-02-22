@@ -674,7 +674,6 @@ ${showFailuresTask(expression)}
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure to select configurations when artifacts are queried"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """
