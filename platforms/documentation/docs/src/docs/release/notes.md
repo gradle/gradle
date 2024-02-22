@@ -302,6 +302,16 @@ testing {
 
 Providing separate strings or using named arguments for each part is not supported currently.
 
+### Documentation improvements
+
+The [Gradle User Manual](userguide/userguide.html) is a comprehensive guide that provides detailed documentation and instructions for using Gradle.
+We are actively updating our manual to improve clarity, add new content, and enhance the overall user experience.
+
+#### Developing tasks
+
+The [Developing Tasks](userguide/more_about_tasks.html) section of the Authoring Gradle Builds chapter of the manual now clearly identifies and defines lifecycle tasks and actionable tasks.
+The updated pages clearly detail how to develop custom tasks, including parallel tasks, incremental tasks, lazy task configuration, and task configuration avoidance.
+
 ## Fixed issues
 
 <!--
