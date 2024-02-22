@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":language-jvm"))
     implementation(project(":language-java"))
     implementation(project(":language-groovy"))
+    implementation(project(":plugins-application"))
     implementation(project(":plugins-distribution"))
     implementation(project(":plugins-groovy"))
     implementation(project(":plugins-java"))
