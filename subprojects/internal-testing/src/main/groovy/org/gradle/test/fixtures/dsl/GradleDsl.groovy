@@ -21,7 +21,8 @@ import groovy.transform.CompileStatic
 enum GradleDsl {
 
     GROOVY(".gradle"),
-    KOTLIN(".gradle.kts");
+    KOTLIN(".gradle.kts"),
+    DECLARATIVE(".gradle.something");
 
     private final String fileExtension;
 

@@ -32,8 +32,8 @@ dependencies {
     api(libs.inject)
 
     implementation(project(":base-services"))
-    implementation(project(":dependency-management"))
     implementation(project(":core"))
+    implementation(project(":dependency-management"))
     implementation(project(":ivy"))
     implementation(project(":maven"))
     implementation(project(":platform-base"))

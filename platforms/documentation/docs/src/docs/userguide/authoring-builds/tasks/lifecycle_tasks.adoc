@@ -1,0 +1,781 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[lifecycle_tasks]]
+= Lifecycle Tasks
+
+Lifecycle tasks are tasks that do not do work themselves.
+These tasks have no actions.
+They serve as _targets_ for the build.
+
+image::writing-tasks-2.png[]
+
+Lifecycle tasks represent various concepts:
+
+* a work-flow step (e.g., run all checks with `check`)
+* a buildable thing (e.g., create a debug 32-bit executable for native components with `debug32MainExecutable`)
+* a convenience task to execute many of the same logical tasks (e.g., run all compilation tasks with `compileAll`)
+
+The <<base_plugin.adoc#base_plugin,Gradle `base` plugin>> defines several lifecycle tasks, including `build`, `assemble`, and `check`.
+
+A well-organized setup of lifecycle tasks enhances the accessibility of your build for new users and simplifies integration with CI.
+
+[[sec:task_groups]]
+== Task group and description
+
+Let's consider a basic Java application as an example.
+The build contains a subproject called `app`.
+
+Let's list the available tasks in `app` at the moment:
+
+[source, text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+----
+
+When listing available tasks in the `app` subproject, we see that tasks are grouped.
+Here, the `:run` task is part of the `Application` group with the description `Runs this project as a JVM application`.
+
+[[sec:hidden_tasks]]
+== Private and hidden tasks
+
+Gradle doesn't support marking a task as _private_.
+
+However, tasks will only show up when running `:tasks` if `task.group` is set or no other task depends on it.
+
+For instance, the following task will not appear when running `./gradlew :app:tasks` because it does not have a group; it is called a _hidden_ task:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+tasks.register("helloTask") {
+    println("Hello")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.register("helloTask") {
+    println("Hello")
+}
+----
+=====
+====
+
+Although `helloTask` is not listed, it can still be executed by Gradle:
+
+[source, text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+----
+
+Let's add a group to the same task:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+tasks.register("helloTask") {
+    group = "Other"
+    println("Hello")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.register("helloTask") {
+    group = "Other"
+    println("Hello")
+}
+----
+=====
+====
+
+Now that the group is added, the task is visible:
+
+[source, text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+
+Other tasks
+-----------
+helloTask
+----
+
+In contrast, `./gradlew tasks --all` will show all tasks; _hidden_ and _visible_ tasks are listed.
+
+[[sec:grouping_tasks]]
+== Grouping tasks
+
+If you want to customize which tasks are shown to users when listed, you can group tasks and set the visibility of each group.
+
+NOTE: Remember, even if you _hide_ tasks, they are still available, and Gradle can still run them.
+
+Let's start with an example built by Gradle `init` for a Java application with multiple subprojects.
+The project structure is as follows:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+gradle-project
+├── app
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+│       └── ...
+├── utilities
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+│       └── ...
+├── list
+│   ├── build.gradle.kts
+│   └── src                 // some java code
+│       └── ...
+├── buildSrc
+│   ├── build.gradle.kts
+│   ├── settings.gradle.kts
+│   └── src                 // common build logic
+│       └── ...
+├── settings.gradle.kts
+├── gradle
+├── gradlew
+└── gradlew.bat
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+gradle-project
+├── app
+│   ├── build.gradle
+│   └── src             // some java code
+│       └── ...
+├── utilities
+│   ├── build.gradle
+│   └── src             // some java code
+│       └── ...
+├── list
+│   ├── build.gradle
+│   └── src             // some java code
+│       └── ...
+├── buildSrc
+│   ├── build.gradle
+│   ├── settings.gradle
+│   └── src             // common build logic
+│       └── ...
+├── settings.gradle
+├── gradle
+├── gradlew
+└── gradlew.bat
+----
+=====
+====
+
+Run `app:tasks` to see available tasks in the `app` subproject:
+
+[source,text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+buildDependents - Assembles and tests this project and all projects that depend on it.
+buildNeeded - Assembles and tests this project and all projects it depends on.
+classes - Assembles main classes.
+clean - Deletes the build directory.
+jar - Assembles a jar archive containing the classes of the 'main' feature.
+testClasses - Assembles test classes.
+
+Distribution tasks
+------------------
+assembleDist - Assembles the main distributions
+distTar - Bundles the project as a distribution.
+distZip - Bundles the project as a distribution.
+installDist - Installs the project as a distribution as-is.
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the 'main' feature.
+
+Help tasks
+----------
+buildEnvironment - Displays all buildscript dependencies declared in project ':app'.
+dependencies - Displays all dependencies declared in project ':app'.
+dependencyInsight - Displays the insight into a specific dependency in project ':app'.
+help - Displays a help message.
+javaToolchains - Displays the detected java toolchains.
+kotlinDslAccessorsReport - Prints the Kotlin code for accessing the currently available project extensions and conventions.
+outgoingVariants - Displays the outgoing variants of project ':app'.
+projects - Displays the sub-projects of project ':app'.
+properties - Displays the properties of project ':app'.
+resolvableConfigurations - Displays the configurations that can be resolved in project ':app'.
+tasks - Displays the tasks runnable from project ':app'.
+
+Verification tasks
+------------------
+check - Runs all checks.
+test - Runs the test suite.
+----
+
+If we look at the list of tasks available, even for a standard Java project, it's extensive.
+Many of these tasks are rarely required directly by developers using the build.
+
+We can configure the `:tasks` task and limit the tasks shown to a certain group.
+
+Let's create our own group so that all tasks are hidden by default by updating the `app` build script:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+val myBuildGroup = "my app build"               // Create a group name
+
+tasks.register<TaskReportTask>("tasksAll") {    // Register the tasksAll task
+    group = myBuildGroup
+    description = "Show additional tasks."
+    setShowDetail(true)
+}
+
+tasks.named<TaskReportTask>("tasks") {          // Move all existing tasks to the group
+    displayGroup = myBuildGroup
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+def myBuildGroup = "my app build"               // Create a group name
+
+tasks.register(TaskReportTask, "tasksAll") {    // Register the tasksAll task
+    group = myBuildGroup
+    description = "Show additional tasks."
+    setShowDetail(true)
+}
+
+tasks.named(TaskReportTask, "tasks") {          // Move all existing tasks to the group
+    displayGroup = myBuildGroup
+}
+----
+=====
+====
+
+Now, when we list tasks available in `app`, the list is shorter:
+
+[source, text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+My app build tasks
+------------------
+tasksAll - Show additional tasks.
+----
+
+[[sec:lifecycle_tasks]]
+== Lifecycle tasks
+
+Lifecycle tasks can be particularly beneficial for separating work between users or machines (CI vs local).
+For example, a developer on a local machine might not want to run an entire build on every single change.
+
+Let's expose three additional tasks in our example, the `build` task, the `check` task, and the `run` task by adding the following lines to the `app` build script:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+tasks.build {
+    group = myBuildGroup
+}
+
+tasks.check {
+    group = myBuildGroup
+    description = "Runs checks (including tests)."
+}
+
+tasks.named("run") {
+    group = myBuildGroup
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+tasks.build {
+    group = myBuildGroup
+}
+
+tasks.check {
+    group = myBuildGroup
+    description = "Runs checks (including tests)."
+}
+
+tasks.named('run') {
+    group = myBuildGroup
+}
+----
+=====
+====
+
+If we now look at the `app:tasks` list, we can see the three tasks are available:
+
+[source, text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+My app build tasks
+------------------
+build - Assembles and tests this project.
+check - Runs checks (including tests).
+run - Runs this project as a JVM application
+tasksAll - Show additional tasks.
+----
+
+This is already useful if the standard lifecycle tasks are sufficient.
+Moving the groups around helps clarify the tasks you expect to used in your build.
+
+In many cases, there are more specific requirements that you want to address.
+One common scenario is running quality checks without running tests.
+Currently, the `:check` task runs tests and the code quality checks.
+Instead, we want to run code quality checks all the time, but not the lengthy test.
+
+To add a quality check lifecycle task, we introduce an additional lifecycle task called `qualityCheck` and a plugin called link:https://github.com/spotbugs/spotbugs[`spotbugs`].
+
+To add a lifecycle task, use link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`tasks.register()`].
+The only thing you need to provide is a name.
+Put this task in our group and wire the actionable tasks that belong to this new lifecycle task using the link:{javadocPath}/org/gradle/api/DefaultTask.html#dependsOn-java.lang.Object...-[`dependsOn()`] method:
+
+====
+[.multi-language-sample]
+=====
+.app/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.github.spotbugs") version "6.0.7"           // spotbugs plugin
+}
+
+tasks.register("qualityCheck") {                        // qualityCheck task
+    group = myBuildGroup                                // group
+    description = "Runs checks (excluding tests)."      // description
+    dependsOn(tasks.classes, tasks.spotbugsMain)        // dependencies
+    dependsOn(tasks.testClasses, tasks.spotbugsTest)    // dependencies
+}
+----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+plugins {
+    id 'com.github.spotbugs' version '6.0.7'            // spotbugs plugin
+}
+
+tasks.register('qualityCheck') {                        // qualityCheck task
+    group = myBuildGroup                                // group
+    description = 'Runs checks (excluding tests).'      // description
+    dependsOn tasks.classes, tasks.spotbugsMain         // dependencies
+    dependsOn tasks.testClasses, tasks.spotbugsTest     // dependencies
+}
+----
+=====
+====
+
+Note that you don't need to list all the tasks that Gradle will execute.
+Just specify the targets you want to collect here.
+Gradle will determine which other tasks it needs to call to reach these goals.
+
+In the example, we add the `classes` task, a lifecycle task to compile all our production code, and the `spotbugsMain` task, which checks our production code.
+
+We also add a description that will show up in the task list that helps distinguish the two check tasks better.
+
+Now, if run './gradlew :app:tasks', we can see that our new `qualityCheck` lifecycle task is available:
+
+[source, text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+My app build tasks
+------------------
+build - Assembles and tests this project.
+check - Runs checks (including tests).
+qualityCheck - Runs checks (excluding tests).
+run - Runs this project as a JVM application
+tasksAll - Show additional tasks.
+----
+
+If we run it, we can see that it runs checkstyle but not the tests:
+
+[source,text]
+----
+$ ./gradlew :app:qualityCheck
+
+> Task :buildSrc:checkKotlinGradlePluginConfigurationErrors
+> Task :buildSrc:generateExternalPluginSpecBuilders UP-TO-DATE
+> Task :buildSrc:extractPrecompiledScriptPluginPlugins UP-TO-DATE
+> Task :buildSrc:compilePluginsBlocks UP-TO-DATE
+> Task :buildSrc:generatePrecompiledScriptPluginAccessors UP-TO-DATE
+> Task :buildSrc:generateScriptPluginAdapters UP-TO-DATE
+> Task :buildSrc:compileKotlin UP-TO-DATE
+> Task :buildSrc:compileJava NO-SOURCE
+> Task :buildSrc:compileGroovy NO-SOURCE
+> Task :buildSrc:pluginDescriptors UP-TO-DATE
+> Task :buildSrc:processResources UP-TO-DATE
+> Task :buildSrc:classes UP-TO-DATE
+> Task :buildSrc:jar UP-TO-DATE
+> Task :app:processResources NO-SOURCE
+> Task :app:processTestResources NO-SOURCE
+> Task :list:compileJava UP-TO-DATE
+> Task :utilities:compileJava UP-TO-DATE
+> Task :app:compileJava
+> Task :app:classes
+> Task :app:compileTestJava
+> Task :app:testClasses
+> Task :app:spotbugsTest
+> Task :app:spotbugsMain
+> Task :app:qualityCheck
+
+BUILD SUCCESSFUL in 1s
+16 actionable tasks: 5 executed, 11 up-to-date
+----
+
+So far, we have looked at tasks in individual subprojects, which is useful for local development when you work on code in one subproject.
+
+With this setup, developers only need to know that they can call Gradle with `:subproject-name:tasks` to see which tasks are available and useful for them.
+
+[[sec:global_lifecycle_tasks]]
+== Global lifecycle tasks
+
+Another place to invoke lifecycle tasks is within the root build; this is especially useful for Continuous Integration (CI).
+
+Gradle tasks play a crucial role in CI or CD systems, where activities like compiling all code, running tests, or building and packaging the complete application are typical.
+To facilitate this, you can include lifecycle tasks that span multiple subprojects.
+
+NOTE: Gradle has been around for a long time, and you will frequently observe build files in the root directory serving various purposes.
+In older Gradle versions, many tasks were defined within the root Gradle build file, resulting in various issues.
+Therefore, exercise caution when determining the content of this file.
+
+One of the few elements that should be placed in the root build file is global lifecycle tasks.
+
+Let's continue using the Gradle `init` Java application multi-project as an example.
+
+This time, we're incorporating a build script in the root project.
+We'll establish two groups for our global lifecycle tasks: one for tasks relevant to local development, such as running all checks, and another exclusively for our CI system.
+
+Once again, we narrowed down the tasks listed to our specific groups:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val globalBuildGroup = "My global build"
+val ciBuildGroup = "My CI build"
+
+tasks.named<TaskReportTask>("tasks") {
+    displayGroups = listOf<String>(globalBuildGroup, ciBuildGroup)
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def globalBuildGroup = "My global build"
+def ciBuildGroup = "My CI build"
+
+tasks.named(TaskReportTask, "tasks") {
+    displayGroups = [globalBuildGroup, ciBuildGroup]
+}
+----
+=====
+====
+
+You could hide the CI tasks if you wanted to by updating `displayGroups`.
+
+Currently, the root project exposes no tasks:
+
+[source, text]
+----
+$ ./gradlew :tasks
+
+> Task :tasks
+
+------------------------------------------------------------
+Tasks runnable from root project 'gradle-project'
+------------------------------------------------------------
+
+No tasks
+----
+
+NOTE: In this file, we don't apply a plugin!
+
+Let's add a `qualityCheckApp` task to execute all code quality checks in the `app` subproject.
+Similarly, for CI purposes, we implement a `checkAll` task that runs all tests:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.register("qualityCheckApp") {
+    group = globalBuildGroup
+    description = "Runs checks on app (globally)"
+    dependsOn(":app:qualityCheck" )
+}
+
+tasks.register("checkAll") {
+    group = ciBuildGroup
+    description = "Runs checks for all projects (CI)"
+    dependsOn(subprojects.map { ":${it.name}:check" })
+    dependsOn(gradle.includedBuilds.map { it.task(":checkAll") })
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.register("qualityCheckApp") {
+    group = globalBuildGroup
+    description = "Runs checks on app (globally)"
+    dependsOn(":app:qualityCheck")
+}
+
+tasks.register("checkAll") {
+    group = ciBuildGroup
+    description = "Runs checks for all projects (CI)"
+    dependsOn subprojects.collect { ":${it.name}:check" }
+    dependsOn gradle.includedBuilds.collect { it.task(":checkAll") }
+}
+----
+=====
+====
+
+So we can now ask Gradle to show us the tasks for the root project and, by default, it will only show us the `qualityCheckAll` task (and optionally the `checkAll` task depending on the value of `displayGroups`).
+
+It should be clear what a user should run locally:
+
+[source, text]
+----
+$ ./gradlew :tasks
+
+> Task :tasks
+
+------------------------------------------------------------
+Tasks runnable from root project 'gradle-project'
+------------------------------------------------------------
+
+My CI build tasks
+-----------------
+checkAll - Runs checks for all projects (CI)
+
+My global build tasks
+---------------------
+qualityCheckApp - Runs checks on app (globally)
+----
+
+If we run the `:checkAll` task, we see that it compiles all the code and runs the code quality checks (including `spotbug`):
+
+[source,text]
+----
+$ ./gradlew :checkAll
+
+> Task :buildSrc:checkKotlinGradlePluginConfigurationErrors
+> Task :buildSrc:generateExternalPluginSpecBuilders UP-TO-DATE
+> Task :buildSrc:extractPrecompiledScriptPluginPlugins UP-TO-DATE
+> Task :buildSrc:compilePluginsBlocks UP-TO-DATE
+> Task :buildSrc:generatePrecompiledScriptPluginAccessors UP-TO-DATE
+> Task :buildSrc:generateScriptPluginAdapters UP-TO-DATE
+> Task :buildSrc:compileKotlin UP-TO-DATE
+> Task :buildSrc:compileJava NO-SOURCE
+> Task :buildSrc:compileGroovy NO-SOURCE
+> Task :buildSrc:pluginDescriptors UP-TO-DATE
+> Task :buildSrc:processResources UP-TO-DATE
+> Task :buildSrc:classes UP-TO-DATE
+> Task :buildSrc:jar UP-TO-DATE
+> Task :utilities:processResources NO-SOURCE
+> Task :app:processResources NO-SOURCE
+> Task :utilities:processTestResources NO-SOURCE
+> Task :app:processTestResources NO-SOURCE
+> Task :list:compileJava
+> Task :list:processResources NO-SOURCE
+> Task :list:classes
+> Task :list:jar
+> Task :utilities:compileJava
+> Task :utilities:classes
+> Task :utilities:jar
+> Task :utilities:compileTestJava NO-SOURCE
+> Task :utilities:testClasses UP-TO-DATE
+> Task :utilities:test NO-SOURCE
+> Task :utilities:check UP-TO-DATE
+> Task :list:compileTestJava
+> Task :list:processTestResources NO-SOURCE
+> Task :list:testClasses
+> Task :app:compileJava
+> Task :app:classes
+> Task :app:compileTestJava
+> Task :app:testClasses
+> Task :list:test
+> Task :list:check
+> Task :app:test
+> Task :app:spotbugsTest
+> Task :app:spotbugsMain
+> Task :app:check
+> Task :checkAll
+
+BUILD SUCCESSFUL in 1s
+21 actionable tasks: 12 executed, 9 up-to-date
+----
+
+[[sec:task_name]]
+== Task name abbreviation
+
+When specifying tasks on the command line, providing the complete task name is unnecessary.
+You can provide enough of the task name to identify the task uniquely.
+
+For example, instead of running `./gradlew :checkAll`, we can run `./gradlew :chAl`:
+
+[source,text]
+----
+$ ./gradlew :chAl
+
+> Task :buildSrc:checkKotlinGradlePluginConfigurationErrors
+> Task :buildSrc:generateExternalPluginSpecBuilders UP-TO-DATE
+...
+> Task :app:test UP-TO-DATE
+> Task :app:check UP-TO-DATE
+> Task :checkAll UP-TO-DATE
+
+BUILD SUCCESSFUL in 412ms
+21 actionable tasks: 1 executed, 20 up-to-date
+----
+
+The same applies to project names.
+You can execute the `:check` task in the `utitlities` subproject with the `gradle uti:che` command.
+
+You can use https://en.wikipedia.org/wiki/Camel_case[camel case] patterns for more complex abbreviations.
+
+Calling tasks without the colon `:` in front is not advised.
+If you do so, Gradle will attempt to find matching tasks in all the subprojects, and you won't precisely know which tasks will be invoked.
+For instance, Gradle will skip projects where the task is unavailable.
+
+It is recommended that you adhere to the ':' notation, ensuring the appropriate lifecycle tasks are available so that everyone is aware of the intended usage in your build.
+
+[[sec:exclude_task]]
+== Exclude tasks from execution
+
+You can exclude a task from execution using the `-x` or `--exclude-task` command-line option and provide the task's name to exclude.
+
+For instance, you can run the `check` task but exclude the `test` task from running.
+This approach can lead to unexpected outcomes, particularly if you exclude an actionable task that produces results needed by other tasks.
+Instead of relying on the `-x` parameter, defining a suitable lifecycle task for the desired action is recommended.
+
+Using `-x` is a practice that should be avoided, although still commonly observed.

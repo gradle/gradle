@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.problems.BaseProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 
 @ToolingApiVersion("=8.5")
@@ -63,14 +62,12 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     class ProblemProgressListener implements ProgressListener {
 
-        List<BaseProblemDescriptor> problems = []
-
+        List<?> problems = []
         @Override
         void statusChanged(ProgressEvent event) {
             if (event instanceof ProblemEvent) {
-                this.problems.addAll(event.getDescriptor())
+                 this.problems.add(event)
             }
         }
     }
-
 }
