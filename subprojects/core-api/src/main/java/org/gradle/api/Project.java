@@ -39,6 +39,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.DeclarativeExtensionRegistry;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.PluginAware;
@@ -1764,6 +1765,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     @Override
     ExtensionContainer getExtensions();
+
+    /**
+     * Allows registering DSL extensions to the project for declarative scripts.  Registered extensions will be initialized
+     * via a provided plugin when referenced by a script.
+     *
+     * @return Returned instance allows registering DSL extensions to the project
+     */
+    DeclarativeExtensionRegistry getDeclarativeExtensions();
 
     /**
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.

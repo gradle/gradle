@@ -64,6 +64,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.plugins.DefaultDeclarativeExtensionRegistry;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -73,6 +74,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.DeclarativeExtensionRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -214,6 +216,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final ExtensibleDynamicObject extensibleDynamicObject;
 
+    private final DeclarativeExtensionRegistry declarativeExtensionRegistry;
+
     private final DynamicLookupRoutine dynamicLookupRoutine;
 
     private String description;
@@ -254,6 +258,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         taskContainer = services.get(TaskContainerInternal.class);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
+        declarativeExtensionRegistry = new DefaultDeclarativeExtensionRegistry(getPlugins());
 
         @Nullable DynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
         if (parentInherited != null) {
@@ -1415,6 +1420,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ExtensionContainerInternal getExtensions() {
         return (ExtensionContainerInternal) DeprecationLogger.whileDisabled(this::getConvention);
+    }
+
+    @Override
+    public DeclarativeExtensionRegistry getDeclarativeExtensions() {
+        return declarativeExtensionRegistry;
     }
 
     // Not part of the public API

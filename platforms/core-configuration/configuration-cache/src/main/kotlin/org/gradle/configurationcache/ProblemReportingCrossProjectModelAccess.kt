@@ -63,6 +63,7 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.DeclarativeExtensionRegistry
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.Property
@@ -979,6 +980,11 @@ class ProblemReportingCrossProjectModelAccess(
         override fun getExtensions(): ExtensionContainerInternal {
             onAccess()
             return delegate.extensions
+        }
+
+        override fun getDeclarativeExtensions(): DeclarativeExtensionRegistry {
+            onAccess()
+            return delegate.declarativeExtensions
         }
 
         override fun getConfigurationActions(): ProjectConfigurationActionContainer {

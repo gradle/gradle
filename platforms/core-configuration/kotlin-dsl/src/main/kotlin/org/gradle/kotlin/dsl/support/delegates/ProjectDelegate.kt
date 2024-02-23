@@ -44,6 +44,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.DeclarativeExtensionRegistry
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -215,6 +216,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getExtensions(): ExtensionContainer =
         delegate.extensions
+
+    override fun getDeclarativeExtensions(): DeclarativeExtensionRegistry =
+        delegate.declarativeExtensions
 
     override fun getProperties(): MutableMap<String, *> =
         delegate.properties
