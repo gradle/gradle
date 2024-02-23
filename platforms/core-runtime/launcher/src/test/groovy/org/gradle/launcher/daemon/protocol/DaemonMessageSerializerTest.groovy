@@ -202,7 +202,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize boolean question prompt event"() {
         expect:
-        def event = new BooleanQuestionPromptEvent(123, 'prompt')
+        def event = new BooleanQuestionPromptEvent(123, 'prompt', true, "yes")
         def result = serialize(event, serializer)
         result instanceof BooleanQuestionPromptEvent
         result.prompt == 'prompt'
@@ -212,7 +212,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize int question prompt event"() {
         expect:
-        def event = new IntQuestionPromptEvent(123, 'prompt')
+        def event = new IntQuestionPromptEvent(123, 'prompt', 1, 2)
         def result = serialize(event, serializer)
         result instanceof IntQuestionPromptEvent
         result.prompt == 'prompt'
@@ -232,7 +232,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize select option prompt event"() {
         expect:
-        def event = new SelectOptionPromptEvent(123, 'prompt')
+        def event = new SelectOptionPromptEvent(123, 'prompt', 4, 2)
         def result = serialize(event, serializer)
         result instanceof SelectOptionPromptEvent
         result.prompt == 'prompt'

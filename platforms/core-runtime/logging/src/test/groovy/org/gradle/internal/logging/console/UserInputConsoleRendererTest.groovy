@@ -62,7 +62,7 @@ class UserInputConsoleRendererTest extends Specification {
         1 * textArea.println()
         1 * textArea.text(prompt.prompt)
         1 * console.flush()
-        1 * userInput.readAndForwardText()
+        1 * userInput.readAndForwardText(prompt)
 
         and:
         0 * console._

@@ -16,8 +16,38 @@
 
 package org.gradle.internal.logging.events;
 
+import org.gradle.internal.Either;
+
 public class SelectOptionPromptEvent extends PromptOutputEvent {
-    public SelectOptionPromptEvent(long timestamp, String prompt) {
+    private final int optionCount;
+    private final int defaultOption;
+
+    public SelectOptionPromptEvent(long timestamp, String prompt, int optionCount, int defaultOption) {
         super(timestamp, prompt, true);
+        this.optionCount = optionCount;
+        this.defaultOption = defaultOption;
+    }
+
+    public int getOptionCount() {
+        return optionCount;
+    }
+
+    public int getDefaultOption() {
+        return defaultOption;
+    }
+
+    @Override
+    public Either<Integer, String> convert(String text) {
+        if (text.isEmpty()) {
+            return Either.left(defaultOption);
+        }
+        String trimmed = text.trim();
+        if (trimmed.matches("\\d+")) {
+            int value = Integer.parseInt(trimmed);
+            if (value > 0 && value <= optionCount) {
+                return Either.left(value);
+            }
+        }
+        return Either.right("Please enter a value between 1 and " + optionCount + ": ");
     }
 }

@@ -16,8 +16,40 @@
 
 package org.gradle.internal.logging.events;
 
+import org.gradle.internal.Either;
+
 public class IntQuestionPromptEvent extends PromptOutputEvent {
-    public IntQuestionPromptEvent(long timestamp, String prompt) {
+    private final int minValue;
+    private final int defaultValue;
+
+    public IntQuestionPromptEvent(long timestamp, String prompt, int minValue, int defaultValue) {
         super(timestamp, prompt, true);
+        this.minValue = minValue;
+        this.defaultValue = defaultValue;
+    }
+
+    public int getMinValue() {
+        return minValue;
+    }
+
+    public int getDefaultValue() {
+        return defaultValue;
+    }
+
+    @Override
+    public Either<Integer, String> convert(String text) {
+        if (text.isEmpty()) {
+            return Either.left(defaultValue);
+        }
+        String trimmed = text.trim();
+        try {
+            int result = Integer.parseInt(trimmed);
+            if (result >= minValue) {
+                return Either.left(result);
+            }
+            return Either.right("Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
+        } catch (NumberFormatException e) {
+            return Either.right("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
+        }
     }
 }

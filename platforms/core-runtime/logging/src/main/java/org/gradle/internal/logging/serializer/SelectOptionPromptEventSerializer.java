@@ -26,10 +26,12 @@ public class SelectOptionPromptEventSerializer implements Serializer<SelectOptio
     public void write(Encoder encoder, SelectOptionPromptEvent value) throws Exception {
         encoder.writeLong(value.getTimestamp());
         encoder.writeString(value.getPrompt());
+        encoder.writeSmallInt(value.getOptionCount());
+        encoder.writeSmallInt(value.getDefaultOption());
     }
 
     @Override
     public SelectOptionPromptEvent read(Decoder decoder) throws Exception {
-        return new SelectOptionPromptEvent(decoder.readLong(), decoder.readString());
+        return new SelectOptionPromptEvent(decoder.readLong(), decoder.readString(), decoder.readSmallInt(), decoder.readSmallInt());
     }
 }
