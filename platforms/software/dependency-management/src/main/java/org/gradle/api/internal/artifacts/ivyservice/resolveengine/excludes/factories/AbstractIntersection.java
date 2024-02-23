@@ -21,48 +21,49 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 
 import javax.annotation.Nullable;
 
+/**
+ * Base implementation of {@link Intersection} that handles testing and intersecting arguments in either order.
+ *
+ * @param <L> the type of the first (left) exclude spec
+ * @param <R> the type of the second (right) exclude spec
+ */
 @NonNullApi
 public abstract class AbstractIntersection<L extends ExcludeSpec, R extends ExcludeSpec> implements Intersection<L, R> {
     private final Class<L> leftType;
     private final Class<R> rightType;
-    private final ExcludeFactory factory;
 
-    protected AbstractIntersection(Class<L> leftType, Class<R> rightType, ExcludeFactory factory) {
+    protected AbstractIntersection(Class<L> leftType, Class<R> rightType) {
         this.leftType = leftType;
         this.rightType = rightType;
-        this.factory = factory;
-    }
-
-    @Override
-    public Class<L> getLeftType() {
-        return leftType;
-    }
-
-    @Override
-    public Class<R> getRightType() {
-        return rightType;
-    }
-
-    public ExcludeFactory getFactory() {
-        return factory;
     }
 
     @Override
     public boolean applies(ExcludeSpec left, ExcludeSpec right) {
-        return (getLeftType().isInstance(left) && getRightType().isInstance(right))
-                || (getLeftType().isInstance(right) && getRightType().isInstance(left));
+        return (leftType.isInstance(left) && rightType.isInstance(right))
+                || (leftType.isInstance(right) && rightType.isInstance(left));
     }
 
     @Override
     @Nullable
     public ExcludeSpec intersect(ExcludeSpec left, ExcludeSpec right, ExcludeFactory factory) {
-        if (getLeftType().isInstance(left) && getRightType().isInstance(right)) {
-            return doIntersect(getLeftType().cast(left), getRightType().cast(right), factory);
+        if (leftType.isInstance(left) && rightType.isInstance(right)) {
+            return doIntersect(leftType.cast(left), rightType.cast(right), factory);
         } else {
-            return doIntersect(getLeftType().cast(right), getRightType().cast(left), factory);
+            return doIntersect(leftType.cast(right), rightType.cast(left), factory);
         }
     }
 
+    /**
+     * Intersects the given exclude specs.
+     *
+     * This method is meant to be implemented by subclasses realizing a specific intersection of types.
+     *
+     * @param left an exclude spec
+     * @param right another exclude spec
+     * @param factory the factory that can be used to create a new exclude spec
+     *
+     * @return the simplified exclude spec, or {@code null} if the given exclude specs cannot be simplified
+     */
     @Nullable
     abstract ExcludeSpec doIntersect(L left, R right, ExcludeFactory factory);
 }

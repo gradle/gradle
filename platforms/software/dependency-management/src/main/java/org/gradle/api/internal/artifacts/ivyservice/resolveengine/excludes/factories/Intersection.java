@@ -21,12 +21,36 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 
 import javax.annotation.Nullable;
 
+/**
+ * Represents an attempt to simplify two exclude specs into a single exclude spec.
+ *
+ * @param <L> the type of the first (left) exclude spec
+ * @param <R> the type of the second (right) exclude spec
+ *
+ * @implSpec Remember that the order of the exclude specs must not be significant.
+ */
 @NonNullApi
 public interface Intersection<L extends ExcludeSpec, R extends ExcludeSpec> {
-    Class<L> getLeftType();
-    Class<R> getRightType();
+    /**
+     * Tests if this intersection applies to 2 given exclude specs (in any order).
+     *
+     * An intersection should apply if the given exclude specs are of the expected generic types on this interface,
+     * in either order: that is, if {@code left instanceof L && right instanceof R} or {@code left instanceof R && right instanceof L}.
+     *
+     * @param left an exclude spec
+     * @param right another exclude spec
+     * @return {@code true} if this intersection applies to the given exclude specs (in any order); {@code false} otherwise
+     */
     boolean applies(ExcludeSpec left, ExcludeSpec right);
 
+    /**
+     * Simplifies 2 given exclude specs (an any order) into a single exclude spec.
+     *
+     * @param left an exclude spec
+     * @param right another exclude spec
+     * @param factory the factory that can be used to create a new exclude spec
+     * @return the simplified exclude spec, or {@code null} if the given exclude specs cannot be simplified
+     */
     @Nullable
     ExcludeSpec intersect(ExcludeSpec left, ExcludeSpec right, ExcludeFactory factory);
 }
