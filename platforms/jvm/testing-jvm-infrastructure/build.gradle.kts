@@ -27,17 +27,17 @@ various implementations of WorkerTestClassProcessorFactory.
 """
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":testing-base"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":messaging"))
+    api(project(":testing-base"))
+
+    api(libs.jsr305)
+    api(libs.junit)
+    api(libs.testng)
 
     implementation(libs.slf4jApi)
     implementation(libs.commonsLang)
-    implementation(libs.junit)
-    implementation(libs.testng)
-    implementation(libs.bsh) {
-        because("Used by TestNG")
-    }
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
