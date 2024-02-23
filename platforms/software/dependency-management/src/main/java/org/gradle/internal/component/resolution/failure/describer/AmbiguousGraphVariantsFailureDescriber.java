@@ -88,7 +88,7 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
         formatter.node("Variant '");
         formatter.append(assessedCandidate.getDisplayName());
         formatter.append("'");
-        formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(targetComponentId, assessedCandidate.getCandidateCapabilities().asSet()));
+        formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(targetComponent.getModuleVersionId(), assessedCandidate.getCandidateCapabilities().asSet()));
 
         formatAttributeMatchesForAmbiguity(assessedCandidate, formatter, describer);
     }
