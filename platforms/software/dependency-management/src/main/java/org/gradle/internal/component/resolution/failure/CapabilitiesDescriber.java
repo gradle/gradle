@@ -18,7 +18,6 @@ package org.gradle.internal.component.resolution.failure;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
