@@ -36,26 +36,18 @@ import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform;
-import org.gradle.api.internal.initialization.transform.ExternalDependencyInstrumentingArtifactTransform;
-import org.gradle.api.internal.initialization.transform.InstrumentationAnalysisTransform;
-import org.gradle.api.internal.initialization.transform.MergeInstrumentationAnalysisTransform;
-import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform;
+import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.ResolutionScope;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
-import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
@@ -72,7 +64,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.MERGED_ARTIFACT_ANALYSIS;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_PLACEHOLDER_SUFFIX;
 
@@ -82,8 +73,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         DependencyFactoryInternal.ClassPathNotation.GRADLE_API,
         DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
     );
-
-    private static final String BUILD_SERVICE_NAME = "__InternalCacheInstrumentationDataBuildService__";
 
     public enum InstrumentationPhase {
         NOT_INSTRUMENTED("not-instrumented"),
@@ -105,9 +94,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     public static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
     private final NamedObjectInstantiator instantiator;
-    private final AgentStatus agentStatus;
-    private final BuildServiceRegistry buildServiceRegistry;
-    private final IdGenerator<Long> contextIdGenerator;
+    private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
@@ -115,9 +102,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         Gradle gradle
     ) {
         this.instantiator = instantiator;
-        this.agentStatus = agentStatus;
-        this.buildServiceRegistry = gradle.getSharedServices();
-        this.contextIdGenerator = new LongIdGenerator();
+        // Shared services must be provided lazily, otherwise they are instantiated too early and some cases can fail
+        this.instrumentationTransformRegisterer = new InstrumentationTransformRegisterer(agentStatus, Lazy.atomic().of(gradle::getSharedServices));
     }
 
     @Override
@@ -126,64 +112,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             .attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED.value);
 
         // Register instrumentation pipelines
-        long contextId = contextIdGenerator.generateId();
-        Provider<CacheInstrumentationDataBuildService> service = buildServiceRegistry.registerIfAbsent(BUILD_SERVICE_NAME, CacheInstrumentationDataBuildService.class);
-        registerInstrumentationAndUpgradesPipeline(contextId, dependencyHandler, service);
-        registerInstrumentationOnlyPipeline(contextId, dependencyHandler);
-        return new ScriptClassPathResolutionContext(contextId, service, dependencyHandler);
-    }
-
-    private void registerInstrumentationAndUpgradesPipeline(long contextId, DependencyHandler dependencyHandler, Provider<CacheInstrumentationDataBuildService> service) {
-        dependencyHandler.registerTransform(
-            InstrumentationAnalysisTransform.class,
-            spec -> {
-                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED.value);
-                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value);
-                spec.parameters(params -> {
-                    params.getBuildService().set(service);
-                    params.getContextId().set(contextId);
-                });
-            }
-        );
-        dependencyHandler.registerTransform(
-            MergeInstrumentationAnalysisTransform.class,
-            spec -> {
-                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value);
-                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, MERGED_ARTIFACT_ANALYSIS.value);
-                spec.parameters(params -> {
-                    params.getBuildService().set(service);
-                    params.getContextId().set(contextId);
-                    params.getOriginalClasspath().setFrom(service.map(it -> it.getOriginalClasspath(contextId)));
-                });
-            }
-        );
-        registerInstrumentingTransform(contextId, dependencyHandler, ExternalDependencyInstrumentingArtifactTransform.class, service, MERGED_ARTIFACT_ANALYSIS, INSTRUMENTED_AND_UPGRADED);
-    }
-
-    private void registerInstrumentationOnlyPipeline(long contextId, DependencyHandler dependencyHandler) {
-        registerInstrumentingTransform(contextId, dependencyHandler, ProjectDependencyInstrumentingArtifactTransform.class, Providers.notDefined(), NOT_INSTRUMENTED, INSTRUMENTED_ONLY);
-    }
-
-    private void registerInstrumentingTransform(
-        long contextId,
-        DependencyHandler dependencyHandler,
-        Class<? extends BaseInstrumentingArtifactTransform> transform,
-        Provider<CacheInstrumentationDataBuildService> service,
-        InstrumentationPhase fromPhase,
-        InstrumentationPhase toPhase
-    ) {
-        dependencyHandler.registerTransform(
-            transform,
-            spec -> {
-                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, fromPhase.value);
-                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, toPhase.value);
-                spec.parameters(params -> {
-                    params.getBuildService().set(service);
-                    params.getContextId().set(contextId);
-                    params.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled());
-                });
-            }
-        );
+        return instrumentationTransformRegisterer.registerTransforms(dependencyHandler);
     }
 
     @Override

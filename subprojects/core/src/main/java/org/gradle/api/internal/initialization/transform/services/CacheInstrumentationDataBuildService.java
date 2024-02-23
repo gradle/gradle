@@ -50,11 +50,11 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
      */
     public static final String GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY = "org.gradle.internal.instrumentation.generateClassHierarchyWithoutUpgrades";
 
+    private final Map<Long, ResolutionData> resolutionData = new ConcurrentHashMap<>();
+    private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
+
     @Inject
     protected abstract ObjectFactory getObjectFactory();
-
-    private final Map<Long, ResolutionData> resolutionScopes = new ConcurrentHashMap<>();
-    private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
 
     public InstrumentationTypeRegistry getInstrumentingTypeRegistry(long contextId) {
         InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.get().getGradleCoreInstrumentingTypeRegistry();
@@ -84,11 +84,11 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     }
 
     private ResolutionData getResolutionData(long contextId) {
-        return checkNotNull(resolutionScopes.get(contextId), "Resolution data for id %s does not exist!", contextId);
+        return checkNotNull(resolutionData.get(contextId), "Resolution data for id %s does not exist!", contextId);
     }
 
     public ResolutionScope newResolutionScope(long contextId) {
-        ResolutionData resolutionData = resolutionScopes.compute(contextId, (__, value) -> {
+        ResolutionData resolutionData = this.resolutionData.compute(contextId, (__, value) -> {
             checkArgument(value == null, "Resolution data for id %s already exists! Was previous resolution scope closed properly?", contextId);
             return getObjectFactory().newInstance(ResolutionData.class, internalServices.get());
         });
@@ -105,7 +105,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
             @Override
             public void close() {
-                resolutionScopes.remove(contextId);
+                CacheInstrumentationDataBuildService.this.resolutionData.remove(contextId);
             }
         };
     }
