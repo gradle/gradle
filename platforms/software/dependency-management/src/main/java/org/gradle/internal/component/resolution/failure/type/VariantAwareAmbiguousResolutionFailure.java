@@ -18,8 +18,6 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 
 import java.util.List;
@@ -31,8 +29,8 @@ import java.util.List;
 public final class VariantAwareAmbiguousResolutionFailure extends AmbiguousResolutionFailure {
     private final ModuleVersionIdentifier targetComponentId;
 
-    public VariantAwareAmbiguousResolutionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ModuleVersionIdentifier targetComponentId) {
-        super(schema, requestedName, requestedAttributes, candidates);
+    public VariantAwareAmbiguousResolutionFailure(String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ModuleVersionIdentifier targetComponentId) {
+        super(requestedName, requestedAttributes, candidates);
         this.targetComponentId = targetComponentId;
         throw new UnsupportedOperationException("Not implemented");
     }

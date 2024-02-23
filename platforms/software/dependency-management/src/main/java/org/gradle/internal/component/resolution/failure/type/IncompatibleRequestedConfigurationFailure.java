@@ -17,7 +17,6 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 
 import java.util.List;
@@ -27,7 +26,7 @@ import java.util.List;
  * requested by name but its attributes are not compatible with the request.
  */
 public final class IncompatibleRequestedConfigurationFailure extends IncompatibleResolutionFailure {
-    public IncompatibleRequestedConfigurationFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(schema, requestedName, requestedAttributes, candidates);
+    public IncompatibleRequestedConfigurationFailure(String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+        super(requestedName, requestedAttributes, candidates);
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 
 import java.util.Collection;
@@ -33,8 +32,8 @@ public final class NoMatchingCapabilitiesFailure extends AbstractVariantSelectio
     private final List<AssessedCandidate> candidates;
     private final ModuleVersionIdentifier targetComponentId;
 
-    public NoMatchingCapabilitiesFailure(AttributesSchemaInternal schema, String requestedName, Collection<? extends Capability> requestedCapabilities, List<AssessedCandidate> candidates, ModuleVersionIdentifier targetComponentId) {
-        super(schema, requestedName);
+    public NoMatchingCapabilitiesFailure(String requestedName, Collection<? extends Capability> requestedCapabilities, List<AssessedCandidate> candidates, ModuleVersionIdentifier targetComponentId) {
+        super(requestedName);
         this.requestedCapabilities = requestedCapabilities;
         this.candidates = candidates;
         this.targetComponentId = targetComponentId;

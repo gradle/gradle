@@ -16,8 +16,6 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-
 /**
  * An abstract {@link ResolutionFailure} that represents the situation when a requested variant has attributes
  * that are not compatible with any of the available variants.
@@ -25,7 +23,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 public abstract class AbstractVariantSelectionFailure implements ResolutionFailure {
     private final String requestedName;
 
-    public AbstractVariantSelectionFailure(AttributesSchemaInternal schema, String requestedName) {
+    public AbstractVariantSelectionFailure(String requestedName) {
         this.requestedName = requestedName;
     }
 
