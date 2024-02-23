@@ -54,5 +54,5 @@ public interface ResolutionFailureDescriber<FAILURE extends ResolutionFailure> {
      * @implSpec Testing {@link #canDescribeFailure(ResolutionFailure)} should <strong>NOT</strong> be done by
      * implementations of this method; ensuring this is done first is the responsibility of the caller.
      */
-    AbstractResolutionFailureException describeFailure(FAILURE failure, Optional<AttributesSchemaInternal> schema);
+    AbstractResolutionFailureException describeFailure(FAILURE failure, @SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<AttributesSchemaInternal> schema);
 }

@@ -16,31 +16,28 @@
 
 package org.gradle.internal.component.resolution.failure.type;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor.AssessedCandidate;
 
 import java.util.Collection;
 import java.util.List;
+
 /**
  * A {@link ResolutionFailure} that represents the situation when no variants can
  * be found in the list of candidates that have the requested capabilities.
  */
 public final class NoMatchingCapabilitiesFailure extends AbstractVariantSelectionFailure {
-    private final ComponentGraphResolveMetadata targetComponent;
     private final Collection<? extends Capability> requestedCapabilities;
     private final List<AssessedCandidate> candidates;
+    private final ModuleVersionIdentifier targetComponentId;
 
-    public NoMatchingCapabilitiesFailure(AttributesSchemaInternal schema, String requestedName, ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<AssessedCandidate> candidates) {
+    public NoMatchingCapabilitiesFailure(AttributesSchemaInternal schema, String requestedName, Collection<? extends Capability> requestedCapabilities, List<AssessedCandidate> candidates, ModuleVersionIdentifier targetComponentId) {
         super(schema, requestedName);
-        this.targetComponent = targetComponent;
         this.requestedCapabilities = requestedCapabilities;
         this.candidates = candidates;
-    }
-
-    public ComponentGraphResolveMetadata getTargetComponent() {
-        return targetComponent;
+        this.targetComponentId = targetComponentId;
     }
 
     public Collection<? extends Capability> getRequestedCapabilities() {
@@ -49,5 +46,9 @@ public final class NoMatchingCapabilitiesFailure extends AbstractVariantSelectio
 
     public List<AssessedCandidate> getCandidates() {
         return candidates;
+    }
+
+    public ModuleVersionIdentifier getTargetComponentId() {
+        return targetComponentId;
     }
 }

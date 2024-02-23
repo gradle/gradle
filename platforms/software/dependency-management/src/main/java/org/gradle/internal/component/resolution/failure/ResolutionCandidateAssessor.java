@@ -144,10 +144,10 @@ public final class ResolutionCandidateAssessor {
      * An immutable data class that holds information about a single variant which was a candidate for matching during resolution.
      *
      * This includes classifying its attributes into lists of compatible, incompatible, and absent attributes.  Each candidate
-     * is assessed within the context of a resolution, so this is a non-{@code static} class implicitly linked to the assessor
-     * that produced it.
+     * is assessed within the context of a resolution, but must not reference the assessor
+     * that produced it, in order to remain configuration cache compatible - the assessor is not serializable.
      */
-    public final class AssessedCandidate implements Describable {
+    public static final class AssessedCandidate implements Describable {
         private final String name;
         private final ImmutableAttributes candidateAttributes;
         private final ImmutableCapabilities candidateCapabilities;
@@ -174,10 +174,6 @@ public final class ResolutionCandidateAssessor {
 
         public ImmutableAttributes getAllCandidateAttributes() {
             return candidateAttributes;
-        }
-
-        public ImmutableAttributes getAllRequestedAttributes() {
-            return requestedAttributes;
         }
 
         public ImmutableCapabilities getCandidateCapabilities() {
