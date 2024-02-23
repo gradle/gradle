@@ -171,7 +171,6 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      * Initializes all the services needed for the CLI or the Tooling API.
      */
     public static void initializeOnWorker(File userHomeDir, NativeIntegrationEnabled condition) {
-        // Native integration is disabled since we don't initialize any native feature
         INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class), condition);
     }
 
