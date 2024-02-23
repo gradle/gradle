@@ -295,14 +295,4 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         }
 
     }
-
-    private static boolean sameComponentAppearsMultipleTimes(CapabilityConflict conflict) {
-        Set<ComponentState> components = new HashSet<>();
-        for (NodeState node : conflict.nodes) {
-            if (!components.add(node.getComponent())) {
-                return true;
-            }
-        }
-        return false;
-    }
 }
