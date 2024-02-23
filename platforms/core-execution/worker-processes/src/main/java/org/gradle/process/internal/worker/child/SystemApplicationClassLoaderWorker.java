@@ -26,6 +26,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationEnabled;
 import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.services.MessagingServices;
@@ -85,7 +86,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         // Configure services
         File gradleUserHomeDir = new File(config.getGradleUserHomeDirPath());
-        NativeServices.initializeOnWorker(gradleUserHomeDir);
+        NativeServices.initializeOnWorker(gradleUserHomeDir, NativeIntegrationEnabled.from(config.useNativeServices()));
         DefaultServiceRegistry basicWorkerServices = new DefaultServiceRegistry(NativeServices.getInstance(), loggingServiceRegistry);
         basicWorkerServices.add(ExecutorFactory.class, new DefaultExecutorFactory());
         basicWorkerServices.addProvider(new MessagingServices());
