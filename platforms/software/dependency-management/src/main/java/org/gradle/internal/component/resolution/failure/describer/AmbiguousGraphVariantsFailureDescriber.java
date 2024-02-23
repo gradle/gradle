@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
@@ -72,7 +73,7 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
         for (ResolutionCandidateAssessor.AssessedCandidate assessedCandidate : ambiguousVariants.values()) {
-            formatUnselectable(assessedCandidate, formatter, failure.getTargetComponent(), describer);
+            formatUnselectable(assessedCandidate, formatter, failure.getTargetComponentId(), describer);
         }
         formatter.endChildren();
 
@@ -82,13 +83,13 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
     private void formatUnselectable(
         ResolutionCandidateAssessor.AssessedCandidate assessedCandidate,
         TreeFormatter formatter,
-        ComponentGraphResolveMetadata targetComponent,
+        ModuleVersionIdentifier targetComponentId,
         AttributeDescriber describer
     ) {
         formatter.node("Variant '");
         formatter.append(assessedCandidate.getDisplayName());
         formatter.append("'");
-        formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(targetComponent.getModuleVersionId(), assessedCandidate.getCandidateCapabilities().asSet()));
+        formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(targetComponentId, assessedCandidate.getCandidateCapabilities().asSet()));
 
         formatAttributeMatchesForAmbiguity(assessedCandidate, formatter, describer);
     }
