@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 
+@NonNullApi
 public abstract class AbstractIntersection<L extends ExcludeSpec, R extends ExcludeSpec> implements Intersection<L, R> {
     private final Class<L> leftType;
     private final Class<R> rightType;
@@ -43,11 +45,13 @@ public abstract class AbstractIntersection<L extends ExcludeSpec, R extends Excl
         return factory;
     }
 
+    @Override
     public boolean applies(ExcludeSpec left, ExcludeSpec right) {
         return (getLeftType().isInstance(left) && getRightType().isInstance(right))
                 || (getLeftType().isInstance(right) && getRightType().isInstance(left));
     }
 
+    @Override
     public ExcludeSpec intersect(ExcludeSpec left, ExcludeSpec right, ExcludeFactory factory) {
         if (getLeftType().isInstance(left) && getRightType().isInstance(right)) {
             return doIntersect(getLeftType().cast(left), getRightType().cast(right), factory);
