@@ -63,6 +63,8 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     public interface Parameters extends TransformParameters {
         @Internal
         Property<CacheInstrumentationDataBuildService> getBuildService();
+        @Internal
+        Property<Long> getContextId();
         @Input
         Property<Boolean> getAgentSupported();
     }

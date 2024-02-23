@@ -45,7 +45,7 @@ class DefaultScriptHandlerTest extends Specification {
         getAttributesSchema() >> Stub(AttributesSchemaInternal)
         getObjectFactory() >> objectFactory
     }
-    def resolutionContext = new ScriptClassPathResolutionContext(Providers.notDefined(), dependencyHandler)
+    def resolutionContext = new ScriptClassPathResolutionContext(0L, Providers.notDefined(), dependencyHandler)
     def baseClassLoader = new ClassLoader() {}
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> baseClassLoader

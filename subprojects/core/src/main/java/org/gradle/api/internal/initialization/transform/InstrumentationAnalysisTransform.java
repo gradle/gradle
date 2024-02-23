@@ -84,6 +84,8 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     public interface Parameters extends TransformParameters {
         @Internal
         Property<CacheInstrumentationDataBuildService> getBuildService();
+        @Internal
+        Property<Long> getContextId();
     }
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang/");
 
@@ -160,9 +162,10 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     }
 
     private void writeMetadata(File artifact, File metadata) {
+        long contextId = getParameters().getContextId().get();
         CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
         writeOutput(metadata, writer -> {
-            String hash = firstNonNull(buildService.getArtifactHash(artifact), FILE_MISSING_HASH);
+            String hash = firstNonNull(buildService.getArtifactHash(contextId, artifact), FILE_MISSING_HASH);
             writer.write(FILE_NAME_PROPERTY_NAME + "=" + artifact.getName() + "\n");
             writer.write(FILE_HASH_PROPERTY_NAME + "=" + hash + "\n");
         });

@@ -17,11 +17,11 @@
 package org.gradle.api.internal.initialization.transform.services;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.classpath.types.ExternalPluginsInstrumentationTypeRegistry;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.Hasher;
@@ -38,107 +38,150 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.readSuperTypes;
 
-public abstract class CacheInstrumentationDataBuildService implements BuildService<CacheInstrumentationDataBuildService.Parameters> {
+public abstract class CacheInstrumentationDataBuildService implements BuildService<BuildServiceParameters.None> {
 
     /**
      * Can be removed once we actually have some upgrades, but without upgrades we currently can't test this
      */
     public static final String GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY = "org.gradle.internal.instrumentation.generateClassHierarchyWithoutUpgrades";
 
-    public interface Parameters extends BuildServiceParameters {
-        ConfigurableFileCollection getAnalysisResult();
-        ConfigurableFileCollection getOriginalClasspath();
-    }
-
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
-    private volatile InstrumentationTypeRegistry instrumentingTypeRegistry;
-    private volatile Map<String, File> originalFiles;
-    private volatile Map<File, String> hashCache;
+    private final Map<Long, ResolutionData> resolutionScopes = new ConcurrentHashMap<>();
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.locking().of(() -> getObjectFactory().newInstance(InjectedInstrumentationServices.class));
 
-    public InstrumentationTypeRegistry getInstrumentingTypeRegistry(GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
+    public InstrumentationTypeRegistry getInstrumentingTypeRegistry(long contextId) {
+        InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.get().getGradleCoreInstrumentingTypeRegistry();
         if (!Boolean.getBoolean(GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY) && gradleCoreInstrumentationTypeRegistry.isEmpty()) {
             // In case core types registry is empty, it means we don't have any upgrades
             // in Gradle core, so we can return empty registry
             return InstrumentationTypeRegistry.empty();
         }
-
-        if (instrumentingTypeRegistry == null) {
-            synchronized (this) {
-                if (instrumentingTypeRegistry == null) {
-                    Map<String, Set<String>> directSuperTypes = readDirectSuperTypes();
-                    instrumentingTypeRegistry = new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentationTypeRegistry);
-                }
-            }
-        }
-        return instrumentingTypeRegistry;
-    }
-
-    private Map<String, Set<String>> readDirectSuperTypes() {
-        Set<File> directories = getParameters().getAnalysisResult().getFiles();
-        return directories.stream()
-            .filter(File::isDirectory)
-            .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))
-            .flatMap(file -> readSuperTypes(file).entrySet().stream())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> first));
+        return getResolutionData(contextId).getInstrumentingTypeRegistry();
     }
 
     /**
      * Returns the original file for the given hash. It's possible that multiple files have the same content,
      * so this method returns just one. For instrumentation is not important which one is returned.
      */
-    public File getOriginalFile(String hash) {
-        if (originalFiles == null) {
-            synchronized (this) {
-                if (originalFiles == null) {
-                    Map<String, File> originalFiles = new HashMap<>(getParameters().getOriginalClasspath().getFiles().size());
-                    getParameters().getOriginalClasspath().forEach(file -> {
-                        String fileHash = getArtifactHash(file);
-                        if (fileHash != null) {
-                            originalFiles.put(fileHash, file);
-                        }
-                    });
-                    this.originalFiles = originalFiles;
-                }
-            }
-        }
-        return checkNotNull(originalFiles.get(hash));
+    public File getOriginalFile(long contextId, String hash) {
+        return checkNotNull(getResolutionData(contextId).getOriginalFile(hash));
     }
 
     @Nullable
-    public String getArtifactHash(File file) {
-        if (hashCache == null) {
-            synchronized (this) {
-                if (hashCache == null) {
-                    this.hashCache = new ConcurrentHashMap<>();
-                }
-            }
-        }
-        return hashCache.computeIfAbsent(file, __ -> {
-            Hasher hasher = Hashing.newHasher();
-            InjectedInstrumentationServices services = internalServices.get();
-            FileSystemLocationSnapshot snapshot = services.getFileSystemAccess().read(file.getAbsolutePath());
-            if (snapshot.getType() == FileType.Missing) {
-                return null;
-            }
-
-            hasher.putHash(snapshot.getHash());
-            hasher.putString(file.getName());
-            hasher.putBoolean(services.getGlobalCacheLocations().isInsideGlobalCache(file.getAbsolutePath()));
-            return hasher.hash().toString();
-        });
+    public String getArtifactHash(long contextId, File file) {
+        return getResolutionData(contextId).getArtifactHash(file);
     }
 
-    public void clear() {
-        // Clear mutable data since service can be reused to resolve other configuration
-        instrumentingTypeRegistry = null;
-        originalFiles = null;
-        hashCache = null;
+    public FileCollection getOriginalClasspath(long contextId) {
+        return getResolutionData(contextId).getOriginalClasspath();
+    }
+
+    private ResolutionData getResolutionData(long contextId) {
+        return checkNotNull(resolutionScopes.get(contextId), "Resolution data for id %s does not exist!", contextId);
+    }
+
+    public ResolutionScope newResolutionScope(long contextId) {
+        ResolutionData resolutionData = resolutionScopes.compute(contextId, (__, value) -> {
+            checkArgument(value == null, "Resolution data for id %s already exists! Was previous resolution scope closed properly?", contextId);
+            return getObjectFactory().newInstance(ResolutionData.class, internalServices.get());
+        });
+        return new ResolutionScope() {
+            @Override
+            public void setAnalysisResult(FileCollection analysisResult) {
+                resolutionData.getAnalysisResult().setFrom(analysisResult);
+            }
+
+            @Override
+            public void setOriginalClasspath(FileCollection originalClasspath) {
+                resolutionData.getOriginalClasspath().setFrom(originalClasspath);
+            }
+
+            @Override
+            public void close() {
+                resolutionScopes.remove(contextId);
+            }
+        };
+    }
+
+    public interface ResolutionScope extends AutoCloseable {
+
+        void setAnalysisResult(FileCollection analysisResult);
+        void setOriginalClasspath(FileCollection originalClasspath);
+
+        @Override
+        void close();
+    }
+
+    abstract static class ResolutionData {
+        private final Lazy<InstrumentationTypeRegistry> instrumentingTypeRegistry;
+        private final Lazy<Map<String, File>> hashToOriginalFile;
+        private final Map<File, String> hashCache;
+        private final InjectedInstrumentationServices internalServices;
+
+        @Inject
+        public ResolutionData(InjectedInstrumentationServices internalServices) {
+            this.hashCache = new ConcurrentHashMap<>();
+            this.hashToOriginalFile = Lazy.locking().of(() -> {
+                Map<String, File> originalFiles = new HashMap<>(getOriginalClasspath().getFiles().size());
+                getOriginalClasspath().forEach(file -> {
+                    String fileHash = getArtifactHash(file);
+                    if (fileHash != null) {
+                        originalFiles.put(fileHash, file);
+                    }
+                });
+                return originalFiles;
+            });
+            this.instrumentingTypeRegistry = Lazy.locking().of(() -> {
+                InstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry = internalServices.getGradleCoreInstrumentingTypeRegistry();
+                Map<String, Set<String>> directSuperTypes = readDirectSuperTypes();
+                return new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentingTypeRegistry);
+            });
+            this.internalServices = internalServices;
+        }
+
+        public abstract ConfigurableFileCollection getAnalysisResult();
+        public abstract ConfigurableFileCollection getOriginalClasspath();
+
+        private Map<String, Set<String>> readDirectSuperTypes() {
+            Set<File> directories = getAnalysisResult().getFiles();
+            return directories.stream()
+                .filter(File::isDirectory)
+                .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))
+                .flatMap(file -> readSuperTypes(file).entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> first));
+        }
+
+        public InstrumentationTypeRegistry getInstrumentingTypeRegistry() {
+            return instrumentingTypeRegistry.get();
+        }
+
+        @Nullable
+        public File getOriginalFile(String hash) {
+            return hashToOriginalFile.get().get(hash);
+        }
+
+        @Nullable
+        public String getArtifactHash(File file) {
+            return hashCache.computeIfAbsent(file, __ -> {
+                Hasher hasher = Hashing.newHasher();
+                FileSystemLocationSnapshot snapshot = internalServices.getFileSystemAccess().read(file.getAbsolutePath());
+                if (snapshot.getType() == FileType.Missing) {
+                    return null;
+                }
+
+                hasher.putHash(snapshot.getHash());
+                hasher.putString(file.getName());
+                hasher.putBoolean(internalServices.getGlobalCacheLocations().isInsideGlobalCache(file.getAbsolutePath()));
+                return hasher.hash().toString();
+            });
+        }
+
     }
 }

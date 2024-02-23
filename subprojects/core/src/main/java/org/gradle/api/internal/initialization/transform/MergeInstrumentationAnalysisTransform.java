@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
-import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -72,6 +71,8 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
     public interface Parameters extends TransformParameters {
         @Internal
         Property<CacheInstrumentationDataBuildService> getBuildService();
+        @Internal
+        Property<Long> getContextId();
 
         /**
          * Original classpath is an input, since if original classpath changes that means
@@ -99,18 +100,17 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         createInstrumentationClasspathMarker(outputs);
         File outputDir = outputs.dir(MERGE_OUTPUT_DIR);
         File dependenciesSuperTypes = new File(outputDir, DEPENDENCIES_SUPER_TYPES_FILE_NAME);
-        InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
         try (BufferedWriter writer = newBufferedUtf8Writer(dependenciesSuperTypes)) {
             File dependencies = new File(input, DEPENDENCIES_FILE_NAME);
-            writeDependenciesSuperTypes(dependencies, writer, services);
+            writeDependenciesSuperTypes(dependencies, writer);
             Files.copy(new File(input, METADATA_FILE_NAME).toPath(), new File(outputDir, METADATA_FILE_NAME).toPath());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private void writeDependenciesSuperTypes(File dependencies, Writer writer, InjectedInstrumentationServices services) throws IOException {
-        InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry(services);
+    private void writeDependenciesSuperTypes(File dependencies, Writer writer) throws IOException {
+        InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry();
         try (Stream<String> stream = Files.lines(dependencies.toPath())) {
             stream.forEach(className -> {
                 Set<String> superTypes = registry.getSuperTypes(className);
@@ -129,8 +129,9 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         }
     }
 
-    private InstrumentationTypeRegistry getInstrumentationTypeRegistry(InjectedInstrumentationServices internalServices) {
+    private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
+        long contextId = getParameters().getContextId().get();
         CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
-        return buildService.getInstrumentingTypeRegistry(internalServices.getGradleCoreInstrumentingTypeRegistry());
+        return buildService.getInstrumentingTypeRegistry(contextId);
     }
 }

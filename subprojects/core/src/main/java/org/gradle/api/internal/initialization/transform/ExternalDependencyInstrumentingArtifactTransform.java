@@ -55,7 +55,8 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
         if (hash.equals(FILE_MISSING_HASH)) {
             execute(null, outputs, __ -> {});
         } else {
-            File originalArtifact = getParameters().getBuildService().get().getOriginalFile(hash);
+            long contextId = getParameters().getContextId().get();
+            File originalArtifact = getParameters().getBuildService().get().getOriginalFile(contextId, hash);
             execute(originalArtifact, outputs, __ -> writeOriginalFilePlaceholder(hash, outputs));
         }
     }

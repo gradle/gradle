@@ -20,28 +20,30 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.provider.Provider;
 
-import java.util.function.Function;
-
 public class ScriptClassPathResolutionContext {
+    private final long contextId;
     private final Provider<CacheInstrumentationDataBuildService> buildService;
     private final DependencyHandler dependencyHandler;
 
     public ScriptClassPathResolutionContext(
+        long contextId,
         Provider<CacheInstrumentationDataBuildService> buildService,
         DependencyHandler dependencyHandler
     ) {
+        this.contextId = contextId;
         this.buildService = buildService;
         this.dependencyHandler = dependencyHandler;
     }
 
-    public DependencyHandler getDependencyHandler() {
-        return dependencyHandler;
+    public long getContextId() {
+        return contextId;
     }
 
-    public <T> T runAndClearCachedDataAfter(Function<CacheInstrumentationDataBuildService, T> resolutionFunction) {
-        CacheInstrumentationDataBuildService buildService = this.buildService.get();
-        T result = resolutionFunction.apply(buildService);
-        buildService.clear();
-        return result;
+    public Provider<CacheInstrumentationDataBuildService> getBuildService() {
+        return buildService;
+    }
+
+    public DependencyHandler getDependencyHandler() {
+        return dependencyHandler;
     }
 }
