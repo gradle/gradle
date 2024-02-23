@@ -205,7 +205,7 @@
   {
     "name": "declarative-dsl-provider",
     "path": "platforms/core-configuration/declarative-dsl-provider",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },

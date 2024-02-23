@@ -19,21 +19,17 @@ package org.gradle.internal.declarativedsl.evaluationSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.mappingToJvm.MemberFunctionResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionRuntimePropertyResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
-import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
-import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
-import org.gradle.internal.declarativedsl.schemaBuilder.plus
-import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
-import org.gradle.api.Action
 
 
 class EvaluationSchema(
     val analysisSchema: AnalysisSchema,
     val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
-    val configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda.plus(treatInterfaceAsConfigureLambda(Action::class)),
-    val runtimePropertyResolvers: List<RuntimePropertyResolver> = emptyList(),
-    val runtimeFunctionResolvers: List<RuntimeFunctionResolver> = emptyList(),
+    val runtimePropertyResolvers: List<RuntimePropertyResolver> = listOf(ReflectionRuntimePropertyResolver),
+    val runtimeFunctionResolvers: List<RuntimeFunctionResolver> = listOf(MemberFunctionResolver(gradleConfigureLambdas)),
     val runtimeCustomAccessors: List<RuntimeCustomAccessors> = emptyList()
 )
