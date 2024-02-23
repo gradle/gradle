@@ -16,12 +16,14 @@
 
 package org.gradle.internal.classpath
 
+
 import spock.lang.Specification
 
 import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME
 import static org.gradle.internal.classpath.TransformedClassPath.LEGACY_INSTRUMENTATION_MARKER_FILE_NAME
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class TransformedClassPathTest extends Specification {
     def "transformed jars are returned when present"() {
@@ -200,7 +202,7 @@ class TransformedClassPathTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == message
+        normaliseFileSeparators(e.message) == normaliseFileSeparators(message)
 
         where:
         inputClassPath                                                                                                                                                  | message
