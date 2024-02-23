@@ -13,6 +13,30 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.clean checkout",
+    "groups" : [ {
+      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
+      "coverage" : {
+        "per_day" : [ "linux", "macOs", "windows" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.cold daemon",
+    "groups" : [ {
+      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
+      "coverage" : {
+        "per_day" : [ "linux", "macOs", "windows" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.first use",
+    "groups" : [ {
+      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
+      "coverage" : {
+        "per_day" : [ "linux", "macOs", "windows" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.experiment.java.ParallelBuildPerformanceTest.clean assemble with 4 parallel workers",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",

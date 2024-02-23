@@ -34,7 +34,7 @@ dependencies {
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.3.0")
-        api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
+        api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.9.0")
         api("com.autonomousapps:dependency-analysis-gradle-plugin:1.28.0")
 
         // Java Libraries

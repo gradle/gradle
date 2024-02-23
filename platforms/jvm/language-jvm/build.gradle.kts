@@ -14,27 +14,26 @@ errorprone {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":files"))
+    api(project(":platform-base"))
+    api(project(":platform-jvm"))
+    api(project(":process-services"))
+    api(project(":workers"))
+
+    api(libs.groovy)
+    api(libs.inject)
+    api(libs.jsr305)
+
     implementation(project(":dependency-management"))
-    implementation(project(":files"))
-    implementation(project(":file-collections"))
     implementation(project(":logging"))
     implementation(project(":model-core"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":process-services"))
-    implementation(project(":process-services"))
-    implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
     implementation(project(":test-suites-base"))
-    implementation(project(":toolchains-jvm"))
-    implementation(project(":workers"))
 
-    implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.inject)
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))

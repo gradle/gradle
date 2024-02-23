@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
@@ -212,11 +213,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private void addExplicitCollector(MapCollector<K, V> collector, boolean ignoreAbsent) {
         assertCanMutate();
-        MapSupplier<K, V> explicitValue = getExplicitValue(defaultValue);
-        if (ignoreAbsent) {
-            explicitValue = explicitValue.ignoringAbsent();
-        }
-        setSupplier(explicitValue.plus(collector));
+        MapSupplier<K, V> explicitValue = getExplicitValue(defaultValue).absentIgnoringIfNeeded(ignoreAbsent);
+        setSupplier(explicitValue.plus(collector.absentIgnoringIfNeeded(ignoreAbsent)));
     }
 
     private Configurer getConfigurer() {
@@ -305,7 +303,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             setSupplier(new FixedSupplier<>(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
         } else {
             CollectingProvider<K, V> asCollectingProvider = uncheckedNonnullCast(value.getChangingValue());
-            setSupplier(new CollectingSupplier(new EntriesFromMapProvider<>(asCollectingProvider), asCollectingProvider.ignoreAbsent));
+            setSupplier(new CollectingSupplier(new EntriesFromMapProvider<>(asCollectingProvider)));
         }
     }
 
@@ -400,8 +398,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> ignoringAbsent() {
-            return new EmptySupplier(true);
+        public MapSupplier<K, V> absentIgnoring() {
+            return emptySupplier();
         }
 
         @Override
@@ -442,19 +440,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     private class EmptySupplier implements MapSupplier<K, V> {
-        private final boolean ignoreAbsent;
-
-        EmptySupplier() {
-            this(false);
-        }
-
-        public EmptySupplier(boolean ignoreAbsent) {
-            this.ignoreAbsent = ignoreAbsent;
-        }
-
         @Override
-        public MapSupplier<K, V> ignoringAbsent() {
-            return ignoreAbsent ? this : new EmptySupplier(true);
+        public MapSupplier<K, V> absentIgnoring() {
+            return this;
         }
 
         @Override
@@ -475,7 +463,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
             // empty + something = something
-            return new CollectingSupplier(collector, ignoreAbsent);
+            return new CollectingSupplier(collector);
         }
 
         @Override
@@ -524,8 +512,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> ignoringAbsent() {
-            throw new UnsupportedOperationException();
+        public MapSupplier<K, V> absentIgnoring() {
+            return this;
         }
 
         @Override
@@ -546,15 +534,20 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private class CollectingSupplier implements MapSupplier<K, V> {
         private final MapCollector<K, V> collector;
+        // TODO-RC: can we get rid of this? Can we only keep this in Collectors? Changing execution time value is the only case that needs this.
         private final boolean ignoreAbsent;
 
         public CollectingSupplier(MapCollector<K, V> collector, boolean ignoreAbsent) {
-            this.collector = ignoreAbsent ? collector.absentIgnoring() : collector;
+            this.collector = collector;
             this.ignoreAbsent = ignoreAbsent;
         }
 
+        public CollectingSupplier(MapCollector<K, V> collector) {
+            this(collector, false);
+        }
+
         @Override
-        public MapSupplier<K, V> ignoringAbsent() {
+        public MapSupplier<K, V> absentIgnoring() {
             return ignoreAbsent ? this : new CollectingSupplier(collector, true);
         }
 
@@ -589,8 +582,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> plus(MapCollector<K, V> newCollector) {
-            return new CollectingSupplier(new PlusCollector<>(this.collector, ignoreAbsent ? newCollector.absentIgnoring() : newCollector), false);
+        public MapSupplier<K, V> plus(MapCollector<K, V> addedCollector) {
+            MapCollector<K, V> left = this.collector.absentIgnoringIfNeeded(ignoreAbsent);
+            MapCollector<K, V> right = addedCollector;
+            PlusCollector<K, V> newCollector = new PlusCollector<>(left, right);
+            return new CollectingSupplier(newCollector);
         }
 
         @Override
@@ -599,7 +595,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             ExecutionTimeValue<Map<K, V>> fixedOrMissing = fixedOrMissingValueOf(execTimeValues);
             return fixedOrMissing != null
                 ? fixedOrMissing
-                : ExecutionTimeValue.changingValue(new CollectingProvider<>(execTimeValues, ignoreAbsent));
+                : ExecutionTimeValue.changingValue(new CollectingProvider<>(execTimeValues));
         }
 
         /**
@@ -660,11 +656,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private static class CollectingProvider<K, V> extends AbstractMinimalProvider<Map<K, V>> {
         private final List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values;
-        private final boolean ignoreAbsent;
 
-        public CollectingProvider(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values, boolean ignoreAbsent) {
+        public CollectingProvider(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values) {
             this.values = values;
-            this.ignoreAbsent = ignoreAbsent;
         }
 
         @Nullable
@@ -733,13 +727,36 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    private static class PlusCollector<K, V> implements MapCollector<K, V> {
-        private final MapCollector<K, V> left;
-        private final MapCollector<K, V> right;
+    private static abstract class AbstractPlusCollector<K, V> implements MapCollector<K, V> {
 
-        public PlusCollector(MapCollector<K, V> left, MapCollector<K, V> right) {
+        protected final MapCollector<K, V> left;
+        protected final MapCollector<K, V> right;
+
+        private AbstractPlusCollector(MapCollector<K, V> left, MapCollector<K, V> right) {
             this.left = left;
             this.right = right;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return left.getProducer().plus(right.getProducer());
+        }
+
+        @Override
+        public String toString() {
+            return left + " + " + right;
+        }
+    }
+
+    private static class PlusCollector<K, V> extends AbstractPlusCollector<K, V> {
+
+        public PlusCollector(MapCollector<K, V> left, MapCollector<K, V> right) {
+            super(left, right);
+        }
+
+        @Override
+        public MapCollector<K, V> absentIgnoring() {
+            return new AbsentIgnoringPlusCollector<K, V>(left, right);
         }
 
         @Override
@@ -777,15 +794,72 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             left.calculateExecutionTimeValue(visitor);
             right.calculateExecutionTimeValue(visitor);
         }
+    }
 
-        @Override
-        public ValueProducer getProducer() {
-            return left.getProducer().plus(right.getProducer());
+    private static class AbsentIgnoringPlusCollector<K, V> extends AbstractPlusCollector<K, V> {
+
+        private AbsentIgnoringPlusCollector(MapCollector<K, V> left, MapCollector<K, V> right) {
+            super(left, right);
         }
 
         @Override
-        public String toString() {
-            return left + " + " + right;
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return true;
+        }
+
+        @Override
+        public MapCollector<K, V> absentIgnoring() {
+            return this;
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Map<K, V> candidates = new LinkedHashMap<>();
+            Value<Void> leftValue = left.collectEntries(consumer, collector, candidates);
+            if (leftValue.isMissing()) {
+                return Value.present();
+            }
+            Value<Void> rightValue = right.collectEntries(consumer, collector, candidates);
+            if (rightValue.isMissing()) {
+                return Value.present();
+            }
+            dest.putAll(candidates);
+            return Value.present()
+                .withSideEffect(SideEffect.fixedFrom(leftValue))
+                .withSideEffect(SideEffect.fixedFrom(rightValue));
+        }
+
+        @Override
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            ImmutableSet.Builder<K> candidateKeys = ImmutableSet.builder();
+            Value<Void> leftResult = left.collectKeys(consumer, collector, candidateKeys);
+            if (leftResult.isMissing()) {
+                return Value.present();
+            }
+            Value<Void> rightResult = right.collectKeys(consumer, collector, candidateKeys);
+            if (rightResult.isMissing()) {
+                return Value.present();
+            }
+            dest.addAll(candidateKeys.build());
+            return rightResult;
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            boolean[] anyMissing = {false};
+            ImmutableList.Builder<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> toVisit = ImmutableList.builder();
+            Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> safeVisitor = value -> {
+                if (value.isMissing()) {
+                    anyMissing[0] = true;
+                } else {
+                    toVisit.add(value);
+                }
+            };
+            left.calculateExecutionTimeValue(safeVisitor);
+            right.calculateExecutionTimeValue(safeVisitor);
+            if (!anyMissing[0]) {
+                toVisit.build().forEach(it -> visitor.execute(it));
+            }
         }
     }
 }

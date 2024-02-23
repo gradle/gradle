@@ -15,13 +15,16 @@
  */
 package org.gradle.api.internal.initialization;
 
+import com.google.common.collect.Ordering;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
@@ -48,6 +51,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
@@ -56,9 +60,12 @@ import org.gradle.util.GradleVersion;
 import java.io.File;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
@@ -199,9 +206,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return resolutionContext.runAndClearCachedDataAfter(buildService -> {
             buildService.getParameters().getAnalysisResult().setFrom(getAnalysisResult(classpathConfiguration));
             buildService.getParameters().getOriginalClasspath().setFrom(classpathConfiguration);
-            FileCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
-            FileCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
-            ClassPath instrumentedClasspath = mergeCollectionsAndReplacePlaceholders(buildService, instrumentedExternalDependencies, instrumentedProjectDependencies);
+            ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
+            ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
+            ClassPath instrumentedClasspath = combineToClasspath(buildService, classpathConfiguration, instrumentedExternalDependencies, instrumentedProjectDependencies);
             return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath);
         });
     }
@@ -213,18 +220,18 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         }).getFiles();
     }
 
-    private FileCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
+    private ArtifactCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_AND_UPGRADED.value));
             config.componentFilter(DefaultScriptClassPathResolver::isExternalDependency);
-        }).getFiles();
+        }).getArtifacts();
     }
 
-    private FileCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
+    private ArtifactCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_ONLY.value));
             config.componentFilter(DefaultScriptClassPathResolver::isProjectDependency);
-        }).getFiles();
+        }).getArtifacts();
     }
 
     private static boolean isGradleApi(ComponentIdentifier componentId) {
@@ -243,19 +250,88 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return !isGradleApi(componentId) && !isProjectDependency(componentId);
     }
 
+
     /**
-     * Combines the original classpath with transformed external and project dependencies.
+     * Combines external dependencies and project dependencies to one classpath that is sorted based on the original classpath.
      */
-    public static ClassPath mergeCollectionsAndReplacePlaceholders(CacheInstrumentationDataBuildService buildService, FileCollection externalDependencies, FileCollection projectDependencies) {
-        List<File> files = projectDependencies.plus(externalDependencies).getFiles().stream()
-            .map(file -> {
-                if (file.getName().endsWith(ORIGINAL_FILE_PLACEHOLDER_SUFFIX)) {
-                    String hash = file.getName().replace(ORIGINAL_FILE_PLACEHOLDER_SUFFIX, "");
-                    return buildService.getOriginalFile(hash);
-                }
-                return file;
-            })
+    private static ClassPath combineToClasspath(CacheInstrumentationDataBuildService buildService, Configuration classpathConfiguration, ArtifactCollection externalDependencies, ArtifactCollection projectDependencies) {
+        Set<ResolvedArtifactResult> originalArtifacts = classpathConfiguration.getIncoming()
+            .artifactView(config -> config.componentFilter(id -> !isGradleApi(id)))
+            .getArtifacts().getArtifacts();
+        List<OriginalArtifactIdentifier> identifiers = originalArtifacts.stream()
+            .map(OriginalArtifactIdentifier::of)
+            // In some cases we end up with the same artifact multiple times in different locations,
+            // additional user's artifact transform can be injected in between and could produce multiple artifacts from one original artifact.
+            .distinct()
             .collect(Collectors.toList());
-        return DefaultClassPath.of(files);
+
+        Ordering<OriginalArtifactIdentifier> ordering = Ordering.explicit(identifiers);
+        List<File> classpath = Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream())
+            .map(ClassPathTransformedArtifact::ofTransformedArtifact)
+            // We sort based on the original classpath to we keep the original order,
+            // we also rely on the fact that for ordered streams `sorted()` method has stable sort.
+            .sorted((first, second) -> ordering.compare(first.originalIdentifier, second.originalIdentifier))
+            .map(artifact -> getOriginalFile(buildService, artifact))
+            .collect(Collectors.toList());
+        return DefaultClassPath.of(classpath);
+    }
+
+    private static File getOriginalFile(CacheInstrumentationDataBuildService buildService, ClassPathTransformedArtifact artifact) {
+        if (artifact.file.getName().endsWith(ORIGINAL_FILE_PLACEHOLDER_SUFFIX)) {
+            String hash = artifact.file.getName().replace(ORIGINAL_FILE_PLACEHOLDER_SUFFIX, "");
+            return buildService.getOriginalFile(hash);
+        }
+        return artifact.file;
+    }
+
+    private static class ClassPathTransformedArtifact {
+        private final File file;
+        private final OriginalArtifactIdentifier originalIdentifier;
+
+        private ClassPathTransformedArtifact(File file, OriginalArtifactIdentifier originalIdentifier) {
+            this.file = file;
+            this.originalIdentifier = originalIdentifier;
+        }
+
+        public static ClassPathTransformedArtifact ofTransformedArtifact(ResolvedArtifactResult transformedArtifact) {
+            checkArgument(transformedArtifact.getId() instanceof TransformedComponentFileArtifactIdentifier);
+            return new ClassPathTransformedArtifact(transformedArtifact.getFile(), OriginalArtifactIdentifier.of(transformedArtifact));
+        }
+    }
+
+    private static class OriginalArtifactIdentifier {
+        private final String originalFileName;
+        private final ComponentIdentifier componentIdentifier;
+
+        private OriginalArtifactIdentifier(String originalFileName, ComponentIdentifier componentIdentifier) {
+            this.originalFileName = originalFileName;
+            this.componentIdentifier = componentIdentifier;
+        }
+
+        private static OriginalArtifactIdentifier of(ResolvedArtifactResult artifact) {
+            if (artifact.getId() instanceof TransformedComponentFileArtifactIdentifier) {
+                TransformedComponentFileArtifactIdentifier identifier = (TransformedComponentFileArtifactIdentifier) artifact.getId();
+                return new OriginalArtifactIdentifier(identifier.getOriginalFileName(), identifier.getComponentIdentifier());
+            } else {
+                return new OriginalArtifactIdentifier(artifact.getFile().getName(), artifact.getId().getComponentIdentifier());
+            }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            OriginalArtifactIdentifier that = (OriginalArtifactIdentifier) o;
+            return Objects.equals(originalFileName, that.originalFileName) && Objects.equals(componentIdentifier, that.componentIdentifier);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(originalFileName, componentIdentifier);
+        }
     }
 }

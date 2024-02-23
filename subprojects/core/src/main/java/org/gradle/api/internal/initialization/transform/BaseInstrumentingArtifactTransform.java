@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.transform;
 
+import com.google.common.base.Function;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
@@ -48,6 +49,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
 import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_ENTRY_PREFIX;
 import static org.gradle.internal.classpath.TransformedClassPath.LEGACY_INSTRUMENTATION_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
@@ -82,19 +84,25 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
         if (isAgentSupported()) {
             // When agent is supported, we output an instrumented jar and an original jar,
-            // so we can then later reconstruct instrumented jars classpath and original jars classpath
+            // so we can then later reconstruct instrumented jars classpath and original jars classpath.
+            // We add `instrumented-` prefix to the file since names for the same transform needs to be unique when querying results via ArtifactCollection.
             createNewFile(outputs.file(AGENT_INSTRUMENTATION_MARKER_FILE_NAME));
-            doTransformForAgent(artifactToInstrument, outputs, originalFileProducer, injectedServices);
+            doTransformForAgent(artifactToInstrument, outputs, injectedServices, originalFileProducer, originalName -> INSTRUMENTED_ENTRY_PREFIX + originalName);
         } else {
-            // When agent is not supported, we have only one classpath so we output just an instrumented jar
             createNewFile(outputs.file(LEGACY_INSTRUMENTATION_MARKER_FILE_NAME));
-            doTransform(artifactToInstrument, outputs, injectedServices);
+            doTransform(artifactToInstrument, outputs, injectedServices, originalName -> originalName);
         }
     }
 
-    private void doTransformForAgent(File input, TransformOutputs outputs, Consumer<TransformOutputs> originalFileProducer, InjectedInstrumentationServices injectedServices) {
+    private void doTransformForAgent(
+        File input,
+        TransformOutputs outputs,
+        InjectedInstrumentationServices injectedServices,
+        Consumer<TransformOutputs> originalFileProducer,
+        Function<String, String> instrumentedEntryNameMapper
+    ) {
         // Instrument jars
-        doTransform(input, outputs, injectedServices);
+        doTransform(input, outputs, injectedServices, instrumentedEntryNameMapper);
 
         // Create a marker file that signals we should use original entry if they are safe to load from cache loader
         // ELSE copy an entry
@@ -111,8 +119,12 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         }
     }
 
-    private void doTransform(File input, TransformOutputs outputs, InjectedInstrumentationServices injectedServices) {
-        String outputPath = getOutputPath(input);
+    private void doTransform(
+        File input, TransformOutputs outputs,
+        InjectedInstrumentationServices injectedServices,
+        Function<String, String> instrumentedEntryNameMapper
+    ) {
+        String outputPath = getOutputPath(input, instrumentedEntryNameMapper);
         File output = input.isDirectory() ? outputs.dir(outputPath) : outputs.file(outputPath);
         InterceptorTypeRegistryAndFilter typeRegistryAndFilter = provideInterceptorTypeRegistryAndFilter();
         InstrumentationTypeRegistry typeRegistry = typeRegistryAndFilter.getRegistry();
@@ -122,8 +134,8 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         transform.transform(output);
     }
 
-    private static String getOutputPath(File input) {
-        return INSTRUMENTED_DIR_NAME + "/" + input.getName();
+    private static String getOutputPath(File input, Function<String, String> instrumentedEntryNameMapper) {
+        return INSTRUMENTED_DIR_NAME + "/" + instrumentedEntryNameMapper.apply(input.getName());
     }
 
     protected abstract InterceptorTypeRegistryAndFilter provideInterceptorTypeRegistryAndFilter();

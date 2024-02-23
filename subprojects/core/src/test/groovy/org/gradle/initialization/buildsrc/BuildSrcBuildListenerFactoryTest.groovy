@@ -19,7 +19,6 @@ package org.gradle.initialization.buildsrc
 import org.gradle.api.Action
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState

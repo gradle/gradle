@@ -21,8 +21,10 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 import java.nio.file.Files
+import java.util.function.Supplier
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
@@ -53,13 +55,13 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         """
 
         when:
-        run("tasks", "--info")
+        run("tasks")
 
         then:
         gradleUserHomeOutput("original/buildSrc.jar").exists()
-        gradleUserHomeOutput("instrumented/buildSrc.jar").exists()
+        gradleUserHomeOutput("instrumented/instrumented-buildSrc.jar").exists()
         gradleUserHomeOutput("original/included-1.0.jar").exists()
-        gradleUserHomeOutput("instrumented/included-1.0.jar").exists()
+        gradleUserHomeOutput("instrumented/instrumented-included-1.0.jar").exists()
     }
 
     def "buildSrc and included build should be just instrumented and not upgraded"() {
@@ -101,33 +103,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
-        gradleUserHomeOutput("instrumented/commons-lang3-3.8.1.jar").exists()
-    }
-
-    def "should merge class hierarchies"() {
-        given:
-        requireOwnGradleUserHomeDir()
-        multiProjectJavaBuild("subproject") {
-            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
-            file("$it/api/src/main/java/B.java") << "public class B {}"
-        }
-        buildFile << """
-            buildscript {
-                dependencies {
-                    // Add them as separate jars
-                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
-                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
-                }
-            }
-        """
-
-        when:
-        executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks")
-
-        then:
-        gradleUserHomeOutput("instrumented/impl-1.0.jar").exists()
-        gradleUserHomeOutput("instrumented/api-1.0.jar").exists()
+        gradleUserHomeOutput("instrumented/instrumented-commons-lang3-3.8.1.jar").exists()
     }
 
     def "directories should be instrumented"() {
@@ -159,6 +135,80 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
             "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform"
         ]
+    }
+
+    def "order of entries in the effective classpath stays the same as in the original classpath"() {
+        given:
+        withIncludedBuild()
+        mavenRepo.module("org", "commons", "3.2.1").publish()
+        buildFile << """
+            import java.nio.file.Paths
+
+            buildscript {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                dependencies {
+                    classpath "${first[0]}"
+                    classpath "${second[0]}"
+                }
+            }
+
+            Thread.currentThread().getContextClassLoader().getURLs()
+                .eachWithIndex { artifact, idx -> println "classpath[\$idx]==\${Paths.get(artifact.toURI()).toFile().name}" }
+        """
+
+        when:
+        run("help")
+
+        then:
+        outputContains("classpath[0]==${first[1]}")
+        outputContains("classpath[1]==${second[1]}")
+
+        where:
+        first                                      | second
+        ["org.test:included", "included-1.0.jar"]  | ["org:commons:3.2.1", "commons-3.2.1.jar"]
+        ["org:commons:3.2.1", "commons-3.2.1.jar"] | ["org.test:included", "included-1.0.jar"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28114")
+    def "buildSrc can monkey patch external plugins even after instrumentation"() {
+        given:
+        withExternalPlugin("myPlugin", "my.plugin") {
+            """throw new RuntimeException("A bug in a plugin");"""
+        }
+        withBuildSrc()
+        file("buildSrc/src/main/java/test/gradle/MyPlugin.java") << """
+            package test.gradle;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            public class MyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    System.out.println("MyPlugin patched from buildSrc");
+                }
+            }
+        """
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+        """
+        buildFile << """
+            plugins {
+                id("my.plugin") version "1.0"
+            }
+        """
+
+        when:
+        executer.inDirectory(file("external-plugin")).withTasks("publish").run()
+        run("help")
+
+        then:
+        outputContains("MyPlugin patched from buildSrc")
     }
 
     def "classpath can contain non-existing file"() {
@@ -302,8 +352,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 1
-        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 1
 
         when:
         file("subproject/api/src/main/java/B.java").text = "import org.gradle.C; public class B extends C {}"
@@ -312,8 +362,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 2
-        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 2
+        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 2
+        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 2
     }
 
     def "should not re-instrument jar if classpath changes but class doesn't extend Gradle core class"() {
@@ -338,8 +388,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 1
-        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 1
 
         when:
         file("subproject/api/src/main/java/B.java").text = "public class B extends C {}"
@@ -348,8 +398,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
 
         then:
-        gradleUserHomeOutputs("instrumented/api-1.0.jar").size() == 2
-        gradleUserHomeOutputs("instrumented/impl-1.0.jar").size() == 1
+        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 2
+        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 1
     }
 
     def withBuildSrc() {
@@ -414,6 +464,49 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
             include("$apiProjectName", "$implProjectName")
         """
         init(rootName)
+    }
+
+    def withExternalPlugin(String name, String pluginId, Supplier<String> implementationBody = {}) {
+        def implementationClass = name.capitalize()
+        def folderName = "external-plugin"
+        file("$folderName/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+                id("maven-publish")
+            }
+
+            group = "$pluginId"
+            version = "1.0"
+
+            publishing {
+                repositories {
+                    maven {
+                        url '${mavenRepo.uri}'
+                    }
+                }
+            }
+
+            gradlePlugin {
+                plugins {
+                    ${name} {
+                        id = '${pluginId}'
+                        implementationClass = 'test.gradle.$implementationClass'
+                    }
+                }
+            }
+        """
+        file("$folderName/src/main/java/test/gradle/${implementationClass}.java") << """
+            package test.gradle;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            public class $implementationClass implements Plugin<Project> {
+                public void apply(Project project) {
+                    ${implementationBody.get()}
+                }
+            }
+        """
+        file("$folderName/settings.gradle") << "rootProject.name = '$folderName'"
     }
 
     List<String> allTransformsFor(String fileName) {

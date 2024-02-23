@@ -68,6 +68,7 @@ public class TransformedClassPath implements ClassPath {
     public static final String ORIGINAL_FILE_PLACEHOLDER_SUFFIX = ".original-file-placeholder.marker";
     public static final String INSTRUMENTED_DIR_NAME = "instrumented";
     public static final String ORIGINAL_DIR_NAME = "original";
+    public static final String INSTRUMENTED_ENTRY_PREFIX = "instrumented-";
 
     private final ClassPath originalClassPath;
     // mapping of original -> "double"
@@ -362,7 +363,7 @@ public class TransformedClassPath implements ClassPath {
         return instrumentedEntry.getParentFile() != null
             && instrumentedEntry.getParentFile().getName().equals(INSTRUMENTED_DIR_NAME)
             && !originalEntry.equals(instrumentedEntry)
-            && instrumentedEntry.getName().equals(originalEntry.getName());
+            && instrumentedEntry.getName().equals(INSTRUMENTED_ENTRY_PREFIX + originalEntry.getName());
     }
 
     private static boolean isInstrumentedMarkerFile(File classPathEntry) {

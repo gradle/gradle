@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
-import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuildQueue;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -36,8 +35,6 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.FileLockManager;
-import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
@@ -51,7 +48,6 @@ import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.Factory;
-import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
@@ -105,6 +101,7 @@ public class BuildTreeScopeServices {
         registration.add(DefaultExceptionAnalyser.class);
         registration.add(ConfigurationCacheableIdFactory.class);
         registration.add(TaskIdentityFactory.class);
+        registration.add(DefaultBuildLogicBuildQueue.class);
         modelServices.applyServicesTo(registration);
     }
 
@@ -147,13 +144,5 @@ public class BuildTreeScopeServices {
 
     protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
         return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
-    }
-
-    protected BuildLogicBuildQueue createBuildLogicBuildQueue(
-        FileLockManager fileLockManager,
-        BuildStateRegistry buildStateRegistry,
-        BuildTreeWorkGraphController buildTreeWorkGraphController
-    ) {
-        return new DefaultBuildLogicBuildQueue(fileLockManager, buildStateRegistry, buildTreeWorkGraphController);
     }
 }

@@ -41,7 +41,7 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
         configurationCacheRun(tasks, 0)
 
         then:
-        assertConfigurationCacheStateStored()
+        result.assertConfigurationCacheStateStored()
 
         when:
         run([":docs:clean"])
@@ -50,7 +50,7 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
         configurationCacheRun(tasks, 1)
 
         then:
-        assertConfigurationCacheStateLoaded()
+        result.assertConfigurationCacheStateLoaded()
         result.task(":docs:dslHtml").outcome == TaskOutcome.FROM_CACHE
         result.task(":docs:releaseNotes").outcome == TaskOutcome.FROM_CACHE
         result.task(":docs:generateDocInfo").outcome == TaskOutcome.FROM_CACHE
@@ -76,7 +76,7 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
         configurationCacheRun(tasks, 0)
 
         then:
-        assertConfigurationCacheStateStored()
+        result.assertConfigurationCacheStateStored()
 
         when:
         run([":docs:clean"])
@@ -85,7 +85,7 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
         configurationCacheRun(tasks, 1)
 
         then:
-        assertConfigurationCacheStateLoaded()
+        result.assertConfigurationCacheStateLoaded()
         result.task(":docs:docs").outcome == TaskOutcome.SUCCESS
         result.task("':docs:docsTest'").outcome == TaskOutcome.SUCCESS
     }

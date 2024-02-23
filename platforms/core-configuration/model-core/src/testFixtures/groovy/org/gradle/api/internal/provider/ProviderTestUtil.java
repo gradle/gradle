@@ -40,6 +40,11 @@ public class ProviderTestUtil {
         return new TestProviderWithChangingValue<>(Cast.uncheckedNonnullCast(values[0].getClass()), Arrays.asList(values), null);
     }
 
+    public static <T> ProviderInternal<T> withChangingExecutionTimeValues(Class<T> cls, T... values) {
+        assert values.length > 0;
+        return new TestProviderWithChangingValue<>(Cast.uncheckedNonnullCast(cls), Arrays.asList(values), null);
+    }
+
     public static <T> ProviderInternal<T> withProducer(Class<T> type, Task producer, T... values) {
         Class<T> valueType = values.length == 0 ? type : Cast.uncheckedNonnullCast(values[0].getClass());
         return new TestProvider<>(valueType, Arrays.asList(values), producer);
@@ -92,7 +97,13 @@ public class ProviderTestUtil {
 
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-            return values.hasNext() ? Value.of(values.next()) : Value.missing();
+            if (values.hasNext()) {
+                T result = values.next();
+                if (result != null) {
+                    return Value.of(result);
+                }
+            }
+            return Value.missing();
         }
     }
 
