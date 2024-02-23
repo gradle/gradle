@@ -20,10 +20,15 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
+import org.gradle.internal.logging.events.BooleanQuestionPromptEvent;
+import org.gradle.internal.logging.events.IntQuestionPromptEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
+import org.gradle.internal.logging.events.SelectOptionPromptEvent;
+import org.gradle.internal.logging.events.TextQuestionPromptEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
+import org.gradle.internal.logging.events.YesNoQuestionPromptEvent;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.internal.TextUtil;
 
@@ -59,10 +64,6 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         return interrupted.get();
     }
 
-    private void sendNewQuestion(String prompt) {
-        outputEventBroadcaster.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt, true));
-    }
-
     private void sendValidationProblem(String prompt) {
         outputEventBroadcaster.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt, false));
     }
@@ -81,7 +82,8 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(" [");
             builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
             builder.append("] ");
-            return prompt(builder.toString(), value -> {
+            YesNoQuestionPromptEvent prompt = new YesNoQuestionPromptEvent(clock.getCurrentTime(), builder.toString());
+            return prompt(prompt, value -> {
                 if (YES_NO_CHOICES.contains(value)) {
                     return BooleanUtils.toBoolean(value);
                 }
@@ -100,7 +102,8 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(") [");
             builder.append(StringUtils.join(YES_NO_CHOICES, ", "));
             builder.append("] ");
-            return prompt(builder.toString(), defaultValue, value -> {
+            BooleanQuestionPromptEvent prompt = new BooleanQuestionPromptEvent(clock.getCurrentTime(), builder.toString());
+            return prompt(prompt, defaultValue, value -> {
                 if (LENIENT_YES_NO_CHOICES.contains(value.toLowerCase(Locale.US))) {
                     return BooleanUtils.toBoolean(value);
                 }
@@ -131,7 +134,8 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(", default: ");
             builder.append(defaultValue);
             builder.append("): ");
-            return prompt(builder.toString(), defaultValue, sanitizedValue -> {
+            IntQuestionPromptEvent prompt = new IntQuestionPromptEvent(clock.getCurrentTime(), builder.toString());
+            return prompt(prompt, defaultValue, sanitizedValue -> {
                 try {
                     int result = Integer.parseInt(sanitizedValue);
                     if (result >= minValue) {
@@ -153,10 +157,11 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(" (default: ");
             builder.append(defaultValue);
             builder.append("): ");
-            return prompt(builder.toString(), defaultValue, sanitizedValue -> sanitizedValue);
+            TextQuestionPromptEvent prompt = new TextQuestionPromptEvent(clock.getCurrentTime(), builder.toString());
+            return prompt(prompt, defaultValue, sanitizedValue -> sanitizedValue);
         }
 
-        private <T> T prompt(String prompt, final T defaultValue, final Transformer<T, String> parser) {
+        private <T> T prompt(PromptOutputEvent prompt, final T defaultValue, final Transformer<T, String> parser) {
             T result = prompt(prompt, sanitizedInput -> {
                 if (sanitizedInput.isEmpty()) {
                     return defaultValue;
@@ -170,7 +175,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         }
 
         @Nullable
-        private <T> T prompt(String prompt, Transformer<T, String> parser) {
+        private <T> T prompt(PromptOutputEvent prompt, Transformer<T, String> parser) {
             if (interrupted.get()) {
                 return null;
             }
@@ -180,7 +185,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
                 hasPrompted = true;
             }
 
-            sendNewQuestion(prompt);
+            outputEventBroadcaster.onOutput(prompt);
             while (true) {
                 UserInputReader.UserInput input = userInputReader.readInput();
                 if (input == UserInputReader.END_OF_INPUT) {
@@ -222,7 +227,8 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             builder.append(") [1..");
             builder.append(options.size());
             builder.append("] ");
-            return prompt(builder.toString(), defaultOption, sanitizedInput -> {
+            SelectOptionPromptEvent prompt = new SelectOptionPromptEvent(clock.getCurrentTime(), builder.toString());
+            return prompt(prompt, defaultOption, sanitizedInput -> {
                 if (sanitizedInput.matches("\\d+")) {
                     int value = Integer.parseInt(sanitizedInput);
                     if (value > 0 && value <= values.size()) {
