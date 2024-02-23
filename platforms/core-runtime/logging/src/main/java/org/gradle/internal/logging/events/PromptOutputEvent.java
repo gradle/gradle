@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.Either;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 
@@ -42,6 +43,13 @@ public class PromptOutputEvent extends RenderableOutputEvent implements Interact
             output.println();
         }
         output.text(prompt);
+    }
+
+    /**
+     * Converts the given text into the response object, or returns a new prompt to display to the user.
+     */
+    public Either<?, String> convert(String text) {
+        return Either.left(text);
     }
 
     public String getPrompt() {

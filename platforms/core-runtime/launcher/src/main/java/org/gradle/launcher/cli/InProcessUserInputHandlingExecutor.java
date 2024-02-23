@@ -18,8 +18,11 @@ package org.gradle.launcher.cli;
 
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.Either;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -35,28 +38,40 @@ import java.io.InputStreamReader;
 class InProcessUserInputHandlingExecutor implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
     private final GlobalUserInputReceiver userInputReceiver;
     private final UserInputReader userInputReader;
+    private final OutputEventListener console;
     private final BuildExecuter delegate;
 
-    public InProcessUserInputHandlingExecutor(GlobalUserInputReceiver userInputReceiver, UserInputReader userInputReader, BuildExecuter delegate) {
+    public InProcessUserInputHandlingExecutor(GlobalUserInputReceiver userInputReceiver, UserInputReader userInputReader, OutputEventListener console, BuildExecuter delegate) {
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;
+        this.console = console;
         this.delegate = delegate;
     }
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext buildRequestContext) {
-        userInputReceiver.dispatchTo(() -> {
+        userInputReceiver.dispatchTo(event -> {
             // Read a single line of text from stdin and forward to the UserInputReader
-            String line;
-            try {
-                line = new BufferedReader(new InputStreamReader(System.in)).readLine();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            if (line != null) {
-                userInputReader.putInput(new UserInputReader.TextResponse(line));
-            } else {
-                userInputReader.putInput(UserInputReader.END_OF_INPUT);
+            while (true) {
+                String line;
+                try {
+                    line = new BufferedReader(new InputStreamReader(System.in)).readLine();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                if (line != null) {
+                    Either<?, String> result = event.convert(line);
+                    if (result.getLeft().isPresent()) {
+                        userInputReader.putInput(new UserInputReader.TextResponse(result.getLeft().get().toString()));
+                    } else {
+                        // Need to prompt the user again
+                        console.onOutput(new PromptOutputEvent(event.getTimestamp(), result.getRight().get(), false));
+                        continue;
+                    }
+                } else {
+                    userInputReader.putInput(UserInputReader.END_OF_INPUT);
+                }
+                break;
             }
         });
         try {

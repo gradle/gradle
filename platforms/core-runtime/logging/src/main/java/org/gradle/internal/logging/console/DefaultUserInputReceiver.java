@@ -16,18 +16,20 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.internal.logging.events.PromptOutputEvent;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
     private final AtomicReference<UserInputReceiver> delegate = new AtomicReference<UserInputReceiver>();
 
     @Override
-    public void readAndForwardText() {
+    public void readAndForwardText(PromptOutputEvent event) {
         UserInputReceiver userInput = delegate.get();
         if (userInput == null) {
             throw new IllegalStateException("User input has not been initialized.");
         }
-        userInput.readAndForwardText();
+        userInput.readAndForwardText(event);
     }
 
     @Override

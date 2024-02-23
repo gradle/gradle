@@ -21,6 +21,7 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.launcher.daemon.client.DaemonClientInputForwarder;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
@@ -42,19 +43,22 @@ public class ForwardStdInToThisProcess implements BuildActionExecuter<BuildActio
     private final InputStream finalStandardInput;
     private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
     private final ExecutorFactory executorFactory;
+    private final OutputEventListener outputEventListener;
 
     public ForwardStdInToThisProcess(
         GlobalUserInputReceiver userInputReceiver,
         UserInputReader userInputReader,
         InputStream finalStandardInput,
         BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate,
-        ExecutorFactory executorFactory
+        ExecutorFactory executorFactory,
+        OutputEventListener outputEventListener
     ) {
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;
         this.finalStandardInput = finalStandardInput;
         this.delegate = delegate;
         this.executorFactory = executorFactory;
+        this.outputEventListener = outputEventListener;
     }
 
     @Override
@@ -71,7 +75,7 @@ public class ForwardStdInToThisProcess implements BuildActionExecuter<BuildActio
                 } else {
                     throw new IllegalArgumentException();
                 }
-            }, userInputReceiver, executorFactory);
+            }, userInputReceiver, executorFactory, outputEventListener);
             inputForwarder.start();
             try {
                 return delegate.execute(action, actionParameters, buildRequestContext);

@@ -14,17 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console;
-
-import org.gradle.internal.logging.events.PromptOutputEvent;
-
-/**
- * Controls how user input is routed to the daemon.
- */
-public interface UserInputReceiver {
-    /**
-     * Requests that a line of text should be received from the user, for example via this process' stdin, and forwarded to the daemon.
-     * Does not block waiting for the input.
-     */
-    void readAndForwardText(PromptOutputEvent event);
-}
+@org.gradle.api.NonNullApi
+package org.gradle.internal.logging.serializer;

@@ -61,7 +61,9 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
 
     private void handlePromptOutputEvent(PromptOutputEvent event) {
         handlePrompt(event);
-        userInput.readAndForwardText();
+        if (event.isNewQuestion()) {
+            userInput.readAndForwardText(event);
+        }
     }
 
     private void handleUserInputRequestEvent() {

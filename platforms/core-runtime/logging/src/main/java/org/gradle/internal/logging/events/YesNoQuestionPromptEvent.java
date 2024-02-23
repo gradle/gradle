@@ -16,8 +16,25 @@
 
 package org.gradle.internal.logging.events;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.lang.BooleanUtils;
+import org.gradle.internal.Either;
+
+import java.util.List;
+
 public class YesNoQuestionPromptEvent extends PromptOutputEvent {
+    public static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
+
     public YesNoQuestionPromptEvent(long timestamp, String prompt) {
         super(timestamp, prompt, true);
+    }
+
+    @Override
+    public Either<Boolean, String> convert(String text) {
+        String trimmed = text.trim();
+        if (YES_NO_CHOICES.contains(trimmed)) {
+            return Either.left(BooleanUtils.toBoolean(trimmed));
+        }
+        return Either.right("Please enter 'yes' or 'no': ");
     }
 }
