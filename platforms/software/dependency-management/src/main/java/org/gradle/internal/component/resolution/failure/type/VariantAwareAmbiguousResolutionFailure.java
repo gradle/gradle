@@ -32,7 +32,6 @@ public final class VariantAwareAmbiguousResolutionFailure extends AmbiguousResol
     public VariantAwareAmbiguousResolutionFailure(String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ModuleVersionIdentifier targetComponentId) {
         super(requestedName, requestedAttributes, candidates);
         this.targetComponentId = targetComponentId;
-        throw new UnsupportedOperationException("Not implemented");
     }
 
     public ModuleVersionIdentifier getTargetComponentId() {
