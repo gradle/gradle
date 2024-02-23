@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 
+import javax.annotation.Nullable;
+
 @NonNullApi
 public abstract class AbstractIntersection<L extends ExcludeSpec, R extends ExcludeSpec> implements Intersection<L, R> {
     private final Class<L> leftType;
@@ -52,6 +54,7 @@ public abstract class AbstractIntersection<L extends ExcludeSpec, R extends Excl
     }
 
     @Override
+    @Nullable
     public ExcludeSpec intersect(ExcludeSpec left, ExcludeSpec right, ExcludeFactory factory) {
         if (getLeftType().isInstance(left) && getRightType().isInstance(right)) {
             return doIntersect(getLeftType().cast(left), getRightType().cast(right), factory);
@@ -60,5 +63,6 @@ public abstract class AbstractIntersection<L extends ExcludeSpec, R extends Excl
         }
     }
 
+    @Nullable
     abstract ExcludeSpec doIntersect(L left, R right, ExcludeFactory factory);
 }

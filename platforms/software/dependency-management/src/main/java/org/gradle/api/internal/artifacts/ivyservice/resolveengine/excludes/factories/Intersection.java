@@ -19,10 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 
+import javax.annotation.Nullable;
+
 @NonNullApi
 public interface Intersection<L extends ExcludeSpec, R extends ExcludeSpec> {
     Class<L> getLeftType();
     Class<R> getRightType();
     boolean applies(ExcludeSpec left, ExcludeSpec right);
+
+    @Nullable
     ExcludeSpec intersect(ExcludeSpec left, ExcludeSpec right, ExcludeFactory factory);
 }

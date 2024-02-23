@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -75,6 +76,7 @@ class Intersections {
         intersections.add(new IntersectModuleSetWithGroupSet(factory));
     }
 
+    @Nullable
     ExcludeSpec tryIntersect(ExcludeSpec left, ExcludeSpec right) {
         if (left.equals(right)) {
             return left;
@@ -87,6 +89,7 @@ class Intersections {
         }
     }
 
+    @NonNullApi
     private final class IntersectAnyWithAny extends AbstractIntersection<ExcludeAnyOf, ExcludeAnyOf> {
         public IntersectAnyWithAny(ExcludeFactory factory) {
             super(ExcludeAnyOf.class, ExcludeAnyOf.class, factory);
@@ -132,12 +135,14 @@ class Intersections {
         }
     }
 
+    @NonNullApi
     private final class IntersectAnyWithBaseSpec extends AbstractIntersection<ExcludeAnyOf, ExcludeSpec> {
         private IntersectAnyWithBaseSpec(ExcludeFactory factory) {
             super(ExcludeAnyOf.class, ExcludeSpec.class, factory);
         }
 
         @Override
+        @Nullable
         public ExcludeSpec doIntersect(ExcludeAnyOf left, ExcludeSpec right, ExcludeFactory factory) {
             Set<ExcludeSpec> leftComponents = left.getComponents();
             // Here, we will distribute A ∩ (B ∪ C) if, and only if, at
@@ -180,20 +185,21 @@ class Intersections {
         }
     }
 
-    private final class IntersectGroupWithGroup extends AbstractIntersection<GroupExclude, GroupExclude> {
+    @NonNullApi
+    private static final class IntersectGroupWithGroup extends AbstractIntersection<GroupExclude, GroupExclude> {
         private IntersectGroupWithGroup(ExcludeFactory factory) {
             super(GroupExclude.class, GroupExclude.class, factory);
         }
 
         @Override
         public ExcludeSpec doIntersect(GroupExclude left, GroupExclude right, ExcludeFactory factory) {
-            String group = left.getGroup();
-            // equality has been tested before so we know groups are different
+            // equality has been tested before, so we know groups are different
             return factory.nothing();
         }
     }
 
-    private final class IntersectGroupWithModuleId extends AbstractIntersection<GroupExclude, ModuleIdExclude> {
+    @NonNullApi
+    private static final class IntersectGroupWithModuleId extends AbstractIntersection<GroupExclude, ModuleIdExclude> {
         private IntersectGroupWithModuleId(ExcludeFactory factory) {
             super(GroupExclude.class, ModuleIdExclude.class, factory);
         }
@@ -209,7 +215,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectGroupWithGroupSet extends AbstractIntersection<GroupExclude, GroupSetExclude> {
+    @NonNullApi
+    private static final class IntersectGroupWithGroupSet extends AbstractIntersection<GroupExclude, GroupSetExclude> {
         private IntersectGroupWithGroupSet(ExcludeFactory factory) {
             super(GroupExclude.class, GroupSetExclude.class, factory);
         }
@@ -224,7 +231,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectGroupWithModuleIdSet extends AbstractIntersection<GroupExclude, ModuleIdSetExclude> {
+    @NonNullApi
+    private static final class IntersectGroupWithModuleIdSet extends AbstractIntersection<GroupExclude, ModuleIdSetExclude> {
         private IntersectGroupWithModuleIdSet(ExcludeFactory factory) {
             super(GroupExclude.class, ModuleIdSetExclude.class, factory);
         }
@@ -237,26 +245,26 @@ class Intersections {
         }
     }
 
-    private final class IntersectGroupWithModule extends AbstractIntersection<GroupExclude, ModuleExclude> {
+    @NonNullApi
+    private static final class IntersectGroupWithModule extends AbstractIntersection<GroupExclude, ModuleExclude> {
         private IntersectGroupWithModule(ExcludeFactory factory) {
             super(GroupExclude.class, ModuleExclude.class, factory);
         }
 
         @Override
         public ExcludeSpec doIntersect(GroupExclude left, ModuleExclude right, ExcludeFactory factory) {
-            String group = left.getGroup();
             return factory.moduleId(DefaultModuleIdentifier.newId(left.getGroup(), right.getModule()));
         }
     }
 
-    private final class IntersectGroupWithModuleSet extends AbstractIntersection<GroupExclude, ModuleSetExclude> {
+    @NonNullApi
+    private static final class IntersectGroupWithModuleSet extends AbstractIntersection<GroupExclude, ModuleSetExclude> {
         private IntersectGroupWithModuleSet(ExcludeFactory factory) {
             super(GroupExclude.class, ModuleSetExclude.class, factory);
         }
 
         @Override
         public ExcludeSpec doIntersect(GroupExclude left, ModuleSetExclude right, ExcludeFactory factory) {
-            String group = left.getGroup();
             return factory.moduleIdSet(right.getModules()
                 .stream()
                 .map(module -> DefaultModuleIdentifier.newId(left.getGroup(), module))
@@ -265,7 +273,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectGroupSetWithGroupSet extends AbstractIntersection<GroupSetExclude, GroupSetExclude> {
+    @NonNullApi
+    private static final class IntersectGroupSetWithGroupSet extends AbstractIntersection<GroupSetExclude, GroupSetExclude> {
         private IntersectGroupSetWithGroupSet(ExcludeFactory factory) {
             super(GroupSetExclude.class, GroupSetExclude.class, factory);
         }
@@ -279,7 +288,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectGroupSetWithModuleId extends AbstractIntersection<GroupSetExclude, ModuleIdExclude> {
+    @NonNullApi
+    private static final class IntersectGroupSetWithModuleId extends AbstractIntersection<GroupSetExclude, ModuleIdExclude> {
         private IntersectGroupSetWithModuleId(ExcludeFactory factory) {
             super(GroupSetExclude.class, ModuleIdExclude.class, factory);
         }
@@ -294,7 +304,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectGroupSetWithModuleIdSet extends AbstractIntersection<GroupSetExclude, ModuleIdSetExclude> {
+    @NonNullApi
+    private static final class IntersectGroupSetWithModuleIdSet extends AbstractIntersection<GroupSetExclude, ModuleIdSetExclude> {
         private IntersectGroupSetWithModuleIdSet(ExcludeFactory factory) {
             super(GroupSetExclude.class, ModuleIdSetExclude.class, factory);
         }
@@ -310,7 +321,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleWithModule extends AbstractIntersection<ModuleExclude, ModuleExclude> {
+    @NonNullApi
+    private static final class IntersectModuleWithModule extends AbstractIntersection<ModuleExclude, ModuleExclude> {
         private IntersectModuleWithModule(ExcludeFactory factory) {
             super(ModuleExclude.class, ModuleExclude.class, factory);
         }
@@ -326,7 +338,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleWithModuleId extends AbstractIntersection<ModuleExclude, ModuleIdExclude> {
+    @NonNullApi
+    private static final class IntersectModuleWithModuleId extends AbstractIntersection<ModuleExclude, ModuleIdExclude> {
         private IntersectModuleWithModuleId(ExcludeFactory factory) {
             super(ModuleExclude.class, ModuleIdExclude.class, factory);
         }
@@ -342,7 +355,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleWithModuleSet extends AbstractIntersection<ModuleExclude, ModuleSetExclude> {
+    @NonNullApi
+    private static final class IntersectModuleWithModuleSet extends AbstractIntersection<ModuleExclude, ModuleSetExclude> {
         private IntersectModuleWithModuleSet(ExcludeFactory factory) {
             super(ModuleExclude.class, ModuleSetExclude.class, factory);
         }
@@ -357,7 +371,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleWithModuleIdSet extends AbstractIntersection<ModuleExclude, ModuleIdSetExclude> {
+    @NonNullApi
+    private static final class IntersectModuleWithModuleIdSet extends AbstractIntersection<ModuleExclude, ModuleIdSetExclude> {
         private IntersectModuleWithModuleIdSet(ExcludeFactory factory) {
             super(ModuleExclude.class, ModuleIdSetExclude.class, factory);
         }
@@ -370,7 +385,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleIdWithModuleId extends AbstractIntersection<ModuleIdExclude, ModuleIdExclude> {
+    @NonNullApi
+    private static final class IntersectModuleIdWithModuleId extends AbstractIntersection<ModuleIdExclude, ModuleIdExclude> {
         private IntersectModuleIdWithModuleId(ExcludeFactory factory) {
             super(ModuleIdExclude.class, ModuleIdExclude.class, factory);
         }
@@ -384,7 +400,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleIdWithModuleIdSet extends AbstractIntersection<ModuleIdExclude, ModuleIdSetExclude> {
+    @NonNullApi
+    private static final class IntersectModuleIdWithModuleIdSet extends AbstractIntersection<ModuleIdExclude, ModuleIdSetExclude> {
         private IntersectModuleIdWithModuleIdSet(ExcludeFactory factory) {
             super(ModuleIdExclude.class, ModuleIdSetExclude.class, factory);
         }
@@ -399,7 +416,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleIdWithModuleSet extends AbstractIntersection<ModuleIdExclude, ModuleSetExclude> {
+    @NonNullApi
+    private static final class IntersectModuleIdWithModuleSet extends AbstractIntersection<ModuleIdExclude, ModuleSetExclude> {
         private IntersectModuleIdWithModuleSet(ExcludeFactory factory) {
             super(ModuleIdExclude.class, ModuleSetExclude.class, factory);
         }
@@ -414,7 +432,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleIdSetWithModuleIdSet extends AbstractIntersection<ModuleIdSetExclude, ModuleIdSetExclude> {
+    @NonNullApi
+    private static final class IntersectModuleIdSetWithModuleIdSet extends AbstractIntersection<ModuleIdSetExclude, ModuleIdSetExclude> {
         private IntersectModuleIdSetWithModuleIdSet(ExcludeFactory factory) {
             super(ModuleIdSetExclude.class, ModuleIdSetExclude.class, factory);
         }
@@ -428,7 +447,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleIdSetWithModuleSet extends AbstractIntersection<ModuleIdSetExclude, ModuleSetExclude> {
+    @NonNullApi
+    private static final class IntersectModuleIdSetWithModuleSet extends AbstractIntersection<ModuleIdSetExclude, ModuleSetExclude> {
         private IntersectModuleIdSetWithModuleSet(ExcludeFactory factory) {
             super(ModuleIdSetExclude.class, ModuleSetExclude.class, factory);
         }
@@ -451,7 +471,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleSetWithModuleSet extends AbstractIntersection<ModuleSetExclude, ModuleSetExclude> {
+    @NonNullApi
+    private static final class IntersectModuleSetWithModuleSet extends AbstractIntersection<ModuleSetExclude, ModuleSetExclude> {
         private IntersectModuleSetWithModuleSet(ExcludeFactory factory) {
             super(ModuleSetExclude.class, ModuleSetExclude.class, factory);
         }
@@ -470,7 +491,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleSetWithGroupSet extends AbstractIntersection<ModuleSetExclude, GroupSetExclude> {
+    @NonNullApi
+    private static final class IntersectModuleSetWithGroupSet extends AbstractIntersection<ModuleSetExclude, GroupSetExclude> {
         private IntersectModuleSetWithGroupSet(ExcludeFactory factory) {
             super(ModuleSetExclude.class, GroupSetExclude.class, factory);
         }
@@ -481,7 +503,8 @@ class Intersections {
         }
     }
 
-    private final class IntersectModuleWithGroupSet extends AbstractIntersection<ModuleExclude, GroupSetExclude> {
+    @NonNullApi
+    private static final class IntersectModuleWithGroupSet extends AbstractIntersection<ModuleExclude, GroupSetExclude> {
         private IntersectModuleWithGroupSet(ExcludeFactory factory) {
             super(ModuleExclude.class, GroupSetExclude.class, factory);
         }
