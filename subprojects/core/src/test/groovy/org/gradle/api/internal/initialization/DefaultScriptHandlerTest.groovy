@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMig
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.provider.Providers
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
@@ -44,6 +45,7 @@ class DefaultScriptHandlerTest extends Specification {
         getAttributesSchema() >> Stub(AttributesSchemaInternal)
         getObjectFactory() >> objectFactory
     }
+    def resolutionContext = new ScriptClassPathResolutionContext(Providers.notDefined(), dependencyHandler)
     def baseClassLoader = new ClassLoader() {}
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> baseClassLoader
@@ -59,8 +61,9 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
+        1 * buildLogicBuilder.prepareDependencyHandler(dependencyHandler) >> resolutionContext
         1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
-        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
+        1 * buildLogicBuilder.prepareClassPath(configuration, resolutionContext)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
@@ -73,8 +76,9 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
+        1 * buildLogicBuilder.prepareDependencyHandler(dependencyHandler) >> resolutionContext
         1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
-        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
+        1 * buildLogicBuilder.prepareClassPath(configuration, resolutionContext)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
@@ -104,10 +108,11 @@ class DefaultScriptHandlerTest extends Specification {
         and:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
+        1 * buildLogicBuilder.prepareDependencyHandler(dependencyHandler) >> resolutionContext
         1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
         1 * configuration.callAndResetResolutionState(_) >> { args -> args[0].create() }
-        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
-        1 * buildLogicBuilder.resolveClassPath(configuration, dependencyHandler, configurationContainer) >> classpath
+        1 * buildLogicBuilder.prepareClassPath(configuration, resolutionContext)
+        1 * buildLogicBuilder.resolveClassPath(configuration, resolutionContext) >> classpath
     }
 
     def "script classpath queries runtime classpath"() {
@@ -141,8 +146,9 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * depMgmtServices.configurationContainer >> configurationContainer
+        1 * buildLogicBuilder.prepareDependencyHandler(dependencyHandler) >> resolutionContext
         1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
-        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
+        1 * buildLogicBuilder.prepareClassPath(configuration, resolutionContext)
         1 * dependencyHandler.add('config', 'dep')
     }
 }
