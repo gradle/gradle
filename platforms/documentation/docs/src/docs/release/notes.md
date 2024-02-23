@@ -135,7 +135,7 @@ Gradle provides a rich set of error and warning messages to help you understand 
 
 #### Improved plugin application error reporting
 
-When [applying a plugin](userguide/plugins.html#sec:plugins_block) that requires a higher version of Gradle, the error message when dependency resolution fails will now clearly state the issue:
+When [applying a plugin](userguide/plugins.html#sec:plugins_block) that requires a higher version of Gradle ([by specifying the `org.gradle.plugin.api-version` attribute](userguide/variant_attributes.html#sub:gradle_plugins_default_attributes))), the error message when dependency resolution fails will now clearly state the issue:
 
 ```
 FAILURE: Build failed with an exception.
