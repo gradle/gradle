@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import java.nio.file.Files
@@ -330,6 +332,10 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         ]
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Cc doesn't get invalidated when file dependency changes"
+    )
     def "should re-instrument jar if classpath changes and class starts extending a Gradle core class transitively"() {
         given:
         requireOwnGradleUserHomeDir()
@@ -366,6 +372,10 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 2
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = "Cc doesn't get invalidated when file dependency changes"
+    )
     def "should not re-instrument jar if classpath changes but class doesn't extend Gradle core class"() {
         given:
         requireOwnGradleUserHomeDir()
