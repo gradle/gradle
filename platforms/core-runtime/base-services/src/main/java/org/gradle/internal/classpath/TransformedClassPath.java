@@ -264,33 +264,22 @@ public class TransformedClassPath implements ClassPath {
         return builder.toString();
     }
 
-    /**
-     * Constructs a TransformedClassPath out of the ordinary JAR/directory list, potentially produced by the instrumenting ArtifactTransform.
-     * The list is interpreted as follows:
-     * <ul>
-     *     <li>An entry after {@link TransformedClassPath#AGENT_INSTRUMENTATION_MARKER_FILE_NAME} is considered an instrumented entry and the following entry is considered the original of this instrumented entry.</li>
-     *     <li>A "jar" or directory entry not preceded by {@link TransformedClassPath#AGENT_INSTRUMENTATION_MARKER_FILE_NAME} is considered non-transformed original entry and is appended to the resulting classpath as is.</li>
-     *     <li>The order of entries is kept intact.</li>
-     * </ul>
-     * <p>
-     * In most cases, it is better to use {@link Builder}.
-     *
-     * @param classPath the classpath to transform
-     * @return the transformed classpath built from the input
-     * @throws IllegalArgumentException if the {@code classPath} is already a {@link TransformedClassPath} or if it doesn't conform to the spec.
-     */
-    public static TransformedClassPath fromInstrumentingArtifactTransformOutput(ClassPath classPath) {
-        checkArgument(!(classPath instanceof TransformedClassPath), "Cannot build the TransformedClassPath out of TransformedClassPath %s", classPath);
-        return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, computeResultSizeOfInstrumentingArtifactTransformOutput(classPath));
-    }
 
     /**
-     * Handle a classpath that can potentially be the output of the instrumenting artifact transform. The rules for conversion are:
-     * <ol>
-     *     <li>The {@link TransformedClassPath} is returned as is, because it already bears the instrumentation mappings.</li>
-     *     <li>The classpath that only contains original entries is returned as is, because there's no instrumentation mappings to apply.</li>
-     *     <li>The classpath that conforms to {@link #fromInstrumentingArtifactTransformOutput(ClassPath)} requirements is converted to {@link TransformedClassPath} accordingly.</li>
-     * </ol>
+     * Constructs a TransformedClassPath out of the ordinary JAR/directory list, strict produced by the instrumenting ArtifactTransform.
+     *
+     * Artifact transform classpath should always contain pairs or triplets of files, where first file is a marker file, followed by other entries for instrumented artifact,
+     * e.g. [marker file 1, instrumented entry 1, original entry 1, marker file 2, instrumented entry 2, original entry 2,...].
+     *
+     * Marker files rules are as follows:
+     * <ul>
+     *      <li>An entry after {@link TransformedClassPath#AGENT_INSTRUMENTATION_MARKER_FILE_NAME} is considered an instrumented entry and the following entry is considered the original of this instrumented entry.</li>
+     *      <li>An entry after {@link TransformedClassPath#LEGACY_INSTRUMENTATION_MARKER_FILE_NAME} is instrumented entry without original entry, but it's added to a classpath as "original", to comply with legacy setup.</li>
+     *      <li>An entry after {@link TransformedClassPath#ORIGINAL_FILE_DOES_NOT_EXIST_MARKER} is a marker that indicates there is no original/instrumented entry, it's skipped</li>
+     *      <li>An entry after {@link TransformedClassPath#INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME} is a marker that indicates that this is an instrumented classpath, it's skipped</li>
+     * </ul>
+     *
+     * Any combination that doesn't follow given rules will throw an exception.
      *
      * @param classPath the classpath to process
      * @return the classpath that carries the instrumentation mappings if needed
@@ -352,7 +341,8 @@ public class TransformedClassPath implements ClassPath {
                 && !markerFile.getName().equals(ORIGINAL_FILE_DOES_NOT_EXIST_MARKER)) {
                 // INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME and ORIGINAL_FILE_DOES_NOT_EXIST_MARKER
                 // are ignored, everything else should be an error
-                throw new IllegalStateException("Unexpected marker file: " + markerFile);
+                throw new IllegalArgumentException("Unexpected marker file: " + markerFile + " in instrumented buildscript classpath. " +
+                    "Possible reason: Injecting custom artifact transform in between instrumentation stages is not supported.");
             }
         }
 
