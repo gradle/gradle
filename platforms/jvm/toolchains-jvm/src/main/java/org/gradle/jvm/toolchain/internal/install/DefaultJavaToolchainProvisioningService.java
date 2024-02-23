@@ -31,6 +31,7 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
+import org.gradle.jvm.toolchain.JavaToolchainResolver;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
@@ -38,6 +39,8 @@ import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
 import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 import org.gradle.platform.BuildPlatform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -45,12 +48,17 @@ import java.io.File;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
     public static final String AUTO_DOWNLOAD = "org.gradle.java.installations.auto-download";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJavaToolchainProvisioningService.class);
 
     @Contextual
     private static class MissingToolchainException extends GradleException {
@@ -111,17 +119,42 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
         }
 
-        for (RealizedJavaToolchainRepository request : repositories) {
-            Optional<JavaToolchainDownload> download = request.getResolver().resolve(new DefaultJavaToolchainRequest(spec, buildPlatform));
-            if (download.isPresent()) {
-                Collection<Authentication> authentications = request.getAuthentications(download.get().getUri());
-                return provisionInstallation(spec, download.get().getUri(), authentications);
+        Map<String, Exception> failedResolutions = new TreeMap<>();
+        File successfulResolution = null;
+        for (RealizedJavaToolchainRepository repository : repositories) {
+            JavaToolchainResolver resolver = repository.getResolver();
+            try {
+                Optional<JavaToolchainDownload> download = resolver.resolve(new DefaultJavaToolchainRequest(spec, buildPlatform));
+                if (download.isPresent()) {
+                    Collection<Authentication> authentications = repository.getAuthentications(download.get().getUri());
+                    successfulResolution = provisionInstallation(spec, download.get().getUri(), authentications);
+                    break;
+
+                }
+            } catch (Exception e) {
+                failedResolutions.put(repository.getRepositoryName(), e);
+                // continue
             }
         }
 
-        throw new ToolchainDownloadFailedException("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either.",
-            "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
-            "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
+        if (successfulResolution == null) {
+            String message = "No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either." +
+                (failedResolutions.isEmpty() ? "" : " " + formatFailedResolutionReport(failedResolutions));
+            throw new ToolchainDownloadFailedException(message,
+                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
+                "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
+        } else {
+            if (!failedResolutions.isEmpty()) {
+                LOGGER.warn(formatFailedResolutionReport(failedResolutions));
+            }
+            return successfulResolution;
+        }
+    }
+
+    private String formatFailedResolutionReport(Map<String, Exception> failedResolutions) {
+        return "Some toolchain resolvers had internal failures: " +
+            failedResolutions.entrySet().stream().map(e -> e.getKey() + " (" + e.getValue().getMessage() + ")").collect(Collectors.joining(", ")) +
+            ".";
     }
 
     private File provisionInstallation(JavaToolchainSpec spec, URI uri, Collection<Authentication> authentications) {
