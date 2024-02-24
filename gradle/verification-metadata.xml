@@ -871,9 +871,9 @@
             <pgp value="7186BBF993566D8C2F4F7ED7D945E643368FEF62"/>
          </artifact>
       </component>
-      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.9.0">
-         <artifact name="gradle-enterprise-conventions-plugin-0.9.0.jar">
-            <sha256 value="8987bf4627725ba89942f8871c86585b781576d5af6c49e3789028805636788b" origin="Verified" reason="Artifact is not signed"/>
+      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.9.1">
+         <artifact name="gradle-enterprise-conventions-plugin-0.9.1.jar">
+            <sha256 value="e894e097ed05878f2730807a452c4fb01bd229dfdedc42e9908f0b200c68d058" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.java-diff-utils" name="java-diff-utils" version="4.12">

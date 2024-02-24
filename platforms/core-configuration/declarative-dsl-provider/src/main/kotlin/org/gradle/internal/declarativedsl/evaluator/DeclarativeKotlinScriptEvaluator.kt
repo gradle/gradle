@@ -16,31 +16,14 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
-import org.gradle.internal.declarativedsl.analysis.ResolutionError
-import org.gradle.internal.declarativedsl.analysis.ResolutionResult
-import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
-import org.gradle.internal.declarativedsl.analysis.defaultCodeResolver
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.gradle.internal.declarativedsl.mappingToJvm.CompositeCustomAccessors
-import org.gradle.internal.declarativedsl.mappingToJvm.CompositeFunctionResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.CompositePropertyResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.MemberFunctionResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.ReflectionRuntimePropertyResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
-import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
-import org.gradle.internal.declarativedsl.objectGraph.reflect
-import org.gradle.internal.declarativedsl.parsing.parse
-import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
-import org.gradle.internal.declarativedsl.schemaBuilder.plus
-import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
-import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.declarativedsl.analysis.ResolutionError
+import org.gradle.internal.declarativedsl.analysis.ResolutionResult
+import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
+import org.gradle.internal.declarativedsl.analysis.defaultCodeResolver
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationContext.ScriptPluginEvaluationContext
@@ -51,6 +34,18 @@ import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvalu
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure.UnassignedValuesUsed
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
+import org.gradle.internal.declarativedsl.language.SourceIdentifier
+import org.gradle.internal.declarativedsl.mappingToJvm.CompositeCustomAccessors
+import org.gradle.internal.declarativedsl.mappingToJvm.CompositeFunctionResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.CompositePropertyResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeReflectionToObjectConverter
+import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
+import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
+import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
+import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
+import org.gradle.internal.declarativedsl.objectGraph.reflect
+import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
+import org.gradle.internal.declarativedsl.parsing.parse
 import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
 
 
@@ -154,9 +149,8 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         val context = ReflectionContext(SchemaTypeRefContext(evaluationSchema.analysisSchema), resolution, trace)
         val topLevelObjectReflection = reflect(resolution.topLevelReceiver, context)
 
-        val propertyResolver = CompositePropertyResolver(listOf(ReflectionRuntimePropertyResolver) + evaluationSchema.runtimePropertyResolvers)
-        val configureLambdas = treatInterfaceAsConfigureLambda(Action::class).plus(evaluationSchema.configureLambdas)
-        val functionResolver = CompositeFunctionResolver(listOf(MemberFunctionResolver(configureLambdas)) + evaluationSchema.runtimeFunctionResolvers)
+        val propertyResolver = CompositePropertyResolver(evaluationSchema.runtimePropertyResolvers)
+        val functionResolver = CompositeFunctionResolver(evaluationSchema.runtimeFunctionResolvers)
         val customAccessors = CompositeCustomAccessors(evaluationSchema.runtimeCustomAccessors)
 
         val topLevelReceiver = step.topLevelReceiver()

@@ -32,24 +32,31 @@ import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.isSubclassOf
 
 
+/**
+ * Introduces functions for registering project dependencies, such as `implementation(...)`, as member functions of:
+ * * [RestrictedDependenciesHandler] in the schema,
+ * * [DependencyHandler] when resolved at runtime.
+ *
+ * Inspects the configurations available in the given project to build the functions.
+ */
 internal
-class DependencyConfigurationSchemaComponents(
-    val functionExtractor: FunctionExtractor,
-    val runtimeFunctionResolver: RuntimeFunctionResolver
-)
-
-
-internal
-fun dependencyConfigurationSchemaComponents(project: Project): DependencyConfigurationSchemaComponents {
+class DependencyConfigurationsComponent(
+    project: Project,
+) : EvaluationSchemaComponent {
+    private
     val configurations = DependencyConfigurations(project.configurations.names.toList())
 
-    return DependencyConfigurationSchemaComponents(
-        DependencyFunctionsExtractor(configurations),
+    override fun functionExtractors(): List<FunctionExtractor> = listOf(
+        DependencyFunctionsExtractor(configurations)
+    )
+
+    override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(
         RuntimeDependencyFunctionResolver(configurations)
     )
 }
