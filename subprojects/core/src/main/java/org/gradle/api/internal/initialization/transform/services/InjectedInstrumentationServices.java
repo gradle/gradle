@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.transform.services;
 
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.InPlaceClasspathBuilder;
@@ -51,6 +52,9 @@ public abstract class InjectedInstrumentationServices {
 
     @Inject
     public abstract GlobalCacheLocations getGlobalCacheLocations();
+
+    @Inject
+    public abstract StringInterner getStringInterner();
 
     public ClasspathElementTransformFactory getTransformFactory(boolean isAgentSupported) {
         return isAgentSupported ? transformFactory.get() : legacyTransformFactory.get();

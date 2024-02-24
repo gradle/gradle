@@ -18,13 +18,10 @@ package org.gradle.internal.classpath.types;
 
 import org.gradle.internal.lazy.Lazy;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.readSuperTypes;
 
 public class PropertiesBackedInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
 
@@ -44,7 +41,7 @@ public class PropertiesBackedInstrumentationTypeRegistry implements Instrumentat
         return properties.get().isEmpty();
     }
 
-    public static InstrumentationTypeRegistry of(File properties) {
-        return new PropertiesBackedInstrumentationTypeRegistry(() -> readSuperTypes(properties));
+    public static InstrumentationTypeRegistry of(Supplier<Map<String, Set<String>>> properties) {
+        return new PropertiesBackedInstrumentationTypeRegistry(properties);
     }
 }

@@ -36,6 +36,7 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -69,6 +70,8 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         Property<Boolean> getAgentSupported();
     }
 
+    protected final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
+
     @Inject
     public abstract ObjectFactory getObjects();
 
@@ -83,32 +86,30 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             return;
         }
 
-        InjectedInstrumentationServices injectedServices = getObjects().newInstance(InjectedInstrumentationServices.class);
         if (isAgentSupported()) {
             // When agent is supported, we output an instrumented jar and an original jar,
             // so we can then later reconstruct instrumented jars classpath and original jars classpath.
             // We add `instrumented-` prefix to the file since names for the same transform needs to be unique when querying results via ArtifactCollection.
             createNewFile(outputs.file(AGENT_INSTRUMENTATION_MARKER_FILE_NAME));
-            doTransformForAgent(artifactToInstrument, outputs, injectedServices, originalFileProducer, originalName -> INSTRUMENTED_ENTRY_PREFIX + originalName);
+            doTransformForAgent(artifactToInstrument, outputs, originalFileProducer, originalName -> INSTRUMENTED_ENTRY_PREFIX + originalName);
         } else {
             createNewFile(outputs.file(LEGACY_INSTRUMENTATION_MARKER_FILE_NAME));
-            doTransform(artifactToInstrument, outputs, injectedServices, originalName -> originalName);
+            doTransform(artifactToInstrument, outputs, originalName -> originalName);
         }
     }
 
     private void doTransformForAgent(
         File input,
         TransformOutputs outputs,
-        InjectedInstrumentationServices injectedServices,
         Consumer<TransformOutputs> originalFileProducer,
         Function<String, String> instrumentedEntryNameMapper
     ) {
         // Instrument jars
-        doTransform(input, outputs, injectedServices, instrumentedEntryNameMapper);
+        doTransform(input, outputs, instrumentedEntryNameMapper);
 
         // Create a marker file that signals we should use original entry if they are safe to load from cache loader
         // ELSE copy an entry
-        if (input.isDirectory() || injectedServices.getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
+        if (input.isDirectory() || internalServices.get().getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
             // Directories are ok to use outside the cache, since they are not locked by the daemon.
             // Jars that are already in the global cache don't need to be copied, since
             // the global caches are additive only and jars shouldn't be deleted or changed during the build.
@@ -123,7 +124,6 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
 
     private void doTransform(
         File input, TransformOutputs outputs,
-        InjectedInstrumentationServices injectedServices,
         Function<String, String> instrumentedEntryNameMapper
     ) {
         String outputPath = getOutputPath(input, instrumentedEntryNameMapper);
@@ -131,7 +131,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         InterceptorTypeRegistryAndFilter typeRegistryAndFilter = provideInterceptorTypeRegistryAndFilter();
         InstrumentationTypeRegistry typeRegistry = typeRegistryAndFilter.getRegistry();
         BytecodeInterceptorFilter interceptorFilter = typeRegistryAndFilter.getFilter();
-        ClasspathElementTransformFactory transformFactory = injectedServices.getTransformFactory(isAgentSupported());
+        ClasspathElementTransformFactory transformFactory = internalServices.get().getTransformFactory(isAgentSupported());
         ClasspathElementTransform transform = transformFactory.createTransformer(input, new InstrumentingClassTransform(interceptorFilter), typeRegistry);
         transform.transform(output);
     }

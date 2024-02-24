@@ -22,9 +22,11 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -33,16 +35,13 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.file.FileException;
-import org.gradle.internal.io.IoConsumer;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.work.DisableCachingByDefault;
 import org.objectweb.asm.ClassReader;
 
 import javax.inject.Inject;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.io.Writer;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -55,13 +54,10 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_MISSING_HASH;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_NAME_PROPERTY_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.newBufferedUtf8Writer;
 import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 /**
@@ -88,6 +84,8 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         Property<Long> getContextId();
     }
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang/");
+
+    private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
 
     @Inject
     protected abstract ObjectFactory getObjects();
@@ -121,13 +119,12 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
 
     private void analyzeArtifact(File artifact, Map<String, Set<String>> superTypesCollector, Set<String> dependenciesCollector) throws IOException {
         // We cannot inject internal services in to the transform directly, but we can create them via object factory
-        InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
-        ClasspathWalker walker = services.getClasspathWalker();
+        ClasspathWalker walker = internalServices.get().getClasspathWalker();
         walker.visit(artifact, entry -> {
             if (entry.getName().endsWith(".class") && !isInUnsupportedMrJarVersionedDirectory(entry)) {
                 ClassReader reader = new ClassReader(entry.getContent());
                 String className = reader.getClassName();
-                Set<String> classSuperTypes = getSuperTypes(reader);
+                Set<String> classSuperTypes = collectSuperTypes(reader);
                 collectArtifactClassDependencies(className, reader, dependenciesCollector);
                 if (!classSuperTypes.isEmpty()) {
                     superTypesCollector.put(className, classSuperTypes);
@@ -136,7 +133,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         });
     }
 
-    private static Set<String> getSuperTypes(ClassReader reader) {
+    private static Set<String> collectSuperTypes(ClassReader reader) {
         return Stream.concat(Stream.of(reader.getSuperName()), Stream.of(reader.getInterfaces()))
             .filter(ACCEPTED_TYPES)
             .collect(toImmutableSortedSet(Ordering.natural()));
@@ -151,47 +148,26 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     }
 
     private void writeOutput(File artifact, TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
-        File outputDir = outputs.dir(ANALYSIS_OUTPUT_DIR);
-        File metadata = new File(outputDir, METADATA_FILE_NAME);
-        writeMetadata(artifact, metadata);
-        File superTypesFile = new File(outputDir, SUPER_TYPES_FILE_NAME);
-        writeSuperTypes(superTypes, superTypesFile);
-        File dependenciesFile = new File(outputDir, DEPENDENCIES_FILE_NAME);
-        writeDependencies(dependencies, dependenciesFile);
         createInstrumentationClasspathMarker(outputs);
+
+        StringInterner stringInterner = internalServices.get().getStringInterner();
+        InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(stringInterner);
+        File outputDir = outputs.dir(ANALYSIS_OUTPUT_DIR);
+
+        File metadataFile = new File(outputDir, METADATA_FILE_NAME);
+        serializer.writeMetadata(metadataFile, getArtifactMetadata(artifact));
+
+        File superTypesFile = new File(outputDir, SUPER_TYPES_FILE_NAME);
+        serializer.writeTypesMap(superTypesFile, superTypes);
+
+        File dependenciesFile = new File(outputDir, DEPENDENCIES_FILE_NAME);
+        serializer.writeTypes(dependenciesFile, dependencies);
     }
 
-    private void writeMetadata(File artifact, File metadata) {
+    private InstrumentationArtifactMetadata getArtifactMetadata(File artifact) {
         long contextId = getParameters().getContextId().get();
         CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
-        writeOutput(metadata, writer -> {
-            String hash = firstNonNull(buildService.getArtifactHash(contextId, artifact), FILE_MISSING_HASH);
-            writer.write(FILE_NAME_PROPERTY_NAME + "=" + artifact.getName() + "\n");
-            writer.write(FILE_HASH_PROPERTY_NAME + "=" + hash + "\n");
-        });
-    }
-
-    private static void writeSuperTypes(Map<String, Set<String>> superTypes, File metadata) {
-        writeOutput(metadata, writer -> {
-            for (Map.Entry<String, Set<String>> entry : superTypes.entrySet()) {
-                writer.write(entry.getKey() + "=" + String.join(",", entry.getValue()) + "\n");
-            }
-        });
-    }
-
-    private static void writeDependencies(Set<String> dependencies, File metadata) {
-        writeOutput(metadata, writer -> {
-            for (String dependency : dependencies) {
-                writer.write(dependency + "\n");
-            }
-        });
-    }
-
-    private static void writeOutput(File outputFile, IoConsumer<Writer> writerConsumer) {
-        try (BufferedWriter writer = newBufferedUtf8Writer(outputFile)) {
-            writerConsumer.accept(writer);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        String hash = firstNonNull(buildService.getArtifactHash(contextId, artifact), FILE_MISSING_HASH);
+        return new InstrumentationArtifactMetadata(artifact.getName(), hash);
     }
 }

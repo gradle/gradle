@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.initialization.transform.services;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
@@ -41,7 +43,6 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.readSuperTypes;
 
 public abstract class CacheInstrumentationDataBuildService implements BuildService<BuildServiceParameters.None> {
 
@@ -151,11 +152,12 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
         private Map<String, Set<String>> readDirectSuperTypes() {
             Set<File> directories = getAnalysisResult().getFiles();
+            InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
             return directories.stream()
                 .filter(File::isDirectory)
                 .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))
-                .flatMap(file -> readSuperTypes(file).entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> first));
+                .flatMap(file -> serializer.readTypesMap(file).entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));
         }
 
         public InstrumentationTypeRegistry getInstrumentingTypeRegistry() {

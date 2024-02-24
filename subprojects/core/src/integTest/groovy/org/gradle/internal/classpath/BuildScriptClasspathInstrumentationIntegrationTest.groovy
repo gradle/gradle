@@ -18,6 +18,8 @@ package org.gradle.internal.classpath
 
 import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -34,13 +36,14 @@ import static org.gradle.api.internal.initialization.transform.services.CacheIns
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_NAME_PROPERTY_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
+
+    def serializer = new InstrumentationAnalysisSerializer(new StringInterner())
 
     def "buildSrc and included builds should be cached in global cache"() {
         given:
@@ -277,12 +280,12 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         def analyzeDir = analyzeOutput("animals-1.0.jar")
         analyzeDir.exists()
-        analyzeDir.file(SUPER_TYPES_FILE_NAME).readLines() == [
-            "test/gradle/test/Dog=test/gradle/test/Mammal",
-            "test/gradle/test/GermanShepherd=test/gradle/test/Animal,test/gradle/test/Dog",
-            "test/gradle/test/Mammal=test/gradle/test/Animal"
+        serializer.readTypesMap(analyzeDir.file(SUPER_TYPES_FILE_NAME)) == [
+            "test/gradle/test/Dog": ["test/gradle/test/Mammal"] as Set<String>,
+            "test/gradle/test/GermanShepherd": ["test/gradle/test/Animal", "test/gradle/test/Dog"] as Set<String>,
+            "test/gradle/test/Mammal": ["test/gradle/test/Animal"] as Set<String>
         ]
-        analyzeDir.file(DEPENDENCIES_FILE_NAME).readLines() == [
+        serializer.readTypes(analyzeDir.file(DEPENDENCIES_FILE_NAME)) == [
             "org/gradle/api/DefaultTask",
             "org/gradle/api/GradleException",
             "org/gradle/api/Plugin",
@@ -290,7 +293,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
             "test/gradle/test/Animal",
             "test/gradle/test/Dog",
             "test/gradle/test/Mammal"
-        ]
+        ] as Set<String>
     }
 
     def "should output only org.gradle supertypes for class dependencies"() {
@@ -321,14 +324,14 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         mergeOutput("impl-1.0.jar").exists()
         mergeOutput("api-1.0.jar").exists()
         def implMergeDir = mergeOutput("impl-1.0.jar")
-        implMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME).readLines() == [
-            "B=org/gradle/D,org/gradle/E",
+        serializer.readTypesMap(implMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME)) == [
+            "B": ["org/gradle/D", "org/gradle/E"] as Set
         ]
         def apiMergeDir = mergeOutput("api-1.0.jar")
-        apiMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME).readLines() == [
-            "C=org/gradle/D,org/gradle/E",
-            "org/gradle/D=org/gradle/D,org/gradle/E",
-            "org/gradle/E=org/gradle/E"
+        serializer.readTypesMap(apiMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME)) == [
+            "C": ["org/gradle/D", "org/gradle/E"] as Set,
+            "org/gradle/D": ["org/gradle/D", "org/gradle/E"] as Set,
+            "org/gradle/E": ["org/gradle/E"] as Set
         ]
     }
 
@@ -533,7 +536,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     Set<TestFile> analyzeOutputs(String artifactName, File cacheDir = getCacheDir()) {
         return findOutputs("$ANALYSIS_OUTPUT_DIR/$METADATA_FILE_NAME", cacheDir).findAll {
-            it.text.contains("$FILE_NAME_PROPERTY_NAME=$artifactName")
+            serializer.readMetadata(it).artifactName == artifactName
         }.collect { it.parentFile } as Set<TestFile>
     }
 
@@ -547,7 +550,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     Set<TestFile> mergeOutputs(String artifactName, File cacheDir = getCacheDir()) {
         return findOutputs("$MERGE_OUTPUT_DIR/$METADATA_FILE_NAME", cacheDir).findAll {
-            it.text.contains("$FILE_NAME_PROPERTY_NAME=$artifactName")
+            serializer.readMetadata(it).artifactName == artifactName
         }.collect { it.parentFile } as Set<TestFile>
     }
 

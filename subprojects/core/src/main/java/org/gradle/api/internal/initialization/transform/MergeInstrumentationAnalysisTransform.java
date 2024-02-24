@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
+import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -34,22 +36,18 @@ import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.io.Writer;
-import java.nio.file.Files;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.copyUnchecked;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.newBufferedUtf8Writer;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
 /**
@@ -97,36 +95,24 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
             return;
         }
 
+        InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
+        InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(services.getStringInterner());
+        InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry();
+
+        Map<String, Set<String>> dependenciesSuperTypes = new TreeMap<>();
+        File dependenciesFile = new File(input, DEPENDENCIES_FILE_NAME);
+        for (String className : serializer.readTypes(dependenciesFile)) {
+            Set<String> superTypes = registry.getSuperTypes(className);
+            if (!superTypes.isEmpty()) {
+                dependenciesSuperTypes.put(className, new TreeSet<>(superTypes));
+            }
+        }
+
         createInstrumentationClasspathMarker(outputs);
         File outputDir = outputs.dir(MERGE_OUTPUT_DIR);
-        File dependenciesSuperTypes = new File(outputDir, DEPENDENCIES_SUPER_TYPES_FILE_NAME);
-        try (BufferedWriter writer = newBufferedUtf8Writer(dependenciesSuperTypes)) {
-            File dependencies = new File(input, DEPENDENCIES_FILE_NAME);
-            writeDependenciesSuperTypes(dependencies, writer);
-            Files.copy(new File(input, METADATA_FILE_NAME).toPath(), new File(outputDir, METADATA_FILE_NAME).toPath());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private void writeDependenciesSuperTypes(File dependencies, Writer writer) throws IOException {
-        InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry();
-        try (Stream<String> stream = Files.lines(dependencies.toPath())) {
-            stream.forEach(className -> {
-                Set<String> superTypes = registry.getSuperTypes(className);
-                if (!superTypes.isEmpty()) {
-                    writeDependencySuperTypes(className, superTypes, writer);
-                }
-            });
-        }
-    }
-
-    private static void writeDependencySuperTypes(String className, Set<String> superTypes, Writer writer) {
-        try {
-            writer.write(className + "=" + superTypes.stream().sorted().collect(Collectors.joining(",")) + "\n");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        File output = new File(outputDir, DEPENDENCIES_SUPER_TYPES_FILE_NAME);
+        serializer.writeTypesMap(output, dependenciesSuperTypes);
+        copyUnchecked(new File(input, METADATA_FILE_NAME), new File(outputDir, METADATA_FILE_NAME));
     }
 
     private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {

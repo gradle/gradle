@@ -16,20 +16,16 @@
 
 package org.gradle.api.internal.initialization.transform;
 
-import com.google.common.io.Files;
 import org.gradle.api.artifacts.transform.TransformOutputs;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.PropertiesBackedInstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_HASH_PROPERTY_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_MISSING_HASH;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
@@ -45,16 +41,16 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
 
     @Override
     public void transform(TransformOutputs outputs) {
-        File input = getInput().get().getAsFile();
-        if (input.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME)) {
+        File inputDir = getInput().get().getAsFile();
+        if (inputDir.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME)) {
             return;
         }
 
-        File metadata = new File(input, METADATA_FILE_NAME);
-        String hash = readOriginalHash(metadata);
-        if (hash.equals(FILE_MISSING_HASH)) {
+        InstrumentationArtifactMetadata metadata = readArtifactMetadata(inputDir);
+        if (metadata.getArtifactHash().equals(FILE_MISSING_HASH)) {
             execute(null, outputs, __ -> {});
         } else {
+            String hash = metadata.getArtifactHash();
             long contextId = getParameters().getContextId().get();
             File originalArtifact = getParameters().getBuildService().get().getOriginalFile(contextId, hash);
             execute(originalArtifact, outputs, __ -> writeOriginalFilePlaceholder(hash, outputs));
@@ -65,16 +61,10 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
         createNewFile(outputs.file(ORIGINAL_DIR_NAME + "/" + hash + ORIGINAL_FILE_PLACEHOLDER_SUFFIX));
     }
 
-    private static String readOriginalHash(File metadata) {
-        try {
-            return Files.readLines(metadata, StandardCharsets.UTF_8).stream()
-                .filter(line -> line.startsWith(FILE_HASH_PROPERTY_NAME))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Metadata file does not contain hash"))
-                .replace(FILE_HASH_PROPERTY_NAME + "=", "");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private InstrumentationArtifactMetadata readArtifactMetadata(File inputDir) {
+        File metadata = new File(inputDir, METADATA_FILE_NAME);
+        InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.get().getStringInterner());
+        return serializer.readMetadata(metadata);
     }
 
     @Override
@@ -82,8 +72,11 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
         return new InterceptorTypeRegistryAndFilter() {
             @Override
             public InstrumentationTypeRegistry getRegistry() {
-                File properties = new File(getInput().get().getAsFile(), DEPENDENCIES_SUPER_TYPES_FILE_NAME);
-                return PropertiesBackedInstrumentationTypeRegistry.of(properties);
+                return PropertiesBackedInstrumentationTypeRegistry.of(() -> {
+                    File dependenciesSuperTypes = new File(getInput().get().getAsFile(), DEPENDENCIES_SUPER_TYPES_FILE_NAME);
+                    InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.get().getStringInterner());
+                    return serializer.readTypesMap(dependenciesSuperTypes);
+                });
             }
 
             @Override
