@@ -157,7 +157,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static FileCollection getAnalysisResult(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value));
-            config.componentFilter(componentId -> !isGradleApi(componentId) && !isProjectDependency(componentId));
+            // We have to analyze external and project dependencies to get full hierarchies, since
+            // for example user could use dependency substitution to replace external dependency with project dependency.
+            config.componentFilter(componentId -> !isGradleApi(componentId));
         }).getFiles();
     }
 
