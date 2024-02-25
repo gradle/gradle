@@ -12,16 +12,18 @@ With the introduction of configuration cache we got a requirement to track user 
 Inputs could be environment variables, files, system properties and so on. 
 These inputs are often read via an API that Gradle doesn’t control, e.g. Java API via System.getenv().
 
-So to track these inputs we had to find a way to track these usages. 
+So to track these inputs we had to find a way to track when they are accessed by intercepting API calls reading them. 
 And that is why we started instrumenting bytecode.
 
-With a requirement to migrate Gradle core APIs to lazy properties, we were looking at how we could make old plugins compatible with new Gradle core APIs. 
+Later, with a requirement to migrate Gradle core APIs to lazy properties, we were looking at how we could make old plugins compatible with new Gradle core APIs. 
 We decided that upgrading old compiled bytecode would work well. And reusing configuration cache bytecode instrumentation seemed like a good tool to reuse.
 
 So configuration cache instrumentation and API upgrades are using the same infrastructure now.
 
 
 ## Functional design
+
+Let's look at how bytecode interception works on an example of upgrading a JavaBean property to a lazy one.
 
 Imagine we have in Gradle core a task:
 ```
@@ -69,13 +71,13 @@ fun applyPlugin(project: Project) {
 }
 ```
 
-Where JavaCompileInterceptorsDeclaration is a class defined by Gradle developer to replace original logic and the replacement is done via bytecode instrumentation of plugin jars and dependencies.
+Where `JavaCompileInterceptorsDeclaration` is a class defined by a Gradle developer to replace the original logic, and the replacement is done via bytecode instrumentation of plugin jars and dependencies.
 
 Due to that Instrumentation and bytecode upgrades is split into two big parts:
 1. Gradle distribution build time: Interceptor code generation and Gradle API type metadata collection
 2. Gradle runtime: Actual bytecode instrumentation
 
-JavaCompileInterceptorsDeclaration is defined by Gradle developer and with help of annotation processor Gradle then generates bytecode replacements. 
+`JavaCompileInterceptorsDeclaration` is defined by Gradle developer and with help of annotation processor Gradle then generates bytecode replacements. 
 The actual replacement happens when the user runs his Gradle build.
 
 **_Note: Groovy interception uses the same mechanism but replacements are a bit more complicated due to the dynamic nature of Groovy. 
@@ -111,7 +113,7 @@ flowchart TB
 Annotation processor is implemented as Java annotation processor in [platforms/core-runtime/internal-instrumentation-processor](https://github.com/gradle/gradle/tree/master/platforms/core-runtime/internal-instrumentation-processor) and its API (annotations) are defined in the [platforms/core-runtime/internal-instrumentation-api](https://github.com/gradle/gradle/tree/master/platforms/core-runtime/internal-instrumentation-api). 
 This annotation processor transforms interceptor declarations defined by Gradle developers to interceptors that modify Jvm bytecode.
 
-Since this is a Java annotation processor all declarations have to be defined as Java classes, so interceptor declarations in Kotlin or Groovy are not supported.
+**Note:** Since this is a Java annotation processor all declarations have to be defined as Java classes, so interceptor declarations in Kotlin or Groovy are not supported.
 
 
 ##### Using the Annotation processor
@@ -186,7 +188,7 @@ public class InterceptorDeclaration_JvmBytecodeCallInterceptor
 }
 ```
 
-For Groovy:
+For dynamic Groovy:
 ```
 public static class SetSourceCompatibilityCallInterceptor extends CallInterceptor {
     public SetSourceCompatibilityCallInterceptor() {
@@ -211,7 +213,7 @@ public static class SetSourceCompatibilityCallInterceptor extends CallIntercepto
 ```
 
 
-These two classes are then used when we instrument bytecode for Java and when we intercept calls at runtime for Groovy.
+These two classes are then used when we instrument bytecode for Java and when we intercept calls at runtime for dynamic Groovy.
 
 For configuration cache instrumentation we use only manual interceptor declaration, while for property upgrades for using manual interceptors should be an exception. 
 Some examples for configuration cache instrumentation can be found in **org.gradle.internal.classpath.declarations **package, e.g. [FileInterceptorsDeclaration.java](https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/internal/classpath/declarations/FileInterceptorsDeclaration.java).
