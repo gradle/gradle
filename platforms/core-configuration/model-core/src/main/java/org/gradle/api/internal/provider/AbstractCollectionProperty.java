@@ -684,7 +684,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     /**
      * A plus collector that either produces a composition of both of its left and right sides,
-     * or Value.present().
+     * or Value.present() with empty content (if left or right side are missing).
      */
     private static class AbsentIgnoringPlusCollector<T> extends AbstractPlusCollector<T> {
 
@@ -705,6 +705,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
             ImmutableList.Builder<T> candidateEntries = ImmutableList.builder();
+            // we cannot use dest directly because we don't want to emit any entries if either left or right are missing
             Value<Void> leftValue = left.collectEntries(consumer, collector, candidateEntries);
             if (leftValue.isMissing()) {
                 return Value.present();
