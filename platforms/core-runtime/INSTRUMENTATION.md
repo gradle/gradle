@@ -26,7 +26,7 @@ So configuration cache instrumentation and API upgrades are using the same infra
 Let's look at how bytecode interception works on an example of upgrading a JavaBean property to a lazy one.
 
 Imagine we have in Gradle core a task:
-```
+```java
 abstract class JavaCompile {
     
     private String sourceCompatibility = null;
@@ -43,7 +43,7 @@ abstract class JavaCompile {
 ```
 and we want to change it to:
 
-```
+```java
 abstract class JavaCompile {
     @Input
     public Property<String> getSourceCompatibility();
@@ -54,17 +54,17 @@ To make old plugins compatible we need to replace all the usages of old JavaComp
 
 Let’s say it’s used in a plugin as:
 
-```
-fun applyPlugin(project: Project) {
+```java
+public void applyPlugin(Project project) {
      project.tasks.named("compileJava", JavaCompile.class, task -> {
-	  task.setSourceCompatibility("1.8");
+         task.setSourceCompatibility("1.8");
      });
 }
 ```
 
 We will then replace all such usages with bytecode instrumentation with:
-```
-fun applyPlugin(project: Project) {
+```java
+public void applyPlugin(Project project) {
      project.tasks.named("compileJava", JavaCompile.class, task -> {
 	    JavaCompileInterceptorsDeclaration.intercept_setSourceCompatibility(task, "1.8");
      });
@@ -120,7 +120,7 @@ This annotation processor transforms interceptor declarations defined by Gradle 
 
 Before you can define interceptors you have to add an annotation processor and instrumentation API to your project. 
 You can do that manually by apply next plugin to your **build.gradle.kts**:
-```
+```kotlin
 plugins {
     id("gradebuild.instrumented-project")
 }
@@ -135,21 +135,21 @@ See the definition of a plugin: [gradlebuild.instrumented-project.gradle.kts](ht
 We can implement interceptor declaration manually as shown below. 
 These declarations are then read by the annotation processor and a bytecode interceptor is generated.
 
-```
-@SpecificJvmCallInterceptors( <1>
- generatedClassName = JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE, <2>
- type = INSTRUMENTATION <3>
+```java
+@SpecificJvmCallInterceptors( // <1>
+ generatedClassName = JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE, // <2>
+ type = INSTRUMENTATION // <3>
 )
 @SpecificGroovyCallInterceptors(
  generatedClassName = GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE,
  type = INSTRUMENTATION
 )
 public class JavaCompileInterceptorsDeclaration {
-    @InterceptCalls <4>
+    @InterceptCalls // <4>
     @InstanceMethod
-    public static void <5> intercept_setSourceCompatibility(
-        @Receiver JavaCompile javaCompile, <6>
-        String sourceCompatibility <7>
+    public static void /* <5> */ intercept_setSourceCompatibility(
+        @Receiver JavaCompile javaCompile, // <6>
+        String sourceCompatibility // <7>
     ) {
         javaCompile.getSourceCompatibility().set(sourceCompatibility); <8>
     }
@@ -167,7 +167,7 @@ public class JavaCompileInterceptorsDeclaration {
 This JavaCompileInterceptorsDeclaration will then generate interceptors in **org.gradle.internal.classpath.generated** package.
 
 For Java:
-```
+```java
 public class InterceptorDeclaration_JvmBytecodeCallInterceptor 
        extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
 
@@ -189,7 +189,7 @@ public class InterceptorDeclaration_JvmBytecodeCallInterceptor
 ```
 
 For dynamic Groovy:
-```
+```java
 public static class SetSourceCompatibilityCallInterceptor extends CallInterceptor {
     public SetSourceCompatibilityCallInterceptor() {
         super(InterceptScope.methodsNamed("setSourceCompatibility"));
@@ -225,7 +225,7 @@ For the purpose of property bytecode upgrades we simplified the whole process an
 For bytecode upgrades you can then use just [@UpgradedProperty](https://github.com/gradle/gradle/blob/035803bc59b32422be5ff958c64cddbd439bbf89/platforms/core-runtime/internal-instrumentation-api/src/main/java/org/gradle/internal/instrumentation/api/annotations/UpgradedProperty.java#L29) annotation that does a lot of work for you.
 
 With this property we can simplify instrumentation of source compatibility by using just:
-```
+```java
 abstract class JavaCompile {
     @Input
     @UpgradedProperty
