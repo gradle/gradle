@@ -54,7 +54,8 @@ class DependencyConfigurationsComponent(
     val configurations = DependencyConfigurations(project.configurations.names.toList())
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
-        DependencyFunctionsExtractor(configurations)
+        DependencyFunctionsExtractor(configurations),
+        DependencyCollectorFunctionsExtractor(configurations)
     )
 
     override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(
@@ -88,6 +89,16 @@ class DependencyFunctionsExtractor(val configurations: DependencyConfigurations)
     override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 }
 
+private
+class DependencyCollectorFunctionsExtractor(val configurations: DependencyConfigurations) : FunctionExtractor {
+    override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
+        if (kClass == RestrictedDependenciesHandler::class) {
+            emptyList()
+        } else emptyList()
+
+    override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
+    override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
+}
 
 private
 class RuntimeDependencyFunctionResolver(configurations: DependencyConfigurations) : RuntimeFunctionResolver {

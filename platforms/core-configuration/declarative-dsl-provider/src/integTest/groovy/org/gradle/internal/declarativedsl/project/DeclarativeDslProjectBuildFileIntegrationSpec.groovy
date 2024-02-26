@@ -105,21 +105,93 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
         ].every { it.isFile() && it.text != "" }
     }
 
-    def 'can configure a custom plugin extension in declarative DSL'() {
+    def 'can configure a custom plugin extension using DependencyCollector in declarative DSL'() {
         given:
-        file("buildSrc/build.gradle") << """
-            plugins {
-                id('java-gradle-plugin')
+        file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
+
+        file("buildSrc/src/main/java/com/example/restricted/LibraryDependencies.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.artifacts.dsl.DependencyCollector;
+            import org.gradle.api.artifacts.dsl.GradleDependencies;
+            import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
+            import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers;
+            import org.gradle.declarative.dsl.model.annotations.Adding;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+            @Restricted
+            public interface LibraryDependencies extends PlatformDependencyModifiers, TestFixturesDependencyModifiers, GradleDependencies {
+                DependencyCollector getApi();
+                DependencyCollector getImplementation();
             }
-            gradlePlugin {
-                plugins {
-                    create("restrictedPlugin") {
-                        id = "com.example.restricted"
-                        implementationClass = "com.example.restricted.RestrictedPlugin"
-                    }
+        """
+
+        file("buildSrc/src/main/java/com/example/restricted/LibraryExtension.java") << """
+            package com.example.restricted;
+
+            import org.gradle.declarative.dsl.model.annotations.Adding;
+            import org.gradle.declarative.dsl.model.annotations.Configuring;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.api.Action;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+
+            import javax.inject.Inject;
+
+            @Restricted
+            public abstract class LibraryExtension {
+                private final LibraryDependencies dependencies;
+
+                @Inject
+                public LibraryExtension(ObjectFactory objectFactory) {
+                    this.dependencies = objectFactory.newInstance(LibraryDependencies.class);
+                }
+
+                @Restricted
+                public LibraryDependencies getDependencies() {
+                    return dependencies;
                 }
             }
         """
+
+        file("buildSrc/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
+            package com.example.restricted;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+
+            public class RestrictedPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project target) {
+                    LibraryExtension restricted = target.getExtensions().create("restricted", LibraryExtension.class);
+                }
+            }
+        """
+
+        and:
+        file("build.gradle.something") << """
+            plugins {
+                id("com.example.restricted")
+            }
+
+            restricted {
+                dependencies {
+
+                }
+            }
+        """
+
+        expect:
+        succeeds("tasks")
+    }
+
+    def 'can configure a custom plugin extension in declarative DSL'() {
+        given:
+        file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
 
         file("buildSrc/src/main/java/com/example/restricted/Extension.java") << """
             package com.example.restricted;
@@ -312,5 +384,21 @@ secondaryAccess { three, true, true}"""
         "syntax"           | "body"        | ""                       | "..."                 | "4:9: parsing error: Expecting an element"
         "language feature" | "body"        | ""                       | "@A dependencies { }" | "4:9: unsupported language feature: AnnotationUsage"
         "semantic"         | "body"        | ""                       | "x = 1"               | "4:9: unresolved reference 'x'"
+    }
+
+    private String defineRestrictedPluginBuild() {
+        return """
+            plugins {
+                id('java-gradle-plugin')
+            }
+            gradlePlugin {
+                plugins {
+                    create("restrictedPlugin") {
+                        id = "com.example.restricted"
+                        implementationClass = "com.example.restricted.RestrictedPlugin"
+                    }
+                }
+            }
+        """
     }
 }
