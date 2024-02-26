@@ -231,32 +231,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         setExplicitCollector(newExplicitValue(path));
     }
 
-    /**
-     * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
-     * if no source paths are explicitly defined.
-     *
-     * If, at the time this method is invoked, the set of source paths for this collection is empty, the convention will be used
-     * to resolve this file collection.
-     *
-     * @param paths The paths.
-     * @return this collection
-     */
+    @Override
     public ConfigurableFileCollection convention(Iterable<?> paths) {
         assertMutable();
         setConventionCollector(newConventionValue(paths));
         return this;
     }
 
-    /**
-     * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
-     * if no source paths are explicitly defined.
-     *
-     * If, at the time this method is invoked, the set of source paths for this collection is empty, the convention will be used
-     * to resolve this file collection.
-     *
-     * @param paths The paths.
-     * @return this collection
-     */
+    @Override
     public ConfigurableFileCollection convention(Object... paths) {
         assertMutable();
         setConventionCollector(newConventionValue(paths));
@@ -282,7 +264,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
      * If the property has no convention set at the time this method is invoked,
      * the effect of invoking it is similar to invoking {@link #unset()}.
      */
-    protected ConfigurableFileCollection setToConvention() {
+    protected SupportsConvention setToConvention() {
         assertMutable();
         value = valueState.setToConvention();
         return this;
@@ -296,18 +278,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         value = valueState.explicitValue(valueCollector);
     }
 
-    /**
-     * @see SupportsConvention#unsetConvention()
-     */
+    @Override
     public ConfigurableFileCollection unsetConvention() {
         assertMutable();
         setConventionCollector(EMPTY_COLLECTOR);
         return this;
     }
 
-    /**
-     * @see SupportsConvention#unset()
-     */
+    @Override
     public ConfigurableFileCollection unset() {
         assertMutable();
         value = valueState.implicitValue();
