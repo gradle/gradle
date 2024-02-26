@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import org.gradle.api.Action
 import org.gradle.internal.declarativedsl.analysis.DataConstructor
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataParameter
@@ -30,10 +31,15 @@ import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
+import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
+import org.gradle.internal.declarativedsl.language.DataType
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.isSubclassOf
@@ -43,6 +49,7 @@ import kotlin.reflect.full.isSubclassOf
  * Introduces functions for registering project dependencies, such as `implementation(...)`, as member functions of:
  * * [RestrictedDependenciesHandler] in the schema,
  * * [DependencyHandler] when resolved at runtime.
+ * * [RestrictedLibraryDependencies] in the schema.
  *
  * Inspects the configurations available in the given project to build the functions.
  */
@@ -59,7 +66,8 @@ class DependencyConfigurationsComponent(
     )
 
     override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(
-        RuntimeDependencyFunctionResolver(configurations)
+        RuntimeDependencyFunctionResolver(configurations),
+        RuntimeDependencyCollectorFunctionResolver(configurations)
     )
 }
 
@@ -92,8 +100,23 @@ class DependencyFunctionsExtractor(val configurations: DependencyConfigurations)
 private
 class DependencyCollectorFunctionsExtractor(val configurations: DependencyConfigurations) : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        if (kClass == RestrictedDependenciesHandler::class) {
-            emptyList()
+        if (kClass == RestrictedLibraryDependencies::class) {
+            listOf(
+                DataMemberFunction(
+                    kClass.toDataTypeRef(),
+                    "api",
+                    listOf(DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
+                    false,
+                    FunctionSemantics.AddAndConfigure(RestrictedLibraryDependencies::class.toDataTypeRef(), FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.NOT_ALLOWED)
+                ),
+                DataMemberFunction(
+                    kClass.toDataTypeRef(),
+                    "implementation",
+                    listOf(DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
+                    false,
+                    FunctionSemantics.AddAndConfigure(RestrictedLibraryDependencies::class.toDataTypeRef(), FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.NOT_ALLOWED)
+                )
+            )
         } else emptyList()
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
@@ -110,6 +133,34 @@ class RuntimeDependencyFunctionResolver(configurations: DependencyConfigurations
             return RuntimeFunctionResolver.Resolution.Resolved(object : RestrictedRuntimeFunction {
                 override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): RestrictedRuntimeFunction.InvocationResult {
                     (receiver as DependencyHandler).add(name, binding.values.single() ?: error("null value in dependency DSL"))
+                    return RestrictedRuntimeFunction.InvocationResult(Unit, null)
+                }
+            })
+        }
+        return RuntimeFunctionResolver.Resolution.Unresolved
+    }
+}
+
+private
+class RuntimeDependencyCollectorFunctionResolver(configurations: DependencyConfigurations) : RuntimeFunctionResolver {
+    private
+    val nameSet = configurations.configurationNames.toSet()
+
+    override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
+        // TODO: The runtime decoration isn't working as expected here
+        // When receiverClass == class org.gradle.internal.declarativedsl.project.RestrictedLibraryDependencies_Decorated
+        // Then receiverClass.isSubclassOf(RestrictedLibraryDependencies::class) == false
+        // So, I'll just test the name
+        if (receiverClass.simpleName == "RestrictedLibraryDependencies_Decorated" && name in nameSet && parameterValueBinding.bindingMap.size == 1) {
+            return RuntimeFunctionResolver.Resolution.Resolved(object : RestrictedRuntimeFunction {
+                override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): RestrictedRuntimeFunction.InvocationResult {
+                    val libraryDependencies = (receiver as RestrictedLibraryDependencies)
+                    val dependencyNotation = binding.values.single().toString()
+                    when (name) {
+                        "api" -> libraryDependencies.getApi().add(dependencyNotation) {}
+                        "implementation" -> libraryDependencies.getImplementation().add(dependencyNotation) {}
+                        else -> error("Unknown configuration: $name for dependency: $dependencyNotation")
+                    }
                     return RestrictedRuntimeFunction.InvocationResult(Unit, null)
                 }
             })

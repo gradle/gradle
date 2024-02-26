@@ -109,48 +109,49 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
         given:
         file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
 
-        file("buildSrc/src/main/java/com/example/restricted/LibraryDependencies.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.artifacts.dsl.DependencyCollector;
-            import org.gradle.api.artifacts.dsl.GradleDependencies;
-            import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
-            import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers;
-            import org.gradle.declarative.dsl.model.annotations.Adding;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-            @Restricted
-            public interface LibraryDependencies extends PlatformDependencyModifiers, TestFixturesDependencyModifiers, GradleDependencies {
-                DependencyCollector getApi();
-                DependencyCollector getImplementation();
-            }
-        """
+//        file("buildSrc/src/main/java/com/example/restricted/LibraryDependencies.java") << """
+//            package com.example.restricted;
+//
+//            import org.gradle.api.artifacts.dsl.DependencyCollector;
+//            import org.gradle.api.artifacts.dsl.GradleDependencies;
+//            import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
+//            import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers;
+//            import org.gradle.declarative.dsl.model.annotations.Adding;
+//            import org.gradle.declarative.dsl.model.annotations.Restricted;
+//
+//            @Restricted
+//            public interface LibraryDependencies extends PlatformDependencyModifiers, TestFixturesDependencyModifiers, GradleDependencies {
+//                DependencyCollector getApi();
+//                DependencyCollector getImplementation();
+//            }
+//        """
 
         file("buildSrc/src/main/java/com/example/restricted/LibraryExtension.java") << """
             package com.example.restricted;
 
-            import org.gradle.declarative.dsl.model.annotations.Adding;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
+            import org.gradle.declarative.dsl.model.annotations.Adding;
+            import org.gradle.declarative.dsl.model.annotations.Configuring;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.internal.declarativedsl.project.RestrictedLibraryDependencies;
 
             import javax.inject.Inject;
 
             @Restricted
             public abstract class LibraryExtension {
-                private final LibraryDependencies dependencies;
+                private final RestrictedLibraryDependencies deps;
 
                 @Inject
                 public LibraryExtension(ObjectFactory objectFactory) {
-                    this.dependencies = objectFactory.newInstance(LibraryDependencies.class);
+                    this.deps = objectFactory.newInstance(RestrictedLibraryDependencies.class);
                 }
 
-                @Restricted
-                public LibraryDependencies getDependencies() {
-                    return dependencies;
+                @Configuring
+                public void deps(Action<? super RestrictedLibraryDependencies> configure) {
+                    configure.execute(deps);
                 }
             }
         """
@@ -163,11 +164,17 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
             import org.gradle.api.Project;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
+            import org.gradle.api.plugins.JavaLibraryPlugin;
 
             public class RestrictedPlugin implements Plugin<Project> {
                 @Override
-                public void apply(Project target) {
-                    LibraryExtension restricted = target.getExtensions().create("restricted", LibraryExtension.class);
+                public void apply(Project project) {
+                    project.getPluginManager().apply(JavaLibraryPlugin.class);
+
+                    LibraryExtension restricted = project.getExtensions().create("library", LibraryExtension.class);
+
+//                  project.configurations.resolvable("api");
+//                  project.configurations.resolvable("implementation");
                 }
             }
         """
@@ -178,15 +185,38 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
                 id("com.example.restricted")
             }
 
-            restricted {
-                dependencies {
-
+            library {
+                deps { // TODO: Don't name this dependencies???  Can this be reset?
+                    api("com.google.guava:guava:30.1.1-jre")
+                    implementation("com.apache.commons:commons-lang3:3.12.0")
                 }
             }
         """
 
+        file("src/main/java/com/example/Lib.java") << """
+            package com.example;
+
+            import com.google.common.collect.ImmutableSet;
+            import org.apache.commons.lang3.StringUtils;
+
+            public class Lib {
+                public static ImmutableSet<String> getPeople() {
+                    return ImmutableSet.of(capitalize("adam johnson"), capitalize("bob smith"), capitalize("carl jones"));
+                }
+
+                private static String capitalize(String input) {
+                    return StringUtils.capitalize(input);
+                }
+            }
+        """
+
+        when:
+
         expect:
-        succeeds("tasks")
+        succeeds("build")
+
+        and:
+        file("build/libs/something.jar").exists()
     }
 
     def 'can configure a custom plugin extension in declarative DSL'() {
