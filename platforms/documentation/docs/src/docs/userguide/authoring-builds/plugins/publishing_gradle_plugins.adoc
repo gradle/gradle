@@ -12,6 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+==== Note for plugins published without `java-gradle-plugin`
+If your plugin was published without using the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, the publication will be lacking <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>>, which is needed for <<plugins.adoc#sec:plugins_block,plugins DSL>> to locate the plugin.
+In this case, the recommended way to resolve the plugin in another project is to add a `resolutionStrategy` section to the `pluginManagement {}` block of the project's settings file as shown below.
+
+.Resolution strategy for plugins without Plugin Marker Artifact
+====
+include::sample[dir="snippets/plugins/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
+====
+
+
+[[sec:publishing_your_plugin]]
+=== Publishing your plugin
+
+If you are publishing your plugin internally for use within your organization, you can publish it like any other code artifact.
+See the <<publishing_ivy.adoc#publishing_ivy,Ivy>> and <<publishing_maven.adoc#publishing_maven,Maven>> chapters on publishing artifacts.
+
+If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the http://plugins.gradle.org[Gradle Plugin Portal].
+This site provides the ability to search for and gather information about plugins contributed by the Gradle community.
+Please refer to the corresponding <<publishing_gradle_plugins.adoc#publishing_portal,section>> on how to make your plugin available on this site.
+
+
 [[publishing_portal]]
 = Publishing Plugins to the Gradle Plugin Portal
 :portal: Gradle Plugin Portal
