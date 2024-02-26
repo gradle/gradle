@@ -2041,9 +2041,8 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         ["src1"]        | _             | ["src1"]          | "convention used when no explicit value"      | { }
         ["src3"]        | ["src3"]      | ["src1"]          | "explicit value overrides convention"         | { }
         ["src1"]        | ["src3"]      | ["src1"]          | "convention used when explicit unset"         | { it.unset() }
-        ["src1", "src2"]| _             | ["src1"]          | "from() honors convention"                    | { it.from("src2") }
-        ["src2"]        | _             | _                 | "from() prevents convention"                  | { it.from("src2"); it.convention("src1") }
-        ["src2", "src3"]| ["src2"]      | ["src1"]          | "from() ignores convention"                   | { it.from("src3") }
+        ["src1", "src2"]| _             | _                 | "from() after convention honors it"           | { it.convention("src1"); it.from("src2") }
+        ["src2"]        | _             | _                 | "from() before convention prevents it"        | { it.from("src2"); it.convention("src1") }
         ["src1", "src2"]| _             | ["src1"]          | "from() commits convention"                   | { it.from("src2"); it.unsetConvention() }
         ["src1"]        | _             | ["src1"]          | "from() does not modify convention"           | { it.from("src2"); it.unset() }
     }
