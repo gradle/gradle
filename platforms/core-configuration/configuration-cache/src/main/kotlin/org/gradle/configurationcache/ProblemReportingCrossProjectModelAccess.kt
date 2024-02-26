@@ -41,6 +41,7 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.SyncSpec
+import org.gradle.api.initialization.dsl.BuildSettings
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
@@ -1028,6 +1029,10 @@ class ProblemReportingCrossProjectModelAccess(
         override fun getBuildscript(): ScriptHandlerInternal {
             onAccess()
             return delegate.buildscript
+        }
+
+        override fun getDeclarativeExtensions(): MutableMap<String, BuildSettings.DeclarativeExtension> {
+            return delegate.declarativeExtensions
         }
 
         override fun newDetachedResolver(): ProjectInternal.DetachedResolver {

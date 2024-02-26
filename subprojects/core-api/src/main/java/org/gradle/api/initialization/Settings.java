@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.api.file.BuildLayout;
+import org.gradle.api.initialization.dsl.BuildSettings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.invocation.Gradle;
@@ -430,4 +431,10 @@ public interface Settings extends PluginAware, ExtensionAware {
      */
     @Incubating
     void caches(Action<? super CacheConfigurations> cachesConfiguration);
+
+    @Restricted
+    BuildSettings getBuildSettings();
+
+    @Configuring
+    void buildSettings(Action<? super BuildSettings> action);
 }

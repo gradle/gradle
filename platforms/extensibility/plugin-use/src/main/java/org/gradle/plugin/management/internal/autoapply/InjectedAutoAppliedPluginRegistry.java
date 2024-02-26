@@ -20,19 +20,22 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.initialization.dsl.BuildSettingsInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 public class InjectedAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
 
     private final BuildDefinition buildDefinition;
+    private final BuildSettingsInternal buildSettings;
 
-    public InjectedAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
+    public InjectedAutoAppliedPluginRegistry(BuildDefinition buildDefinition, BuildSettingsInternal buildSettings) {
         this.buildDefinition = buildDefinition;
+        this.buildSettings = buildSettings;
     }
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Project target) {
-        return PluginRequests.EMPTY;
+        return buildSettings.getRegisteredPluginRequests();
     }
 
     @Override

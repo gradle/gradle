@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.initialization.dsl.BuildSettings;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -52,6 +53,7 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -246,6 +248,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      */
     @Override
     RoleBasedConfigurationContainerInternal getConfigurations();
+
+    Map<String, BuildSettings.DeclarativeExtension> getDeclarativeExtensions();
 
     interface DetachedResolver {
         RepositoryHandler getRepositories();

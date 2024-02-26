@@ -28,6 +28,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
+import java.util.function.Supplier
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
@@ -43,10 +44,11 @@ class ProjectExtensionComponents(
 internal
 fun projectExtensionComponents(target: ProjectInternal, includeExtension: (KClass<*>) -> Boolean): ProjectExtensionComponents {
     val projectExtensions = projectExtensions(target, includeExtension)
+    val projectDeclarativeExtensions = projectDeclarativeExtensions(target, includeExtension)
 
-    val typeDiscovery = FixedTypeDiscovery(ProjectTopLevelReceiver::class, projectExtensions.map { it.type })
-    val functions = projectExtensionConfiguringFunctions(projectExtensions)
-    val runtimeCustomAccessors = RuntimeProjectExtensionAccessors(target, projectExtensions)
+    val typeDiscovery = FixedTypeDiscovery(ProjectTopLevelReceiver::class, projectExtensions.map { it.type } + projectDeclarativeExtensions.map { it.type })
+    val functions = projectExtensionConfiguringFunctions(projectExtensions + projectDeclarativeExtensions)
+    val runtimeCustomAccessors = RuntimeProjectExtensionAccessors(target, projectExtensions + projectDeclarativeExtensions)
 
     return ProjectExtensionComponents(typeDiscovery, functions, runtimeCustomAccessors)
 }
@@ -59,6 +61,11 @@ fun projectExtensions(target: ProjectInternal, includeExtension: (KClass<*>) -> 
         if (includeExtension(type)) ProjectExtensionInfo(it.name, type) else null
     }
 
+private fun projectDeclarativeExtensions(target: ProjectInternal, includeExtension: (KClass<*>) -> Boolean) : List<ProjectExtensionInfo> =
+    target.declarativeExtensions.values.mapNotNull {
+        val type = it.publicType.kotlin
+        if (includeExtension(type)) ProjectExtensionInfo(it.name, type) else null
+    }
 
 private
 data class ProjectExtensionInfo(
@@ -81,14 +88,23 @@ data class ProjectExtensionInfo(
 
 
 private
-class RuntimeProjectExtensionAccessors(project: Project, info: List<ProjectExtensionInfo>) : RuntimeCustomAccessors {
+class RuntimeProjectExtensionAccessors(project: ProjectInternal, info: List<ProjectExtensionInfo>) : RuntimeCustomAccessors {
 
-    val extensionsByIdentifier = info.associate { it.customAccessorId to project.extensions.getByName(it.name) }
+    val extensionsByIdentifier = info.associate { it.customAccessorId to getExtension(project, it.name) }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
         if (receiverObject is Project)
-            extensionsByIdentifier[accessor.customAccessorIdentifier]
+            extensionsByIdentifier[accessor.customAccessorIdentifier]?.get()
         else null
+
+    private fun getExtension(project: ProjectInternal, name: String): Supplier<Any?> {
+        return Supplier {
+            if (project.extensions.findByName(name) == null) {
+                project.declarativeExtensions[name]?.initialize(project)
+            }
+            project.extensions.getByName(name)
+        }
+    }
 }
 
 

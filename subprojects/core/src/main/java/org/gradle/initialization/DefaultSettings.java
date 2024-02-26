@@ -23,6 +23,7 @@ import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.initialization.dsl.BuildSettings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.internal.FeaturePreviews.Feature;
@@ -42,6 +43,7 @@ import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.dsl.DefaultBuildSettings;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -88,6 +90,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private final ToolchainManagementInternal toolchainManagement;
 
+    private final BuildSettings buildSettings;
+
     public DefaultSettings(
         ServiceRegistryFactory serviceRegistryFactory,
         GradleInternal gradle,
@@ -109,6 +113,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.rootProjectDescriptor = createProjectDescriptor(null, getProjectName(settingsDir), settingsDir);
         this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
         this.toolchainManagement = services.get(ToolchainManagementInternal.class);
+        this.buildSettings = services.get(BuildSettings.class);
     }
 
     private static String getProjectName(File settingsDir) {
@@ -410,5 +415,15 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public void caches(Action<? super CacheConfigurations> cachesConfiguration) {
         cachesConfiguration.execute(getCaches());
+    }
+
+    @Override
+    public BuildSettings getBuildSettings() {
+        return buildSettings;
+    }
+
+    @Override
+    public void buildSettings(Action<? super BuildSettings> action) {
+        action.execute(buildSettings);
     }
 }

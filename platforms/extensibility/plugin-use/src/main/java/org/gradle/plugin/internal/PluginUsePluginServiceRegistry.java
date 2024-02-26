@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.initialization.dsl.BuildSettingsInternal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.event.ListenerManager;
@@ -87,8 +88,8 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             registration.add(PluginVersionTracker.class);
         }
 
-        AutoAppliedPluginRegistry createInjectedAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
-            return new InjectedAutoAppliedPluginRegistry(buildDefinition);
+        AutoAppliedPluginRegistry createInjectedAutoAppliedPluginRegistry(BuildDefinition buildDefinition, BuildSettingsInternal buildSettings) {
+            return new InjectedAutoAppliedPluginRegistry(buildDefinition, buildSettings);
         }
 
         AutoAppliedPluginHandler createAutoAppliedPluginHandler(List<AutoAppliedPluginRegistry> registries) {

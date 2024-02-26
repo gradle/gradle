@@ -155,6 +155,8 @@ import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
+import org.gradle.initialization.dsl.BuildSettingsInternal;
+import org.gradle.initialization.dsl.DefaultBuildSettings;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
@@ -743,5 +745,9 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         }
 
         return new DefaultUserInputHandler(outputEventListenerManager.getBroadcaster(), clock, new DefaultUserInputReader());
+    }
+
+    BuildSettingsInternal createBuildSettings() {
+        return new DefaultBuildSettings();
     }
 }

@@ -45,6 +45,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
+import org.gradle.api.initialization.dsl.BuildSettings;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -67,6 +68,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -84,6 +86,7 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.dsl.BuildSettingsInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
@@ -1505,6 +1508,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ProjectState getOwner() {
         return owner;
+    }
+
+    @Override
+    public Map<String, BuildSettings.DeclarativeExtension> getDeclarativeExtensions() {
+        BuildSettingsInternal buildSettings = getServices().get(BuildSettingsInternal.class);
+        PluginRegistry pluginRegistry = getServices().get(PluginRegistry.class);
+        return buildSettings.getDeclarativeExtensions(pluginRegistry);
     }
 
     @Override
