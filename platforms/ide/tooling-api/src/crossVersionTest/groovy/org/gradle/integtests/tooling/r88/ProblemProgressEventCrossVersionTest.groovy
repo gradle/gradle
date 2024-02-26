@@ -76,7 +76,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         listener.problems.size() == 0
     }
 
-    @TargetGradleVersion(">=8.5")
+    @TargetGradleVersion(">=8.6")
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
@@ -105,6 +105,28 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
+    }
+
+    @TargetGradleVersion("=8.5")
+    def "Problems don't crash the run in 8.5"() {
+        given:
+        withReportProblemTask """
+            getProblems().create {
+                it.label("shortProblemMessage")
+                .undocumented()
+                .category("main", "sub", "id")
+                .additionalData("aKey", "aValue")
+                .severity(Severity.WARNING)
+                .solution("try this instead")
+            }
+        """
+
+        when:
+
+        def problems = runTask()
+
+        then:
+        problems.size() == 0
     }
 
     @TargetGradleVersion(">=8.8")
