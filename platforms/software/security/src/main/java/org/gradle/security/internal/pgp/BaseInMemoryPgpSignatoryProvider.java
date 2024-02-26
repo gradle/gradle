@@ -23,7 +23,8 @@ import org.bouncycastle.openpgp.jcajce.JcaPGPSecretKeyRing;
 import org.bouncycastle.openpgp.jcajce.JcaPGPSecretKeyRingCollection;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.internal.lazy.Lazy;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.Pair;
 import org.gradle.security.internal.BaseSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpKeyId;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
@@ -44,16 +45,15 @@ public class BaseInMemoryPgpSignatoryProvider implements BaseSignatoryProvider<P
 
     private final PgpSignatoryFactory factory = new PgpSignatoryFactory();
     private final Map<String, PgpSignatory> signatories = new LinkedHashMap<>();
-    private final Lazy<PgpSignatory> defaultSignatory;
+    private final Provider<PgpSignatory> defaultSignatory;
 
-    public BaseInMemoryPgpSignatoryProvider(String defaultSecretKey, String defaultPassword) {
-        this(null, defaultSecretKey, defaultPassword);
-    }
+    public BaseInMemoryPgpSignatoryProvider(Provider<String> defaultKeyId, Provider<String> defaultSecretKey, Provider<String> defaultPassword) {
+        this.defaultSignatory = defaultKeyId.zip(defaultSecretKey.zip(defaultPassword, Pair::of), (keyId, secretKeyPasswordPair) -> {
+            String secretKey = secretKeyPasswordPair.left();
+            String password = secretKeyPasswordPair.right();
 
-    public BaseInMemoryPgpSignatoryProvider(String defaultKeyId, String defaultSecretKey, String defaultPassword) {
-        this.defaultSignatory = Lazy.locking().of(() -> {
-            if (defaultSecretKey != null && defaultPassword != null) {
-                return createSignatory("default", defaultKeyId, defaultSecretKey, defaultPassword);
+            if (secretKey != null && password != null) {
+                return createSignatory("default", keyId, secretKey, password);
             }
             return null;
         });
@@ -61,7 +61,7 @@ public class BaseInMemoryPgpSignatoryProvider implements BaseSignatoryProvider<P
 
     @Override
     public PgpSignatory getDefaultSignatory(Project project) {
-        return defaultSignatory.get();
+        return defaultSignatory.getOrNull();
     }
 
     @Override
@@ -75,7 +75,7 @@ public class BaseInMemoryPgpSignatoryProvider implements BaseSignatoryProvider<P
 
     private PgpSignatory createSignatory(String name, String keyId, String secretKey, String password) {
         try (InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(secretKey.getBytes(UTF_8)))) {
-            if (keyId == null) {
+            if (keyId == null || keyId.isEmpty()) {
                 PGPSecretKey key = new JcaPGPSecretKeyRing(in).getSecretKey();
                 return factory.createSignatory(name, key, password);
             } else {
@@ -93,5 +93,4 @@ public class BaseInMemoryPgpSignatoryProvider implements BaseSignatoryProvider<P
             throw new InvalidUserDataException("Could not read PGP secret key", e);
         }
     }
-
 }
