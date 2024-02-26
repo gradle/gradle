@@ -122,6 +122,7 @@ data class DataParameter(
 sealed interface ParameterSemantics {
     @Serializable
     data class StoreValueInProperty(val dataProperty: DataProperty) : ParameterSemantics
+
     @Serializable
     data object Unknown : ParameterSemantics
 }
@@ -132,7 +133,25 @@ sealed interface FunctionSemantics {
     @Serializable
     sealed interface ConfigureSemantics : FunctionSemantics {
         val configuredType: DataTypeRef
+        val configureBlockRequirement: ConfigureBlockRequirement
+
+        @Serializable
+        enum class ConfigureBlockRequirement {
+            NOT_ALLOWED, OPTIONAL, REQUIRED;
+
+            val allows: Boolean
+                get() = this != NOT_ALLOWED
+
+            val requires: Boolean
+                get() = this == REQUIRED
+
+            fun isValidIfLambdaIsPresent(isPresent: Boolean): Boolean = when {
+                isPresent -> allows
+                else -> !requires
+            }
+        }
     }
+
     @Serializable
     sealed interface NewObjectFunctionSemantics : FunctionSemantics
 
@@ -161,28 +180,21 @@ sealed interface FunctionSemantics {
 
         override val configuredType: DataTypeRef
             get() = if (returnType == ReturnType.CONFIGURED_OBJECT) returnValueType else accessor.objectType
+
+        override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement
+            get() = ConfigureSemantics.ConfigureBlockRequirement.REQUIRED
     }
 
     @Serializable
     class AddAndConfigure(
         private val objectType: DataTypeRef,
-        val configureBlockRequirement: ConfigureBlockRequirement
+        override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement
     ) : NewObjectFunctionSemantics, ConfigureSemantics {
         override val returnValueType: DataTypeRef
             get() = objectType
 
         override val configuredType: DataTypeRef
             get() = returnValueType
-
-        @Serializable
-        enum class ConfigureBlockRequirement {
-            NOT_ALLOWED, OPTIONAL, REQUIRED;
-
-            val allows: Boolean
-                get() = this != NOT_ALLOWED
-            val requires: Boolean
-                get() = this == REQUIRED
-        }
     }
 
     @Serializable
@@ -250,6 +262,7 @@ data class ExternalObjectProviderKey(val type: DataTypeRef)
 sealed interface DataTypeRef {
     @Serializable
     data class Type(val dataType: DataType) : DataTypeRef
+
     @Serializable
     data class Name(val fqName: FqName) : DataTypeRef
 }
