@@ -102,13 +102,13 @@ This was also not the case before the fix.
 
 #### Tests metadata improvements in tooling API
 
-IDEs and other tools can use tooling API to get information about tests Gradle runs.
-Each test event sent by tooling API contains a test descriptor that contains test metadata: human-readable name, class name, method name, etc.
+IDEs and other tools leverage the tooling API to access information about tests executed by Gradle.
+Each test event sent via the tooling API includes a test descriptor containing metadata such as a human-readable name, class name, and method name.
 
-For JUnit5 and Spock, we updated the test descriptor for dynamic and parametrized tests to include the data about the class name and method name containing the test.
-We also improved the display names, so they are passed transparently from the frameworks and can be used by IDEs without transformations.
+For JUnit5 and Spock, we updated the test descriptor for dynamic and parameterized tests to include information about the class name and method name containing the test.
+Additionally, we improved the display names so that they are transparently passed from the frameworks, enabling IDEs to use them without requiring transformations.
 
-These changes would allow IDEs to provide better navigation and reporting for dynamic and parametrized tests.
+These enhancements enable IDEs to offer improved navigation and reporting capabilities for dynamic and parameterized tests.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
