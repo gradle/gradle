@@ -80,7 +80,7 @@ Due to that Instrumentation and bytecode upgrades is split into two big parts:
 `JavaCompileInterceptorsDeclaration` is defined by Gradle developer and with help of annotation processor Gradle then generates bytecode replacements. 
 The actual replacement happens when the user runs his Gradle build.
 
-**_Note: Groovy interception uses the same mechanism but replacements are a bit more complicated due to the dynamic nature of Groovy. 
+**_Note: Dynamic Groovy interception uses the same mechanism but replacements are a bit more complicated due to the dynamic nature of Groovy. 
 And due to that build logic is also intercepted when code is run and not just on the bytecode level._**
 
 Next sections will explain more in detail how we can define interceptors and how the code is then replaced.
@@ -89,8 +89,8 @@ Next sections will explain more in detail how we can define interceptors and how
 ### Gradle Distribution Build Time
 
 At Gradle Distribution Build time we have two major parts:
-1. Declaring interceptors and generating interceptors
-2. Collecting Gradle API type hierarchy
+1. We generate interceptors from the annotations declared in the source code 
+2. We collect Gradle API type hierarchy
 
 The first one is important for both configuration cache instrumentation and API upgrades while the second one is used just for API upgrades. 
 Collecting the Gradle API type hierarchy is fully automatic, while declaring interceptors have to be done by Gradle developers. 
@@ -110,7 +110,7 @@ flowchart TB
 
 ##### Annotation processor
 
-Annotation processor is implemented as Java annotation processor in [platforms/core-runtime/internal-instrumentation-processor](https://github.com/gradle/gradle/tree/master/platforms/core-runtime/internal-instrumentation-processor) and its API (annotations) are defined in the [platforms/core-runtime/internal-instrumentation-api](https://github.com/gradle/gradle/tree/master/platforms/core-runtime/internal-instrumentation-api). 
+Annotation processor is implemented as Java annotation processor in [platforms/core-runtime/internal-instrumentation-processor](./internal-instrumentation-processor) and its API (annotations) are defined in the [platforms/core-runtime/internal-instrumentation-api](./internal-instrumentation-api). 
 This annotation processor transforms interceptor declarations defined by Gradle developers to interceptors that modify Jvm bytecode.
 
 **Note:** Since this is a Java annotation processor all declarations have to be defined as Java classes, so interceptor declarations in Kotlin or Groovy are not supported.
