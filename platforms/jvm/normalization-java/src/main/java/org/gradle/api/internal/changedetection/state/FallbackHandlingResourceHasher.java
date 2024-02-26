@@ -151,6 +151,11 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
         }
 
         @Override
+        public <T> T withRawInputStream(IoFunction<InputStream, T> action) throws IOException {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public int size() {
             return delegate.size();
         }
@@ -158,6 +163,11 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
         @Override
         public boolean canReopen() {
             return true;
+        }
+
+        @Override
+        public boolean supportsRawStream() {
+            return false;
         }
 
         @Override

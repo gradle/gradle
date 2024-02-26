@@ -24,6 +24,9 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.zip.Inflater
+import java.util.zip.InflaterInputStream
+
 class FileZipInputTest extends Specification implements ZipFileFixture{
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -84,12 +87,30 @@ class FileZipInputTest extends Specification implements ZipFileFixture{
         then:
         content == ZIP_ENTRY_CONTENT.bytes
 
+
         when:
         content = zipEntry.withInputStream { readAllBytes(it) }
 
         then:
         noExceptionThrown()
         content == ZIP_ENTRY_CONTENT.bytes
+
+        cleanup:
+        zipInput?.close()
+    }
+
+    @Requires(UnitTestPreconditions.Jdk11OrLater)
+    def "can read compressed bytes of an entry"() {
+        def file = makeZip("foo.zip")
+        def zipInput = FileZipInput.create(file)
+
+        when:
+        def zipEntry = zipInput.iterator().next()
+        def raw = zipEntry.withRawInputStream { readAllBytes(it) }
+        def inflated = new InflaterInputStream(new ByteArrayInputStream(raw), new Inflater(true)).readAllBytes()
+
+        then:
+        inflated == ZIP_ENTRY_CONTENT.bytes
 
         cleanup:
         zipInput?.close()

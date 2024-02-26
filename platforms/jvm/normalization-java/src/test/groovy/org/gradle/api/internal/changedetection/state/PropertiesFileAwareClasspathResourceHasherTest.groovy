@@ -385,6 +385,16 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
             ZipEntry.ZipCompressionMethod getCompressionMethod() {
                 return ZipEntry.ZipCompressionMethod.DEFLATED
             }
+
+            @Override
+            boolean supportsRawStream() {
+                return false
+            }
+
+            @Override
+            <T> T withRawInputStream(IoFunction<InputStream, T> action) throws IOException {
+                throw new UnsupportedOperationException()
+            }
         }
         return new DefaultZipEntryContext(zipEntry, path, "foo.zip")
     }

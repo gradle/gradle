@@ -52,7 +52,7 @@ public interface ZipEntry {
     byte[] getContent() throws IOException;
 
     /**
-     * Declare an action to be run against this ZipEntry's content as a {@link InputStream}.
+     * Declare an action to be run against this ZipEntry's decompressed content as a {@link InputStream}.
      * The {@link InputStream} passed to the {@link IoFunction#apply(Object)} will
      * be closed right after the action's return.
      *
@@ -60,6 +60,16 @@ public interface ZipEntry {
      * Use {@link #canReopen()} to determine if more than one call is supported.
      */
     <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException;
+
+    /**
+     * Declare an action to be run against this ZipEntry's compressed content as a {@link InputStream}.
+     * The {@link InputStream} passed to the {@link IoFunction#apply(Object)} will
+     * be closed right after the action's return.
+     *
+     * This method may not be supported by all {@link ZipEntry} implementations.
+     * Use {@link #supportsRawStream()} to determine if this method can be called.
+     */
+    <T> T withRawInputStream(IoFunction<InputStream, T> action) throws IOException;
 
     /**
      * The size of the content in bytes, or -1 if not known.
@@ -71,6 +81,8 @@ public interface ZipEntry {
      * have already been read from it.
      */
     boolean canReopen();
+
+    boolean supportsRawStream();
 
     ZipCompressionMethod getCompressionMethod();
 }

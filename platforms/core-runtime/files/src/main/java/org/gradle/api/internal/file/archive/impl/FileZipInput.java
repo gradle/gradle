@@ -25,13 +25,28 @@ import org.gradle.internal.io.IoFunction;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipFile;
 
 public class FileZipInput implements ZipInput {
+    private static final Field FILTER_INPUT_STREAM_IN;
+
+    static {
+        Field filterInputStreamIn;
+        try {
+            filterInputStreamIn = FilterInputStream.class.getDeclaredField("in");
+            filterInputStreamIn.setAccessible(true);
+        } catch (Exception e) {
+            filterInputStreamIn = null;
+        }
+        FILTER_INPUT_STREAM_IN = filterInputStreamIn;
+    }
 
     /**
      * Creates a stream of the entries in the given zip file. Caller is responsible for closing the return value.
@@ -94,6 +109,7 @@ public class FileZipInput implements ZipInput {
     }
 
     private class FileZipEntry extends AbstractZipEntry {
+
         public FileZipEntry(java.util.zip.ZipEntry entry) {
             super(entry);
         }
@@ -114,6 +130,34 @@ public class FileZipInput implements ZipInput {
             } catch (IOException e) {
                 throw new FileException(e);
             }
+        }
+
+        @Override
+        public <T> T withRawInputStream(IoFunction<InputStream, T> action) throws IOException {
+            InputStream inputStream = getRawInputStream();
+            try {
+                return action.apply(inputStream);
+            } finally {
+                inputStream.close();
+            }
+        }
+
+        private InputStream getRawInputStream() {
+            try {
+                InputStream inputStream = file.getInputStream(getEntry());
+                if (inputStream instanceof InflaterInputStream) {
+                    return (InputStream) FILTER_INPUT_STREAM_IN.get(inputStream);
+                } else {
+                    return inputStream;
+                }
+            } catch (Exception e) {
+                throw new FileException(e);
+            }
+        }
+
+        @Override
+        public boolean supportsRawStream() {
+            return FILTER_INPUT_STREAM_IN != null;
         }
 
         @Override

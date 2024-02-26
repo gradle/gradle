@@ -42,7 +42,12 @@ public class RuntimeClasspathResourceHasher implements ResourceHasher {
 
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        return zipEntryContext.getEntry().withInputStream(Hashing::hashStream);
+        ZipEntry entry = zipEntryContext.getEntry();
+        if (entry.supportsRawStream()) {
+            return entry.withRawInputStream(Hashing::hashStream);
+        } else  {
+            return entry.withInputStream(Hashing::hashStream);
+        }
     }
 
     @Override

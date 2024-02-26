@@ -78,6 +78,16 @@ public class StreamZipInput implements ZipInput {
             }
         }
 
+        @Override
+        public <T> T withRawInputStream(IoFunction<InputStream, T> action) throws IOException {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean supportsRawStream() {
+            return false;
+        }
+
         private void closeEntry() {
             try {
                 inputStream.closeEntry();
