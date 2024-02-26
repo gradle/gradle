@@ -1,29 +1,44 @@
-# Instrumentation and bytecode upgrades infrastructure
+# Bytecode interception infrastructure: Instrumentation and bytecode upgrades
 
 
 ## Abstract
 
-This README describes the current state instrumentation and bytecode infrastructure used for configuration cache instrumentation and byte code upgrades used for property migration.
+This README describes the current state of bytecode interception infrastructure, used for configuration cache instrumentation and bytecode upgrades for property migration.
+
+
+## Naming
+
+The naming is hard.
+That is the case also for this infrastructure.
+In next section we will use next terms:
+1. We will use `bytecode instrumentation` when we talk about configuration cache bytecode instrumentation.
+2. We will use `bytecode upgrades` when we talk about Property or API upgrades.
+3. We will use `bytecode interception` when we talk about both bytecode instrumentation or bytecode upgrades.
+4. We will use `transformation` when we talk about applying some interception to to jars or classes or classpath.
+
+It is possible that in the code we use all these terms interchangeably, but we will try to be consistent in this document.
 
 
 ## Background
 
 With the introduction of configuration cache we got a requirement to track user inputs for the configuration phase. 
 Inputs could be environment variables, files, system properties and so on. 
-These inputs are often read via an API that Gradle doesn’t control, e.g. Java API via System.getenv().
+These inputs are often read via an API that Gradle doesn’t control, e.g. Java API via `System.getenv()`.
 
 So to track these inputs we had to find a way to track when they are accessed by intercepting API calls reading them. 
 And that is why we started instrumenting bytecode.
 
 Later, with a requirement to migrate Gradle core APIs to lazy properties, we were looking at how we could make old plugins compatible with new Gradle core APIs. 
-We decided that upgrading old compiled bytecode would work well. And reusing configuration cache bytecode instrumentation seemed like a good tool to reuse.
+We decided that upgrading old compiled bytecode would work well. 
+And reusing configuration cache bytecode instrumentation infrastructure seemed like a good idea.
 
-So configuration cache instrumentation and API upgrades are using the same infrastructure now.
+So configuration cache instrumentation and API upgrades are using the same infrastructure now, called bytecode interception infrastructure.
 
 
 ## Functional design
 
 Let's look at how bytecode interception works on an example of upgrading a JavaBean property to a lazy one.
+Configuration cache instrumentation works in the same way.
 
 Imagine we have in Gradle core a task:
 ```java
@@ -62,7 +77,7 @@ public void applyPlugin(Project project) {
 }
 ```
 
-We will then replace all such usages with bytecode instrumentation with:
+We will then replace all such usages with interception code:
 ```java
 public void applyPlugin(Project project) {
      project.tasks.named("compileJava", JavaCompile.class, task -> {
@@ -71,11 +86,11 @@ public void applyPlugin(Project project) {
 }
 ```
 
-Where `JavaCompileInterceptorsDeclaration` is a class defined by a Gradle developer to replace the original logic, and the replacement is done via bytecode instrumentation of plugin jars and dependencies.
+Where `JavaCompileInterceptorsDeclaration` is a class defined by a Gradle developer to replace the original logic, and the replacement is done by rewriting the bytecode of plugin jars and dependencies.
 
-Due to that Instrumentation and bytecode upgrades is split into two big parts:
+Due to that bytecode interception is split into two big parts:
 1. Gradle distribution build time: Interceptor code generation and Gradle API type metadata collection
-2. Gradle runtime: Actual bytecode instrumentation
+2. Gradle runtime: Actual bytecode replacement 
 
 `JavaCompileInterceptorsDeclaration` is defined by Gradle developer and with help of annotation processor Gradle then generates bytecode replacements. 
 The actual replacement happens when the user runs his Gradle build.
@@ -127,7 +142,7 @@ plugins {
 ```
 
 This will set up the annotation processor and all required compile time dependencies. 
-See the definition of a plugin: [gradlebuild.instrumented-project.gradle.kts](https://github.com/gradle/gradle/blob/master/build-logic/uber-plugins/src/main/kotlin/gradlebuild.instrumented-project.gradle.kts).
+See the definition of a plugin: [gradlebuild.instrumented-project.gradle.kts](../../build-logic/uber-plugins/src/main/kotlin/gradlebuild.instrumented-project.gradle.kts).
 
 
 ##### Manual Interceptor declaration
@@ -213,18 +228,18 @@ public static class SetSourceCompatibilityCallInterceptor extends CallIntercepto
 ```
 
 
-These two classes are then used when we instrument bytecode for Java and when we intercept calls at runtime for dynamic Groovy.
+These two classes are then used when we replace bytecode for Java and when we intercept calls at runtime for dynamic Groovy.
 
-For configuration cache instrumentation we use only manual interceptor declaration, while for property upgrades for using manual interceptors should be an exception. 
-Some examples for configuration cache instrumentation can be found in **org.gradle.internal.classpath.declarations **package, e.g. [FileInterceptorsDeclaration.java](https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/internal/classpath/declarations/FileInterceptorsDeclaration.java).
+For configuration cache instrumentation we use only manual interceptor declaration, while for property upgrades using manual interceptors should be an exception. 
+Some examples for configuration cache instrumentation can be found in **org.gradle.internal.classpath.declarations** package, e.g. [FileInterceptorsDeclaration.java](../../subprojects/core/src/main/java/org/gradle/internal/classpath/declarations/FileInterceptorsDeclaration.java).
 
 
-##### Property bytecode upgrade interceptor declaration
+##### Property bytecode upgrades declaration
 
 For the purpose of property bytecode upgrades we simplified the whole process and implemented another layer above manual interceptor declaration. 
-For bytecode upgrades you can then use just [@UpgradedProperty](https://github.com/gradle/gradle/blob/035803bc59b32422be5ff958c64cddbd439bbf89/platforms/core-runtime/internal-instrumentation-api/src/main/java/org/gradle/internal/instrumentation/api/annotations/UpgradedProperty.java#L29) annotation that does a lot of work for you.
+For bytecode upgrades you can then use just [@UpgradedProperty](./internal-instrumentation-api/src/main/java/org/gradle/internal/instrumentation/api/annotations/UpgradedProperty.java#L29) annotation that does a lot of work for you.
 
-With this property we can simplify instrumentation of source compatibility by using just:
+With this annotation we can simplify interception of source compatibility by using just:
 ```java
 abstract class JavaCompile {
     @Input
@@ -234,27 +249,18 @@ abstract class JavaCompile {
 ```
 
 
-And that will automatically generate a class similar to the one we defined in [Manual Interceptor declaration](#manual-interceptor-declaration).
-
-
-##### Upgrade properties manual for Gradle developers
-
-See also  to understand how the property upgrade process will work.
-
-
-#### Collecting **Gradle core **classes hierarchy and** metadata**
-
-TODO
+That will automatically generate a class similar to the one we defined in [Manual Interceptor declaration](#manual-interceptor-declaration).
 
 
 ### Gradle runtime
 
-When a user runs a Gradle build Gradle uses instrumented plugin jars. 
-The whole instrumentation normally happens on the use of a plugin jar, we transform the jar and cache instrumented jar for future use.
+When a user runs a Gradle build Gradle it uses transformed plugin jars. 
+The whole transformation process normally happens on the first use of a build or when a plugin jar is added to the build script classpath.
+We transform the jar and cache transformed jars for future use.
 
-We instrument plugins classpath, TestKit classpath and buildscript classes separately. 
-Plugins classpath, TestKit classpath are instrumented via Artifact transform, base logic is implemented in [BaseInstrumentingArtifactTransform.java](https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/api/internal/initialization/transform/BaseInstrumentingArtifactTransform.java). 
-Buildscripts for Kotlin and Groovy are instrumented via execution engine when they are compiled, base logic is in [BuildScriptCompileUnitOfWork.java](https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/internal/scripts/BuildScriptCompileUnitOfWork.java). 
+We transform plugins classpath, TestKit classpath and buildscript classes separately. 
+Plugins classpath, TestKit classpath are transformed via Artifact transform, base logic is implemented in [BaseInstrumentingArtifactTransform.java](https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/api/internal/initialization/transform/BaseInstrumentingArtifactTransform.java). 
+Buildscript classes for Kotlin and Groovy are transformed via execution engine when they are compiled, base logic is in [BuildScriptCompileUnitOfWork.java](https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/internal/scripts/BuildScriptCompileUnitOfWork.java). 
 The execution engine handles all the caching.
 
 ```mermaid
@@ -278,31 +284,25 @@ flowchart TB
 ```
 
 
+#### Transformation of plugins classpath
 
-#### Instrumentation of plugins classpath
-
-The instrumentation of plugins classpath is done with Artifact transforms. 
+The transformation of plugins classpath is done with Artifact transforms. 
 The code that does all the transforms can be found in the [DefaultScriptClassPathResolver.java](https://github.com/gradle/gradle/blob/18d4dbb606a3be8a7c3f3d6120b1c2a5e7d64f53/subprojects/core/src/main/java/org/gradle/api/internal/initialization/DefaultScriptClassPathResolver.java#L75-L120). 
-The schema below shows how runtime classpath is transformed to upgrade classpath via “Extract type hierarchy” and “Instrument + upgrade transform” and "Instrument only" transform. 
-In this context "instrument" means instrument for configuration cache and “upgrade” means "API upgrade".
+We have a separate pipeline for project dependencies and external dependencies as shown in the flowchart below. 
 
+We have different pipelines since project dependencies are only instrumented, while external dependencies are instrumented and upgraded.
 
 ```mermaid
 flowchart LR
     classpath(Plugins classpath)
-    extraction{{"Extract type hierarchy\n(Artifact transform)"}}
-    typeHierarchy(Type hierarchy)
-    gradleCoreHierarchy(Gradle core type hierarchy)
-    instrumentAndUpgrade{{"Instrument and upgrade\n(Artifact transform)"}}
-    instrumentOnly{{"Instrument only\n(Artifact transform)"}}
+    instrumentAndUpgrade{{"Instrument and upgrade"}}
+    instrumentOnly{{"Instrument only"}}
     instrumentedAndUpgradedClasspath(Plugins classpath*)
     externalJar1(External jar1)
     externalJar1_2(External jar1)
-    externalJar1_3(External jar1)
     modifiedExternalJar1(External jar1*)
     externalJar2(External jar2)
     externalJar2_2(External jar2)
-    externalJar2_3(External jar2)
     modifiedExternalJar2(External jar2*)
     projectJar(Project jar)
     projectJar_2(Project jar)
@@ -314,20 +314,14 @@ flowchart LR
         externalJar2
         projectJar
     end
-    
-    subgraph External dependencies types
-        extraction
-        externalJar1_3
-        externalJar2_3
-    end
 
-    subgraph External dependencies
+    subgraph External dependencies pipeline
         instrumentAndUpgrade
         externalJar1_2
         externalJar2_2
     end
 
-    subgraph Project dependencies
+    subgraph Project dependencies pipeline
         instrumentOnly
         projectJar_2
     end
@@ -338,42 +332,73 @@ flowchart LR
         modifiedExternalJar2
         modifiedProjectJar
     end
-    
-    gradleCoreHierarchy --> typeHierarchy
-    classpath --> extraction --> typeHierarchy --> instrumentAndUpgrade
+
     classpath --> instrumentAndUpgrade --> instrumentedAndUpgradedClasspath
     classpath --> instrumentOnly --> instrumentedAndUpgradedClasspath
 ```
 
 
-Third party dependencies are instrumented and upgraded in two steps:
-1. We extract type hierarchy
-2. We instrument and upgrade jars with interceptors
+External dependencies are instrumented and upgraded in three steps:
+1. We analyze the type hierarchy and class dependencies for every artifact
+2. We merge analysis data and produce dependencies and its super types
+3. We instrument and upgrade jars with interceptors
 
-The type hierarchy extraction is important for API upgrades, since classes can extend one another, e.g. users can define MyJavaCompile extends JavaCompile, and to intercept MyJavaCompile we need to know the whole class hierarchy.
+The flowchart below shows detailed view of the external dependencies pipeline:
+```mermaid
+flowchart TB
+    jar(Original Jar)
+    collect{{"Analyze artifact\n(Artifact transform)"}}
+    merge{{"Merge analysis/hierarchies data\n(Artifact transform)"}}
+    instrument{{"Instrument and upgrade\n(Artifact transform)"}}
+    typeHierarchy(Classpath with all super types)
+    artifactOutput("1. Artifact metadata: hash, name\n2. Direct Super types\n3. Class dependencies")
+    originalClasspath(Original classpath)
+    originalClasspathInput("Original classpath as input:\nto recalculate Resolve supertypes\nstep on classpath change")
+    metadata("1. Artifact metadata: hash, name\n2. Dependencies instrumented type hierarchy")
+    result("1. Transformed jar\n2. hash of original jar")
+    buildService1[["Build service 1:\nused to provide type hierarchies of \ndependencies"]]
+    buildService2[["Build service 2:\nused to get original Jar\nvia hash from original classpath"]]
+    jar --> collect --> artifactOutput --> merge --> metadata --> instrument --> result
+    collect --> typeHierarchy --> buildService1
+    originalClasspathInput --> merge
+    buildService1 --> merge
+    originalClasspath --> buildService2 --> instrument
+```
 
-The project dependencies (e.g. buildSrc, included plugins) are instrumented in one step:
+The analysis of type hierarchy and class dependencies is important for API upgrades, since classes can extend one another. 
+E.g. users can define MyJavaCompile extends JavaCompile, and to intercept MyJavaCompile we need to know the whole class hierarchy.
+
+The project dependencies (e.g. buildSrc, included plugins) are only instrumented in one step:
 1. We instrument jars with interceptors
 
-For project dependencies we don’t need any API upgrade, that is why we only do configuration cache instrumentation. 
-We also don’t need to do discovery of types etc.
+See the flowchart below for project dependencies pipeline:
+```mermaid
+flowchart TB
+    jar(Original Jar)
+    instrument{{"Instrument only\n(Artifact transform)"}}
+    result("1. Transformed jar\n2. Original jar")
+    
+    jar --> instrument --> result
+```
+
+For project dependencies we don’t need any API upgrade since project dependencies are always compiled with the same Gradle version. 
 
 
-#### Instrumentation of TestKit classpath overview
+#### Transformation of TestKit classpath overview
 
 TestKit classpath gets injected via [DefaultInjectedClasspathPluginResolver.java](https://github.com/gradle/gradle/blob/18d4dbb606a3be8a7c3f3d6120b1c2a5e7d64f53/platforms/extensibility/plugin-use/src/main/java/org/gradle/plugin/use/resolve/service/internal/DefaultInjectedClasspathPluginResolver.java#L38). 
 This classpath is separated from the plugins classpath defined in build script. 
-But we reuse the same mechanism as described in [Instrumentation of plugins classpath](#instrumentation-of-plugins-classpath) by reusing [DefaultScriptClassPathResolver](https://github.com/gradle/gradle/blob/18d4dbb606a3be8a7c3f3d6120b1c2a5e7d64f53/subprojects/core/src/main/java/org/gradle/api/internal/initialization/DefaultScriptClassPathResolver.java#L75-L120).
+But we reuse the same mechanism as described in [Transformation of plugins classpath](#transformation-of-plugins-classpath) by reusing [DefaultScriptClassPathResolver](https://github.com/gradle/gradle/blob/18d4dbb606a3be8a7c3f3d6120b1c2a5e7d64f53/subprojects/core/src/main/java/org/gradle/api/internal/initialization/DefaultScriptClassPathResolver.java#L75-L120).
 
 The main difference here is, that all dependencies are files, so we cannot do any smart resolution, all files on the classpath are treated as third party dependencies.
 
 
-#### Instrumentation of build scripts overview
+#### Transformation of build scripts overview
 
-Instrumentation of build scripts is relatively simple and happens in the same execution unit of work as compilation.
+Transformation of build scripts is relatively simple and happens in the same execution unit of work as compilation.
 
 ```mermaid
-flowchart LR
+flowchart TB
     sources(Buildscript sources)
     compileAndInstrument{{"Compile and instrument\n(Execution engine)"}}
     classes(Buildscript classes*)
@@ -381,12 +406,12 @@ flowchart LR
     sources --> compileAndInstrument --> classes
 ```
 
-#### Closer look at instrumentation of an individual Jars or class directories
+#### Closer look at transformation of an individual Jars or class directories
 
-Instrumentation is done by modifying the bytecode of the plugin's jar or class directory. 
-This is true for configuration cache instrumentation and for API bytecode upgrades.
+Transformation is done by modifying the bytecode of the plugin's jar or class directory. 
+This is true for configuration cache instrumentation and for the API bytecode upgrades.
 
-We instrument every class of a jar with the ASM ClassVisitor. 
+We transform every class of a jar with the ASM ClassVisitor. 
 The main class with the class level instrumentation logic is [InstrumentingClassTransform.java](https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/internal/classpath/transforms/InstrumentingClassTransform.java). 
 This class then:
 1. Discovers all interceptors via Java SPI by calling methods on [CallInterceptorRegistry.java](https://github.com/gradle/gradle/blob/903bd5ceebe212429a7c127704bf4779a7e1385d/subprojects/core/src/main/java/org/gradle/internal/classpath/intercept/CallInterceptorRegistry.java#L30)
@@ -426,14 +451,3 @@ flowchart TB
     Injected --> instrumentingClassTransform
     
 ```
-
-
-
-##### Jvm instrumentation details
-
-TODO
-
-
-##### Groovy instrumentation details
-
-TODO
