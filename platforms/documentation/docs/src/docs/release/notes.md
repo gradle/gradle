@@ -55,12 +55,12 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 #### Ability to set conventions on file collections
 
 Plugin-provided tasks often expose file collections that are meant to be customizable by build engineers (for instance, the classpath for the JavaCompile task).
-Up to now, in order for plugin authors to define default values for file collections, they had to resort to configuring those defaults as initial values.
+Up until now, for plugin authors to define default values for file collections, they have had to resort to configuring those defaults as initial values.
 Conventions provide a better model for that: plugin authors recommend default values via conventions, and users choose to accept, add on top, or completely 
 replace them when defining their actual value.
 
 This release introduces a  pair of [`convention(...)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#convention-java.lang.Object...-) methods 
-on `ConfigurableFileCollection` that define the default value of a file collection, if no explicit value is previously set via `setFrom(...)` or `from(...)`.
+on `ConfigurableFileCollection` that define the default value of a file collection if no explicit value is previously set via `setFrom(...)` or `from(...)`.
 
 ```kotlin
 val files = objects.fileCollection().convention("dir1")
@@ -69,9 +69,9 @@ files.from("dir2")
 println(files.elements.get()) // [.../dir1, .../dir2]
 ```
 
-`#from(...)` will honor the convention if one is configured at the time it is invoked, so the order of operations will matter. 
+`#from(...)` will honor the convention if one is configured when invoked, so the order of operations will matter. 
 
-In order to forcefully override or prevent a convention (i.e., regardless the order of those operations), one should use `#setFrom()` instead:
+To forcefully override or prevent a convention (i.e., regardless of the order of those operations), one should use `#setFrom()` instead:
 
 ```kotlin
 val files = objects.fileCollection().convention("dir1")
