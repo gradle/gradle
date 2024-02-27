@@ -451,3 +451,20 @@ flowchart TB
     Injected --> instrumentingClassTransform
     
 ```
+
+#### Dynamic Groovy interception
+
+Dynamic Groovy interception is a bit more complicated than Java interception, since types are resolved dynamically.
+Due to that interception happens in two stages:
+1. Bytecode transformation
+2. Runtime interception
+
+Bytecode transformation is done in the same way as for Java, but we intercept special call like `CallSiteArray.$createCallSiteArray` or `IndyInterface.bootstrap()`.
+Additionally, to that we also transform `ScriptBytecodeAdapter`, see [GroovyDynamicDispatchInterceptors.java](../../subprojects/core/src/main/java/org/gradle/internal/classpath/declarations/GroovyDynamicDispatchInterceptors.java),
+and all `doCall` methods, see [CallInterceptionClosureInstrumentingClassVisitor.java](../../subprojects/core/src/main/java/org/gradle/internal/classpath/CallInterceptionClosureInstrumentingClassVisitor.java) where we intercept code in closures.
+
+These methods are then decorated and modified in a way that our generated dynamic Groovy interceptors are then correctly called for appropriate methods/properties at runtime.
+Interceptor that are called at runtime then check for the correct type and based on that invoke decorated method or fallback to original.
+
+Since we have to intercept many different methods for dynamic Groovy, implementation is much more complicated than interception for Java or Kotlin.
+
