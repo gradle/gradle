@@ -30,6 +30,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements GradleEnterprisePluginBackgroundJobExecutors {
     private final ManagedExecutor executorService = createExecutor();
@@ -62,9 +63,17 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
     }
 
     private void runWithInputTrackingDisabled(Runnable job) {
+        withConfigurationInputTrackingDisabled(() -> {
+            job.run();
+            return null;
+        });
+    }
+
+    @Override
+    public <T> T withConfigurationInputTrackingDisabled(Supplier<T> supplier) {
         inputTrackingState.disableForCurrentThread();
         try {
-            job.run();
+            return supplier.get();
         } finally {
             inputTrackingState.restoreForCurrentThread();
         }

@@ -253,20 +253,11 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
     }
 
     @Requires(IntegTestPreconditions.IsConfigCached)
-    def "configuration inputs are not tracked for the job"() {
+    def "configuration inputs are not tracked for #configRunner"() {
         def configurationCache = new ConfigurationCacheFixture(this)
-
         given:
         buildFile << """
-            import ${CompletableFuture.name}
-
-            def executors = $executors
-            def future = CompletableFuture.runAsync({
-                println "backgroundJob.property = \${System.getProperty("property")}"
-            }, executors.userJobExecutor)
-
-            // Block until the job completes to ensure it run at the configuration time.
-            future.get()
+            ${configRunner.run('println "backgroundJob.property = ${System.getProperty("property")}"')}
 
             task check {}
         """
@@ -283,25 +274,20 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
 
         then:
         configurationCache.assertStateLoaded()
+
+        where:
+        configRunner << ConfigurationRunner.values()
     }
 
     @Requires(IntegTestPreconditions.IsConfigCached)
     @ToBeImplemented("https://github.com/gradle/gradle/issues/25474")
-    def "value sources are not tracked for the job"() {
+    def "value sources are not tracked for #configRunner"() {
         def configurationCache = new ConfigurationCacheFixture(this)
 
         given:
         buildFile << """
-            import ${CompletableFuture.name}
-
-            def executors = $executors
             def propertyProvider = providers.systemProperty("property")
-            def future = CompletableFuture.runAsync({
-                println "backgroundJob.property = \${propertyProvider.get()}"
-            }, executors.userJobExecutor)
-
-            // Block until the job completes to ensure it run at the configuration time.
-            future.get()
+            ${configRunner.run('println "backgroundJob.property = ${propertyProvider.get()}"')}
 
             task check {}
         """
@@ -323,24 +309,19 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         //  listeners.
         configurationCache.assertStateStored() // TODO: replace with .assertStateLoaded() once the above is implemented
         outputContains("backgroundJob.property = other")
+
+        where:
+        configRunner << ConfigurationRunner.values()
     }
 
     @Requires(IntegTestPreconditions.IsConfigCached)
-    def "value sources are tracked if also accessed outside the job"() {
+    def "value sources are tracked if also accessed outside #configRunner"() {
         def configurationCache = new ConfigurationCacheFixture(this)
 
         given:
         buildFile << """
-            import ${CompletableFuture.name}
-
-            def executors = $executors
             def propertyProvider = providers.systemProperty("property")
-            def future = CompletableFuture.runAsync({
-                println "backgroundJob.property = \${propertyProvider.get()}"
-            }, executors.userJobExecutor)
-
-            // Block until the job completes to ensure it run at the configuration time.
-            future.get()
+            ${configRunner.run('println "backgroundJob.property = ${propertyProvider.get()}"')}
 
             println "buildscript.property = \${propertyProvider.get()}"
 
@@ -362,23 +343,20 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         outputContains("backgroundJob.property = other")
         outputContains("buildscript.property = other")
         configurationCache.assertStateStored()
+
+        where:
+        configRunner << ConfigurationRunner.values()
     }
 
-    def "background job can execute external process with process API at configuration time"() {
+    def "#configRunner can execute external process with process API at configuration time"() {
         given:
         ShellScript script = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
 
         buildFile << """
-            import ${CompletableFuture.name}
-
-            def executors = $executors
-            def future = CompletableFuture.runAsync({
+            ${configRunner.run("""
                 def process = ${ShellScript.cmdToStringLiteral(script.getRelativeCommandLine(testDirectory))}.execute()
                 process.waitForProcessOutput(System.out, System.err)
-            }, executors.userJobExecutor)
-
-            // Block until the job completes to ensure it run at the configuration time.
-            future.get()
+            """)}
 
             task check {}
         """
@@ -388,14 +366,16 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
 
         then:
         outputContains("Hello, world")
+
+        where:
+        configRunner << ConfigurationRunner.values()
     }
 
-    def "background job can execute external process with Gradle API at configuration time"() {
+    def "#configRunner can execute external process with Gradle API at configuration time"() {
         given:
         ShellScript script = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
 
         buildFile << """
-            import ${CompletableFuture.name}
             import ${Inject.name}
 
             interface ExecOperationsGetter {
@@ -404,15 +384,11 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
 
             def execOperations = objects.newInstance(ExecOperationsGetter).execOps
 
-            def executors = $executors
-            def future = CompletableFuture.runAsync({
+            ${configRunner.run("""
                 execOperations.exec {
                     commandLine(${ShellScript.cmdToVarargLiterals(script.getRelativeCommandLine(testDirectory))})
                 }
-            }, executors.userJobExecutor)
-
-            // Block until the job completes to ensure it run at the configuration time.
-            future.get()
+            """)}
 
             task check {}
         """
@@ -422,9 +398,53 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
 
         then:
         outputContains("Hello, world")
+
+        where:
+        configRunner << ConfigurationRunner.values()
     }
 
-    private static String getExecutors() {
+    enum ConfigurationRunner {
+        IN_BACKGROUND("background job") {
+            @Override
+            String run(String code) {
+                """
+                    def executors = ${GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest.executors}
+                    def future = ${CompletableFuture.name}.runAsync({
+                        ${code}
+                    }, executors.userJobExecutor)
+
+                    // Block until the job completes to ensure it run at the configuration time.
+                    future.get()
+                """
+            }
+        },
+        INPUT_TRACKING_DISABLED("withConfigurationInputTrackingDisabled") {
+            @Override
+            String run(String code) {
+                """
+                    def executors = ${GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest.executors}
+                    executors.withConfigurationInputTrackingDisabled {
+                        $code
+                    }
+                """
+            }
+        }
+
+        private final String description
+
+        ConfigurationRunner(String description) {
+            this.description = description
+        }
+
+        abstract String run(String code)
+
+        @Override
+        String toString() {
+            description
+        }
+    }
+
+    static String getExecutors() {
         return """(gradle.extensions.serviceRef.get()._requiredServices.backgroundJobExecutors)"""
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.function.Supplier;
 
 /**
  * Provides executors to run jobs in the background workers. The implementation is provided by Gradle.
@@ -45,6 +46,15 @@ public interface GradleEnterprisePluginBackgroundJobExecutors {
      * @return an instance of Executor
      */
     Executor getUserJobExecutor();
+
+    /**
+     * Run some code without tracking its inputs.
+     * <p>
+     * All code that during {@code supplier.get()} is exempt from configuration input tracking.
+     * That code can for example read files from disk or system properties at configuration time without
+     * them becoming a configuration input.
+     */
+    <T> T withConfigurationInputTrackingDisabled(Supplier<T> supplier);
 
     /**
      * Returns {@code true} if the current thread is running the background job submitted to one of executors owned by this class.
