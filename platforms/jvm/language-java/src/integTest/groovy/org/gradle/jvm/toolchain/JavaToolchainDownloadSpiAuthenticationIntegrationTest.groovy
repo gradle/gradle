@@ -80,7 +80,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
                     "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
                     "({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '$archiveUri', " +
                     "due to: Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
-                    "A problem occurred starting process 'command '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain", "bin", "java") + "'').")
+                    "A problem occurred starting process 'command '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain", "bin", "java"))
     }
 
     def "can download with basic authentication"() {
@@ -138,6 +138,6 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
                 "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
                 "({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '$archiveUri', " +
                 "due to: Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
-                "A problem occurred starting process 'command '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain", "bin", "java") + "'').")
+                "A problem occurred starting process 'command '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain", "bin", "java"))
     }
 }
