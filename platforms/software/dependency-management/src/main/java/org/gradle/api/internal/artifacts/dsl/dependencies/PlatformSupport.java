@@ -24,8 +24,10 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.ComponentVariant;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -50,8 +52,9 @@ public class PlatformSupport {
         return regularPlatform;
     }
 
-    public void configureSchema(AttributesSchema attributesSchema) {
+    public void configureSchema(AttributesSchemaInternal attributesSchema) {
         configureCategoryDisambiguationRule(attributesSchema);
+        attributesSchema.addFailureDescriber(IncompatibleGraphVariantFailure.class, TargetJVMVersionTooHighFailureDescriber.class);
     }
 
     private void configureCategoryDisambiguationRule(AttributesSchema attributesSchema) {

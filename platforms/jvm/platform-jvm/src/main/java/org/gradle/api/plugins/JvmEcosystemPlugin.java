@@ -18,15 +18,17 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.TargetJVMVersionTooHighFailureDescriber;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
 
 import javax.inject.Inject;
 
@@ -61,13 +63,13 @@ public abstract class JvmEcosystemPlugin implements Plugin<Project> {
         metadataHandler.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance());
     }
 
-
     private void configureSchema(ProjectInternal project) {
-        AttributesSchema attributesSchema = project.getDependencies().getAttributesSchema();
+        AttributesSchemaInternal attributesSchema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
         JavaEcosystemSupport.configureSchema(attributesSchema, objectFactory);
+        attributesSchema.addFailureDescriber(IncompatibleGraphVariantFailure.class, TargetJVMVersionTooHighFailureDescriber.class);
+
         project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
             .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME))
             .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
     }
-
 }

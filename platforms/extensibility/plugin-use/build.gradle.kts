@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":build-option"))
     implementation(project(":problems-api"))
     implementation(project(":functional"))
+    implementation(project(":platform-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
