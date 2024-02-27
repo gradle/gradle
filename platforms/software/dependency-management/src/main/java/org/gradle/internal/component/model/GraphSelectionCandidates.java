@@ -36,9 +36,4 @@ public interface GraphSelectionCandidates {
      */
     @Nullable
     ConfigurationGraphResolveState getLegacyConfiguration();
-
-    /**
-     * The set of consumable configurations available. Used for diagnostics.
-     */
-    List<? extends ConfigurationGraphResolveMetadata> getCandidateConfigurations();
 }
