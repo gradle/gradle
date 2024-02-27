@@ -49,23 +49,23 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         ClasspathFileHasher classpathFileHasher,
         ClasspathElementTransformFactory classpathElementTransformFactory,
         ClassTransform transform,
-        GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry
+        GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry
     ) {
         this.fileLockManager = fileLockManager;
 
         this.fileHasher = createFileHasherWithConfig(
-            configHashFor(classpathElementTransformFactory, transform, gradleCoreInstrumentingTypeRegistry),
+            configHashFor(classpathElementTransformFactory, transform, gradleCoreInstrumentationTypeRegistry),
             classpathFileHasher);
         this.classpathElementTransformFactory = classpathElementTransformFactory;
         this.transform = transform;
     }
 
-    private static HashCode configHashFor(ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform, GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+    private static HashCode configHashFor(ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform, GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
         hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
-        gradleCoreInstrumentingTypeRegistry.getInstrumentedTypesHash().ifPresent(hasher::putHash);
-        gradleCoreInstrumentingTypeRegistry.getUpgradedPropertiesHash().ifPresent(hasher::putHash);
+        gradleCoreInstrumentationTypeRegistry.getInstrumentedTypesHash().ifPresent(hasher::putHash);
+        gradleCoreInstrumentationTypeRegistry.getUpgradedPropertiesHash().ifPresent(hasher::putHash);
         classpathElementTransformFactory.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();

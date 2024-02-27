@@ -48,7 +48,7 @@ public abstract class InjectedInstrumentationServices {
     public abstract FileSystemAccess getFileSystemAccess();
 
     @Inject
-    public abstract GradleCoreInstrumentationTypeRegistry getGradleCoreInstrumentingTypeRegistry();
+    public abstract GradleCoreInstrumentationTypeRegistry getGradleCoreInstrumentationTypeRegistry();
 
     @Inject
     public abstract GlobalCacheLocations getGlobalCacheLocations();

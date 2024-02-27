@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Creates {@link InstrumentationTypeRegistry} instances for given urls or files.
  */
-public interface InstrumentingTypeRegistryFactory {
+public interface InstrumentationTypeRegistryFactory {
     InstrumentationTypeRegistry createFor(Collection<URL> urls, ClasspathFileTransformer transformer);
     InstrumentationTypeRegistry createFor(List<File> files, ClasspathFileTransformer transformer);
 }

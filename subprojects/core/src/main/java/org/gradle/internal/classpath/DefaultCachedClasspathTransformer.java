@@ -32,7 +32,7 @@ import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.DefaultInstrumentationTypeRegistryFactory;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistryFactory;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistryFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -72,7 +72,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final AgentStatus agentStatus;
     private final ManagedExecutor executor;
     private final ParallelTransformExecutor parallelTransformExecutor;
-    private final InstrumentingTypeRegistryFactory typeRegistryFactory;
+    private final InstrumentationTypeRegistryFactory typeRegistryFactory;
     private final GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentingRegistry;
     private final ClasspathElementTransformFactoryForAgent classpathElementTransformFactoryForAgent;
     private final ClasspathElementTransformFactoryForLegacy classpathElementTransformFactoryForLegacy;

@@ -57,14 +57,14 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
-    public InstrumentationTypeRegistry getInstrumentingTypeRegistry(long contextId) {
-        InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.get().getGradleCoreInstrumentingTypeRegistry();
+    public InstrumentationTypeRegistry getInstrumentationTypeRegistry(long contextId) {
+        InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.get().getGradleCoreInstrumentationTypeRegistry();
         if (!Boolean.getBoolean(GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY) && gradleCoreInstrumentationTypeRegistry.isEmpty()) {
             // In case core types registry is empty, it means we don't have any upgrades
             // in Gradle core, so we can return empty registry
             return InstrumentationTypeRegistry.empty();
         }
-        return getResolutionData(contextId).getInstrumentingTypeRegistry();
+        return getResolutionData(contextId).getInstrumentationTypeRegistry();
     }
 
     /**
@@ -121,7 +121,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     }
 
     abstract static class ResolutionData {
-        private final Lazy<InstrumentationTypeRegistry> instrumentingTypeRegistry;
+        private final Lazy<InstrumentationTypeRegistry> instrumentationTypeRegistry;
         private final Lazy<Map<String, File>> hashToOriginalFile;
         private final Map<File, String> hashCache;
         private final InjectedInstrumentationServices internalServices;
@@ -139,10 +139,10 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
                 });
                 return originalFiles;
             });
-            this.instrumentingTypeRegistry = Lazy.locking().of(() -> {
-                InstrumentationTypeRegistry gradleCoreInstrumentingTypeRegistry = internalServices.getGradleCoreInstrumentingTypeRegistry();
+            this.instrumentationTypeRegistry = Lazy.locking().of(() -> {
+                InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry = internalServices.getGradleCoreInstrumentationTypeRegistry();
                 Map<String, Set<String>> directSuperTypes = readDirectSuperTypes();
-                return new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentingTypeRegistry);
+                return new ExternalPluginsInstrumentationTypeRegistry(directSuperTypes, gradleCoreInstrumentationTypeRegistry);
             });
             this.internalServices = internalServices;
         }
@@ -160,8 +160,8 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));
         }
 
-        public InstrumentationTypeRegistry getInstrumentingTypeRegistry() {
-            return instrumentingTypeRegistry.get();
+        public InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
+            return instrumentationTypeRegistry.get();
         }
 
         @Nullable

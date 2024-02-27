@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * InstrumentingTypeRegistry for checking type information for external plugins.
+ * {@link InstrumentationTypeRegistry} for checking type information for external plugins.
  * It combines data of direct super types that when visiting external plugins classes and Gradle core types data, to calculated final information for external types.
  */
 public class ExternalPluginsInstrumentationTypeRegistry implements InstrumentationTypeRegistry {

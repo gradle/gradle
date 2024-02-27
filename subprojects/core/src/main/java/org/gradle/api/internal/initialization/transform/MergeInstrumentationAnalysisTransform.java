@@ -118,6 +118,6 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
     private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
         long contextId = getParameters().getContextId().get();
         CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
-        return buildService.getInstrumentingTypeRegistry(contextId);
+        return buildService.getInstrumentationTypeRegistry(contextId);
     }
 }

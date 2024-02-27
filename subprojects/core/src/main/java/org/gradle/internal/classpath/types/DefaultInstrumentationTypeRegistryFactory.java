@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DefaultInstrumentationTypeRegistryFactory implements InstrumentingTypeRegistryFactory {
+public class DefaultInstrumentationTypeRegistryFactory implements InstrumentationTypeRegistryFactory {
 
     private final InstrumentationTypeRegistry gradleCoreInstrumentingRegistry;
     private final InstrumentingDirectSuperTypesCollector directSuperTypesCollector;
