@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.api.internal.initialization.transform;
 
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+public class InstrumentationArtifactMetadata {
 
-import java.io.File;
+    private final String artifactName;
+    private final String artifactHash;
 
-public interface ClasspathFileTransformer {
-    File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentationTypeRegistry typeRegistry);
+    public InstrumentationArtifactMetadata(String artifactName, String artifactHash) {
+        this.artifactName = artifactName;
+        this.artifactHash = artifactHash;
+    }
 
-    ClasspathFileHasher getFileHasher();
+    public String getArtifactName() {
+        return artifactName;
+    }
+
+    public String getArtifactHash() {
+        return artifactHash;
+    }
 }
