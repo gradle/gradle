@@ -20,6 +20,7 @@ import org.gradle.internal.logging.console.DefaultUserInputReceiver
 import org.gradle.launcher.daemon.protocol.CloseInput
 import org.gradle.launcher.daemon.protocol.ForwardInput
 import org.gradle.launcher.daemon.protocol.UserResponse
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.ConcurrentSpecification
 
 import java.util.concurrent.LinkedBlockingQueue
@@ -91,6 +92,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         receiveClosed()
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4131")
     def "one line of text is forwarded as user response"() {
         when:
         source << toPlatformLineSeparators("abc\n")
