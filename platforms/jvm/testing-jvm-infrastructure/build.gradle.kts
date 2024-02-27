@@ -34,10 +34,15 @@ dependencies {
 
     api(libs.jsr305)
     api(libs.junit)
-    api(libs.testng)
+    api(libs.testng) {
+        exclude(libs.bsh)
+    }
+    api(libs.bsh) {
+        because("Used by TestNG, needs to remain on the compile classpath to constrain the selected bsh version to the one we want (2.0b6)")
+    }
 
-    implementation(libs.slf4jApi)
     implementation(libs.commonsLang)
+    implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
@@ -59,4 +64,12 @@ dependencies {
     testFixturesImplementation(libs.junit)
     testFixturesImplementation(libs.testng)
     testFixturesImplementation(libs.bsh)
+}
+
+dependencyAnalysis {
+    issues {
+        onAny() {
+            exclude(libs.bsh)
+        }
+    }
 }
