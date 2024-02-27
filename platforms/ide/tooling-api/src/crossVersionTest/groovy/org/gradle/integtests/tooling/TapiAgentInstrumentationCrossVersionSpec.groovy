@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.agents
+package org.gradle.integtests.tooling
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
