@@ -231,7 +231,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             return false;
         }
         if (isLinuxWithMusl()) {
-            LOGGER.info("Linux with musl libc detected, disabling native services");
+            LOGGER.debug("Native-platform is not available on Linux with musl libc.");
             return false;
         }
         return true;
