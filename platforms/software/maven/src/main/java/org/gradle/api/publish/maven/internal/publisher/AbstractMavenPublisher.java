@@ -73,9 +73,8 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         SnapshotMetadataResult snapshotMetadataResult = computeSnapshotMetadata(publication, repository, localRepo, version, artifactPublisher, groupId, artifactId);
 
         if (snapshotMetadataResult != null && !localRepo) {
-            // Use the timestamped version for all published artifacts:
-            // The timestamped version is hidden deep in `Metadata.versioning.snapshotVersions`
-            artifactPublisher.artifactVersion = snapshotMetadataResult.snapshotMetadata.getVersioning().getSnapshotVersions().get(0).getVersion();
+            // Use the timestamped version for all published artifacts
+            artifactPublisher.artifactVersion = snapshotMetadataResult.getVersion();
         }
 
         publishArtifactsAndMetadata(publication, artifactPublisher);
@@ -201,6 +200,15 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         public SnapshotMetadataResult(ExternalResourceName snapshotMetadataPath, Metadata snapshotMetadata) {
             this.snapshotMetadataPath = snapshotMetadataPath;
             this.snapshotMetadata = snapshotMetadata;
+        }
+
+        /**
+         * The timestamped version is hidden deep in `Metadata.versioning.snapshotVersions`
+         *
+         * @return The snapshot timestamped version
+         */
+        public String getVersion() {
+            return snapshotMetadata.getVersioning().getSnapshotVersions().get(0).getVersion();
         }
     }
 
