@@ -41,7 +41,10 @@ import java.util.stream.Collectors;
  * A {@link ResolutionFailureDescriber} that describes a {@link ResolutionFailure} caused by a requested component
  * requiring a higher JVM version than the current build is using.
  *
- * This is determined by assessing the incompatibility of the {@link TargetJvmVersion#TARGET_JVM_VERSION_ATTRIBUTE} attribute.
+ * This is determined by assessing the incompatibility of the {@link TargetJvmVersion#TARGET_JVM_VERSION_ATTRIBUTE}
+ * attribute and comparing the provided JVM version with the current JVM version.  Note that the requested
+ * JVM version is <strong>NOT</strong> relevant to this failure - it's about an incompatibility
+ * due to the candidate's JVM version being too high to work on this JVM, regardless of the requested version.
  */
 public abstract class TargetJVMVersionTooHighFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleGraphVariantFailure> {
     private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "%s requires at least a Java %s JVM. This build uses a Java %s JVM.";
@@ -50,12 +53,17 @@ public abstract class TargetJVMVersionTooHighFailureDescriber extends AbstractRe
 
     @Override
     public boolean canDescribeFailure(IncompatibleGraphVariantFailure failure) {
-        return allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(failure);
+        if (allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(failure)) {
+            JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
+            return minJVMVersionSupported.compareTo(currentJVMVersion) > 0;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public AbstractResolutionFailureException describeFailure(IncompatibleGraphVariantFailure failure, Optional<AttributesSchemaInternal> schema) {
-        JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates());
+        JavaVersion minJVMVersionSupported = findMinJVMSupported(failure.getCandidates()).orElseThrow(IllegalStateException::new);
         String message = buildNeedsNewerJDKFailureMsg(failure.getRequestedName(), minJVMVersionSupported);
         List<String> resolutions = buildResolutions(suggestUpdateJVM(minJVMVersionSupported));
         return new VariantSelectionException(message, failure, resolutions);
@@ -98,14 +106,13 @@ public abstract class TargetJVMVersionTooHighFailureDescriber extends AbstractRe
         return attribute.getAttribute().getName().equals(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.getName());
     }
 
-    private JavaVersion findMinJVMSupported(List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+    private Optional<JavaVersion> findMinJVMSupported(List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
         return candidates.stream()
             .filter(this::isLibraryCandidate)
             .map(this::findMinJVMSupported)
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .min(Comparator.comparing(JavaVersion::getMajorVersion))
-            .orElseThrow(IllegalStateException::new);
+            .min(Comparator.comparing(JavaVersion::getMajorVersion));
     }
 
     private Optional<JavaVersion> findMinJVMSupported(ResolutionCandidateAssessor.AssessedCandidate candidate) {
