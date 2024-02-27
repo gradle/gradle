@@ -237,6 +237,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return true;
     }
 
+    /**
+     * Our native libraries don't currently support musl libc.
+     * See <a href="https://github.com/gradle/gradle/issues/24875">#24875</a>.
+     */
     private static boolean isLinuxWithMusl() {
         if (!OperatingSystem.current().isLinux()) {
             return false;
