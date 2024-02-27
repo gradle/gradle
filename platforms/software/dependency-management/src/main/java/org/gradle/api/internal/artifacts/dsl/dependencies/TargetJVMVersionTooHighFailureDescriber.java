@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
@@ -46,7 +47,7 @@ public abstract class TargetJVMVersionTooHighFailureDescriber extends AbstractRe
 
     @Override
     public boolean canDescribeFailure(IncompatibleGraphVariantFailure failure) {
-        return allCandidatesIncompatibleDueToJVMVersionTooLow(failure);
+        return allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(failure);
     }
 
     @Override
@@ -57,12 +58,22 @@ public abstract class TargetJVMVersionTooHighFailureDescriber extends AbstractRe
         return new VariantSelectionException(message, failure, resolutions);
     }
 
-    private boolean allCandidatesIncompatibleDueToJVMVersionTooLow(IncompatibleResolutionFailure failure) {
+    private boolean allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(IncompatibleResolutionFailure failure) {
         boolean requestingJDKVersion = failure.getRequestedAttributes().contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
         boolean allIncompatibleDueToJDKVersion = failure.getCandidates().stream()
+            .filter(this::isLibraryCandidate)
             .allMatch(candidate -> candidate.getIncompatibleAttributes().stream()
                 .anyMatch(this::isJVMVersionAttribute));
         return requestingJDKVersion && allIncompatibleDueToJDKVersion;
+    }
+
+    private boolean isLibraryCandidate(ResolutionCandidateAssessor.AssessedCandidate candidate) {
+        for (ResolutionCandidateAssessor.AssessedAttribute<?> attribute : candidate.getIncompatibleAttributes()) {
+            if (attribute.getAttribute().getName().equals(Category.CATEGORY_ATTRIBUTE.getName())) {
+                return Objects.equals(attribute.getProvided(), Category.LIBRARY);
+            }
+        }
+        return false;
     }
 
     private boolean isJVMVersionAttribute(ResolutionCandidateAssessor.AssessedAttribute<?> attribute) {

@@ -19,6 +19,8 @@ package org.gradle.plugin.devel.variants
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class TargetJVMVersionTooHighFailureDescriberIntegrationTest extends AbstractIntegrationSpec {
     Integer currentJava = Integer.valueOf(JavaVersion.current().majorVersion)
@@ -36,6 +38,60 @@ class TargetJVMVersionTooHighFailureDescriberIntegrationTest extends AbstractInt
         producer.file('build.gradle') << """
             plugins {
                 id('java-library')
+            }
+
+            configurations.configureEach {
+                if (canBeConsumed)  {
+                    attributes {
+                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $tooHighJava)
+                    }
+                }
+            }
+        """
+
+        consumer.file('build.gradle') << """
+            plugins {
+                id('java-library')
+            }
+
+            dependencies {
+                implementation project(':producer')
+            }
+        """
+
+        when:
+        fails ':consumer:build', "--stacktrace"
+
+        then:
+        failure.assertHasErrorOutput("""> Could not resolve all task dependencies for configuration ':consumer:compileClasspath'.
+   > Could not resolve project :producer.
+     Required by:
+         project :consumer
+      > project :producer requires at least a Java $tooHighJava JVM. This build uses a Java $currentJava JVM.""")
+        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
+        failure.assertHasResolution("Run this build using a Java $tooHighJava JVM (or newer).")
+    }
+
+    def 'JVM version too low even if non-Library category other variants available uses custom error message for dependency'() {
+        given:
+        def producer = file('producer')
+        def consumer = file('consumer')
+
+        file('settings.gradle') << """
+            include 'producer', 'consumer'
+        """
+
+        producer.file('build.gradle') << """
+            plugins {
+                id('java-library')
+            }
+
+            configurations {
+                consumable("nonLibrary") {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION))
+                    }
+                }
             }
 
             configurations.configureEach {
@@ -145,6 +201,75 @@ class TargetJVMVersionTooHighFailureDescriberIntegrationTest extends AbstractInt
         failure.assertHasResolution("Run this build using a Java $tooHighJava JVM (or newer).")
     }
 
+    @Requires(UnitTestPreconditions.Jdk11OrEarlier)
+    def 'spring boot 3 plugin usage with jvm < 17 uses custom error message'() {
+        given:
+        buildFile << """
+        plugins {
+            id "application"
+            id "org.springframework.boot" version "3.2.1"           // Any version of Spring Boot >= 3
+            id "io.spring.dependency-management" version "1.1.4"    // Align this with the Spring Boot version (see TestedVersions)
+        }
+
+        ${mavenCentralRepository()}
+
+        application {
+            applicationDefaultJvmArgs = ['-DFOO=42']
+        }
+
+        dependencies {
+            implementation 'org.springframework.boot:spring-boot-starter'
+        }
+
+        testing.suites.test {
+            useJUnitJupiter()
+            dependencies {
+                implementation 'org.springframework.boot:spring-boot-starter-test'
+            }
+        }
+    """.stripIndent()
+
+        file('src/main/java/example/Application.java') << """
+        package example;
+
+        import org.springframework.boot.SpringApplication;
+        import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+        @SpringBootApplication
+        public class Application {
+            public static void main(String[] args) {
+                SpringApplication.run(Application.class, args);
+                System.out.println("FOO: " + System.getProperty("FOO"));
+            }
+        }
+    """.stripIndent()
+        file("src/test/java/example/ApplicationTest.java") << """
+        package example;
+
+        import org.junit.jupiter.api.Test;
+        import org.springframework.boot.test.context.SpringBootTest;
+
+        @SpringBootTest
+        class ApplicationTest {
+            @Test
+            void contextLoads() {
+            }
+        }
+    """
+
+        when:
+        fails 'build', "--stacktrace"
+
+        then:
+        failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration ':classpath'.
+   > Could not resolve org.springframework.boot:spring-boot-gradle-plugin:3.2.1.
+     Required by:
+         project : > org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.1
+      > org.springframework.boot:spring-boot-gradle-plugin:3.2.1 requires at least a Java 17 JVM. This build uses a Java $currentJava JVM.""")
+        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
+        failure.assertHasResolution("Run this build using a Java 17 JVM (or newer).")
+    }
+
     private String pluginImplementation() {
         """
             package example.plugin;
@@ -168,5 +293,4 @@ class TargetJVMVersionTooHighFailureDescriberIntegrationTest extends AbstractInt
             }
         """
     }
-
 }
