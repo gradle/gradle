@@ -27,9 +27,9 @@ import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataParameter
 import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.NOT_ALLOWED
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.OPTIONAL
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.REQUIRED
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.OPTIONAL
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.REQUIRED
 import org.gradle.internal.declarativedsl.analysis.ParameterSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 import kotlin.reflect.KClass
