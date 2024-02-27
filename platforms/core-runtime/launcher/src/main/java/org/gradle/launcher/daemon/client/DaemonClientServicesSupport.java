@@ -21,7 +21,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -81,7 +80,6 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
                 get(OutputEventListener.class),
                 matchingContextSpec,
                 buildStandardInput,
-                get(GlobalUserInputReceiver.class),
                 get(ExecutorFactory.class),
                 idGenerator,
                 get(ProcessEnvironment.class));

@@ -15,32 +15,77 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.api.internal.tasks.userinput.UserInputReader;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.Factory;
+import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
+import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
-import org.gradle.launcher.daemon.server.clientinput.ClientInputForwarder;
+import org.gradle.launcher.daemon.server.api.StdinHandler;
+import org.gradle.util.internal.StdinSwapper;
+
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 
 /**
- * Listens for {@link org.gradle.launcher.daemon.protocol.InputMessage} commands during execution and forwards them to this process' System.in and services such
- * as {@link UserInputReader}.
+ * Listens for ForwardInput commands during the execution and sends that to a piped input stream that we install.
  */
 public class ForwardClientInput implements DaemonCommandAction {
-    private final ClientInputForwarder forwarder;
-
-    public ForwardClientInput(UserInputReader inputReader) {
-        this.forwarder = new ClientInputForwarder(inputReader);
-    }
+    private static final Logger LOGGER = Logging.getLogger(ForwardClientInput.class);
 
     @Override
     public void execute(final DaemonCommandExecution execution) {
-        forwarder.forwardInput(stdinHandler -> {
-            execution.getConnection().onStdin(stdinHandler);
+        final PipedOutputStream inputSource = new PipedOutputStream();
+        final PipedInputStream replacementStdin;
+        try {
+            replacementStdin = new PipedInputStream(inputSource);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+
+        execution.getConnection().onStdin(new StdinHandler() {
+            @Override
+            public void onInput(ForwardInput input) {
+                LOGGER.debug("Writing forwarded input on daemon's stdin.");
+                try {
+                    inputSource.write(input.getBytes());
+                } catch (IOException e) {
+                    LOGGER.warn("Received exception trying to forward client input.", e);
+                }
+            }
+
+            @Override
+            public void onEndOfInput() {
+                LOGGER.info("Closing daemon's stdin at end of input.");
+                try {
+                    inputSource.close();
+                } catch (IOException e) {
+                    LOGGER.warn("Problem closing output stream connected to replacement stdin", e);
+                } finally {
+                    LOGGER.info("The daemon will no longer process any standard input.");
+                }
+            }
+        });
+
+        try {
             try {
-                execution.proceed();
+                new StdinSwapper().swap(replacementStdin, new Factory<Object>() {
+                    @Override
+                    public Void create() {
+                        execution.proceed();
+                        return null;
+                    }
+                });
             } finally {
                 execution.getConnection().onStdin(null);
+                IoActions.closeQuietly(replacementStdin);
+                IoActions.closeQuietly(inputSource);
             }
-            return null;
-        });
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 }

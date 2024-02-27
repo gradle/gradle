@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.util.internal
 
-@org.gradle.api.NonNullApi
-package org.gradle.internal.logging.console;
+import spock.lang.Specification
+
+class StdinSwapperTest extends Specification {
+
+    def "can swap stdin"() {
+        given:
+        def text = "abc"
+
+        expect:
+        new StdinSwapper().swap(new ByteArrayInputStream("abc".bytes), { System.in.text })  == text
+    }
+
+
+}

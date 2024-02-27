@@ -41,6 +41,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
     private final OutputEventListener outputEventBroadcaster;
     private final Clock clock;
     private final UserInputReader userInputReader;
+    private final AtomicBoolean hasAsked = new AtomicBoolean();
     private final AtomicBoolean interrupted = new AtomicBoolean();
 
     public DefaultUserInputHandler(OutputEventListener outputEventBroadcaster, Clock clock, UserInputReader userInputReader) {
@@ -59,12 +60,8 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         return interrupted.get();
     }
 
-    private void sendNewQuestion(String prompt) {
-        outputEventBroadcaster.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt, true));
-    }
-
-    private void sendValidationProblem(String prompt) {
-        outputEventBroadcaster.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt, false));
+    private void sendPrompt(String prompt) {
+        outputEventBroadcaster.onOutput(new PromptOutputEvent(clock.getCurrentTime(), prompt));
     }
 
     private String sanitizeInput(String input) {
@@ -85,7 +82,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
                 if (YES_NO_CHOICES.contains(value)) {
                     return BooleanUtils.toBoolean(value);
                 }
-                sendValidationProblem("Please enter 'yes' or 'no': ");
+                sendPrompt("Please enter 'yes' or 'no': ");
                 return null;
             });
         }
@@ -104,7 +101,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
                 if (LENIENT_YES_NO_CHOICES.contains(value.toLowerCase(Locale.US))) {
                     return BooleanUtils.toBoolean(value);
                 }
-                sendValidationProblem("Please enter 'yes' or 'no' (default: '" + defaultString + "'): ");
+                sendPrompt("Please enter 'yes' or 'no' (default: '" + defaultString + "'): ");
                 return null;
             });
         }
@@ -137,10 +134,10 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
                     if (result >= minValue) {
                         return result;
                     }
-                    sendValidationProblem("Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
+                    sendPrompt("Please enter an integer value >= " + minValue + " (default: " + defaultValue + "): ");
                     return null;
                 } catch (NumberFormatException e) {
-                    sendValidationProblem("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
+                    sendPrompt("Please enter an integer value (min: " + minValue + ", default: " + defaultValue + "): ");
                     return null;
                 }
             });
@@ -180,19 +177,31 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
                 hasPrompted = true;
             }
 
-            sendNewQuestion(prompt);
-            while (true) {
-                UserInputReader.UserInput input = userInputReader.readInput();
-                if (input == UserInputReader.END_OF_INPUT) {
-                    interrupted.set(true);
-                    return null;
+            try {
+                // Add a line before the first question that has been asked of the user
+                // This makes the assumption that all questions happen together, which is ok for now
+                // It would be better to allow this handler to ask the output renderers to show a blank line before the prompt, if not already present
+                if (hasAsked.compareAndSet(false, true)) {
+                    sendPrompt(TextUtil.getPlatformLineSeparator());
                 }
+                sendPrompt(prompt);
+                while (true) {
+                    String input = userInputReader.readInput();
+                    if (input == null) {
+                        interrupted.set(true);
+                        return null;
+                    }
 
-                String sanitizedInput = sanitizeInput(input.getText());
-                T result = parser.transform(sanitizedInput);
-                if (result != null) {
-                    return result;
+                    String sanitizedInput = sanitizeInput(input);
+                    T result = parser.transform(sanitizedInput);
+                    if (result != null) {
+                        return result;
+                    }
                 }
+            } finally {
+                // Send an end-of-line. This is a workaround to convince the console that the cursor is at the start of the line to avoid indenting the next line of text that is displayed
+                // It would be better for the console to listen for stuff read from stdin that would also be echoed to the output and update its state based on this
+                sendPrompt(TextUtil.getPlatformLineSeparator());
             }
         }
 
@@ -229,7 +238,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
                         return values.get(value - 1);
                     }
                 }
-                sendValidationProblem("Please enter a value between 1 and " + options.size() + ": ");
+                sendPrompt("Please enter a value between 1 and " + options.size() + ": ");
                 return null;
             });
         }
@@ -237,7 +246,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
         @Override
         public void finish() {
             if (hasPrompted) {
-                outputEventBroadcaster.onOutput(new UserInputResumeEvent(clock.getCurrentTime()));
+                outputEventBroadcaster.onOutput(new UserInputResumeEvent());
             }
         }
     }

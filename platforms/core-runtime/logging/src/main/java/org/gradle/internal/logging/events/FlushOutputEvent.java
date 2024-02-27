@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 /**
  * Notifies output consumers that might be queueing messages to immediately flush their queues.
  */
-public class FlushOutputEvent extends OutputEvent implements InteractiveEvent {
+public class FlushOutputEvent extends OutputEvent {
     @Nullable
     @Override
     public LogLevel getLogLevel() {

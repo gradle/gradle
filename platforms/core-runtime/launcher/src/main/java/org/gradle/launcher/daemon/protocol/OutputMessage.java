@@ -24,11 +24,6 @@ public class OutputMessage extends Message {
         this.event = event;
     }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "[event=" + event + "]";
-    }
-
     public OutputEvent getEvent() {
         return event;
     }

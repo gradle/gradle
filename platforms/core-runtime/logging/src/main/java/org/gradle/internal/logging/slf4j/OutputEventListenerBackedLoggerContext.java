@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.slf4j;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.console.DefaultUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
 import org.gradle.internal.time.Clock;
@@ -85,7 +84,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
 
     public void reset() {
         setLevel(DEFAULT_LOG_LEVEL);
-        OutputEventRenderer renderer = new OutputEventRenderer(clock, new DefaultUserInputReceiver());
+        OutputEventRenderer renderer = new OutputEventRenderer(clock);
         renderer.attachSystemOutAndErr();
         setOutputEventListener(renderer);
     }

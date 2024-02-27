@@ -18,13 +18,12 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
-import org.gradle.internal.logging.events.UserInputResumeEvent;
 
 public class UserInputConsoleRenderer extends AbstractUserInputRenderer {
     private final Console console;
 
-    public UserInputConsoleRenderer(OutputEventListener delegate, Console console, UserInputReceiver userInput) {
-        super(delegate, userInput);
+    public UserInputConsoleRenderer(OutputEventListener delegate, Console console) {
+        super(delegate);
         this.console = console;
     }
 
@@ -41,8 +40,7 @@ public class UserInputConsoleRenderer extends AbstractUserInputRenderer {
     }
 
     @Override
-    void finishInput(UserInputResumeEvent event) {
-        event.render(console.getBuildOutputArea());
+    void finishInput() {
         toggleBuildProgressAreaVisibility(true);
         flushConsole();
     }

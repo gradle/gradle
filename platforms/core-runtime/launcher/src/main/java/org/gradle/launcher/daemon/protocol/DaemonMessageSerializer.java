@@ -86,7 +86,6 @@ public class DaemonMessageSerializer {
 
         // Input events
         registry.register(ForwardInput.class, new ForwardInputSerializer());
-        registry.register(UserResponse.class, new UserResponseSerializer());
         registry.register(CloseInput.class, new CloseInputSerializer());
 
         // Output events
@@ -213,18 +212,6 @@ public class DaemonMessageSerializer {
         @Override
         public ForwardInput read(Decoder decoder) throws Exception {
             return new ForwardInput(decoder.readBinary());
-        }
-    }
-
-    private static class UserResponseSerializer implements Serializer<UserResponse> {
-        @Override
-        public void write(Encoder encoder, UserResponse message) throws Exception {
-            encoder.writeString(message.getResponse());
-        }
-
-        @Override
-        public UserResponse read(Decoder decoder) throws Exception {
-            return new UserResponse(decoder.readString());
         }
     }
 

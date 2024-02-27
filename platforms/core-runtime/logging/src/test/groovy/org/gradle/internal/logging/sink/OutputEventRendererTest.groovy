@@ -22,7 +22,6 @@ import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.console.ConsoleStub
-import org.gradle.internal.logging.console.UserInputReceiver
 import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.LogLevelChangeEvent
@@ -42,7 +41,7 @@ class OutputEventRendererTest extends OutputSpecification {
     private OutputEventRenderer renderer
 
     def setup() {
-        renderer = new OutputEventRenderer(Time.clock(), Stub(UserInputReceiver))
+        renderer = new OutputEventRenderer(Time.clock())
         renderer.configure(LogLevel.INFO)
     }
 

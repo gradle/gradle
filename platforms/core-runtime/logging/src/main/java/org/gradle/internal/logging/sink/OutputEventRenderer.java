@@ -33,7 +33,6 @@ import org.gradle.internal.logging.console.DefaultWorkInProgressFormatter;
 import org.gradle.internal.logging.console.FlushConsoleListener;
 import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
-import org.gradle.internal.logging.console.UserInputReceiver;
 import org.gradle.internal.logging.console.UserInputConsoleRenderer;
 import org.gradle.internal.logging.console.UserInputStandardOutputRenderer;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
@@ -66,7 +65,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final Object lock = new Object();
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final Clock clock;
-    private final UserInputReceiver userInput;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final OutputEventTransformer transformer = new OutputEventTransformer(formatters.getSource(), lock);
 
@@ -80,9 +78,8 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private ListenerBroadcast<StandardOutputListener> userStdoutListeners;
     private ListenerBroadcast<StandardOutputListener> userStderrListeners;
 
-    public OutputEventRenderer(final Clock clock, UserInputReceiver userInput) {
+    public OutputEventRenderer(final Clock clock) {
         this.clock = clock;
-        this.userInput = userInput;
     }
 
     @Override
@@ -292,8 +289,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                         new ConsoleLayoutCalculator(consoleMetaData)
                     ),
                     console.getStatusBar(), console, consoleMetaData),
-                console,
-                userInput)
+                console)
         );
     }
 
@@ -306,8 +302,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                         new PrettyPrefixedLogHeaderFormatter(),
                         verbose
                     )
-                ),
-                userInput
+                )
         ));
     }
 

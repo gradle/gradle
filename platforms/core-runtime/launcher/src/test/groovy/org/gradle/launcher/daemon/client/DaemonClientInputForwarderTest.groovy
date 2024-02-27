@@ -15,11 +15,9 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.internal.dispatch.Dispatch
-import org.gradle.internal.logging.console.DefaultUserInputReceiver
 import org.gradle.launcher.daemon.protocol.CloseInput
 import org.gradle.launcher.daemon.protocol.ForwardInput
-import org.gradle.launcher.daemon.protocol.UserResponse
+import org.gradle.internal.dispatch.Dispatch
 import org.gradle.util.ConcurrentSpecification
 
 import java.util.concurrent.LinkedBlockingQueue
@@ -36,23 +34,15 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
     def received = new LinkedBlockingQueue()
     def dispatch = { received << it } as Dispatch
-    def userInputReceiver = new DefaultUserInputReceiver()
 
     def receivedCommand() {
         received.poll(5, TimeUnit.SECONDS)
     }
 
-    def receiveStdin(String expected) {
+    def receive(expected) {
         def receivedCommand = receivedCommand()
         assert receivedCommand instanceof ForwardInput
         assert receivedCommand.bytes == expected.bytes
-        true
-    }
-
-    def receiveUserResponse(String expected) {
-        def receivedCommand = receivedCommand()
-        assert receivedCommand instanceof UserResponse
-        assert receivedCommand.response == expected
         true
     }
 
@@ -63,7 +53,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
     def forwarder
 
     def createForwarder() {
-        forwarder = new DaemonClientInputForwarder(inputStream, dispatch, userInputReceiver, executorFactory, bufferSize)
+        forwarder = new DaemonClientInputForwarder(inputStream, dispatch, executorFactory, bufferSize)
         forwarder.start()
     }
 
@@ -80,27 +70,9 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         source << toPlatformLineSeparators("abc\ndef\njkl\n")
 
         then:
-        receiveStdin toPlatformLineSeparators("abc\n")
-        receiveStdin toPlatformLineSeparators("def\n")
-        receiveStdin toPlatformLineSeparators("jkl\n")
-
-        when:
-        forwarder.stop()
-
-        then:
-        receiveClosed()
-    }
-
-    def "one line of text is forwarded as user response"() {
-        when:
-        source << toPlatformLineSeparators("abc\n")
-        userInputReceiver.readAndForwardText()
-        source << toPlatformLineSeparators("def\njkl\n")
-
-        then:
-        receiveStdin toPlatformLineSeparators("abc\n")
-        receiveUserResponse toPlatformLineSeparators("def\n")
-        receiveStdin toPlatformLineSeparators("jkl\n")
+        receive toPlatformLineSeparators("abc\n")
+        receive toPlatformLineSeparators("def\n")
+        receive toPlatformLineSeparators("jkl\n")
 
         when:
         forwarder.stop()
@@ -115,8 +87,8 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         closeInput()
 
         then:
-        receiveStdin toPlatformLineSeparators("abc\n")
-        receiveStdin toPlatformLineSeparators("def\n")
+        receive toPlatformLineSeparators("abc\n")
+        receive toPlatformLineSeparators("def\n")
 
         and:
         receiveClosed()
@@ -142,7 +114,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         closeInput()
 
         then:
-        receiveStdin "abc"
+        receive "abc"
 
         and:
         receiveClosed()
@@ -157,7 +129,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         forwarder.stop()
 
         then:
-        receiveStdin "abc"
+        receive "abc"
 
         and:
         receiveClosed()

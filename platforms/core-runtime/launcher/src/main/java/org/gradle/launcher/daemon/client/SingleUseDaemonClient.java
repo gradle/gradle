@@ -24,7 +24,6 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -40,18 +39,8 @@ public class SingleUseDaemonClient extends DaemonClient {
     private static final Logger LOGGER = Logging.getLogger(SingleUseDaemonClient.class);
     private final DocumentationRegistry documentationRegistry;
 
-    public SingleUseDaemonClient(
-        DaemonConnector connector,
-        OutputEventListener outputEventListener,
-        ExplainingSpec<DaemonContext> compatibilitySpec,
-        InputStream buildStandardInput,
-        GlobalUserInputReceiver userInput,
-        ExecutorFactory executorFactory,
-        IdGenerator<UUID> idGenerator,
-        DocumentationRegistry documentationRegistry,
-        ProcessEnvironment processEnvironment
-    ) {
-        super(connector, outputEventListener, compatibilitySpec, buildStandardInput, userInput, executorFactory, idGenerator, processEnvironment);
+    public SingleUseDaemonClient(DaemonConnector connector, OutputEventListener outputEventListener, ExplainingSpec<DaemonContext> compatibilitySpec, InputStream buildStandardInput, ExecutorFactory executorFactory, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry, ProcessEnvironment processEnvironment) {
+        super(connector, outputEventListener, compatibilitySpec, buildStandardInput, executorFactory, idGenerator, processEnvironment);
         this.documentationRegistry = documentationRegistry;
     }
 

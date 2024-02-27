@@ -20,27 +20,17 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 
-/**
- * Requests that the client present the given prompt to the user and return the user's response as a single line of text.
- *
- * The response is delivered to the {@link UserInputReader} service.
- */
-public class PromptOutputEvent extends RenderableOutputEvent implements InteractiveEvent {
-    private final String prompt;
-    private final boolean newQuestion;
+public class PromptOutputEvent extends RenderableOutputEvent {
 
-    public PromptOutputEvent(long timestamp, String prompt, boolean newQuestion) {
+    private final String prompt;
+
+    public PromptOutputEvent(long timestamp, String prompt) {
         super(timestamp, "prompt", LogLevel.QUIET, null);
         this.prompt = prompt;
-        this.newQuestion = newQuestion;
     }
 
     @Override
     public void render(StyledTextOutput output) {
-        if (newQuestion) {
-            // Add a newline at the start of each question
-            output.println();
-        }
         output.text(prompt);
     }
 
@@ -48,13 +38,9 @@ public class PromptOutputEvent extends RenderableOutputEvent implements Interact
         return prompt;
     }
 
-    public boolean isNewQuestion() {
-        return newQuestion;
-    }
-
     @Override
     public String toString() {
-        return "[" + getLogLevel() + "] [" + getCategory() + "] '" + prompt + "'";
+        return "[" + getLogLevel() + "] [" + getCategory() + "] " + prompt;
     }
 
     @Override

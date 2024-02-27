@@ -160,14 +160,6 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         messageResult.bytes == message.bytes
     }
 
-    def "can serialize UserResponse messages"() {
-        expect:
-        def message = new UserResponse("greetings")
-        def messageResult = serialize(message, serializer)
-        messageResult instanceof UserResponse
-        messageResult.response == message.response
-    }
-
     def "can serialize user input request event"() {
         expect:
         def event = new UserInputRequestEvent()
@@ -177,20 +169,18 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize user prompt event"() {
         expect:
-        def event = new PromptOutputEvent(123, 'prompt', true)
+        def event = new PromptOutputEvent(123, 'prompt')
         def result = serialize(event, serializer)
         result instanceof PromptOutputEvent
         result.prompt == 'prompt'
-        result.newQuestion
         result.timestamp == 123
     }
 
     def "can serialize user input resume event"() {
         expect:
-        def event = new UserInputResumeEvent(123)
+        def event = new UserInputResumeEvent()
         def result = serialize(event, serializer)
         result instanceof UserInputResumeEvent
-        result.timestamp == 123
     }
 
     def "can serialize Build message"() {

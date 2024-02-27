@@ -17,10 +17,8 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -164,29 +162,18 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
         """
 
         when:
-        runInteractive("read", "yes")
+        executer.withForceInteractive(true).withStdIn("yes\n")
+        succeeds "read", "--configuration-cache"
 
         then:
         output.contains("response: true")
 
         when:
-        runInteractive("read", "no")
+        executer.withForceInteractive(true).withStdIn("no\n")
+        succeeds "read", "--configuration-cache"
 
         then:
         output.contains("response: false")
-    }
-
-    private void runInteractive(String task, String answer) {
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks(task, "--configuration-cache")
-        def handle = executer.start()
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("there? [yes, no]")
-        }
-        handle.stdinPipe.write((answer + TextUtil.platformLineSeparator).bytes)
-        handle.stdinPipe.close()
-        result = handle.waitForFinish()
     }
 
     def "exposes correct start parameter"() {

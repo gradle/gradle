@@ -31,14 +31,13 @@ class UserInputConsoleRendererTest extends Specification {
     def console = Mock(Console)
     def buildProgressArea = Mock(BuildProgressArea)
     def textArea = Mock(TextArea)
-    def userInput = Mock(UserInputReceiver)
-    @Subject def renderer = new UserInputConsoleRenderer(listener, console, userInput)
+    @Subject def renderer = new UserInputConsoleRenderer(listener, console)
 
     def "can handle user input request and resume events"() {
         given:
-        def prompt = new PromptOutputEvent(123, 'Please enter:', true)
+        def prompt = new PromptOutputEvent(123, 'Please enter:')
         def userInputRequestEvent = new UserInputRequestEvent()
-        def userInputResumeEvent = new UserInputResumeEvent(123)
+        def userInputResumeEvent = new UserInputResumeEvent()
 
         when:
         renderer.onOutput(userInputRequestEvent)
@@ -47,11 +46,8 @@ class UserInputConsoleRendererTest extends Specification {
         1 * console.getBuildProgressArea() >> buildProgressArea
         1 * buildProgressArea.setVisible(false)
         1 * console.flush()
-
-        and:
         0 * console._
         0 * listener.onOutput(_)
-        0 * userInput._
         renderer.eventQueue.empty
 
         when:
@@ -59,37 +55,27 @@ class UserInputConsoleRendererTest extends Specification {
 
         then:
         1 * console.getBuildOutputArea() >> textArea
-        1 * textArea.println()
         1 * textArea.text(prompt.prompt)
         1 * console.flush()
-        1 * userInput.readAndForwardText()
-
-        and:
         0 * console._
         0 * listener.onOutput(_)
-        0 * userInput._
         renderer.eventQueue.empty
 
         when:
         renderer.onOutput(userInputResumeEvent)
 
         then:
-        1 * console.getBuildOutputArea() >> textArea
-        1 * textArea.println()
         1 * console.getBuildProgressArea() >> buildProgressArea
         1 * buildProgressArea.setVisible(true)
         1 * console.flush()
-
-        and:
         0 * console._
         0 * listener.onOutput(_)
-        0 * userInput._
         renderer.eventQueue.empty
     }
 
     def "throws exception if user input resume event has been received but event handling hasn't been paused"() {
         given:
-        def event = new UserInputResumeEvent(123)
+        def event = new UserInputResumeEvent()
 
         when:
         renderer.onOutput(event)
@@ -105,7 +91,7 @@ class UserInputConsoleRendererTest extends Specification {
     def "can replay queued events if event handling is paused"() {
         given:
         def userInputRequestEvent = new UserInputRequestEvent()
-        def userInputResumeEvent = new UserInputResumeEvent(123)
+        def userInputResumeEvent = new UserInputResumeEvent()
 
         when:
         renderer.onOutput(userInputRequestEvent)
@@ -133,7 +119,6 @@ class UserInputConsoleRendererTest extends Specification {
         renderer.onOutput(userInputResumeEvent)
 
         then:
-        1 * console.buildOutputArea >> textArea
         1 * console.getBuildProgressArea() >> buildProgressArea
         1 * buildProgressArea.setVisible(true)
         1 * console.flush()

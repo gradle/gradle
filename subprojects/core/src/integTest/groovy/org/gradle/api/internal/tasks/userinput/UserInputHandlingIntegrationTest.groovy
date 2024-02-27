@@ -82,7 +82,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         withRichConsole(richConsole)
 
         when:
-        runWithInput("askYesNo", YES_NO_PROMPT, YES)
+        runWithInput("askYesNo", YES)
 
         then:
         result.output.count(YES_NO_PROMPT) == 1
@@ -109,9 +109,10 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
     def "can ask yes/no and handle valid input '#input' in interactive build"() {
         when:
-        runWithInput("askYesNo", YES_NO_PROMPT, stdin)
+        runWithInput("askYesNo", stdin)
 
         then:
+        result.output.count(YES_NO_PROMPT) == 1
         outputContains("result = $accepted")
 
         where:
@@ -163,9 +164,10 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         settingsFile << "include 'a', 'b', 'c'"
 
         when:
-        runWithInput("askYesNo", YES_NO_PROMPT, "yes")
+        runWithInput("askYesNo", "yes")
 
         then:
+        result.output.count(YES_NO_PROMPT) == 1
         outputContains("result = true")
     }
 
@@ -180,9 +182,10 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
     def "can ask boolean question and handle valid input '#stdin' in interactive build"() {
         when:
-        runWithInput("askBoolean", BOOLEAN_PROMPT, stdin)
+        runWithInput("askBoolean", stdin)
 
         then:
+        result.output.count(BOOLEAN_PROMPT) == 1
         outputContains("result = $accepted")
 
         where:
@@ -229,9 +232,10 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
     def "can ask int question and handle valid input '#stdin' in interactive build"() {
         when:
-        runWithInput("askInt", INT_PROMPT, stdin)
+        runWithInput("askInt", stdin)
 
         then:
+        result.output.count(INT_PROMPT) == 1
         outputContains("result = $accepted")
 
         where:
@@ -255,9 +259,10 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         withRichConsole(richConsole)
 
         when:
-        runWithInput("selectOption", SELECT_PROMPT, "1")
+        runWithInput("selectOption", "1")
 
         then:
+        result.output.count(SELECT_PROMPT) == 1
         outputContains("1: a")
         outputContains("2: b")
         outputContains("3: c")
@@ -285,7 +290,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
     def "can select option and handle valid input '#input' in interactive build"() {
         when:
-        runWithInput("selectOption", SELECT_PROMPT, input)
+        runWithInput("selectOption", input)
 
         then:
         outputContains("result = $accepted")
@@ -340,9 +345,10 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         withRichConsole(richConsole)
 
         when:
-        runWithInput("ask", QUESTION_PROMPT, "answer")
+        runWithInput("ask", "answer")
 
         then:
+        result.output.count(QUESTION_PROMPT) == 1
         outputContains("result = answer")
 
         where:
@@ -366,9 +372,10 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
     def "can ask text question and handle valid input '#input' in interactive build"() {
         when:
-        runWithInput("ask", QUESTION_PROMPT, input)
+        runWithInput("ask", input)
 
         then:
+        result.output.count(QUESTION_PROMPT) == 1
         outputContains("result = $accepted")
 
         where:
@@ -399,22 +406,25 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         def prompt = "what? (default: <default>):"
 
         when:
-        runWithInput("generate", prompt, "value")
+        runWithInput("generate", "value")
 
         then:
+        result.output.count(prompt) == 1
         result.assertTaskNotSkipped(":generate")
         file("build/out.txt").text == "value"
 
         when:
-        runWithInput("generate", prompt, "value")
+        runWithInput("generate", "value")
 
         then:
+        result.output.count(prompt) == 1
         result.assertTaskSkipped(":generate")
 
         when:
-        runWithInput("generate", prompt, "")
+        runWithInput("generate", "")
 
         then:
+        result.output.count(prompt) == 1
         result.assertTaskNotSkipped(":generate")
         file("build/out.txt").text == "<default>"
 
@@ -438,9 +448,10 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         """
 
         when:
-        runWithInput("askYesNoQuestion", YES_NO_PROMPT, input)
+        runWithInput("askYesNoQuestion", input)
 
         then:
+        result.output.count(YES_NO_PROMPT) == 1
         outputContains("result = $booleanValue")
 
         where:
@@ -451,15 +462,11 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         ""     | null
     }
 
-    void runWithInput(String task, String prompt, String input) {
+    void runWithInput(String task, String input) {
         interactiveExecution()
         def gradleHandle = executer.withTasks(task).start()
-        poll(INTERACTIVE_WAIT_TIME_SECONDS) {
-            assert gradleHandle.standardOutput.contains(prompt)
-        }
         writeToStdInAndClose(gradleHandle, input)
         result = gradleHandle.waitForFinish()
-        result.output.count(prompt) == 1
     }
 
     void runWithInterruptedInput(String task) {
@@ -468,4 +475,5 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         writeToStdInAndClose(gradleHandle, EOF)
         result = gradleHandle.waitForFinish()
     }
+
 }

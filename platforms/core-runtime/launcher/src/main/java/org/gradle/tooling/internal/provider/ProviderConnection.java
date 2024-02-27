@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -32,12 +31,11 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.console.GlobalUserInputReceiver;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
@@ -105,22 +103,11 @@ public class ProviderConnection {
     private final ServiceRegistry sharedServices;
     private final JvmVersionDetector jvmVersionDetector;
     private final FileCollectionFactory fileCollectionFactory;
-    private final GlobalUserInputReceiver userInputReceiver;
-    private final UserInputReader userInputReader;
-    private final ExecutorFactory executorFactory;
     private GradleVersion consumerVersion;
 
     public ProviderConnection(
-        ServiceRegistry sharedServices,
-        BuildLayoutFactory buildLayoutFactory,
-        DaemonClientFactory daemonClientFactory,
-        BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor,
-        PayloadSerializer payloadSerializer,
-        JvmVersionDetector jvmVersionDetector,
-        FileCollectionFactory fileCollectionFactory,
-        GlobalUserInputReceiver userInputReceiver,
-        UserInputReader userInputReader,
-        ExecutorFactory executorFactory
+        ServiceRegistry sharedServices, BuildLayoutFactory buildLayoutFactory, DaemonClientFactory daemonClientFactory,
+        BuildActionExecuter<BuildActionParameters, BuildRequestContext> embeddedExecutor, PayloadSerializer payloadSerializer, JvmVersionDetector jvmVersionDetector, FileCollectionFactory fileCollectionFactory
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
@@ -129,9 +116,6 @@ public class ProviderConnection {
         this.sharedServices = sharedServices;
         this.jvmVersionDetector = jvmVersionDetector;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.userInputReceiver = userInputReceiver;
-        this.userInputReader = userInputReader;
-        this.executorFactory = executorFactory;
     }
 
     public void configure(ProviderConnectionParameters parameters, GradleVersion consumerVersion) {
@@ -218,17 +202,17 @@ public class ProviderConnection {
     }
 
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ProviderOperationParameters providerParameters) {
-        LoggingServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
+        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
-        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(requestSpecificLoggingServices, params.daemonParams);
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices.get(OutputEventListener.class), params.daemonParams);
         NotifyDaemonAboutChangedPathsClient client = clientServices.get(NotifyDaemonAboutChangedPathsClient.class);
         client.notifyDaemonsAboutChangedPaths(changedPaths);
     }
 
     public void stopWhenIdle(ProviderOperationParameters providerParameters) {
-        LoggingServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
+        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
-        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(requestSpecificLoggingServices, params.daemonParams);
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices.get(OutputEventListener.class), params.daemonParams);
         ((ShutdownCoordinator) clientServices.find(ShutdownCoordinator.class)).stop();
     }
 
@@ -285,11 +269,11 @@ public class ProviderConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.captureSystemSources();
-            executer = new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor, executorFactory));
+            executer = new SystemPropertySetterExecuter(new StdInSwapExecuter(standardInput, embeddedExecutor));
         } else {
-            LoggingServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
-            loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
-            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, standardInput);
+            LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
+            loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
+            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class), params.daemonParams, standardInput);
             executer = clientServices.get(DaemonClient.class);
         }
         return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer), loggingManager);

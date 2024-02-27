@@ -17,11 +17,8 @@
 package org.gradle.integtests.tooling.r62
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
-
-import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @TargetGradleVersion(">=8.7")
 class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification {
@@ -61,7 +58,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
     def "can capture multiple user input if standard input was provided"() {
         when:
         withConnection { ProjectConnection connection ->
-            runBuildWithStandardInput(connection, 'something one', 'something two')
+            runBuildWithStandardInput(connection, answers('something one', 'something two'))
         }
 
         then:
@@ -74,7 +71,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
     def "can capture multiple user input if standard input was provided using default values"() {
         when:
         withConnection { ProjectConnection connection ->
-            runBuildWithStandardInput(connection, '', '')
+            runBuildWithStandardInput(connection, answers('', ''))
         }
 
         then:
@@ -87,7 +84,7 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
     def "can default subsequent user input as default values if standard input was provided"() {
         when:
         withConnection { ProjectConnection connection ->
-            runBuildWithStandardInput(connection, 'something', '')
+            runBuildWithStandardInput(connection, answers('something'))
         }
 
         then:
@@ -97,35 +94,16 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
         output.contains(BAR.answerOutput())
     }
 
-    private void runBuildWithStandardInput(ProjectConnection connection, String answer1, String answer2) {
+    private void runBuildWithStandardInput(ProjectConnection connection, String answers) {
         def build = connection.newBuild()
         collectOutputs(build)
         build.forTasks(DUMMY_TASK_NAME)
+        build.standardInput = new ByteArrayInputStream(answers.bytes)
+        build.run()
+    }
 
-        def stdin = new PipedInputStream()
-        def stdinWriter = new PipedOutputStream(stdin)
-
-        build.standardInput = stdin
-
-        def resultHandler = new TestResultHandler()
-        build.run(resultHandler)
-
-        poll(60) {
-            assert getOutput().contains(FOO.prompt)
-        }
-
-        stdinWriter.write((answer1 + System.getProperty('line.separator')).bytes)
-
-        poll(60) {
-            assert getOutput().contains(BAR.prompt)
-        }
-
-        stdinWriter.write((answer2 + System.getProperty('line.separator')).bytes)
-        stdinWriter.close()
-
-        resultHandler.finished()
-        resultHandler.assertNoFailure()
-
+    static String answers(String... answers) {
+        return answers.collect { it + System.getProperty('line.separator') }.join('')
     }
 
     private String getOutput() {

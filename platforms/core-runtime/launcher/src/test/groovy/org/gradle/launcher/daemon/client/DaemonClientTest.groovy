@@ -21,7 +21,6 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.id.UUIDGenerator
 import org.gradle.internal.invocation.BuildAction
-import org.gradle.internal.logging.console.GlobalUserInputReceiver
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
@@ -46,8 +45,7 @@ class DaemonClientTest extends ConcurrentSpecification {
     final DaemonCompatibilitySpec compatibilitySpec = Mock()
     final def idGenerator = new UUIDGenerator()
     final ProcessEnvironment processEnvironment = Mock()
-    final GlobalUserInputReceiver userInput = Stub()
-    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), userInput, executorFactory, idGenerator, processEnvironment)
+    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), executorFactory, idGenerator, processEnvironment)
 
     def "executes action"() {
         def resultMessage = Stub(BuildActionResult)
