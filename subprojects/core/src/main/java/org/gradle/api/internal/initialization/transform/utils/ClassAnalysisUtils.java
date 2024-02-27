@@ -21,6 +21,10 @@ import org.objectweb.asm.ClassReader;
 import java.util.function.Consumer;
 
 public class ClassAnalysisUtils {
+
+    /**
+     * Collects all dependencies of a class file by reading a constant pool.
+     */
     public static void getClassDependencies(ClassReader reader, Consumer<String> dependencyDescriptorConsumer) {
         char[] charBuffer = new char[reader.getMaxStringLength()];
         for (int i = 1; i < reader.getItemCount(); i++) {
