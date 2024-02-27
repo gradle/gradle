@@ -33,6 +33,26 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-basics")) {
         because("Requires test-kit: 'java-gradle-plugin' is used in integration tests which always adds the test-kit dependency.")
     }
+
+    crossVersionTestImplementation(project(":base-services"))
+    crossVersionTestImplementation(project(":core"))
+    crossVersionTestImplementation(project(":plugins"))
+    crossVersionTestImplementation(project(":platform-jvm"))
+    crossVersionTestImplementation(project(":language-jvm"))
+    crossVersionTestImplementation(project(":language-java"))
+    crossVersionTestImplementation(project(":language-groovy"))
+    crossVersionTestImplementation(project(":logging"))
+    crossVersionTestImplementation(project(":scala"))
+    crossVersionTestImplementation(project(":ear"))
+    crossVersionTestImplementation(project(":war"))
+    crossVersionTestImplementation(project(":testing-jvm"))
+    crossVersionTestImplementation(project(":ide"))
+    crossVersionTestImplementation(project(":ide-plugins"))
+    crossVersionTestImplementation(project(":code-quality"))
+    crossVersionTestImplementation(project(":signing"))
+    crossVersionTestImplementation(project(":functional"))
+
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
 testFilesCleanup.reportOnly = true
