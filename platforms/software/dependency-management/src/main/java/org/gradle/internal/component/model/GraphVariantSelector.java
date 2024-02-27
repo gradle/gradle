@@ -65,7 +65,8 @@ public class GraphVariantSelector {
 
     public VariantGraphResolveState selectByAttributeMatching(
         ImmutableAttributes consumerAttributes,
-        Collection<? extends Capability> explicitRequestedCapabilities, ComponentGraphResolveState targetComponentState,
+        Collection<? extends Capability> explicitRequestedCapabilities,
+        ComponentGraphResolveState targetComponentState,
         AttributesSchemaInternal consumerSchema,
         List<IvyArtifactName> requestedArtifacts
     ) {
@@ -140,11 +141,13 @@ public class GraphVariantSelector {
 
         if (matches.size() == 1) {
             return singleVariant(matches);
-        } else if (!matches.isEmpty()) {
-            throw failureProcessor.ambiguousGraphVariantsFailure(consumerSchema, attributeMatcher, consumerAttributes, matches, targetComponent);
-        } else {
-            return null;
         }
+
+        if (!matches.isEmpty()) {
+            throw failureProcessor.ambiguousGraphVariantsFailure(consumerSchema, attributeMatcher, consumerAttributes, matches, targetComponent);
+        }
+
+        return null;
     }
 
     /**

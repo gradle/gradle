@@ -122,7 +122,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             return new GraphVariantSelectionResult(Collections.singletonList(selected), true);
         }
 
-        // Otherwise, use legacy selection by configuration name.
+        // Otherwise, select a legacy configuration.
         VariantGraphResolveState selected;
         if (dependencyConfiguration != null) {
             selected = variantSelector.selectConfigurationByName(dependencyConfiguration, consumerAttributes, targetComponentState, consumerSchema);
