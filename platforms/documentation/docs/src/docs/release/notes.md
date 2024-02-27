@@ -2,11 +2,11 @@ The Gradle team is excited to announce Gradle @version@.
 
 [Java 22](#java-22) is now supported for compiling, testing, and running JVM-based projects.
 
-Script compilation for the Groovy DSL can now [benefit from the build cache](#build-cache).
+Script compilation for the Groovy DSL can now be [avoided thanks to the build cache](#build-cache).
 
-Additionally, this release includes improvements to [lazy configuration](#lazy-configuration), [error and warning messages](#error-warning), the [configuration cache](#configuration-cache), and the [Kotlin DSL](#kotlin-dsl).
+Additionally, this release includes improvements to [build authoring](#build-authoring), [error and warning messages](#error-warning), the [configuration cache](#configuration-cache), and the [Kotlin DSL](#kotlin-dsl).
 
-See the full release notes for details.
+See the full release notes below for details.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Aleksandr Postnov](https://github.com/alex-postnov),
@@ -28,7 +28,7 @@ We would like to thank the following community members for their contributions t
 [Tyler Kinkade](https://github.com/tyknkd),
 [Zed Spencer-Milnes](https://github.com/GingerGeek)
 
-Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
@@ -48,32 +48,35 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 Gradle now supports [using Java 22](userguide/compatibility.html#java) for compiling, testing, and starting other Java programs.
 Selecting a language version is done using [toolchains](userguide/toolchains.html).
 
-You cannot run Gradle @version@ with Java 22 because Groovy does not yet support JDK 22.
+You cannot run Gradle @version@ itself with Java 22 because Groovy still needs to support JDK 22.
 However, future versions are expected to provide this support.
 
 <a name="build-cache"></a>
-### Build cache improvements
+### Avoiding Groovy build script compilation thanks to build cache support
 
-The [Gradle build cache](userguide/build_cache.html) is a mechanism designed to save time by reusing outputs from previous builds.
-It caches tasks, artifact transform outputs, and some internal operation outputs.
+The [Gradle build cache](userguide/build_cache.html) is a mechanism designed to save time by reusing local or remote outputs from previous builds.
 
-#### Build cache support for Groovy build script compilation
+In this release, [Groovy build script](userguide/groovy_build_script_primer.html) compilation can benefit from the remote build cache, which, when enabled, reduces initial build times for developers by avoiding this step altogether.
 
-In this release, [Groovy build script](userguide/groovy_build_script_primer.html) compilation can now benefit from the build cache when enabled.
 While this feature has been available for Kotlin build script compilation since the introduction of the Kotlin DSL in Gradle 5.0, the Groovy DSL lacked this feature parity.
 
-<a name="lazy-configuration"></a>
 
-### Lazy configuration improvements
+<a name="build-authoring"></a>
+### Build authoring improvements
 
 As a build grows in complexity, it can be challenging to determine when and where particular values are configured.
-Gradle provides several ways to manage this complexity using [lazy configuration](userguide/lazy_configuration.html).
+Gradle provides an efficient way to manage this complexity using [lazy configuration](userguide/lazy_configuration.html).
 
-#### Convenient API for updating collection properties
+#### Better API for updating collection properties
 
-Lazy collection properties are a key element of Gradle lazy configuration.
-However, the interaction of classical collection methods, the concept of convention, and the rules around empty providers have resulted in surprising behaviors for users.
-Based on their feedback, this release of Gradle introduces alternative APIs that have a clearer contract.
+This release improves the API for lazy collection properties, a key element of Gradle lazy configuration.
+Before this release, the interaction of classical collection methods, the concept of [convention](userguide/designing_gradle_plugins.html#convention_over_configuration), and the rules around empty providers have resulted in surprising behaviors for users in some scenarios.
+Based on the community feedback, this release of Gradle introduces alternative APIs for updating collections with a clearer contract:
+
+* [`HasMultipleValues.append*(...)`](javadoc/org/gradle/api/provider/HasMultipleValues.html#append-T-) which are meant as more convenient replacements for `HasMultipleValues.add*(...)`.
+* [`MapProperty.insert*(...)`](javadoc/org/gradle/api/provider/MapProperty.html#insert-K-V-) which are meant as more convenient replacements for `MapProperty.put*(...)`.
+
+The new APIs provide the following benefits:
 
 ##### Conventions are honored
 
@@ -119,14 +122,6 @@ listProp.append(providers.environmentVariable("myEnvVar"))
 // listProp will still contain "one" if myEnvVar is not defined
 ```
 
-##### New APIs introduced
-
-The new APIs introduced are:
-
-* [`HasMultipleValues.append*(...)`](javadoc/org/gradle/api/provider/HasMultipleValues.html#append-T-) which are meant as more convenient replacements for `HasMultipleValues.add*(...)`.
-* [`MapProperty.insert*(...)`](javadoc/org/gradle/api/provider/MapProperty.html#insert-K-V-) which are meant as more convenient replacements for `MapProperty.put*(...)`.
-
-These APIs are currently **incubating**, but may become mandatory replacements for the original `ListProperty.add*(...)`, `SetProperty.add*(...)`, and `MapProperty.put*(...)` methods.
 
 <a name="error-warning"></a>
 ### Error and warning reporting improvements
@@ -135,7 +130,7 @@ Gradle provides a rich set of error and warning messages to help you understand 
 
 #### Improved plugin application error reporting
 
-When [applying a plugin](userguide/plugins.html#sec:plugins_block) that requires a higher version of Gradle ([by specifying the `org.gradle.plugin.api-version` attribute](userguide/variant_attributes.html#sub:gradle_plugins_default_attributes))), the error message when dependency resolution fails will now clearly state the issue:
+When [applying a plugin](userguide/plugins.html#sec:plugins_block) that requires a higher version of Gradle ([by specifying the `org.gradle.plugin.api-version` attribute](userguide/variant_attributes.html#sub:gradle_plugins_default_attributes)), the error message when dependency resolution fails will now clearly state the issue:
 
 ```
 FAILURE: Build failed with an exception.
@@ -209,7 +204,7 @@ The embedded Kotlin has been updated from 1.9.10 to [Kotlin 1.9.22](https://gith
 
 #### Kotlin DSL Reference update
 
-Javadocs generated from Java code now supports a "since" section, indicating the Gradle version when the functionality was introduced.
+Javadocs generated from Java code now support a "since" section, indicating the Gradle version when the functionality was introduced.
 
 The information comes from the `@since` tags in the Javadoc, which haven’t been displayed until now.
 An example can be found at [`JavaToolchainSpec`](kotlin-dsl/gradle/org.gradle.jvm.toolchain/-java-toolchain-spec/index.html).
@@ -242,9 +237,9 @@ gradle.sharedServices.registerIfAbsent("counter", CountingService)		// New metho
 #### Support for TestNG's threadPoolFactoryClass parameter
 
 [TestNG](https://testng.org/) is a testing framework supported in Gradle.
-In TestNG, the `threadPoolFactoryClass` attribute is used to specify a custom thread pool factory class which details how TestNG manages threads for parallel test execution.
+In TestNG, the `threadPoolFactoryClass` attribute is used to specify a custom thread pool factory class, which details how TestNG manages threads for parallel test execution.
 
-The `threadPoolFactoryClass` parameter can now be configured on [`TestNGOptions`](javadoc/org/gradle/api/tasks/testing/testng/TestNGOptions.html) for TestNG versions that support it (i.e. TestNG 7.0.0 and above):
+The `threadPoolFactoryClass` parameter can now be configured on [`TestNGOptions`](javadoc/org/gradle/api/tasks/testing/testng/TestNGOptions.html) for TestNG versions that support it (i.e., TestNG 7.0.0 and above):
 
 ```
 testing {
@@ -280,7 +275,7 @@ In this release, the order is guaranteed to be preserved regardless of the execu
 Gradle maintains a [Virtual File System](userguide/file_system_watching.html#sec:daemon_watch_fs) (VFS) to calculate what needs to be rebuilt on repeat builds of a project.
 By watching the file system, Gradle keeps the VFS current between builds, reducing the required I/O operations.
 
-This version fixes a problem with the detection of changes for content indirectly referenced via symlinks, improving the build's correctness.
+This version fixes a problem with detecting content changes indirectly referenced via symlinks, improving the build's correctness.
 
 #### Support for constraints in JVM test suite dependencies block
 
@@ -301,16 +296,6 @@ testing {
 ```
 
 Providing separate strings or using named arguments for each part is not supported currently.
-
-### Documentation improvements
-
-The [Gradle User Manual](userguide/userguide.html) is a comprehensive guide that provides detailed documentation and instructions for using Gradle.
-We are actively updating our manual to improve clarity, add new content, and enhance the overall user experience.
-
-#### Developing tasks
-
-The [Developing Tasks](userguide/more_about_tasks.html) section of the Authoring Gradle Builds chapter of the manual now clearly identifies and defines lifecycle tasks and actionable tasks.
-The updated pages clearly detail how to develop custom tasks, including parallel tasks, incremental tasks, lazy task configuration, and task configuration avoidance.
 
 ## Fixed issues
 
