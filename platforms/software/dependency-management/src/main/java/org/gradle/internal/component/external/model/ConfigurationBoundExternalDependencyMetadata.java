@@ -34,6 +34,7 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -53,18 +54,21 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     private final boolean isEndorsing;
     private final List<IvyArtifactName> artifacts;
 
-    private boolean alwaysUseAttributeMatching;
+    // TODO: This is likely misnamed now. We should evaluate whether we can remove this flag.
+    private final boolean alwaysUseAttributeMatching;
 
-    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, String reason, boolean endorsing) {
-        this(configuration, componentId,
+    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, @Nullable String reason, boolean endorsing) {
+        this(configuration,
+            componentId,
             dependencyDescriptor,
             alwaysUseAttributeMatching,
             reason,
             endorsing,
-            dependencyDescriptor.getConfigurationArtifacts(configuration));
+            dependencyDescriptor.getConfigurationArtifacts(configuration)
+        );
     }
 
-    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, String reason, boolean endorsing, List<IvyArtifactName> artifacts) {
+    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, @Nullable String reason, boolean endorsing, List<IvyArtifactName> artifacts) {
         this.configuration = configuration;
         this.componentId = componentId;
         this.dependencyDescriptor = dependencyDescriptor;
@@ -76,21 +80,12 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         this.artifacts = artifacts;
     }
 
-    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, String reason) {
-        this(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, reason, false);
-    }
-
-    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching) {
-        this(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, null);
+    public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching) {
+        this(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, null, false);
     }
 
     public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor) {
-        this(configuration, componentId, dependencyDescriptor, false, null);
-    }
-
-    public ConfigurationBoundExternalDependencyMetadata alwaysUseAttributeMatching() {
-        this.alwaysUseAttributeMatching = true;
-        return this;
+        this(configuration, componentId, dependencyDescriptor, false, null, false);
     }
 
     public ExternalDependencyDescriptor getDependencyDescriptor() {
@@ -184,7 +179,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         if (Objects.equal(reason, this.getReason())) {
             return this;
         }
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, reason);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, reason, isEndorsing);
     }
 
     @Override
@@ -196,12 +191,12 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     }
 
     public ConfigurationBoundExternalDependencyMetadata withDescriptor(ExternalDependencyDescriptor descriptor) {
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, descriptor, alwaysUseAttributeMatching);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, descriptor, alwaysUseAttributeMatching, reason, isEndorsing);
     }
 
     private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {
         ExternalDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, newDelegate, alwaysUseAttributeMatching);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, newDelegate, alwaysUseAttributeMatching, reason, isEndorsing);
     }
 
     private ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> artifacts) {
@@ -234,6 +229,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         return isEndorsing;
     }
 
+    @Nullable
     @Override
     public String getReason() {
         return reason;
