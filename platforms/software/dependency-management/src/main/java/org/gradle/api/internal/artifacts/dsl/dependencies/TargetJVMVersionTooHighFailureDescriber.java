@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -33,6 +35,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes a {@link ResolutionFailure} caused by a requested component
@@ -59,18 +62,33 @@ public abstract class TargetJVMVersionTooHighFailureDescriber extends AbstractRe
     }
 
     private boolean allLibraryCandidatesIncompatibleDueToJVMVersionTooLow(IncompatibleResolutionFailure failure) {
-        boolean requestingJDKVersion = failure.getRequestedAttributes().contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
-        boolean allIncompatibleDueToJDKVersion = failure.getCandidates().stream()
+        List<ResolutionCandidateAssessor.AssessedCandidate> libraryCandidates = failure.getCandidates().stream()
             .filter(this::isLibraryCandidate)
-            .allMatch(candidate -> candidate.getIncompatibleAttributes().stream()
-                .anyMatch(this::isJVMVersionAttribute));
-        return requestingJDKVersion && allIncompatibleDueToJDKVersion;
+            .collect(Collectors.toList());
+        if (!libraryCandidates.isEmpty()) {
+            boolean requestingJDKVersion = failure.getRequestedAttributes().contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+            boolean allIncompatibleDueToJDKVersion = libraryCandidates.stream().allMatch(this::isJVMVersionAttributeIncompatible);
+            return requestingJDKVersion && allIncompatibleDueToJDKVersion;
+        } else {
+            return false;
+        }
     }
 
     private boolean isLibraryCandidate(ResolutionCandidateAssessor.AssessedCandidate candidate) {
+        AttributeContainer candidateAttributes = candidate.getAllCandidateAttributes().getAttributes();
+        for (Attribute<?> attribute : candidateAttributes.keySet()) {
+            if (Objects.equals(attribute.getName(), Category.CATEGORY_ATTRIBUTE.getName())) {
+                String category = String.valueOf(candidateAttributes.getAttribute(attribute));
+                return Objects.equals(category, Category.LIBRARY);
+            }
+        }
+        return false;
+    }
+
+    private boolean isJVMVersionAttributeIncompatible(ResolutionCandidateAssessor.AssessedCandidate candidate) {
         for (ResolutionCandidateAssessor.AssessedAttribute<?> attribute : candidate.getIncompatibleAttributes()) {
-            if (attribute.getAttribute().getName().equals(Category.CATEGORY_ATTRIBUTE.getName())) {
-                return Objects.equals(attribute.getAttribute().getName(), Category.LIBRARY);
+            if (isJVMVersionAttribute(attribute)) {
+                return true;
             }
         }
         return false;
