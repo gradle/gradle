@@ -70,7 +70,7 @@ public abstract class TargetJVMVersionTooHighFailureDescriber extends AbstractRe
     private boolean isLibraryCandidate(ResolutionCandidateAssessor.AssessedCandidate candidate) {
         for (ResolutionCandidateAssessor.AssessedAttribute<?> attribute : candidate.getIncompatibleAttributes()) {
             if (attribute.getAttribute().getName().equals(Category.CATEGORY_ATTRIBUTE.getName())) {
-                return Objects.equals(attribute.getProvided(), Category.LIBRARY);
+                return Objects.equals(attribute.getAttribute().getName(), Category.LIBRARY);
             }
         }
         return false;
@@ -82,6 +82,7 @@ public abstract class TargetJVMVersionTooHighFailureDescriber extends AbstractRe
 
     private JavaVersion findMinJVMSupported(List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
         return candidates.stream()
+            .filter(this::isLibraryCandidate)
             .map(this::findMinJVMSupported)
             .filter(Optional::isPresent)
             .map(Optional::get)
