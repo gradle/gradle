@@ -74,7 +74,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         """
 
         settingsFile """
-                rootProject.name = 'commandLine'
+            rootProject.name = 'commandLine'
         """
     }
 
@@ -136,22 +136,21 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         def binDir = file('fake-bin')
 
         then:
-        try {
-            def path
-            if (OperatingSystem.current().windows) {
-                path = ''
-            } else {
-                // Set up a fake bin directory, containing the things that the script needs, minus any java that might be in /usr/bin
-                links.each { linkToBinary(it, binDir) }
-                path = binDir.absolutePath
-            }
+        def path
+        if (OperatingSystem.current().windows) {
+            path = ''
+        } else {
+            // Set up a fake bin directory, containing the things that the script needs, minus any java that might be in /usr/bin
+            links.each { linkToBinary(it, binDir) }
+            path = binDir.absolutePath
+        }
 
-            def failure = executer.withEnvironmentVars('PATH': path).withJavaHome('').withTasks('checkJavaHome').runWithFailure()
-            assert failure.error.contains("ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.")
-        } finally {
-            links.each {
-                new File(getTestDirectory(), "fake-bin/$it").delete()
-            }
+        def failure = executer.withEnvironmentVars('PATH': path).withJavaHome('').withTasks('checkJavaHome').runWithFailure()
+        failure.error.contains("ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.")
+
+        cleanup:
+        links.each {
+            new File(getTestDirectory(), "fake-bin/$it").delete()
         }
     }
 
@@ -183,6 +182,10 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
     @Requires([UnitTestPreconditions.NotEC2Agent, IntegTestPreconditions.NotEmbeddedExecutor])
     @Issue('https://github.com/gradle/gradle-private/issues/2876')
     def "check default gradle user home"() {
+        given:
+        createProject()
+
+        when:
         // the actual testing is done in the build script.
         File userHome = file('customUserHome')
         executer
@@ -191,7 +194,9 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
             .withGradleUserHomeDir(null)
             .withTasks("checkDefaultGradleUserHome")
             .run()
-        assert userHome.file(".gradle").exists()
+
+        then:
+        userHome.file(".gradle").exists()
     }
 
     void "can specify system properties from command line"() {
@@ -246,7 +251,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         assert file(".foo").exists()
     }
 
-    def "allows reconfiguring project cache directory with absolute directory" () {
+    def "allows reconfiguring project cache directory with absolute directory"() {
         given:
         file("build.gradle").write "task foo { outputs.file file('out'); doLast { } }"
         File someAbsoluteDir = file("foo/bar/baz").absoluteFile
@@ -300,15 +305,14 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         def binDir = distribution.gradleHomeDir.file('bin')
         def newScript = binDir.file(OperatingSystem.current().getScriptName('my app'))
 
-        then:
-        try {
-            binDir.file(OperatingSystem.current().getScriptName('gradle')).copyTo(newScript)
-            newScript.permissions = 'rwx------'
+        binDir.file(OperatingSystem.current().getScriptName('gradle')).copyTo(newScript)
+        newScript.permissions = 'rwx------'
 
-            def result = executer.usingExecutable(newScript.absolutePath).withTasks("help").run()
-            assert result.output.contains("my app")
-        } finally {
-            GFileUtils.forceDelete(newScript)
-        }
+        then:
+        def result = executer.usingExecutable(newScript.absolutePath).withTasks("help").run()
+        result.output.contains("my app")
+
+        cleanup:
+        GFileUtils.forceDelete(newScript)
     }
 }
