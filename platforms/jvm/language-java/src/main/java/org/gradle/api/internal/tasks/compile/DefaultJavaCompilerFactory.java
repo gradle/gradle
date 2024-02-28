@@ -40,7 +40,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final AnnotationProcessorDetector processorDetector;
     private final ClassPathRegistry classPathRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
-    private Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
+    private Factory<ContextAwareJavaCompiler> javaHomeBasedJavaCompilerFactory;
     private final InternalProblems problems;
     private final ProjectCacheDir projectCacheDir;
 
@@ -66,7 +66,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         this.projectCacheDir = projectCacheDir;
     }
 
-    private Factory<JavaCompiler> getJavaHomeBasedJavaCompilerFactory() {
+    private Factory<ContextAwareJavaCompiler> getJavaHomeBasedJavaCompilerFactory() {
         if (javaHomeBasedJavaCompilerFactory == null) {
             javaHomeBasedJavaCompilerFactory = new JavaHomeBasedJavaCompilerFactory(classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles());
         }
