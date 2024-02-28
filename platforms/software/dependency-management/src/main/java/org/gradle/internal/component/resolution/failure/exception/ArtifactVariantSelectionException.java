@@ -24,8 +24,11 @@ import java.util.List;
 /**
  * Represents a failure during variant selection when a variant of a component cannot be selected
  * by the {@link AttributeMatchingArtifactVariantSelector AttributeMatchingArtifactVariantSelector}.
+ *
+ * Note: Temporarily non-{@code final}, so long as {@link org.gradle.internal.component.AmbiguousVariantSelectionException} is not yet removed.
  */
-public final class ArtifactVariantSelectionException extends AbstractResolutionFailureException {
+@SuppressWarnings("deprecation")
+public class ArtifactVariantSelectionException extends AbstractResolutionFailureException {
     public ArtifactVariantSelectionException(String message, ResolutionFailure failure, List<String> resolutions) {
         super(message, failure, resolutions);
     }
