@@ -224,7 +224,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         }
 
         public ToolchainDownloadFailedException buildFailureException() {
-            String message = "No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either." +
+            String message = "No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories." +
                 (hasFailures() ? " " + failureMessage() : "");
 
             String[] resolutions = {
