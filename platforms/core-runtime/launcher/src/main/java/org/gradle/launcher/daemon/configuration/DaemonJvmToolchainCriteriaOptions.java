@@ -26,36 +26,37 @@ import org.gradle.internal.buildoption.PropertyOrigin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
 import java.util.List;
 
-public class DaemonJvmToolchainCriteriaOptions extends BuildOptionSet<DaemonJvmToolchainSpec> {
+public class DaemonJvmToolchainCriteriaOptions extends BuildOptionSet<JavaToolchainSpec> {
 
-    private static List<BuildOption<DaemonJvmToolchainSpec>> options = ImmutableList.of(
+    private static List<BuildOption<JavaToolchainSpec>> options = ImmutableList.of(
         new ToolchainVersionOption(),
         new ToolchainVendorOption(),
         new ToolchainImplementationOption()
     );
 
-    public static List<BuildOption<DaemonJvmToolchainSpec>> get() {
+    public static List<BuildOption<JavaToolchainSpec>> get() {
         return options;
     }
 
     @Override
-    public List<BuildOption<DaemonJvmToolchainSpec>> getAllOptions() {
+    public List<BuildOption<JavaToolchainSpec>> getAllOptions() {
         return options;
     }
 
-    public static class ToolchainVersionOption extends StringBuildOption<DaemonJvmToolchainSpec> {
+    public static class ToolchainVersionOption extends StringBuildOption<JavaToolchainSpec> {
 
         public ToolchainVersionOption() {
             super(BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, PropertyOrigin.BUILD_PROPERTIES);
         }
 
         @Override
-        public void applyTo(String value, DaemonJvmToolchainSpec settings, Origin origin) {
+        public void applyTo(String value, JavaToolchainSpec settings, Origin origin) {
             try {
                 int integerValue = Integer.parseInt(value);
                 settings.getLanguageVersion().set(JavaLanguageVersion.of(integerValue));
@@ -67,37 +68,27 @@ public class DaemonJvmToolchainCriteriaOptions extends BuildOptionSet<DaemonJvmT
         }
     }
 
-    public static class ToolchainVendorOption extends EnumBuildOption<JvmVendor.KnownJvmVendor, DaemonJvmToolchainSpec> {
+    public static class ToolchainVendorOption extends EnumBuildOption<JvmVendor.KnownJvmVendor, JavaToolchainSpec> {
 
         public ToolchainVendorOption() {
             super(BuildPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, JvmVendor.KnownJvmVendor.class, JvmVendor.KnownJvmVendor.values(), BuildPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, PropertyOrigin.BUILD_PROPERTIES);
         }
 
         @Override
-        public void applyTo(JvmVendor.KnownJvmVendor value, DaemonJvmToolchainSpec settings, Origin origin) {
-            assertJvmToolchainVersion(settings);
+        public void applyTo(JvmVendor.KnownJvmVendor value, JavaToolchainSpec settings, Origin origin) {
             settings.getVendor().set(DefaultJvmVendorSpec.of(value));
         }
     }
 
-    public static class ToolchainImplementationOption extends EnumBuildOption<JvmImplementation, DaemonJvmToolchainSpec> {
+    public static class ToolchainImplementationOption extends EnumBuildOption<JvmImplementation, JavaToolchainSpec> {
 
         public ToolchainImplementationOption() {
             super(BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, JvmImplementation.class, JvmImplementation.values(), BuildPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, PropertyOrigin.BUILD_PROPERTIES);
         }
 
         @Override
-        public void applyTo(JvmImplementation value, DaemonJvmToolchainSpec settings, Origin origin) {
-            assertJvmToolchainVersion(settings);
+        public void applyTo(JvmImplementation value, JavaToolchainSpec settings, Origin origin) {
             settings.getImplementation().set(value);
-        }
-    }
-
-    private static void assertJvmToolchainVersion(DaemonJvmToolchainSpec settings) {
-        if (!settings.getLanguageVersion().isPresent()) {
-            String exceptionMessage = String.format("Option %s undefined on Build properties. " +
-                "Execute 'updateDaemonJvm' task with desired criteria to fix it.", BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
-            throw new IllegalArgumentException(exceptionMessage);
         }
     }
 }

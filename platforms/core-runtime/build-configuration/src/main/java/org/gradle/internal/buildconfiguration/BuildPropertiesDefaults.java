@@ -19,9 +19,11 @@ package org.gradle.internal.buildconfiguration;
 import org.gradle.api.JavaVersion;
 
 public class BuildPropertiesDefaults {
+    public static final String BUILD_PROPERTIES_FILE = "gradle/gradle-build.properties";
+
     public static final String TOOLCHAIN_VERSION_PROPERTY = "daemon.jvm.toolchain.version";
     public static final String TOOLCHAIN_VENDOR_PROPERTY = "daemon.jvm.toolchain.vendor";
     public static final String TOOLCHAIN_IMPLEMENTATION_PROPERTY = "daemon.jvm.toolchain.implementation";
 
-    public static final Integer TOOLCHAIN_VERSION = Integer.valueOf(JavaVersion.getLatestSupportedLTS().getMajorVersion());
+    public static final Integer TOOLCHAIN_VERSION = Integer.valueOf(JavaVersion.VERSION_21.getMajorVersion());
 }

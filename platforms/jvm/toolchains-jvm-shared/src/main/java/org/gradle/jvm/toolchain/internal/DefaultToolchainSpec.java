@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -78,6 +79,12 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
         this.languageVersion = factory.property(JavaLanguageVersion.class);
         this.vendor = factory.property(JvmVendorSpec.class).convention(getConventionVendor());
         this.implementation = factory.property(JvmImplementation.class).convention(getConventionImplementation());
+    }
+
+    public DefaultToolchainSpec(PropertyFactory propertyFactory) {
+        this.languageVersion = propertyFactory.property(JavaLanguageVersion.class);
+        this.vendor = propertyFactory.property(JvmVendorSpec.class);
+        this.implementation = propertyFactory.property(JvmImplementation.class);
     }
 
     @Override

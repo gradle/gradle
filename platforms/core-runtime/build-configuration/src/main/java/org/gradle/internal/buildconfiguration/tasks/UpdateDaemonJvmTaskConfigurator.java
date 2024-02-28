@@ -22,9 +22,11 @@ import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
 
 public class UpdateDaemonJvmTaskConfigurator implements ProjectConfigureAction {
 
+    public static final String TASK_NAME = "updateDaemonJvm";
+
     @Override
     public void execute(ProjectInternal project) {
-        project.getTasks().register(UpdateDaemonJvmTask.TASK_NAME, UpdateDaemonJvmTask.class, task -> {
+        project.getTasks().register(TASK_NAME, UpdateDaemonJvmTask.class, task -> {
             task.setGroup("Build Setup");
             task.setDescription("Generates or updates the Daemon JVM criteria.");
             task.getToolchainVersion().convention(BuildPropertiesDefaults.TOOLCHAIN_VERSION);

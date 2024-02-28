@@ -18,7 +18,7 @@ package org.gradle.interal.buildconfiguration.tasks
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.daemon.DaemonToolchainIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.AbstractDaemonToolchainIntegrationSpec
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
@@ -26,7 +26,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-class UpdateDaemonJvmTaskIntegrationTest extends DaemonToolchainIntegrationSpec {
+class UpdateDaemonJvmTaskIntegrationTest extends AbstractDaemonToolchainIntegrationSpec {
 
     final daemonJvmFixture = new DaemonJvmPropertiesFixture(testDirectory)
 

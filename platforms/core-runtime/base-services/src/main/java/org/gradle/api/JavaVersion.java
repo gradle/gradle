@@ -208,18 +208,6 @@ public enum JavaVersion {
         return currentJavaVersion;
     }
 
-    /**
-     * Returns the version of latest LTS supported non incubating.
-     *
-     * @return The version of LTS supported non incubating.
-     *
-     * @since 8.7
-     */
-    @Incubating
-    public static JavaVersion getLatestSupportedLTS() {
-        return JavaVersion.VERSION_21;
-    }
-
     @VisibleForTesting
     static void resetCurrent() {
         currentJavaVersion = null;

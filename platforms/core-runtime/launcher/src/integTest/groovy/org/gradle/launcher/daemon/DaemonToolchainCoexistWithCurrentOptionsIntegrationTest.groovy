@@ -17,13 +17,13 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.daemon.DaemonToolchainIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.AbstractDaemonToolchainIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends DaemonToolchainIntegrationSpec {
+class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractDaemonToolchainIntegrationSpec {
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given disabled auto-detection When using daemon toolchain Then option is ignored resolving with expected toolchain"() {

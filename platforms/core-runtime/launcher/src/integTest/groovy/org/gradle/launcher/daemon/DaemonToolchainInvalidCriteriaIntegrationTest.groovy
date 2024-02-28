@@ -16,13 +16,13 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.daemon.DaemonToolchainIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.AbstractDaemonToolchainIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-class DaemonToolchainInvalidCriteriaIntegrationTest extends DaemonToolchainIntegrationSpec {
+class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractDaemonToolchainIntegrationSpec {
 
     def "Given empty build properties file When execute any task Then succeeds using the current java home"() {
         def currentJvm = Jvm.current()
@@ -64,7 +64,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends DaemonToolchainInteg
         fails 'help'
 
         then:
-        failureDescriptionContains("Option daemon.jvm.toolchain.version undefined on Build properties. Execute 'updateDaemonJvm' task with desired criteria to fix it.")
+        failureDescriptionContains("Option daemon.jvm.toolchain.version undefined on build properties. Execute 'updateDaemonJvm' task with desired criteria to fix it.")
     }
 
     def "Given unexpected toolchain vendor When execute any task Then fails with expected exception message"() {
@@ -87,6 +87,6 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends DaemonToolchainInteg
         fails 'help'
 
         then:
-        failureDescriptionContains("Option daemon.jvm.toolchain.implementation doesn't accept value 'unknownImplementation'. Possible values are [vendor-specific, J9]")
+        failureDescriptionContains("Option daemon.jvm.toolchain.implementation doesn't accept value 'unknownImplementation'. Possible values are [VENDOR_SPECIFIC, J9]")
     }
 }

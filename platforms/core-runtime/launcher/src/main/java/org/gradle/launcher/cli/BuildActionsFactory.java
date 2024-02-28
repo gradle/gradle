@@ -33,7 +33,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.agents.AgentInitializer;
 import org.gradle.internal.agents.AgentStatus;
-import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmTask;
+import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmTaskConfigurator;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -48,6 +48,7 @@ import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -59,7 +60,6 @@ import org.gradle.launcher.daemon.configuration.BuildProcess;
 import org.gradle.launcher.daemon.configuration.DaemonConfigurationServices;
 import org.gradle.launcher.daemon.jvm.DaemonJavaInstallationRegistryFactory;
 import org.gradle.launcher.daemon.jvm.DaemonJavaToolchainQueryService;
-import org.gradle.launcher.daemon.configuration.DaemonJvmToolchainSpec;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.exec.BuildActionExecuter;
@@ -236,7 +236,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
         JavaVersion version = jvmVersionDetector.getJavaVersion(daemonParameters.getEffectiveJvm());
         try {
-            DaemonJvmToolchainSpec jvmToolchainCriteria = buildEnvironmentConfigurationConverter.convertJvmToolchainCriteria(commandLine, parameters.getProperties());
+            JavaToolchainSpec jvmToolchainCriteria = buildEnvironmentConfigurationConverter.convertJvmToolchainCriteria(commandLine, parameters.getProperties());
             if (jvmToolchainCriteria != null) {
                 JvmInstallationMetadata installation = daemonJavaToolchainQueryService.findMatchingToolchain(jvmToolchainCriteria, startParameters);
                 daemonParameters.setJvm(Jvm.forHome(installation.getJavaHome().toFile()));
@@ -252,6 +252,6 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
     private boolean isExecutingUpdateDaemonJvmTask(StartParameter startParameters) {
         List<TaskExecutionRequest> taskExecutionRequests = startParameters.getTaskRequests();
-        return taskExecutionRequests.size() == 1 && taskExecutionRequests.get(0).getArgs().contains(UpdateDaemonJvmTask.TASK_NAME);
+        return taskExecutionRequests.size() == 1 && taskExecutionRequests.get(0).getArgs().contains(UpdateDaemonJvmTaskConfigurator.TASK_NAME);
     }
 }

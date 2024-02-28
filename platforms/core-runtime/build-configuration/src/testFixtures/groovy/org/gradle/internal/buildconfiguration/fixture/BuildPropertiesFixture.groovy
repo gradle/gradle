@@ -16,7 +16,7 @@
 
 package org.gradle.internal.buildconfiguration.fixture
 
-import org.gradle.api.Project
+import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.junit.Assert.assertFalse
@@ -27,7 +27,7 @@ abstract class BuildPropertiesFixture {
     protected final File propertiesFile
 
     BuildPropertiesFixture(TestFile projectDirectory) {
-        propertiesFile = new File(projectDirectory, Project.BUILD_PROPERTIES)
+        propertiesFile = new File(projectDirectory, BuildPropertiesDefaults.BUILD_PROPERTIES_FILE)
     }
 
     def assertBuildPropertyExist(String property) {

@@ -25,6 +25,7 @@ import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
@@ -95,7 +96,7 @@ public class LayoutToPropertiesConverter {
 
     private void configureFromBuildProperties(BuildLayoutResult layoutResult, Map<String, String> result) {
         BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
-        maybeConfigureFrom(new File(layout.getRootDirectory(), Project.BUILD_PROPERTIES), result);
+        maybeConfigureFrom(new File(layout.getRootDirectory(), BuildPropertiesDefaults.BUILD_PROPERTIES_FILE), result);
     }
 
     private void maybeConfigureFrom(File propertiesFile, Map<String, String> result) {

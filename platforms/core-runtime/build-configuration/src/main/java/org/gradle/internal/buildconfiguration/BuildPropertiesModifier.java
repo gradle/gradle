@@ -17,7 +17,6 @@
 package org.gradle.internal.buildconfiguration;
 
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.internal.GFileUtils;
@@ -36,7 +35,7 @@ public abstract class BuildPropertiesModifier {
     }
 
     public File getPropertiesFile() {
-        return new File(projectDir, Project.BUILD_PROPERTIES);
+        return new File(projectDir, BuildPropertiesDefaults.BUILD_PROPERTIES_FILE);
     }
 
     protected void updateProperties(Action<Properties> propertiesAction) {

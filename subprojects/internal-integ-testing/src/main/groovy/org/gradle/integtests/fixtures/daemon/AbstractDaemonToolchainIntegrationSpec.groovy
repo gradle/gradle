@@ -31,7 +31,7 @@ import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.jvm.toolchain.internal.JvmInstallationMetadataMatcher
 import org.gradle.util.TestUtil
 
-abstract class DaemonToolchainIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractDaemonToolchainIntegrationSpec extends AbstractIntegrationSpec {
 
     protected def createDaemonJvmToolchainCriteria(Jvm jvm) {
         def jvmMetadata = AvailableJavaHomes.getJvmInstallationMetadata(jvm)

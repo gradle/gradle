@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildconfiguration.tasks
 
-import org.gradle.api.Project
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor
@@ -35,7 +34,7 @@ class UpdateDaemonJvmTaskTest extends AbstractTaskTest {
     def setup() {
         daemonJvmTask = createTask(UpdateDaemonJvmTask.class)
         daemonJvmTask.toolchainVersion.convention(BuildPropertiesDefaults.TOOLCHAIN_VERSION)
-        expectedBuildGradleProperties = new File(getProject().getProjectDir(), Project.BUILD_PROPERTIES)
+        expectedBuildGradleProperties = new File(getProject().getProjectDir(), BuildPropertiesDefaults.BUILD_PROPERTIES_FILE)
     }
 
     UpdateDaemonJvmTask getTask() {

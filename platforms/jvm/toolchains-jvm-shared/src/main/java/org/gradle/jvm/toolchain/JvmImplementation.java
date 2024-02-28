@@ -30,23 +30,12 @@ public enum JvmImplementation {
      * Acts as a placeholder and matches any implementation from any vendor.
      * Usually used to override specific implementation requests.
      */
-    VENDOR_SPECIFIC("vendor-specific"),
+    VENDOR_SPECIFIC,
 
     /**
      * Eclipse OpenJ9 (previously known as IBM J9) virtual machine implementation.
      *
      * Matches only virtual machine implementations using the OpenJ9/IBM J9 runtime engine.
      */
-    J9("J9");
-
-    private final String displayName;
-
-    JvmImplementation(String displayName) {
-        this.displayName = displayName;
-    }
-
-    @Override
-    public String toString() {
-        return displayName;
-    }
+    J9
 }

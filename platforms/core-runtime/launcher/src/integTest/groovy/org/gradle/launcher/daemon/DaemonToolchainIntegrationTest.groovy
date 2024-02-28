@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.daemon.DaemonToolchainIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.AbstractDaemonToolchainIntegrationSpec
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
@@ -26,7 +26,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-class DaemonToolchainIntegrationTest extends DaemonToolchainIntegrationSpec {
+class DaemonToolchainIntegrationTest extends AbstractDaemonToolchainIntegrationSpec {
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
@@ -58,7 +58,7 @@ class DaemonToolchainIntegrationTest extends DaemonToolchainIntegrationSpec {
 
         expect:
         failsSimpleTaskWithDescription("Cannot find a Java installation on your machine matching the Daemon JVM defined requirements: " +
-            "{languageVersion=100000, vendor=AMAZON, implementation=vendor-specific} for ${OperatingSystem.current()}.")
+            "{languageVersion=100000, vendor=AMAZON, implementation=VENDOR_SPECIFIC} for ${OperatingSystem.current()}.")
     }
 
     @Requires(IntegTestPreconditions.Java11HomeAvailable)
@@ -75,7 +75,7 @@ class DaemonToolchainIntegrationTest extends DaemonToolchainIntegrationSpec {
 
         expect:
         failsSimpleTaskWithDescription("Cannot find a Java installation on your machine matching the Daemon JVM defined requirements: " +
-            "{languageVersion=11, vendor=$missingInstalledVendor, implementation=vendor-specific} for ${OperatingSystem.current()}.")
+            "{languageVersion=11, vendor=$missingInstalledVendor, implementation=VENDOR_SPECIFIC} for ${OperatingSystem.current()}.")
     }
 
     @Requires(IntegTestPreconditions.Java11HomeAvailable)

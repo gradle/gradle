@@ -23,6 +23,11 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.buildconfiguration.BuildPropertiesDefaults;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.configuration.BuildLayoutResult;
@@ -33,7 +38,6 @@ import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.StartParameterConverter;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonJvmToolchainCriteriaOptions;
-import org.gradle.launcher.daemon.configuration.DaemonJvmToolchainSpec;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 import javax.annotation.Nullable;
@@ -46,7 +50,7 @@ public class BuildEnvironmentConfigurationConverter {
     private final LayoutToPropertiesConverter layoutToPropertiesConverter;
     private final StartParameterConverter startParameterConverter;
     private final BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter;
-    private final BuildOptionBackedConverter<DaemonJvmToolchainSpec> daemonJvmToolchainCriteriaConverter;
+    private final BuildOptionBackedConverter<JavaToolchainSpec> daemonJvmToolchainCriteriaConverter;
     private final FileCollectionFactory fileCollectionFactory;
     private final PropertyFactory propertyFactory;
 
@@ -55,7 +59,7 @@ public class BuildEnvironmentConfigurationConverter {
                                            LayoutToPropertiesConverter layoutToPropertiesConverter,
                                            StartParameterConverter startParameterConverter,
                                            BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter,
-                                           BuildOptionBackedConverter<DaemonJvmToolchainSpec> daemonJvmToolchainCriteriaConverter,
+                                           BuildOptionBackedConverter<JavaToolchainSpec> daemonJvmToolchainCriteriaConverter,
                                            FileCollectionFactory fileCollectionFactory,
                                            PropertyFactory propertyFactory) {
         this.initialPropertiesConverter = initialPropertiesConverter;
@@ -93,9 +97,21 @@ public class BuildEnvironmentConfigurationConverter {
     }
 
     @Nullable
-    public DaemonJvmToolchainSpec convertJvmToolchainCriteria(ParsedCommandLine args, AllProperties properties) {
-        DaemonJvmToolchainSpec jvmToolchainCriteria = new DaemonJvmToolchainSpec(propertyFactory);
+    public JavaToolchainSpec convertJvmToolchainCriteria(ParsedCommandLine args, AllProperties properties) throws IllegalArgumentException {
+        JavaToolchainSpec jvmToolchainCriteria = new DefaultToolchainSpec(propertyFactory);
         daemonJvmToolchainCriteriaConverter.convert(args, properties.getBuildProperties(), jvmToolchainCriteria);
+        if (jvmToolchainCriteria.getLanguageVersion().isPresent()) {
+            if (!jvmToolchainCriteria.getVendor().isPresent()) {
+                jvmToolchainCriteria.getVendor().set(DefaultJvmVendorSpec.any());
+            }
+            if (!jvmToolchainCriteria.getImplementation().isPresent()) {
+                jvmToolchainCriteria.getImplementation().set(JvmImplementation.VENDOR_SPECIFIC);
+            }
+        } else if (jvmToolchainCriteria.getVendor().isPresent() || jvmToolchainCriteria.getImplementation().isPresent()) {
+            String exceptionMessage = String.format("Option %s undefined on build properties. " +
+                "Execute 'updateDaemonJvm' task with desired criteria to fix it.", BuildPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
+            throw new IllegalArgumentException(exceptionMessage);
+        }
         return jvmToolchainCriteria.getLanguageVersion().isPresent() ? jvmToolchainCriteria : null;
     }
 

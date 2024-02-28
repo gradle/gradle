@@ -94,7 +94,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
         toolchain.javaHome.toString() == systemSpecificAbsolutePath("/path/8.0.1.j9")
     }
 
-    def "no preferred implementation if vendor-specific is requested"() {
+    def "no preferred implementation if VENDOR_SPECIFIC is requested"() {
         given:
         def queryService = createQueryServiceWithInstallations(["8.0.2.j9", "8.0.1.hs"])
 
@@ -177,7 +177,7 @@ class DaemonJavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Cannot find a Java installation on your machine matching the Daemon JVM defined requirements: {languageVersion=12, vendor=any, implementation=vendor-specific} for ${OperatingSystem.current()}."
+        e.message == "Cannot find a Java installation on your machine matching the Daemon JVM defined requirements: {languageVersion=12, vendor=any, implementation=VENDOR_SPECIFIC} for ${OperatingSystem.current()}."
         e.cause == null
     }
 

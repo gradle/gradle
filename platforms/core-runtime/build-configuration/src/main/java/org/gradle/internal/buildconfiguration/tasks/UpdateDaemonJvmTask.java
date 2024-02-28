@@ -38,8 +38,6 @@ import java.io.File;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class UpdateDaemonJvmTask extends DefaultTask {
 
-    public static final String TASK_NAME = "updateDaemonJvm";
-
     private final UpdateDaemonJvmModifier updateDaemonJvmModifier;
 
     @Inject

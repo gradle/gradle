@@ -100,7 +100,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=14, vendor=any, implementation=vendor-specific} ${getFailureMessageBuildPlatform()}.")
+               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=14, vendor=any, implementation=VENDOR_SPECIFIC} ${getFailureMessageBuildPlatform()}.")
                .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
                .assertHasResolutions(
                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
@@ -136,7 +136,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-               .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'http://exoticJavaToolchain.com/java-99'.")
+               .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=VENDOR_SPECIFIC}) from 'http://exoticJavaToolchain.com/java-99'.")
                .assertHasCause("Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-99. This is not supported, use a secure URI instead.")
     }
 
