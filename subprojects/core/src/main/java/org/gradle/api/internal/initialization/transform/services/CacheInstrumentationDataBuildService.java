@@ -72,7 +72,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
      * so this method returns just one. For instrumentation is not important which one is returned.
      */
     public File getOriginalFile(long contextId, String hash) {
-        return checkNotNull(getResolutionData(contextId).getOriginalFile(hash));
+        return checkNotNull(getResolutionData(contextId).getOriginalFile(hash), "Original file for hash '%s' does not exist!", hash);
     }
 
     @Nullable
