@@ -22,9 +22,13 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.junit.Rule
 import spock.lang.Issue
 
 import java.nio.file.Files
@@ -42,6 +46,9 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
+
+    @Rule
+    public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
     def serializer = new InstrumentationAnalysisSerializer(new StringInterner())
 
@@ -413,6 +420,38 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 2
         gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28301")
+    def "instrumentation and upgrades work when repository is changed from remote to local"() {
+        executer.requireOwnGradleUserHomeDir()
+        def mavenRemote = new MavenHttpRepository(server, "/repo", HttpRepository.MetadataType.DEFAULT, mavenRepo)
+        def remoteModule = mavenRemote.module("test.gradle", "test-plugin", "0.2").publish()
+        remoteModule.pom.expectDownload()
+        remoteModule.artifact.expectDownload()
+        def artifactCoordinates = "${remoteModule.groupId}:${remoteModule.artifactId}:${remoteModule.version}"
+
+        when:
+        buildFile.text = """
+            buildscript {
+                repositories { maven { url "${mavenRemote.uri}" } }
+                dependencies { classpath "$artifactCoordinates" }
+            }
+        """
+
+        then:
+        run("help")
+
+        when:
+        buildFile.text = """
+            buildscript {
+                repositories { maven { url "${normaliseFileSeparators(mavenRepo.uri.toString())}" } }
+                dependencies { classpath "$artifactCoordinates" }
+            }
+        """
+
+        then:
+        run("help")
     }
 
     def withBuildSrc() {
