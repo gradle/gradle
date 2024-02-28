@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.versions
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -31,6 +32,11 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
         resolve.expectDefaultConfiguration("runtime")
         resolve.addDefaultVariantDerivationStrategy()
+    }
+
+    @Override
+    protected ExecutionResult run(String... tasks) {
+        return super.run((tasks as List + "-s") as String[])
     }
 
     void "strict conflict resolution should fail due to conflict"() {
