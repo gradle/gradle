@@ -990,4 +990,79 @@ dependencyResolutionManagement {
             }
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "short group:name notation suggests using .module in error"() {
+        tomlFile << """[libraries]
+my-lib = "org.gradle.test:lib"
+"""
+
+        when:
+        fails ':help'
+
+        then:
+        failureCauseContains('To declare without a version, use \'my-lib.module\' instead, i.e.: my-lib.module = "org.gradle.test:lib".')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "notation without colon does not suggest using .module"() {
+        tomlFile << """[libraries]
+my-lib = "org.gradle.test"
+"""
+
+        when:
+        fails ':help'
+
+        then:
+        failure.assertHasNoCause('To declare without a version, use \'my-lib.module\' instead, i.e.: my-lib.module = "org.gradle.test:lib".')
+    }
+
+    // This might be an opportunity for a better error message WRT to classifier/extension in version catalog
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "notation without extra colon does not suggest using .module"() {
+        tomlFile << """[libraries]
+my-lib = "org.gradle.test:lib:1.0:classifier"
+"""
+
+        when:
+        fails ':help'
+
+        then:
+        failure.assertHasNoCause('To declare without a version, use \'my-lib.module\' instead, i.e.: my-lib.module = "org.gradle.test:lib".')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24169")
+    def "short group:name notation is allowed using .module"() {
+        tomlFile << """[libraries]
+my-lib.module = "org.gradle.test:lib"
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.my.lib
+                constraints {
+                    implementation "org.gradle.test:lib:1.0"
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                constraint('org.gradle.test:lib:1.0', 'org.gradle.test:lib:1.0')
+                edge('org.gradle.test:lib', 'org.gradle.test:lib:1.0') {
+                    byConstraint()
+                }
+            }
+        }
+    }
 }
