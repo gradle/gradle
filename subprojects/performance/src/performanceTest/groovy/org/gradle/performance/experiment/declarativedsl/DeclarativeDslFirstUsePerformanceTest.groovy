@@ -37,11 +37,14 @@ class DeclarativeDslFirstUsePerformanceTest extends AbstractCrossVersionPerforma
 
     private static final int MEASUREMENT_RUNS = 10
 
+    private static final String MINIMUM_BASE_VERSION = "8.8" // Declarative DSL not present in earlier versions
+
     def "first use"() {
         given:
         runner.tasksToRun = ['tasks']
         runner.warmUpRuns = WARMUP_RUNS
         runner.runs = MEASUREMENT_RUNS
+        runner.minimumBaseVersion = MINIMUM_BASE_VERSION
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
             new ClearGradleUserHomeMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
@@ -62,6 +65,7 @@ class DeclarativeDslFirstUsePerformanceTest extends AbstractCrossVersionPerforma
         runner.tasksToRun = ['tasks']
         runner.warmUpRuns = WARMUP_RUNS
         runner.runs = MEASUREMENT_RUNS
+        runner.minimumBaseVersion = MINIMUM_BASE_VERSION
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
             new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.BUILD)
@@ -79,6 +83,7 @@ class DeclarativeDslFirstUsePerformanceTest extends AbstractCrossVersionPerforma
         runner.tasksToRun = ['tasks']
         runner.warmUpRuns = WARMUP_RUNS
         runner.runs = MEASUREMENT_RUNS
+        runner.minimumBaseVersion = MINIMUM_BASE_VERSION
         runner.useDaemon = false
 
         when:
