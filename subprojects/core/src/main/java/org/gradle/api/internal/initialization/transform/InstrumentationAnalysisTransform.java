@@ -101,7 +101,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
             // Files can be passed to the artifact transform even if they don't exist,
             // in the case when user adds a file classpath via files("path/to/jar").
             // Unfortunately we don't filter them out before the artifact transform is run.
-            writeOutput(artifact, outputs, Collections.emptyMap(), Collections.emptySet());
+//            writeOutput(artifact, outputs, Collections.emptyMap(), Collections.emptySet());
             return;
         }
 

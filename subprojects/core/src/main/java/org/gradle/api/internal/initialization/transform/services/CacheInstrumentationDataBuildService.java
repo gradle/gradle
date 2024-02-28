@@ -24,7 +24,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.ClassPathTransformedArtifact;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.classpath.types.ExternalPluginsInstrumentationTypeRegistry;
@@ -116,12 +116,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         return new ResolutionScope() {
             @Override
             public void setAnalysisResult(ArtifactCollection analysisResult) {
-                resolutionData.getAnalysisResult().set(
-                    analysisResult.getResolvedArtifacts()
-                        .map(artifactSet -> artifactSet.stream()
-                            .map(ResolvedArtifactResult::getFile)
-                            .collect(Collectors.toList()))
-                );
+                resolutionData.getAnalysisResult().set(analysisResult);
             }
 
             @Override
@@ -150,16 +145,15 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         private final Lazy<Map<String, File>> hashToOriginalFile;
         private final Map<File, String> hashCache;
         private final InjectedInstrumentationServices internalServices;
-        private final Lazy<List<File>> cachedAndFilteredAnalysisResult = Lazy.locking().of(() -> getAnalysisResult().get().stream()
-            .filter(file -> !file.getName().equals(".gradle-instrumented-classpath.marker"))
-            .collect(Collectors.toList())
-        );
 
         @Inject
         public ResolutionData(InjectedInstrumentationServices internalServices) {
             this.hashCache = new ConcurrentHashMap<>();
             this.hashToOriginalFile = Lazy.locking().of(() -> {
-                List<File> result = cachedAndFilteredAnalysisResult.get();
+                List<File> result = getAnalysisResult().get().getArtifacts().stream()
+                    .map(ResolvedArtifactResult::getFile)
+                    .filter(file -> !file.getName().equals(".gradle-instrumented-classpath.marker"))
+                    .collect(Collectors.toList());
                 Map<String, File> originalFiles = new HashMap<>(result.size() / 2);
                 InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
                 for (int i = 0; i < result.size();) {
@@ -179,12 +173,14 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             this.internalServices = internalServices;
         }
 
-        public abstract ListProperty<File> getAnalysisResult();
+        public abstract Property<ArtifactCollection> getAnalysisResult();
         public abstract ConfigurableFileCollection getOriginalClasspath();
 
         private Map<String, Set<String>> readDirectSuperTypes() {
             InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
-            return cachedAndFilteredAnalysisResult.get().stream()
+            return getAnalysisResult().get().getArtifacts().stream()
+                .map(ResolvedArtifactResult::getFile)
+                .filter(file -> !file.getName().equals(".gradle-instrumented-classpath.marker"))
                 .filter(result -> result.isDirectory() && new File(result, SUPER_TYPES_FILE_NAME).exists())
                 .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))
                 .flatMap(file -> serializer.readTypesMap(file).entrySet().stream())
