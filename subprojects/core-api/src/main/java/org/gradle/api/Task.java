@@ -156,7 +156,7 @@ import java.util.Set;
  * Parallel execution can be enabled by the <code>--parallel</code> flag when the build is initiated.
  * In parallel mode, the tasks of different projects (i.e. in a multi project build) are able to be executed in parallel.
  */
-public interface Task extends Comparable<Task>, ExtensionAware {
+public interface Task extends Comparable<Task>, ExtensionAware, Named {
     String TASK_NAME = "name";
 
     String TASK_DESCRIPTION = "description";
@@ -184,15 +184,19 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @return The name of the task. Never returns null.
      */
     @Internal
+    @Override
     String getName();
 
     /**
-     * A {@link org.gradle.api.Namer} namer for tasks that returns {@link #getName()}.
+     * An implementation of the namer interface for tasks that returns {@link #getName()}.
+     *
+     * @deprecated Use {@link Named.Namer#INSTANCE} instead (since {@link Task} now extends {@link Named}).
      */
+    @Deprecated
     class Namer implements org.gradle.api.Namer<Task> {
         @Override
-        public String determineName(Task c) {
-            return c.getName();
+        public String determineName(Task task) {
+            return Named.Namer.INSTANCE.determineName(task);
         }
     }
 

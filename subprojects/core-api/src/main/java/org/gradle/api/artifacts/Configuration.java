@@ -103,12 +103,15 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     State getState();
 
     /**
-     * A {@link org.gradle.api.Namer} namer for configurations that returns {@link #getName()}.
+     * An implementation of the namer interface for configurations that returns {@link #getName()}.
+     *
+     * @deprecated Use {@link Named.Namer#INSTANCE} instead (since {@link Configuration} now extends {@link Named}).
      */
+    @Deprecated
     class Namer implements org.gradle.api.Namer<Configuration> {
         @Override
-        public String determineName(Configuration c) {
-            return c.getName();
+        public String determineName(Configuration configuration) {
+            return Named.Namer.INSTANCE.determineName(configuration);
         }
     }
 
