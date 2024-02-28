@@ -27,7 +27,6 @@ dependencies {
     api(libs.futureKotlin("stdlib"))
     api(libs.inject)
 
-    implementation(project(":model-core"))
     implementation(project(":resources"))
     implementation(libs.futureKotlin("compiler-embeddable"))
     implementation(libs.futureKotlin("reflect"))
