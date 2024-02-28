@@ -34,11 +34,16 @@ dependencies {
 
     api(libs.jsr305)
     api(libs.junit)
-    api(libs.testng) {
-        exclude(libs.bsh)
-    }
+    api(libs.testng)
     api(libs.bsh) {
-        because("Used by TestNG, needs to remain on the compile classpath to constrain the selected bsh version to the one we want (2.0b6)")
+        because("""We need to create a capability conflict between "org.beanshell:bsh", and "org.beanshell:beanshell" by explicitly including this lib
+            version of bsh, instead of depending on the transitive version contributed by testng.  This lib contributes the "beanshell" capability,
+            and the conflict resolution rules from capabilities.json ensures this is the version that is resolved.
+
+            This is necessary because the beanshell project migrated coordinates from org.beanshell in version 2.0b4 to org.apache-extras.beanshell
+            in version 2.0b5.  We want to resolve version 2.0b6.  The conflict ensures org.apache-extras.beanshell is selected, so we get 2.0b6.  If
+            we don't do this, we get 2.0b4, which is not present in our verification-metadata.xml file and causes a build failure.
+        """.trimMargin())
     }
 
     implementation(libs.commonsLang)
@@ -69,6 +74,7 @@ dependencies {
 dependencyAnalysis {
     issues {
         onAny() {
+            // Bsh is not used directly, but is selected as the result of capabilities conflict resolution - the classes ARE required at runtime by TestNG
             exclude(libs.bsh)
         }
     }
