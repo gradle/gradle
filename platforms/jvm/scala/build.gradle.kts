@@ -32,7 +32,6 @@ dependencies {
     api(libs.jsr305)
 
     implementation(project(":dependency-management"))
-    implementation(project(":file-collections"))
     implementation(project(":logging"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
