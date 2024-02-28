@@ -26,7 +26,6 @@ import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
-import common.cleanUpReadOnlyDir
 import common.compileAllDependency
 import common.functionalTestExtraParameters
 import common.functionalTestParameters
@@ -61,7 +60,6 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
         ).joinToString(separator = " ")
 
     killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)
-    steps.cleanUpReadOnlyDir(os)
 
     (1..10).forEach { idx ->
         steps {

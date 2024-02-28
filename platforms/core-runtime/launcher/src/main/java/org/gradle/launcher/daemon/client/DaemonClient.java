@@ -29,6 +29,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.ConsoleRenderer;
+import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.internal.Connection;
@@ -100,18 +101,28 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
     private final OutputEventListener outputEventListener;
     private final ExplainingSpec<DaemonContext> compatibilitySpec;
     private final InputStream buildStandardInput;
+    private final GlobalUserInputReceiver userInput;
     private final ExecutorFactory executorFactory;
     private final IdGenerator<UUID> idGenerator;
     private final ProcessEnvironment processEnvironment;
 
     //TODO - outputEventListener and buildStandardInput are per-build settings
     //so down the road we should refactor the code accordingly and potentially attach them to BuildActionParameters
-    public DaemonClient(DaemonConnector connector, OutputEventListener outputEventListener, ExplainingSpec<DaemonContext> compatibilitySpec,
-                        InputStream buildStandardInput, ExecutorFactory executorFactory, IdGenerator<UUID> idGenerator, ProcessEnvironment processEnvironment) {
+    public DaemonClient(
+        DaemonConnector connector,
+        OutputEventListener outputEventListener,
+        ExplainingSpec<DaemonContext> compatibilitySpec,
+        InputStream buildStandardInput,
+        GlobalUserInputReceiver userInput,
+        ExecutorFactory executorFactory,
+        IdGenerator<UUID> idGenerator,
+        ProcessEnvironment processEnvironment
+    ) {
         this.connector = connector;
         this.outputEventListener = outputEventListener;
         this.compatibilitySpec = compatibilitySpec;
         this.buildStandardInput = buildStandardInput;
+        this.userInput = userInput;
         this.executorFactory = executorFactory;
         this.idGenerator = idGenerator;
         this.processEnvironment = processEnvironment;
@@ -228,7 +239,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
     }
 
     private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Message> connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) {
-        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory);
+        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, userInput, executorFactory);
         DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken);
         try {
             cancelForwarder.start();

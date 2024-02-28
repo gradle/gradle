@@ -2971,6 +2971,10 @@ The value of this provider is derived from:
         return ProviderTestUtil.withChangingExecutionTimeValues(values)
     }
 
+    ProviderInternal<T> supplierWithChangingExecutionTimeValues(Class<T> cls, T... values) {
+        return ProviderTestUtil.withChangingExecutionTimeValues(cls, values)
+    }
+
     ProviderInternal<T> supplierWithProducer(Task producer, T... values) {
         return ProviderTestUtil.withProducer(type(), producer, values)
     }

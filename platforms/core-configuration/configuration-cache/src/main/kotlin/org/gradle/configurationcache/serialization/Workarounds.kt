@@ -61,7 +61,7 @@ object Workarounds {
 
     fun canStartExternalProcesses(from: String): Boolean =
         withWorkaroundsFor("processes") {
-            isBuildScanPlugin(from) || isEnterpriseConventionsPlugin(from)
+            isBuildScanPlugin(from)
         }
 
     fun canReadFiles(from: String): Boolean =
@@ -94,11 +94,6 @@ object Workarounds {
             || startsWith("com.gradle.enterprise.agent.")
             || startsWith("com.gradle.enterprise.gradleplugin.testacceleration.")
     }
-
-    // TODO(https://github.com/gradle/gradle-org-conventions-plugin/issues/18) Remove the workaround when our conventions plugin is compatible.
-    private
-    fun isEnterpriseConventionsPlugin(from: String): Boolean =
-        from.startsWith("com.gradle.enterprise.conventions.")
 
     private
     inline fun withWorkaroundsFor(area: String, isEnabled: () -> Boolean): Boolean =

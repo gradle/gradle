@@ -43,6 +43,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     private Locale locale = Locale.getDefault();
     private List<String> daemonOpts = new ArrayList<>();
     private boolean applyInstrumentationAgent;
+    private boolean useNativeServices;
     private DaemonParameters.Priority priority;
 
     public DaemonContextBuilder(ProcessEnvironment processEnvironment) {
@@ -110,6 +111,10 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         this.applyInstrumentationAgent = applyInstrumentationAgent;
     }
 
+    public void setUseNativeServices(boolean useNativeServices) {
+        this.useNativeServices = useNativeServices;
+    }
+
     public void setPriority(DaemonParameters.Priority priority) {
         this.priority = priority;
     }
@@ -118,6 +123,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         setJavaHome(daemonParameters.getEffectiveJvm().getJavaHome());
         setDaemonOpts(daemonParameters.getEffectiveJvmArgs());
         setApplyInstrumentationAgent(daemonParameters.shouldApplyInstrumentationAgent());
+        setUseNativeServices(daemonParameters.useNativeServices());
         setPriority(daemonParameters.getPriority());
     }
 
@@ -129,6 +135,6 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
         if (daemonRegistryDir == null) {
             throw new IllegalStateException("Registry dir must be specified.");
         }
-        return new DefaultDaemonContext(uid, javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts, applyInstrumentationAgent, priority);
+        return new DefaultDaemonContext(uid, javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts, applyInstrumentationAgent, useNativeServices, priority);
     }
 }

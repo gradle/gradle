@@ -97,9 +97,6 @@ A build whose execution time is dominated by a single subproject won't benefit m
 Neither will a project with lots of inter-subproject dependencies.
 But most multi-subproject builds see a reduction in build times.
 
-For more information about parallel builds, check out the
-<<performance.adoc#parallel_execution,parallel builds documentation>>.
-
 === Visualize parallelism with build scans
 
 Build scans give you a visual timeline of task execution. In the following

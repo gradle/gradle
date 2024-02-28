@@ -58,13 +58,12 @@ include::build_scans.adoc[leveloffset=+2]
 
 == OTHER TOPICS
 
-include::gradle_ides.adoc[leveloffset=+2]
 include::continuous_builds.adoc[leveloffset=+2]
 
 [[part:authoring_builds]]
 == **AUTHORING GRADLE BUILDS**
 
-== LEARNING THE BASICS
+== THE BASICS
 
 include::gradle_directories.adoc[leveloffset=+2]
 include::intro_multi_project_builds.adoc[leveloffset=+2]
@@ -87,10 +86,12 @@ include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
 == DEVELOPING TASKS
 
 include::more_about_tasks.adoc[leveloffset=+2]
-include::custom_tasks.adoc[leveloffset=+2]
-include::lazy_configuration.adoc[leveloffset=+2]
+include::lifecycle_tasks.adoc[leveloffset=+2]
+include::actionable_tasks.adoc[leveloffset=+2]
 include::task_configuration_avoidance.adoc[leveloffset=+2]
+include::lazy_configuration.adoc[leveloffset=+2]
 include::worker_api.adoc[leveloffset=+2]
+include::custom_tasks.adoc[leveloffset=+2]
 
 == DEVELOPING PLUGINS
 
@@ -144,7 +145,7 @@ include::scala_plugin.adoc[leveloffset=+2]
 
 include::dependency_management_terminology.adoc[leveloffset=+2]
 
-== LEARNINGS THE BASICS
+== THE BASICS
 
 include::core_dependency_management.adoc[leveloffset=+2]
 include::declaring_repositories.adoc[leveloffset=+2]
@@ -199,6 +200,7 @@ include::file_system_watching.adoc[leveloffset=+2]
 include::incremental_build.adoc[leveloffset=+2]
 include::configuration_cache.adoc[leveloffset=+2]
 include::inspect.adoc[leveloffset=+2]
+include::config_gradle.adoc[leveloffset=+2]
 include::project_properties.adoc[leveloffset=+2]
 include::networking.adoc[leveloffset=+2]
 
@@ -212,19 +214,6 @@ include::caching_java_projects.adoc[leveloffset=+2]
 include::caching_android_projects.adoc[leveloffset=+2]
 include::build_cache_debugging.adoc[leveloffset=+2]
 include::common_caching_problems.adoc[leveloffset=+2]
-
-[[part:native_projects]]
-== **AUTHORING C++ / SWIFT BUILDS**
-
-include::building_cpp_projects.adoc[leveloffset=+2]
-include::cpp_testing.adoc[leveloffset=+2]
-include::building_swift_projects.adoc[leveloffset=+2]
-include::swift_testing.adoc[leveloffset=+2]
-
-== NATIVE PROJECTS USING THE SOFTWARE MODEL
-
-include::native_software.adoc[leveloffset=+2]
-include::rule_source.adoc[leveloffset=+2]
 
 [[part:gradle_on_ci]]
 == **GRADLE ON CI**

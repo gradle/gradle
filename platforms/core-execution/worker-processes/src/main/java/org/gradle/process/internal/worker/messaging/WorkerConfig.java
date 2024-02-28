@@ -34,8 +34,9 @@ public class WorkerConfig {
     private final long workerId;
     private final String displayName;
     private final Action<? super WorkerProcessContext> workerAction;
+    private final boolean useNativeServices;
 
-    public WorkerConfig(LogLevel logLevel, boolean publishJvmMemoryInfo, String gradleUserHomeDirPath, MultiChoiceAddress serverAddress, long workerId, String displayName, Action<? super WorkerProcessContext> workerAction) {
+    public WorkerConfig(LogLevel logLevel, boolean publishJvmMemoryInfo, String gradleUserHomeDirPath, MultiChoiceAddress serverAddress, long workerId, String displayName, Action<? super WorkerProcessContext> workerAction, boolean useNativeServices) {
         this.logLevel = logLevel;
         this.publishJvmMemoryInfo = publishJvmMemoryInfo;
         this.gradleUserHomeDirPath = gradleUserHomeDirPath;
@@ -43,6 +44,7 @@ public class WorkerConfig {
         this.workerId = workerId;
         this.displayName = displayName;
         this.workerAction = workerAction;
+        this.useNativeServices = useNativeServices;
 
         assert workerAction instanceof Serializable;
     }
@@ -75,6 +77,10 @@ public class WorkerConfig {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public boolean useNativeServices() {
+        return useNativeServices;
     }
 
     public Action<? super WorkerProcessContext> getWorkerAction() {

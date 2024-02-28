@@ -17,8 +17,11 @@
 package org.gradle.launcher.daemon.server.api;
 
 import org.gradle.launcher.daemon.protocol.ForwardInput;
+import org.gradle.launcher.daemon.protocol.UserResponse;
 
 public interface StdinHandler {
+    void onUserResponse(UserResponse input);
+
     void onInput(ForwardInput input);
 
     void onEndOfInput();

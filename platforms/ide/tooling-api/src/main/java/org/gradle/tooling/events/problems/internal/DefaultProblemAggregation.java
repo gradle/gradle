@@ -31,7 +31,8 @@ public class DefaultProblemAggregation implements ProblemAggregation {
 
     public DefaultProblemAggregation(
         ProblemCategory problemCategory,
-        Label problemLabel, List<ProblemDescriptor> problemDescriptors
+        Label problemLabel,
+        List<ProblemDescriptor> problemDescriptors
     ) {
         this.problemDescriptors = problemDescriptors;
         this.problemCategory = problemCategory;

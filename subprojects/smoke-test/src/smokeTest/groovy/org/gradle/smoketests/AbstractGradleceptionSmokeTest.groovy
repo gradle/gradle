@@ -26,7 +26,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.SmokeTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.testkit.runner.BuildResult
 
 import java.text.SimpleDateFormat
 
@@ -41,7 +40,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
     public static final String TEST_JAVA_INSTALLATIONS = "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}"
     private static final List<String> GRADLE_BUILD_TEST_ARGS = [TEST_BUILD_TIMESTAMP, TEST_JAVA_INSTALLATIONS]
 
-    protected BuildResult result
+    private SmokeTestGradleRunner.SmokeTestBuildResult result
 
     def setup() {
         new TestFile("build/gradleBuildCurrent").copyTo(testProjectDir)
@@ -51,7 +50,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
     }
 
-    BuildResult getResult() {
+    SmokeTestGradleRunner.SmokeTestBuildResult getResult() {
         if (result == null) {
             throw new IllegalStateException("Need to run a build before result is available.")
         }

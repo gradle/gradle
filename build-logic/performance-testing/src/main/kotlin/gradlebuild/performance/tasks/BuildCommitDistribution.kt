@@ -23,7 +23,6 @@ import gradlebuild.performance.generator.tasks.RemoteProject
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
@@ -31,7 +30,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.caching.http.HttpBuildCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecOperations
 import org.gradle.util.GradleVersion
@@ -176,13 +174,6 @@ abstract class BuildCommitDistribution @Inject internal constructor(
 
         if (project.gradle.startParameter.isBuildCacheEnabled) {
             buildCommands.add("--build-cache")
-
-            val buildCacheConf = (project.gradle as GradleInternal).settings.buildCache
-            val remoteCache = buildCacheConf.remote as HttpBuildCache?
-            if (remoteCache?.url != null) {
-                buildCommands.add("-Dgradle.cache.remote.url=${remoteCache.url}")
-                buildCommands.add("-Dgradle.cache.remote.username=${remoteCache.credentials.username}")
-            }
         }
 
         return buildCommands.toTypedArray()

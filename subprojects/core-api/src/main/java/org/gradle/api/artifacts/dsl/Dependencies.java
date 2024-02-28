@@ -136,19 +136,6 @@ public interface Dependencies {
     }
 
     /**
-     * Create a {@link DependencyConstraint} from a series of strings.
-     *
-     * @param group the group (optional)
-     * @param name the name
-     * @param version the version (optional)
-     * @return the new dependency constraint
-     * @since 8.7
-     */
-    default DependencyConstraint constraint(@Nullable String group, String name, @Nullable String version) {
-        return getDependencyConstraintFactory().create(group, name, version);
-    }
-
-    /**
      * Create a {@link DependencyConstraint} from a minimal dependency.
      *
      * @param dependencyConstraint dependency constraint to add

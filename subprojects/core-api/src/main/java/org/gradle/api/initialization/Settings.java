@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
@@ -29,8 +30,10 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.toolchain.management.ToolchainManagement;
-import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
+import org.gradle.declarative.dsl.model.annotations.Adding;
+import org.gradle.declarative.dsl.model.annotations.Configuring;
+import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.vcs.SourceControl;
@@ -119,6 +122,17 @@ public interface Settings extends PluginAware, ExtensionAware {
      */
     default void include(String... projectPaths) {
         include(Arrays.asList(projectPaths));
+    }
+
+    /**
+     * This is a version of {@link Settings#include(String...)} for just one argument.
+     * FIXME: this public API should not be released!
+     * @since 8.8
+     */
+    @Adding // TODO: support varargs and remove the workaround
+    @Incubating
+    default void include(String projectPath) {
+        include(new String[] {projectPath});
     }
 
     /**
@@ -235,6 +249,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @return The root project. Never returns null.
      */
+    @Restricted
     ProjectDescriptor getRootProject();
 
     /**
@@ -330,6 +345,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.5
      */
+    @Configuring
     void pluginManagement(Action<? super PluginManagementSpec> pluginManagementSpec);
 
     /**
@@ -337,6 +353,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.5
      */
+    @Restricted
     PluginManagementSpec getPluginManagement();
 
     /**
@@ -360,6 +377,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 4.6
      */
+    @Adding
     void enableFeaturePreview(String name);
 
     /**
@@ -368,6 +386,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
+    @Configuring
     void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration);
 
     /**
@@ -375,6 +394,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
+    @Restricted
     DependencyResolutionManagement getDependencyResolutionManagement();
 
     /**

@@ -31,7 +31,7 @@ class GradleBuildBinaryDistributionConfigurationCacheSmokeTest extends AbstractG
         configurationCacheRun(tasks, 0)
 
         then:
-        assertConfigurationCacheStateStored()
+        result.assertConfigurationCacheStateStored()
 
         when:
         run([":distributions-full:clean"])
@@ -40,7 +40,7 @@ class GradleBuildBinaryDistributionConfigurationCacheSmokeTest extends AbstractG
         configurationCacheRun(tasks, 1)
 
         then:
-        assertConfigurationCacheStateLoaded()
+        result.assertConfigurationCacheStateLoaded()
         result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.SUCCESS
         result.task(":distributions-full:binInstallation").outcome == TaskOutcome.SUCCESS
     }

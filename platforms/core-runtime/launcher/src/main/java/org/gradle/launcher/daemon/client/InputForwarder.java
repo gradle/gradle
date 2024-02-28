@@ -42,17 +42,17 @@ public class InputForwarder implements Stoppable {
     private final TextStream handler;
     private final ExecutorFactory executorFactory;
     private final int bufferSize;
-    private ManagedExecutor forwardingExecuter;
+    private ManagedExecutor forwardingExecutor;
     private DisconnectableInputStream disconnectableInput;
     private LineBufferingOutputStream outputBuffer;
     private final Lock lifecycleLock = new ReentrantLock();
     private boolean started;
     private boolean stopped;
 
-    public InputForwarder(InputStream input, TextStream handler, ExecutorFactory executerFactory, int bufferSize) {
+    public InputForwarder(InputStream input, TextStream handler, ExecutorFactory executorFactory, int bufferSize) {
         this.input = input;
         this.handler = handler;
-        this.executorFactory = executerFactory;
+        this.executorFactory = executorFactory;
         this.bufferSize = bufferSize;
     }
 
@@ -68,8 +68,8 @@ public class InputForwarder implements Stoppable {
                 SystemProperties.getInstance().getLineSeparator(),
                 bufferSize);
 
-            forwardingExecuter = executorFactory.create("Forward input");
-            forwardingExecuter.execute(new Runnable() {
+            forwardingExecutor = executorFactory.create("Forward input");
+            forwardingExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
                     byte[] buffer = new byte[bufferSize];
@@ -120,7 +120,7 @@ public class InputForwarder implements Stoppable {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
 
-                forwardingExecuter.stop();
+                forwardingExecutor.stop();
                 stopped = true;
             }
         } finally {

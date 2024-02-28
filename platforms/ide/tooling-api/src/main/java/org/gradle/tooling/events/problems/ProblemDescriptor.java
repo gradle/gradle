@@ -30,7 +30,7 @@ import java.util.List;
  * @since 8.4
  */
 @Incubating
-public interface ProblemDescriptor extends BaseProblemDescriptor {
+public interface ProblemDescriptor {
 
     /**
      * Returns the problem category.
@@ -54,6 +54,7 @@ public interface ProblemDescriptor extends BaseProblemDescriptor {
      * @return the problem details
      * @since 8.6
      */
+    @Nullable
     Details getDetails();
 
     /**
@@ -78,6 +79,7 @@ public interface ProblemDescriptor extends BaseProblemDescriptor {
      * @return the locations
      * @since 8.6
      */
+    @Nullable
     DocumentationLink getDocumentationLink();
 
     /**
@@ -96,5 +98,6 @@ public interface ProblemDescriptor extends BaseProblemDescriptor {
      * @return the failure
      * @since 8.7
      */
-    @Nullable FailureContainer getFailure();
+    @Nullable
+    FailureContainer getFailure();
 }

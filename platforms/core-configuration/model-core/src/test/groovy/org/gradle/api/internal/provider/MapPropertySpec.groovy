@@ -33,6 +33,7 @@ import java.util.function.Consumer
 import java.util.function.Function
 
 import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.GET_PRODUCER
+import static org.gradle.api.internal.provider.Providers.notDefined
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
@@ -318,7 +319,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     def "property has no value when set to provider with no value and other entries added"() {
         given:
-        property.set(Providers.notDefined())
+        property.set(notDefined())
         and:
         property.put('k1', 'v1')
         property.put('k2', Providers.of('v2'))
@@ -341,7 +342,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         given:
         property.set(['k1': 'v1'])
         property.put('k2', 'v2')
-        property.put('k3', Providers.notDefined())
+        property.put('k3', notDefined())
 
         expect:
         !property.present
@@ -375,7 +376,7 @@ The value of this property is derived from: <source>""")
         given:
         property.set(['k1': 'v1'])
         property.put('k2', 'v2')
-        property.putAll(Providers.notDefined())
+        property.putAll(notDefined())
 
         expect:
         !property.present
@@ -888,7 +889,7 @@ The value of this property is derived from: <source>""")
     def "keySet provider has no value when any entry has no value"() {
         given:
         property.put("k1", "1")
-        property.put("k2", Providers.notDefined())
+        property.put("k2", notDefined())
         property.put("k3", "3")
         def keySetProvider = property.keySet()
 
@@ -1326,6 +1327,37 @@ The value of this property is derived from: <source>""")
         property.explicit
     }
 
+    def "'#label' vs undefined-safety"() {
+        given:
+        initial.each { operation ->
+            operation.call(property)
+        }
+
+        when:
+        operations.each {operation -> operation.call(property) }
+
+        then:
+        expected == null || property.getOrNull() == ImmutableMap.copyOf(expected)
+        expected != null || !property.present
+
+        where:
+        expected            | initial                   | operations                                            | label
+        [k1: "1"]           | { }                       | { it.put("k1", "1") }                                 | "put"
+        [k1: "1"]           | { }                       | { it.insert("k1", "1") }                              | "insert"
+        null                | { it.set(notDefined()) }  | { it.put("k1", "1") }                                 | "put to missing"
+        [k1: "1"]           | { it.set(notDefined()) }  | { it.insert("k1", "1") }                              | "insert to missing"
+        null                | { }                       | { it.put("k1", notDefined()) }                        | "put missing"
+        []                  | { }                       | { it.insert("k1", notDefined()) }                     | "insert missing"
+        [k1: "1"]           | { it.empty() }            | { it.put("k1", "1") }                                 | "put after emptying"
+        [k1: "1"]           | { it.empty() }            | { it.insert("k1", "1") }                              | "insert after emptying"
+        [k1: "1"]           | { it.set([:]) }           | { it.put("k1", "1") }                                 | "put to empty"
+        [k1: "1"]           | { it.set([:]) }           | { it.insert("k1", "1") }                              | "insert to empty"
+        [k2: "2"]           | { }                       | { it.put("k1", notDefined()) ; it.insert("k2", "2") } | "put missing then append"
+        [k2: "2"]           | { }                       | { it.insert("k1", notDefined()) ; it.put("k2", "2") } | "insert missing then add"
+        [k2: "2"]           | { it.set([k0: "0"]) }     | { it.put("k1", notDefined()) ; it.insert("k2", "2") } | "put missing to non-empty then append"
+        [k0: "0", k2: "2"]  | { it.set([k0: "0"]) }     | { it.insert("k1", notDefined()) ; it.put("k2", "2") } | "insert missing to non-empty then add"
+    }
+
     def "inserting into an undefined property is undefined-safe"() {
         given:
         property.set((Map) null)
@@ -1338,7 +1370,7 @@ The value of this property is derived from: <source>""")
     def "inserting after putting an undefined element provider is undefined-safe"() {
         given:
         property.putAll(Providers.of([k1: '1', k2: '2']))
-        property.put('k3', Providers.notDefined())
+        property.put('k3', notDefined())
         property.insert('k4', '4')
 
         expect:
@@ -1348,7 +1380,7 @@ The value of this property is derived from: <source>""")
     def "inserting after putting an undefined map provider is undefined-safe"() {
         given:
         property.putAll(Providers.of([k1: '1', k2: '2']))
-        property.putAll(Providers.notDefined())
+        property.putAll(notDefined())
         property.insert('k4', '4')
 
         expect:
@@ -1357,7 +1389,7 @@ The value of this property is derived from: <source>""")
 
     def "inserting an undefined value provider is undefined-safe"() {
         given:
-        property.insert("k1", Providers.notDefined())
+        property.insert("k1", notDefined())
 
         expect:
         assertValueIs([:])
@@ -1365,26 +1397,74 @@ The value of this property is derived from: <source>""")
 
     def "inserting an undefined map provider is undefined-safe"() {
         given:
-        property.insertAll(Providers.notDefined())
+        property.insertAll(notDefined())
 
         expect:
         assertValueIs([:])
     }
 
-    def "putting after inserting an undefined map provider is undefined-safe"() {
+    def "putting after inserting an undefined map provider into an empty map is left-side undefined-safe"() {
         given:
-        property.put("k0", "0")
-        property.insertAll(Providers.notDefined())
+        property.insertAll(notDefined())
+        property.put("k1", "1")
+
+        expect:
+        assertValueIs([k1: '1'])
+    }
+
+    def "putting after inserting an undefined value provider into an empty map is left-side undefined-safe"() {
+        given:
+        property.insert("k1", notDefined())
+        property.put("k2", "2")
+
+        expect:
+        assertValueIs([k2: '2'])
+    }
+
+    def "putting after inserting an undefined map provider into a non-empty map is left-side undefined-safe"() {
+        given:
+        property.set(["k0": "0"])
+        property.insertAll(notDefined())
         property.put("k1", "1")
 
         expect:
         assertValueIs([k0: '0', k1: '1'])
     }
 
+    def "putting after inserting an undefined value provider into a non-emoty map is left-side undefined-safe"() {
+        given:
+        property.put("k0", "0")
+        property.insert("k1", notDefined())
+        property.put("k2", "2")
+
+        expect:
+        assertValueIs([k0: '0', k2: '2'])
+    }
+
+    def "putting an undefined value provider after inserting is not right-side undefined-safe"() {
+        given:
+        property.insertAll(Providers.of(["k1": "1", "k2": "2"]))
+        property.put("k3", notDefined())
+
+        expect:
+        !property.present
+        property.getOrNull() == null
+    }
+
+    def "putting an undefined map provider after inserting is not right-side undefined-safe"() {
+        given:
+        property.insertAll(Providers.of(["k1": "1", "k2": "2"]))
+        property.putAll(notDefined())
+
+        expect:
+        !property.present
+        property.getOrNull() == null
+    }
+
     def "putting after inserting an undefined value provider is undefined-safe"() {
         given:
         property.put("k0", "0")
-        property.insert("k1", Providers.notDefined())
+        property.insert("k1", notDefined())
         property.put("k2", "2")
 
         expect:
@@ -1393,12 +1473,12 @@ The value of this property is derived from: <source>""")
 
     def "execution time value is present if only undefined-safe operations are performed"() {
         given:
-        property.set(Providers.notDefined())
-        property.put("a", Providers.notDefined())
+        property.set(notDefined())
+        property.put("a", notDefined())
         property.insert("b", "2")
         property.putAll([c: '3'])
         property.putAll([d: '4'])
-        property.insert("e", Providers.notDefined())
+        property.insert("e", notDefined())
 
         expect:
         assertValueIs([b: '2', c: '3', d: '4'])
@@ -1410,14 +1490,54 @@ The value of this property is derived from: <source>""")
         assertMapIs([b: '2', c: '3', d: '4'], execTimeValue.toValue().get())
     }
 
+    def "execution time value is missing if any undefined-safe operations are performed in the tail"() {
+        given:
+        property.set(notDefined())
+        property.put("a", notDefined())
+        property.insert("b", "2")
+        property.putAll([c: '3'])
+        property.putAll([d: '4'])
+        property.insert("e", notDefined())
+        property.put("f", notDefined())
+
+        expect:
+        !property.isPresent()
+
+        when:
+        def execTimeValue = property.calculateExecutionTimeValue()
+
+        then:
+        execTimeValue.toValue().isMissing()
+    }
+
+    def "property restores undefined-safe items"() {
+        given:
+        property.put("a", "1")
+        property.insertAll(supplierWithChangingExecutionTimeValues(Map, value, value))
+        property.put("c", "3")
+
+        when:
+        def execTimeValue = property.calculateExecutionTimeValue()
+        def property2 = property()
+        property2.fromState(execTimeValue)
+
+        then:
+        assertValueIs(result, property2)
+
+        where:
+        value       | result
+        [b: "2"]    | [a: "1", b: "2", c: "3"]
+        null        | [a: "1", c: "3"]
+    }
+
     def "property remains undefined-safe after restored"() {
         given:
-        property.put("a", Providers.notDefined())
+        property.put("a", notDefined())
         property.insert("b", "2")
         // changing execution time values or else we would end up with fixed values
         property.putAll(supplierWithChangingExecutionTimeValues([c: '3'], [c: '3a'], [c: '3b'], [c: '3c'], [c: '3d'], [c: '3e']))
         property.putAll(supplierWithValues([d: '4']))
-        property.insert("e", Providers.notDefined())
+        property.insert("e", notDefined())
 
         when:
         def execTimeValue = property.calculateExecutionTimeValue()
@@ -1430,7 +1550,7 @@ The value of this property is derived from: <source>""")
         when:
         property2.put("f", "6")
         property2.insert("g", "7")
-        property2.insert("h", Providers.notDefined())
+        property2.insert("h", notDefined())
         def execTimeValue2 = property2.calculateExecutionTimeValue()
 
         then:
@@ -1448,7 +1568,7 @@ The value of this property is derived from: <source>""")
         given:
         property.set((Map) null)
         property.put("k1", "1")
-        property.put("k2", Providers.notDefined())
+        property.put("k2", notDefined())
         property.insert("k3", "3")
         property.put("k4", "4")
         def keySetProvider = property.keySet()
@@ -1462,7 +1582,7 @@ The value of this property is derived from: <source>""")
         given:
         property.set((Map) null)
         property.put("k1", "1")
-        property.put("k2", Providers.notDefined())
+        property.put("k2", notDefined())
         property.insert("k3", "3")
         property.put("k4", "4")
         def keySetProvider = property.keySet()

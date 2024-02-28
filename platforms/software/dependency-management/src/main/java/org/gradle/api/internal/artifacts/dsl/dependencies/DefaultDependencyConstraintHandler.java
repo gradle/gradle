@@ -45,19 +45,9 @@ import org.gradle.util.internal.ConfigureUtil;
 import javax.annotation.Nullable;
 
 public class DefaultDependencyConstraintHandler implements DependencyConstraintHandler, MethodMixIn {
-    private final static DependencyConstraint DUMMY_CONSTRAINT = new DependencyConstraintInternal() {
+    private final static DependencyConstraint DUMMY_CONSTRAINT = new DependencyConstraint() {
         private InvalidUserCodeException shouldNotBeCalled() {
             return new InvalidUserCodeException("You shouldn't use a dependency constraint created via a Provider directly");
-        }
-
-        @Override
-        public void setForce(boolean force) {
-            throw shouldNotBeCalled();
-        }
-
-        @Override
-        public boolean isForce() {
-            throw shouldNotBeCalled();
         }
 
         @Override
@@ -113,11 +103,6 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
 
         @Override
         public ModuleIdentifier getModule() {
-            throw shouldNotBeCalled();
-        }
-
-        @Override
-        public DependencyConstraint copy() {
             throw shouldNotBeCalled();
         }
     };

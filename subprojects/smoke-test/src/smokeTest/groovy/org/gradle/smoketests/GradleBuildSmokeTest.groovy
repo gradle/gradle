@@ -39,7 +39,7 @@ class GradleBuildSmokeTest extends AbstractGradleceptionSmokeTest {
         ])
 
         when:
-        result = runner.build()
+        def result = runner.build()
 
         then:
         result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.SUCCESS
@@ -51,8 +51,8 @@ class GradleBuildSmokeTest extends AbstractGradleceptionSmokeTest {
             .ignoreDeprecationWarnings("https://github.com/gradle/gradle-private/issues/3405")
 
         when:
-        result = runner.build()
-        result = runner.build()
+        runner.build()
+        def result = runner.build()
 
         then:
         result.task(":distributions-full:install").outcome == TaskOutcome.SUCCESS

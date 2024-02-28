@@ -46,7 +46,7 @@ When you're using a JVM language plugin — such as the <<java_plugin.adoc#java_
  * A dedicated `test` source set for unit tests
  * A `test` task of type `Test` that runs those unit tests
 
-The JVM language plugins use the source set to configure the task with the appropriate execution classpath and the directory containing the compiled test classes. In addition, they attach the `test` task to the `check` <<more_about_tasks.adoc#sec:lifecycle_tasks,lifecycle task>>.
+The JVM language plugins use the source set to configure the task with the appropriate execution classpath and the directory containing the compiled test classes. In addition, they attach the `test` task to the `check` <<lifecycle_tasks.adoc#sec:lifecycle_tasks,lifecycle task>>.
 
 It's also worth bearing in mind that the `test` source set automatically creates <<java_plugin.adoc#java_source_set_configurations,corresponding dependency configurations>> — of which the most useful are `testImplementation` and `testRuntimeOnly` — that the plugins tie into the `test` task's classpath.
 

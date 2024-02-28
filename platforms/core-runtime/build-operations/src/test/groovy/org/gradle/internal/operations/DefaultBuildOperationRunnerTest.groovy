@@ -23,11 +23,10 @@ import javax.annotation.Nullable
 import static org.gradle.internal.operations.BuildOperationDescriptor.displayName
 import static org.gradle.internal.operations.DefaultBuildOperationRunner.BuildOperationExecutionListener
 import static org.gradle.internal.operations.DefaultBuildOperationRunner.ReadableBuildOperationContext
-import static org.gradle.internal.operations.DefaultBuildOperationRunner.TimeSupplier
 
 class DefaultBuildOperationRunnerTest extends Specification {
 
-    def timeProvider = Mock(TimeSupplier)
+    def timeProvider = Mock(BuildOperationTimeSupplier)
     def listener = Mock(BuildOperationExecutionListener)
     def currentBuildOperationRef = CurrentBuildOperationRef.instance()
     def operationRunner = new DefaultBuildOperationRunner(currentBuildOperationRef, timeProvider, new DefaultBuildOperationIdFactory(), { listener })

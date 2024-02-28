@@ -30,7 +30,7 @@ class GradleBuildIntegTestConfigurationCacheSmokeTest extends AbstractGradleBuil
         configurationCacheRun supportedTasks, 0
 
         then:
-        assertConfigurationCacheStateStored()
+        result.assertConfigurationCacheStateStored()
 
         when:
         run([":configuration-cache:clean"])
@@ -39,7 +39,7 @@ class GradleBuildIntegTestConfigurationCacheSmokeTest extends AbstractGradleBuil
         configurationCacheRun supportedTasks, 1
 
         then:
-        assertConfigurationCacheStateLoaded()
+        result.assertConfigurationCacheStateLoaded()
         result.task(":configuration-cache:embeddedIntegTest").outcome == TaskOutcome.FROM_CACHE
         assertTestClassExecutedIn "platforms/core-configuration/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheDebugLogIntegrationTest"
     }

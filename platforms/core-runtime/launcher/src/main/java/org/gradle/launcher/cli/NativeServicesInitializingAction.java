@@ -20,8 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationEnabled;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.configuration.BuildLayoutResult;
+
+import java.util.Map;
 
 public class NativeServicesInitializingAction implements Action<ExecutionListener> {
 
@@ -29,17 +32,25 @@ public class NativeServicesInitializingAction implements Action<ExecutionListene
     private final LoggingConfiguration loggingConfiguration;
     private final LoggingManagerInternal loggingManager;
     private final Action<ExecutionListener> action;
+    private final Map<String, String> allProperties;
 
-    public NativeServicesInitializingAction(BuildLayoutResult buildLayout, LoggingConfiguration loggingConfiguration, LoggingManagerInternal loggingManager, Action<ExecutionListener> action) {
+    public NativeServicesInitializingAction(
+        BuildLayoutResult buildLayout,
+        LoggingConfiguration loggingConfiguration,
+        LoggingManagerInternal loggingManager,
+        Map<String, String> allProperties,
+        Action<ExecutionListener> action
+    ) {
         this.buildLayout = buildLayout;
         this.loggingConfiguration = loggingConfiguration;
         this.loggingManager = loggingManager;
         this.action = action;
+        this.allProperties = allProperties;
     }
 
     @Override
     public void execute(ExecutionListener executionListener) {
-        NativeServices.initializeOnClient(buildLayout.getGradleUserHomeDir());
+        NativeServices.initializeOnClient(buildLayout.getGradleUserHomeDir(), NativeIntegrationEnabled.fromProperties(allProperties));
         loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
         action.execute(executionListener);
     }

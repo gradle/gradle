@@ -75,5 +75,12 @@ public interface DaemonContext extends Serializable {
      */
     boolean shouldApplyInstrumentationAgent();
 
+    /**
+     * Returns whether the daemon should use native services.
+     *
+     * @return {@code true} if the native services should be used.
+     */
+    boolean useNativeServices();
+
     DaemonParameters.Priority getPriority();
 }

@@ -63,10 +63,10 @@ object IntersectionPatternSetCodec : Codec<IntersectionPatternSet> {
 private
 suspend fun WriteContext.writePatternSet(value: PatternSet) {
     writeBoolean(value.isCaseSensitive)
-    writeStrings(value.includes)
-    writeStrings(value.excludes)
-    writeCollection(value.includeSpecs)
-    writeCollection(value.excludeSpecs)
+    writeStrings(value.includesView)
+    writeStrings(value.excludesView)
+    writeCollection(value.includeSpecsView)
+    writeCollection(value.excludeSpecsView)
 }
 
 

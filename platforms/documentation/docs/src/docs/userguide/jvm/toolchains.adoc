@@ -221,7 +221,7 @@ None of the auto-provisioned JDKs will ever be revisited and automatically updat
 Toolchain download repository definitions are added to a build by applying specific settings plugins.
 For details on writing such plugins, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>> page.
 
-One example of a toolchain resolver plugin is the https://github.com/gradle/disco-toolchains[Disco Toolchains Plugin], based on the https://github.com/foojayio/discoapi[foojay Disco API].
+One example of a toolchain resolver plugin is the https://github.com/gradle/foojay-toolchains[Foojay Toolchains Plugin], based on the https://github.com/foojayio/discoapi[foojay Disco API].
 It even has a convention variant, which automatically takes care of all the needed configuration, just by being applied:
 
 ====

@@ -132,6 +132,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             encoder.writeSmallInt(daemonParameters.getIdleTimeout());
             encoder.writeSmallInt(daemonParameters.getPeriodicCheckInterval());
             encoder.writeBoolean(singleUse);
+            encoder.writeBoolean(daemonParameters.useNativeServices());
             encoder.writeString(daemonUid);
             encoder.writeSmallInt(daemonParameters.getPriority().ordinal());
             encoder.writeSmallInt(daemonOpts.size());

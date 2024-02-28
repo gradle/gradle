@@ -14,20 +14,20 @@
 
 When you see a performance regression, either by looking at the performance graph
 or by having a new failing test, given the current slow feedback cycle, it can
-be difficult tracking the exact commit which triggered the regression.
+be difficult to track the exact commit that triggered the regression.
 
 The most convenient way to find the commit is to use `git bisect`. Before doing so
 you need to
- 1. identify the test which exposes the regression
- 2. set up the test to only search for the regression you are looking after to speed up the search for the regression.
+ 1. identify the test that exposes the regression
+ 2. set up the test to search only for the regression you are looking after to speed up the search for the regression.
 
-## Identify the test which caused the regression
+## Identify the test that caused the regression
 
 There is no mapping between the result (i.e. the graph) and the test class, yet.
 Therefore, you need to search for it in the code base. For example, the test
 `native build medium header file change` is included in the class `RealWorldNativePluginPerformanceTest`.
 
-Moreover, we also need to know the sample used for the test. For this example it is `mediumNativeMonolithic`.
+Moreover, we also need to know the sample used for the test. For this example, it is `mediumNativeMonolithic`.
 
 ## Modify test for regression search
 
@@ -107,11 +107,11 @@ In order to only test against `2.14` and not the latest release we modify `Cross
 ## Perform the search
 
 While doing the search no other activity should be done on the machine. Therefore, it
-is best to have a dedicated machine running the search, e.g. using the CI infrastructure.
+is best to have a dedicated machine running the search, e.g., using the CI infrastructure.
 
 In order to check if the test passes for the current revision you can use [check-rev.sh](check-rev.sh).
 
-All files from ~/.gradle-bisect-override will be copied to working directory. Make changes to files under that directory since the script will reset any changes.
+All files from ~/.gradle-bisect-override will be copied to the working directory. Make changes to files under that directory since the script will reset any changes.
 This means that all the files we modified before should be copied into this directory.
 
 usage:
@@ -136,7 +136,7 @@ git bisect run check_rev.sh RealWorldNativePluginPerformanceTest mediumNativeMon
 
 This will take some time, depending on the number of commits. After each step, the test results will
 be copied to `~/.gradle-bisect-results`. In order to have an overview of the current state
-of the bisect you can easily use grep on that directory.
+of the bisect, you can easily use grep on that directory.
 
 ```bash
 mymachine:~$ grep -A 1 "^Speed" ~/.gradle-bisect-results/*.xml
@@ -153,9 +153,9 @@ mymachine:~$ grep -A 1 "^Speed" ~/.gradle-bisect-results/*.xml
 
 ## Verify the results
 
-In order to verify that the commit really introduced the performance regression it
+In order to verify that the commit really introduced the performance regression, it
 is advisable to revert the commit on `HEAD` and see if that
 fixes the regression.
 
-Moreover, one should check if the test failures have not been caused by something else than the
+Moreover, one should check if the test failures have not been caused by something other than the
 performance test by looking at the test results in `~/.gradle-bisect-results`.

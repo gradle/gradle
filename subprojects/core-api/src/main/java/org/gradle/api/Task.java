@@ -21,7 +21,6 @@ import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -137,7 +136,7 @@ import java.util.Set;
  * name as the extension.</li>
  *
  * <li>The <em>convention</em> properties added to the task by plugins. A plugin can add properties and methods to a task through
- * the task's {@link Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
+ * the task's {@link org.gradle.api.plugins.Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
  *
  * <li>The <em>extra properties</em> of the task. Each task object maintains a map of additional properties. These
  * are arbitrary name -&gt; value pairs which you can use to dynamically add properties to a task object.  Once defined, the properties
@@ -147,7 +146,7 @@ import java.util.Set;
  *
  * <h4>Dynamic Methods</h4>
  *
- * <p>A {@link Plugin} may add methods to a {@code Task} using its {@link Convention} object.</p>
+ * <p>A {@link Plugin} may add methods to a {@code Task} using its {@link org.gradle.api.plugins.Convention} object.</p>
  *
  * <h4>Parallel Execution</h4>
  * <p>
@@ -577,7 +576,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     void setProperty(String name, Object value) throws MissingPropertyException;
 
     /**
-     * <p>Returns the {@link Convention} object for this task. A {@link Plugin} can use the convention object to
+     * <p>Returns the {@link org.gradle.api.plugins.Convention} object for this task. A {@link Plugin} can use the convention object to
      * contribute properties and methods to this task.</p>
      *
      * @return The convention object. Never returns null.
@@ -586,7 +585,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      */
     @Internal
     @Deprecated
-    Convention getConvention();
+    org.gradle.api.plugins.Convention getConvention();
 
     /**
      * Returns the description of this task.

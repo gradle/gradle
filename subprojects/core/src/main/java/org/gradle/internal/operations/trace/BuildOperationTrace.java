@@ -40,6 +40,7 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,14 +49,18 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
@@ -89,41 +94,46 @@ public class BuildOperationTrace implements Stoppable {
 
     public static final String SYSPROP = "org.gradle.internal.operations.trace";
 
+    /**
+     * A list of either details or result class names, delimited by {@link #FILTER_SEPARATOR},
+     * that will be captured by this trace. When enabled, only operations matching this filter
+     * will be captured. This enables capturing a build operation traces of larger builds that
+     * would otherwise be too large to capture.
+     *
+     * When this property is set, a complete build operation tree is not captured. In this
+     * case, only the log file will be written, not the formatted tree output files.
+     */
+    public static final String FILTER_SYSPROP = SYSPROP + ".filter";
+
+    /**
+     * Delimiter for entries in {@link #FILTER_SYSPROP}.
+     */
+    public static final String FILTER_SEPARATOR = ";";
+
     private static final byte[] NEWLINE = "\n".getBytes();
 
+    private final boolean outputTree;
+    private final BuildOperationListener listener;
     private final String basePath;
+
     private final OutputStream logOutputStream;
     private final JsonGenerator jsonGenerator = createJsonGenerator();
-
     private final BuildOperationListenerManager buildOperationListenerManager;
-
-    private final BuildOperationListener listener = new BuildOperationListener() {
-        @Override
-        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            write(new SerializedOperationStart(buildOperation, startEvent));
-        }
-
-        @Override
-        public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
-            write(new SerializedOperationProgress(buildOperationId, progressEvent));
-        }
-
-        @Override
-        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            write(new SerializedOperationFinish(buildOperation, finishEvent));
-        }
-    };
 
     public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
 
-        Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
-        String basePath = sysProps.get(SYSPROP);
-        if (basePath == null) {
-            basePath = System.getProperty(SYSPROP);
+        Set<String> filter = getFilter(startParameter);
+        if (filter != null) {
+            this.outputTree = false;
+            this.listener = new FilteringBuildOperationListener(new SerializingBuildOperationListener(this::write), filter);
+        } else {
+            this.outputTree = true;
+            this.listener = new SerializingBuildOperationListener(this::write);
         }
 
-        this.basePath = basePath;
+        this.basePath = getProperty(startParameter, SYSPROP);
+
         if (this.basePath == null || basePath.equals(Boolean.FALSE.toString())) {
             this.logOutputStream = null;
             return;
@@ -146,6 +156,25 @@ public class BuildOperationTrace implements Stoppable {
         buildOperationListenerManager.addListener(listener);
     }
 
+    private static String getProperty(StartParameter startParameter, String property) {
+        Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
+        String basePath = sysProps.get(property);
+        if (basePath == null) {
+            basePath = System.getProperty(property);
+        }
+        return basePath;
+    }
+
+    @Nullable
+    private static Set<String> getFilter(StartParameter startParameter) {
+        String filterProperty = getProperty(startParameter, FILTER_SYSPROP);
+        if (filterProperty == null) {
+            return null;
+        }
+
+        return new HashSet<>(Arrays.asList(filterProperty.split(FILTER_SEPARATOR)));
+    }
+
     @Override
     public void stop() {
         buildOperationListenerManager.removeListener(listener);
@@ -155,9 +184,11 @@ public class BuildOperationTrace implements Stoppable {
                     logOutputStream.close();
                 }
 
-                final List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath));
-                writeDetailTree(roots);
-                writeSummaryTree(roots);
+                if (outputTree) {
+                    List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath), true);
+                    writeDetailTree(roots);
+                    writeSummaryTree(roots);
+                }
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
@@ -280,17 +311,33 @@ public class BuildOperationTrace implements Stoppable {
 
     public static BuildOperationTree read(String basePath) {
         File logFile = logFile(basePath);
-        List<BuildOperationRecord> roots = readLogToTreeRoots(logFile);
+        List<BuildOperationRecord> roots = readLogToTreeRoots(logFile, true);
         return new BuildOperationTree(roots);
     }
 
-    private static List<BuildOperationRecord> readLogToTreeRoots(final File logFile) {
+    /**
+     * Reads a list of records that represent a partial build operation tree.
+     * Some operations may not contain all of their children.
+     * Some operations' parents may be missing from the tree.
+     * Operations with missing parents are placed at the root of the returned tree.
+     *
+     * @param basePath The same path used for {@link #SYSPROP} when the trace was recorded.
+     */
+    public static BuildOperationTree readPartialTree(String basePath) {
+        File logFile = logFile(basePath);
+        List<BuildOperationRecord> partialTree = readLogToTreeRoots(logFile, false);
+        return new BuildOperationTree(partialTree);
+    }
+
+    private static List<BuildOperationRecord> readLogToTreeRoots(final File logFile, boolean completeTree) {
         try {
             final JsonSlurper slurper = new JsonSlurper();
 
             final List<BuildOperationRecord> roots = new ArrayList<>();
             final Map<Object, PendingOperation> pendings = new HashMap<>();
             final Map<Object, List<BuildOperationRecord>> childrens = new HashMap<>();
+
+            final List<SerializedOperationProgress> danglingProgress = new ArrayList<>();
 
             Files.asCharSource(logFile, Charsets.UTF_8).readLines(new LineProcessor<Void>() {
                 @Override
@@ -303,8 +350,15 @@ public class BuildOperationTrace implements Stoppable {
                     } else if (map.containsKey("time")) {
                         SerializedOperationProgress serialized = new SerializedOperationProgress(map);
                         PendingOperation pending = pendings.get(serialized.id);
-                        assert pending != null : "did not find owner of progress event with ID " + serialized.id;
-                        pending.progress.add(serialized);
+                        if (pending != null) {
+                            pending.progress.add(serialized);
+                        } else {
+                            if (completeTree) {
+                                throw new IllegalStateException("did not find owner of progress event with ID " + serialized.id);
+                            }
+
+                            danglingProgress.add(serialized);
+                        }
                     } else {
                         SerializedOperationFinish finish = new SerializedOperationFinish(map);
 
@@ -319,16 +373,6 @@ public class BuildOperationTrace implements Stoppable {
                         Map<String, ?> detailsMap = uncheckedCast(start.details);
                         Map<String, ?> resultMap = uncheckedCast(finish.result);
 
-                        List<BuildOperationRecord.Progress> progresses = new ArrayList<>();
-                        for (SerializedOperationProgress progress : pending.progress) {
-                            Map<String, ?> progressDetailsMap = uncheckedCast(progress.details);
-                            progresses.add(new BuildOperationRecord.Progress(
-                                progress.time,
-                                progressDetailsMap,
-                                progress.detailsClassName
-                            ));
-                        }
-
                         BuildOperationRecord record = new BuildOperationRecord(
                             start.id,
                             start.parentId,
@@ -340,7 +384,7 @@ public class BuildOperationTrace implements Stoppable {
                             resultMap == null ? null : Collections.unmodifiableMap(resultMap),
                             finish.resultClassName,
                             finish.failureMsg,
-                            progresses,
+                            convertProgressEvents(pending.progress),
                             BuildOperationRecord.ORDERING.immutableSortedCopy(children)
                         );
 
@@ -348,8 +392,17 @@ public class BuildOperationTrace implements Stoppable {
                             roots.add(record);
                         } else {
                             List<BuildOperationRecord> parentChildren = childrens.get(start.parentId);
-                            assert parentChildren != null : "parentChildren != null '" + line + "' from " + logFile;
-                            parentChildren.add(record);
+                            if (parentChildren != null) {
+                                parentChildren.add(record);
+                            } else {
+                                if (completeTree) {
+                                    throw new IllegalStateException("parentChildren != null '" + line + "' from " + logFile);
+                                }
+
+                                // We are not expecting a complete tree, so it is possible that the parent
+                                // was never serialized. In that case, just treat this record as a root.
+                                roots.add(record);
+                            }
                         }
                     }
 
@@ -364,11 +417,36 @@ public class BuildOperationTrace implements Stoppable {
 
             assert pendings.isEmpty();
 
+            if (!completeTree && !danglingProgress.isEmpty()) {
+                // There were dangling progress events that have parent operations which were not serialized.
+                // Add a dummy root operation to hold these events.
+                roots.add(new BuildOperationRecord(
+                    -1L, null,
+                    "Dangling pending operations",
+                    0, 0, null, null, null, null, null,
+                    convertProgressEvents(danglingProgress),
+                    Collections.emptyList()
+                ));
+            }
+
             return roots;
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
+    }
+
+    private static List<BuildOperationRecord.Progress> convertProgressEvents(List<SerializedOperationProgress> toConvert) {
+        List<BuildOperationRecord.Progress> progresses = new ArrayList<>();
+        for (SerializedOperationProgress progress : toConvert) {
+            Map<String, ?> progressDetailsMap = uncheckedCast(progress.details);
+            progresses.add(new BuildOperationRecord.Progress(
+                progress.time,
+                progressDetailsMap,
+                progress.detailsClassName
+            ));
+        }
+        return progresses;
     }
 
     private static File logFile(String basePath) {
@@ -437,6 +515,64 @@ public class BuildOperationTrace implements Stoppable {
             }
             builder.put("stackTrace", Throwables.getStackTraceAsString(throwable));
             return builder.build();
+        }
+    }
+
+    private static class SerializingBuildOperationListener implements BuildOperationListener {
+
+        private final Consumer<SerializedOperation> consumer;
+
+        public SerializingBuildOperationListener(Consumer<SerializedOperation> consumer) {
+            this.consumer = consumer;
+        }
+
+        @Override
+        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            consumer.accept(new SerializedOperationStart(buildOperation, startEvent));
+        }
+
+        @Override
+        public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
+            consumer.accept(new SerializedOperationProgress(buildOperationId, progressEvent));
+        }
+
+        @Override
+        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+            consumer.accept(new SerializedOperationFinish(buildOperation, finishEvent));
+        }
+    }
+
+    private static class FilteringBuildOperationListener implements BuildOperationListener {
+
+        private final BuildOperationListener delegate;
+        private final Set<String> filter;
+
+        public FilteringBuildOperationListener(BuildOperationListener delegate, Set<String> filter) {
+            this.delegate = delegate;
+            this.filter = filter;
+        }
+
+        @Override
+        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            if (buildOperation.getDetails() != null && filter.contains(buildOperation.getDetails().getClass().getName())) {
+                delegate.started(buildOperation, startEvent);
+            }
+        }
+
+        @Override
+        public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+            if (progressEvent.getDetails() != null && filter.contains(progressEvent.getDetails().getClass().getName())) {
+                delegate.progress(operationIdentifier, progressEvent);
+            }
+        }
+
+        @Override
+        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+            if ((buildOperation.getDetails() != null && filter.contains(buildOperation.getDetails().getClass().getName())) ||
+                (finishEvent.getResult() != null && filter.contains(finishEvent.getResult().getClass().getName()))
+            ) {
+                delegate.finished(buildOperation, finishEvent);
+            }
         }
     }
 }

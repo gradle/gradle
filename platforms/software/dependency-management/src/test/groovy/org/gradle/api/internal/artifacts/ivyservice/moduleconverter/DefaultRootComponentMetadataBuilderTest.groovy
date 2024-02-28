@@ -106,6 +106,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         mutationType << [
             MutationValidator.MutationType.DEPENDENCIES,
             MutationValidator.MutationType.DEPENDENCY_ATTRIBUTES,
+            MutationValidator.MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES,
             MutationValidator.MutationType.ARTIFACTS,
             MutationValidator.MutationType.USAGE,
             MutationValidator.MutationType.HIERARCHY

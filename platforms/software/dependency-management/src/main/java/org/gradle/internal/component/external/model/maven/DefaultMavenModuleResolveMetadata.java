@@ -180,10 +180,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return filteredDependencies == null ? ImmutableList.of() : filteredDependencies.build();
     }
 
-    private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
-        ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
-        dependency.alwaysUseAttributeMatching();
-        return dependency;
+    private static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
+        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming, true);
     }
 
     private boolean includeInOptionalConfiguration(MavenDependencyDescriptor dependency) {

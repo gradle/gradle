@@ -21,8 +21,6 @@ import org.gradle.internal.concurrent.ExecutorPolicy;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.ManagedExecutorImpl;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBackgroundJobExecutors;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -33,7 +31,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-@ServiceScope(Scopes.Gradle.class)
 public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements GradleEnterprisePluginBackgroundJobExecutors {
     private final ManagedExecutor executorService = createExecutor();
     private final InputTrackingState inputTrackingState;

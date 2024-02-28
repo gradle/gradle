@@ -20,7 +20,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.internal.build.BuildState;
@@ -47,21 +46,21 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     }
 
     @Override
-    public void prepareDependencyHandler(DependencyHandler dependencyHandler) {
-        scriptClassPathResolver.prepareDependencyHandler(dependencyHandler);
+    public ScriptClassPathResolutionContext prepareDependencyHandler(DependencyHandler dependencyHandler) {
+        return scriptClassPathResolver.prepareDependencyHandler(dependencyHandler);
     }
 
     @Override
-    public void prepareClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler) {
-        scriptClassPathResolver.prepareClassPath(classpathConfiguration, dependencyHandler);
+    public void prepareClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
+        scriptClassPathResolver.prepareClassPath(classpathConfiguration, resolutionContext);
     }
 
     @Override
-    public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, RoleBasedConfigurationContainerInternal configContainer) {
+    public ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
         return buildQueue.build(
             currentBuild,
             taskIdentifiersForBuildDependenciesOf(classpathConfiguration),
-            () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration)
+            () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration, resolutionContext)
         );
     }
 

@@ -25,11 +25,8 @@ import java.time.Duration
 class OriginMetadataFactoryTest extends Specification {
     def buildInvocationId = UUID.randomUUID().toString()
     def factory = new OriginMetadataFactory(
-        "user",
-        "os",
         buildInvocationId,
-        { it.gradleVersion = "3.0" },
-        { "my-host" }
+        { it.gradleVersion = "3.0" }
     )
     def buildCacheKey = TestHashCodes.hashCodeFrom(1234)
 
@@ -51,9 +48,6 @@ class OriginMetadataFactoryTest extends Specification {
         origin.gradleVersion == "3.0"
         origin.creationTime != null
         origin.executionTime == "10"
-        origin.operatingSystem == "os"
-        origin.hostName == "my-host"
-        origin.userName == "user"
         origin.buildInvocationId == buildInvocationId
     }
 }

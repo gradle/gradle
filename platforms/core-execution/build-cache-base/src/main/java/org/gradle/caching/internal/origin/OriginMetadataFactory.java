@@ -29,28 +29,16 @@ public class OriginMetadataFactory {
     private static final String CACHE_KEY = "buildCacheKey";
     private static final String CREATION_TIME_KEY = "creationTime";
     private static final String EXECUTION_TIME_KEY = "executionTime";
-    private static final String OPERATING_SYSTEM_KEY = "operatingSystem";
-    private static final String HOST_NAME_KEY = "hostName";
-    private static final String USER_NAME_KEY = "userName";
 
-    private final String userName;
-    private final String operatingSystem;
     private final String currentBuildInvocationId;
     private final PropertiesConfigurator additionalProperties;
-    private final HostnameLookup hostnameLookup;
 
     public OriginMetadataFactory(
-        String userName,
-        String operatingSystem,
         String currentBuildInvocationId,
-        PropertiesConfigurator additionalProperties,
-        HostnameLookup hostnameLookup
+        PropertiesConfigurator additionalProperties
     ) {
-        this.userName = userName;
-        this.operatingSystem = operatingSystem;
         this.additionalProperties = additionalProperties;
         this.currentBuildInvocationId = currentBuildInvocationId;
-        this.hostnameLookup = hostnameLookup;
     }
 
     public OriginWriter createWriter(String identity, Class<?> workType, HashCode buildCacheKey, Duration elapsedTime) {
@@ -62,9 +50,6 @@ public class OriginMetadataFactory {
             properties.setProperty(CACHE_KEY, buildCacheKey.toString());
             properties.setProperty(CREATION_TIME_KEY, Long.toString(System.currentTimeMillis()));
             properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime.toMillis()));
-            properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
-            properties.setProperty(HOST_NAME_KEY, hostnameLookup.getHostname());
-            properties.setProperty(USER_NAME_KEY, userName);
             additionalProperties.configure(properties);
             properties.store(outputStream, "Generated origin information");
         };
@@ -93,9 +78,5 @@ public class OriginMetadataFactory {
 
     public interface PropertiesConfigurator {
         void configure(Properties properties);
-    }
-
-    public interface HostnameLookup {
-        String getHostname();
     }
 }

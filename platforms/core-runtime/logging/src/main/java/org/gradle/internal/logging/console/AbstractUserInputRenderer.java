@@ -27,12 +27,14 @@ import java.util.List;
 import java.util.ListIterator;
 
 public abstract class AbstractUserInputRenderer implements OutputEventListener {
-    final OutputEventListener delegate;
+    protected final OutputEventListener delegate;
+    private final UserInputReceiver userInput;
     private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
     private boolean paused;
 
-    public AbstractUserInputRenderer(OutputEventListener delegate) {
+    public AbstractUserInputRenderer(OutputEventListener delegate, UserInputReceiver userInput) {
         this.delegate = delegate;
+        this.userInput = userInput;
     }
 
     @Override
@@ -41,10 +43,11 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
             handleUserInputRequestEvent();
             return;
         } else if (event instanceof UserInputResumeEvent) {
-            handleUserInputResumeEvent();
+            handleUserInputResumeEvent((UserInputResumeEvent) event);
             return;
         } else if (event instanceof PromptOutputEvent) {
             handlePrompt((PromptOutputEvent) event);
+            userInput.readAndForwardText();
             return;
         }
 
@@ -61,13 +64,13 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
         paused = true;
     }
 
-    private void handleUserInputResumeEvent() {
+    private void handleUserInputResumeEvent(UserInputResumeEvent event) {
         if (!paused) {
             throw new IllegalStateException("Cannot resume user input if not paused yet");
         }
 
         paused = false;
-        finishInput();
+        finishInput(event);
         replayEvents();
     }
 
@@ -88,5 +91,5 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
 
     abstract void handlePrompt(PromptOutputEvent event);
 
-    abstract void finishInput();
+    abstract void finishInput(UserInputResumeEvent event);
 }

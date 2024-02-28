@@ -176,6 +176,7 @@ public class GcsClient {
     private static Supplier<Credential> getCredentialSupplier(final HttpTransport transport, final JsonFactory jsonFactory) {
         return Suppliers.memoize(new Supplier<Credential>() {
             @Override
+            @SuppressWarnings("deprecation")
             public Credential get() {
                 try {
                     GoogleCredential googleCredential = GoogleCredential.getApplicationDefault(transport, jsonFactory);

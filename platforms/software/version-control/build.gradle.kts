@@ -13,21 +13,25 @@ errorprone {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":messaging"))
-    implementation(project(":logging"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":file-collections"))
+    api(project(":persistent-cache"))
+
+    api(libs.jgit)
+    api(libs.inject)
+    api(libs.jsr305)
+
     implementation(project(":files"))
     implementation(project(":functional"))
-    implementation(project(":file-collections"))
-    implementation(project(":persistent-cache"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
+    implementation(project(":hashing"))
+    implementation(project(":logging-api"))
+    implementation(project(":messaging"))
     implementation(project(":resources"))
-    implementation(project(":dependency-management"))
 
     implementation(libs.guava)
-    implementation(libs.inject)
-    implementation(libs.jgit)
     implementation(libs.jgitSsh) {
         exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
     }

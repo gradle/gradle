@@ -34,7 +34,6 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -90,16 +89,13 @@ public final class ResolutionCandidateAssessor {
     }
 
     public List<AssessedCandidate> assessGraphSelectionCandidates(GraphSelectionCandidates candidates) {
-        final List<? extends VariantGraphResolveMetadata> variantMetadatas;
-        if (candidates.isUseVariants()) {
-            variantMetadatas = candidates.getVariants().stream()
-                .map(VariantGraphResolveState::getMetadata)
-                .collect(Collectors.toList());
-        } else {
-            variantMetadatas = new ArrayList<>(candidates.getCandidateConfigurations()); // Need non-immutable copy to sort
-        }
+        assert candidates.isUseVariants() : "Cannot assess graph selection candidates when variants are not used.";
 
-        return assessVariantMetadatas(variantMetadatas);
+        return candidates.getVariants().stream()
+            .map(VariantGraphResolveState::getMetadata)
+            .map(variantMetadata -> assessCandidate(variantMetadata.getName(), variantMetadata.getCapabilities(), variantMetadata.getAttributes()))
+            .sorted(Comparator.comparing(AssessedCandidate::getDisplayName))
+            .collect(Collectors.toList());
     }
 
     public AssessedCandidate assessCandidate(

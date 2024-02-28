@@ -224,9 +224,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     }
 
     static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
-        ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
-        dependency.alwaysUseAttributeMatching();
-        return dependency;
+        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming, true);
     }
 
     private final NamedObjectInstantiator objectInstantiator;

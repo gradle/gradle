@@ -56,12 +56,9 @@ class CacheTaskOutputIntegrationTest extends AbstractIntegrationSpec {
             "buildInvocationId",
             "creationTime",
             "executionTime",
-            "hostName",
         )
         metadata.identity == ":compileJava"
         metadata.type == TaskExecution.name.replaceAll(/\$/, ".")
-        metadata.userName == System.getProperty("user.name")
-        metadata.operatingSystem == System.getProperty("os.name")
         metadata.gradleVersion == GradleVersion.current().version
     }
 

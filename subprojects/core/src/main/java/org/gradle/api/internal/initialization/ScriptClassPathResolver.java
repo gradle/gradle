@@ -30,13 +30,15 @@ public interface ScriptClassPathResolver {
 
     /**
      * Prepares the given dependencyHandler for script classpath resolution and instrumentation.
+     *
+     * It returns a resolution context that should be passed to the other methods in this interface.
      */
-    void prepareDependencyHandler(DependencyHandler dependencyHandler);
+    ScriptClassPathResolutionContext prepareDependencyHandler(DependencyHandler dependencyHandler);
 
     /**
      * Prepares the given configuration for script classpath resolution, setting the relevant attributes and other metadata.
      */
-    void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler);
+    void prepareClassPath(Configuration configuration, ScriptClassPathResolutionContext resolutionContext);
 
-    ClassPath resolveClassPath(Configuration classpath);
+    ClassPath resolveClassPath(Configuration classpath, ScriptClassPathResolutionContext resolutionContext);
 }

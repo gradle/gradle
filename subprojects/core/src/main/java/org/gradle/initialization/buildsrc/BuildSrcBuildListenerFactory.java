@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
+import org.gradle.api.internal.initialization.ScriptClassPathResolutionContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
@@ -55,6 +56,7 @@ public class BuildSrcBuildListenerFactory {
     public static class Listener extends InternalBuildAdapter implements EntryTaskSelector {
         private Configuration classpathConfiguration;
         private ProjectState rootProjectState;
+        private ScriptClassPathResolutionContext resolutionContext;
         private final Action<ProjectInternal> rootProjectConfiguration;
         private final ScriptClassPathResolver resolver;
 
@@ -77,16 +79,16 @@ public class BuildSrcBuildListenerFactory {
         @SuppressWarnings("deprecation")
         public void applyTasksTo(Context context, ExecutionPlan plan) {
             rootProjectState.applyToMutableState(rootProject -> {
-                resolver.prepareDependencyHandler(rootProject.getDependencies());
+                resolutionContext = resolver.prepareDependencyHandler(rootProject.getDependencies());
                 classpathConfiguration = rootProject.getConfigurations().resolvableDependencyScopeUnlocked("buildScriptClasspath");
-                resolver.prepareClassPath(classpathConfiguration, rootProject.getDependencies());
+                resolver.prepareClassPath(classpathConfiguration, resolutionContext);
                 classpathConfiguration.getDependencies().add(rootProject.getDependencies().create(rootProject));
                 plan.addEntryTasks(getDependenciesForInternalUse(classpathConfiguration));
             });
         }
 
         public ClassPath getRuntimeClasspath() {
-            return rootProjectState.fromMutableState(project -> resolver.resolveClassPath(classpathConfiguration));
+            return rootProjectState.fromMutableState(project -> resolver.resolveClassPath(classpathConfiguration, resolutionContext));
         }
     }
 }

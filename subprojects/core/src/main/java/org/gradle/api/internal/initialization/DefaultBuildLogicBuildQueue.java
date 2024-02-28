@@ -20,8 +20,8 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 
@@ -36,18 +36,18 @@ import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
 
     private final FileLockManager fileLockManager;
-    private final BuildStateRegistry buildStateRegistry;
     private final BuildTreeWorkGraphController buildTreeWorkGraphController;
+    private final ProjectCacheDir projectCacheDir;
     private final ReentrantLock lock = new ReentrantLock();
 
     public DefaultBuildLogicBuildQueue(
         FileLockManager fileLockManager,
-        BuildStateRegistry buildStateRegistry,
-        BuildTreeWorkGraphController buildTreeWorkGraphController
+        BuildTreeWorkGraphController buildTreeWorkGraphController,
+        ProjectCacheDir projectCacheDir
     ) {
         this.fileLockManager = fileLockManager;
-        this.buildStateRegistry = buildStateRegistry;
         this.buildTreeWorkGraphController = buildTreeWorkGraphController;
+        this.projectCacheDir = projectCacheDir;
     }
 
     @Override
@@ -91,13 +91,9 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
 
     private FileLock lockBuildLogicQueueFile() {
         return fileLockManager.lock(
-            new File(rootBuildDir(), ".gradle/noVersion/buildLogic"),
+            new File(projectCacheDir.getDir(), "noVersion/buildLogic"),
             mode(FileLockManager.LockMode.Exclusive),
             "build logic queue"
         );
-    }
-
-    private File rootBuildDir() {
-        return buildStateRegistry.getRootBuild().getBuildRootDir();
     }
 }

@@ -5,28 +5,29 @@ plugins {
 description = "Plugin for cryptographic signing of publications, artifacts or files."
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":core-api"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":file-collections"))
+    api(project(":publish"))
+    api(project(":security"))
+
+    api(libs.jsr305)
+    api(libs.groovy)
+    api(libs.inject)
+
     implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":file-collections"))
     implementation(project(":functional"))
     implementation(project(":platform-base"))
-    implementation(project(":dependency-management"))
-    implementation(project(":publish"))
-    implementation(project(":maven"))
-    implementation(project(":security"))
 
-    implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.inject)
 
     testFixturesImplementation(project(":base-services")) {
         because("Required to access org.gradle.internal.SystemProperties")
     }
 
+    testImplementation(project(":maven"))
     testImplementation(project(":ivy"))
     testImplementation(testFixtures(project(":core")))
 

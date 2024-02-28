@@ -1,5 +1,4 @@
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.buildCommitId
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest

@@ -664,7 +664,7 @@ In some rare cases this may cause some differences in resolution, due to the cor
 
 ==== Improved classpath separation for worker processes
 
-The system classpath for worker daemons started by the <<custom_tasks.adoc#worker_api, Worker API>> when using `PROCESS` isolation has been reduced to a minimum set of Gradle infrastructure.
+The system classpath for worker daemons started by the <<worker_api.adoc#worker_api, Worker API>> when using `PROCESS` isolation has been reduced to a minimum set of Gradle infrastructure.
 User code is still segregated into a separate classloader to isolate it from the Gradle runtime.
 This should be a transparent change for tasks using the worker API, but previous versions of Gradle mixed user code and Gradle internals in the worker process.
 Worker actions that rely on things like the `java.class.path` system property may be affected, since `java.class.path` now represents only the classpath of the Gradle internals.
@@ -784,7 +784,7 @@ In Gradle 5.0, the collection property instances created using `ObjectFactory` w
 
 Since JDK 11 no longer supports changing the working directory of a running process, setting the working directory of a worker via its fork options is now prohibited.
 All workers now use the same working directory to enable reuse.
-Please pass files and directories as arguments instead. See examples in the <<custom_tasks.adoc#worker_api, Worker API documentation>>.
+Please pass files and directories as arguments instead. See examples in the <<worker_api.adoc#worker_api, Worker API documentation>>.
 
 ==== Changes to native linking tasks
 

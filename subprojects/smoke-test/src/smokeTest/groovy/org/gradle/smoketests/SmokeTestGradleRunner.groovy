@@ -16,19 +16,28 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.BuildOperationTreeFixture
+import org.gradle.integtests.fixtures.BuildOperationTreeQueries
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
+import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidPluginMetadataException
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
+import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.slf4j.LoggerFactory
 
 import javax.annotation.Nullable
+import java.util.function.Function
 
 class SmokeTestGradleRunner extends GradleRunner {
     private static final LOGGER = LoggerFactory.getLogger(SmokeTestGradleRunner)
 
     private final DefaultGradleRunner delegate
+
+    private String buildOperationTracePath
     private final List<String> expectedDeprecationWarnings = []
     private final List<String> maybeExpectedDeprecationWarnings = []
     private boolean ignoreDeprecationWarnings
@@ -38,24 +47,61 @@ class SmokeTestGradleRunner extends GradleRunner {
     }
 
     @Override
-    BuildResult build() {
-        def result = delegate.build()
-        verifyDeprecationWarnings(result)
-        return result
+    SmokeTestBuildResult build() {
+        execute(GradleRunner::build)
     }
 
     @Override
-    BuildResult buildAndFail() {
-        def result = delegate.buildAndFail()
-        verifyDeprecationWarnings(result)
-        return result
+    SmokeTestBuildResult buildAndFail() {
+        execute(GradleRunner::buildAndFail)
     }
 
     @Override
-    BuildResult run() throws InvalidRunnerConfigurationException {
-        def result = delegate.run()
+    SmokeTestBuildResult run() throws InvalidRunnerConfigurationException {
+        execute(GradleRunner::run)
+    }
+
+    private SmokeTestBuildResult execute(Function<GradleRunner, BuildResult> action) {
+
+        if (buildOperationTracePath != null) {
+            doEnableBuildOperationTracing()
+        }
+
+        def result = action.apply(delegate)
+
+        // TODO: Use problems API to verify deprecation warnings instead of parsing output.
         verifyDeprecationWarnings(result)
-        return result
+
+        if (buildOperationTracePath == null) {
+            return new SmokeTestBuildResult(result, null)
+        }
+
+        def operations = new BuildOperationTreeFixture(BuildOperationTrace.readPartialTree(buildOperationTracePath))
+        new SmokeTestBuildResult(result, operations)
+    }
+
+    private void doEnableBuildOperationTracing() {
+        // TODO: Should we filter using the stable/public build operation class names?
+        // This means we need to load classes and do an instanceof when we filter
+        String buildOperationFilter = [
+            "org.gradle.configurationcache.StoreDetails",
+            "org.gradle.configurationcache.LoadDetails",
+        ].join(BuildOperationTrace.FILTER_SEPARATOR)
+
+        delegate.withArguments(delegate.getArguments() + [
+            "-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath}".toString(),
+            "-D${BuildOperationTrace.FILTER_SYSPROP}=${buildOperationFilter}".toString()
+        ])
+    }
+
+    SmokeTestGradleRunner withBuildOperationTracing(String buildOperationTracePath) {
+        this.buildOperationTracePath = buildOperationTracePath
+        return this
+    }
+
+    SmokeTestGradleRunner withoutBuildOperationTracing() {
+        buildOperationTracePath = null
+        return this
     }
 
     /**
@@ -324,5 +370,55 @@ class SmokeTestGradleRunner extends GradleRunner {
     SmokeTestGradleRunner withJvmArguments(String... jvmArguments) {
         delegate.withJvmArguments(Arrays.asList(jvmArguments))
         return this
+    }
+
+    class SmokeTestBuildResult implements BuildResult {
+
+        private final BuildResult delegate
+        private final BuildOperationTreeQueries operations
+
+        SmokeTestBuildResult(BuildResult delegate, @Nullable BuildOperationTreeQueries operations) {
+            this.delegate = delegate
+            this.operations = operations
+        }
+
+        @Override
+        String getOutput() {
+            return delegate.output
+        }
+
+        @Override
+        List<BuildTask> getTasks() {
+            return delegate.tasks
+        }
+
+        @Override
+        List<BuildTask> tasks(TaskOutcome outcome) {
+            return delegate.tasks(outcome)
+        }
+
+        @Override
+        List<String> taskPaths(TaskOutcome outcome) {
+            return delegate.taskPaths(outcome)
+        }
+
+        @Override
+        BuildTask task(String taskPath) {
+            return delegate.task(taskPath)
+        }
+
+        void assertConfigurationCacheStateStored() {
+            assertBuildOperationTracePresent()
+            new ConfigurationCacheBuildOperationsFixture(operations).assertStateStored()
+        }
+
+        void assertConfigurationCacheStateLoaded() {
+            assertBuildOperationTracePresent()
+            new ConfigurationCacheBuildOperationsFixture(operations).assertStateLoaded()
+        }
+
+        private void assertBuildOperationTracePresent() {
+            assert buildOperationTracePath != null, "Build operation trace was not captured"
+        }
     }
 }

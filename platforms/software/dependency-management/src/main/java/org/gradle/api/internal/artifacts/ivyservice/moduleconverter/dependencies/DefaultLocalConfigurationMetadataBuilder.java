@@ -124,13 +124,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
 
         CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> dependencies =
-            calculatedValueContainerFactory.create(Describables.of("Dependency state for", description), context -> {
-                // TODO: Do we need to acquire project lock from `model`? getState calls user code.
-                DependencyState state = getState(configurationsProvider, hierarchy, dependencyCache);
-                return new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(
-                    maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
-                );
-            });
+            getConfigurationDependencyState(configurationsProvider, dependencyCache, model, calculatedValueContainerFactory, description, hierarchy, attributes);
 
         List<PublishArtifact> sourceArtifacts = artifactBuilder.build();
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts =
@@ -228,27 +222,36 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     }
 
     /**
-     * Collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
+     * Lazily collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
      */
-    private DependencyState getState(
-        ConfigurationsProvider configurations,
+    private CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> getConfigurationDependencyState(
+        ConfigurationsProvider configurationsProvider,
+        DependencyCache dependencyCache,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        String description,
         ImmutableSet<String> hierarchy,
-        DependencyCache cache
+        ImmutableAttributes attributes
     ) {
-        ImmutableList.Builder<LocalOriginDependencyMetadata> dependencies = ImmutableList.builder();
-        ImmutableSet.Builder<LocalFileDependencyMetadata> files = ImmutableSet.builder();
-        ImmutableList.Builder<ExcludeMetadata> excludes = ImmutableList.builder();
+        return calculatedValueContainerFactory.create(Describables.of("Dependency state for", description), context -> model.fromMutableState(p -> {
+            ImmutableList.Builder<LocalOriginDependencyMetadata> dependencies = ImmutableList.builder();
+            ImmutableSet.Builder<LocalFileDependencyMetadata> files = ImmutableSet.builder();
+            ImmutableList.Builder<ExcludeMetadata> excludes = ImmutableList.builder();
 
-        configurations.visitAll(config -> {
-            if (hierarchy.contains(config.getName())) {
-                DependencyState defined = getDefinedState(config, cache);
-                dependencies.addAll(defined.dependencies);
-                files.addAll(defined.files);
-                excludes.addAll(defined.excludes);
-            }
-        });
+            configurationsProvider.visitAll(config -> {
+                if (hierarchy.contains(config.getName())) {
+                    DependencyState defined = getDefinedState(config, dependencyCache);
+                    dependencies.addAll(defined.dependencies);
+                    files.addAll(defined.files);
+                    excludes.addAll(defined.excludes);
+                }
+            });
 
-        return new DependencyState(dependencies.build(), files.build(), excludes.build());
+            DependencyState state = new DependencyState(dependencies.build(), files.build(), excludes.build());
+            return new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(
+                maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
+            );
+        }));
     }
 
     /**
@@ -262,7 +265,6 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
      * Calculate the defined dependencies and excludes for {@code configuration}, while converting the
      * DSL representation to the internal representation.
      */
-    @SuppressWarnings("deprecation")
     private DependencyState doGetDefinedState(ConfigurationInternal configuration) {
 
         ImmutableList.Builder<LocalOriginDependencyMetadata> dependencyBuilder = ImmutableList.builder();

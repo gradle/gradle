@@ -23,8 +23,8 @@ import java.io.File;
 
 public class ForegroundDaemonConfiguration extends DefaultDaemonServerConfiguration {
 
-    public ForegroundDaemonConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs, FileCollectionFactory fileCollectionFactory, boolean instrumentationAgentAllowed) {
+    public ForegroundDaemonConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs, FileCollectionFactory fileCollectionFactory, boolean instrumentationAgentAllowed, boolean useNativeServices) {
         // Foreground daemon cannot be 'told' what's his startup options as the client sits in the same process so we will infer the jvm opts from the inputArguments()
-        super(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, false, DaemonParameters.Priority.NORMAL, new CurrentProcess(fileCollectionFactory).getJvmOptions().getAllImmutableJvmArgs(), instrumentationAgentAllowed);
+        super(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, false, DaemonParameters.Priority.NORMAL, new CurrentProcess(fileCollectionFactory).getJvmOptions().getAllImmutableJvmArgs(), instrumentationAgentAllowed, useNativeServices);
     }
 }

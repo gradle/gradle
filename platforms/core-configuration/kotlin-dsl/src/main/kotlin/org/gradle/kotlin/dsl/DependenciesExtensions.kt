@@ -89,9 +89,6 @@ class DependenciesExtensions {
             // Add a constraint by String
             implementation(constraint("org:foo:1.0")) // is getImplementation().addConstraint(constraint("org:foo:1.0"))
 
-            // Add a constraint with explicit coordinate parameters
-            implementation(constraint(group = "org", name = "foo", version = "1.0")) // is getImplementation().addConstraint(constraint("org", "foo", "1.0"))
-
             // Add a constraint on projects
             implementation(constraint(project(":path"))) // is getImplementation().addConstraint(constraint(project(":path")))
             implementation(constraint(project())) // is getImplementation().addConstraint(constraint(project()))
@@ -109,14 +106,6 @@ class DependenciesExtensions {
  * @since 8.0
  */
 fun Dependencies.module(group: String?, name: String, version: String?): ExternalModuleDependency = module(group, name, version)
-
-
-/**
- * Creates a dependency constraint based on the group, name and version (GAV) coordinates.
- *
- * @since 8.7
- */
-fun Dependencies.constraint(group: String?, name: String, version: String?): DependencyConstraint = constraint(group, name, version)
 
 
 /**

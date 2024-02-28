@@ -22,6 +22,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
+import kotlin.io.path.invariantSeparatorsPathString
 
 
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
@@ -69,7 +70,7 @@ abstract class SubprojectsInfo : DefaultTask() {
     fun generateSubproject(subprojectDir: File): GradleSubproject {
         return GradleSubproject(
             subprojectDir.name,
-            rootPath.relativize(subprojectDir.toPath()).toString(),
+            rootPath.relativize(subprojectDir.toPath()).invariantSeparatorsPathString,
             subprojectDir.hasDescendantDir("src/test"),
             subprojectDir.hasDescendantDir("src/integTest"),
             subprojectDir.hasDescendantDir("src/crossVersionTest")

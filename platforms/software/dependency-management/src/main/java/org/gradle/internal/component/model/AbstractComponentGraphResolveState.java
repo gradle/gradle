@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -35,7 +34,6 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
     private final long instanceId;
@@ -165,19 +163,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         @Override
         public ConfigurationGraphResolveState getLegacyConfiguration() {
             return getConfiguration(Dependency.DEFAULT_CONFIGURATION);
-        }
-
-        @Override
-        public List<? extends ConfigurationGraphResolveMetadata> getCandidateConfigurations() {
-            Set<String> configurationNames = graphMetadata.getConfigurationNames();
-            ImmutableList.Builder<ConfigurationGraphResolveMetadata> builder = new ImmutableList.Builder<>();
-            for (String configurationName : configurationNames) {
-                ConfigurationGraphResolveMetadata configuration = graphMetadata.getConfiguration(configurationName);
-                if (configuration.isCanBeConsumed()) {
-                    builder.add(configuration);
-                }
-            }
-            return builder.build();
         }
     }
 }

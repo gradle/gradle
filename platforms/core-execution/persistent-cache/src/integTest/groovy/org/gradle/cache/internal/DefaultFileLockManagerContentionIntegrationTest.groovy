@@ -232,6 +232,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.cache.FileLockManager
             import org.gradle.internal.logging.events.OutputEventListener
             import org.gradle.internal.nativeintegration.services.NativeServices
+            import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationEnabled
             import org.gradle.internal.service.DefaultServiceRegistry
             import org.gradle.internal.service.scopes.GlobalScopeServices
             import org.gradle.internal.service.ServiceRegistryBuilder
@@ -291,7 +292,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
                  static def getInstance(File gradleUserHome) {
                     if (instance == null) {
-                        NativeServices.initializeOnWorker(gradleUserHome)
+                        NativeServices.initializeOnWorker(gradleUserHome, NativeIntegrationEnabled.ENABLED)
                         def global = new ZincCompilerServices(gradleUserHome)
                         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
                         builder.parent(global)

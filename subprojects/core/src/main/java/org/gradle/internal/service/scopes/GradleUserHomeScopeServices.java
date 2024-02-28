@@ -67,7 +67,7 @@ import org.gradle.internal.classpath.DefaultClasspathBuilder;
 import org.gradle.internal.classpath.DefaultClasspathTransformerCacheFactory;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
-import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
@@ -115,7 +115,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         registration.add(GradleUserHomeTemporaryFileProvider.class);
         registration.add(DefaultClasspathTransformerCacheFactory.class);
         registration.add(GradleUserHomeScopeFileTimeStampInspector.class);
-        registration.add(GradleCoreInstrumentingTypeRegistry.class);
+        registration.add(GradleCoreInstrumentationTypeRegistry.class);
         registration.add(ClasspathElementTransformFactoryForAgent.class);
         registration.add(ClasspathElementTransformFactoryForLegacy.class);
         registration.add(DefaultCachedClasspathTransformer.class);

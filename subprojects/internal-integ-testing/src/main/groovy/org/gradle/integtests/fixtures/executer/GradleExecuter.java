@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.integtests.fixtures.RichConsoleStyling;
@@ -219,17 +220,23 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withFullDeprecationStackTraceEnabled();
 
     /**
-     * Downloads and sets up the JVM arguments for running the Gradle daemon with the file leak detector: https://file-leak-detector.kohsuke.org/
+     * Downloads and sets up the JVM arguments for running the Gradle daemon with the file leak detector: https://github.com/jenkinsci/lib-file-leak-detector
      *
-     * NOTE: This requires running the test with JDK8 and the forking executer.
+     * NOTE: This requires running the test with at least JDK8 and the forking executer. This will apply the file leak detection version suitable for executor Java version.
+     * If your build sets a different Java version you can use {@link #withFileLeakDetection(JavaVersion, String...)} to specify the Java version for which the file leak detection should be enabled.
      *
      * This should not be checked-in on. This is only for local debugging.
      *
-     * By default, this starts a HTTP server on port 19999, so you can observe which files are open. Passing any arguments disables this behavior.
+     * By default, this starts a HTTP server on port 19999, so you can observe which files are open on http://localhost:19999. Passing any arguments disables this behavior.
      *
      * @param args the arguments to pass the file leak detector java agent
      */
     GradleExecuter withFileLeakDetection(String... args);
+
+    /**
+     * Same as {@link #withFileLeakDetection(String...)}, but allows to specify the Java version for which the file leak detection should be enabled.
+     */
+    GradleExecuter withFileLeakDetection(JavaVersion javaVersion, String... args);
 
     /**
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for

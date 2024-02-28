@@ -182,10 +182,38 @@
     "crossVersionTests": false
   },
   {
+    "name": "core-jvm",
+    "path": "platforms/jvm/core-jvm",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "core-platform",
     "path": "subprojects/core-platform",
     "unitTests": false,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "declarative-dsl-api",
+    "path": "platforms/core-configuration/declarative-dsl-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "declarative-dsl-core",
+    "path": "platforms/core-configuration/declarative-dsl-core",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "declarative-dsl-provider",
+    "path": "platforms/core-configuration/declarative-dsl-provider",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -711,14 +739,14 @@
     "path": "platforms/jvm/plugins-groovy",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "plugins-java",
     "path": "platforms/jvm/plugins-java",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "name": "plugins-java-base",

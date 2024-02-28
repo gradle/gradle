@@ -108,6 +108,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val junit5Vintage = "org.junit.vintage:junit-vintage-engine"
     val junit5JupiterApi = "org.junit.jupiter:junit-jupiter-api"
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
+    val junitPlatformEngine = "org.junit.platform:junit-platform-engine"
     val jzlib = "com.jcraft:jzlib"
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
@@ -263,6 +264,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         junit5Vintage to License.EPL,
         junit5JupiterApi to License.EPL,
         junitPlatform to License.EPL,
+        junitPlatformEngine to License.EPL,
         jzlib to License.BSDStyle,
         kryo to License.BSD3,
         log4jToSlf4j to License.MIT,
