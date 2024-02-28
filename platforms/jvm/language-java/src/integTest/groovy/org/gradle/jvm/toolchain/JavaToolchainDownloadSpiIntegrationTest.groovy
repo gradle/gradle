@@ -65,7 +65,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific} for ")
-               .assertHasCause("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either. " +
+               .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
                    "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
                    "({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from 'https://exoticJavaToolchain.com/java-99', " +
                    "due to: Could not HEAD 'https://exoticJavaToolchain.com/java-99'.).")
@@ -107,7 +107,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=11, vendor=any, implementation=vendor-specific} for")
-               .assertHasCause("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either. " +
+               .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
                    "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) " +
                    "from '$uri', due to: Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=11, vendor=any, implementation=vendor-specific}.).")
     }
@@ -157,7 +157,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific} for ")
-               .assertHasCause("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either. " +
+               .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
                    "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
                    "({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from 'https://exoticJavaToolchain.com/java-99', " +
                    "due to: Could not HEAD 'https://exoticJavaToolchain.com/java-99'.).")
