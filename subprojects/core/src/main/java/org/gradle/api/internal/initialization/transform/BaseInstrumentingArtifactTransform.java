@@ -107,6 +107,9 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         // Instrument jars
         doTransform(input, outputs, instrumentedEntryNameMapper);
 
+        if (originalFileProducer == null) {
+            return;
+        }
         // Create a marker file that signals we should use original entry if they are safe to load from cache loader
         // ELSE copy an entry
         if (input.isDirectory() || internalServices.get().getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
@@ -122,7 +125,28 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         }
     }
 
-    private void doTransform(
+    protected void handleOriginalJar(File input, TransformOutputs outputs) {
+
+        // Create a marker file that signals we should use original entry if they are safe to load from cache loader
+        // ELSE copy an entry
+        if (input.isDirectory() || internalServices.get().getGlobalCacheLocations().isInsideGlobalCache(input.getAbsolutePath())) {
+            // Directories are ok to use outside the cache, since they are not locked by the daemon.
+            // Jars that are already in the global cache don't need to be copied, since
+            // the global caches are additive only and jars shouldn't be deleted or changed during the build.
+            if (input.isDirectory()) {
+                outputs.dir(input);
+            } else {
+                outputs.file(input);
+            }
+        } else {
+            // Jars that are in some mutable location (e.g. build/ directory) need to be copied to the global cache,
+            // since daemon keeps them locked when loading them to a classloader, which prevents e.g. deleting the build directory on windows
+            File copyOfOriginalFile = outputs.file(ORIGINAL_DIR_NAME + "/" + input.getName());
+            GFileUtils.copyFile(input, copyOfOriginalFile);
+        }
+    }
+
+    protected void doTransform(
         File input, TransformOutputs outputs,
         Function<String, String> instrumentedEntryNameMapper
     ) {

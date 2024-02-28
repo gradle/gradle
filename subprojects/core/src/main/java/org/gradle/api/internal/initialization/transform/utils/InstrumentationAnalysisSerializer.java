@@ -50,7 +50,7 @@ public class InstrumentationAnalysisSerializer {
         try (KryoBackedDecoder decoder = new KryoBackedDecoder(Files.newInputStream(input.toPath()))) {
             return new InstrumentationArtifactMetadata(decoder.readString(), decoder.readString());
         } catch (Exception e) {
-            throw new IllegalStateException("Could not deserialize types map from a file: " + input, e);
+            throw new IllegalStateException("Could not deserialize metadata from a file: " + input, e);
         }
     }
 

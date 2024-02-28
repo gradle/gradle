@@ -45,16 +45,28 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
         if (inputDir.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME)) {
             return;
         }
+        if (maybeOutputOriginalFile(inputDir, outputs)) {
+            return;
+        }
+
 
         InstrumentationArtifactMetadata metadata = readArtifactMetadata(inputDir);
         if (metadata.getArtifactHash().equals(FILE_MISSING_HASH)) {
-            execute(null, outputs, __ -> {});
+            execute(null, outputs, null);
         } else {
             String hash = metadata.getArtifactHash();
             long contextId = getParameters().getContextId().get();
             File originalArtifact = getParameters().getBuildService().get().getOriginalFile(contextId, hash);
-            execute(originalArtifact, outputs, __ -> writeOriginalFilePlaceholder(hash, outputs));
+            execute(originalArtifact, outputs, null);
         }
+    }
+
+    private boolean maybeOutputOriginalFile(File input, TransformOutputs outputs) {
+        if (!new File(input, DEPENDENCIES_SUPER_TYPES_FILE_NAME).exists()) {
+            handleOriginalJar(input, outputs);
+            return true;
+        }
+        return false;
     }
 
     private static void writeOriginalFilePlaceholder(String hash, TransformOutputs outputs) {

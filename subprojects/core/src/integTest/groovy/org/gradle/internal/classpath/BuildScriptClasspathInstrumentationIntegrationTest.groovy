@@ -113,7 +113,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
+        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["InstrumentationAnalysisTransform", "InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
         gradleUserHomeOutput("instrumented/instrumented-commons-lang3-3.8.1.jar").exists()
     }
@@ -141,8 +141,10 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         allTransformsFor("main") ==~ [
             // Only the folder name is reported, so we cannot distinguish first and second
             "InstrumentationAnalysisTransform",
+            "InstrumentationAnalysisTransform",
             "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform",
+            "InstrumentationAnalysisTransform",
             "InstrumentationAnalysisTransform",
             "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform"
@@ -284,7 +286,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
+        allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         def analyzeDir = analyzeOutput("animals-1.0.jar")
         analyzeDir.exists()
         serializer.readTypesMap(analyzeDir.file(SUPER_TYPES_FILE_NAME)) == [
