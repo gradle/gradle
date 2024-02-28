@@ -20,6 +20,8 @@ package org.gradle.jvm.toolchain
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import spock.lang.Unroll
 
 import static JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static JavaToolchainDownloadUtil.noUrlResolverCode
@@ -442,6 +444,96 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                    INFO_DEBUG,
                    SCAN,
                    GET_HELP)
+    }
+
+    @Unroll("#logLevel logging")
+    def "logs informative warning message if some repositories fail to resolve the toolchain spec"(String logLevel, Closure<ExecutionResult> test) {
+        given:
+        def jdkRepository = new JdkRepository(JavaVersion.VERSION_11)
+        def uri = jdkRepository.start()
+        jdkRepository.reset()
+
+        settingsFile << """
+            ${applyToolchainResolverPlugin("FailsToResolveResolver", failsToResolveResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}
+            ${applyToolchainResolverPlugin("FailsToProvisionResolver", failsToProvisionResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}
+            ${applyToolchainResolverPlugin("GoodResolver", singleUrlResolverCode(uri), DEFAULT_PLUGIN,
+            """
+                    toolchainManagement {
+                        jvm {
+                            javaRepositories {
+                                repository('failsOnResolve') {
+                                    resolverClass = FailsToResolveResolver
+                                }
+                                repository('failsOnProvision') {
+                                    resolverClass = FailsToProvisionResolver
+                                }
+                                repository('good') {
+                                    resolverClass = GoodResolver
+                                }
+                            }
+                        }
+                    }
+                """
+        )}
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        def result = executer
+            .withTasks("compileJava")
+            .withArgument("--$logLevel")
+            .requireOwnGradleUserHomeDir()
+            .withToolchainDownloadEnabled()
+            .withStackTraceChecksDisabled()
+            .run()
+
+        and:
+        jdkRepository.stop()
+
+        then:
+        test(result)
+
+        where:
+        logLevel | test
+        "warn"   | { ExecutionResult r -> r.assertOutputContains("Some toolchain resolvers had internal failures: failsOnResolve (Ooops!). " +
+            "Some toolchain resolvers had provisioning failures: failsOnProvision (Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from 'http://exoticJavaToolchain.com/java-11', due to: Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-11. This is not supported, use a secure URI instead.). " +
+            "Switch logging level to DEBUG (--debug) for further information.")}
+        "debug"  | { ExecutionResult r -> r.assertOutputContains("java.lang.Exception: Some toolchain resolvers had internal failures: failsOnResolve (Ooops!). Some toolchain resolvers had provisioning failures: failsOnProvision (Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from 'http://exoticJavaToolchain.com/java-11', due to: Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-11. This is not supported, use a secure URI instead.).")
+            .assertOutputContains("Suppressed: java.lang.Exception: Ooops!")
+            .assertOutputContains("Suppressed: org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService\$MissingToolchainException: Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from 'http://exoticJavaToolchain.com/java-11', due to: Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-11. This is not supported, use a secure URI instead.")
+        }
+    }
+
+    private static String failsToResolveResolverCode() {
+        // fail by throwing an exception on resolution
+        """
+            @Override
+            public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                throw new Exception("Ooops!");
+            }
+        """
+    }
+
+    private static String failsToProvisionResolverCode() {
+        // can't be provisioned due to unsecure HTTP connection URL
+        """
+            @Override
+            public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                URI uri = URI.create("http://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get());
+                return Optional.of(JavaToolchainDownload.fromUri(uri));
+            }
+        """
     }
 
     private static String customToolchainResolverCode() {

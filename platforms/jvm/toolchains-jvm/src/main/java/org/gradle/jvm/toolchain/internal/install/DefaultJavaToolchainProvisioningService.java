@@ -251,9 +251,10 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
         public void logFailuresIfAny() {
             if (hasFailures()) {
-                LOGGER.warn(failureMessage() + ". Switch logging level to DEBUG (--debug) and look at the stacktrace (--stacktrace) for further information.");
+                LOGGER.warn(failureMessage() + " Switch logging level to DEBUG (--debug) for further information.");
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(failureMessage(), addFailuresAsSuppressed(new Exception()));
+                    String failureMessage = failureMessage();
+                    LOGGER.debug(failureMessage, addFailuresAsSuppressed(new Exception(failureMessage)));
                 }
             }
         }
