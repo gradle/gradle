@@ -33,7 +33,6 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
@@ -43,7 +42,6 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
@@ -144,23 +142,23 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             resolutionScope.setOriginalClasspath(classpathConfiguration);
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
-            ClassPath instrumentedClasspath = combineToClasspath(
+            List<File> instrumentedClasspath = combineToClasspath(
                 classpathConfiguration,
                 instrumentedExternalDependencies,
                 instrumentedProjectDependencies,
-                (artifact, hash) -> buildService.getOriginalFile(contextId, artifact, hash)
+                (artifact, hash) -> new File("")
             );
             return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath);
         }
     }
 
-    private static FileCollection getAnalysisResult(Configuration classpathConfiguration) {
+    private static ArtifactCollection getAnalysisResult(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value));
             // We have to analyze external and project dependencies to get full hierarchies, since
             // for example user could use dependency substitution to replace external dependency with project dependency.
             config.componentFilter(componentId -> !isGradleApi(componentId));
-        }).getFiles();
+        }).getArtifacts();
     }
 
     private static ArtifactCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
@@ -196,7 +194,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     /**
      * Combines external dependencies and project dependencies to one classpath that is sorted based on the original classpath.
      */
-    private static ClassPath combineToClasspath(
+    private static List<File> combineToClasspath(
         Configuration classpathConfiguration,
         ArtifactCollection externalDependencies,
         ArtifactCollection projectDependencies,
@@ -213,14 +211,13 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             .collect(Collectors.toList());
 
         Ordering<OriginalArtifactIdentifier> ordering = Ordering.explicit(identifiers);
-        List<File> classpath = Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream())
+        return Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream())
             .map(ClassPathTransformedArtifact::ofTransformedArtifact)
             // We sort based on the original classpath to we keep the original order,
             // we also rely on the fact that for ordered streams `sorted()` method has stable sort.
             .sorted((first, second) -> ordering.compare(first.originalIdentifier, second.originalIdentifier))
-            .map(artifact -> getOriginalFile(artifact, originalFileProvider))
+            .map(artifact -> artifact.file)
             .collect(Collectors.toList());
-        return DefaultClassPath.of(classpath);
     }
 
     private static File getOriginalFile(ClassPathTransformedArtifact artifact, BiFunction<ClassPathTransformedArtifact, String, File> originalFileProvider) {

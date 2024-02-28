@@ -17,11 +17,14 @@
 package org.gradle.api.internal.initialization.transform.services;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ArtifactCollection;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.ClassPathTransformedArtifact;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.classpath.types.ExternalPluginsInstrumentationTypeRegistry;
@@ -36,6 +39,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,6 +47,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 
 public abstract class CacheInstrumentationDataBuildService implements BuildService<BuildServiceParameters.None> {
@@ -73,19 +78,20 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
      * so this method returns just one. For instrumentation is not important which one is returned.
      */
     public File getOriginalFile(long contextId, String hash) {
-        return getOriginalFile(contextId, null, hash);
-    }
-
-    public File getOriginalFile(long contextId, @Nullable ClassPathTransformedArtifact artifact, String hash) {
         try {
             return checkNotNull(getResolutionData(contextId).getOriginalFile(hash), "Original file for hash '%s' does not exist!", hash);
         } catch (NullPointerException ex) {
             String entries = getResolutionData(contextId).hashToOriginalFile.get().entrySet().stream()
                 .map(e -> "Hash: " + e.getKey() + " File: " + e.getValue())
                 .collect(Collectors.joining("\n"));
-            String message = String.format("Original file for hash '%s' and artifact '%s' does not exist, file hashes: '%s'!", hash, artifact, entries);
+            String message = String.format("Original file for metadata '%s', file hashes: '%s'!", hash, entries);
             throw new NullPointerException(message);
         }
+
+    }
+
+    public File getOriginalFile(long contextId, @Nullable ClassPathTransformedArtifact artifact, String hash) {
+        throw new RuntimeException("");
     }
 
 
@@ -109,8 +115,13 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         });
         return new ResolutionScope() {
             @Override
-            public void setAnalysisResult(FileCollection analysisResult) {
-                resolutionData.getAnalysisResult().setFrom(analysisResult);
+            public void setAnalysisResult(ArtifactCollection analysisResult) {
+                resolutionData.getAnalysisResult().set(
+                    analysisResult.getResolvedArtifacts()
+                        .map(artifactSet -> artifactSet.stream()
+                            .map(ResolvedArtifactResult::getFile)
+                            .collect(Collectors.toList()))
+                );
             }
 
             @Override
@@ -127,7 +138,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
     public interface ResolutionScope extends AutoCloseable {
 
-        void setAnalysisResult(FileCollection analysisResult);
+        void setAnalysisResult(ArtifactCollection analysisResult);
         void setOriginalClasspath(FileCollection originalClasspath);
 
         @Override
@@ -139,18 +150,25 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         private final Lazy<Map<String, File>> hashToOriginalFile;
         private final Map<File, String> hashCache;
         private final InjectedInstrumentationServices internalServices;
+        private final Lazy<List<File>> cachedAndFilteredAnalysisResult = Lazy.locking().of(() -> getAnalysisResult().get().stream()
+            .filter(file -> !file.getName().equals(".gradle-instrumented-classpath.marker"))
+            .collect(Collectors.toList())
+        );
 
         @Inject
         public ResolutionData(InjectedInstrumentationServices internalServices) {
             this.hashCache = new ConcurrentHashMap<>();
             this.hashToOriginalFile = Lazy.locking().of(() -> {
-                Map<String, File> originalFiles = new HashMap<>(getOriginalClasspath().getFiles().size());
-                getOriginalClasspath().forEach(file -> {
-                    String fileHash = getArtifactHash(file);
-                    if (fileHash != null) {
-                        originalFiles.put(fileHash, file);
-                    }
-                });
+                List<File> result = cachedAndFilteredAnalysisResult.get();
+                Map<String, File> originalFiles = new HashMap<>(result.size() / 2);
+                InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
+                for (int i = 0; i < result.size();) {
+                    // Original file always comes after metadata
+                    File metadata = new File(result.get(i++), METADATA_FILE_NAME);
+                    String hash = serializer.readMetadata(metadata).getArtifactHash();
+                    File originalArtifact = result.get(i++);
+                    originalFiles.put(hash, originalArtifact);
+                }
                 return originalFiles;
             });
             this.instrumentationTypeRegistry = Lazy.locking().of(() -> {
@@ -161,14 +179,13 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             this.internalServices = internalServices;
         }
 
-        public abstract ConfigurableFileCollection getAnalysisResult();
+        public abstract ListProperty<File> getAnalysisResult();
         public abstract ConfigurableFileCollection getOriginalClasspath();
 
         private Map<String, Set<String>> readDirectSuperTypes() {
-            Set<File> directories = getAnalysisResult().getFiles();
             InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
-            return directories.stream()
-                .filter(File::isDirectory)
+            return cachedAndFilteredAnalysisResult.get().stream()
+                .filter(result -> result.isDirectory() && new File(result, SUPER_TYPES_FILE_NAME).exists())
                 .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))
                 .flatMap(file -> serializer.readTypesMap(file).entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));

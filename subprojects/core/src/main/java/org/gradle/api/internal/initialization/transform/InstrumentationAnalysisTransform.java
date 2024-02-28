@@ -105,6 +105,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
             return;
         }
 
+
         try {
             Map<String, Set<String>> superTypes = new TreeMap<>();
             Set<String> dependencies = new TreeSet<>();
@@ -162,6 +163,12 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
 
         File dependenciesFile = new File(outputDir, DEPENDENCIES_FILE_NAME);
         serializer.writeTypes(dependenciesFile, dependencies);
+
+        if (artifact.isDirectory()) {
+            outputs.dir(artifact);
+        } else {
+            outputs.file(artifact);
+        }
     }
 
     private InstrumentationArtifactMetadata getArtifactMetadata(File artifact) {

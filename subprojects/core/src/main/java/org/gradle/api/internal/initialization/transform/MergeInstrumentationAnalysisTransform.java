@@ -46,6 +46,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.copyUnchecked;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
@@ -93,6 +94,8 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         File input = getInput().get().getAsFile();
         if (input.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME)) {
             return;
+        } else if (maybeOutputOriginalFile(input, outputs)) {
+            return;
         }
 
         InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
@@ -113,6 +116,17 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         File output = new File(outputDir, DEPENDENCIES_SUPER_TYPES_FILE_NAME);
         serializer.writeTypesMap(output, dependenciesSuperTypes);
         copyUnchecked(new File(input, METADATA_FILE_NAME), new File(outputDir, METADATA_FILE_NAME));
+    }
+
+    private static boolean maybeOutputOriginalFile(File input, TransformOutputs outputs) {
+        if (!input.isDirectory()) {
+            outputs.file(input);
+            return true;
+        } else if (!new File(input, SUPER_TYPES_FILE_NAME).exists()) {
+            outputs.dir(input);
+            return true;
+        }
+        return false;
     }
 
     private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
