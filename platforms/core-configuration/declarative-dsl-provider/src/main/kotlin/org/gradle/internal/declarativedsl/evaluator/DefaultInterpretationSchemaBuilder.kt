@@ -18,16 +18,14 @@ package org.gradle.internal.declarativedsl.evaluator
 
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.InterpretationSchemaBuildingResult.InterpretationSequenceAvailable
 import org.gradle.internal.declarativedsl.evaluator.InterpretationSchemaBuildingResult.SchemaNotBuilt
 import org.gradle.internal.declarativedsl.plugins.schemaForPluginsBlock
-import org.gradle.internal.declarativedsl.project.gradleDslGeneralSchemaComponent
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequence
+import org.gradle.internal.declarativedsl.settings.settingsEvaluationSchema
 
 
 internal
@@ -39,15 +37,10 @@ class DefaultInterpretationSchemaBuilder : InterpretationSchemaBuilder {
         when (scriptContext) {
             is RestrictedScriptContext.UnknownScript -> SchemaNotBuilt
             RestrictedScriptContext.PluginsBlock -> simpleInterpretation("plugins", EvaluationSchema(schemaForPluginsBlock), targetInstance)
-            is RestrictedScriptContext.SettingsScript -> simpleInterpretation("settings", schemaForSettingsScript, targetInstance)
+            is RestrictedScriptContext.SettingsScript -> simpleInterpretation("settings", settingsEvaluationSchema(targetInstance as Settings), targetInstance)
             is RestrictedScriptContext.ProjectScript ->
                 InterpretationSequenceAvailable(projectInterpretationSequence(targetInstance as ProjectInternal, scriptContext.targetScope, scriptContext.scriptSource))
         }
-
-    private
-    val schemaForSettingsScript by lazy {
-        buildEvaluationSchema(Settings::class, gradleDslGeneralSchemaComponent(), analyzeEverything)
-    }
 
     private
     fun simpleInterpretation(id: String, schema: EvaluationSchema, target: Any) =
