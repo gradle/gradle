@@ -20,6 +20,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.gradle.internal.logging.config.LoggingSystemAdapter;
+import org.gradle.internal.logging.console.DefaultUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
@@ -54,6 +55,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     private TextStreamOutputEventListener stdoutListener;
 
+    private final DefaultUserInputReceiver userInput = new DefaultUserInputReceiver();
     protected final OutputEventRenderer renderer = makeOutputEventRenderer();
     protected final OutputEventListenerManager outputEventListenerManager = new OutputEventListenerManager(renderer);
 
@@ -149,9 +151,13 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         return outputEventListenerManager;
     }
 
-    // Intentionally not a “create” method as this should not be exposed as a service
+    protected DefaultUserInputReceiver createUserInput() {
+        return userInput;
+    }
+
+    // Intentionally not a “create” method as this should not be exposed as a service
     protected OutputEventRenderer makeOutputEventRenderer() {
-        return new OutputEventRenderer(Time.clock());
+        return new OutputEventRenderer(Time.clock(), userInput);
     }
 
     private static class CommandLineLogging extends LoggingServiceRegistry {

@@ -713,7 +713,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllIncludes());
             }
-            result.addAll(patternSet.getIncludes());
+            result.addAll(patternSet.getIncludesView());
             return result;
         }
 
@@ -723,7 +723,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllExcludes());
             }
-            result.addAll(patternSet.getExcludes());
+            result.addAll(patternSet.getExcludesView());
             return result;
         }
 
@@ -734,7 +734,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllExcludeSpecs());
             }
-            result.addAll(patternSet.getExcludeSpecs());
+            result.addAll(patternSet.getExcludeSpecsView());
             return result;
         }
 
@@ -831,7 +831,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllIncludeSpecs());
             }
-            result.addAll(patternSet.getIncludeSpecs());
+            result.addAll(patternSet.getIncludeSpecsView());
             return result;
         }
 

@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.specs.Spec
+import org.spockframework.lang.Wildcard
 
 import java.util.concurrent.Callable
 import java.util.function.Consumer
@@ -1922,6 +1923,16 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.explicit
     }
 
+    def "can incrementally set paths as convention to the collection using from"() {
+        when:
+        collection.convention("src0")
+        collection.from("src1", "src2")
+        collection.from("src3")
+        then:
+        collection.from as List == ["src0", "src1", "src2", "src3"]
+        collection.explicit
+    }
+
     def "can incrementally set explicit value"() {
         when:
         collection.setFrom("src1")
@@ -1978,7 +1989,6 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from as List == ["src0"]
     }
 
-
     def "can set convention as explicit value if unset"() {
         given:
         collection.convention("src0")
@@ -2009,52 +2019,31 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from as List == ["src0"]
     }
 
-    def "conventions are ignored if a value is already explicitly set using #setFrom"() {
-        when:
-        collection.setFrom("src3")
-        collection.convention("src1", "src2")
-        then:
-        collection.from as List == ["src3"]
-    }
-
-    def "conventions are ignored if a value is already explicitly set using #from"() {
-        when:
-        collection.from("src3")
-        collection.convention("src1", "src2")
-        then:
-        collection.from as List == ["src3"]
-    }
-
-    def "conventions can be overridden with an explicit value using #setFrom"() {
-        when:
-        collection.convention("src1", "src2")
-        collection.setFrom("src3")
-        then:
-        collection.from as List == ["src3"]
-        collection.explicit
-    }
-
-    def "conventions can be overridden with an explicit value using #from"() {
-        when:
-        collection.convention("src1", "src2")
-        collection.from("src3")
-        then:
-        collection.explicit
-        collection.from as List == ["src3"]
-    }
-
-    def "conventions are brought back if explicit value is unset"() {
-        when:
-        collection.from("src3")
-        collection.convention("src1", "src2")
-        then:
-        collection.from as List == ["src3"]
+    def "test '#label'"(String label) {
+        given:
+        if (!(convention instanceof Wildcard)) {
+            collection.convention((Iterable) convention)
+        }
+        if (!(explicit instanceof Wildcard)) {
+            collection.setFrom((Iterable) explicit)
+        }
 
         when:
-        collection.unset()
+        operations.each {operation -> operation.call(collection) }
 
         then:
-        collection.from as List == ["src1", "src2"]
-        !collection.explicit
+        collection.from.flatten() as List == expected
+
+        where:
+        expected        | explicit      | convention        | label                                         | operations
+        []              | _             | _                 | "no elements by default"                      | { }
+        ["src1"]        | ["src1"]      | _                 | "explicit value when set"                     | { }
+        ["src1"]        | _             | ["src1"]          | "convention used when no explicit value"      | { }
+        ["src3"]        | ["src3"]      | ["src1"]          | "explicit value overrides convention"         | { }
+        ["src1"]        | ["src3"]      | ["src1"]          | "convention used when explicit unset"         | { it.unset() }
+        ["src1", "src2"]| _             | _                 | "from() after convention honors it"           | { it.convention("src1"); it.from("src2") }
+        ["src2"]        | _             | _                 | "from() before convention prevents it"        | { it.from("src2"); it.convention("src1") }
+        ["src1", "src2"]| _             | ["src1"]          | "from() commits convention"                   | { it.from("src2"); it.unsetConvention() }
+        ["src1"]        | _             | ["src1"]          | "from() does not modify convention"           | { it.from("src2"); it.unset() }
     }
 }

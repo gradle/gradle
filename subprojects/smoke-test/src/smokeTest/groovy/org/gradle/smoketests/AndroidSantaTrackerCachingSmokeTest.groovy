@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
@@ -43,36 +42,46 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'clean build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
-        buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(originalDir, agpVersion)
+        def result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(originalDir, agpVersion)
 
         then:
-        assertConfigurationCacheStateStored()
-
-        when: 'up-to-date build, reusing configuration cache when enabled'
-        SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
-        buildUpToDateLocation(originalDir, agpVersion)
-
-        then:
-        // TODO - this is here because AGP >=7.4 and <8.1.0 reads build/generated/source/kapt/debug at configuration time
-        if (agpVersion.startsWith('7.3') || VersionNumber.parse(agpVersion) >= VersionNumber.parse('8.1.0')) {
-            assertConfigurationCacheStateLoaded()
-        } else {
-            assertConfigurationCacheStateStored()
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateStored()
         }
 
         when: 'up-to-date build, reusing configuration cache when enabled'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
-        buildLocation(originalDir, agpVersion)
+        result = buildUpToDateLocation(originalDir, agpVersion)
 
         then:
-        assertConfigurationCacheStateLoaded()
+        // TODO - this is here because AGP >=7.4 and <8.1.0 reads build/generated/source/kapt/debug at configuration time
+        if (agpVersion.startsWith('7.3') || VersionNumber.parse(agpVersion) >= VersionNumber.parse('8.1.0')) {
+            if (GradleContextualExecuter.isConfigCache()) {
+                result.assertConfigurationCacheStateLoaded()
+            }
+        } else {
+            if (GradleContextualExecuter.isConfigCache()) {
+                result.assertConfigurationCacheStateStored()
+            }
+        }
+
+        when: 'up-to-date build, reusing configuration cache when enabled'
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
+        result = buildLocation(originalDir, agpVersion)
+
+        then:
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateLoaded()
+        }
 
         when: 'clean cached build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(relocatedDir, homeDir)
-        BuildResult relocatedResult = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(relocatedDir, agpVersion)
+        result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(relocatedDir, agpVersion)
 
         then:
-        assertConfigurationCacheStateStored()
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateStored()
+        }
 
         and:
         def expectedResults = agpVersion.startsWith('7.3')
@@ -86,19 +95,21 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
             : agpVersion.startsWith('8.3')
             ? AndroidPluginExpectations8.EXPECTED_RESULTS_8_3
             : AndroidPluginExpectations8.EXPECTED_RESULTS_8_4
-        verify(relocatedResult, expectedResults)
+        verify(result, expectedResults)
 
         when: 'clean cached build, reusing configuration cache when enabled'
         cleanLocation(relocatedDir, agpVersion)
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(relocatedDir, homeDir)
         if (GradleContextualExecuter.notConfigCache) {
-            buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(relocatedDir, agpVersion)
+            result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(relocatedDir, agpVersion)
         } else {
-            buildLocationMaybeExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
+            result = buildLocationMaybeExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
         }
 
         then:
-        assertConfigurationCacheStateLoaded()
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateLoaded()
+        }
 
         where:
         agpVersion << TESTED_AGP_VERSIONS

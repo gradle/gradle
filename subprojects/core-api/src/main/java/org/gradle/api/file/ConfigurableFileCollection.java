@@ -63,7 +63,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * @param paths The paths.
      * @return this collection
      *
-     * @since 8.7
+     * @since 8.8
      */
     @Incubating
     ConfigurableFileCollection convention(Iterable<?> paths);
@@ -78,7 +78,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * @param paths The paths.
      * @return this collection
      *
-     * @since 8.7
+     * @since 8.8
      */
     @Incubating
     ConfigurableFileCollection convention(Object... paths);

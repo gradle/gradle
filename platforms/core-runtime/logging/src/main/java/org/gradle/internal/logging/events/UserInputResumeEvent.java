@@ -16,11 +16,27 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.operations.OperationIdentifier;
 
-public class UserInputResumeEvent extends OutputEvent {
+public class UserInputResumeEvent extends RenderableOutputEvent implements InteractiveEvent {
+    public UserInputResumeEvent(long timestamp) {
+        super(timestamp, "prompt", LogLevel.QUIET, null);
+    }
 
     @Override
     public LogLevel getLogLevel() {
         return LogLevel.QUIET;
+    }
+
+    @Override
+    public void render(StyledTextOutput output) {
+        // Add a newline after a batch of questions
+        output.println();
+    }
+
+    @Override
+    public RenderableOutputEvent withBuildOperationId(OperationIdentifier buildOperationId) {
+        throw new UnsupportedOperationException();
     }
 }

@@ -114,7 +114,6 @@ class StandardKotlinScriptEvaluator(
         options: EvalOptions
     ) {
         withOptions(options) {
-
             interpreter.eval(
                 target,
                 scriptSource,
@@ -387,8 +386,8 @@ class StandardKotlinScriptEvaluator(
             }
         }
 
-        override fun instrumentedJar(workspace: File): File {
-            return File(workspace, "instrumented/classes.jar")
+        override fun instrumentedOutput(workspace: File): File {
+            return File(workspace, "instrumented/classes")
         }
     }
 }

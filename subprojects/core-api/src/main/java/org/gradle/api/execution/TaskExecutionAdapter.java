@@ -23,6 +23,7 @@ import org.gradle.api.tasks.TaskState;
  *
  * The methods in this class are empty. This class exists as convenience for creating listener objects.
  */
+@SuppressWarnings("deprecation")
 public class TaskExecutionAdapter implements TaskExecutionListener {
 
     @Override

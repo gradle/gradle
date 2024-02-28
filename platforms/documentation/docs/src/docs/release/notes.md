@@ -52,6 +52,49 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+#### Ability to set conventions on file collections
+
+Plugin-provided tasks often expose file collections that are meant to be customizable by build engineers (for instance, the classpath for the JavaCompile task).
+Up until now, for plugin authors to define default values for file collections, they have had to resort to configuring those defaults as initial values.
+Conventions provide a better model for that: plugin authors recommend default values via conventions, and users choose to accept, add on top, or completely 
+replace them when defining their actual value.
+
+This release introduces a  pair of [`convention(...)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#convention-java.lang.Object...-) methods 
+on `ConfigurableFileCollection` that define the default value of a file collection if no explicit value is previously set via `setFrom(...)` or `from(...)`.
+
+```kotlin
+val files = objects.fileCollection().convention("dir1")
+files.from("dir2")
+
+println(files.elements.get()) // [.../dir1, .../dir2]
+```
+
+`#from(...)` will honor the convention if one is configured when invoked, so the order of operations will matter. 
+
+To forcefully override or prevent a convention (i.e., regardless of the order of those operations), one should use `#setFrom()` instead:
+
+```kotlin
+val files = objects.fileCollection().convention("dir1")
+files.setFrom("dir2")
+
+
+println(files.elements.get()) // [.../dir2]
+```
+
+This feature caters to plugin developers.
+It is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Property.html#convention-T-) methods that have been available on lazy properties since Gradle 5.1.
+
+#### Improved error handling for toolchain resolvers
+
+When attempting to download Java toolchains from the configured resolvers, errors will be better handled now, and all resolvers will be tried.
+
+While mapping toolchain specs to download URLs, resolvers aren't supposed to throw exceptions. 
+But it is possible for them to do that, and when it happens, Gradle should try to use other configured resolvers in their stead.
+However, it wasn't the case before this fix.
+
+Also, auto-provisioning can fail even after a successful toolchain spec to URL mapping (for example, during the actual download and validating of the toolchain)
+In such a case, Gradle should retry the auto-provisioning process with other configured resolvers.
+This was also not the case before the fix.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

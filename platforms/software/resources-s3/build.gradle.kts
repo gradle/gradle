@@ -15,25 +15,26 @@ errorprone {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":core-api"))
-    implementation(project(":core"))
-    implementation(project(":resources"))
-    implementation(project(":resources-http"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":resources"))
+    api(project(":resources-http"))
 
-    implementation(libs.slf4jApi)
-    implementation(libs.guava)
-    implementation(libs.awsS3Core)
-    implementation(libs.awsS3S3)
-    implementation(libs.awsS3Kms) {
+    api(libs.awsS3Core)
+    api(libs.awsS3S3)
+    api(libs.awsS3Kms) {
         because("Loaded by the AWS libraries with reflection when present")
     }
-    implementation(libs.awsS3Sts) {
+    api(libs.awsS3Sts) {
         because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/15332")
     }
-    implementation(libs.jaxbImpl)
-    implementation(libs.commonsHttpclient)
+    api(libs.guava)
+
+    implementation(project(":hashing"))
+
     implementation(libs.commonsLang)
+    implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependency-management")))
@@ -47,4 +48,15 @@ dependencies {
     integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
+}
+
+
+dependencyAnalysis {
+    issues {
+        onUnusedDependencies() {
+            // This need to exist to be loaded reflectively
+            exclude(libs.awsS3Kms)
+            exclude(libs.awsS3Sts)
+        }
+    }
 }

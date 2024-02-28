@@ -15,37 +15,43 @@ errorprone {
 }
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":core"))
-    implementation(project(":core-api"))
-    implementation(project(":functional"))
-    implementation(project(":dependency-management"))
-    implementation(project(":file-collections"))
-    implementation(project(":logging"))
-    implementation(project(":messaging"))
-    implementation(project(":model-core"))
-    implementation(project(":plugin-use"))
-    implementation(project(":publish"))
-    implementation(project(":resources"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":file-collections"))
+    api(project(":logging"))
+    api(project(":messaging"))
+    api(project(":model-core"))
+    api(project(":publish"))
+    api(project(":resources"))
 
-    implementation(libs.slf4jApi)
-    implementation(libs.groovy)
-    implementation(libs.guava)
-    implementation(libs.commonsLang)
-    implementation(libs.inject)
-    implementation(libs.maven3Model) {
+    api(libs.guava)
+    api(libs.inject)
+    api(libs.jsr305)
+    api(libs.maven3Model) {
         because("We use the metadata model classes to create POM metadata files for components")
     }
-    implementation(libs.maven3RepositoryMetadata) {
+    api(libs.maven3RepositoryMetadata) {
         because("We use the metadata model classes to create repository metadata files")
     }
+
+    implementation(project(":functional"))
+    implementation(project(":hashing"))
+    implementation(project(":logging-api"))
+
+    implementation(libs.commonsLang)
+    implementation(libs.plexusUtils)
+    implementation(libs.slf4jApi)
 
     testImplementation(project(":native"))
     testImplementation(project(":process-services"))
     testImplementation(project(":snapshots"))
     testImplementation(project(":resources-http"))
+
     testImplementation(libs.xmlunit)
+
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":model-core")))
     testImplementation(testFixtures(project(":dependency-management")))

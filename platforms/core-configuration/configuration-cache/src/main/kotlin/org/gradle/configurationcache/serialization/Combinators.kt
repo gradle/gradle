@@ -366,6 +366,13 @@ fun Decoder.readStrings(): List<String> =
 
 
 internal
+fun Decoder.readStringsSet(): Set<String> =
+    readCollectionInto({ size -> LinkedHashSet(size) }) {
+        readString()
+    }
+
+
+internal
 inline fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
     writeSmallInt(collection.size)
     for (element in collection) {

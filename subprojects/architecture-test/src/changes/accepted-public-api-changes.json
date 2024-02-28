@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.file.ConfigurableFileCollection",
+            "member": "Class org.gradle.api.file.ConfigurableFileCollection",
+            "acceptation": "Introduce SupportsConvention",
+            "changes": [
+                "org.gradle.api.provider.SupportsConvention"
+            ]
+        },
+        {
             "type": "org.gradle.jvm.toolchain.JvmImplementation",
             "member": "Method org.gradle.jvm.toolchain.JvmImplementation.valueOf(java.lang.String)",
             "acceptation": "The JvmImplementation class has converted to enum",
@@ -15,7 +23,22 @@
             "changes": [
                 "Method added to public class"
             ]
+        },
+        {
+            "type": "org.gradle.tooling.events.problems.ProblemDescriptor",
+            "member": "Method org.gradle.tooling.events.problems.ProblemDescriptor.getDetails()",
+            "acceptation": "This is an incubating API and therefore the change is acceptable",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.tooling.events.problems.ProblemDescriptor",
+            "member": "Method org.gradle.tooling.events.problems.ProblemDescriptor.getDocumentationLink()",
+            "acceptation": "This is an incubating API and therefore the change is acceptable",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
         }
     ]
 }
-

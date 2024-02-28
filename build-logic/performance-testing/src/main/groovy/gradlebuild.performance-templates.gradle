@@ -40,6 +40,21 @@ performanceTest.registerTestProject("gradleBuildBaseline", RemoteProject) {
     ref = '264bd7744d2e89b2708303cd56bb11bc5003fa7e'
 }
 
+// === Declarative DSL ===
+performanceTest.registerTestProject("largeEmptyMultiProjectDeclarativeDsl", JavaExecProjectGeneratorTask) {
+    outputs.dir new File(buildDir, "largeEmptyMultiProjectDeclarativeDsl")
+    outputs.cacheIf { true }
+    inputs.property('template', "largeEmptyMultiProjectDeclarativeDsl")
+    inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
+        return []
+    }
+    classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava')  || it.name.contains('gradle-') }
+    mainClass = 'org.gradle.performance.generator.DeclarativeDslTestProjectGenerator'
+    args name, buildDir.absolutePath
+}
+
+
+
 // === Java ===
 ['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
