@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import com.sun.tools.javac.api.JavacTool;
 import com.sun.tools.javac.util.Context;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
@@ -38,17 +37,19 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
 
     private final Context context;
-    private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
+    private final Factory<ContextAwareJavaCompiler> javaHomeBasedJavaCompilerFactory;
     private final DiagnosticToProblemListener diagnosticToProblemListener;
 
     @Inject
-    public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, InternalProblems problemsService) {
+    public JdkJavaCompiler(Factory<ContextAwareJavaCompiler> javaHomeBasedJavaCompilerFactory, InternalProblems problemsService) {
         this.context = new Context();
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
         this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter(), context);
@@ -74,26 +75,28 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         DiagnosticListener<JavaFileObject> diagnosticListener = shouldUseProblemsApiReporting() ? diagnosticToProblemListener : null;
 
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
-        // This means that JavacToolProvider cannot be used directly, as it was introduced in Java 9
-        JavacTool compiler = JavacTool.create();
+        ContextAwareJavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
 
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
-        Charset charset = compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null;
+        Charset charset = Optional.ofNullable(compileOptions.getEncoding())
+            .map(Charset::forName)
+            .orElse(null);
         StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(diagnosticListener, null, charset);
+
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
 
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticListener, options, spec.getClassesToProcess(), compilationUnits, context);
-//        if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
-//            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
-//                task,
-//                result.getSourceClassesMapping(),
-//                result.getConstantsAnalysisResult(),
-//                new CompilationSourceDirs(spec),
-//                new CompilationClassBackupService(spec, result)
-//            );
-//        }
+        if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
+            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
+                task,
+                result.getSourceClassesMapping(),
+                result.getConstantsAnalysisResult(),
+                new CompilationSourceDirs(spec),
+                new CompilationClassBackupService(spec, result)
+            );
+        }
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
         task = new ResourceCleaningCompilationTask(task, fileManager);
