@@ -27,7 +27,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.Project
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import kotlin.reflect.KClass
@@ -35,53 +35,58 @@ import kotlin.reflect.KFunction
 
 
 /**
- * Introduces schema representations of Gradle extensions registered on a [Project].
+ * Introduces schema representations of Gradle extensions registered on an [ExtensionAware] object.
  *
- * Inspects a given [target] project and checks for its extensions which have types annotated with [Restricted] (maybe in supertypes).
+ * Inspects a given [target] extension owner and checks for its extensions which have types annotated with [Restricted] (maybe in supertypes).
  *
  * Given that, introduces the following features in the schema:
- * * [typeDiscovery] ensuring that the types of the project extensions get discovered and included in the schema (but just those types, not recursing)
- * * [functionExtractors] which introduce configuring functions for the project extensions
+ * * [typeDiscovery] ensuring that the types of the extensions get discovered and included in the schema (but just those types, not recursing)
+ * * [functionExtractors] which introduce configuring functions for the extensions
  * * [runtimeCustomAccessors] as the runtime counterpart for the configuring functions, telling the runtime how to access the extensions.
  */
 internal
-class ThirdPartyProjectExtensionsComponent(
-    private val target: ProjectInternal,
+class ThirdPartyExtensionsComponent(
+    private val schemaTypeToExtend: KClass<*>,
+    private val target: ExtensionAware,
+    private val accessorIdPrefix: String,
 ) : EvaluationSchemaComponent {
+
     private
-    val projectExtensions: List<ProjectExtensionInfo> = run {
+    val extensions: List<ExtensionInfo> = run {
         val annotationChecker = CachedHierarchyAnnotationChecker(Restricted::class)
-        projectExtensions(target) { annotationChecker.isAnnotatedMaybeInSupertypes(it) }
+        getExtensionInfo(target, accessorIdPrefix, annotationChecker::isAnnotatedMaybeInSupertypes)
     }
 
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        FixedTypeDiscovery(ProjectTopLevelReceiver::class, projectExtensions.map { it.type })
+        FixedTypeDiscovery(schemaTypeToExtend, extensions.map { it.type })
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
-        projectExtensionConfiguringFunctions(projectExtensions)
+        projectExtensionConfiguringFunctions(extensions)
     )
 
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
-        RuntimeProjectExtensionAccessors(target, projectExtensions)
+        RuntimeExtensionAccessors(extensions)
     )
 }
 
 
 private
-fun projectExtensions(target: ProjectInternal, includeExtension: (KClass<*>) -> Boolean): List<ProjectExtensionInfo> =
-    target.extensions.extensionsSchema.elements.mapNotNull {
+fun getExtensionInfo(extensionOwner: ExtensionAware, accessorIdPrefix: String, includeExtension: (KClass<*>) -> Boolean): List<ExtensionInfo> =
+    extensionOwner.extensions.extensionsSchema.elements.mapNotNull {
         val type = it.publicType.concreteClass.kotlin
-        if (includeExtension(type)) ProjectExtensionInfo(it.name, type) else null
+        if (includeExtension(type)) ExtensionInfo(it.name, type, accessorIdPrefix) { extensionOwner.extensions.getByName(it.name) } else null
     }
 
 
 private
-data class ProjectExtensionInfo(
+data class ExtensionInfo(
     val name: String,
     val type: KClass<*>,
+    val accessorIdPrefix: String,
+    val extensionProvider: () -> Any,
 ) {
-    val customAccessorId = "projectExtension:$name"
+    val customAccessorId = "$accessorIdPrefix:$name"
 
     val schemaFunction = DataMemberFunction(
         ProjectTopLevelReceiver::class.toDataTypeRef(),
@@ -97,9 +102,9 @@ data class ProjectExtensionInfo(
 
 
 private
-class RuntimeProjectExtensionAccessors(project: Project, info: List<ProjectExtensionInfo>) : RuntimeCustomAccessors {
+class RuntimeExtensionAccessors(info: List<ExtensionInfo>) : RuntimeCustomAccessors {
 
-    val extensionsByIdentifier = info.associate { it.customAccessorId to project.extensions.getByName(it.name) }
+    val extensionsByIdentifier = info.associate { it.customAccessorId to it.extensionProvider() }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
         if (receiverObject is Project)
@@ -109,9 +114,9 @@ class RuntimeProjectExtensionAccessors(project: Project, info: List<ProjectExten
 
 
 private
-fun projectExtensionConfiguringFunctions(projectExtensionInfo: Iterable<ProjectExtensionInfo>): FunctionExtractor = object : FunctionExtractor {
+fun projectExtensionConfiguringFunctions(extensionInfo: Iterable<ExtensionInfo>): FunctionExtractor = object : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        if (kClass == ProjectTopLevelReceiver::class) projectExtensionInfo.map(ProjectExtensionInfo::schemaFunction) else emptyList()
+        if (kClass == ProjectTopLevelReceiver::class) extensionInfo.map(ExtensionInfo::schemaFunction) else emptyList()
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
 
