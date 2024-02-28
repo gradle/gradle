@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r87
+package org.gradle.integtests.tooling.r88
 
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -25,14 +25,14 @@ import org.gradle.tooling.TestLauncher
 import spock.lang.Timeout
 
 @Timeout(120)
-@ToolingApiVersion('>=6.1')
+@ToolingApiVersion('>=8.8')
 @TargetGradleVersion(">=8.8")
 @Requires(UnitTestPreconditions.Jdk17OrEarlier)
 /**
  * @see org.gradle.integtests.tooling.r70.TestDisplayNameJUnit5CrossVersionSpec and
- * @see org.gradle.integtests.tooling.r87.TestDisplayNameJUnit4CrossVersionSpec
+ * @see TestDisplayNameSpockCrossVersionSpec
  */
-class TestDisplayNameSpockCrossVersionSpec extends TestLauncherSpec {
+class TestDisplayNameJUnit4CrossVersionSpec extends TestLauncherSpec {
     @Override
     void addDefaultTests() {
     }
@@ -41,34 +41,26 @@ class TestDisplayNameSpockCrossVersionSpec extends TestLauncherSpec {
     String simpleJavaProject() {
         """
         allprojects{
-            apply plugin: 'groovy'
+            apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                implementation 'org.codehaus.groovy:groovy-all:3.0.0'
-                testImplementation platform("org.spockframework:spock-bom:2.1-groovy-3.0")
-                testImplementation "org.spockframework:spock-core:2.1-groovy-3.0"
-            }
-
-            test {
-                useJUnitPlatform()
+                testImplementation("junit:junit:4.13.2")
             }
         }
         """
     }
 
     def "reports display names of class and method"() {
-        file("src/test/groovy/org/example/SimpleTests.groovy") << """package org.example
+        file("src/test/java/org/example/SimpleTests.java") << """package org.example;
 
-import spock.lang.Specification
+import org.junit.Test;
 
-class SimpleTests extends Specification {
+public class SimpleTests {
 
-    def "success test"() {
-        expect:
-        true
+    @Test
+    public void test() {
     }
 }
-
 """
         when:
         launchTests { TestLauncher launcher ->
@@ -81,9 +73,9 @@ class SimpleTests extends Specification {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
                         testClass("org.example.SimpleTests") {
-                            displayName "SimpleTests"
-                            test("success test") {
-                                displayName "success test"
+                            testDisplayName "SimpleTests"
+                            test("test") {
+                                testDisplayName "test"
                             }
                         }
                     }
@@ -93,23 +85,39 @@ class SimpleTests extends Specification {
     }
 
     def "reports display names of parameterized tests"() {
-        file("src/test/groovy/org/example/ParameterizedTests.groovy") << """package org.example
+        file("src/test/java/org/example/ParameterizedTests.java") << """package org.example;
 
-import spock.lang.Specification
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-class ParameterizedTests extends Specification {
+import java.util.Arrays;
+import java.util.Collection;
 
-    def "length of #name is #length"() {
-        expect:
-        name.size() == length
+@RunWith(Parameterized.class)
+public class ParameterizedTests {
 
-        where:
-        name    | length
-        "Spock" | 5
-        "junit5" | 6
+    private final int value;
+    private final String name;
+
+    public ParameterizedTests(int value, String name) {
+        this.value = value;
+        this.name = name;
+    }
+
+    @Test
+    public void parametrized_test() {
+        System.out.println(name + " " + value);
+    }
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {1, "first"},
+                {2, "second"}
+        });
     }
 }
-
 """
 
         when:
@@ -123,15 +131,12 @@ class ParameterizedTests extends Specification {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
                         testClass("org.example.ParameterizedTests") {
-                            displayName "ParameterizedTests"
-                            testMethodSuite("length of #name is #length") {
-                                displayName "length of #name is #length"
-                                test("length of Spock is 5") {
-                                    displayName "length of Spock is 5"
-                                }
-                                test("length of junit5 is 6") {
-                                    displayName "length of junit5 is 6"
-                                }
+                            testDisplayName "ParameterizedTests"
+                            test("parametrized_test[0]") {
+                                testDisplayName "parametrized_test[0]" // JUnit4 does not provide detailed information for parameterized tests
+                            }
+                            test("parametrized_test[1]") {
+                                testDisplayName "parametrized_test[1]"
                             }
                         }
                     }

@@ -46,7 +46,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)
         def defaultTestDescriptor = Mock(DefaultTestDescriptor)
-        1 * defaultTestDescriptor.toString() >> "Some Test Descriptor"
+        1 * defaultTestDescriptor.getDisplayName() >> "Some Test Descriptor"
         1 * defaultTestDescriptor.getTaskPath() >> ":someTestTask"
 
         def testResult = Mock(TestResult)

@@ -182,7 +182,7 @@ public interface GradleDistribution {
     boolean isSupportsKotlinScript();
 
     /**
-     * Returns true if this version wraps tests display names with 'test method(Class)' instead of 'method'
+     * Returns true if this version has a method for tests display names
      */
-    boolean isHasLegacyTestDisplayNames();
+    boolean isHasTestDisplayNames();
 }

@@ -193,13 +193,11 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
 
         then:
         events.tests.size() == events.operations.size()
-        def aTestDisplayName = targetDist.hasLegacyTestDisplayNames ? "Test ok(ATest)" : "ok"
         if (targetDist.runsBuildSrcTests) {
-            def event = events.operation("Gradle Test Run :buildSrc:a:test").descendant(aTestDisplayName)
+            def event = events.operation("Gradle Test Run :buildSrc:a:test").descendant("Test ok(ATest)")
             event.parent.descriptor.name == "ATest"
         }
-        def thingTestDisplayName = targetDist.hasLegacyTestDisplayNames ? "Test ok(ThingTest)" : "ok"
-        def event = events.operation("Gradle Test Run :test").descendant(thingTestDisplayName)
+        def event = events.operation("Gradle Test Run :test").descendant("Test ok(ThingTest)")
         event.parent.descriptor.name == "ThingTest"
     }
 

@@ -337,8 +337,8 @@ class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
-    boolean isHasLegacyTestDisplayNames() {
-        return !isSameOrNewer("8.8")
+    boolean isHasTestDisplayNames() {
+        return isSameOrNewer("8.8")
     }
 
     protected boolean isSameOrNewer(String otherVersion) {
