@@ -45,6 +45,7 @@ dependencies {
     api(project(":platform-base"))
     api(project(":platform-jvm"))
     api(project(":resources"))
+    api(project(":toolchains-jvm-shared"))
 
     api(libs.futureKotlin("stdlib"))
     api(libs.inject)
@@ -78,7 +79,6 @@ dependencies {
 
 packageCycles {
     // Needed for the factory methods in the interface
-    excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/**")
 }
 

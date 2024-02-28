@@ -50,6 +50,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
                     resovableVariants()
                     tasks()
                     wrapper()
+                    updateDaemonJvm()
                 }
             }
         })
@@ -384,6 +385,12 @@ model {
           | Type:   \torg.gradle.api.tasks.diagnostics.TaskReportTask
           | Value:  \ttask ':tasks\'
           | Creator: \tProject.<init>.tasks.tasks()
+          | Rules:
+             ⤷ copyToTaskContainer
+    + updateDaemonJvm
+          | Type:   \torg.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmTask
+          | Value:  \ttask ':updateDaemonJvm\'
+          | Creator: \tProject.<init>.tasks.updateDaemonJvm()
           | Rules:
              ⤷ copyToTaskContainer
     + wrapper

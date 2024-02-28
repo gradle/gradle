@@ -26,6 +26,7 @@ dependencies {
     api(project(":problems-api"))
     api(project(":platform-base"))
     api(project(":toolchains-jvm"))
+    api(project(":toolchains-jvm-shared"))
     api(project(":workers"))
     api(project(":worker-processes"))
 

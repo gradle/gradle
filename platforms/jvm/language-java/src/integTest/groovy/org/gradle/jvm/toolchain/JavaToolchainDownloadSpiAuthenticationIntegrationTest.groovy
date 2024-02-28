@@ -75,10 +75,10 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific} for")
+               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=99, vendor=matching('exotic'), implementation=VENDOR_SPECIFIC} for")
                 .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
                     "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
-                    "({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '$archiveUri', " +
+                    "({languageVersion=99, vendor=matching('exotic'), implementation=VENDOR_SPECIFIC}) from '$archiveUri', " +
                     "due to: Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
                     "A problem occurred starting process 'command '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain", "bin", "java"))
     }
@@ -133,10 +133,10 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
             .assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-            .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific} for")
+            .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=99, vendor=matching('exotic'), implementation=VENDOR_SPECIFIC} for")
             .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
                 "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
-                "({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '$archiveUri', " +
+                "({languageVersion=99, vendor=matching('exotic'), implementation=VENDOR_SPECIFIC}) from '$archiveUri', " +
                 "due to: Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
                 "A problem occurred starting process 'command '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain", "bin", "java"))
     }

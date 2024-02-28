@@ -41,6 +41,7 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
 Build Setup tasks
 -----------------
 init - Initializes a new Gradle build.
+updateDaemonJvm - Generates or updates the Daemon JVM criteria.
 wrapper - Generates Gradle wrapper files.
 
 Help tasks
@@ -73,6 +74,7 @@ tasks - Displays the tasks runnable from root project '$projectName'.""")
 Build Setup tasks
 -----------------
 init (org.gradle.buildinit.tasks.InitBuild) - Initializes a new Gradle build.
+updateDaemonJvm (org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmTask) - Generates or updates the Daemon JVM criteria.
 wrapper (org.gradle.api.tasks.wrapper.Wrapper) - Generates Gradle wrapper files.
 
 Help tasks
@@ -305,6 +307,7 @@ Tasks runnable from root project 'test'
 Build Setup tasks
 -----------------
 init - Initializes a new Gradle build.
+updateDaemonJvm - Generates or updates the Daemon JVM criteria.
 wrapper - Generates Gradle wrapper files.
 
 To see all tasks and more detail, run gradle tasks --all
@@ -333,6 +336,7 @@ Tasks runnable from root project 'test'
 Build Setup tasks
 -----------------
 init - Initializes a new Gradle build.
+updateDaemonJvm - Generates or updates the Daemon JVM criteria.
 wrapper - Generates Gradle wrapper files.
 
 To see all tasks and more detail, run gradle tasks --all

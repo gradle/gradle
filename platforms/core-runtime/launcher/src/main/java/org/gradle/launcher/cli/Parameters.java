@@ -17,18 +17,22 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 public class Parameters {
-    private final BuildLayoutResult layout;
     private final StartParameterInternal startParameter;
     private final DaemonParameters daemonParameters;
+    private final AllProperties properties;
 
-    public Parameters(BuildLayoutResult layout, StartParameterInternal startParameter, DaemonParameters daemonParameters) {
-        this.layout = layout;
+    public Parameters(StartParameterInternal startParameter, DaemonParameters daemonParameters, AllProperties properties) {
         this.startParameter = startParameter;
         this.daemonParameters = daemonParameters;
+        this.properties = properties;
+    }
+
+    public AllProperties getProperties() {
+        return properties;
     }
 
     public DaemonParameters getDaemonParameters() {
@@ -37,9 +41,5 @@ public class Parameters {
 
     public StartParameterInternal getStartParameter() {
         return startParameter;
-    }
-
-    public BuildLayoutResult getLayout() {
-        return layout;
     }
 }

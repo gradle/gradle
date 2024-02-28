@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain;
 
+import com.google.common.base.MoreObjects;
 import org.gradle.api.Describable;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
@@ -72,5 +73,15 @@ public interface JavaToolchainSpec extends Describable {
      * @since 6.8
      */
     Property<JvmImplementation> getImplementation();
+
+    @Override
+    default String getDisplayName() {
+        final MoreObjects.ToStringHelper builder = MoreObjects.toStringHelper("");
+        builder.omitNullValues();
+        builder.add("languageVersion", getLanguageVersion().map(JavaLanguageVersion::toString).getOrElse("unspecified"));
+        builder.add("vendor", getVendor().map(JvmVendorSpec::toString).getOrNull());
+        builder.add("implementation", getImplementation().map(JvmImplementation::toString).getOrNull());
+        return builder.toString();
+    }
 
 }

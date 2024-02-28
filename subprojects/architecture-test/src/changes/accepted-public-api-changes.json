@@ -23,6 +23,22 @@
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.jvm.toolchain.JvmImplementation",
+            "member": "Method org.gradle.jvm.toolchain.JvmImplementation.valueOf(java.lang.String)",
+            "acceptation": "The JvmImplementation class has converted to enum",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.toolchain.JvmImplementation",
+            "member": "Method org.gradle.jvm.toolchain.JvmImplementation.values()",
+            "acceptation": "The JvmImplementation class has converted to enum",
+            "changes": [
+                "Method added to public class"
+            ]
         }
     ]
 }

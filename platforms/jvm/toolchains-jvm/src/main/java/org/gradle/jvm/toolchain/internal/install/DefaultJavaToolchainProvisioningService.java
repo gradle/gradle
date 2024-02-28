@@ -53,9 +53,9 @@ import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
+import static org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier.AUTO_DOWNLOAD;
 
-    public static final String AUTO_DOWNLOAD = "org.gradle.java.installations.auto-download";
+public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJavaToolchainProvisioningService.class);
 

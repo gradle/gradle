@@ -86,7 +86,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
         @Override
         public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
-            String value = properties.get(gradleProperty);
+            String value = properties.get(property);
 
             if (value != null) {
                 LogLevel level = parseLogLevel(value);
@@ -144,7 +144,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
         @Override
         public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
-            String value = properties.get(gradleProperty);
+            String value = properties.get(property);
 
             if (value != null) {
                 if (value.equalsIgnoreCase("internal")) {
@@ -154,7 +154,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
                 } else if (value.equalsIgnoreCase("full")) {
                     settings.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
                 } else {
-                    Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(value, "must be one of internal, all, or full");
+                    propertyOrigin.toOrigin(GRADLE_PROPERTY).handleInvalidValue(value, "must be one of internal, all, or full");
                 }
             }
         }
