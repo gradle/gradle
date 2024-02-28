@@ -116,7 +116,7 @@ class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
         fails "compileScala"
 
         then:
-        failure.assertThatCause(startsWith("Cannot infer Scala class path because no Scala library Jar was found."))
+        failure.assertThatCause(startsWith("'compileScala.scalaClasspath' must not be empty. If a Scala library dependency is provided, the 'scala-base' plugin will attempt to configure 'scalaClasspath' automatically."))
     }
 
 }
