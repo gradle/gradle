@@ -52,12 +52,12 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
 
         InstrumentationArtifactMetadata metadata = readArtifactMetadata(inputDir);
         if (metadata.getArtifactHash().equals(FILE_MISSING_HASH)) {
-            execute(null, outputs, __ -> {});
+            execute(null, outputs, null);
         } else {
             String hash = metadata.getArtifactHash();
             long contextId = getParameters().getContextId().get();
             File originalArtifact = getParameters().getBuildService().get().getOriginalFile(contextId, hash);
-            execute(originalArtifact, outputs, __ -> writeOriginalFilePlaceholder(hash, outputs));
+            execute(originalArtifact, outputs, null);
         }
     }
 
