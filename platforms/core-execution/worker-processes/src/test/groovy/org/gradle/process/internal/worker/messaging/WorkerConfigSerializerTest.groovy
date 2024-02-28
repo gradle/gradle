@@ -30,13 +30,14 @@ class WorkerConfigSerializerTest extends Specification {
 
         given:
         WorkerConfig original = new WorkerConfig(
-            LogLevel.ERROR,
-            true,
-            "/path/to/user/home",
-            new MultiChoiceAddress(new UUID(123, 456), 789, [InetAddress.getByName("example.com")]),
-            987,
-            "name",
-            new TestAction("value")
+                LogLevel.ERROR,
+                true,
+                "/path/to/user/home",
+                new MultiChoiceAddress(new UUID(123, 456), 789, [InetAddress.getByName("example.com")]),
+                987,
+                "name",
+                new TestAction("value"),
+                true
         )
 
         when:

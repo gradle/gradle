@@ -32,24 +32,32 @@ import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.isSubclassOf
 
 
+/**
+ * Introduces functions for registering project dependencies, such as `implementation(...)`, as member functions of:
+ * * [RestrictedDependenciesHandler] in the schema,
+ * * [DependencyHandler] when resolved at runtime.
+ *
+ * Inspects the configurations available in the given project to build the functions.
+ */
 internal
-class DependencyConfigurationSchemaComponents(
-    val functionExtractor: FunctionExtractor,
-    val runtimeFunctionResolver: RuntimeFunctionResolver
-)
-
-
-internal
-fun dependencyConfigurationSchemaComponents(project: Project): DependencyConfigurationSchemaComponents {
+class DependencyConfigurationsComponent(
+    project: Project,
+) : EvaluationSchemaComponent {
+    private
     val configurations = DependencyConfigurations(project.configurations.names.toList())
 
-    return DependencyConfigurationSchemaComponents(
-        DependencyFunctionsExtractor(configurations),
+    override fun functionExtractors(): List<FunctionExtractor> = listOf(
+        DependencyFunctionsExtractor(configurations)
+    )
+
+    override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(
         RuntimeDependencyFunctionResolver(configurations)
     )
 }
@@ -71,7 +79,7 @@ class DependencyFunctionsExtractor(val configurations: DependencyConfigurations)
                     configurationName,
                     listOf(DataParameter("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
                     false,
-                    FunctionSemantics.AddAndConfigure(ProjectDependency::class.toDataTypeRef(), FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.NOT_ALLOWED)
+                    FunctionSemantics.AddAndConfigure(ProjectDependency::class.toDataTypeRef(), NOT_ALLOWED)
                 )
             }
         } else emptyList()
@@ -89,7 +97,7 @@ class RuntimeDependencyFunctionResolver(configurations: DependencyConfigurations
     override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
         if (receiverClass.isSubclassOf(DependencyHandler::class) && name in nameSet && parameterValueBinding.bindingMap.size == 1) {
             return RuntimeFunctionResolver.Resolution.Resolved(object : RestrictedRuntimeFunction {
-                override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): RestrictedRuntimeFunction.InvocationResult {
+                override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): RestrictedRuntimeFunction.InvocationResult {
                     (receiver as DependencyHandler).add(name, binding.values.single() ?: error("null value in dependency DSL"))
                     return RestrictedRuntimeFunction.InvocationResult(Unit, null)
                 }

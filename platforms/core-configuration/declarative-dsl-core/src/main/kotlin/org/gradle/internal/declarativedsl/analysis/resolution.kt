@@ -36,10 +36,12 @@ sealed interface ErrorReason {
     data class ValReassignment(val localVal: LocalValue) : ErrorReason
     data class ExternalReassignment(val external: ObjectOrigin.External) : ErrorReason
     data class AssignmentTypeMismatch(val expected: DataType, val actual: DataType) : ErrorReason
+
+    // TODO: these two are never reported for now, instead it is UnresolvedFunctionCallSignature
     data object UnusedConfigureLambda : ErrorReason
+    data object MissingConfigureLambda : ErrorReason
 
     data object AccessOnCurrentReceiverOnlyViolation : ErrorReason
-    data object MissingConfigureLambda : ErrorReason
     data class DuplicateLocalValue(val name: String) : ErrorReason
     data object UnresolvedAssignmentLhs : ErrorReason // TODO: report candidate with rejection reasons
     data object UnresolvedAssignmentRhs : ErrorReason // TODO: resolution trace here, too?

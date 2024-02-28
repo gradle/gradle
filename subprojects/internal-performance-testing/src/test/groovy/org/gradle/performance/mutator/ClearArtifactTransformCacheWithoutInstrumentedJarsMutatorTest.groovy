@@ -16,11 +16,10 @@
 
 package org.gradle.performance.mutator
 
-
 import spock.lang.Specification
 import spock.lang.TempDir
 
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_MARKER_FILE_NAME
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME
 import static org.gradle.profiler.mutations.AbstractCleanupMutator.CleanupSchedule.BUILD
 
 class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Specification {
@@ -37,7 +36,7 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Spec
         createFile(new File(gradleUserHome, "caches/transforms-2/first/transformed/instrumented/file"))
         createFile(new File(gradleUserHome, "caches/transforms-2/first/transformed/original/file"))
         createFile(new File(gradleUserHome, "caches/transforms-2/second/metadata.bin"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/second/transformed/$INSTRUMENTED_MARKER_FILE_NAME"))
+        createFile(new File(gradleUserHome, "caches/transforms-2/second/transformed/$INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME"))
         createFile(new File(gradleUserHome, "caches/transforms-2/second/transformed/instrumented/file"))
         createFile(new File(gradleUserHome, "caches/transforms-2/second/transformed/original/file"))
         def mutator = new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(gradleUserHome, BUILD)
@@ -49,7 +48,7 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Spec
         !new File(gradleUserHome, "caches/transforms-1/").exists()
         !new File(gradleUserHome, "caches/transforms-2/first").exists()
         new File(gradleUserHome, "caches/transforms-2/second/metadata.bin").exists()
-        new File(gradleUserHome, "caches/transforms-2/second/transformed/$INSTRUMENTED_MARKER_FILE_NAME").exists()
+        new File(gradleUserHome, "caches/transforms-2/second/transformed/$INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME").exists()
         new File(gradleUserHome, "caches/transforms-2/second/transformed/instrumented/file").exists()
         new File(gradleUserHome, "caches/transforms-2/second/transformed/original/file").exists()
     }

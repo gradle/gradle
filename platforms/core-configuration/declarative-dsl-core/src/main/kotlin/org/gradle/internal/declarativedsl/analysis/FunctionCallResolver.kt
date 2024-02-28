@@ -113,6 +113,7 @@ class FunctionCallResolverImpl(
                         hasErrorInReceiverResolution = true
                     }
                 }
+
                 null -> {
                     for (scope in currentScopes.asReversed()) {
                         val implicitThisReceiver = ObjectOrigin.ImplicitThisReceiver(scope.receiver, isCurrentScopeReceiver = scope === currentScopes.last())
@@ -144,7 +145,7 @@ class FunctionCallResolverImpl(
         receiver: ObjectOrigin?
     ): ObjectOrigin.FunctionOrigin? {
         val newFunctionCallId = nextInstant()
-        val valueBinding = function.binding.toValueBinding(argResolutions)
+        val valueBinding = function.binding.toValueBinding(argResolutions, functionCall.args.lastOrNull() is FunctionArgument.Lambda)
         val semantics = function.schemaFunction.semantics
 
         checkBuilderSemantics(semantics, receiver, function)
@@ -154,9 +155,9 @@ class FunctionCallResolverImpl(
         )
 
         doRecordSemanticsSideEffects(functionCall, semantics, receiver, result, function, argResolutions)
-        val isCorrectConfigureLambda = doAnalyzeAndCheckConfiguringSemantics(functionCall, semantics, function, result, newFunctionCallId)
+        doAnalyzeAndCheckConfiguringSemantics(functionCall, semantics, function, result, newFunctionCallId, valueBinding)
 
-        return if (isCorrectConfigureLambda) result else null
+        return result
     }
 
     private
@@ -165,15 +166,13 @@ class FunctionCallResolverImpl(
         semantics: FunctionSemantics,
         function: FunctionResolutionAndBinding,
         result: ObjectOrigin.FunctionOrigin,
-        newFunctionCallId: Long
-    ): Boolean {
+        newFunctionCallId: Long,
+        valueBinding: ParameterValueBinding
+    ) {
         if (semantics !is FunctionSemantics.ConfigureSemantics)
-            return true
+            return
 
-        val (expectsConfigureLambda, requiresConfigureLambda) = when (semantics) {
-            is FunctionSemantics.AccessAndConfigure -> true to true
-            is FunctionSemantics.AddAndConfigure -> semantics.configureBlockRequirement.run { allows to requires }
-        }
+        val (expectsConfigureLambda, requiresConfigureLambda) = semantics.configureBlockRequirement.run { allows to requires }
 
         val lambda = call.args.filterIsInstance<FunctionArgument.Lambda>().singleOrNull()
         if (expectsConfigureLambda) {
@@ -183,24 +182,22 @@ class FunctionCallResolverImpl(
                         semantics,
                         function,
                         call,
+                        valueBinding,
                         newFunctionCallId
                     )
+
                     is FunctionSemantics.AddAndConfigure -> ObjectOrigin.AddAndConfigureReceiver(result)
                 }
                 withScope(AnalysisScope(currentScopes.last(), configureReceiver, lambda)) {
                     codeAnalyzer.analyzeStatementsInProgramOrder(this, lambda.block.statements)
                 }
             } else {
-                return if (requiresConfigureLambda) {
-                    errorCollector.collect(ResolutionError(call, ErrorReason.MissingConfigureLambda))
-                    false
-                } else true
+                if (requiresConfigureLambda)
+                    error("expected a configuring lambda in the call of ${function.schemaFunction}, but it was not provided")
             }
         } else if (lambda != null) {
-            errorCollector.collect(ResolutionError(call, ErrorReason.UnusedConfigureLambda))
-            return false
+            error("a lambda is not expected in the call of ${function.schemaFunction}, but it was provided")
         }
-        return true
     }
 
     private
@@ -266,7 +263,7 @@ class FunctionCallResolverImpl(
                 newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
 
             FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT ->
-                configureReceiverObject(semantics, function, functionCall, newFunctionCallId)
+                configureReceiverObject(semantics, function, functionCall, valueBinding, newFunctionCallId)
         }
 
         else -> newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
@@ -277,11 +274,12 @@ class FunctionCallResolverImpl(
         semantics: FunctionSemantics.AccessAndConfigure,
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
+        binding: ParameterValueBinding,
         newFunctionCallId: Long
     ): ObjectOrigin.AccessAndConfigureReceiver {
         require(function.receiver != null)
         require(functionCall.args.all { it is FunctionArgument.Lambda })
-        return ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, newFunctionCallId, semantics.accessor)
+        return ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, binding, newFunctionCallId, semantics.accessor)
     }
 
     private
@@ -353,6 +351,7 @@ class FunctionCallResolverImpl(
         is ObjectOrigin -> ObjectOrigin.NewObjectFromMemberFunction(
             function.schemaFunction as SchemaMemberFunction, function.receiver, valueBinding, functionCall, newFunctionCallId
         )
+
         null -> ObjectOrigin.NewObjectFromTopLevelFunction(
             function.schemaFunction, valueBinding, functionCall, newFunctionCallId
         )
@@ -396,16 +395,22 @@ class FunctionCallResolverImpl(
         args: List<FunctionArgument>,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ): List<FunctionResolutionAndBinding> = signatureSizeMatches.mapNotNull { candidate ->
-        // TODO: lambdas are omitted from this process, for now
         val binding = bindFunctionParametersToArguments(
             candidate.parameters,
             args.filterIsInstance<FunctionArgument.ValueArgument>()
-        )
-            ?: return@mapNotNull null
+        ) ?: return@mapNotNull null
+
+        (candidate.semantics as? FunctionSemantics.ConfigureSemantics)?.let { configureSemantics ->
+            if (!configureSemantics.configureBlockRequirement.isValidIfLambdaIsPresent(args.lastOrNull() is FunctionArgument.Lambda)) {
+                return@mapNotNull null
+            }
+        }
+
         if (!typeCheckFunctionCall(binding, argResolution)) {
             // TODO: return type mismatch in args
             return@mapNotNull null
         }
+
         FunctionResolutionAndBinding(receiver, candidate, binding)
     }
 
@@ -470,6 +475,9 @@ class FunctionCallResolverImpl(
     }
 
     private
-    fun ParameterArgumentBinding.toValueBinding(argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>) =
-        ParameterValueBinding(binding.mapValues { (_, arg) -> argResolution.getValue(arg) })
+    fun ParameterArgumentBinding.toValueBinding(argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>, providesConfigureBlock: Boolean) =
+        ParameterValueBinding(
+            binding.mapValues { (_, arg) -> argResolution.getValue(arg) },
+            providesConfigureBlock
+        )
 }

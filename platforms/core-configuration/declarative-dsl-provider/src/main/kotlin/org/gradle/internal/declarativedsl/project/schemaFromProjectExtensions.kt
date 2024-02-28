@@ -28,32 +28,48 @@ import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
 
+/**
+ * Introduces schema representations of Gradle extensions registered on a [Project].
+ *
+ * Inspects a given [target] project and checks for its extensions which have types annotated with [Restricted] (maybe in supertypes).
+ *
+ * Given that, introduces the following features in the schema:
+ * * [typeDiscovery] ensuring that the types of the project extensions get discovered and included in the schema (but just those types, not recursing)
+ * * [functionExtractors] which introduce configuring functions for the project extensions
+ * * [runtimeCustomAccessors] as the runtime counterpart for the configuring functions, telling the runtime how to access the extensions.
+ */
 internal
-class ProjectExtensionComponents(
-    val typeDiscovery: TypeDiscovery,
-    val functionExtractor: FunctionExtractor,
-    val runtimeCustomAccessors: RuntimeCustomAccessors
-)
+class ThirdPartyProjectExtensionsComponent(
+    private val target: ProjectInternal,
+) : EvaluationSchemaComponent {
+    private
+    val projectExtensions: List<ProjectExtensionInfo> = run {
+        val annotationChecker = CachedHierarchyAnnotationChecker(Restricted::class)
+        projectExtensions(target) { annotationChecker.isAnnotatedMaybeInSupertypes(it) }
+    }
 
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(
+        FixedTypeDiscovery(ProjectTopLevelReceiver::class, projectExtensions.map { it.type })
+    )
 
-internal
-fun projectExtensionComponents(target: ProjectInternal, includeExtension: (KClass<*>) -> Boolean): ProjectExtensionComponents {
-    val projectExtensions = projectExtensions(target, includeExtension)
+    override fun functionExtractors(): List<FunctionExtractor> = listOf(
+        projectExtensionConfiguringFunctions(projectExtensions)
+    )
 
-    val typeDiscovery = FixedTypeDiscovery(ProjectTopLevelReceiver::class, projectExtensions.map { it.type })
-    val functions = projectExtensionConfiguringFunctions(projectExtensions)
-    val runtimeCustomAccessors = RuntimeProjectExtensionAccessors(target, projectExtensions)
-
-    return ProjectExtensionComponents(typeDiscovery, functions, runtimeCustomAccessors)
+    override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
+        RuntimeProjectExtensionAccessors(target, projectExtensions)
+    )
 }
 
 
 private
-fun projectExtensions(target: ProjectInternal, includeExtension: (KClass<*>) -> Boolean) =
+fun projectExtensions(target: ProjectInternal, includeExtension: (KClass<*>) -> Boolean): List<ProjectExtensionInfo> =
     target.extensions.extensionsSchema.elements.mapNotNull {
         val type = it.publicType.concreteClass.kotlin
         if (includeExtension(type)) ProjectExtensionInfo(it.name, type) else null
@@ -104,10 +120,26 @@ fun projectExtensionConfiguringFunctions(projectExtensionInfo: Iterable<ProjectE
 
 
 private
-class FixedTypeDiscovery(private val keyClass: KClass<*>, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
-        when (kClass) {
-            keyClass -> discoverClasses
-            else -> emptyList()
-        }
+class CachedHierarchyAnnotationChecker(private val annotationType: KClass<out Annotation>) {
+    fun isAnnotatedMaybeInSupertypes(kClass: KClass<*>): Boolean {
+        // Can't use computeIfAbsent because of recursive calls
+        hasRestrictedAnnotationWithSuperTypesCache[kClass]?.let { return it }
+        return hasRestrictedAnnotationWithSuperTypes(kClass).also { hasRestrictedAnnotationCache[kClass] = it }
+    }
+
+    private
+    fun hasRestrictedAnnotationWithSuperTypes(kClass: KClass<*>) =
+        hasRestrictedAnnotationCached(kClass) || kClass.supertypes.any { (it.classifier as? KClass<*>)?.let { isAnnotatedMaybeInSupertypes(it) } ?: false }
+
+    private
+    val hasRestrictedAnnotationWithSuperTypesCache = mutableMapOf<KClass<*>, Boolean>()
+
+    private
+    val hasRestrictedAnnotationCache = mutableMapOf<KClass<*>, Boolean>()
+
+    private
+    fun hasRestrictedAnnotationCached(kClass: KClass<*>) = hasRestrictedAnnotationCache.computeIfAbsent(kClass) { hasAnnotation(it) }
+
+    private
+    fun hasAnnotation(kClass: KClass<*>) = kClass.annotations.any { annotationType.isInstance(it) }
 }

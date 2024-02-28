@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.file.ConfigurableFileCollection",
+            "member": "Class org.gradle.api.file.ConfigurableFileCollection",
+            "acceptation": "Introduce SupportsConvention",
+            "changes": [
+                "org.gradle.api.provider.SupportsConvention"
+            ]
+        },
+        {
             "type": "org.gradle.tooling.events.problems.ProblemDescriptor",
             "member": "Method org.gradle.tooling.events.problems.ProblemDescriptor.getDetails()",
             "acceptation": "This is an incubating API and therefore the change is acceptable",

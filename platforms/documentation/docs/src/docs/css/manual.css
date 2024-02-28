@@ -1506,28 +1506,26 @@ path {
 }
 
 .dark-mode {
+    /* Works on Firefox */
+    * {
+      scrollbar-width: auto;
+      scrollbar-color: #686868 #242526;
+    }
 
-	/* Works on Firefox */
-	.docs-navigation {
-		scrollbar-width: auto;
-		overflow-y: scroll;
-		scrollbar-color: #686868 #242526;
-	}
+    /* Works on Chrome, Edge, and Safari */
+    *::-webkit-scrollbar {
+      width: auto;
+    }
 
-	/* Works on Chrome, Edge, and Safari */
-	.docs-navigation::-webkit-scrollbar {
-		width: 12px;
-	}
+    *::-webkit-scrollbar-track {
+      background: #242526;
+    }
 
-	.docs-navigation::-webkit-scrollbar-track {
-		background: #242526;
-	}
-
-	.docs-navigation::-webkit-scrollbar-thumb {
-		background-color: #686868;
-		border-radius: 20px;
-		border: 3px #686868;
-	}
+    *::-webkit-scrollbar-thumb {
+      background-color: #686868;
+      border-radius: 20px;
+      border: 3px #686868;
+    }
 }
 
 /* Custom Admonition Blocks - Icons from https://github.com/primer/octicons */

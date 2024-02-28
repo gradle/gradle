@@ -78,7 +78,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         this.resolver = fileResolver;
         this.dependencyFactory = dependencyFactory;
         this.host = host;
-        this.valueState = ValueState.newState(host);
+        this.valueState = ValueState.newState(host, ValueCollector::isolated);
         init(EMPTY_COLLECTOR, EMPTY_COLLECTOR);
         filesWrapper = new PathSet();
         buildDependency = dependencyFactory.configurableDependency();
@@ -231,32 +231,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         setExplicitCollector(newExplicitValue(path));
     }
 
-    /**
-     * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
-     * if no source paths are explicitly defined.
-     *
-     * If, at the time this method is invoked, the set of source paths for this collection is empty, the convention will be used
-     * to resolve this file collection.
-     *
-     * @param paths The paths.
-     * @return this collection
-     */
+    @Override
     public ConfigurableFileCollection convention(Iterable<?> paths) {
         assertMutable();
         setConventionCollector(newConventionValue(paths));
         return this;
     }
 
-    /**
-     * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
-     * if no source paths are explicitly defined.
-     *
-     * If, at the time this method is invoked, the set of source paths for this collection is empty, the convention will be used
-     * to resolve this file collection.
-     *
-     * @param paths The paths.
-     * @return this collection
-     */
+    @Override
     public ConfigurableFileCollection convention(Object... paths) {
         assertMutable();
         setConventionCollector(newConventionValue(paths));
@@ -282,7 +264,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
      * If the property has no convention set at the time this method is invoked,
      * the effect of invoking it is similar to invoking {@link #unset()}.
      */
-    protected ConfigurableFileCollection setToConvention() {
+    protected SupportsConvention setToConvention() {
         assertMutable();
         value = valueState.setToConvention();
         return this;
@@ -296,18 +278,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         value = valueState.explicitValue(valueCollector);
     }
 
-    /**
-     * @see SupportsConvention#unsetConvention()
-     */
+    @Override
     public ConfigurableFileCollection unsetConvention() {
         assertMutable();
         setConventionCollector(EMPTY_COLLECTOR);
         return this;
     }
 
-    /**
-     * @see SupportsConvention#unset()
-     */
+    @Override
     public ConfigurableFileCollection unset() {
         assertMutable();
         value = valueState.implicitValue();
@@ -352,9 +330,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private ValueCollector copySources(ValueCollector conventionCollector) {
-        Collection<Object> source = new LinkedHashSet<>();
-        conventionCollector.collectSource(source);
-        return newValue(EMPTY_COLLECTOR, source);
+        return conventionCollector.isolated();
     }
 
     private ValueCollector newValue(ValueCollector baseValue, Object[] paths) {
@@ -367,7 +343,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public ConfigurableFileCollection from(Object... paths) {
-        getConfigurer().from(paths);
+        withActualValue(it -> it.from(paths));
         return this;
     }
 
@@ -513,6 +489,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier);
 
         boolean isEmpty();
+
+        /**
+         * Returns a shallow copy of this value collector, to avoid sharing mutable data.
+         */
+        ValueCollector isolated();
     }
 
     private static class EmptyCollector implements ValueCollector {
@@ -554,6 +535,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         public List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
             return null;
         }
+
+        @Override
+        public ValueCollector isolated() {
+            return this;
+        }
     }
 
     private static class UnresolvedItemsCollector implements ValueCollector {
@@ -574,6 +560,21 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             this.taskDependencyFactory = taskDependencyFactory;
             this.patternSetFactory = patternSetFactory;
             Collections.addAll(items, item);
+        }
+
+        /**
+         * A copy constructor.
+         */
+        private UnresolvedItemsCollector(UnresolvedItemsCollector another) {
+            this.resolver = another.resolver;
+            this.taskDependencyFactory = another.taskDependencyFactory;
+            this.patternSetFactory = another.patternSetFactory;
+            items.addAll(another.items);
+        }
+
+        @Override
+        public ValueCollector isolated() {
+            return new UnresolvedItemsCollector(this);
         }
 
         @Override
@@ -712,6 +713,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         @Override
         public List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
             return null;
+        }
+
+        @Override
+        public ValueCollector isolated() {
+            return this;
         }
     }
 

@@ -27,7 +27,7 @@ import org.gradle.internal.classpath.ClasspathEntryVisitor
 import org.gradle.internal.classpath.ClasspathWalker
 import org.gradle.internal.classpath.DefaultClasspathBuilder
 import org.gradle.internal.classpath.SystemPropertyAccessingThing
-import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.hash.Hasher
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -50,7 +50,7 @@ class ClasspathElementTransformTest extends Specification {
     def testDir = testDirectoryProvider.testDirectory
     def classpathBuilder = new DefaultClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(testDirectoryProvider.createDir("tmp")))
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
-    def gradleCoreInstrumentingRegistry = Stub(GradleCoreInstrumentingTypeRegistry) {
+    def gradleCoreInstrumentingRegistry = Stub(GradleCoreInstrumentationTypeRegistry) {
         getInstrumentedTypesHash() >> Optional.empty()
         getUpgradedPropertiesHash() >> Optional.empty()
     }
