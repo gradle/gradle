@@ -388,6 +388,17 @@ public class BTreeIndexedCacheTest {
         cache.close();
     }
 
+    @Test
+    public void canReadFromReadOnlyFile() {
+        createCache();
+        cache.put("1", 1);
+        verifyAndCloseCache();
+        cacheFile.setReadOnly();
+        createCache();
+        assertThat(cache.get("1"), equalTo(1));
+        verifyAndCloseCache();
+    }
+
     private void checkAdds(Integer... values) {
         checkAdds(Arrays.asList(values));
     }
