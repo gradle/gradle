@@ -76,8 +76,9 @@ public class DefaultBuildSettings implements BuildSettingsInternal {
         declarativePlugins.forEach(plugin -> {
             Class<? extends Plugin<Project>> pluginClass = Cast.uncheckedCast(plugin.asClass());
             extensions.addAll(pluginToExtensions.computeIfAbsent(pluginClass, p ->
-                Arrays.stream(pluginClass.getAnnotationsByType(CreatesExtension.class))
-                    .map(annotation -> new DefaultDeclarativeExtension(annotation.name(), annotation.publicType(), pluginClass))
+                Arrays.stream(pluginClass.getMethods())
+                    .filter(method -> method.isAnnotationPresent(CreatesExtension.class))
+                    .map(method -> new DefaultDeclarativeExtension(method.getAnnotation(CreatesExtension.class).name(), method.getReturnType(), pluginClass))
                     .collect(Collectors.toList())
             ));
         });

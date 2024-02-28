@@ -17,17 +17,26 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.declarative.dsl.model.annotations.CreatesExtension;
 
 import javax.annotation.Nullable;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implements PluginTarget {
 
+    private final ObjectFactory objectFactory;
     private final T target;
 
-    public ImperativeOnlyPluginTarget(T target) {
+    public ImperativeOnlyPluginTarget(ObjectFactory objectFactory, T target) {
+        this.objectFactory = objectFactory;
         this.target = target;
     }
 
@@ -38,8 +47,31 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
 
     @Override
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
+        assert plugin != null;
         // TODO validate that the plugin accepts this kind of argument
         Plugin<T> cast = uncheckedCast(plugin);
+
+
+        if (target instanceof ExtensionAware) {
+            ExtensionContainer extensions = ((ExtensionAware) target).getExtensions();
+            for (Method method : plugin.getClass().getMethods()) {
+                CreatesExtension createsExtension = method.getAnnotation(CreatesExtension.class);
+                if (createsExtension != null) {
+                    Object extension;
+                    try {
+                        extension = method.invoke(plugin, objectFactory);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException("Must be able to access @CreatesExtension method", e);
+                    } catch (InvocationTargetException e) {
+                        throw new RuntimeException("Failed to create extension", e);
+                    }
+                    @SuppressWarnings("unchecked")
+                    Class<Object> returnType = (Class<Object>) method.getReturnType();
+                    extensions.add(returnType, createsExtension.name(), extension);
+                }
+            }
+        }
+
         cast.apply(target);
     }
 

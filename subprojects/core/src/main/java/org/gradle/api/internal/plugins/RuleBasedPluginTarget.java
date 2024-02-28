@@ -38,7 +38,7 @@ public class RuleBasedPluginTarget implements PluginTarget {
         this.target = target;
         this.ruleInspector = ruleInspector;
         this.ruleDetector = ruleDetector;
-        this.imperativeTarget = new ImperativeOnlyPluginTarget<ProjectInternal>(target);
+        this.imperativeTarget = new ImperativeOnlyPluginTarget<>(target.getObjects(), target);
     }
 
     @Override

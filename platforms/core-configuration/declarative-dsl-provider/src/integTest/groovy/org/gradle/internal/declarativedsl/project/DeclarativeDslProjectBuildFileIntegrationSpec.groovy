@@ -16,7 +16,13 @@
 
 package org.gradle.internal.declarativedsl.project
 
-
+import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.declarative.dsl.model.annotations.CreatesExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSpec {
@@ -393,18 +399,24 @@ secondaryAccess { three, true, true}"""
         file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
             package com.example.restricted;
 
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.declarative.dsl.model.annotations.CreatesExtension;
+            import ${DefaultTask.name};
+            import ${Plugin.name};
+            import ${Project.name};
+            import ${ListProperty.name};
+            import ${Property.name};
+            import ${ObjectFactory.name};
+            import ${CreatesExtension.name};
 
-            @CreatesExtension(name="restricted", publicType=Extension.class)
             public class RestrictedPlugin implements Plugin<Project> {
+                @CreatesExtension(name="restricted")
+                public Extension createExtension(ObjectFactory objects) {
+                    return objects.newInstance(Extension.class);
+                }
+
                 @Override
                 public void apply(Project target) {
-                    Extension restricted = target.getExtensions().create("restricted", Extension.class);
+                    // Should add getByName w/ type to ExtensionContainer
+                    Extension restricted = (Extension) target.getExtensions().getByName("restricted");
 
                     target.getTasks().register("printConfiguration", DefaultTask.class, task -> {
                         Property<Extension.Point> referencePoint = restricted.getReferencePoint();
