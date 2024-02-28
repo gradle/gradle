@@ -56,7 +56,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -148,7 +148,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 classpathConfiguration,
                 instrumentedExternalDependencies,
                 instrumentedProjectDependencies,
-                hash -> buildService.getOriginalFile(contextId, hash)
+                (artifact, hash) -> buildService.getOriginalFile(contextId, artifact, hash)
             );
             return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath);
         }
@@ -200,7 +200,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         Configuration classpathConfiguration,
         ArtifactCollection externalDependencies,
         ArtifactCollection projectDependencies,
-        Function<String, File> originalFileProvider
+        BiFunction<ClassPathTransformedArtifact, String, File> originalFileProvider
     ) {
         Set<ResolvedArtifactResult> originalArtifacts = classpathConfiguration.getIncoming()
             .artifactView(config -> config.componentFilter(id -> !isGradleApi(id)))
@@ -223,15 +223,15 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return DefaultClassPath.of(classpath);
     }
 
-    private static File getOriginalFile(ClassPathTransformedArtifact artifact, Function<String, File> originalFileProvider) {
+    private static File getOriginalFile(ClassPathTransformedArtifact artifact, BiFunction<ClassPathTransformedArtifact, String, File> originalFileProvider) {
         if (artifact.file.getName().endsWith(ORIGINAL_FILE_PLACEHOLDER_SUFFIX)) {
             String hash = artifact.file.getName().replace(ORIGINAL_FILE_PLACEHOLDER_SUFFIX, "");
-            return originalFileProvider.apply(hash);
+            return originalFileProvider.apply(artifact, hash);
         }
         return artifact.file;
     }
 
-    private static class ClassPathTransformedArtifact {
+    public static class ClassPathTransformedArtifact {
         private final File file;
         private final OriginalArtifactIdentifier originalIdentifier;
 
@@ -243,6 +243,14 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         public static ClassPathTransformedArtifact ofTransformedArtifact(ResolvedArtifactResult transformedArtifact) {
             checkArgument(transformedArtifact.getId() instanceof TransformedComponentFileArtifactIdentifier);
             return new ClassPathTransformedArtifact(transformedArtifact.getFile(), OriginalArtifactIdentifier.of(transformedArtifact));
+        }
+
+        @Override
+        public String toString() {
+            return "ClassPathTransformedArtifact{" +
+                "file=" + file +
+                ", originalIdentifier=" + originalIdentifier +
+                '}';
         }
     }
 
@@ -279,6 +287,14 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         @Override
         public int hashCode() {
             return Objects.hash(originalFileName, componentIdentifier);
+        }
+
+        @Override
+        public String toString() {
+            return "OriginalArtifactIdentifier{" +
+                "originalFileName='" + originalFileName + '\'' +
+                ", componentIdentifier=" + componentIdentifier +
+                '}';
         }
     }
 }

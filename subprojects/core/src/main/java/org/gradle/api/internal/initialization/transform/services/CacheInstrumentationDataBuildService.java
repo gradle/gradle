@@ -19,6 +19,7 @@ package org.gradle.api.internal.initialization.transform.services;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.ClassPathTransformedArtifact;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.services.BuildService;
@@ -72,8 +73,21 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
      * so this method returns just one. For instrumentation is not important which one is returned.
      */
     public File getOriginalFile(long contextId, String hash) {
-        return checkNotNull(getResolutionData(contextId).getOriginalFile(hash), "Original file for hash '%s' does not exist!", hash);
+        return getOriginalFile(contextId, null, hash);
     }
+
+    public File getOriginalFile(long contextId, @Nullable ClassPathTransformedArtifact artifact, String hash) {
+        try {
+            return checkNotNull(getResolutionData(contextId).getOriginalFile(hash), "Original file for hash '%s' does not exist!", hash);
+        } catch (NullPointerException ex) {
+            String entries = getResolutionData(contextId).hashToOriginalFile.get().entrySet().stream()
+                .map(e -> "Hash: " + e.getKey() + " File: " + e.getValue())
+                .collect(Collectors.joining("\n"));
+            String message = String.format("Original file for hash '%s' and artifact '%s' does not exist, file hashes: '%s'!", hash, artifact, entries);
+            throw new NullPointerException(message);
+        }
+    }
+
 
     @Nullable
     public String getArtifactHash(long contextId, File file) {
