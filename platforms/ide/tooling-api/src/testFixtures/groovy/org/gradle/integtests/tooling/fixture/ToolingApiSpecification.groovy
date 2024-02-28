@@ -306,8 +306,10 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         assert failureOutput.contains("BUILD FAILED")
     }
 
-    void assertHasConfigureSuccessfulLogging() {
-        assertHasNoDeprecationWarnings()
+    void assertHasConfigureSuccessfulLogging(boolean hasDeprecations = false) {
+        if (!hasDeprecations) {
+            assertHasNoDeprecationWarnings()
+        }
         if (targetDist.isToolingApiLogsConfigureSummary()) {
             assert stdout.toString().contains("CONFIGURE SUCCESSFUL")
         } else {

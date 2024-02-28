@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r73
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import spock.lang.Ignore
 
 class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=7.3 <8.0")
@@ -68,9 +67,8 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
         stdout.toString().contains("Deprecated Gradle features were used in this build")
     }
 
-    @Ignore("https://github.com/gradle/gradle/issues/22088")
     @TargetGradleVersion(">=8.0")
-    def "fails when tooling model builder resolves configuration from a project other than its target post Gradle 8.0"() {
+    def "deprecation warning when tooling model builder resolves configuration from a project other than its target post Gradle 8.0"() {
         settingsFile << """
             include("a")
         """
@@ -113,8 +111,7 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        def e = thrown(org.gradle.tooling.BuildException)
-        e.message.contains("Could not fetch model of type 'List'")
-        e.cause.message.contains("Resolution of the configuration :a:compileClasspath was attempted from a context different than the project context.")
+        assertHasConfigureSuccessfulLogging(true)
+        result.assertOutputContains("Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.")
     }
 }
