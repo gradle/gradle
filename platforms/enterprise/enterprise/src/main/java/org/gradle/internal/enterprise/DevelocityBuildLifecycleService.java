@@ -32,7 +32,7 @@ public interface DevelocityBuildLifecycleService {
     /**
      * Adds an action to be called immediately before a project is evaluated.
      * <p>
-     * The action will be applied to all projects in the current build.
+     * The action will be applied to all projects configured in the current build. Due to `Isolated Projects`, a particular build might only configure a subset of all projects.
      *
      * @param action The action to execute.
      */
