@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.scala.internal;
 
+import org.gradle.api.tasks.ScalaJar;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
@@ -23,6 +24,7 @@ import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -61,21 +63,17 @@ public class ScalaCompileOptionsConfigurer {
             return;
         }
 
-        // When Scala 3 is used it appears on the classpath together with Scala 2
-        File scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library_3");
-        if (scalaJar == null) {
-            scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library");
-            if (scalaJar == null) {
-                return;
-            }
-        }
-
-        VersionNumber scalaVersion = VersionNumber.parse(ScalaRuntimeHelper.getScalaVersion(scalaJar));
-        if (VersionNumber.UNKNOWN.equals(scalaVersion)) {
+        if (hasTargetDefiningParameter(scalaCompileOptions.getAdditionalParameters())) {
             return;
         }
 
-        if (hasTargetDefiningParameter(scalaCompileOptions.getAdditionalParameters())) {
+        // When Scala 3 is used it appears on the classpath together with Scala 2
+        VersionNumber scalaVersion = ScalaJar.inspect(scalaClasspath, "library"::equals)
+            .map(ScalaJar::getVersionNumber)
+            .max(Comparator.naturalOrder())
+            .orElse(VersionNumber.UNKNOWN);
+
+        if (VersionNumber.UNKNOWN.equals(scalaVersion)) {
             return;
         }
 

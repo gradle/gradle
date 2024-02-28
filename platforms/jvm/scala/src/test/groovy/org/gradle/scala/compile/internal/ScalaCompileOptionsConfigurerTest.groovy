@@ -16,23 +16,39 @@
 
 package org.gradle.scala.compile.internal
 
+
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.internal.JavaToolchain
+import org.gradle.language.scala.fixtures.ScalaJarFactory
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
+@CleanupTestDirectory
 @Subject(ScalaCompileOptionsConfigurer)
 class ScalaCompileOptionsConfigurerTest extends Specification {
+
+    // Naming the field "temporaryFolder" since that is the default field intercepted by the
+    // @CleanupTestDirectory annotation.
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
+
+    private ScalaJarFactory scalaJarFactory
+
+    def setup() {
+        scalaJarFactory = new ScalaJarFactory(temporaryFolder.testDirectory)
+    }
 
     def 'using Java #toolchain and Scala #scalaLibraryVersion results in #expectedTarget'() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         scalaCompileOptions.additionalParameters = ["-some-other-flag"].asImmutable()
-        def isScala3 = scalaLibraryVersion.startsWith("3.")
-        File scalaLibrary = new File(isScala3 ? "scala3-library_3-${scalaLibraryVersion}.jar" : "scala-library-${scalaLibraryVersion}.jar")
+        File scalaLibrary = scalaJarFactory.standard("library", scalaLibraryVersion)
         Set<File> classpath = [scalaLibrary]
 
         when:
@@ -91,7 +107,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
     def 'does not configure target jvm if toolchain is not present'() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
-        File scalaLibrary = new File("scala-library-2.11.0.jar")
+        File scalaLibrary = scalaJarFactory.standard("library", "2.11.0")
         Set<File> classpath = [scalaLibrary]
 
         when:
@@ -104,7 +120,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
     def 'does not configure target jvm if scala library is not present or invalid'() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
-        File scalaLibrary = new File("scala-invalid-2.11.0.jar")
+        File scalaLibrary = scalaJarFactory.standard("invalid", "2.11.0")
         Set<File> classpath = [scalaLibrary]
 
         when:
@@ -124,7 +140,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         scalaCompileOptions.additionalParameters = targetFlagParts.toList()
-        Set<File> classpath = [new File("scala-library-2.13.1.jar")]
+        Set<File> classpath = [scalaJarFactory.standard("library", "2.13.1")]
 
         when:
         ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(17, false), classpath)

@@ -24,9 +24,11 @@ import com.google.common.collect.Sets;
 import groovy.util.Node;
 import org.gradle.api.Action;
 import org.gradle.api.GradleScriptException;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -132,22 +134,20 @@ public class IdeaScalaConfigurer {
         return files;
     }
 
-    @SuppressWarnings("deprecation")
-    private static ProjectLibrary createScalaSdkLibrary(Project scalaProject, Iterable<File> files, boolean useScalaSdk, IdeaModule ideaModule) {
-        ScalaRuntime runtime = scalaProject.getExtensions().findByType(ScalaRuntime.class);
-        if (runtime != null) {
-            FileCollection scalaClasspath = runtime.inferScalaClasspath(files);
-            File compilerJar = runtime.findScalaJar(scalaClasspath, "compiler");
-            if (compilerJar == null) {
-                compilerJar = runtime.findScalaJar(scalaClasspath, "compiler_3");
-            }
-            String scalaVersion = compilerJar != null ? runtime.getScalaVersion(compilerJar) : DEFAULT_SCALA_PLATFORM_VERSION;
-            return createScalaSdkFromScalaVersion(scalaVersion, scalaClasspath, useScalaSdk);
-        } else {
-            // One of the Scala plugins is applied, but ScalaRuntime extension is missing or the ScalaPlatform is undefined.
-            // we can't create a Scala SDK without either one
+    private static ProjectLibrary createScalaSdkLibrary(Project project, Iterable<File> files, boolean useScalaSdk, IdeaModule ideaModule) {
+        ScalaRuntime scalaRuntime = project.getExtensions().findByType(ScalaRuntime.class);
+        if (scalaRuntime == null) {
+            // One of the Scala plugins is applied, but ScalaRuntime extension is missing; we can't create a Scala SDK without it
             return null;
         }
+        String scalaVersion = scalaRuntime.findScalaVersion(files);
+        if (scalaVersion == null) {
+            // The Scala version is unknown; we can't create a Scala SDK without it
+            return null;
+        }
+        NamedDomainObjectProvider<Configuration> scalaClasspath =
+            scalaRuntime.registerScalaClasspathConfigurationFor("ideaModule", ideaModule.getName(), scalaVersion);
+        return createScalaSdkFromScalaVersion(scalaVersion, scalaClasspath.get(), useScalaSdk);
     }
 
     private static ProjectLibrary createScalaSdkFromScalaVersion(String version, FileCollection scalaClasspath, boolean useScalaSdk) {

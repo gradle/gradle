@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":worker-processes"))
 
+    implementation(libs.commonsLang)
     implementation(libs.guava)
 
     compileOnly("org.scala-sbt:zinc_2.13:1.9.3") {

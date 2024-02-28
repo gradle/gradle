@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -32,10 +33,10 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.ScalaJar;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
-import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.process.JavaForkOptions;
@@ -52,7 +53,7 @@ import java.util.List;
  * Generates HTML API documentation for Scala source files.
  */
 @CacheableTask
-public abstract class ScalaDoc extends SourceTask {
+public abstract class ScalaDoc extends SourceTask implements ScalaTask {
 
     private File destinationDir;
 
@@ -132,10 +133,12 @@ public abstract class ScalaDoc extends SourceTask {
      * @return The classpath.
      */
     @Classpath
+    @Override
     public FileCollection getClasspath() {
         return classpath;
     }
 
+    @Override
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
     }
@@ -144,10 +147,12 @@ public abstract class ScalaDoc extends SourceTask {
      * Returns the classpath to use to load the ScalaDoc tool.
      */
     @Classpath
+    @Override
     public FileCollection getScalaClasspath() {
         return scalaClasspath;
     }
 
+    @Override
     public void setScalaClasspath(FileCollection scalaClasspath) {
         this.scalaClasspath = scalaClasspath;
     }
@@ -205,6 +210,7 @@ public abstract class ScalaDoc extends SourceTask {
             options.setDocTitle(getTitle());
         }
 
+        assertScalaClasspathIsNonEmpty();
         WorkQueue queue = getWorkerExecutor().processIsolation(worker -> {
             worker.getClasspath().from(getScalaClasspath());
             JavaForkOptions forkOptions = worker.getForkOptions();
@@ -215,12 +221,13 @@ public abstract class ScalaDoc extends SourceTask {
             forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
         });
         queue.submit(GenerateScaladoc.class, parameters -> {
-            @Nullable
             File optionsFile = createOptionsFile();
             parameters.getOptionsFile().set(optionsFile);
             parameters.getClasspath().from(getClasspath());
             parameters.getOutputDirectory().set(getDestinationDir());
-            boolean isScala3 = ScalaRuntimeHelper.findScalaJar(getScalaClasspath(), "library_3") != null;
+            // When Scala 3 is used it appears on the classpath together with Scala 2
+            boolean isScala3 = ScalaJar.inspect(getScalaClasspath(), "library"::equals)
+                .anyMatch(scalaJar -> scalaJar.getVersionNumber().getMajor() == 3);
             parameters.getIsScala3().set(isScala3);
             if (isScala3) {
                 parameters.getSources().from(getFilteredCompilationOutputs());
@@ -266,7 +273,6 @@ public abstract class ScalaDoc extends SourceTask {
      *
      * @implNote This file will be cleaned up by {@link GenerateScaladoc#execute()}.
      */
-    @Nullable
     private File createOptionsFile() {
         return new File(getTemporaryDir(), "scaladoc.options");
     }
@@ -282,4 +288,11 @@ public abstract class ScalaDoc extends SourceTask {
 
     @Inject
     protected abstract JavaToolchainService getJavaToolchainService();
+
+    protected void assertScalaClasspathIsNonEmpty() {
+        if (getScalaClasspath().isEmpty()) {
+            throw new InvalidUserDataException("'" + getName() + ".scalaClasspath' must not be empty. If a Scala library dependency is provided, "
+                + "the 'scala-base' plugin will attempt to configure 'scalaClasspath' automatically. Alternatively, you may configure 'scalaClasspath' explicitly.");
+        }
+    }
 }

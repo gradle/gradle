@@ -17,22 +17,31 @@ package org.gradle.api.tasks;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import org.gradle.api.Buildable;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.api.internal.file.collections.FailingFileCollection;
-import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
-import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.scala.ScalaTask;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Provides information related to the Scala runtime(s) used in a project. Added by the
@@ -42,7 +51,7 @@ import java.io.File;
  *
  * <pre class='autoTested'>
  *     plugins {
- *         id 'scala'
+ *         id("scala")
  *     }
  *
  *     repositories {
@@ -50,11 +59,14 @@ import java.io.File;
  *     }
  *
  *     dependencies {
- *         implementation "org.scala-lang:scala-library:2.10.1"
+ *         implementation("org.scala-lang:scala-library:2.13.12")
  *     }
  *
- *     def scalaClasspath = scalaRuntime.inferScalaClasspath(configurations.compileClasspath)
- *     // The returned class path can be used to configure the 'scalaClasspath' property of tasks
+ *     def scalaVersion = configurations.named("compileClasspath").map(scalaRuntime::getScalaVersion)
+ *     def scalaClasspath = configurations.register("scalaClasspath") { configuration ->
+ *         scalaRuntime.configureAsScalaClasspath(configuration, scalaVersion)
+ *     }
+ *     // The registered configuration can be used as the value of the 'scalaClasspath' property of tasks
  *     // such as 'ScalaCompile' or 'ScalaDoc', or to execute these and other Scala tools directly.
  * </pre>
  */
@@ -76,74 +88,12 @@ public abstract class ScalaRuntime {
      *
      * @param classpath a class path containing a 'scala-library' Jar
      * @return a class path containing a corresponding 'scala-compiler' Jar and its dependencies
+     * @deprecated Use the other, more flexible methods of this class instead, or {@link ScalaJar} for anything low-level
      */
-    public FileCollection inferScalaClasspath(final Iterable<File> classpath) {
-        // alternatively, we could return project.getLayout().files(Runnable)
-        // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
-        return new LazilyInitializedFileCollection(((ProjectInternal) project).getTaskDependencyFactory()) {
-            @Override
-            public String getDisplayName() {
-                return "Scala runtime classpath";
-            }
-
-            @Override
-            public FileCollection createDelegate() {
-                try {
-                    return inferScalaClasspath();
-                } catch (RuntimeException e) {
-                    return new FailingFileCollection(getDisplayName(), e);
-                }
-            }
-
-            private Configuration inferScalaClasspath() {
-                File scalaLibraryJar = findScalaJar(classpath, "library");
-                File scala3LibraryJar = findScalaJar(classpath, "library_3");
-                boolean isScala3 = scala3LibraryJar != null;
-                if (scalaLibraryJar == null && scala3LibraryJar == null) {
-                    throw new GradleException(String.format("Cannot infer Scala class path because no Scala library Jar was found. "
-                        + "Does %s declare dependency to scala-library? Searched classpath: %s.", project, classpath));
-                }
-
-                String scalaVersion;
-                if (isScala3) {
-                    scalaVersion = getScalaVersion(scala3LibraryJar);
-                } else {
-                    scalaVersion = getScalaVersion(scalaLibraryJar);
-                }
-
-                if (scalaVersion == null) {
-                    throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s", scalaLibraryJar, project));
-                }
-
-                String zincVersion = project.getExtensions().getByType(ScalaPluginExtension.class).getZincVersion().get();
-
-                DefaultExternalModuleDependency compilerBridgeJar = getScalaBridgeDependency(scalaVersion, zincVersion);
-                compilerBridgeJar.setTransitive(false);
-                compilerBridgeJar.artifact(artifact -> {
-                    if (!isScala3) {
-                        artifact.setClassifier("sources");
-                    }
-                    artifact.setType("jar");
-                    artifact.setExtension("jar");
-                    artifact.setName(compilerBridgeJar.getName());
-                });
-                DefaultExternalModuleDependency compilerInterfaceJar = getScalaCompilerInterfaceDependency(scalaVersion, zincVersion);
-
-                Configuration scalaRuntimeClasspath = isScala3 ?
-                  project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar, getScaladocDependency(scalaVersion)) :
-                  project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar);
-                jvmPluginServices.configureAsRuntimeClasspath(scalaRuntimeClasspath);
-                return scalaRuntimeClasspath;
-            }
-
-            // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                if (classpath instanceof Buildable) {
-                    context.add(classpath);
-                }
-            }
-        };
+    @Deprecated
+    public FileCollection inferScalaClasspath(Iterable<File> classpath) {
+        Provider<String> scalaVersion = Providers.of(classpath).map(this::getScalaVersion);
+        return configureAsScalaClasspath(project.getConfigurations().detachedConfiguration(), scalaVersion);
     }
 
     /**
@@ -154,10 +104,15 @@ public abstract class ScalaRuntime {
      * @param classpath the class path to search
      * @param appendix the appendix to search for
      * @return a Scala Jar file with the specified appendix
+     * @deprecated Use the other, more flexible methods of this class instead, or {@link ScalaJar} for anything low-level
      */
+    @Deprecated
     @Nullable
     public File findScalaJar(Iterable<File> classpath, String appendix) {
-        return ScalaRuntimeHelper.findScalaJar(classpath, appendix);
+        return ScalaJar.inspect(classpath, module -> module.equals(appendix))
+            .map(ScalaJar::getFile)
+            .findFirst()
+            .orElse(null);
     }
 
     /**
@@ -168,12 +123,186 @@ public abstract class ScalaRuntime {
      * <p>Implementation note: The version is determined by parsing the file name, which
      * is expected to match the pattern 'scala-[component]-[version].jar'.
      *
-     * @param scalaJar a Scala Jar file
+     * @param file a Scala Jar file
      * @return the version of the Scala Jar file
+     * @deprecated Use the other, more flexible methods of this class instead, or {@link ScalaJar} for anything low-level
+     */
+    @Deprecated
+    @Nullable
+    public String getScalaVersion(File file) {
+        ScalaJar scalaJar = ScalaJar.inspect(file, module -> true);
+        return scalaJar != null ? scalaJar.getVersion() : null;
+    }
+
+    /**
+     * Searches the specified class path for Scala Library JARs and returns the highest version found.
+     *
+     * @param classpath a class path assumed to contain one or more Scala Library JARs
+     * @return the highest version of Scala Library JAR within the given class path, or empty if none found
+     * @see #getScalaVersion(Iterable)
+     * @see #findScalaVersion(Iterable)
+     */
+    private Optional<String> highestScalaLibraryVersion(Iterable<? extends File> classpath) {
+        // When Scala 3 is used it appears on the classpath together with Scala 2
+        return ScalaJar.inspect(classpath, "library"::equals)
+            .max(Comparator.comparing(ScalaJar::getVersionNumber))
+            .map(ScalaJar::getVersion);
+    }
+
+    /**
+     * Searches the specified class path for Scala Library JARs and returns the highest version found.
+     *
+     * @param classpath a class path assumed to contain one or more Scala Library JARs
+     * @return the highest version of Scala Library JAR within the given class path, or {@code null} if none found
+     * @see #getScalaVersion(Iterable)
+     * @since 8.8
      */
     @Nullable
-    public String getScalaVersion(File scalaJar) {
-        return ScalaRuntimeHelper.getScalaVersion(scalaJar);
+    public String findScalaVersion(Iterable<? extends File> classpath) {
+        return highestScalaLibraryVersion(classpath).orElse(null);
+    }
+
+    /**
+     * Searches the specified class path for Scala Library JARs and returns the highest version found.
+     *
+     * @param classpath a class path assumed to contain one or more Scala Library JARs
+     * @return the highest version of Scala Library JAR within the given class path
+     * @throws GradleException if the given class path did not contain any Scala Library JARs
+     * @see #findScalaVersion(Iterable)
+     * @since 8.8
+     */
+    public String getScalaVersion(Iterable<? extends File> classpath) {
+        return highestScalaLibraryVersion(classpath).orElseThrow(() ->
+            new GradleException(String.format("Cannot infer Scala version because no Scala Library JAR was found. "
+                + "Does %s declare a dependency on scala-library? Searched classpath: %s", project, classpath)));
+    }
+
+    /**
+     * Sets up the given configuration to be usable as a Scala classpath. In cases when the Scala version is calculated dynamically, prefer
+     * the {@link #configureAsScalaClasspath(Configuration, Provider) lazily evaluation variant} of this method to speed up builds.
+     *
+     * @param configuration the configuration to set up
+     * @param scalaVersion the version of Scala dependencies to add to the configuration, or {@code null} to avoid adding any dependencies
+     * @return the same configuration instance after mutating it
+     * @see #configureAsScalaClasspath(Configuration, Provider)
+     * @since 8.8
+     */
+    public Configuration configureAsScalaClasspath(Configuration configuration, @Nullable String scalaVersion) {
+        configureAsResolvableRuntimeClasspath(configuration);
+        List<Dependency> dependencies = scalaVersion != null ? getScalaDependencies(scalaVersion) : Collections.emptyList();
+        configuration.getDependencies().addAll(dependencies);
+        return configuration;
+    }
+
+    /**
+     * Sets up the given configuration to be usable as a Scala classpath. In cases when the Scala version is already known, you can use the
+     * {@link #configureAsScalaClasspath(Configuration, String) eagerly evaluated variant} of this method for simplicity.
+     *
+     * @param configuration the configuration to set up
+     * @param scalaVersion the version of Scala dependencies to add to the configuration, or no value to avoid adding any dependencies
+     * @return the same configuration instance after mutating it
+     * @see #configureAsScalaClasspath(Configuration, String)
+     * @since 8.8
+     */
+    public Configuration configureAsScalaClasspath(Configuration configuration, Provider<String> scalaVersion) {
+        configureAsResolvableRuntimeClasspath(configuration);
+        Provider<List<Dependency>> dependencies = scalaVersion.map(this::getScalaDependencies).orElse(Collections.emptyList());
+        configuration.getDependencies().addAllLater(dependencies);
+        return configuration;
+    }
+
+    private void configureAsResolvableRuntimeClasspath(Configuration configuration) {
+        configuration.setCanBeResolved(true);
+        configuration.setCanBeConsumed(false);
+        configuration.setVisible(false);
+        jvmPluginServices.configureAsRuntimeClasspath(configuration);
+    }
+
+    /**
+     * Returns the name of the Scala classpath configuration for the object of the given type and name.
+     *
+     * @param type the type of the object to return the configuration name for
+     * @param name the name of the object to return the configuration name for
+     * @return the name of the Scala classpath configuration
+     * @since 8.8
+     */
+    public String getScalaClasspathConfigurationNameFor(String type, String name) {
+        return "scalaClasspathFor" + StringUtils.capitalize(type) + StringUtils.capitalize(name);
+    }
+
+    /**
+     * Registers a Scala classpath configuration for the object of the given type and name. In cases when the Scala version is calculated
+     * dynamically, prefer the {@link #registerScalaClasspathConfigurationFor(String, String, Provider) lazily evaluation variant} of this
+     * method to speed up builds.
+     *
+     * @param type the type of the object to register the configuration for
+     * @param name the name of the object to register the configuration for
+     * @param scalaVersion the version of Scala dependencies to add to the configuration, or {@code null} to avoid adding any dependencies
+     * @return a provider that the registered configuration can be retrieved from
+     * @see #registerScalaClasspathConfigurationFor(String, String, Provider)
+     * @since 8.8
+     */
+    public NamedDomainObjectProvider<Configuration> registerScalaClasspathConfigurationFor(String type, String name, @Nullable String scalaVersion) {
+        String configurationName = getScalaClasspathConfigurationNameFor(type, name);
+        return project.getConfigurations().register(configurationName,
+            configuration -> configureAsScalaClasspath(configuration, scalaVersion));
+    }
+
+    /**
+     * Registers a Scala classpath configuration for the object of the given type and name. In cases when the Scala version is already known,
+     * you can use the {@link #registerScalaClasspathConfigurationFor(String, String, String) eagerly evaluation variant} of this method for
+     * simplicity.
+     *
+     * @param type the type of the object to register the configuration for
+     * @param name the name of the object to register the configuration for
+     * @param scalaVersion the version of Scala dependencies to add to the configuration, or no value to avoid adding any dependencies
+     * @return a provider that the registered configuration can be retrieved from
+     * @see #registerScalaClasspathConfigurationFor(String, String, String)
+     * @since 8.8
+     */
+    public NamedDomainObjectProvider<Configuration> registerScalaClasspathConfigurationFor(String type, String name, Provider<String> scalaVersion) {
+        String configurationName = getScalaClasspathConfigurationNameFor(type, name);
+        return project.getConfigurations().register(configurationName,
+            configuration -> configureAsScalaClasspath(configuration, scalaVersion));
+    }
+
+    /**
+     * Registers a Scala classpath configuration for the given Scala task.
+     *
+     * @param task the Scala task to register the configuration for
+     * @return a provider that the registered configuration can be retrieved from
+     * @since 8.8
+     */
+    public NamedDomainObjectProvider<Configuration> registerScalaClasspathConfigurationFor(ScalaTask task) {
+        return registerScalaClasspathConfigurationFor(Providers.ofNamed(task));
+    }
+
+    /**
+     * Registers a Scala classpath configuration for the given Scala task.
+     *
+     * @param task the Scala task to register the configuration for
+     * @return a provider that the registered configuration can be retrieved from
+     * @since 8.8
+     */
+    public NamedDomainObjectProvider<Configuration> registerScalaClasspathConfigurationFor(NamedDomainObjectProvider<? extends ScalaTask> task) {
+        Provider<String> scalaVersion = task.map(ScalaTask::getClasspath).map(this::findScalaVersion);
+        return registerScalaClasspathConfigurationFor("task", task.getName(), scalaVersion);
+    }
+
+    /**
+     * Collects all the dependencies required for a Scala classpath.
+     *
+     * @param scalaVersion version of Scala to collect the dependencies for
+     * @return list of dependencies
+     */
+    private List<Dependency> getScalaDependencies(String scalaVersion) {
+        return Stream.of(
+                getScalaCompilerDependency(scalaVersion),
+                getScalaBridgeDependency(scalaVersion),
+                getScalaCompilerInterfaceDependency(scalaVersion),
+                getScaladocDependency(scalaVersion))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -182,27 +311,38 @@ public abstract class ScalaRuntime {
      * it later on.
      *
      * @param scalaVersion version of scala to download the bridge for
-     * @param zincVersion version of zinc relevant for Scala 2
      * @return bridge dependency to download
      */
-    private DefaultExternalModuleDependency getScalaBridgeDependency(String scalaVersion, String zincVersion) {
-        if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
-            return new DefaultExternalModuleDependency("org.scala-lang", "scala3-sbt-bridge", scalaVersion);
+    private Dependency getScalaBridgeDependency(String scalaVersion) {
+        boolean isScala3 = isScala3(scalaVersion);
+        ModuleDependency dependency;
+        if (isScala3) {
+            dependency = new DefaultExternalModuleDependency("org.scala-lang", "scala3-sbt-bridge", scalaVersion);
         } else {
             String scalaMajorMinorVersion = Joiner.on('.').join(Splitter.on('.').splitToList(scalaVersion).subList(0, 2));
-            return new DefaultExternalModuleDependency("org.scala-sbt", "compiler-bridge_" + scalaMajorMinorVersion, zincVersion);
+            String zincVersion = project.getExtensions().getByType(ScalaPluginExtension.class).getZincVersion().get();
+            dependency = new DefaultExternalModuleDependency("org.scala-sbt", "compiler-bridge_" + scalaMajorMinorVersion, zincVersion);
         }
+        dependency.setTransitive(false);
+        dependency.artifact(artifact -> {
+            if (!isScala3) {
+                artifact.setClassifier("sources");
+            }
+            artifact.setType("jar");
+            artifact.setExtension("jar");
+            artifact.setName(dependency.getName());
+        });
+        return dependency;
     }
 
     /**
      * Determines Scala compiler jar to download.
      *
      * @param scalaVersion version of scala to download the compiler for
-     * @param scalaVersion version of scala to download the compiler for
      * @return compiler dependency to download
      */
-    private DefaultExternalModuleDependency getScalaCompilerDependency(String scalaVersion) {
-        if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
+    private Dependency getScalaCompilerDependency(String scalaVersion) {
+        if (isScala3(scalaVersion)) {
             return new DefaultExternalModuleDependency("org.scala-lang", "scala3-compiler_3", scalaVersion);
         } else {
             return new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion);
@@ -213,13 +353,13 @@ public abstract class ScalaRuntime {
      * Determines Scala compiler interfaces jar to download.
      *
      * @param scalaVersion version of scala to download the compiler interfaces for
-     * @param zincVersion version of zinc to download the compiler interfaces for as fallback for Scala 2
      * @return compiler interfaces dependency to download
      */
-    private DefaultExternalModuleDependency getScalaCompilerInterfaceDependency(String scalaVersion, String zincVersion) {
-        if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
+    private Dependency getScalaCompilerInterfaceDependency(String scalaVersion) {
+        if (isScala3(scalaVersion)) {
             return new DefaultExternalModuleDependency("org.scala-lang", "scala3-interfaces", scalaVersion);
         } else {
+            String zincVersion = project.getExtensions().getByType(ScalaPluginExtension.class).getZincVersion().get();
             return new DefaultExternalModuleDependency("org.scala-sbt", "compiler-interface", zincVersion);
         }
     }
@@ -231,11 +371,21 @@ public abstract class ScalaRuntime {
      * @return scaladoc dependency to download
      */
     @Nullable
-    private DefaultExternalModuleDependency getScaladocDependency(String scalaVersion) {
-        if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
+    private Dependency getScaladocDependency(String scalaVersion) {
+        if (isScala3(scalaVersion)) {
             return new DefaultExternalModuleDependency("org.scala-lang", "scaladoc_3", scalaVersion);
         } else {
             return null;
         }
+    }
+
+    /**
+     * Determines if the Scala version is of the 3.x line.
+     *
+     * @param scalaVersion the version to test
+     * @return {@code true} if this version starts with {@code 3.}, {@code false} otherwise
+     */
+    private static boolean isScala3(String scalaVersion) {
+        return scalaVersion.startsWith("3.");
     }
 }

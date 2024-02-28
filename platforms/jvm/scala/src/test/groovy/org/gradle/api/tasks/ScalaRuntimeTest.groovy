@@ -17,14 +17,19 @@ package org.gradle.api.tasks
 
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.language.scala.fixtures.ScalaJarFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
 
+    private ScalaJarFactory scalaJarFactory
+    private ScalaRuntime scalaRuntime
+
     def setup() {
+        scalaJarFactory = new ScalaJarFactory(temporaryFolder.testDirectory)
         project.pluginManager.apply(ScalaBasePlugin)
+        scalaRuntime = project.scalaRuntime
     }
 
     def "inferred Scala class path contains 'scala-compiler' repository dependency and 'compiler-bridge' matching 'scala-library' Jar found on class path"() {
@@ -32,8 +37,11 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
             mavenCentral()
         }
         when:
-        def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala-library-2.10.1.jar")])
+        def configuration = scalaRuntime.registerScalaClasspathConfigurationFor("test", "case", "2.10.1")
+        def classpath = scalaRuntime.inferScalaClasspath([new File("other.jar"), scalaJarFactory.standard("library", "2.10.1")])
         then:
+        configuration.name == "scalaClasspathForTestCase"
+        assertHasCorrectScala2Dependencies(configuration.get(), ScalaBasePlugin.DEFAULT_ZINC_VERSION)
         assertHasCorrectScala2Dependencies(classpath, ScalaBasePlugin.DEFAULT_ZINC_VERSION)
     }
 
@@ -46,33 +54,32 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
             zincVersion = useZincVersion
         }
         when:
-        def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala-library-2.10.1.jar")])
+        def configuration = scalaRuntime.registerScalaClasspathConfigurationFor("test", "case", "2.10.1")
+        def classpath = scalaRuntime.inferScalaClasspath([new File("other.jar"), scalaJarFactory.standard("library", "2.10.1")])
         then:
+        configuration.name == "scalaClasspathForTestCase"
+        assertHasCorrectScala2Dependencies(configuration.get(), useZincVersion)
         assertHasCorrectScala2Dependencies(classpath, useZincVersion)
     }
 
     private void assertHasCorrectScala2Dependencies(classpath, zincVersion) {
-        assert classpath instanceof LazilyInitializedFileCollection
-        assert classpath.sourceCollections.size() == 1
-        with(classpath.sourceCollections[0]) {
-            assert it instanceof Configuration
-            assert it.state == Configuration.State.UNRESOLVED
-            assert it.dependencies.size() == 3
-            assert it.dependencies.any { d ->
-                d.group == "org.scala-lang" &&
-                    d.name == "scala-compiler" &&
-                    d.version == "2.10.1"
-            }
-            assert it.dependencies.any { d ->
-                d.group == "org.scala-sbt" &&
-                    d.name == "compiler-bridge_2.10" &&
-                    d.version == zincVersion
-            }
-            assert it.dependencies.any { d ->
-                d.group == "org.scala-sbt" &&
-                    d.name == "compiler-interface" &&
-                    d.version == zincVersion
-            }
+        assert classpath instanceof Configuration
+        assert classpath.state == Configuration.State.UNRESOLVED
+        assert classpath.dependencies.size() == 3
+        assert classpath.dependencies.any { d ->
+            d.group == "org.scala-lang" &&
+                d.name == "scala-compiler" &&
+                d.version == "2.10.1"
+        }
+        assert classpath.dependencies.any { d ->
+            d.group == "org.scala-sbt" &&
+                d.name == "compiler-bridge_2.10" &&
+                d.version == zincVersion
+        }
+        assert classpath.dependencies.any { d ->
+            d.group == "org.scala-sbt" &&
+                d.name == "compiler-interface" &&
+                d.version == zincVersion
         }
     }
 
@@ -81,45 +88,44 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
             mavenCentral()
         }
         when:
-        def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala3-library_3-3.0.1.jar")])
+        def configuration = scalaRuntime.registerScalaClasspathConfigurationFor("test", "case", "3.0.1")
+        def classpath = scalaRuntime.inferScalaClasspath([new File("other.jar"), scalaJarFactory.standard("library", "3.0.1")])
         then:
+        configuration.name == "scalaClasspathForTestCase"
+        assertHasCorrectScala3Dependencies(configuration.get())
         assertHasCorrectScala3Dependencies(classpath)
     }
 
 
     private void assertHasCorrectScala3Dependencies(classpath) {
-        assert classpath instanceof LazilyInitializedFileCollection
-        assert classpath.sourceCollections.size() == 1
-        with(classpath.sourceCollections[0]) {
-            assert it instanceof Configuration
-            assert it.state == Configuration.State.UNRESOLVED
-            assert it.dependencies.size() == 4
-            assert it.dependencies.any { d ->
-                d.group == "org.scala-lang" &&
-                    d.name == "scala3-compiler_3" &&
-                    d.version == "3.0.1"
-            }
-            assert it.dependencies.any { d ->
-                d.group == "org.scala-lang" &&
-                    d.name == "scala3-sbt-bridge" &&
-                    d.version == "3.0.1"
-            }
-            assert it.dependencies.any { d ->
-                d.group == "org.scala-lang" &&
-                    d.name == "scala3-interfaces" &&
-                    d.version == "3.0.1"
-            }
-            assert it.dependencies.any { d ->
-                d.group == "org.scala-lang" &&
-                    d.name == "scaladoc_3" &&
-                    d.version == "3.0.1"
-            }
+        assert classpath instanceof Configuration
+        assert classpath.state == Configuration.State.UNRESOLVED
+        assert classpath.dependencies.size() == 4
+        assert classpath.dependencies.any { d ->
+            d.group == "org.scala-lang" &&
+                d.name == "scala3-compiler_3" &&
+                d.version == "3.0.1"
+        }
+        assert classpath.dependencies.any { d ->
+            d.group == "org.scala-lang" &&
+                d.name == "scala3-sbt-bridge" &&
+                d.version == "3.0.1"
+        }
+        assert classpath.dependencies.any { d ->
+            d.group == "org.scala-lang" &&
+                d.name == "scala3-interfaces" &&
+                d.version == "3.0.1"
+        }
+        assert classpath.dependencies.any { d ->
+            d.group == "org.scala-lang" &&
+                d.name == "scaladoc_3" &&
+                d.version == "3.0.1"
         }
     }
 
     def "inference fails if 'scalaTools' configuration is empty and no repository declared"() {
         when:
-        def scalaClasspath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala-library-2.10.1.jar")])
+        def scalaClasspath = scalaRuntime.inferScalaClasspath([new File("other.jar"), scalaJarFactory.standard("library", "2.10.1")])
         scalaClasspath.files
 
         then:
@@ -134,17 +140,18 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        def scalaClasspath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("other2.jar")])
+        def scalaClasspath = scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("other2.jar")])
         scalaClasspath.files
 
         then:
         GradleException e = thrown()
-        e.message.startsWith("Cannot infer Scala class path because no Scala library Jar was found. Does root project 'test-project' declare dependency to scala-library? Searched classpath:")
+        e.message == "Could not resolve all dependencies for configuration ':detachedConfiguration1'."
+        e.cause.message.startsWith("Cannot infer Scala version because no Scala Library JAR was found. Does root project 'test-project' declare a dependency on scala-library? Searched classpath: ")
     }
 
     def "allows to find Scala Jar on class path"() {
         when:
-        def file = project.scalaRuntime.findScalaJar([new File("other.jar"), new File("scala-jdbc-1.5.jar"), new File("scala-compiler-1.7.jar")], "jdbc")
+        def file = scalaRuntime.findScalaJar([new File("other.jar"), scalaJarFactory.standard("jdbc", "1.5"), scalaJarFactory.standard("compiler", "1.7")], "jdbc")
 
         then:
         file.name == "scala-jdbc-1.5.jar"
@@ -152,7 +159,7 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
 
     def "returns null if Scala Jar not found"() {
         when:
-        def file = project.scalaRuntime.findScalaJar([new File("other.jar"), new File("scala-jdbc-1.5.jar"), new File("scala-compiler-1.7.jar")], "library")
+        def file = scalaRuntime.findScalaJar([new File("other.jar"), scalaJarFactory.standard("jdbc", "1.5"), scalaJarFactory.standard("compiler", "1.7")], "library")
 
         then:
         file == null
@@ -160,15 +167,108 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
 
     def "allows to determine version of Scala Jar"() {
         expect:
-        project.scalaRuntime.getScalaVersion(new File("scala-compiler-2.9.2.jar")) == "2.9.2"
-        project.scalaRuntime.getScalaVersion(new File("scala-jdbc-2.9.2.jar")) == "2.9.2"
-        project.scalaRuntime.getScalaVersion(new File("scala-library-2.10.0-SNAPSHOT.jar")) == "2.10.0-SNAPSHOT"
-        project.scalaRuntime.getScalaVersion(new File("scala-library-2.10.0-rc-3.jar")) == "2.10.0-rc-3"
+        scalaRuntime.getScalaVersion(scalaJarFactory.standard("compiler", "3.4.0")) == "3.4.0"
+        scalaRuntime.getScalaVersion(scalaJarFactory.standard("compiler", "2.9.2")) == "2.9.2"
+        scalaRuntime.getScalaVersion(scalaJarFactory.standard("jdbc", "2.9.2")) == "2.9.2"
+        scalaRuntime.getScalaVersion(scalaJarFactory.standard("library", "2.10.0-SNAPSHOT")) == "2.10.0-SNAPSHOT"
+        scalaRuntime.getScalaVersion(scalaJarFactory.standard("library", "2.10.0-rc-3")) == "2.10.0-rc-3"
     }
 
     def "returns null if Scala version cannot be determined"() {
         expect:
-        project.scalaRuntime.getScalaVersion(new File("scala-compiler.jar")) == null
-        project.scalaRuntime.getScalaVersion(new File("groovy-compiler-2.1.0.jar")) == null
+        scalaRuntime.getScalaVersion(scalaJarFactory.custom("library", false, null, null, null)) == null
+        scalaRuntime.getScalaVersion(scalaJarFactory.custom("compiler", false, null, null, null)) == null
+        scalaRuntime.getScalaVersion(new File("groovy-compiler-2.1.0.jar")) == null
+    }
+
+    def "allows to correctly extract the Scala version from a standard classpath"() {
+        def cp3x4x0 = [
+            new File("other.jar"),
+            scalaJarFactory.standard("library", "3.4.0"),
+            new File("another.jar"),
+            scalaJarFactory.standard("library", "2.13.12"),
+            scalaJarFactory.standard("reflect", "2.13.9"),
+        ]
+        def cp2x13x12 = cp3x4x0.findAll {!it.name.startsWith("scala3-") }
+
+        expect:
+        scalaRuntime.findScalaVersion(cp3x4x0) == "3.4.0"
+        scalaRuntime.getScalaVersion(cp3x4x0) == "3.4.0"
+        scalaRuntime.findScalaVersion(cp3x4x0.reverse()) == "3.4.0"
+        scalaRuntime.getScalaVersion(cp3x4x0.reverse()) == "3.4.0"
+
+        scalaRuntime.findScalaVersion(cp2x13x12) == "2.13.12"
+        scalaRuntime.getScalaVersion(cp2x13x12) == "2.13.12"
+        scalaRuntime.findScalaVersion(cp2x13x12.reverse()) == "2.13.12"
+        scalaRuntime.getScalaVersion(cp2x13x12.reverse()) == "2.13.12"
+    }
+
+    def "allows to correctly extract the Scala version from a classpath with unusual but acceptable files"() {
+        def cp3x4x0 = [
+            new File("other.jar"),
+            scalaJarFactory.custom("library", true, "3.x", null, "3.4.0"),
+            new File("another.jar"),
+            scalaJarFactory.custom("library", false, "2.x", "2.13.12", null),
+            scalaJarFactory.standard("reflect", "2.13.9"),
+        ]
+        def cp2x13x12 = cp3x4x0.findAll {!it.name.startsWith("scala3-") }
+
+        def cp3x3x2 = [
+            new File("other.jar"),
+            scalaJarFactory.custom("library", true, null, null, "3.3.2"),
+            scalaJarFactory.custom("library", false, null, "2.13.5", null),
+            scalaJarFactory.custom("library", false, "2.13.0", null, null),
+        ]
+        def cp2x13x5 = cp3x3x2.findAll {!it.name.startsWith("scala3-") }
+        def cp2x13x0 = cp2x13x5.findAll {it.name != "scala-library.jar" }
+
+        expect:
+        scalaRuntime.findScalaVersion(cp3x4x0) == "3.4.0"
+        scalaRuntime.getScalaVersion(cp3x4x0) == "3.4.0"
+        scalaRuntime.findScalaVersion(cp3x4x0.reverse()) == "3.4.0"
+        scalaRuntime.getScalaVersion(cp3x4x0.reverse()) == "3.4.0"
+
+        scalaRuntime.findScalaVersion(cp2x13x12) == "2.13.12"
+        scalaRuntime.getScalaVersion(cp2x13x12) == "2.13.12"
+        scalaRuntime.findScalaVersion(cp2x13x12.reverse()) == "2.13.12"
+        scalaRuntime.getScalaVersion(cp2x13x12.reverse()) == "2.13.12"
+
+        scalaRuntime.findScalaVersion(cp3x3x2) == "3.3.2"
+        scalaRuntime.getScalaVersion(cp3x3x2) == "3.3.2"
+        scalaRuntime.findScalaVersion(cp3x3x2.reverse()) == "3.3.2"
+        scalaRuntime.getScalaVersion(cp3x3x2.reverse()) == "3.3.2"
+
+        scalaRuntime.findScalaVersion(cp2x13x5) == "2.13.5"
+        scalaRuntime.getScalaVersion(cp2x13x5) == "2.13.5"
+        scalaRuntime.findScalaVersion(cp2x13x5.reverse()) == "2.13.5"
+        scalaRuntime.getScalaVersion(cp2x13x5.reverse()) == "2.13.5"
+
+        scalaRuntime.findScalaVersion(cp2x13x0) == "2.13.0"
+        scalaRuntime.getScalaVersion(cp2x13x0) == "2.13.0"
+        scalaRuntime.findScalaVersion(cp2x13x0.reverse()) == "2.13.0"
+        scalaRuntime.getScalaVersion(cp2x13x0.reverse()) == "2.13.0"
+    }
+
+    def "fails to extract the Scala version from a classpath without a valid Scala library"() {
+        def cpNone = [
+            new File("other.jar"),
+            new File("scala3-library_3-3.4.0.jar"),
+            new File("scala-library-2.13.12.jar"),
+            scalaJarFactory.custom("library", true, null, null, null),
+            scalaJarFactory.custom("library", false, null, null, null),
+            scalaJarFactory.standard("compiler", "3.4.0"),
+            scalaJarFactory.standard("reflect", "2.13.12"),
+        ]
+
+        expect:
+        scalaRuntime.findScalaVersion(cpNone) == null
+
+        when:
+        scalaRuntime.getScalaVersion(cpNone)
+
+        then:
+        Exception e = thrown()
+        e instanceof GradleException
+        e.message.startsWith("Cannot infer Scala version because no Scala Library JAR was found. Does root project 'test-project' declare a dependency on scala-library? Searched classpath: ")
     }
 }
