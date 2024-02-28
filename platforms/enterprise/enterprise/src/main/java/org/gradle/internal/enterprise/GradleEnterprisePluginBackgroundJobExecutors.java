@@ -50,7 +50,7 @@ public interface GradleEnterprisePluginBackgroundJobExecutors {
     /**
      * Run some code without tracking its inputs.
      * <p>
-     * All code that during {@code supplier.get()} is exempt from configuration input tracking.
+     * All code that runs during {@code supplier.get()} is exempt from configuration input tracking.
      * That code can for example read files from disk or system properties at configuration time without
      * them becoming a configuration input.
      */
