@@ -39,7 +39,7 @@ subprojects/soak/                       @gradle/bt-support
 
 # Cross-cutting architecture checks and decisions
 .github/CODEOWNERS                          @gradle/bt-architecture-council
-architecture-standards/                     @gradle/bt-architecture-council
+architecture/                               @gradle/bt-architecture-council
 subprojects/architecture-test               @gradle/bt-architecture-council
 
 # Core automation platform (core/configuration)
