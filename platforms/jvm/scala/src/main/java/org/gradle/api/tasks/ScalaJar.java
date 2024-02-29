@@ -134,6 +134,8 @@ public class ScalaJar {
 
     /**
      * Returns the Scala JAR file.
+     *
+     * @return The Scala JAR file.
      */
     public File getFile() {
         return file;
@@ -141,6 +143,8 @@ public class ScalaJar {
 
     /**
      * Returns the Scala JAR module name (compiler, library, jdbc, etc.).
+     *
+     * @return The Scala JAR module name (compiler, library, jdbc, etc.).
      */
     public String getModule() {
         return module;
@@ -148,6 +152,8 @@ public class ScalaJar {
 
     /**
      * Returns the Scala JAR version string.
+     *
+     * @return The Scala JAR version string.
      */
     public String getVersion() {
         return version;
@@ -155,6 +161,8 @@ public class ScalaJar {
 
     /**
      * Returns the Scala JAR version number.
+     *
+     * @return The Scala JAR version number.
      */
     public VersionNumber getVersionNumber() {
         return versionNumber;
