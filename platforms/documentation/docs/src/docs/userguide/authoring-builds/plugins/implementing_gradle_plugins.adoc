@@ -19,7 +19,8 @@
 == Using the Plugin Development plugin
 
 The <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> can be used to assist in the development of Gradle plugins.
-It automatically applies the <<java_library_plugin.adoc#java_library_plugin,Java Library (`java-library`)>> plugin, adds the `gradleApi()` dependency to the `api` configuration and performs validation of plugin metadata during `jar` task execution.
+
+This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the `api` configuration, generate the required plugin descriptors in the resulting JAR file and configure the <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> to be used when publishing.
 
 To apply and configure the plugin, add the following code to your build file:
 
