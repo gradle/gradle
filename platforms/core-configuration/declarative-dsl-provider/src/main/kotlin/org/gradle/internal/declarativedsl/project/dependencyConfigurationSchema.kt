@@ -107,14 +107,14 @@ class DependencyCollectorFunctionsExtractor(val configurations: DependencyConfig
                     "api",
                     listOf(DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
                     false,
-                    FunctionSemantics.AddAndConfigure(RestrictedLibraryDependencies::class.toDataTypeRef(), FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.NOT_ALLOWED)
+                    FunctionSemantics.AddAndConfigure(RestrictedLibraryDependencies::class.toDataTypeRef(), FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED)
                 ),
                 DataMemberFunction(
                     kClass.toDataTypeRef(),
                     "implementation",
                     listOf(DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
                     false,
-                    FunctionSemantics.AddAndConfigure(RestrictedLibraryDependencies::class.toDataTypeRef(), FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.NOT_ALLOWED)
+                    FunctionSemantics.AddAndConfigure(RestrictedLibraryDependencies::class.toDataTypeRef(), FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED)
                 )
             )
         } else emptyList()
@@ -153,7 +153,7 @@ class RuntimeDependencyCollectorFunctionResolver(configurations: DependencyConfi
         // So, I'll just test the name
         if (receiverClass.simpleName == "RestrictedLibraryDependencies_Decorated" && name in nameSet && parameterValueBinding.bindingMap.size == 1) {
             return RuntimeFunctionResolver.Resolution.Resolved(object : RestrictedRuntimeFunction {
-                override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): RestrictedRuntimeFunction.InvocationResult {
+                override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): RestrictedRuntimeFunction.InvocationResult {
                     val libraryDependencies = (receiver as RestrictedLibraryDependencies)
                     val dependencyNotation = binding.values.single().toString()
                     when (name) {
