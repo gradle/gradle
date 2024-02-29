@@ -319,7 +319,7 @@ public class TransformedClassPath implements ClassPath {
             File markerFile = inputFiles.get(i++);
             if (markerFile.getName().equals(AGENT_INSTRUMENTATION_MARKER_FILE_NAME)) {
                 // Agent instrumentation always contain 3 entries:
-                // [a marker, a transformed file, a copy of original file or placeholder]
+                // [a marker, a transformed file, an original file or a copy of it]
                 checkArgument(i + 1 < inputFiles.size(), "Missing the instrumented or original entry for classpath %s", inputFiles);
                 File instrumentedEntry = inputFiles.get(i++);
                 File originalEntry = inputFiles.get(i++);
