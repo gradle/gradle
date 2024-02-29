@@ -26,51 +26,34 @@ import org.gradle.work.DisableCachingByDefault;
 import java.io.File;
 
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_MISSING_HASH;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_PLACEHOLDER_SUFFIX;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.isAnalysisMetadataDir;
 
 /**
- * Artifact transform that instruments external plugins with Gradle instrumentation.
+ * Artifact transform that instruments external artifacts with Gradle instrumentation.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache")
 public abstract class ExternalDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform {
 
     @Override
     public void transform(TransformOutputs outputs) {
-        File inputDir = getInput().get().getAsFile();
-        if (inputDir.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME)) {
-            return;
-        }
-        if (maybeOutputOriginalFile(inputDir, outputs)) {
-            return;
-        }
-
-
-        InstrumentationArtifactMetadata metadata = readArtifactMetadata(inputDir);
-        if (metadata.getArtifactHash().equals(FILE_MISSING_HASH)) {
-            execute(null, outputs, null);
-        } else {
-            String hash = metadata.getArtifactHash();
-            long contextId = getParameters().getContextId().get();
-            File originalArtifact = getParameters().getBuildService().get().getOriginalFile(contextId, hash);
-            execute(originalArtifact, outputs, null);
+        // We simulate fan-in behaviour:
+        // We expect that a transform before this one outputs two artifacts: 1. analysis metadata and 2. the original file.
+        // So if the input we instrument is instrumentation metadata we output transformed file, otherwise it's original file and we output that.
+        File input = getInput().get().getAsFile();
+        if (isAnalysisMetadataDir(input)) {
+            doOutputTransformedFile(input, outputs);
+        } else if (getParameters().getAgentSupported().get()) {
+            doOutputOriginalFile(input, outputs);
         }
     }
 
-    private boolean maybeOutputOriginalFile(File input, TransformOutputs outputs) {
-        if (!new File(input, DEPENDENCIES_SUPER_TYPES_FILE_NAME).exists()) {
-            handleOriginalJar(input, outputs);
-            return true;
-        }
-        return false;
-    }
-
-    private static void writeOriginalFilePlaceholder(String hash, TransformOutputs outputs) {
-        createNewFile(outputs.file(ORIGINAL_DIR_NAME + "/" + hash + ORIGINAL_FILE_PLACEHOLDER_SUFFIX));
+    private void doOutputTransformedFile(File input, TransformOutputs outputs) {
+        InstrumentationArtifactMetadata metadata = readArtifactMetadata(input);
+        String hash = metadata.getArtifactHash();
+        long contextId = getParameters().getContextId().get();
+        File originalArtifact = getParameters().getBuildService().get().getOriginalFile(contextId, hash);
+        doTransform(originalArtifact, outputs);
     }
 
     private InstrumentationArtifactMetadata readArtifactMetadata(File inputDir) {

@@ -51,6 +51,16 @@ public class InstrumentationTransformUtils {
         }
     }
 
+    public static void createInstrumentationClasspathMarker(File outputDir) {
+        try {
+            // Mark the folder, so we know that this is a folder with super types files.
+            // The only use case right now currently is, that we do not delete folders with such file for performance testing.
+            new File(outputDir, INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME).createNewFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public static void createInstrumentationClasspathMarker(TransformOutputs outputs) {
         try {
             // Mark the folder, so we know that this is a folder with super types files.
@@ -59,5 +69,9 @@ public class InstrumentationTransformUtils {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public static boolean isAnalysisMetadataDir(File input) {
+        return input.isDirectory() && new File(input, INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME).exists();
     }
 }

@@ -153,6 +153,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "order of entries in the effective classpath stays the same as in the original classpath"() {
         given:
+        requireOwnGradleUserHomeDir()
         withIncludedBuild()
         mavenRepo.module("org", "commons", "3.2.1").publish()
         buildFile << """
@@ -188,6 +189,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     @Issue("https://github.com/gradle/gradle/issues/28114")
     def "buildSrc can monkey patch external plugins even after instrumentation"() {
         given:
+        requireOwnGradleUserHomeDir()
         withExternalPlugin("myPlugin", "my.plugin") {
             """throw new RuntimeException("A bug in a plugin");"""
         }

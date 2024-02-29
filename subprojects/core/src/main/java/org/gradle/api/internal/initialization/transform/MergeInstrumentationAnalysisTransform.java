@@ -49,7 +49,6 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.copyUnchecked;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
 /**
  * A transform that merges all instrumentation related metadata for a single artifact.<br><br>
@@ -92,9 +91,7 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
     @Override
     public void transform(TransformOutputs outputs) {
         File input = getInput().get().getAsFile();
-        if (input.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME)) {
-            return;
-        } else if (maybeOutputOriginalFile(input, outputs)) {
+        if (maybeOutputOriginalFile(input, outputs)) {
             return;
         }
 
@@ -111,8 +108,8 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
             }
         }
 
-        createInstrumentationClasspathMarker(outputs);
         File outputDir = outputs.dir(MERGE_OUTPUT_DIR);
+        createInstrumentationClasspathMarker(outputDir);
         File output = new File(outputDir, DEPENDENCIES_SUPER_TYPES_FILE_NAME);
         serializer.writeTypesMap(output, dependenciesSuperTypes);
         copyUnchecked(new File(input, METADATA_FILE_NAME), new File(outputDir, METADATA_FILE_NAME));

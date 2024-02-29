@@ -101,7 +101,6 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
             // Files can be passed to the artifact transform even if they don't exist,
             // in the case when user adds a file classpath via files("path/to/jar").
             // Unfortunately we don't filter them out before the artifact transform is run.
-//            writeOutput(artifact, outputs, Collections.emptyMap(), Collections.emptySet());
             return;
         }
 
@@ -149,11 +148,11 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     }
 
     private void writeOutput(File artifact, TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
-        createInstrumentationClasspathMarker(outputs);
 
         StringInterner stringInterner = internalServices.get().getStringInterner();
         InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(stringInterner);
         File outputDir = outputs.dir(ANALYSIS_OUTPUT_DIR);
+        createInstrumentationClasspathMarker(outputDir);
 
         File metadataFile = new File(outputDir, METADATA_FILE_NAME);
         serializer.writeMetadata(metadataFile, getArtifactMetadata(artifact));
