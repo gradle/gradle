@@ -81,7 +81,7 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
         then:
         def e = thrown(BuildActionFailureException)
         def root = rootCause(e)
-        root.message.startsWith('No locally installed toolchains match')
+        root.message.startsWith('No matching toolchain could be found in the locally installed toolchains')
     }
 
     def rootCause(Exception e) {
