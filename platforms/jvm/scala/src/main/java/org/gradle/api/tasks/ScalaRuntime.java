@@ -62,12 +62,15 @@ import java.util.stream.Stream;
  *         implementation("org.scala-lang:scala-library:2.13.12")
  *     }
  *
- *     def scalaVersion = configurations.named("compileClasspath").map(scalaRuntime::getScalaVersion)
- *     def scalaClasspath = configurations.register("scalaClasspath") { configuration ->
- *         scalaRuntime.configureAsScalaClasspath(configuration, scalaVersion)
+ *     def scalaVersion = configurations.named("compileClasspath").map {
+ *         scalaRuntime.getScalaVersion(it)
  *     }
- *     // The registered configuration can be used as the value of the 'scalaClasspath' property of tasks
- *     // such as 'ScalaCompile' or 'ScalaDoc', or to execute these and other Scala tools directly.
+ *     def scalaClasspath = configurations.register("scalaClasspath") {
+ *         scalaRuntime.configureAsScalaClasspath(it, scalaVersion)
+ *     }
+ *     // The registered configuration can be used as the value of the 'scalaClasspath'
+ *     // property of tasks such as 'ScalaCompile' or 'ScalaDoc', or to execute these
+ *     // and other Scala tools directly.
  * </pre>
  */
 public abstract class ScalaRuntime {
