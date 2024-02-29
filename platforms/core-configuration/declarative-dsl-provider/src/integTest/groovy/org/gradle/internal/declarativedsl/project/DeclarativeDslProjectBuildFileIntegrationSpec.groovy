@@ -105,103 +105,21 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
         ].every { it.isFile() && it.text != "" }
     }
 
-    def 'can configure a custom plugin extension using DependencyCollector in declarative DSL'() {
-        given:
-        file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
-
-        file("buildSrc/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
-
-        file("buildSrc/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.plugins.JavaLibraryPlugin;
-
-            public class RestrictedPlugin implements Plugin<Project> {
-                @Override
-                public void apply(Project project) {
-                    LibraryExtension restricted = project.getExtensions().create("library", LibraryExtension.class);
-                    project.getConfigurations().resolvable("api");
-                    project.getConfigurations().resolvable("implementation");
-                }
-            }
-        """
-
-        and:
-        file("build.gradle.something") << """
-            plugins {
-                id("com.example.restricted")
-            }
-
-            library {
-                dependencies {
-                    api("com.google.guava:guava:30.1.1-jre")
-                    implementation("com.apache.commons:commons-lang3:3.12.0")
-                }
-            }
-        """
-
-        file("src/main/java/com/example/Lib.java") << defineExampleJavaLibraryClass()
-
-        expect:
-        succeeds("tasks")
-    }
-
-    def 'can configure a custom plugin extension using DependencyCollector in declarative DSL and build a java plugin'() {
-        given:
-        file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
-
-        file("buildSrc/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
-
-        file("buildSrc/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.plugins.JavaLibraryPlugin;
-
-            public class RestrictedPlugin implements Plugin<Project> {
-                @Override
-                public void apply(Project project) {
-                    project.getPluginManager().apply(JavaLibraryPlugin.class);
-                    LibraryExtension restricted = project.getExtensions().create("library", LibraryExtension.class);\
-                }
-            }
-        """
-
-        and:
-        file("build.gradle.something") << """
-            plugins {
-                id("com.example.restricted")
-            }
-
-            library {
-                dependencies {
-                    api("com.google.guava:guava:30.1.1-jre")
-                    implementation("com.apache.commons:commons-lang3:3.12.0")
-                }
-            }
-        """
-
-        file("src/main/java/com/example/Lib.java") << defineExampleJavaLibraryClass()
-
-        expect:
-        succeeds("build")
-
-        and:
-        file("build/libs/${testDirectory.name}.jar").exists()
-    }
-
     def 'can configure a custom plugin extension in declarative DSL'() {
         given:
-        file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id('java-gradle-plugin')
+            }
+            gradlePlugin {
+                plugins {
+                    create("restrictedPlugin") {
+                        id = "com.example.restricted"
+                        implementationClass = "com.example.restricted.RestrictedPlugin"
+                    }
+                }
+            }
+        """
 
         file("buildSrc/src/main/java/com/example/restricted/Extension.java") << """
             package com.example.restricted;
@@ -394,72 +312,5 @@ secondaryAccess { three, true, true}"""
         "syntax"           | "body"        | ""                       | "..."                 | "4:9: parsing error: Expecting an element"
         "language feature" | "body"        | ""                       | "@A dependencies { }" | "4:9: unsupported language feature: AnnotationUsage"
         "semantic"         | "body"        | ""                       | "x = 1"               | "4:9: unresolved reference 'x'"
-    }
-
-    private String defineRestrictedPluginBuild() {
-        return """
-            plugins {
-                id('java-gradle-plugin')
-            }
-            gradlePlugin {
-                plugins {
-                    create("restrictedPlugin") {
-                        id = "com.example.restricted"
-                        implementationClass = "com.example.restricted.RestrictedPlugin"
-                    }
-                }
-            }
-        """
-    }
-
-    private String defineLibraryExtension() {
-        return """
-            package com.example.restricted;
-
-            import org.gradle.api.Action;
-            import org.gradle.api.model.ObjectFactory;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.declarative.dsl.model.annotations.Adding;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-            import org.gradle.internal.declarativedsl.project.RestrictedLibraryDependencies;
-
-            import javax.inject.Inject;
-
-            @Restricted
-            public abstract class LibraryExtension {
-                private final RestrictedLibraryDependencies dependencies;
-
-                @Inject
-                public LibraryExtension(ObjectFactory objectFactory) {
-                    this.dependencies = objectFactory.newInstance(RestrictedLibraryDependencies.class);
-                }
-
-                @Configuring
-                public void dependencies(Action<? super RestrictedLibraryDependencies> configure) {
-                    configure.execute(dependencies);
-                }
-            }
-        """
-    }
-
-    private String defineExampleJavaLibraryClass() {
-        return """
-            package com.example;
-
-            import com.google.common.collect.ImmutableSet;
-            import org.apache.commons.lang3.StringUtils;
-
-            public class Lib {
-                public static ImmutableSet<String> getPeople() {
-                    return ImmutableSet.of(capitalize("adam johnson"), capitalize("bob smith"), capitalize("carl jones"));
-                }
-
-                private static String capitalize(String input) {
-                    return StringUtils.capitalize(input);
-                }
-            }
-        """
     }
 }
