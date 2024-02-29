@@ -56,6 +56,11 @@ platforms/core-configuration/kotlin-dsl-provider-plugins/   @gradle/bt-kotlin-ds
 platforms/core-configuration/kotlin-dsl-tooling-builders/   @gradle/bt-kotlin-dsl-maintainers
 platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-kotlin-dsl-maintainers
 
+# Core automation platform (Declarative DSL)
+platforms/core-configuration/declarative-dsl-api/               @gradle/bt-declarative-dsl
+platforms/core-configuration/declarative-dsl-core/              @gradle/bt-declarative-dsl
+platforms/core-configuration/declarative-dsl-provider/          @gradle/bt-declarative-dsl
+
 # Core automation platform (core/runtime)
 platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
 platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
