@@ -51,11 +51,11 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
 
         expect: "a dependency has been added to the api configuration"
         succeeds("dependencies", "--configuration", "api")
-        result.assertOutputContains("com.google.guava:guava:30.1.1-jre")
+        outputContains("com.google.guava:guava:30.1.1-jre")
 
         and: "a dependency has been added to the implementation configuration"
         succeeds("dependencies", "--configuration", "implementation")
-        result.assertOutputContains("com.apache.commons:commons-lang3:3.12.0")
+        outputContains("com.apache.commons:commons-lang3:3.12.0")
     }
 
     def 'can configure an extension using DependencyCollector in declarative DSL and build a java plugin'() {

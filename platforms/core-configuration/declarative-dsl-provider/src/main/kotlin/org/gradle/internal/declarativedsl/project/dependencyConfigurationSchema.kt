@@ -96,6 +96,7 @@ class DependencyFunctionsExtractor(val configurations: DependencyConfigurations)
     override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 }
 
+
 private
 class ImplicitDependencyCollectorFunctionExtractor(val configurations: DependencyConfigurations) : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> = kClass.memberFunctions
@@ -116,6 +117,7 @@ class ImplicitDependencyCollectorFunctionExtractor(val configurations: Dependenc
     override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 }
 
+
 private
 class RuntimeDependencyFunctionResolver(configurations: DependencyConfigurations) : RuntimeFunctionResolver {
     private
@@ -134,6 +136,7 @@ class RuntimeDependencyFunctionResolver(configurations: DependencyConfigurations
         return RuntimeFunctionResolver.Resolution.Unresolved
     }
 }
+
 
 private
 class ImplicitDependencyCollectorFunctionResolver(configurations: DependencyConfigurations) : RuntimeFunctionResolver {
@@ -157,11 +160,14 @@ class ImplicitDependencyCollectorFunctionResolver(configurations: DependencyConf
         return RuntimeFunctionResolver.Resolution.Unresolved
     }
 
-    private fun getDependencyCollectorGetter(receiverClass: KClass<*>, configurationName: String): KFunction<*>? = receiverClass.functions
+    private
+    fun getDependencyCollectorGetter(receiverClass: KClass<*>, configurationName: String): KFunction<*>? = receiverClass.functions
         .filter { hasDependencyCollectorGetterSignature(it) }
         .firstOrNull { function -> function.name == "get${configurationName.replaceFirstChar { it.uppercase(Locale.getDefault()) }}" }
 }
 
+
 @OptIn(ExperimentalStdlibApi::class) // For javaType
-private fun hasDependencyCollectorGetterSignature(function: KFunction<*>) =
+private
+fun hasDependencyCollectorGetterSignature(function: KFunction<*>) =
     function.name.startsWith("get") && function.returnType.javaType == DependencyCollector::class.java && function.parameters.size == 1
