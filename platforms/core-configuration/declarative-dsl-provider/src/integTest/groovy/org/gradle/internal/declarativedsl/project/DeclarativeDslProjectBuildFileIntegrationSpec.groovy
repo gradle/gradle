@@ -109,23 +109,6 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
         given:
         file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
 
-//        file("buildSrc/src/main/java/com/example/restricted/LibraryDependencies.java") << """
-//            package com.example.restricted;
-//
-//            import org.gradle.api.artifacts.dsl.DependencyCollector;
-//            import org.gradle.api.artifacts.dsl.GradleDependencies;
-//            import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
-//            import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers;
-//            import org.gradle.declarative.dsl.model.annotations.Adding;
-//            import org.gradle.declarative.dsl.model.annotations.Restricted;
-//
-//            @Restricted
-//            public interface LibraryDependencies extends PlatformDependencyModifiers, TestFixturesDependencyModifiers, GradleDependencies {
-//                DependencyCollector getApi();
-//                DependencyCollector getImplementation();
-//            }
-//        """
-
         file("buildSrc/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
 
         file("buildSrc/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
@@ -172,23 +155,6 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
         given:
         file("buildSrc/build.gradle") << defineRestrictedPluginBuild()
 
-//        file("buildSrc/src/main/java/com/example/restricted/LibraryDependencies.java") << """
-//            package com.example.restricted;
-//
-//            import org.gradle.api.artifacts.dsl.DependencyCollector;
-//            import org.gradle.api.artifacts.dsl.GradleDependencies;
-//            import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
-//            import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers;
-//            import org.gradle.declarative.dsl.model.annotations.Adding;
-//            import org.gradle.declarative.dsl.model.annotations.Restricted;
-//
-//            @Restricted
-//            public interface LibraryDependencies extends PlatformDependencyModifiers, TestFixturesDependencyModifiers, GradleDependencies {
-//                DependencyCollector getApi();
-//                DependencyCollector getImplementation();
-//            }
-//        """
-
         file("buildSrc/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
 
         file("buildSrc/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
@@ -217,7 +183,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
             }
 
             library {
-                dependencies { // TODO: Don't name this dependencies???  Can this be reset?
+                dependencies {
                     api("com.google.guava:guava:30.1.1-jre")
                     implementation("com.apache.commons:commons-lang3:3.12.0")
                 }

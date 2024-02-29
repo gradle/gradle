@@ -101,22 +101,15 @@ private
 class DependencyCollectorFunctionsExtractor(val configurations: DependencyConfigurations) : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
         if (kClass == RestrictedLibraryDependencies::class) {
-            listOf(
+            configurations.configurationNames.map { configurationName ->
                 DataMemberFunction(
                     kClass.toDataTypeRef(),
-                    "api",
-                    listOf(DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
-                    false,
-                    FunctionSemantics.AddAndConfigure(RestrictedLibraryDependencies::class.toDataTypeRef(), FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED)
-                ),
-                DataMemberFunction(
-                    kClass.toDataTypeRef(),
-                    "implementation",
+                    configurationName,
                     listOf(DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
                     false,
                     FunctionSemantics.AddAndConfigure(RestrictedLibraryDependencies::class.toDataTypeRef(), FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED)
                 )
-            )
+            }
         } else emptyList()
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
