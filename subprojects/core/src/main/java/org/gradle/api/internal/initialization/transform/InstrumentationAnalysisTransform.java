@@ -50,11 +50,10 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_MISSING_HASH;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
@@ -149,7 +148,6 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     }
 
     private void writeOutput(File artifact, TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
-
         StringInterner stringInterner = internalServices.get().getStringInterner();
         InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(stringInterner);
         File outputDir = outputs.dir(ANALYSIS_OUTPUT_DIR);
@@ -174,7 +172,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     private InstrumentationArtifactMetadata getArtifactMetadata(File artifact) {
         long contextId = getParameters().getContextId().get();
         CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
-        String hash = firstNonNull(buildService.getArtifactHash(contextId, artifact), FILE_MISSING_HASH);
+        String hash = checkNotNull(buildService.getArtifactHash(contextId, artifact), "Hash for artifact '%s' is null, that indicates that artifact doesn't exist!", artifact);
         return new InstrumentationArtifactMetadata(artifact.getName(), hash);
     }
 }

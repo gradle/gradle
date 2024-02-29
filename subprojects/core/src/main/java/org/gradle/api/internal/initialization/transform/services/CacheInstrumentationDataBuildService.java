@@ -21,7 +21,9 @@ import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.initialization.transform.InstrumentationArtifactMetadata;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.services.BuildService;
@@ -48,7 +50,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
 public abstract class CacheInstrumentationDataBuildService implements BuildService<BuildServiceParameters.None> {
 
@@ -74,11 +75,15 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     }
 
     /**
-     * Returns the original file for the given hash. It's possible that multiple files have the same content,
+     * Returns the original file for the given metadata. It's possible that multiple files have the same content,
      * so this method returns just one. For instrumentation is not important which one is returned.
      */
-    public File getOriginalFile(long contextId, String hash) {
-        return checkNotNull(getResolutionData(contextId).getOriginalFile(hash), "Original file for hash '%s' does not exist!", hash);
+    public File getOriginalFile(long contextId, InstrumentationArtifactMetadata metadata) {
+        String hash = metadata.getArtifactHash();
+        String artifactName = metadata.getArtifactName();
+        return checkNotNull(getResolutionData(contextId).getOriginalFile(metadata.getArtifactHash()),
+            "Original file for artifact with name '%s' and hash '%s' does not exist! " +
+                "That indicates that artifact changed during resolution from another process. That is not supported!", artifactName, hash);
     }
 
     @Nullable
@@ -131,15 +136,16 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         private final Lazy<Map<String, File>> hashToOriginalFile;
         private final Map<File, String> hashCache;
         private final InjectedInstrumentationServices internalServices;
+        private final Lazy<List<File>> cachedAnalysisResult = Lazy.locking().of(() -> getAnalysisResult().get().getArtifacts().stream()
+            .map(ResolvedArtifactResult::getFile)
+            .collect(Collectors.toList())
+        );
 
         @Inject
         public ResolutionData(InjectedInstrumentationServices internalServices) {
             this.hashCache = new ConcurrentHashMap<>();
             this.hashToOriginalFile = Lazy.locking().of(() -> {
-                List<File> result = getAnalysisResult().get().getArtifacts().stream()
-                    .map(ResolvedArtifactResult::getFile)
-                    .filter(file -> !file.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME))
-                    .collect(Collectors.toList());
+                List<File> result = cachedAnalysisResult.get();
                 Map<String, File> originalFiles = new HashMap<>(result.size() / 2);
                 InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
                 for (int i = 0; i < result.size();) {
@@ -164,10 +170,8 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
         private Map<String, Set<String>> readDirectSuperTypes() {
             InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
-            return getAnalysisResult().get().getArtifacts().stream()
-                .map(ResolvedArtifactResult::getFile)
-                .filter(file -> !file.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME))
-                .filter(result -> result.isDirectory() && new File(result, SUPER_TYPES_FILE_NAME).exists())
+            return cachedAnalysisResult.get().stream()
+                .filter(InstrumentationTransformUtils::isAnalysisMetadataDir)
                 .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))
                 .flatMap(file -> serializer.readTypesMap(file).entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));

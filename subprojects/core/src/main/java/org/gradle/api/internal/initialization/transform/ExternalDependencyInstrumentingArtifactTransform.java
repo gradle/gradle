@@ -50,9 +50,8 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
 
     private void doOutputTransformedFile(File input, TransformOutputs outputs) {
         InstrumentationArtifactMetadata metadata = readArtifactMetadata(input);
-        String hash = metadata.getArtifactHash();
         long contextId = getParameters().getContextId().get();
-        File originalArtifact = getParameters().getBuildService().get().getOriginalFile(contextId, hash);
+        File originalArtifact = getParameters().getBuildService().get().getOriginalFile(contextId, metadata);
         doTransform(originalArtifact, outputs);
     }
 
