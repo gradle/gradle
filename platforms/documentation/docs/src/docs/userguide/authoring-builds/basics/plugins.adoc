@@ -15,7 +15,7 @@
 [[using_plugins]]
 = Using Plugins
 
-Many Gradle features, like the ability to compile Java code, are added by _plugins_.
+Many Gradle features are added by _plugins_.
 
 Plugins add new tasks (e.g., link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]), domain objects (e.g., link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet]), conventions (e.g., Java source is located at `src/main/java`), and extend core objects or objects from other plugins.
 
