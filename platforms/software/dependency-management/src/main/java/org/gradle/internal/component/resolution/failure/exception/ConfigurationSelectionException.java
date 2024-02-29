@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.resolution.failure.type;
+package org.gradle.internal.component.resolution.failure.exception;
+
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+
+import java.util.List;
 
 /**
- * An abstract {@link ResolutionFailure} that represents the situation when a requested variant has attributes
- * that are not compatible with any of the available variants.
+ * Represents a failure during variant selection when a named {@link org.gradle.api.artifacts.Configuration Configuration}
+ * cannot be selected
  */
-public abstract class AbstractVariantSelectionFailure implements ResolutionFailure {
-    private final String requestedName;
-
-    public AbstractVariantSelectionFailure(String requestedName) {
-        this.requestedName = requestedName;
-    }
-
-    @Override
-    public String getRequestedName() {
-        return requestedName;
+public final class ConfigurationSelectionException extends AbstractResolutionFailureException {
+    public ConfigurationSelectionException(String message, ResolutionFailure failure, List<String> resolutions) {
+        super(message, failure, resolutions);
     }
 }

@@ -52,7 +52,7 @@ public interface AttributesSchemaInternal extends AttributesSchemaWithDescribers
      * @param describerType A describer that can potentially describe failures of the given type
      * @param <FAILURE> The type of failure to describe
      */
-    <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<?, FAILURE>> describerType);
+    <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<FAILURE>> describerType);
 
     /**
      * Returns the list of custom {@link ResolutionFailureDescriber}s registered on this schema for the given failure type.
@@ -61,5 +61,5 @@ public interface AttributesSchemaInternal extends AttributesSchemaWithDescribers
      * @param <FAILURE> The type of failure to describe
      * @return The list of custom describers registered on this schema for the given failure type
      */
-    <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getFailureDescribers(Class<FAILURE> failureType);
+    <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<FAILURE>> getFailureDescribers(Class<FAILURE> failureType);
 }
