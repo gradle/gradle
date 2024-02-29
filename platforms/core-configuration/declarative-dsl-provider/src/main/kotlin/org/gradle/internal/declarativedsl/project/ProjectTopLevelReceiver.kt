@@ -17,11 +17,7 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.Action
-import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.dsl.DependencyCollector
-import org.gradle.api.artifacts.dsl.GradleDependencies
-import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
 
