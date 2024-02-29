@@ -16,28 +16,27 @@
 
 package org.gradle.internal.enterprise
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
-import org.gradle.process.ShellScript
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 
-import javax.inject.Inject
 import java.util.concurrent.CompletableFuture
 
-class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends AbstractIntegrationSpec {
+class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends AbstractDevelocityInputIgnoringServiceIntegrationTest {
 
     @Rule
     BlockingHttpServer httpServer = new BlockingHttpServer()
 
-    def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    @Override
+    String runIgnoringInputs(String code) {
+        """
+            def executors = ${executors}
+            def future = ${CompletableFuture.name}.runAsync({
+                ${code}
+            }, executors.userJobExecutor)
 
-    def setup() {
-        settingsFile << plugin.pluginManagement() << plugin.plugins()
-        plugin.publishDummyPlugin(executer)
+            // Block until the job completes to ensure it run at the configuration time.
+            future.get()
+        """
     }
 
     def "background job executor runs jobs submitted at configuration time"() {
@@ -250,198 +249,6 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
 
         then:
         outputContains("backgroundJobExecutor.isInBackground = false")
-    }
-
-    @Requires(IntegTestPreconditions.IsConfigCached)
-    def "configuration inputs are not tracked for #configRunner"() {
-        def configurationCache = new ConfigurationCacheFixture(this)
-        given:
-        buildFile << """
-            ${configRunner.run('println "backgroundJob.property = ${System.getProperty("property")}"')}
-
-            task check {}
-        """
-
-        when:
-        succeeds("check", "-Dproperty=value")
-
-        then:
-        outputContains("backgroundJob.property = value")
-        configurationCache.assertStateStored()
-
-        when:
-        succeeds("check", "-Dproperty=other")
-
-        then:
-        configurationCache.assertStateLoaded()
-
-        where:
-        configRunner << ConfigurationRunner.values()
-    }
-
-    @Requires(IntegTestPreconditions.IsConfigCached)
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/25474")
-    def "value sources are not tracked for #configRunner"() {
-        def configurationCache = new ConfigurationCacheFixture(this)
-
-        given:
-        buildFile << """
-            def propertyProvider = providers.systemProperty("property")
-            ${configRunner.run('println "backgroundJob.property = ${propertyProvider.get()}"')}
-
-            task check {}
-        """
-
-        when:
-        succeeds("check", "-Dproperty=value")
-
-        then:
-        outputContains("backgroundJob.property = value")
-        configurationCache.assertStateStored()
-
-        when:
-        succeeds("check", "-Dproperty=other")
-
-        then:
-        // TODO(mlopatkin) Accessing the value source in the background job should not make it an input,
-        //  so the configuration should be loaded from the cache. A naive solution of gating the input
-        //  recording will break the other test as only the first value source read is broadcasted to
-        //  listeners.
-        configurationCache.assertStateStored() // TODO: replace with .assertStateLoaded() once the above is implemented
-        outputContains("backgroundJob.property = other")
-
-        where:
-        configRunner << ConfigurationRunner.values()
-    }
-
-    @Requires(IntegTestPreconditions.IsConfigCached)
-    def "value sources are tracked if also accessed outside #configRunner"() {
-        def configurationCache = new ConfigurationCacheFixture(this)
-
-        given:
-        buildFile << """
-            def propertyProvider = providers.systemProperty("property")
-            ${configRunner.run('println "backgroundJob.property = ${propertyProvider.get()}"')}
-
-            println "buildscript.property = \${propertyProvider.get()}"
-
-            task check {}
-        """
-
-        when:
-        succeeds("check", "-Dproperty=value")
-
-        then:
-        outputContains("backgroundJob.property = value")
-        outputContains("buildscript.property = value")
-        configurationCache.assertStateStored()
-
-        when:
-        succeeds("check", "-Dproperty=other")
-
-        then:
-        outputContains("backgroundJob.property = other")
-        outputContains("buildscript.property = other")
-        configurationCache.assertStateStored()
-
-        where:
-        configRunner << ConfigurationRunner.values()
-    }
-
-    def "#configRunner can execute external process with process API at configuration time"() {
-        given:
-        ShellScript script = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
-
-        buildFile << """
-            ${configRunner.run("""
-                def process = ${ShellScript.cmdToStringLiteral(script.getRelativeCommandLine(testDirectory))}.execute()
-                process.waitForProcessOutput(System.out, System.err)
-            """)}
-
-            task check {}
-        """
-
-        when:
-        succeeds("check")
-
-        then:
-        outputContains("Hello, world")
-
-        where:
-        configRunner << ConfigurationRunner.values()
-    }
-
-    def "#configRunner can execute external process with Gradle API at configuration time"() {
-        given:
-        ShellScript script = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
-
-        buildFile << """
-            import ${Inject.name}
-
-            interface ExecOperationsGetter {
-                @Inject ExecOperations getExecOps()
-            }
-
-            def execOperations = objects.newInstance(ExecOperationsGetter).execOps
-
-            ${configRunner.run("""
-                execOperations.exec {
-                    commandLine(${ShellScript.cmdToVarargLiterals(script.getRelativeCommandLine(testDirectory))})
-                }
-            """)}
-
-            task check {}
-        """
-
-        when:
-        succeeds("check")
-
-        then:
-        outputContains("Hello, world")
-
-        where:
-        configRunner << ConfigurationRunner.values()
-    }
-
-    enum ConfigurationRunner {
-        IN_BACKGROUND("background job") {
-            @Override
-            String run(String code) {
-                """
-                    def executors = ${GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest.executors}
-                    def future = ${CompletableFuture.name}.runAsync({
-                        ${code}
-                    }, executors.userJobExecutor)
-
-                    // Block until the job completes to ensure it run at the configuration time.
-                    future.get()
-                """
-            }
-        },
-        INPUT_TRACKING_DISABLED("withConfigurationInputTrackingDisabled") {
-            @Override
-            String run(String code) {
-                """
-                    def executors = ${GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest.executors}
-                    executors.withConfigurationInputTrackingDisabled {
-                        $code
-                    }
-                """
-            }
-        }
-
-        private final String description
-
-        ConfigurationRunner(String description) {
-            this.description = description
-        }
-
-        abstract String run(String code)
-
-        @Override
-        String toString() {
-            description
-        }
     }
 
     static String getExecutors() {
