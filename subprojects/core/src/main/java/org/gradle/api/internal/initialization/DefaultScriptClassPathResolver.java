@@ -31,6 +31,7 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
@@ -144,13 +145,13 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         }
     }
 
-    private static ArtifactCollection getAnalysisResult(Configuration classpathConfiguration) {
+    private static FileCollection getAnalysisResult(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value));
             // We have to analyze external and project dependencies to get full hierarchies, since
             // for example user could use dependency substitution to replace external dependency with project dependency.
             config.componentFilter(componentId -> !isGradleApi(componentId));
-        }).getArtifacts();
+        }).getFiles();
     }
 
     private static ArtifactCollection getOriginalDependencies(Configuration classpathConfiguration) {

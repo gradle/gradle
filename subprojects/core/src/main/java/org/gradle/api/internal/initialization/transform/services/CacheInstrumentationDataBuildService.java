@@ -17,15 +17,12 @@
 package org.gradle.api.internal.initialization.transform.services;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ArtifactCollection;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.initialization.transform.InstrumentationArtifactMetadata;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.classpath.types.ExternalPluginsInstrumentationTypeRegistry;
@@ -40,7 +37,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,7 +44,6 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 
 public abstract class CacheInstrumentationDataBuildService implements BuildService<BuildServiceParameters.None> {
@@ -106,8 +101,8 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         });
         return new ResolutionScope() {
             @Override
-            public void setAnalysisResult(ArtifactCollection analysisResult) {
-                resolutionData.getAnalysisResult().set(analysisResult);
+            public void setAnalysisResult(FileCollection analysisResult) {
+                resolutionData.getAnalysisResult().setFrom(analysisResult);
             }
 
             @Override
@@ -124,7 +119,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
     public interface ResolutionScope extends AutoCloseable {
 
-        void setAnalysisResult(ArtifactCollection analysisResult);
+        void setAnalysisResult(FileCollection analysisResult);
         void setOriginalClasspath(FileCollection originalClasspath);
 
         @Override
@@ -136,25 +131,19 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         private final Lazy<Map<String, File>> hashToOriginalFile;
         private final Map<File, String> hashCache;
         private final InjectedInstrumentationServices internalServices;
-        private final Lazy<List<File>> cachedAnalysisResult = Lazy.locking().of(() -> getAnalysisResult().get().getArtifacts().stream()
-            .map(ResolvedArtifactResult::getFile)
-            .collect(Collectors.toList())
-        );
 
         @Inject
         public ResolutionData(InjectedInstrumentationServices internalServices) {
             this.hashCache = new ConcurrentHashMap<>();
             this.hashToOriginalFile = Lazy.locking().of(() -> {
-                List<File> result = cachedAnalysisResult.get();
-                Map<String, File> originalFiles = new HashMap<>(result.size() / 2);
-                InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
-                for (int i = 0; i < result.size();) {
-                    // Original file always comes after metadata
-                    File metadata = new File(result.get(i++), METADATA_FILE_NAME);
-                    String hash = serializer.readMetadata(metadata).getArtifactHash();
-                    File originalArtifact = result.get(i++);
-                    originalFiles.put(hash, originalArtifact);
-                }
+                Set<File> originalClasspath = getOriginalClasspath().getFiles();
+                Map<String, File> originalFiles = new HashMap<>(originalClasspath.size());
+                originalClasspath.forEach(file -> {
+                    String fileHash = getArtifactHash(file);
+                    if (fileHash != null) {
+                        originalFiles.put(fileHash, file);
+                    }
+                });
                 return originalFiles;
             });
             this.instrumentationTypeRegistry = Lazy.locking().of(() -> {
@@ -165,29 +154,29 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             this.internalServices = internalServices;
         }
 
-        public abstract Property<ArtifactCollection> getAnalysisResult();
-        public abstract ConfigurableFileCollection getOriginalClasspath();
+        abstract ConfigurableFileCollection getAnalysisResult();
+        abstract ConfigurableFileCollection getOriginalClasspath();
 
         private Map<String, Set<String>> readDirectSuperTypes() {
             InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
-            return cachedAnalysisResult.get().stream()
+            return getAnalysisResult().getFiles().stream()
                 .filter(InstrumentationTransformUtils::isAnalysisMetadataDir)
                 .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))
                 .flatMap(file -> serializer.readTypesMap(file).entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));
         }
 
-        public InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
+        private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
             return instrumentationTypeRegistry.get();
         }
 
         @Nullable
-        public File getOriginalFile(String hash) {
+        private File getOriginalFile(String hash) {
             return hashToOriginalFile.get().get(hash);
         }
 
         @Nullable
-        public String getArtifactHash(File file) {
+        private String getArtifactHash(File file) {
             return hashCache.computeIfAbsent(file, __ -> {
                 Hasher hasher = Hashing.newHasher();
                 FileSystemLocationSnapshot snapshot = internalServices.getFileSystemAccess().read(file.getAbsolutePath());
