@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.api.Action
 import org.gradle.internal.declarativedsl.analysis.DataConstructor
 import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataParameter
@@ -31,15 +30,10 @@ import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
-import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
-import org.gradle.internal.declarativedsl.language.DataType
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.isSubclassOf
@@ -62,12 +56,12 @@ class DependencyConfigurationsComponent(
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         DependencyFunctionsExtractor(configurations),
-        DependencyCollectorFunctionsExtractor(configurations)
+        RestrictedLibraryDependenciesFunctionsExtractor(configurations)
     )
 
     override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(
         RuntimeDependencyFunctionResolver(configurations),
-        RuntimeDependencyCollectorFunctionResolver(configurations)
+        RuntimeRestrictedLibraryDependenciesFunctionResolver(configurations)
     )
 }
 
@@ -98,7 +92,7 @@ class DependencyFunctionsExtractor(val configurations: DependencyConfigurations)
 }
 
 private
-class DependencyCollectorFunctionsExtractor(val configurations: DependencyConfigurations) : FunctionExtractor {
+class RestrictedLibraryDependenciesFunctionsExtractor(val configurations: DependencyConfigurations) : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
         if (kClass == RestrictedLibraryDependencies::class) {
             configurations.configurationNames.map { configurationName ->
@@ -135,7 +129,7 @@ class RuntimeDependencyFunctionResolver(configurations: DependencyConfigurations
 }
 
 private
-class RuntimeDependencyCollectorFunctionResolver(configurations: DependencyConfigurations) : RuntimeFunctionResolver {
+class RuntimeRestrictedLibraryDependenciesFunctionResolver(configurations: DependencyConfigurations) : RuntimeFunctionResolver {
     private
     val nameSet = configurations.configurationNames.toSet()
 
