@@ -35,6 +35,7 @@ import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
+import java.lang.reflect.Type
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -169,5 +170,11 @@ class ImplicitDependencyCollectorFunctionResolver(configurations: DependencyConf
 
 @OptIn(ExperimentalStdlibApi::class) // For javaType
 private
-fun hasDependencyCollectorGetterSignature(function: KFunction<*>) =
-    function.name.startsWith("get") && function.returnType.javaType == DependencyCollector::class.java && function.parameters.size == 1
+fun hasDependencyCollectorGetterSignature(function: KFunction<*>): Boolean {
+    val returnType: Type = try {
+        function.returnType.javaType
+    } catch (e: Throwable) { // Sometimes reflection fails with an error when the return type is unusual, if it failed then it's not a getter of interest
+        Void::class.java
+    }
+    return function.name.startsWith("get") && returnType == DependencyCollector::class.java && function.parameters.size == 1
+}
