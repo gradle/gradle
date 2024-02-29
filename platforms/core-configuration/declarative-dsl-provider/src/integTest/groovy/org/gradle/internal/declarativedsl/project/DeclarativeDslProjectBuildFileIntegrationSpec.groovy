@@ -155,7 +155,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
             }
 
             library {
-                deps { // TODO: Don't name this dependencies???  Can this be reset?
+                dependencies {
                     api("com.google.guava:guava:30.1.1-jre")
                     implementation("com.apache.commons:commons-lang3:3.12.0")
                 }
@@ -217,7 +217,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
             }
 
             library {
-                deps { // TODO: Don't name this dependencies???  Can this be reset?
+                dependencies { // TODO: Don't name this dependencies???  Can this be reset?
                     api("com.google.guava:guava:30.1.1-jre")
                     implementation("com.apache.commons:commons-lang3:3.12.0")
                 }
@@ -463,16 +463,16 @@ secondaryAccess { three, true, true}"""
 
             @Restricted
             public abstract class LibraryExtension {
-                private final RestrictedLibraryDependencies deps;
+                private final RestrictedLibraryDependencies dependencies;
 
                 @Inject
                 public LibraryExtension(ObjectFactory objectFactory) {
-                    this.deps = objectFactory.newInstance(RestrictedLibraryDependencies.class);
+                    this.dependencies = objectFactory.newInstance(RestrictedLibraryDependencies.class);
                 }
 
                 @Configuring
-                public void deps(Action<? super RestrictedLibraryDependencies> configure) {
-                    configure.execute(deps);
+                public void dependencies(Action<? super RestrictedLibraryDependencies> configure) {
+                    configure.execute(dependencies);
                 }
             }
         """
