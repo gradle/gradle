@@ -47,6 +47,14 @@ enum JavaTestProjectGenerator {
         .withCompilerMemory('512m')
         .assembleChangeFile()
         .testChangeFile(450, 2250, 45000).create()),
+    LARGE_JAVA_MULTI_PROJECT_HIERARCHY(new TestProjectGeneratorConfigurationBuilder("largeJavaMultiProjectHierarchy")
+        .withSourceFiles(100)
+        .withSubProjects(250)
+        .withProjectDepth(5)
+        .withDaemonMemory('2g')
+        .withCompilerMemory('512m')
+        .assembleChangeFile()
+        .testChangeFile(450, 2250, 45000).create()),
     LARGE_MONOLITHIC_GROOVY_PROJECT(new TestProjectGeneratorConfigurationBuilder("largeMonolithicGroovyProject", Language.GROOVY)
         .withSourceFiles(50000)
         .withSubProjects(0)

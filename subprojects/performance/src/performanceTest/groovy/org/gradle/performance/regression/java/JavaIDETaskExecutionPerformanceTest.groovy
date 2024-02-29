@@ -28,7 +28,7 @@ import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MO
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeAndroidBuild", "nowInAndroidBuild"])
+    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProjectHierarchy","largeJavaMultiProject", "largeAndroidBuild", "nowInAndroidBuild"])
 )
 class JavaIDETaskExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -36,7 +36,7 @@ class JavaIDETaskExecutionPerformanceTest extends AbstractCrossVersionPerformanc
         runner.minimumBaseVersion = "2.11"
     }
 
-    def "run clean assemble via Tooling API"() {
+    def "run compileJava via Tooling API"() {
         given:
         setupRunner()
 
@@ -49,13 +49,7 @@ class JavaIDETaskExecutionPerformanceTest extends AbstractCrossVersionPerformanc
                     // do nothing, just force the daemon to send all events
                 }
             })
-//            builder.addProgressListener(new org.gradle.tooling.ProgressListener() {
-//                @Override
-//                void statusChanged(org.gradle.tooling.ProgressEvent event) {
-//                    // do nothing, just force the daemon to send all events
-//                }
-//            })
-            builder.forTasks("clean", "assemble")
+            builder.addArguments("compileJava")
             builder.run()
         }
 

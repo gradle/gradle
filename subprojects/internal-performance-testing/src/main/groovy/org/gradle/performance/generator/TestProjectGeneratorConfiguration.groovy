@@ -42,6 +42,7 @@ class TestProjectGeneratorConfiguration {
     int subProjects
     int sourceFiles
     int minLinesOfCodePerSourceFile
+    int projectDepth = 0
     CompositeConfiguration compositeBuild
 
     String daemonMemory
@@ -133,6 +134,7 @@ class TestProjectGeneratorConfigurationBuilder {
         ]
 
         config.subProjects = this.subProjects
+        config.projectDepth = this.projectDepth
         config.sourceFiles = this.sourceFiles
         config.minLinesOfCodePerSourceFile = 100
         config.compositeBuild = this.compositeBuild
