@@ -320,15 +320,15 @@ public class MavenComponentParser {
             Set<ExcludeRule> allExcludeRules = getExcludeRules(globalExcludes, dependency);
 
             if (dependency.getArtifacts().isEmpty()) {
-                ResolvedCoordinates coordinates = resolveDependency(dependency);
+                ResolvedCoordinates coordinates = resolveDependency(dependency, true);
                 collector.accept(newDependency(coordinates, null, null, scope, allExcludeRules, optional));
                 return;
             }
 
-            // If the dependency has artifacts, do not map the coordinates.
+            // If the dependency has artifacts, only map the coordinates to component-level precision.
             // This is so we match the Gradle behavior where an explicit artifact on a dependency
             // that would otherwise map to different coordinates resolves to the declared coordinates.
-            ResolvedCoordinates coordinates = convertDeclaredCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion());
+            ResolvedCoordinates coordinates = resolveDependency(dependency, false);
             for (DependencyArtifact artifact : dependency.getArtifacts()) {
                 ResolvedCoordinates artifactCoordinates = coordinates;
                 if (!artifact.getName().equals(dependency.getName())) {
@@ -375,15 +375,22 @@ public class MavenComponentParser {
         }
 
         private void convertImportDependencyConstraint(ModuleDependency dependency, Consumer<MavenDependency> collector) {
-            ResolvedCoordinates identifier = resolveDependency(dependency);
+            ResolvedCoordinates identifier = resolveDependency(dependency, true);
             collector.accept(newDependency(identifier, "pom", null, "import", Collections.emptySet(), false));
         }
 
-        private ResolvedCoordinates resolveDependency(ModuleDependency dependency) {
+        private ResolvedCoordinates resolveDependency(ModuleDependency dependency, boolean variantPrecision) {
             if (dependency instanceof ProjectDependency) {
                 return variantDependencyResolver.resolveVariantCoordinates((ProjectDependency) dependency, warnings);
             } else if (dependency instanceof ExternalDependency) {
-                ResolvedCoordinates identifier = variantDependencyResolver.resolveVariantCoordinates((ExternalDependency) dependency, warnings);
+
+                ResolvedCoordinates identifier;
+                if (variantPrecision) {
+                    identifier = variantDependencyResolver.resolveVariantCoordinates((ExternalDependency) dependency, warnings);
+                } else {
+                    identifier = componentDependencyResolver.resolveComponentCoordinates((ExternalDependency) dependency);
+                }
+
                 if (identifier != null) {
                     return identifier;
                 }
