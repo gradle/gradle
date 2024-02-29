@@ -39,12 +39,12 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
     public void transform(TransformOutputs outputs) {
         // We simulate fan-in behaviour:
         // We expect that a transform before this one outputs two artifacts: 1. analysis metadata and 2. the original file.
-        // So if the input we instrument is instrumentation metadata we output transformed file, otherwise it's original file and we output that.
+        // So if the input is analysis metadata we use it and create instrumented artifact, otherwise it's original artifact and we output that.
         File input = getInput().get().getAsFile();
         if (isAnalysisMetadataDir(input)) {
             doOutputTransformedFile(input, outputs);
         } else if (getParameters().getAgentSupported().get()) {
-            doOutputOriginalFile(input, outputs);
+            doOutputOriginalArtifact(input, outputs);
         }
     }
 

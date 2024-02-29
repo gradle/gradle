@@ -116,7 +116,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
         return INSTRUMENTED_DIR_NAME + "/" + instrumentedEntryNameMapper.apply(input.getName());
     }
 
-    protected void doOutputOriginalFile(File input, TransformOutputs outputs) {
+    protected void doOutputOriginalArtifact(File input, TransformOutputs outputs) {
         // Output original file if it's safe to load from cache loader ELSE copy an entry
         if (input.isDirectory()) {
             // Directories are ok to use outside the cache, since they are not locked by the daemon.

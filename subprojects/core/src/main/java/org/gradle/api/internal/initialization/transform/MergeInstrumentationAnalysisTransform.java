@@ -46,14 +46,16 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.copyUnchecked;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.isAnalysisMetadataDir;
 
 /**
  * A transform that merges all instrumentation related metadata for a single artifact.<br><br>
  *
- * Outputs 3 files:<br>
+ * Outputs either a directory with analysis files OR original artifact.<br><br>
+ *
+ * Directory with analysis files has next content:<br>
  * 1. Instrumentation classpath marker file.<br>
  * 2. A properties file with original file hash and original file name.<br>
  * 3. A properties file with instrumented class dependencies in a file.<br><br>
@@ -90,11 +92,18 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
 
     @Override
     public void transform(TransformOutputs outputs) {
+        // We simulate fan-in behaviour:
+        // We expect that a transform before this one outputs two artifacts: 1. analysis metadata and 2. the original file.
+        // So if the input is analysis metadata we merge it and output it, otherwise it's original artifact, and we output that.
         File input = getInput().get().getAsFile();
-        if (maybeOutputOriginalFile(input, outputs)) {
-            return;
+        if (isAnalysisMetadataDir(input)) {
+            doMergeAndOutputAnalysis(input, outputs);
+        } else {
+            doOutputOriginalArtifact(input, outputs);
         }
+    }
 
+    private void doMergeAndOutputAnalysis(File input, TransformOutputs outputs) {
         InjectedInstrumentationServices services = getObjects().newInstance(InjectedInstrumentationServices.class);
         InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(services.getStringInterner());
         InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry();
@@ -115,20 +124,18 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         copyUnchecked(new File(input, METADATA_FILE_NAME), new File(outputDir, METADATA_FILE_NAME));
     }
 
-    private static boolean maybeOutputOriginalFile(File input, TransformOutputs outputs) {
-        if (!input.isDirectory()) {
-            outputs.file(input);
-            return true;
-        } else if (!new File(input, SUPER_TYPES_FILE_NAME).exists()) {
-            outputs.dir(input);
-            return true;
-        }
-        return false;
-    }
-
     private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
         long contextId = getParameters().getContextId().get();
         CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
         return buildService.getInstrumentationTypeRegistry(contextId);
     }
+
+    private static void doOutputOriginalArtifact(File input, TransformOutputs outputs) {
+        if (input.isDirectory()) {
+            outputs.dir(input);
+        } else {
+            outputs.file(input);
+        }
+    }
+
 }

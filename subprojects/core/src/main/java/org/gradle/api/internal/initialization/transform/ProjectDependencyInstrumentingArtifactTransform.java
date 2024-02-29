@@ -43,7 +43,7 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
         File input = getInput().get().getAsFile();
         doTransform(input, outputs);
         if (getParameters().getAgentSupported().get()) {
-            doOutputOriginalFile(input, outputs);
+            doOutputOriginalArtifact(input, outputs);
         }
     }
 
