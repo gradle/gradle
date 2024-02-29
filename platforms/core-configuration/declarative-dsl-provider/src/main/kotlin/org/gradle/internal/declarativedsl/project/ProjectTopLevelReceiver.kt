@@ -40,8 +40,3 @@ interface ProjectTopLevelReceiver {
 
 
 interface RestrictedDependenciesHandler
-
-interface RestrictedLibraryDependencies : PlatformDependencyModifiers, GradleDependencies {
-    fun getApi(): DependencyCollector
-    fun getImplementation(): DependencyCollector
-}

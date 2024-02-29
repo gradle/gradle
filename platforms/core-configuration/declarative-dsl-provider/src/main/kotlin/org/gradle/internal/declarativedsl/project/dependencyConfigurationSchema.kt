@@ -31,19 +31,24 @@ import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
+import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.full.functions
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.javaType
 
 
 /**
  * Introduces functions for registering project dependencies, such as `implementation(...)`, as member functions of:
  * * [RestrictedDependenciesHandler] in the schema,
  * * [DependencyHandler] when resolved at runtime.
- * * [RestrictedLibraryDependencies] in the schema.
+ * * Any type with getters returning [DependencyCollector] in the schema.
  *
  * Inspects the configurations available in the given project to build the functions.
  */
@@ -56,12 +61,12 @@ class DependencyConfigurationsComponent(
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         DependencyFunctionsExtractor(configurations),
-        RestrictedLibraryDependenciesFunctionsExtractor(configurations)
+        ImplicitDependencyCollectorFunctionExtractor(configurations)
     )
 
     override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(
         RuntimeDependencyFunctionResolver(configurations),
-        RuntimeRestrictedLibraryDependenciesFunctionResolver(configurations)
+        ImplicitDependencyCollectorFunctionResolver(configurations)
     )
 }
 
@@ -92,19 +97,20 @@ class DependencyFunctionsExtractor(val configurations: DependencyConfigurations)
 }
 
 private
-class RestrictedLibraryDependenciesFunctionsExtractor(val configurations: DependencyConfigurations) : FunctionExtractor {
-    override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        if (kClass == RestrictedLibraryDependencies::class) {
-            configurations.configurationNames.map { configurationName ->
-                DataMemberFunction(
-                    kClass.toDataTypeRef(),
-                    configurationName,
-                    listOf(DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
-                    false,
-                    FunctionSemantics.AddAndConfigure(RestrictedLibraryDependencies::class.toDataTypeRef(), FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED)
-                )
-            }
-        } else emptyList()
+class ImplicitDependencyCollectorFunctionExtractor(val configurations: DependencyConfigurations) : FunctionExtractor {
+    override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> = kClass.memberFunctions
+        .filter { function -> hasDependencyCollectorGetterSignature(function) }
+        .map { function -> function.name.removePrefix("get").replaceFirstChar { it.lowercase(Locale.getDefault()) } }
+        .filter { confName -> confName in configurations.configurationNames }
+        .map { confName ->
+            DataMemberFunction(
+                kClass.toDataTypeRef(),
+                confName,
+                listOf(DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
+                false,
+                FunctionSemantics.AddAndConfigure(kClass.toDataTypeRef(), NOT_ALLOWED)
+            )
+        }
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
     override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
@@ -124,34 +130,38 @@ class RuntimeDependencyFunctionResolver(configurations: DependencyConfigurations
                 }
             })
         }
+
         return RuntimeFunctionResolver.Resolution.Unresolved
     }
 }
 
 private
-class RuntimeRestrictedLibraryDependenciesFunctionResolver(configurations: DependencyConfigurations) : RuntimeFunctionResolver {
+class ImplicitDependencyCollectorFunctionResolver(configurations: DependencyConfigurations) : RuntimeFunctionResolver {
     private
-    val nameSet = configurations.configurationNames.toSet()
+    val configurationNames = configurations.configurationNames.toSet()
 
     override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
-        // TODO: The runtime decoration isn't working as expected here
-        // When receiverClass == class org.gradle.internal.declarativedsl.project.RestrictedLibraryDependencies_Decorated
-        // Then receiverClass.isSubclassOf(RestrictedLibraryDependencies::class) == false
-        // So, I'll just test the name
-        if (receiverClass.simpleName == "RestrictedLibraryDependencies_Decorated" && name in nameSet && parameterValueBinding.bindingMap.size == 1) {
-            return RuntimeFunctionResolver.Resolution.Resolved(object : RestrictedRuntimeFunction {
-                override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): RestrictedRuntimeFunction.InvocationResult {
-                    val libraryDependencies = (receiver as RestrictedLibraryDependencies)
-                    val dependencyNotation = binding.values.single().toString()
-                    when (name) {
-                        "api" -> libraryDependencies.getApi().add(dependencyNotation) {}
-                        "implementation" -> libraryDependencies.getImplementation().add(dependencyNotation) {}
-                        else -> error("Unknown configuration: $name for dependency: $dependencyNotation")
+        if (name in configurationNames) {
+            val getterFunction = getDependencyCollectorGetter(receiverClass, name)
+            if (getterFunction != null) {
+                return RuntimeFunctionResolver.Resolution.Resolved(object : RestrictedRuntimeFunction {
+                    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): RestrictedRuntimeFunction.InvocationResult {
+                        val dependencyNotation = binding.values.single().toString()
+                        val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
+                        collector.add(dependencyNotation)
+                        return RestrictedRuntimeFunction.InvocationResult(Unit, null)
                     }
-                    return RestrictedRuntimeFunction.InvocationResult(Unit, null)
-                }
-            })
+                })
+            }
         }
         return RuntimeFunctionResolver.Resolution.Unresolved
     }
+
+    private fun getDependencyCollectorGetter(receiverClass: KClass<*>, configurationName: String): KFunction<*>? = receiverClass.functions
+        .filter { hasDependencyCollectorGetterSignature(it) }
+        .firstOrNull { function -> function.name == "get${configurationName.replaceFirstChar { it.uppercase(Locale.getDefault()) }}" }
 }
+
+@OptIn(ExperimentalStdlibApi::class) // For javaType
+private fun hasDependencyCollectorGetterSignature(function: KFunction<*>) =
+    function.name.startsWith("get") && function.returnType.javaType == DependencyCollector::class.java && function.parameters.size == 1
