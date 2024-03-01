@@ -190,6 +190,5 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
                 return hasher.hash().toString();
             });
         }
-
     }
 }

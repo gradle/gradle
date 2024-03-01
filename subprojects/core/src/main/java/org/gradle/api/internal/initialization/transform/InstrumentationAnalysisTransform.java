@@ -83,6 +83,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         @Internal
         Property<Long> getContextId();
     }
+
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang/");
 
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
@@ -103,7 +104,6 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
             // Unfortunately we don't filter them out before the artifact transform is run.
             return;
         }
-
 
         try {
             Map<String, Set<String>> superTypes = new TreeMap<>();

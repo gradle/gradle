@@ -33,6 +33,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
+import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -46,7 +47,6 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.copyUnchecked;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.isAnalysisMetadataDir;
 
@@ -121,7 +121,7 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         createInstrumentationClasspathMarker(outputDir);
         File output = new File(outputDir, DEPENDENCIES_SUPER_TYPES_FILE_NAME);
         serializer.writeTypesMap(output, dependenciesSuperTypes);
-        copyUnchecked(new File(input, METADATA_FILE_NAME), new File(outputDir, METADATA_FILE_NAME));
+        GFileUtils.copyFile(new File(input, METADATA_FILE_NAME), new File(outputDir, METADATA_FILE_NAME));
     }
 
     private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
@@ -137,5 +137,4 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
             outputs.file(input);
         }
     }
-
 }

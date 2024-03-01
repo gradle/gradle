@@ -40,13 +40,11 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.Parameters;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
 import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_ENTRY_PREFIX;
@@ -78,10 +76,10 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     @InputArtifact
     public abstract Provider<FileSystemLocation> getInput();
 
-    protected void doTransform(@Nullable File artifactToTransform, TransformOutputs outputs) {
+    protected void doTransform(File artifactToTransform, TransformOutputs outputs) {
         createInstrumentationClasspathMarker(outputs);
-        if (artifactToTransform == null || !artifactToTransform.exists()) {
-            createNewFile(outputs.file(ORIGINAL_FILE_DOES_NOT_EXIST_MARKER));
+        if (!artifactToTransform.exists()) {
+            GFileUtils.touch(outputs.file(ORIGINAL_FILE_DOES_NOT_EXIST_MARKER));
             return;
         }
 
@@ -89,10 +87,10 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             // When agent is supported, we output an instrumented jar and an original jar,
             // so we can then later reconstruct instrumented jars classpath and original jars classpath.
             // We add `instrumented-` prefix to the file since names for the same transform needs to be unique when querying results via ArtifactCollection.
-            createNewFile(outputs.file(AGENT_INSTRUMENTATION_MARKER_FILE_NAME));
+            GFileUtils.touch(outputs.file(AGENT_INSTRUMENTATION_MARKER_FILE_NAME));
             doTransform(artifactToTransform, outputs, originalName -> INSTRUMENTED_ENTRY_PREFIX + originalName);
         } else {
-            createNewFile(outputs.file(LEGACY_INSTRUMENTATION_MARKER_FILE_NAME));
+            GFileUtils.touch(outputs.file(LEGACY_INSTRUMENTATION_MARKER_FILE_NAME));
             doTransform(artifactToTransform, outputs, originalName -> originalName);
         }
     }
