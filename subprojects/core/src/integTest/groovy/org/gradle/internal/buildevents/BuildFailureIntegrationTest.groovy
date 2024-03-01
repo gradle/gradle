@@ -42,13 +42,16 @@ throw new BadException()
 
     def "can handle circular exception"() {
         buildFile << """
-            Exception selfReferencingException = new Exception("boom")
-            selfReferencingException.initCause(new Exception("boom", selfReferencingException))
+            Exception selfReferencingException = new Exception("BOOM self")
+            selfReferencingException.initCause(new Exception("BOOM cause", selfReferencingException))
             throw selfReferencingException
         """
 
-        expect:
+        when:
         fails("help", "-s")
-        result.assertHasErrorOutput("Caused by: java.lang.Throwable: [CIRCULAR REFERENCE: java.lang.Exception: boom]")
+
+        then:
+        failureCauseContains("BOOM self")
+        result.assertHasErrorOutput("Caused by: java.lang.Throwable: [CIRCULAR REFERENCE: java.lang.Exception: BOOM self]")
     }
 }
