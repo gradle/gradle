@@ -94,12 +94,7 @@ public abstract class TargetJVMVersionTooHighFailureDescriber extends AbstractRe
     }
 
     private boolean isJVMVersionAttributeIncompatible(ResolutionCandidateAssessor.AssessedCandidate candidate) {
-        for (ResolutionCandidateAssessor.AssessedAttribute<?> attribute : candidate.getIncompatibleAttributes()) {
-            if (isJVMVersionAttribute(attribute)) {
-                return true;
-            }
-        }
-        return false;
+        return candidate.getIncompatibleAttributes().stream().anyMatch(this::isJVMVersionAttribute);
     }
 
     private boolean isJVMVersionAttribute(ResolutionCandidateAssessor.AssessedAttribute<?> attribute) {
