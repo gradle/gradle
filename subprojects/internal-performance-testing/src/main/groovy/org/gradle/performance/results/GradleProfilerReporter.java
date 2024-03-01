@@ -22,6 +22,7 @@ import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.report.AbstractGenerator;
 import org.gradle.profiler.report.BenchmarkResult;
 import org.gradle.profiler.report.CsvGenerator;
+import org.gradle.profiler.report.Format;
 import org.gradle.profiler.report.HtmlGenerator;
 
 import java.io.BufferedWriter;
@@ -48,7 +49,7 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
         File baseDir = outputDirSelector.outputDirFor(experiment.getScenario().getTestName());
         baseDir.mkdirs();
         compositeReportGenerator.setGenerators(ImmutableList.of(
-            new CsvGenerator(new File(baseDir, "benchmark.csv"), CsvGenerator.Format.LONG),
+            new CsvGenerator(new File(baseDir, "benchmark.csv"), Format.LONG),
             new HtmlGenerator(new File(baseDir, "benchmark.html"))
         ));
 

@@ -22,8 +22,8 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.process.ExecResult
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.TestUtil
 import org.junit.Rule
 
@@ -35,7 +35,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
     def instantiator = TestUtil.instantiatorFactory()
     def factory =
         DefaultExecActionFactory
-            .of(resolver, fileCollectionFactory, executorFactory, TestFiles.tmpDirTemporaryFileProvider(tmpDir.root))
+            .of(resolver, fileCollectionFactory, executorFactory, TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
             .forContext()
             .withInstantiator(instantiator.decorateLenient())
             .withObjectFactory(TestUtil.objectFactory())
@@ -78,7 +78,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         result.exitValue != 0
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def exec() {
         File testFile = tmpDir.file("someFile")
 
@@ -94,7 +94,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         result.exitValue == 0
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def execWithNonZeroExitValueShouldThrowException() {
         when:
         factory.exec { spec ->
@@ -107,7 +107,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         thrown(ExecException)
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def execWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
         when:
         ExecResult result = factory.exec { spec ->

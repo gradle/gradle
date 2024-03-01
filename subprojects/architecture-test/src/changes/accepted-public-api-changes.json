@@ -1,147 +1,27 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Method org.gradle.api.tasks.testing.Test.setForkEvery(long)",
-            "acceptation": "Test.forkEvery setter with same nullability as the getter",
+            "type": "org.gradle.api.file.ConfigurableFileCollection",
+            "member": "Class org.gradle.api.file.ConfigurableFileCollection",
+            "acceptation": "Introduce SupportsConvention",
             "changes": [
-                "Method added to public class"
+                "org.gradle.api.provider.SupportsConvention"
             ]
         },
         {
-            "type": "org.gradle.kotlin.dsl.KotlinAssignmentExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.KotlinAssignmentExtensionsKt.assign(org.gradle.api.file.FileSystemLocationProperty,java.io.File)",
-            "acceptation": "Compatibility check has an issue with generic extension function",
+            "type": "org.gradle.tooling.events.problems.ProblemDescriptor",
+            "member": "Method org.gradle.tooling.events.problems.ProblemDescriptor.getDetails()",
+            "acceptation": "This is an incubating API and therefore the change is acceptable",
             "changes": [
-                "Method added to public class"
+                "From non-null returning to null returning breaking change"
             ]
         },
         {
-            "type": "org.gradle.kotlin.dsl.KotlinAssignmentExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.KotlinAssignmentExtensionsKt.assign(org.gradle.api.provider.Property,java.lang.Object)",
-            "acceptation": "Compatibility check has an issue with generic extension function",
+            "type": "org.gradle.tooling.events.problems.ProblemDescriptor",
+            "member": "Method org.gradle.tooling.events.problems.ProblemDescriptor.getDocumentationLink()",
+            "acceptation": "This is an incubating API and therefore the change is acceptable",
             "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.KotlinSettingsScriptKt",
-            "member": "Class org.gradle.kotlin.dsl.KotlinSettingsScriptKt",
-            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
-            "changes": [
-                "Class has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Constructor org.gradle.kotlin.dsl.ScriptHandlerScope(org.gradle.api.initialization.dsl.ScriptHandler,kotlin.jvm.internal.DefaultConstructorMarker)",
-            "acceptation": "Simplify usage of ScriptHandlerScope",
-            "changes": [
-                "Constructor has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Field Companion",
-            "acceptation": "Simplify usage of ScriptHandlerScope",
-            "changes": [
-                "Field has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.access$getDelegate$p(org.gradle.kotlin.dsl.ScriptHandlerScope)",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencies(groovy.lang.Closure)",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(groovy.lang.Closure)",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getClassLoader()",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getConfigurations()",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getDependencies()",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getDependencyLocking()",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getRepositories()",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getSourceFile()",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getSourceURI()",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.repositories(groovy.lang.Closure)",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Superclass [removed]",
-            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
-            "changes": [
-                "Superclass has been removed"
+                "From non-null returning to null returning breaking change"
             ]
         }
     ]

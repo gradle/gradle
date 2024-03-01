@@ -2,6 +2,7 @@ package configurations
 
 import common.Arch
 import common.BuildToolBuildJvm
+import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
@@ -10,8 +11,8 @@ import common.functionalTestExtraParameters
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.BuildStep
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
 import model.Stage
 import model.StageName
@@ -48,7 +49,14 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
         val extraParameters = functionalTestExtraParameters("FlakyTestQuarantine", os, arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)
         val parameters = (
             buildToolGradleParameters(true) +
-                listOf("-PflakyTests=only", "-x", ":docs:platformTest", "-x", ":distributions-integ-tests:quickTest", "-x", ":distributions-integ-tests:platformTest") +
+                listOf(
+                    "-PflakyTests=only",
+                    "-x", ":docs:platformTest",
+                    "-x", ":docs:configCacheTest",
+                    "-x", ":distributions-integ-tests:quickTest",
+                    "-x", ":distributions-integ-tests:platformTest",
+                    "-x", ":distributions-integ-tests:configCacheTest"
+                ) +
                 listOf(extraParameters) +
                 functionalTestParameters(os) +
                 listOf(buildScanTag(functionalTestTag))
@@ -61,7 +69,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
         }
-        killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", os, arch)
+        killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch)
     }
 
     steps {

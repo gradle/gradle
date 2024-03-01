@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.repositories.ExclusiveContentRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
@@ -69,7 +70,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     FlatDirectoryArtifactRepository flatDir(Map<String, ?> args);
 
     /**
-     * Adds an configures a repository which will look for dependencies in a number of local directories.
+     * Adds and configures a repository which will look for dependencies in a number of local directories.
      *
      * @param configureClosure The closure to execute to configure the repository.
      * @return The repository.
@@ -77,7 +78,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     FlatDirectoryArtifactRepository flatDir(@DelegatesTo(FlatDirectoryArtifactRepository.class) Closure configureClosure);
 
     /**
-     * Adds an configures a repository which will look for dependencies in a number of local directories.
+     * Adds and configures a repository which will look for dependencies in a number of local directories.
      *
      * @param action The action to execute to configure the repository.
      * @return The repository.
@@ -90,6 +91,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return The Gradle Central Plugin Repository
      * @since 4.4
      */
+    @Adding
     ArtifactRepository gradlePluginPortal();
 
     /**
@@ -195,6 +197,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @see #mavenCentral(java.util.Map)
      */
+    @Adding
     MavenArtifactRepository mavenCentral();
 
     /**
@@ -280,6 +283,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @since 4.0
      */
+    @Adding
     MavenArtifactRepository google();
 
     /**

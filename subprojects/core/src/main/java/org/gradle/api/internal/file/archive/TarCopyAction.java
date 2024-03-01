@@ -64,21 +64,26 @@ public class TarCopyAction implements CopyAction {
             throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);
         }
 
-        IoActions.withResource(outStr, new ErroringAction<OutputStream>() {
-            @Override
-            protected void doExecute(final OutputStream outStr) throws Exception {
-                TarArchiveOutputStream tarOutStr;
-                try {
-                    tarOutStr = new TarArchiveOutputStream(outStr);
-                } catch (Exception e) {
-                    throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);
+        try {
+            IoActions.withResource(outStr, new ErroringAction<OutputStream>() {
+                @Override
+                protected void doExecute(final OutputStream outStr) throws Exception {
+                    TarArchiveOutputStream tarOutStr;
+                    try {
+                        tarOutStr = new TarArchiveOutputStream(outStr);
+                    } catch (Exception e) {
+                        throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);
+                    }
+                    tarOutStr.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
+                    tarOutStr.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_STAR);
+                    stream.process(new StreamAction(tarOutStr));
+                    tarOutStr.close();
                 }
-                tarOutStr.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
-                tarOutStr.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_STAR);
-                stream.process(new StreamAction(tarOutStr));
-                tarOutStr.close();
-            }
-        });
+            });
+        } catch (Exception e) {
+            tarFile.delete();
+            throw e;
+        }
 
         return WorkResults.didWork(true);
     }
@@ -104,7 +109,7 @@ public class TarCopyAction implements CopyAction {
                 TarArchiveEntry archiveEntry = new TarArchiveEntry(fileDetails.getRelativePath().getPathString());
                 archiveEntry.setModTime(getArchiveTimeFor(fileDetails));
                 archiveEntry.setSize(fileDetails.getSize());
-                archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getMode());
+                archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getPermissions().toUnixNumeric());
                 tarOutStr.putArchiveEntry(archiveEntry);
                 fileDetails.copyTo(tarOutStr);
                 tarOutStr.closeArchiveEntry();
@@ -118,7 +123,7 @@ public class TarCopyAction implements CopyAction {
                 // Trailing slash on name indicates entry is a directory
                 TarArchiveEntry archiveEntry = new TarArchiveEntry(dirDetails.getRelativePath().getPathString() + '/');
                 archiveEntry.setModTime(getArchiveTimeFor(dirDetails));
-                archiveEntry.setMode(UnixStat.DIR_FLAG | dirDetails.getMode());
+                archiveEntry.setMode(UnixStat.DIR_FLAG | dirDetails.getPermissions().toUnixNumeric());
                 tarOutStr.putArchiveEntry(archiveEntry);
                 tarOutStr.closeArchiveEntry();
             } catch (Exception e) {

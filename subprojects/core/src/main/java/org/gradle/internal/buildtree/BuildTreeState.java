@@ -17,10 +17,12 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.work.ProjectParallelExecutionController;
 
 import java.io.Closeable;
 import java.util.function.Function;
@@ -33,11 +35,12 @@ public class BuildTreeState implements Closeable {
     private final ServiceRegistry services;
     private final DefaultBuildTreeContext context;
 
-    public BuildTreeState(ServiceRegistry parent, BuildTreeModelControllerServices.Supplier modelServices) {
+    public BuildTreeState(BuildInvocationScopeId buildInvocationScopeId, ServiceRegistry parent, BuildTreeModelControllerServices.Supplier modelServices) {
         services = ServiceRegistryBuilder.builder()
+            .scope(Scopes.BuildTree.class)
             .displayName("build tree services")
             .parent(parent)
-            .provider(new BuildTreeScopeServices(this, modelServices))
+            .provider(new BuildTreeScopeServices(buildInvocationScopeId, this, modelServices))
             .build();
         context = new DefaultBuildTreeContext(services);
     }
@@ -50,7 +53,14 @@ public class BuildTreeState implements Closeable {
      * Runs the given action against the state of this build tree.
      */
     public <T> T run(Function<? super BuildTreeContext, T> action) {
-        return action.apply(context);
+        BuildModelParameters modelParameters = services.get(BuildModelParameters.class);
+        ProjectParallelExecutionController parallelExecutionController = services.get(ProjectParallelExecutionController.class);
+        parallelExecutionController.startProjectExecution(modelParameters.isParallelProjectExecution());
+        try {
+            return action.apply(context);
+        } finally {
+            parallelExecutionController.finishProjectExecution();
+        }
     }
 
     @Override

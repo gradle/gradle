@@ -86,8 +86,8 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
 
 
     @Override
-    protected String directDependencyDeclaration(String configuration, String notation) {
-        notation.endsWith('()') ? "\"$configuration\"($notation)" : "\"$configuration\"(\"$notation\")"
+    protected String versionCatalogDependencyDeclaration(String configuration, String alias) {
+        "\"$configuration\"(libs.$alias)"
     }
 
     @Override

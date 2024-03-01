@@ -1,0 +1,153 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[third_party_integration]]
+= Gradle & Third-party Tools
+
+Gradle can be integrated with many different third-party tools such as IDEs and continuous integration platforms. Here we look at some of the more common ones as well as how to integrate your own tool with Gradle.
+
+[[ides]]
+== IDEs
+
+Android Studio::
+As a variant of IntelliJ IDEA, https://developer.android.com/studio/[Android Studio] has built-in support for importing and building Gradle projects.
+You can also use the <<idea_plugin.adoc#idea_plugin,IDEA Plugin for Gradle>> to fine-tune the import process if that's necessary.
++
+This IDE also has an https://developer.android.com/studio/intro/[extensive user guide] to help you get the most out of the IDE and Gradle.
+
+Eclipse::
+If you want to work on a project within Eclipse that has a Gradle build, you should use the https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship plugin].
+This will allow you to import and run Gradle builds.
+If you need to fine tune the import process so that the project loads correctly, you can use the <<eclipse_plugin.adoc#eclipse_plugin,Eclipse Plugins for Gradle>>.
+See https://discuss.gradle.org/t/buildship-1-0-18-is-now-available/19012[the associated release announcement] for details on what fine tuning you can do.
+
+IntelliJ IDEA::
+IDEA has built-in support for importing Gradle projects.
+If you need to fine tune the import process so that the project loads correctly, you can use the <<idea_plugin.adoc#idea_plugin,IDEA Plugin for Gradle>>.
+
+NetBeans::
+Built-in support for Gradle in https://netbeans.apache.org/[Apache NetBeans]
+
+Visual Studio::
+For developing C++ projects, Gradle comes with a <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio plugin>>.
+
+Xcode::
+For developing C++ projects, Gradle comes with a <<xcode_plugin.adoc#xcode_plugin,Xcode plugin>>.
+
+CLion::
+JetBrains supports building https://blog.jetbrains.com/clion/2018/05/clion-starts-2018-2-eap-sanitizers-gradle-db-performance/[C++ projects with Gradle].
+
+== Continuous integration
+
+We have dedicated guides showing you how to integrate a Gradle project with the following CI platforms:
+
+ * <<jenkins.adoc#build_jenkins,Jenkins>>
+ * <<teamcity.adoc#build_teamcity,TeamCity>>
+ * <<travis-ci.adoc#build_travis,Travis CI>>
+
+Even if you don't use one of the above, you can almost certainly configure your CI platform to use the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>> scripts.
+
+== How to integrate with Gradle
+
+There are two main ways to integrate a tool with Gradle:
+
+ * The Gradle build uses the tool
+ * The tool executes the Gradle build
+
+The former case is typically <<custom_plugins.adoc#custom_plugins,implemented as a Gradle plugin>>. The latter can be accomplished by embedding Gradle through the Tooling API as described below.
+
+[[embedding]]
+== Embedding Gradle using the Tooling API
+
+[[sec:embedding_introduction]]
+=== Introduction to the Tooling API
+
+Gradle provides a programmatic API called the Tooling API, which you can use for embedding Gradle into your own software. This API allows you to execute and monitor builds and to query Gradle about the details of a build. The main audience for this API is IDE, CI server, other UI authors; however, the API is open for anyone who needs to embed Gradle in their application.
+
+* <<test_kit.adoc#test_kit,Gradle TestKit>> uses the Tooling API for functional testing of your Gradle plugins.
+* http://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship] uses the Tooling API for importing your Gradle project and running tasks.
+* https://www.jetbrains.com/idea/[IntelliJ IDEA] uses the Tooling API for importing your Gradle project and running tasks.
+
+
+[[sec:embedding_features]]
+=== Tooling API Features
+
+A fundamental characteristic of the Tooling API is that it operates in a version independent way.
+This means that you can use the same API to work with builds that use different versions of Gradle, including versions that are newer or older than the version of the Tooling API that you are using.
+The Tooling API is Gradle wrapper aware and, by default, uses the same Gradle version as that used by the wrapper-powered build.
+
+Some features that the Tooling API provides:
+
+* Query the details of a build, including the project hierarchy and the project dependencies, external dependencies (including source and Javadoc jars), source directories and tasks of each project.
+* Execute a build and listen to stdout and stderr logging and progress messages (e.g. the messages shown in the 'status bar' when you run on the command line).
+* Execute a specific test class or test method.
+* Receive interesting events as a build executes, such as project configuration, task execution or test execution.
+* Cancel a build that is running.
+* Combine multiple separate Gradle builds into a single composite build.
+* The Tooling API can download and install the appropriate Gradle version, similar to the wrapper.
+* The implementation is lightweight, with only a small number of dependencies.
+It is also a well-behaved library, and makes no assumptions about your classloader structure or logging configuration.
+This makes the API easy to embed in your application.
+
+
+[[sec:embedding_daemon]]
+=== Tooling API and the Gradle Build Daemon
+
+The Tooling API always uses the Gradle daemon.
+This means that subsequent calls to the Tooling API, be it model building requests or task executing requests will be executed in the same long-living process.
+<<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> contains more details about the daemon, specifically information on situations when new daemons are forked.
+
+[[sec:embedding_quickstart]]
+=== Quickstart
+
+As the Tooling API is an interface for developers, the Javadoc is the main documentation for it.
+
+To use the Tooling API, add the following repository and dependency declarations to your build script:
+
+.Using the tooling API
+====
+include::sample[dir="snippets/toolingApi/runBuild/kotlin",files="build.gradle.kts[tags=use-tooling-api]"]
+include::sample[dir="snippets/toolingApi/runBuild/groovy",files="build.gradle[tags=use-tooling-api]"]
+====
+
+The main entry point to the Tooling API is the link:{javadocPath}/org/gradle/tooling/GradleConnector.html[GradleConnector].
+You can navigate from there to find code samples and explore the available Tooling API models.
+You can use link:{javadocPath}/org/gradle/tooling/GradleConnector.html#connect--[GradleConnector.connect()] to create a link:{javadocPath}/org/gradle/tooling/ProjectConnection.html[ProjectConnection].
+A `ProjectConnection` connects to a single Gradle project.
+Using the connection you can execute tasks, tests and retrieve models relative to this project.
+
+[[sec:embedding_compatibility]]
+=== Compatibility of Java and Gradle versions
+
+The following components should be considered when implementing Gradle integration: the Tooling API version, The JVM running the Tooling API client (i.e. the IDE process), the JVM running the Gradle daemon, and the Gradle version.
+
+The Tooling API itself is a Java library published as part of the Gradle release.
+Each Gradle release has a corresponding Tooling API version with the same version number.
+
+The Tooling API classes are loaded into the client's JVM, so they should have a matching version.
+The current version of the Tooling API library is compiled with Java 8 compatibility.
+
+The JVM running the Tooling API client and the one running the daemon can be different.
+At the same time, classes that are sent to the build via custom build actions need to be targeted to the lowest supported Java version.
+The JVM versions supported by Gradle is version-specific.
+The upper bound is defined in the <<compatibility.adoc#compatibility,compatibility matrix>>.
+The rule for the lower bound is the following:
+
+- Gradle 3.x and 4.x require a minimum version of Java 7.
+- Gradle 5 and above require a minimum version of Java 8.
+
+The Tooling API version is guaranteed to support running builds with all Gradle versions for the last five major releases.
+For example, the Tooling API 8.0 release is compatible with Gradle versions >= 3.0.
+Besides, the Tooling API is guaranteed to be compatible with future Gradle releases for the current and the next major.
+This means, for example, that the 8.1 version of the Tooling API will be able to run Gradle 9.x builds and _might_ break with Gradle 10.0.

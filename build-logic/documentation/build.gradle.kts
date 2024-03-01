@@ -6,8 +6,9 @@ plugins {
 description = "Provides a plugin to generate Gradle's DSL reference, User Manual and Javadocs"
 
 dependencies {
-    implementation(project(":basics"))
-    implementation(project(":module-identity"))
+    implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
+
     implementation(project(":build-update-utils"))
 
     implementation("com.github.javaparser:javaparser-core")
@@ -20,6 +21,8 @@ dependencies {
     implementation("org.asciidoctor:asciidoctor-gradle-jvm")
     implementation("org.asciidoctor:asciidoctorj")
     implementation("org.asciidoctor:asciidoctorj-pdf")
+    implementation("dev.adamko.dokkatoo:dokkatoo-plugin")
+    implementation("org.jetbrains.dokka:dokka-core")
 
     testImplementation(gradleTestKit())
 }

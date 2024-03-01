@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 
 import java.util.NavigableSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 
@@ -90,6 +91,13 @@ public abstract class TaskNode extends Node {
             getMustSuccessors(),
             super.getHardSuccessors()
         );
+    }
+
+    @Override
+    public void visitHardSuccessors(Consumer<? super Node> visitor) {
+        finalizingSuccessors.forEach(visitor);
+        getMustSuccessors().forEach(visitor);
+        super.visitHardSuccessors(visitor);
     }
 
     public abstract TaskInternal getTask();

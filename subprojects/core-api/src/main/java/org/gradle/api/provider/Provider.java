@@ -16,8 +16,10 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -123,6 +125,21 @@ public interface Provider<T> {
      * @since 4.3
      */
     <S> Provider<S> map(Transformer<? extends @org.jetbrains.annotations.Nullable S, ? super T> transformer);
+
+    /**
+     * Returns a new {@link Provider} with the value of this provider if the passed spec is satisfied and no value otherwise.
+     *
+     * <p>
+     * The resulting provider will be live, so that each time it is queried, it queries the original (this) provider
+     * and applies the spec to the result. Whenever the original provider has no value, the new provider
+     * will also have no value and the spec will not be called.
+     * </p>
+     *
+     * @param spec The spec to test the value.
+     * @since 8.5
+     */
+    @Incubating
+    Provider<T> filter(Spec<? super T> spec);
 
     /**
      * Returns a new {@link Provider} from the value of this provider transformed using the given function.

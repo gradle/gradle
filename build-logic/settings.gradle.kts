@@ -22,23 +22,24 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
 }
 
 dependencyResolutionManagement {
     repositories {
         maven {
-            name = "Gradle Enterprise release candidates"
+            name = "Develocity release candidates"
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-        jcenter {
+        maven {
+            name = "Gradle public repository"
+            url = uri("https://repo.gradle.org/gradle/public")
             content {
                 includeModule("org.openmbee.junit", "junit-xml-parser")
-                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
             }
         }
         mavenCentral()
@@ -48,20 +49,11 @@ dependencyResolutionManagement {
 
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
-// Platform: defines shared dependency versions
-include("build-platform")
-
 // Utilities for updating the build itself which are not part of the usual build process
 include("build-update-utils")
 
 // Collection of plugins for the root build to configure lifecycle, reporting and IDE integration
 include("root-build")
-
-// Shared basics for all
-include("basics")
-
-// Compute the identity/version we are building and related details (like current git commit)
-include("module-identity")
 
 // Shared information about external modules
 include("dependency-modules")
@@ -84,5 +76,8 @@ include("packaging")
 include("performance-testing")
 include("profiling")
 include("publishing")
+
+// Components used both at build time and GBT runtime, shipped in the distribution
+include("kotlin-dsl-shared-runtime")
 
 rootProject.name = "build-logic"

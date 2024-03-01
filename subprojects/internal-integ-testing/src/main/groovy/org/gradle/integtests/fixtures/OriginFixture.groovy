@@ -24,6 +24,7 @@ import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UserInitScriptExecuterFixture
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.OperationFinishEvent
@@ -66,16 +67,19 @@ class OriginFixture extends UserInitScriptExecuterFixture {
                 void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
                     if (finishEvent.result instanceof $ExecuteTaskBuildOperationType.Result.name) {
                         def buildInvocationId = finishEvent.result.originBuildInvocationId
+                        def originBuildCacheKey = finishEvent.result.originBuildCacheKeyBytes
                         def executionTime = finishEvent.result.originExecutionTime
                         def entry = null
                         if (buildInvocationId) {
                             assert executionTime != null
                             entry = [
                                 buildInvocationId: buildInvocationId,
+                                originBuildCacheKey: originBuildCacheKey,
                                 executionTime: executionTime
                             ]
                         } else {
                             assert executionTime == null
+                            assert originBuildCacheKey == null
                         }
                         origins[buildOperation.details.task.getIdentityPath()] = entry
                     }
@@ -106,6 +110,7 @@ class OriginFixture extends UserInitScriptExecuterFixture {
         rawOrigins.each {
             origins[it.key] = it.value == null ? null : new OriginMetadata(
                 it.value.buildInvocationId as String,
+                HashCode.fromBytes(it.value.originBuildCacheKey as byte[]),
                 Duration.ofMillis(it.value.executionTime as long)
             )
         }

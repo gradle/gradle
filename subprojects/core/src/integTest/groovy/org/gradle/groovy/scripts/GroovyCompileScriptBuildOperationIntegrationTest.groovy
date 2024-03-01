@@ -16,16 +16,16 @@
 
 package org.gradle.groovy.scripts
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scripts.CompileScriptBuildOperationType
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle-private/issues/3247")
-@IgnoreIf({ OperatingSystem.current().macOsX && JavaVersion.current() == JavaVersion.VERSION_1_8})
+@Requires(UnitTestPreconditions.NotJava8OnMacOs)
 class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)

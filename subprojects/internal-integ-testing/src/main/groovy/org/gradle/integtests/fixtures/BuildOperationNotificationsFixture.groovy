@@ -81,6 +81,10 @@ class BuildOperationNotificationsFixture {
                 }
 
                 private void verify(Object obj, String suffix = null) {
+                    if (obj.getClass().getName().equals("org.gradle.internal.operations.OperationProgressDetails")) {
+                        // This progress notification is emitted by Gradle itself.
+                        return;
+                    }
                     def matchingInterfaces = findPublicInterfaces(obj, suffix)
                     if (matchingInterfaces.empty) {
                         if (suffix == null) {

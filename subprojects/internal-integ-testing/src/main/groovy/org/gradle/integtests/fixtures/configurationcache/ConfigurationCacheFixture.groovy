@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class ConfigurationCacheFixture {
-    static final String CONFIGURATION_CACHE_MESSAGE = "Configuration cache is an incubating feature."
     static final String ISOLATED_PROJECTS_MESSAGE = "Isolated projects is an incubating feature."
     static final String CONFIGURE_ON_DEMAND_MESSAGE = "Configuration on demand is an incubating feature."
 
@@ -37,14 +36,13 @@ class ConfigurationCacheFixture {
         this.spec = spec
         buildOperations = new BuildOperationsFixture(spec.executer, spec.temporaryFolder)
         configurationCacheBuildOperations = new ConfigurationCacheBuildOperationsFixture(buildOperations)
-        problems = new ConfigurationCacheProblemsFixture(spec.executer, spec.testDirectory)
+        problems = new ConfigurationCacheProblemsFixture(spec.testDirectory)
     }
 
     /**
      * Asserts that the configuration cache was not enabled.
      */
     void assertNotEnabled() {
-        spec.outputDoesNotContain(CONFIGURATION_CACHE_MESSAGE)
         spec.outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
         spec.outputDoesNotContain(CONFIGURE_ON_DEMAND_MESSAGE)
         configurationCacheBuildOperations.assertNoConfigurationCache()
@@ -113,7 +111,11 @@ class ConfigurationCacheFixture {
 
     void assertStateStoredAndDiscarded(HasBuildActions details, HasProblems problemDetails) {
         assertHasStoreReason(details)
-        configurationCacheBuildOperations.assertStateStored(false)
+        if (details.hasStoreFailure) {
+            configurationCacheBuildOperations.assertStateStoreFailed()
+        } else {
+            configurationCacheBuildOperations.assertStateStored(false)
+        }
 
         def message = "Configuration cache entry ${details.storeAction}"
         boolean isFailure = spec.result instanceof ExecutionFailure
@@ -240,7 +242,6 @@ class ConfigurationCacheFixture {
             // Runs in quiet mode, and does not log anything
             return
         }
-        spec.outputContains(CONFIGURATION_CACHE_MESSAGE)
         spec.outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
         spec.outputDoesNotContain(CONFIGURE_ON_DEMAND_MESSAGE)
     }
@@ -259,9 +260,10 @@ class ConfigurationCacheFixture {
             return
         }
         if (details.runsTasks) {
-            spec.outputContains("Calculating task graph as no configuration cache is available for tasks:")
+            spec.outputContains("Calculating task graph as no cached configuration is available for tasks:")
         } else {
-            spec.outputContains("Creating tooling model as no configuration cache is available for the requested model")
+            assert spec.getOutput().contains("Creating tooling model as no cached configuration is available for the requested model") ||
+                spec.getOutput().contains("Creating tooling model as configuration cache cannot be reused because")
         }
     }
 
@@ -347,6 +349,7 @@ class ConfigurationCacheFixture {
     trait HasBuildActions {
         boolean runsTasks = true
         boolean loadsOnStore = true
+        boolean hasStoreFailure = true
 
         abstract String getStoreAction()
     }

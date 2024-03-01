@@ -29,6 +29,7 @@ import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.InternalBuildListener;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -66,8 +67,10 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
         if (logger.isDebugEnabled()) {
             logger.debug("Gradle user home: {}", startParameter.getGradleUserHomeDir());
             logger.debug("Current dir: {}", startParameter.getCurrentDir());
-            logger.debug("Settings file: {}", startParameter.getSettingsFile());
-            logger.debug("Build file: {}", startParameter.getBuildFile());
+            DeprecationLogger.whileDisabled(() -> {
+                logger.debug("Settings file: {}", startParameter.getSettingsFile());
+                logger.debug("Build file: {}", startParameter.getBuildFile());
+            });
         }
     }
 

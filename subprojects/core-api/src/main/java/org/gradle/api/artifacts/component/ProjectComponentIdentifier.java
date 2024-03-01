@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts.component;
 
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -23,6 +25,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 1.10
  */
 @UsedByScanPlugin
+@HasInternalProtocol
 public interface ProjectComponentIdentifier extends ComponentIdentifier {
     /**
      * Identifies the build that contains the project that produces this component.
@@ -37,6 +40,15 @@ public interface ProjectComponentIdentifier extends ComponentIdentifier {
      * @since 1.10
      */
     String getProjectPath();
+
+    /**
+     * Returns a path to the project for the full build tree.
+     *
+     * @return The build tree path
+     * @since 8.3
+     */
+    @Incubating
+    String getBuildTreePath();
 
     /**
      * Returns the simple name of the project that produces this component.

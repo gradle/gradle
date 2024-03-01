@@ -53,6 +53,7 @@ class UploadTaskIntegrationTest extends AbstractIntegrationSpec {
         and:
         executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         fails 'upload'
-        result.assertHasErrorOutput "The legacy `Upload` task was removed in Gradle 8. Please use the `maven-publish` or `ivy-publish` plugin instead. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/publishing_maven.html#publishing_maven or https://docs.gradle.org/${GradleVersion.current().version}/userguide/publishing_ivy.html#publishing_ivy for details"
+        result.assertHasErrorOutput "The legacy `Upload` task was removed in Gradle 8. Please use the `maven-publish` or `ivy-publish` plugin instead. " +
+            "For more on publishing on maven repositories, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/publishing_maven.html#publishing_maven in the Gradle documentation."
     }
 }

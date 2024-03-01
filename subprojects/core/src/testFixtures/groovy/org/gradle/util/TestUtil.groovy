@@ -19,6 +19,7 @@ import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.MutationGuards
@@ -142,6 +143,8 @@ class TestUtil {
             it.add(DefaultDomainObjectCollectionFactory)
             it.add(PropertyHost, PropertyHost.NO_OP)
             it.add(TaskDependencyFactory, DefaultTaskDependencyFactory.withNoAssociatedProject())
+            it.add(DocumentationRegistry, new DocumentationRegistry())
+            it.add(FileCollectionFactory, fileCollectionFactory)
             it.add(DefaultPropertyFactory)
             it.addProvider(new Object() {
                 InstantiatorFactory createInstantiatorFactory() {
@@ -299,6 +302,17 @@ class TestUtil {
         }
 
         return cause
+    }
+
+    static <T extends Throwable> boolean isOrIsCausedBy(Throwable t, Class<T> expectedCauseType) {
+        def cause = t
+        while (cause != null) {
+            if (expectedCauseType.isInstance(cause)) {
+                return true
+            }
+            cause = cause.cause
+        }
+        return false
     }
 }
 

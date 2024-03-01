@@ -1,0 +1,7 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}
+
+compileGroovy.groovyOptions.configurationScript = file('groovycompilerconfig.groovy')

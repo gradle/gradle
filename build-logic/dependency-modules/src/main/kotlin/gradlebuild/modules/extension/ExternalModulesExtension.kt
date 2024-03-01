@@ -20,15 +20,16 @@ import gradlebuild.modules.model.License
 
 abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
-    val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.13"
-    val configurationCacheReportVersion = "1.2"
-    val kotlinVersion = "1.8.0"
+    val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.17"
+    val configurationCacheReportVersion = "1.4"
+    val kotlinVersion = "1.9.22"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
     val ansiControlSequenceUtil = "net.rubygrapefruit:ansi-control-sequence-util"
     val ant = "org.apache.ant:ant"
     val antLauncher = "org.apache.ant:ant-launcher"
+    val antJunit = "org.apache.ant:ant-junit"
     val asm = "org.ow2.asm:asm"
     val asmAnalysis = "org.ow2.asm:asm-analysis"
     val asmCommons = "org.ow2.asm:asm-commons"
@@ -52,6 +53,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val commonsLang3 = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
     val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
+    val eclipseSisuPlexus = "org.eclipse.sisu:org.eclipse.sisu.plexus"
     val fastutil = "it.unimi.dsi:fastutil"
     val gcs = "com.google.apis:google-api-services-storage"
     val googleApiClient = "com.google.api-client:google-api-client"
@@ -77,6 +79,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val groovyXml = "$groovyGroup:groovy-xml"
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
+    val h2Database = "com.h2database:h2"
     val hamcrest = "org.hamcrest:hamcrest-core"
     val httpcore = "org.apache.httpcomponents:httpcore"
     val inject = "javax.inject:javax.inject"
@@ -88,6 +91,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jakartaXmlBind = "jakarta.xml.bind:jakarta.xml.bind-api"
     val jansi = "org.fusesource.jansi:jansi"
     val jatl = "com.googlecode.jatl:jatl"
+    val javaPoet = "com.squareup:javapoet"
     val jaxbCore = "com.sun.xml.bind:jaxb-core"
     val jaxbImpl = "com.sun.xml.bind:jaxb-impl"
     val jcifs = "jcifs:jcifs"
@@ -95,22 +99,33 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jcommander = "com.beust:jcommander"
     val jetbrainsAnnotations = "org.jetbrains:annotations"
     val jgit = "org.eclipse.jgit:org.eclipse.jgit"
+    val jgitSsh = "org.eclipse.jgit:org.eclipse.jgit.ssh.apache"
     val joda = "joda-time:joda-time"
-    val jsch = "com.jcraft:jsch"
+    val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"
     val junit5Vintage = "org.junit.vintage:junit-vintage-engine"
     val junit5JupiterApi = "org.junit.jupiter:junit-jupiter-api"
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
+    val junitPlatformEngine = "org.junit.platform:junit-platform-engine"
     val jzlib = "com.jcraft:jzlib"
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
+    val maven3Artifact = "org.apache.maven:maven-artifact"
+    val maven3Core = "org.apache.maven:maven-core"
     val maven3BuilderSupport = "org.apache.maven:maven-builder-support"
     val maven3Model = "org.apache.maven:maven-model"
+    val maven3ResolverProvider = "org.apache.maven:maven-resolver-provider"
     val maven3RepositoryMetadata = "org.apache.maven:maven-repository-metadata"
     val maven3Settings = "org.apache.maven:maven-settings"
     val maven3SettingsBuilder = "org.apache.maven:maven-settings-builder"
+    val mavenResolverApi = "org.apache.maven.resolver:maven-resolver-api"
+    val mavenResolverConnectorBasic = "org.apache.maven.resolver:maven-resolver-connector-basic"
+    val mavenResolverImpl = "org.apache.maven.resolver:maven-resolver-impl"
+    val mavenResolverSupplier = "org.apache.maven.resolver:maven-resolver-supplier"
+    val mavenResolverTransportFile = "org.apache.maven.resolver:maven-resolver-transport-file"
+    val mavenResolverTransportHttp = "org.apache.maven.resolver:maven-resolver-transport-http"
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
     val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
@@ -118,6 +133,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val plexusCipher = "org.sonatype.plexus:plexus-cipher"
     val plexusInterpolation = "org.codehaus.plexus:plexus-interpolation"
     val plexusSecDispatcher = "org.codehaus.plexus:plexus-sec-dispatcher"
+    val plexusClassworlds = "org.codehaus.plexus:plexus-classworlds"
     val plexusUtils = "org.codehaus.plexus:plexus-utils"
     val plist = "com.googlecode.plist:dd-plist"
     val pmavenCommon = "org.sonatype.pmaven:pmaven-common"
@@ -140,10 +156,12 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val aircompressor = "io.airlift:aircompressor"
     val archunit = "com.tngtech.archunit:archunit"
     val archunitJunit5 = "com.tngtech.archunit:archunit-junit5"
+    val archunitJunit5Api = "com.tngtech.archunit:archunit-junit5-api"
     val awaitility = "org.awaitility:awaitility-kotlin"
     val bytebuddy = "net.bytebuddy:byte-buddy"
     val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
     val cglib = "cglib:cglib"
+    val compileTesting = "com.google.testing.compile:compile-testing"
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
     val hikariCP = "com.zaxxer:HikariCP"
     val guice = "com.google.inject:guice"
@@ -171,6 +189,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val spock = "org.spockframework:spock-core"
     val spockJUnit4 = "org.spockframework:spock-junit4"
     val sshdCore = "org.apache.sshd:sshd-core"
+    val sshdOsgi = "org.apache.sshd:sshd-osgi"
     val sshdScp = "org.apache.sshd:sshd-scp"
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainersSpock = "org.testcontainers:spock"
@@ -203,6 +222,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         commonsLang to License.Apache2,
         commonsLang3 to License.Apache2,
         commonsMath to License.Apache2,
+        compileTesting to License.Apache2,
         configurationCacheReport to License.Apache2,
         fastutil to License.Apache2,
         gcs to License.Apache2,
@@ -215,6 +235,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         groovy to License.Apache2,
         gson to License.Apache2,
         guava to License.Apache2,
+        h2Database to License.EPL,
         hamcrest to License.BSD3,
         httpcore to License.Apache2,
         hikariCP to License.Apache2,
@@ -227,6 +248,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         jakartaXmlBind to License.EDL,
         jansi to License.Apache2,
         jatl to License.Apache2,
+        javaPoet to License.Apache2,
         jaxbCore to License.EDL,
         jaxbImpl to License.EDL,
         jcifs to License.LGPL21,
@@ -242,14 +264,22 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         junit5Vintage to License.EPL,
         junit5JupiterApi to License.EPL,
         junitPlatform to License.EPL,
+        junitPlatformEngine to License.EPL,
         jzlib to License.BSDStyle,
         kryo to License.BSD3,
         log4jToSlf4j to License.MIT,
         maven3BuilderSupport to License.Apache2,
         maven3Model to License.Apache2,
+        maven3ResolverProvider to License.Apache2,
         maven3RepositoryMetadata to License.Apache2,
         maven3Settings to License.Apache2,
         maven3SettingsBuilder to License.Apache2,
+        mavenResolverApi to License.Apache2,
+        mavenResolverConnectorBasic to License.Apache2,
+        mavenResolverImpl to License.Apache2,
+        mavenResolverSupplier to License.Apache2,
+        mavenResolverTransportFile to License.Apache2,
+        mavenResolverTransportHttp to License.Apache2,
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
         nativePlatformFileEvents to License.Apache2,

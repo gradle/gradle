@@ -30,6 +30,7 @@ import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
@@ -39,6 +40,7 @@ import org.gradle.util.Path;
 import java.util.function.Function;
 
 public class DefaultNestedBuildTree implements NestedBuildTree {
+    private final BuildInvocationScopeId buildInvocationScopeId;
     private final BuildDefinition buildDefinition;
     private final BuildIdentifier buildIdentifier;
     private final Path identityPath;
@@ -48,6 +50,7 @@ public class DefaultNestedBuildTree implements NestedBuildTree {
     private final BuildCancellationToken buildCancellationToken;
 
     public DefaultNestedBuildTree(
+        BuildInvocationScopeId buildInvocationScopeId,
         BuildDefinition buildDefinition,
         BuildIdentifier buildIdentifier,
         Path identityPath,
@@ -56,6 +59,7 @@ public class DefaultNestedBuildTree implements NestedBuildTree {
         CrossBuildSessionState crossBuildSessionState,
         BuildCancellationToken buildCancellationToken
     ) {
+        this.buildInvocationScopeId = buildInvocationScopeId;
         this.buildDefinition = buildDefinition;
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
@@ -73,7 +77,8 @@ public class DefaultNestedBuildTree implements NestedBuildTree {
         try {
             session.getServices().get(BuildLayoutValidator.class).validate(startParameter);
             BuildTreeModelControllerServices.Supplier modelServices = session.getServices().get(BuildTreeModelControllerServices.class).servicesForNestedBuildTree(startParameter);
-            BuildTreeState buildTree = new BuildTreeState(session.getServices(), modelServices);
+            // Let the nested build tree inherits the same invocation ID
+            BuildTreeState buildTree = new BuildTreeState(buildInvocationScopeId, session.getServices(), modelServices);
             try {
                 RootOfNestedBuildTree rootBuild = new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, buildTree);
                 rootBuild.attach();

@@ -133,7 +133,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     private Set<Configuration> getNonDeprecatedTaskConfigurations() {
         Set<Configuration> filteredConfigurations = new HashSet<>();
         for (Configuration configuration : getTaskConfigurations()) {
-            if (((ConfigurationInternal)configuration).isDeclarableAgainstByExtension()) {
+            if (((ConfigurationInternal)configuration).isDeclarableByExtension()) {
                 filteredConfigurations.add(configuration);
             }
         }

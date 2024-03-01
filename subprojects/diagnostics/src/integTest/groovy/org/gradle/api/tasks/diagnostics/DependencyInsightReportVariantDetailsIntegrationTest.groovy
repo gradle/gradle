@@ -146,7 +146,7 @@ ${variantOf('apiElements', [
                 'org.gradle.libraryelements': of('jar', 'classes'),
                 'org.gradle.usage': of('java-api', 'java-api'),
                 'org.gradle.jvm.environment': of('', 'standard-jvm')
-])}
+            ])}
 
 ---------------------
 Unselected Variant(s)
@@ -247,7 +247,7 @@ project :$expectedProject
 
         then:
         ['b', 'c'].each { expectedProject ->
-            result.groupedOutput.task(":a:insight").assertOutputContains"""project :$expectedProject
+            result.groupedOutput.task(":a:insight").assertOutputContains """project :$expectedProject
 -------------------
 Selected Variant(s)
 -------------------

@@ -51,7 +51,12 @@ public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, Pendin
 
     boolean add(T element);
 
-    boolean addRealized(T element);
+    /**
+     * Sets a verifier that specifies whether there is a subscription for
+     * elements of a given type. This is used to determine whether a 
+     * pending element should be realized upon addition to this source.
+     */
+    void setSubscriptionVerifier(EventSubscriptionVerifier<T> typeSubscriptions);
 
     @Override
     void clear();

@@ -82,6 +82,7 @@ assert contacts("a") == "a"
     // Documents actual behaviour for backwards compatibility, not necessarily desired behaviour
     def "inherited convention method is preferred over property with closure value"() {
         given:
+        createDirs("child")
         settingsFile << "include 'child'"
         buildFile """
 class ContactConvention {
@@ -96,12 +97,20 @@ subprojects {
 }
 """
 
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+        )
+
         expect:
         succeeds()
     }
 
     def "property with closure value is preferred over inherited property with closure value"() {
         given:
+        createDirs("child")
         settingsFile << "include 'child'"
         buildFile """
 ext.contacts = { throw new RuntimeException() }

@@ -63,7 +63,7 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.propertiesMetadata.size() == 2
 
         when:
-        def validationContext = DefaultTypeValidationContext.withoutRootType(documentationRegistry, false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
         metadata.visitValidationFailures(null, validationContext)
 
         then:
@@ -89,7 +89,7 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.propertiesMetadata.size() == 2
 
         when:
-        def validationContext = DefaultTypeValidationContext.withoutRootType(documentationRegistry, false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
         metadata.visitValidationFailures(null, validationContext)
 
         then:

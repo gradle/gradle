@@ -18,9 +18,7 @@ package org.gradle.api.tasks;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.IoActions;
@@ -36,6 +34,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -59,8 +58,8 @@ import java.util.concurrent.Callable;
  */
 @CacheableTask
 public abstract class WriteProperties extends DefaultTask {
-    private final Map<String, Callable<String>> deferredProperties = Maps.newHashMap();
-    private final Map<String, String> properties = Maps.newHashMap();
+    private final Map<String, Callable<String>> deferredProperties = new HashMap<>();
+    private final Map<String, String> properties = new HashMap<>();
     private String lineSeparator = "\n";
     private String comment;
     private String encoding = "ISO_8859_1";
@@ -211,6 +210,8 @@ public abstract class WriteProperties extends DefaultTask {
     /**
      * Sets the output file to write the properties to.
      *
+     * @deprecated Use {@link #getDestinationFile()} instead.
+     *
      * @since 4.0
      */
     @Deprecated
@@ -221,6 +222,8 @@ public abstract class WriteProperties extends DefaultTask {
 
     /**
      * Sets the output file to write the properties to.
+     *
+     * @deprecated Use {@link #getDestinationFile()} instead.
      */
     @Deprecated
     public void setOutputFile(Object outputFile) {
@@ -234,7 +237,6 @@ public abstract class WriteProperties extends DefaultTask {
      * @since 8.1
      */
     @OutputFile
-    @Incubating
     abstract public RegularFileProperty getDestinationFile();
 
     @TaskAction

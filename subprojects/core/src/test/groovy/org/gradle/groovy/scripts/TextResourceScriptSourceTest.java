@@ -97,6 +97,7 @@ public class TextResourceScriptSourceTest {
     public void convenienceMethodReplacesFileThatDoesNotExistWithEmptyScript() {
         ScriptSource source = forFile(scriptFile);
         assertThat(source.getResource(), instanceOf(EmptyFileTextResource.class));
+        // resource file is null, even though resource location file is not
         assertNull(source.getResource().getFile());
         assertNull(source.getResource().getCharset());
         assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));

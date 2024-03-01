@@ -17,12 +17,15 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.EntryTaskSelector;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public interface BuildController extends Stoppable {
@@ -35,6 +38,11 @@ public interface BuildController extends Stoppable {
      * Adds a filter to the work graph of this build.
      */
     void addFilter(Spec<Task> filter);
+
+    /**
+     * Adds a finalization step to the work graph of this build.
+     */
+    void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization);
 
     /**
      * Queues the given task for execution. Does not schedule the task, use {@link #scheduleQueuedTasks()} for this.

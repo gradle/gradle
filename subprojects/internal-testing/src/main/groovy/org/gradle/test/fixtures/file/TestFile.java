@@ -60,6 +60,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -260,6 +261,11 @@ public class TestFile extends File {
         new TestFileHelper(this).unzipTo(target, useNativeTools);
     }
 
+    public void unzipToWithoutCheckingParentDirs(File target) {
+        assertIsFile();
+        new TestFileHelper(this).unzipTo(target, useNativeTools, false);
+    }
+
     public void untarTo(File target) {
         assertIsFile();
 
@@ -400,6 +406,14 @@ public class TestFile extends File {
             throw new AssertionError("File " + this + " does not contain the expected text.");
         }
         setText(newContent);
+    }
+
+    /**
+     * Inserts the given text at the start of the file
+     */
+    public void prepend(String text) {
+        String original = getText();
+        setText(text + original);
     }
 
     /**
@@ -629,10 +643,14 @@ public class TestFile extends File {
         }
     }
 
-    public boolean isSelfOrDescendent(File file) {
+    public boolean isSelfOrDescendant(File file) {
         if (file.getAbsolutePath().equals(getAbsolutePath())) {
             return true;
         }
+        return isDescendant(file);
+    }
+
+    public boolean isDescendant(File file) {
         return file.getAbsolutePath().startsWith(getAbsolutePath() + File.separatorChar);
     }
 
@@ -649,6 +667,14 @@ public class TestFile extends File {
 
     public TestFile createDir(Object path) {
         return new TestFile(this, path).createDir();
+    }
+
+    public TestFile createDir(Object... pathSegments) {
+        return new TestFile(this, pathSegments).createDir();
+    }
+
+    public List<TestFile> createDirs(String... paths) {
+        return Arrays.stream(paths).map(this::createDir).collect(Collectors.toList());
     }
 
     public TestFile deleteDir() {
@@ -874,6 +900,28 @@ public class TestFile extends File {
     public String getRelativePathFromBase() {
         assertNotEquals("relativeBase must have been set during construction", relativeBase.toPath(), this.toPath());
         return relativeBase.toPath().relativize(this.toPath()).toString();
+    }
+
+    /**
+     * Return a string corresponding to how Gradle will display the file URI for this file.
+     *
+     * @return a string corresponding to how Gradle will display the file URI for this file.
+     */
+    public String getDisplayUri() {
+        return toURI().toASCIIString();
+    }
+
+    /**
+     * Return a string corresponding to how Gradle will display the file URI for this file, assuming it is a directory.
+     *
+     * @return a string corresponding to how Gradle will display the file URI for this file, assuming it is a directory.
+     */
+    public String getDisplayUriForDir() {
+        String uri = getDisplayUri();
+        if (!uri.endsWith("/")) {
+            uri += "/";
+        }
+        return uri;
     }
 
     public static class Snapshot {

@@ -18,7 +18,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.ScriptSourceListener;
 import org.gradle.internal.UncheckedException;

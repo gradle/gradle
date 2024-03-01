@@ -18,8 +18,10 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.internal.concurrent.Stoppable;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public interface BuildWorkPlan extends Stoppable {
@@ -29,4 +31,6 @@ public interface BuildWorkPlan extends Stoppable {
     void onComplete(Consumer<LocalTaskNode> handler);
 
     void addFilter(Spec<Task> filter);
+
+    void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization);
 }

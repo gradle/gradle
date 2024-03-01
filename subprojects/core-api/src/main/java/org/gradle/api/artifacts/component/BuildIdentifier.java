@@ -20,13 +20,27 @@ package org.gradle.api.artifacts.component;
  * Identifies a Gradle build. The identifier is unique within a Gradle invocation, so for example, each included build will have a different identifier.
  */
 public interface BuildIdentifier {
+
+    /**
+     * Absolute build path of the build within the Gradle invocation.
+     *
+     * @since 8.2
+     */
+    String getBuildPath();
+
     /**
      * The name of the build.
+     *
+     * @deprecated Use {@link #getBuildPath()} instead.
      */
+    @Deprecated
     String getName();
 
     /**
      * Is this build the one that's currently executing?
+     *
+     * @deprecated Compare {@link #getBuildPath()} with the build path of the current build instead.
      */
+    @Deprecated
     boolean isCurrentBuild();
 }

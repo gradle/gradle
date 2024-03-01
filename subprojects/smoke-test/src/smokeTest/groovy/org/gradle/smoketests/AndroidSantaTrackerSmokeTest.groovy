@@ -16,6 +16,10 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.scripts.DefaultScriptFileResolver
+import org.gradle.util.internal.VersionNumber
+
 import java.util.jar.JarOutputStream
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -34,10 +38,12 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        def result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
 
         then:
-        assertConfigurationCacheStateStored()
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateStored()
+        }
 
         where:
         agpVersion << TESTED_AGP_VERSIONS
@@ -57,30 +63,43 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         and:
         def pathToClass = "com/google/android/apps/santatracker/tracker/ui/BottomSheetBehavior"
         def fileToChange = checkoutDir.file("tracker/src/main/java/${pathToClass}.java")
-        def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
+        def compiledClassFile = VersionNumber.parse(agpVersion).baseVersion >= VersionNumber.parse('8.3.0')
+            ? checkoutDir.file("tracker/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/${pathToClass}.class")
+            : checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
 
         when:
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
-        def result = buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        def result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
 
         then:
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
-        assertConfigurationCacheStateStored()
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateStored()
+        }
 
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
-        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        if (GradleContextualExecuter.notConfigCache) {
+            result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
+        } else {
+            result = buildLocationMaybeExpectingWorkerExecutorAndConfigUtilDeprecation(checkoutDir, agpVersion)
+        }
+
         def md5After = compiledClassFile.md5Hash
 
         then:
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
-        // TODO - this is here because AGP >=7.4 reads build/generated/source/kapt/debug at configuration time
-        if (agpVersion.startsWith('7.3')) {
-            assertConfigurationCacheStateLoaded()
+        // TODO - this is here because AGP >=7.4 and <8.1.0 reads build/generated/source/kapt/debug at configuration time
+        if (agpVersion.startsWith('7.3') || VersionNumber.parse(agpVersion) >= VersionNumber.parse('8.1.0')) {
+            if (GradleContextualExecuter.isConfigCache()) {
+                result.assertConfigurationCacheStateLoaded()
+            }
         } else {
-            assertConfigurationCacheStateStored()
+            if (GradleContextualExecuter.isConfigCache()) {
+                result.assertConfigurationCacheStateStored()
+            }
         }
         md5After != md5Before
 
@@ -107,10 +126,23 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
+        runner.deprecations(SantaTrackerDeprecations) {
+            expectAndroidConventionTypeDeprecationWarning(agpVersion)
+            expectBasePluginConventionDeprecation(agpVersion)
+            expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion, '8.2.0')
+            expectClientModuleDeprecationWarning(agpVersion)
+            if (agpVersion.startsWith('7.')) {
+                expectBuildIdentifierNameDeprecation(agpVersion)
+            }
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
+            expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
+        }
         def result = runner.buildAndFail()
 
         then:
-        assertConfigurationCacheStateStored()
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateStored()
+        }
         result.output.contains("Lint found errors in the project; aborting build.")
 
         when:
@@ -120,14 +152,25 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         )
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
+        runner.deprecations(SantaTrackerDeprecations) {
+            if (GradleContextualExecuter.notConfigCache) {
+                expectAndroidConventionTypeDeprecationWarning(agpVersion)
+                expectBasePluginConventionDeprecation(agpVersion)
+                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
+                expectClientModuleDeprecationWarning(agpVersion)
+            }
+        }
         result = runner.buildAndFail()
 
         then:
-        assertConfigurationCacheStateLoaded()
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateLoaded()
+        }
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        agpVersion << TESTED_AGP_VERSIONS.findAll { !it.startsWith("4.")}
+        agpVersion << TESTED_AGP_VERSIONS
     }
 }
 
@@ -137,7 +180,7 @@ class SantaTrackerConfigurationCacheWorkaround {
         // which invalidates configuration cache if their presence changes. Create these directories before the first build.
         // See: https://android.googlesource.com/platform/tools/base/+/studio-master-dev/build-system/gradle-core/src/main/java/com/android/build/gradle/tasks/ShaderCompile.java#120
         // TODO: remove this once AGP stops checking for the existence of these directories at configuration time
-        checkoutDir.listFiles().findAll { it.isDirectory() && new File(it, "build.gradle").exists() }.each {
+        checkoutDir.listFiles().findAll { isGradleProjectDir(it) }.each {
             new File(it, "build/intermediates/merged_shaders/debug/out").mkdirs()
             new File(it, "build/intermediates/merged_shaders/debugUnitTest/out").mkdirs()
             new File(it, "build/intermediates/merged_shaders/debugAndroidTest/out").mkdirs()
@@ -149,10 +192,33 @@ class SantaTrackerConfigurationCacheWorkaround {
             androidAnalyticsSetting.parentFile.mkdirs()
             androidAnalyticsSetting.createNewFile()
         }
+        File androidCacheDir = new File(System.getProperty("user.home"), ".android/cache")
+        if (!androidCacheDir.exists()) {
+            androidCacheDir.mkdirs()
+        }
+        File androidLock = new File(gradleHome, "android.lock")
+        if (!androidLock.exists()) {
+            androidLock.parentFile.mkdirs()
+            androidLock.createNewFile()
+        }
         def androidFakeDependency = new File(gradleHome, "android/FakeDependency.jar")
         if (!androidFakeDependency.exists()) {
             androidFakeDependency.parentFile.mkdirs()
             new JarOutputStream(new FileOutputStream(androidFakeDependency)).close()
         }
+        File androidSdkRoot = new File(System.getenv("ANDROID_SDK_ROOT"))
+        File androidSdkPackageXml = new File(androidSdkRoot, "platform-tools/package.xml")
+        if (!androidSdkPackageXml.exists()) {
+            androidSdkPackageXml.parentFile.mkdirs()
+            androidSdkPackageXml.createNewFile()
+        }
+    }
+
+    private static boolean isGradleProjectDir(File candidate) {
+        candidate.isDirectory() && hasGradleScript(candidate)
+    }
+
+    private static boolean hasGradleScript(File dir) {
+        !new DefaultScriptFileResolver().findScriptsIn(dir).isEmpty()
     }
 }

@@ -191,7 +191,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             abstract class Bean {
                 @Internal
                 final String name
-                @Internal
+                @Input
                 abstract Property<String> getProp()
 
                 Bean(String name) {
@@ -259,7 +259,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             interface Params {
-                @Internal
+                @Input
                 Property<Integer> getCount()
             }
             abstract class MyTask extends DefaultTask {
@@ -292,7 +292,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             interface Params {
-                @Internal
+                @Input
                 Property<Integer> getCount()
             }
             class MyTask extends DefaultTask {

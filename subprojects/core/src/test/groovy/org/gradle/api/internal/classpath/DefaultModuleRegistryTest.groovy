@@ -115,11 +115,11 @@ class DefaultModuleRegistryTest extends Specification {
         expect:
         if (cpFiles.size() == 1) {
             // jar - command line test execution
-            assert cpFiles[0].path.contains("subprojects/resources/build/libs/gradle-resources".replace('/', File.separator)) // jar
+            assert cpFiles[0].path.contains("platforms/software/resources/build/libs/gradle-resources".replace('/', File.separator)) // jar
         } else {
             assert cpFiles.size() == 3
             // folders - IDE test execution
-            assert cpFiles[0].path.endsWith("subprojects/resources/build/generated-resources/main".replace('/', File.separator))
+            assert cpFiles[0].path.endsWith("platforms/software/resources/build/generated-resources/main".replace('/', File.separator))
             assert cpFiles[1].path.endsWith("/classes")
             assert cpFiles[2].path.endsWith("/resources")
         }
@@ -174,7 +174,7 @@ class DefaultModuleRegistryTest extends Specification {
         module.runtimeClasspath.asFiles == [runtimeDep]
     }
 
-    def "locates dependency #dependency replaced by Gradle Enterprise plugin to #actualDependencyOnClasspath in classpath"() {
+    def "locates dependency #dependency replaced by Develocity plugin to #actualDependencyOnClasspath in classpath"() {
         given:
         def dependencyJar = tmpDir.createFile("external/${actualDependencyOnClasspath}.jar")
         def moduleDir = createModule("my-testing", properties(runtime: "${dependency}.jar".toString()))
@@ -193,7 +193,7 @@ class DefaultModuleRegistryTest extends Specification {
         'opentest4j-1.2.27'             | 'opentest4j-1.3.38'
     }
 
-    def "does not locate dependency replaced by Gradle Enterprise plugin in classpath when installation is present"() {
+    def "does not locate dependency replaced by Develocity plugin in classpath when installation is present"() {
         given:
         def dependencyJar = tmpDir.createFile("external/junit-platform-commons-1.9.9.jar")
         def moduleDir = createModule("my-testing", properties(runtime: 'junit-platform-commons-1.8.3.jar'))
@@ -206,7 +206,7 @@ class DefaultModuleRegistryTest extends Specification {
         e.message.startsWith("Cannot find JAR 'junit-platform-commons-1.8.3.jar' required by module 'gradle-my-testing' using classpath")
     }
 
-    def "does not locate dependency not replaced by Gradle Enterprise plugin in classpath"() {
+    def "does not locate dependency not replaced by Develocity plugin in classpath"() {
         given:
         def dependencyJar = tmpDir.createFile("external/junit-platform-basics-1.9.9.jar")
         def moduleDir = createModule("my-testing", properties(runtime: 'junit-platform-basics-1.8.3.jar'))

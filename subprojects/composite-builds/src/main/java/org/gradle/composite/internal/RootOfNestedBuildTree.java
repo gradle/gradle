@@ -19,14 +19,12 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -56,9 +54,7 @@ import java.util.function.Function;
 public class RootOfNestedBuildTree extends AbstractBuildState implements NestedRootBuild {
     private final BuildIdentifier buildIdentifier;
     private final Path identityPath;
-    private final BuildState owner;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
-    private String buildName;
 
     public RootOfNestedBuildTree(
         BuildDefinition buildDefinition,
@@ -70,8 +66,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         super(buildTree, buildDefinition, owner);
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
-        this.owner = owner;
-        this.buildName = buildDefinition.getName() == null ? buildIdentifier.getName() : buildDefinition.getName();
 
         BuildScopeServices buildServices = getBuildServices();
         BuildLifecycleController buildLifecycleController = getBuildController();
@@ -108,11 +102,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     }
 
     @Override
-    public Path getCurrentPrefixForProjectsInChildBuilds() {
-        return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildName);
-    }
-
-    @Override
     public Path calculateIdentityPathForProject(Path projectPath) {
         return getBuildController().getGradle().getIdentityPath().append(projectPath);
     }
@@ -145,12 +134,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         return executor.call(new CallableBuildOperation<T>() {
             @Override
             public T call(BuildOperationContext context) {
-                gradle.addBuildListener(new InternalBuildAdapter() {
-                    @Override
-                    public void settingsEvaluated(Settings settings) {
-                        buildName = settings.getRootProject().getName();
-                    }
-                });
                 T result = action.apply(buildTreeLifecycleController);
                 context.setResult(new RunNestedBuildBuildOperationType.Result() {
                 });

@@ -29,20 +29,21 @@ import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.internal.operations.TestBuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.progress.NoOpProgressLoggerFactory;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
@@ -92,6 +93,25 @@ public abstract class AvailableJavaHomes {
     }
 
     @Nullable
+    public static Jvm getJdk17() {
+        return getJdk(JavaVersion.VERSION_17);
+    }
+    @Nullable
+    public static Jvm getJdk21() {
+        return getJdk(JavaVersion.VERSION_21);
+    }
+
+    @Nullable
+    public static Jvm getHighestSupportedLTS() {
+        return getJdk21();
+    }
+
+    @Nullable
+    public static Jvm getLowestSupportedLTS() {
+        return getJdk8();
+    }
+
+    @Nullable
     public static Jvm getJdk(final JavaVersion version) {
         return Iterables.getFirst(getAvailableJdks(version), null);
     }
@@ -120,11 +140,11 @@ public abstract class AvailableJavaHomes {
     }
 
     public static List<Jvm> getAvailableJvms() {
-        return getJvms().stream().map(AvailableJavaHomes::jvmFromMetadata).collect(Collectors.toList());
+        return getAvailableJvmMetadatas().stream().map(AvailableJavaHomes::jvmFromMetadata).collect(Collectors.toList());
     }
 
     public static List<Jvm> getAvailableJdks(final Spec<? super JvmInstallationMetadata> filter) {
-        return getJvms().stream()
+        return getAvailableJvmMetadatas().stream()
             .filter(input -> input.hasCapability(JAVA_COMPILER))
             .filter(filter::isSatisfiedBy)
             .map(AvailableJavaHomes::jvmFromMetadata)
@@ -139,6 +159,14 @@ public abstract class AvailableJavaHomes {
             }
         }
         return result;
+    }
+
+    public static Map<JavaInfo, JavaVersion> getAvailableJdksWithJavac() {
+        return getAvailableJdksWithVersion()
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getKey().getJavacExecutable()!=null && entry.getValue().isJava8Compatible())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Nullable
@@ -239,7 +267,7 @@ public abstract class AvailableJavaHomes {
         return Jvm.discovered(metadata.getJavaHome().toFile(), metadata.getJavaVersion(), metadata.getLanguageVersion());
     }
 
-    private static List<JvmInstallationMetadata> getJvms() {
+    public static List<JvmInstallationMetadata> getAvailableJvmMetadatas() {
         return INSTALLATIONS.get();
     }
 
@@ -249,9 +277,10 @@ public abstract class AvailableJavaHomes {
         DefaultJvmMetadataDetector defaultJvmMetadataDetector =
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
-        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), new TestBuildOperationExecutor(), OperatingSystem.current())
-            .listInstallations().stream()
-            .map(metadataDetector::getMetadata)
+        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), metadataDetector, null, OperatingSystem.current(), new NoOpProgressLoggerFactory())
+            .toolchains()
+            .stream()
+            .map(x -> x.metadata)
             .filter(JvmInstallationMetadata::isValidInstallation)
             .sorted(Comparator.comparing(JvmInstallationMetadata::getDisplayName).thenComparing(JvmInstallationMetadata::getLanguageVersion))
             .collect(Collectors.toList());
@@ -293,6 +322,11 @@ public abstract class AvailableJavaHomes {
         private static final Pattern JDK_PATTERN = Pattern.compile("JDK\\d\\d?");
 
         @Override
+        public String getSourceName() {
+            return "JDK env variables";
+        }
+
+        @Override
         public Set<InstallationLocation> get() {
             return System.getenv().entrySet()
                 .stream()
@@ -311,6 +345,11 @@ public abstract class AvailableJavaHomes {
         }
 
         @Override
+        public String getSourceName() {
+            return "base dir " + baseDir.getName();
+        }
+
+        @Override
         public Set<InstallationLocation> get() {
             final File[] files = baseDir.listFiles();
             if (files != null) {
@@ -318,7 +357,7 @@ public abstract class AvailableJavaHomes {
                     .filter(File::isDirectory)
                     .filter(file -> file.getName().toLowerCase().contains("jdk") || file.getName().toLowerCase().contains("jre"))
                     .filter(file -> new File(file, OperatingSystem.current().getExecutableName("bin/java")).exists())
-                    .map(file -> new InstallationLocation(file, "base dir " + baseDir.getName()))
+                    .map(file -> new InstallationLocation(file, getSourceName()))
                     .collect(Collectors.toSet());
             }
             return Collections.emptySet();

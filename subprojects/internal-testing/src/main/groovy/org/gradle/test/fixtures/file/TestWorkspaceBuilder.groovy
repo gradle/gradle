@@ -45,6 +45,10 @@ class TestWorkspaceBuilder {
         baseDir.file(name).createFile()
     }
 
+    TestFile link(String name, String target) {
+        baseDir.file(name).createLink(target)
+    }
+
     def setMode(int mode) {
         baseDir.mode = mode
     }

@@ -49,7 +49,7 @@ import static org.junit.Assert.assertEquals;
  */
 public abstract class AbstractArchiveFileTreeTest {
     @Rule public final TestNameTestDirectoryProvider tempDirProvider = new TestNameTestDirectoryProvider(getClass());
-    @Rule public final Resources resources = new Resources();
+    @Rule public final Resources resources = new Resources(tempDirProvider);
     protected final TestFile tmpDir = tempDirProvider.getTestDirectory().file("tmp");
     protected final TestFile rootDir = tempDirProvider.getTestDirectory().file("root");
 

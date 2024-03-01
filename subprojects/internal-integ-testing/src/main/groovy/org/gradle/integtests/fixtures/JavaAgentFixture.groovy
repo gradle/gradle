@@ -21,9 +21,13 @@ import org.gradle.test.fixtures.file.TestFile
 
 class JavaAgentFixture {
     void writeProjectTo(TestFile projectDir) {
-        projectDir.createDir('src/main/java')
-        projectDir.file('src/main/java/Agent.java').text = javaAgentClassContent
-        projectDir.file('build.gradle').text = buildScriptContent
+        projectDir.file("settings.gradle") << """
+            include 'javaagent'
+        """
+        def javaAgentProjectDir = projectDir.createDir('javaagent')
+        javaAgentProjectDir.createDir('src/main/java')
+        javaAgentProjectDir.file('src/main/java/Agent.java').text = javaAgentClassContent
+        javaAgentProjectDir.file('build.gradle').text = buildScriptContent
     }
 
     String getJavaAgentClassContent() {
@@ -57,6 +61,45 @@ class JavaAgentFixture {
                     )
                 }
             }
+        """
+    }
+
+    String useJavaAgent(String forkOptions) {
+        """
+            ${commandLineArgumentProviderClassContent}
+
+            configurations {
+                javaagent
+            }
+
+            dependencies {
+                javaagent project(':javaagent')
+            }
+
+            ${configureForkOptions(forkOptions)}
+        """
+    }
+
+    private String getCommandLineArgumentProviderClassContent() {
+        return """
+            abstract class JavaAgentCommandLineArgumentProvider implements CommandLineArgumentProvider {
+                @Classpath
+                abstract ConfigurableFileCollection getJarFile()
+
+                @Override
+                List<String> asArguments() {
+                    File agentJarFile = jarFile.singleFile
+                    ["-javaagent:\${agentJarFile.absolutePath}".toString()]
+                }
+            }
+        """
+    }
+
+    private String configureForkOptions(String forkOptions) {
+        """
+            def javaAgent = objects.newInstance(JavaAgentCommandLineArgumentProvider)
+            javaAgent.jarFile.from(configurations.javaagent)
+            ${forkOptions}.jvmArgumentProviders.add(javaAgent)
         """
     }
 }

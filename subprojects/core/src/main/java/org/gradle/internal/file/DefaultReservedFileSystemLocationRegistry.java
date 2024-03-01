@@ -16,7 +16,7 @@
 
 package org.gradle.internal.file;
 
-import org.gradle.internal.watch.registry.impl.Combiners;
+import org.gradle.internal.Combiners;
 
 import java.io.File;
 import java.util.List;
@@ -26,7 +26,7 @@ public class DefaultReservedFileSystemLocationRegistry implements ReservedFileSy
 
     public DefaultReservedFileSystemLocationRegistry(List<ReservedFileSystemLocation> registeredReservedFileSystemLocations) {
         this.reservedFileSystemLocations = registeredReservedFileSystemLocations.stream()
-            .map(input -> input.getReservedFileSystemLocation().get().getAsFile())
+            .map(input -> input.getReservedFileSystemLocation().get())
             .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
     }
 

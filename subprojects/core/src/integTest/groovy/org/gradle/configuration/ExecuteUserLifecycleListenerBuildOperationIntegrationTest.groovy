@@ -497,7 +497,6 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(rootAfterEvaluated, rootOtherScriptAppId, 'other script', expectedProjectOps)
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
     def 'taskGraph whenReady action listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -550,6 +549,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(whenReadyEvaluated, rootOtherScriptAppId, 'other script', expectedGradleOps)
     }
 
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def 'listeners that implement multiple interfaces are decorated correctly'() {
         given:
         def addGradleListeners = { String source ->

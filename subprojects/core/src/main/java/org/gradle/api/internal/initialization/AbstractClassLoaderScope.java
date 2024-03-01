@@ -47,6 +47,7 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     /**
      * Unique identifier of this scope in the hierarchy.
      */
+    @Override
     public ClassLoaderScopeId getId() {
         return id;
     }
@@ -91,5 +92,10 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     @Override
     public ClassLoaderScope createLockedChild(String name, @Nullable ClassLoaderScopeOrigin origin, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory) {
         return new ImmutableClassLoaderScope(id.child(name), this, origin, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener);
+    }
+
+    @Override
+    public ClassLoaderScope getOriginalScope() {
+        return this;
     }
 }

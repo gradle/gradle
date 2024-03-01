@@ -29,10 +29,14 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
-    private final DomainObjectSet<T> backingSet;
+    private final DomainObjectSet<T> delegate;
 
-    public DelegatingDomainObjectSet(DomainObjectSet<T> backingSet) {
-        this.backingSet = backingSet;
+    public DelegatingDomainObjectSet(DomainObjectSet<T> delegate) {
+        this.delegate = delegate;
+    }
+
+    protected DomainObjectSet<T> getDelegate() {
+        return delegate;
     }
 
     @Override
@@ -42,17 +46,17 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
 
     @Override
     public DomainObjectSet<T> matching(Spec<? super T> spec) {
-        return backingSet.matching(spec);
+        return delegate.matching(spec);
     }
 
     @Override
     public <S extends T> DomainObjectSet<S> withType(Class<S> type) {
-        return backingSet.withType(type);
+        return delegate.withType(type);
     }
 
     @Override
     public void all(Action<? super T> action) {
-        backingSet.all(action);
+        delegate.all(action);
     }
 
     @Override
@@ -62,12 +66,12 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
 
     @Override
     public void configureEach(Action<? super T> action) {
-        backingSet.configureEach(action);
+        delegate.configureEach(action);
     }
 
     @Override
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
-        return backingSet.whenObjectAdded(action);
+        return delegate.whenObjectAdded(action);
     }
 
     @Override
@@ -77,7 +81,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
 
     @Override
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
-        return backingSet.whenObjectRemoved(action);
+        return delegate.whenObjectRemoved(action);
     }
 
     @Override
@@ -87,7 +91,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
 
     @Override
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
-        return backingSet.withType(type, configureAction);
+        return delegate.withType(type, configureAction);
     }
 
     @Override
@@ -97,81 +101,81 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
 
     @Override
     public void addLater(Provider<? extends T> provider) {
-        backingSet.addLater(provider);
+        delegate.addLater(provider);
     }
 
     @Override
     public void addAllLater(Provider<? extends Iterable<T>> provider) {
-        backingSet.addAllLater(provider);
+        delegate.addAllLater(provider);
     }
 
     @Override
     public boolean add(T o) {
-        return backingSet.add(o);
+        return delegate.add(o);
     }
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
-        return backingSet.addAll(c);
+        return delegate.addAll(c);
     }
 
     @Override
     public void clear() {
-        backingSet.clear();
+        delegate.clear();
     }
 
     @Override
     public boolean contains(Object o) {
-        return backingSet.contains(o);
+        return delegate.contains(o);
     }
 
     @Override
     public boolean containsAll(Collection<?> c) {
-        return backingSet.containsAll(c);
+        return delegate.containsAll(c);
     }
 
     @Override
     public boolean isEmpty() {
-        return backingSet.isEmpty();
+        return delegate.isEmpty();
     }
 
     @Override
     public Iterator<T> iterator() {
-        return backingSet.iterator();
+        return delegate.iterator();
     }
 
     @Override
     public boolean remove(Object o) {
-        return backingSet.remove(o);
+        return delegate.remove(o);
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        return backingSet.removeAll(c);
+        return delegate.removeAll(c);
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        return backingSet.retainAll(c);
+        return delegate.retainAll(c);
     }
 
     @Override
     public int size() {
-        return backingSet.size();
+        return delegate.size();
     }
 
     @Override
     public Object[] toArray() {
-        return backingSet.toArray();
+        return delegate.toArray();
     }
 
     @Override
     public <T> T[] toArray(T[] a) {
-        return backingSet.toArray(a);
+        return delegate.toArray(a);
     }
 
     @Override
     public Set<T> findAll(Closure spec) {
-        return backingSet.findAll(spec);
+        return delegate.findAll(spec);
     }
 }

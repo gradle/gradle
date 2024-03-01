@@ -16,8 +16,8 @@
 
 package gradlebuild.samples
 
-import gradlebuild.toLowerCase
-import gradlebuild.toUpperCase
+import gradlebuild.basics.toLowerCase
+import gradlebuild.basics.toUpperCase
 import org.gradle.api.file.Directory
 import org.gradle.buildinit.plugins.internal.CompositeProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.InitSettings
@@ -42,8 +42,8 @@ object SamplesGenerator {
         // clear the target directory to remove renamed files and reset the README file
         target.asFile.deleteRecursively()
 
-        val groovyDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.GROOVY, packageName, testFramework, target.dir("groovy"))
-        val kotlinDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.KOTLIN, packageName, testFramework, target.dir("kotlin"))
+        val groovyDslSettings = InitSettings(projectName, false, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.GROOVY, packageName, testFramework, target.dir("groovy"))
+        val kotlinDslSettings = InitSettings(projectName, false, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.KOTLIN, packageName, testFramework, target.dir("kotlin"))
 
         val specificContentId = if (descriptor.language === Language.CPP || descriptor.language === Language.SWIFT) {
             "native-" + descriptor.componentType.toString()
@@ -175,7 +175,7 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("testSourceFile", testSourceFile)
             .withBinding("sourceFileTree", sourceFileTree)
             .withBinding("testSourceFileTree", testSourceFileTree)
-            .withBinding("testFramework", if (descriptor.defaultTestFramework == null) "" else "_" + descriptor.defaultTestFramework.toString() + "_")
+            .withBinding("testFramework", "_" + descriptor.defaultTestFramework.toString() + "_")
             .withBinding("buildFileComments", buildFileComments)
             .withBinding("testFrameworkChoice", testFrameworkChoice)
             .withBinding("tasksExecuted", "" + tasksExecuted(descriptor))
@@ -196,12 +196,12 @@ Enter selection (default: JUnit 4) [1..4]
      > Task :$subprojectName:compileTestJava NO-SOURCE
 
         """.trimIndent() else ""
-        val nativeTestTaskPrefix = if (descriptor.language === Language.SWIFT) "xc" else "run"
-        val classesUpToDate = if (descriptor.language === Language.KOTLIN) " UP-TO-DATE" else ""
-        val inspectClassesForKotlinICTask = if (descriptor.language === Language.KOTLIN) """
-     > Task :$subprojectName:inspectClassesForKotlinIC
+        val extraKotlinCheckTask = if (descriptor.language === Language.KOTLIN) """
+     > Task :$subprojectName:checkKotlinGradlePluginConfigurationErrors
 
         """.trimIndent() else ""
+        val nativeTestTaskPrefix = if (descriptor.language === Language.SWIFT) "xc" else "run"
+        val classesUpToDate = if (descriptor.language === Language.KOTLIN) " UP-TO-DATE" else ""
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("$templateFragment-build.out"))
             .withTarget(settings.target.file("../tests/build.out").asFile)
@@ -209,10 +209,10 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("subprojectName", subprojectName)
             .withBinding("extraCompileJava", extraCompileJava)
             .withBinding("extraCompileTestJava", extraCompileTestJava)
+            .withBinding("extraKotlinCheckTask", extraKotlinCheckTask)
             .withBinding("nativeTestTaskPrefix", nativeTestTaskPrefix)
             .withBinding("tasksExecuted", "" + tasksExecuted(descriptor))
             .withBinding("classesUpToDate", "" + classesUpToDate)
-            .withBinding("inspectClassesForKotlinICTask", "" + inspectClassesForKotlinICTask)
             .create().generate()
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("build.sample.conf"))
@@ -222,11 +222,8 @@ Enter selection (default: JUnit 4) [1..4]
 
     private
     fun tasksExecuted(descriptor: CompositeProjectInitDescriptor): Int {
-        var tasksExecuted = if (descriptor.componentType === ComponentType.LIBRARY) 4 else 7
-        if (descriptor.language === Language.KOTLIN) {
-            tasksExecuted++
-        }
-        return tasksExecuted
+        val tasksExecuted = if (descriptor.componentType === ComponentType.LIBRARY) 4 else 7
+        return tasksExecuted + if (descriptor.language === Language.KOTLIN) 1 else 0
     }
 
     private

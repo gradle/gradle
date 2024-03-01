@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -196,6 +197,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         options.setDebug(enabled);
     }
 
+    @Override
     public JavaDebugOptions getDebugOptions() {
         return options.getDebugOptions();
     }
@@ -203,6 +205,12 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
         action.execute(options.getDebugOptions());
+    }
+
+    @Override
+    protected Map<String, ?> getInheritableEnvironment() {
+        // Filter out any environment variables that should not be inherited.
+        return Jvm.getInheritableEnvironmentVariables(super.getInheritableEnvironment());
     }
 
     @Override
@@ -223,16 +231,26 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
             throw new UnsupportedOperationException("Cannot compare options with jvmArgumentProviders.");
         }
         return getDebug() == options.getDebug()
-                && getEnableAssertions() == options.getEnableAssertions()
-                && normalized(getExecutable()).equals(normalized(options.getExecutable()))
-                && getWorkingDir().equals(options.getWorkingDir())
-                && normalized(getDefaultCharacterEncoding()).equals(normalized(options.getDefaultCharacterEncoding()))
-                && getHeapSizeMb(getMinHeapSize()) >= getHeapSizeMb(options.getMinHeapSize())
-                && getHeapSizeMb(getMaxHeapSize()) >= getHeapSizeMb(options.getMaxHeapSize())
-                && normalized(getJvmArgs()).containsAll(normalized(options.getJvmArgs()))
-                && containsAll(getSystemProperties(), options.getSystemProperties())
-                && containsAll(getEnvironment(), options.getEnvironment())
-                && getBootstrapClasspath().getFiles().containsAll(options.getBootstrapClasspath().getFiles());
+            && getEnableAssertions() == options.getEnableAssertions()
+            && normalized(getExecutable()).equals(normalized(options.getExecutable()))
+            && getWorkingDir().equals(options.getWorkingDir())
+            && normalized(getDefaultCharacterEncoding()).equals(normalized(options.getDefaultCharacterEncoding()))
+            && getHeapSizeMb(getMinHeapSize()) >= getHeapSizeMb(options.getMinHeapSize())
+            && getHeapSizeMb(getMaxHeapSize()) >= getHeapSizeMb(options.getMaxHeapSize())
+            && normalized(getJvmArgs()).containsAll(normalized(options.getJvmArgs()))
+            && containsAll(getSystemProperties(), options.getSystemProperties())
+            && containsAll(getEnvironment(), options.getEnvironment())
+            && getBootstrapClasspath().getFiles().containsAll(options.getBootstrapClasspath().getFiles());
+    }
+
+    @Override
+    public void checkDebugConfiguration(Iterable<?> arguments) {
+        options.checkDebugConfiguration(arguments);
+    }
+
+    @Override
+    public void setExtraJvmArgs(Iterable<?> arguments) {
+        options.setExtraJvmArgs(arguments);
     }
 
     private static boolean hasJvmArgumentProviders(JavaForkOptions forkOptions) {
@@ -241,7 +259,10 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     private static boolean hasJvmArgumentProviders(DefaultJavaForkOptions forkOptions) {
-        return forkOptions.jvmArgumentProviders != null && !forkOptions.jvmArgumentProviders.isEmpty();
+        return !isNullOrEmpty(forkOptions.jvmArgumentProviders);
     }
 
+    private static <T> boolean isNullOrEmpty(List<T> list) {
+        return list == null || list.isEmpty();
+    }
 }

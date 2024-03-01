@@ -18,6 +18,8 @@ package org.gradle.integtests.fixtures
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.internal.DefaultProblemProgressDetails
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -31,6 +33,8 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.integtests.fixtures.problems.KnownCategories
+import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -45,8 +49,8 @@ import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
-import org.junit.Assume
 import org.junit.Rule
+import org.opentest4j.AssertionFailedError
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -56,7 +60,6 @@ import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFA
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.Matchers.normalizedLineSeparators
-
 /**
  * Spockified version of AbstractIntegrationTest.
  *
@@ -71,9 +74,14 @@ abstract class AbstractIntegrationSpec extends Specification {
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     private TestFile testDirOverride = null
 
+    protected DocumentationRegistry documentationRegistry = new DocumentationRegistry()
+
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     private GradleExecuter executor
     private boolean ignoreCleanupAssertions
+
+    private boolean enableProblemsApiCheck = false
+    private BuildOperationsFixture buildOperationsFixture = null
 
     GradleExecuter getExecuter() {
         if (executor == null) {
@@ -101,7 +109,8 @@ abstract class AbstractIntegrationSpec extends Specification {
     protected int maxHttpRetries = 1
     protected Integer maxUploadAttempts
 
-    @Lazy private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
+    @Lazy
+    private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
 
     def setup() {
         // Verify that the previous test (or fixtures) has cleaned up state correctly
@@ -117,6 +126,15 @@ abstract class AbstractIntegrationSpec extends Specification {
     }
 
     def cleanup() {
+        if (enableProblemsApiCheck) {
+            collectedProblems.each {
+                KnownCategories.assertHasKnownCategory(it)
+            }
+        }
+
+        buildOperationsFixture = null
+        disableProblemsApiCheck()
+
         executer.cleanup()
         m2.cleanupState()
 
@@ -159,6 +177,10 @@ abstract class AbstractIntegrationSpec extends Specification {
         testDirectory.file(getDefaultBuildFileName())
     }
 
+    String getTestJunitCoordinates() {
+        return "junit:junit:4.13"
+    }
+
     void buildFile(@GroovyBuildScriptLanguage String script) {
         groovyFile(buildFile, script)
     }
@@ -175,12 +197,12 @@ abstract class AbstractIntegrationSpec extends Specification {
         targetBuildFile << script
     }
 
-    String groovyScript(@GroovyBuildScriptLanguage String script) {
+    static String groovyScript(@GroovyBuildScriptLanguage String script) {
         script
     }
 
     TestFile getBuildKotlinFile() {
-        testDirectory.file(getDefaultBuildKotlinFileName())
+        testDirectory.file(defaultBuildKotlinFileName)
     }
 
     protected String getDefaultBuildFileName() {
@@ -211,9 +233,20 @@ abstract class AbstractIntegrationSpec extends Specification {
         settingsFile
     }
 
+    protected TestFile initScript(@GroovyBuildScriptLanguage String script) {
+        initScriptFile.text = script
+        initScriptFile
+    }
+
+
     protected TestFile getSettingsFile() {
         testDirectory.file(settingsFileName)
     }
+
+    protected TestFile getInitScriptFile() {
+        testDirectory.file(initScriptFileName)
+    }
+
 
     protected TestFile getSettingsKotlinFile() {
         testDirectory.file(settingsKotlinFileName)
@@ -229,6 +262,10 @@ abstract class AbstractIntegrationSpec extends Specification {
 
     protected static String getSettingsKotlinFileName() {
         return 'settings.gradle.kts'
+    }
+
+    protected static String getInitScriptFileName() {
+        return 'init.gradle'
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
@@ -249,6 +286,10 @@ abstract class AbstractIntegrationSpec extends Specification {
 
     protected ConfigurationCacheBuildOperationsFixture newConfigurationCacheFixture() {
         return new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
+    }
+
+    String relativePath(String path) {
+        return path.replace('/', File.separator)
     }
 
     TestFile getTestDirectory() {
@@ -451,6 +492,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     protected ExecutionFailure fails(String... tasks) {
         failure = executer.withTasks(*tasks).runWithFailure()
+
+        if (enableProblemsApiCheck && collectedProblems.isEmpty()) {
+            throw new AssertionFailedError("Expected to find a problem emitted via the 'Problems' service for the failing build, but none was received.")
+        }
+
         return failure
     }
 
@@ -622,6 +668,12 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         root.create(cl)
     }
 
+    List<TestFile> createDirs(String... names) {
+        names.collect { name ->
+            createDir(name)
+        }
+    }
+
     /**
      * Replaces the given text in the build script with new value, asserting that the change was actually applied (ie the text was present).
      */
@@ -692,12 +744,44 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         recreateExecuter()
     }
 
-    void assumeGroovy3() {
-        Assume.assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
+    def enableProblemsApiCheck() {
+        enableProblemsApiCheck = true
+        buildOperationsFixture = new BuildOperationsFixture(executer, temporaryFolder)
     }
 
-    void assumeGroovy4() {
-        Assume.assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
+    def disableProblemsApiCheck() {
+        enableProblemsApiCheck = false
+    }
+
+    /**
+     * Gets all problems collected by the Problems API.
+     *
+     * @return The list of collected problems
+     * @throws IllegalStateException if the Problems API check is not enabled
+     */
+    List<ReceivedProblem> getCollectedProblems() {
+        if (!enableProblemsApiCheck) {
+            throw new IllegalStateException('Problems API check is not enabled')
+        }
+        return buildOperationsFixture.all().collectMany {operation ->
+            operation.progress(DefaultProblemProgressDetails.class).collect {
+                def problemDetails = it.details.get("problem") as Map<String, Object>
+                return new ReceivedProblem(operation.id, problemDetails)
+            }
+        }
+    }
+
+    /**
+     * Gets the first problem of the given category. Assumes that there is only one problem.
+     *
+     * @return The first collected problem
+     * @throws AssertionError if there is no, or more than one, collected problem
+     * @throws IllegalStateException if the Problems API check is not enabled
+     */
+    ReceivedProblem getCollectedProblem() {
+        def problems = getCollectedProblems()
+        assert problems.size() == 1: "Expected to find exactly one problem, but found ${problems.size()} problems"
+        return problems[0]
     }
 
     /**

@@ -15,11 +15,13 @@
  */
 package org.gradle.api.initialization.dsl;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import groovy.lang.Closure;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -103,6 +105,17 @@ public interface ScriptHandler {
      * @return The configuration of this handler.
      */
     ConfigurationContainer getConfigurations();
+
+    /**
+     * Configures the configurations for the script. Executes the given action against the {@link ConfigurationContainer} for
+     * this handler.
+     *
+     * @param configureClosure The action used to configure the script configurations.
+     *
+     * @since 8.4
+     */
+    @Incubating
+    void configurations(Action<? super ConfigurationContainer> configureClosure);
 
     /**
      * Configures dependency locking

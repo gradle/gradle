@@ -20,6 +20,7 @@ import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractCompositeBuildIntegrationTest {
@@ -39,6 +40,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
 
         when:
+        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, "help")
         then:
         assignedBuildPaths ==~ [
@@ -46,6 +48,13 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             ':includedBuild:buildLogic',
             ':',
             ':buildLogic'
+        ]
+
+        extractBuildIdentifierOutput(output) ==~ [
+            [path: ':', name: ':'],
+            [path: ':includedBuild', name: 'includedBuild'],
+            [path: ':includedBuild:buildLogic', name: 'buildLogic'],
+            [path: ':buildLogic', name: 'buildLogic']
         ]
     }
 
@@ -70,6 +79,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
 
         when:
+        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, 'help')
         then:
         assignedBuildPaths ==~ [
@@ -81,6 +91,17 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             ':buildLogic',
             ':nested',
             ':nested:buildLogic'
+        ]
+
+        extractBuildIdentifierOutput(output) ==~ [
+            [path: ':', name: ':'],
+            [path: ':buildLogic', name: 'buildLogic'],
+            [path: ':includedBuild', name: 'includedBuild'],
+            [path: ':includedBuild:buildLogic', name: 'buildLogic'],
+            [path: ':includedBuild:nested', name: 'nested'],
+            [path: ':includedBuild:nested:buildLogic', name: 'buildLogic'],
+            [path: ':nested', name: 'nested'],
+            [path: ':nested:buildLogic', name: 'buildLogic']
         ]
     }
 
@@ -104,11 +125,24 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         }
 
         when:
+        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, 'help')
         then:
         assignedBuildPaths ==~ [
             ':includedBuild', ':includedBuild:buildSrc', ':includedBuild:nested', ':includedBuild:nested:buildSrc',
             ':', ':buildSrc', ':nested', ':nested:buildSrc', ':nested:buildSrc:buildSrc']
+
+        extractBuildIdentifierOutput(output) ==~ [
+            [path: ':', name: ':'],
+            [path: ':buildSrc', name: 'buildSrc'],
+            [path: ':includedBuild', name: 'includedBuild'],
+            [path: ':includedBuild:buildSrc', name: 'buildSrc'],
+            [path: ':includedBuild:nested', name: 'nested'],
+            [path: ':includedBuild:nested:buildSrc', name: 'buildSrc'],
+            [path: ':nested', name: 'nested'],
+            [path: ':nested:buildSrc', name: 'buildSrc'],
+            [path: ':nested:buildSrc:buildSrc', name: 'buildSrc']
+        ]
     }
 
     def "uses the directory hierarchy to determine the build path when the builds are not nested"() {
@@ -126,12 +160,21 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         }
         def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
         def includedBuildBNested = createDir('includedBuildB/nested')
-        new BuildTestFixture(includedBuildBNested).multiProjectBuild('includedBuildB', ['project1', 'project2'])
+        new BuildTestFixture(includedBuildBNested).multiProjectBuild('includedBuildB-nested', ['project1', 'project2'])
 
         when:
+        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, 'help')
         then:
         assignedBuildPaths ==~ [':', ':includedBuildB', ':includedBuildA', ':nested', ':includedBuildB:nested']
+
+        extractBuildIdentifierOutput(output) ==~ [
+            [path: ':', name: ':'],
+            [path: ':includedBuildA', name: 'includedBuildA'],
+            [path: ':includedBuildB', name: 'includedBuildB'],
+            [path: ':includedBuildB:nested', name: 'nested'],
+            [path: ':nested', name: 'nested']
+        ]
     }
 
     def "does not resolve the path conflict when the parent build is included #laterDescription"() {
@@ -182,14 +225,34 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         fixture.progress(BuildIdentifiedProgressDetails).findAll { it.details.buildPath }*.details*.buildPath
     }
 
-    private void configureBuildConfigurationOutput(List<BuildTestFile> builds) {
+    private void configureNestedBuild(List<BuildTestFile> builds) {
         builds.each {
-            it.buildFile << """
-                    subprojects {
-                        // The Java plugin forces the configuration of the included builds
-                        apply plugin: 'java'
+            it.settingsFile << """
+                gradle.projectsEvaluated {
+                    // only print from the root build of the build tree to avoid duplication
+                    if (gradle.owner.identityPath.path == ':') {
+                        def registry = gradle.services.get(${BuildStateRegistry.name})
+                        registry.visitBuilds { b ->
+                            def buildId = b.buildIdentifier
+                            println "Build path=" + buildId.buildPath + " name=" + buildId.name
+                        }
                     }
-                """
+                }
+            """
+            it.buildFile << """
+                subprojects {
+                    // The Java plugin forces the configuration of the included builds
+                    apply plugin: 'java'
+                }
+            """
+        }
+    }
+
+    private extractBuildIdentifierOutput(String output) {
+        output.readLines().findAll { it.startsWith("Build path=") }.collect { line ->
+            def matcher = line =~ /Build path=(.+) name=(.+)/
+            assert matcher.matches()
+            [path: matcher.group(1), name: matcher.group(2)]
         }
     }
 
@@ -197,7 +260,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         def rootSpec = new RootNestedBuildSpec(temporaryFolder)
         rootSpec.with(configuration)
         def builds = rootSpec.nestedBuilds
-        configureBuildConfigurationOutput(builds)
+        configureNestedBuild(builds)
         builds
     }
 

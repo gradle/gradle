@@ -17,12 +17,8 @@
 package org.gradle.performance.regression.android
 
 import groovy.transform.SelfType
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.AndroidTestProject
-import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.ScenarioContext
 
 @SelfType(AbstractCrossVersionPerformanceTest)
 trait AndroidPerformanceTestFixture {
@@ -32,26 +28,5 @@ trait AndroidPerformanceTestFixture {
         // which fails when the test project is non-incremental.
         runner.assumeShouldRun()
         AndroidTestProject.projectFor(runner.testProject)
-    }
-
-    void configureProjectJavaHomeToJdk11() {
-        def buildJavaHome = AvailableJavaHomes.jdk11.javaHome
-        runner.addBuildMutator { invocation -> new JavaHomeMutator(invocation, buildJavaHome) }
-    }
-
-    static class JavaHomeMutator implements BuildMutator {
-        private final File buildJavaHome
-        private final InvocationSettings invocation
-
-        JavaHomeMutator(InvocationSettings invocation, File buildJavaHome) {
-            this.invocation = invocation
-            this.buildJavaHome = buildJavaHome
-        }
-
-        @Override
-        void beforeScenario(ScenarioContext context) {
-            def gradleProps = new File(invocation.projectDir, "gradle.properties")
-            gradleProps << "\norg.gradle.java.home=${buildJavaHome.absolutePath.replace("\\", "/")}\n"
-        }
     }
 }

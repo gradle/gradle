@@ -19,7 +19,6 @@ package org.gradle.configuration;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.io.LineProcessor;
 import com.google.common.io.Resources;
 import org.apache.commons.lang.StringUtils;
@@ -27,19 +26,24 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 public class DefaultImportsReader implements ImportsReader {
 
-    private static final String RESOURCE = "/default-imports.txt";
+    public static final String RESOURCE = "/default-imports.txt";
     private static final String MAPPING_RESOURCE = "/api-mapping.txt";
     private final String[] importPackages;
     private final Map<String, List<String>> simpleNameToFQCN;
 
     public DefaultImportsReader() {
+        this(DefaultImportsReader.class.getResource(RESOURCE));
+    }
+
+    public DefaultImportsReader(URL url) {
         try {
-            this.importPackages = generateImportPackages();
+            this.importPackages = generateImportPackages(url);
             this.simpleNameToFQCN = generateSimpleNameToFQCN();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -60,13 +64,12 @@ public class DefaultImportsReader implements ImportsReader {
      * @implNote Logic is duplicated in {@link gradlebuild.integrationtests.action.AnnotationGeneratorWorkAction}.
      * Please keep this code in sync.
      */
-    private static String[] generateImportPackages() throws IOException {
-        URL url = DefaultImportsReader.class.getResource(RESOURCE);
+    private static String[] generateImportPackages(URL url) throws IOException {
         if (url == null) {
             throw new IllegalStateException("Could not load default imports resource: " + RESOURCE);
         }
         return Resources.asCharSource(url, Charsets.UTF_8).readLines(new LineProcessor<String[]>() {
-            private final List<String> packages = Lists.newLinkedList();
+            private final List<String> packages = new LinkedList<>();
 
             @Override
             public boolean processLine(@SuppressWarnings("NullableProblems") String line) throws IOException {
@@ -94,7 +97,7 @@ public class DefaultImportsReader implements ImportsReader {
                 boolean process = !StringUtils.isEmpty(line);
                 if (process) {
                     String[] split = line.split(":");
-                    if (split.length==2) {
+                    if (split.length == 2) {
                         String simpleName = split[0];
                         List<String> fqcns = Splitter.on(';').omitEmptyStrings().splitToList(split[1]);
                         builder.put(simpleName, fqcns);

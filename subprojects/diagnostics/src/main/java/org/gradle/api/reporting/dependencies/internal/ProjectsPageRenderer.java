@@ -17,8 +17,8 @@
 package org.gradle.api.reporting.dependencies.internal;
 
 import com.googlecode.jatl.Html;
-import org.gradle.api.Project;
 import org.gradle.api.Transformer;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.reporting.HtmlPageBuilder;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GradleVersion;
@@ -27,15 +27,18 @@ import java.io.Writer;
 import java.util.Date;
 import java.util.Set;
 
-public class ProjectsPageRenderer extends ReportRenderer<Set<Project>, HtmlPageBuilder<Writer>> {
-    private final Transformer<String, Project> namingScheme;
+/**
+ * Renders an index page for the HTML dependency report for a set of projects.
+ */
+public class ProjectsPageRenderer extends ReportRenderer<Set<ProjectDetails.ProjectNameAndPath>, HtmlPageBuilder<Writer>> {
+    private final Transformer<String, ProjectDetails.ProjectNameAndPath> namingScheme;
 
-    public ProjectsPageRenderer(Transformer<String, Project> namingScheme) {
+    public ProjectsPageRenderer(Transformer<String, ProjectDetails.ProjectNameAndPath> namingScheme) {
         this.namingScheme = namingScheme;
     }
 
     @Override
-    public void render(final Set<Project> projects, final HtmlPageBuilder<Writer> builder) {
+    public void render(final Set<ProjectDetails.ProjectNameAndPath> projects, final HtmlPageBuilder<Writer> builder) {
         final String baseCssLink = builder.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
         final String cssLink = builder.requireResource(getClass().getResource("/org/gradle/api/tasks/diagnostics/htmldependencyreport/style.css"));
 
@@ -60,9 +63,9 @@ public class ProjectsPageRenderer extends ReportRenderer<Set<Project>, HtmlPageB
                                     end();
                                 end();
                                 tbody();
-                                for (Project project : projects) {
+                                for (ProjectDetails.ProjectNameAndPath project : projects) {
                                     tr();
-                                        td().a().href(namingScheme.transform(project)).text(project.toString()).end().end();
+                                        td().a().href(namingScheme.transform(project)).text(project.getDisplayName()).end().end();
                                         td().text(project.getDescription()).end();
                                     end();
                                 }

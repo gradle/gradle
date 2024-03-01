@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.commons.configureJavaToolChain
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -21,12 +22,13 @@ plugins {
     id("gradlebuild.code-quality")
     id("gradlebuild.ktlint")
     id("gradlebuild.ci-reporting")
+    id("gradlebuild.test-retry")
 }
 
 java.configureJavaToolChain()
 
 dependencies {
-    api(platform(project(":build-platform")))
+    api(platform("gradlebuild:build-platform"))
     implementation("gradlebuild:gradle-plugin")
 
     testImplementation("org.junit.vintage:junit-vintage-engine")
@@ -34,8 +36,7 @@ dependencies {
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        // Can be set to true when assignment plugin becomes stable
-        allWarningsAsErrors = false
+        allWarningsAsErrors = true
     }
 }
 

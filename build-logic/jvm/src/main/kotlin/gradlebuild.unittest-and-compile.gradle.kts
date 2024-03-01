@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
+import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionExtension
 import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
 import com.gradle.enterprise.gradleplugin.testretry.retry
+import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
 import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
+import gradlebuild.basics.maxTestDistributionRemoteExecutors
+import gradlebuild.basics.maxTestDistributionLocalExecutors
 import gradlebuild.basics.maxTestDistributionPartitionSecond
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
-import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.basics.testJavaVendor
 import gradlebuild.basics.testJavaVersion
@@ -35,12 +39,11 @@ import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.os.OperatingSystem
 import java.time.Duration
-import java.util.jar.Attributes
 
 plugins {
     groovy
     idea // Need to apply the idea plugin, so the extended configuration is taken into account on sync
-    id("gradlebuild.module-identity")
+    id("gradlebuild.module-jar")
     id("gradlebuild.dependency-modules")
 }
 
@@ -48,10 +51,8 @@ extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", project, tasks
 
 removeTeamcityTempProperty()
 addDependencies()
-configureClasspathManifestGeneration()
 configureCompile()
 configureSourcesVariant()
-configureJarTasks()
 configureTests()
 
 tasks.registerCITestDistributionLifecycleTasks()
@@ -97,6 +98,14 @@ fun configureSourcesVariant() {
         main.groovy.srcDirs.forEach {
             outgoing.artifact(it)
         }
+        main.resources.srcDirs.forEach {
+            outgoing.artifact(it)
+        }
+        pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+            kotlinMainSourceSet.srcDirs.forEach {
+                outgoing.artifact(it)
+            }
+        }
     }
 }
 
@@ -108,16 +117,6 @@ fun configureCompileTask(options: CompileOptions) {
     options.forkOptions.jvmArgs?.add("-XX:+HeapDumpOnOutOfMemoryError")
     options.forkOptions.memoryMaximumSize = "1g"
     options.compilerArgs.addAll(mutableListOf("-Xlint:-options", "-Xlint:-path"))
-}
-
-fun configureClasspathManifestGeneration() {
-    val runtimeClasspath by configurations
-    val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class) {
-        this.runtimeClasspath.from(runtimeClasspath)
-        this.externalDependencies.from(runtimeClasspath.fileCollection { it is ExternalDependency })
-        this.manifestFile = moduleIdentity.baseName.map { layout.buildDirectory.file("generated-resources/$it-classpath/$it-classpath.properties").get() }
-    }
-    sourceSets.main.get().output.dir(classpathManifest.map { it.manifestFile.get().asFile.parentFile })
 }
 
 fun addDependencies() {
@@ -165,14 +164,6 @@ fun addCompileAllTask() {
             (it is JavaCompile || it is GroovyCompile)
         }
         dependsOn(compileTasks)
-    }
-}
-
-fun configureJarTasks() {
-    tasks.withType<Jar>().configureEach {
-        archiveBaseName = moduleIdentity.baseName
-        archiveVersion = moduleIdentity.version.map { it.baseVersion.version }
-        manifest.attributes(mapOf(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle", Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }))
     }
 }
 
@@ -277,21 +268,18 @@ fun configureTests() {
         configureSpock()
         configureFlakyTest()
 
-        distribution {
+        extensions.findByType<TestDistributionExtension>()?.apply {
             this as TestDistributionExtensionInternal
             // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
             server = uri("https://ge-td-dogfooding.grdev.net")
-        }
 
-        if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
-            distribution {
-                this as TestDistributionExtensionInternal
+            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
                 enabled = true
                 project.maxTestDistributionPartitionSecond?.apply {
                     preferredMaxDuration = Duration.ofSeconds(this)
                 }
-                // No limit; use all available executors
-                distribution.maxRemoteExecutors = if (project.isPerformanceProject()) 0 else null
+                distribution.maxRemoteExecutors = if (project.isPerformanceProject()) 0 else project.maxTestDistributionRemoteExecutors
+                distribution.maxLocalExecutors = project.maxTestDistributionLocalExecutors
 
                 // Test distribution annotation-class filters
                 // See: https://docs.gradle.com/enterprise/test-distribution/#gradle_executor_restrictions_class_matcher
@@ -318,8 +306,9 @@ fun configureTests() {
             // GitHub actions for contributor PRs uses public build scan instance
             // in this case we need to explicitly configure the PTS server
             // Don't move this line into the lambda as it may cause config cache problems
-            (predictiveSelection as PredictiveTestSelectionExtensionInternal).server = uri("https://ge.gradle.org")
-            predictiveSelection {
+            extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
+                this as PredictiveTestSelectionExtensionInternal
+                server = uri("https://ge.gradle.org")
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }
@@ -343,7 +332,7 @@ fun Project.isPerformanceProject() = setOf("build-scan-performance", "performanc
  * Smoke and soak tests are hard to grasp for PTS, that is why we run them without.
  * When running on Windows with PTS, SimplifiedKotlinScriptEvaluatorTest fails. See https://github.com/gradle/gradle-private/issues/3615.
  */
-fun Project.supportsPredictiveTestSelection() = !isPerformanceProject() && !setOf("smoke-test", "soak", "kotlin-dsl").contains(name)
+fun Project.supportsPredictiveTestSelection() = !isPerformanceProject() && !setOf("smoke-test", "soak", "kotlin-dsl", "smoke-ide-test").contains(name)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).

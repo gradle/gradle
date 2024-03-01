@@ -202,6 +202,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
 
     def "reports failure for included build name that conflicts with subproject name"() {
         given:
+        createDirs("buildA", "buildA/buildC")
         buildA.settingsFile << """
             include 'buildC'
 """

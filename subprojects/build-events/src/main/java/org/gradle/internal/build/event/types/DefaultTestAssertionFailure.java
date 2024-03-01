@@ -26,7 +26,7 @@ public class DefaultTestAssertionFailure extends AbstractTestFailure implements 
     private final String expected;
     private final String actual;
 
-    private DefaultTestAssertionFailure(String message, String description, List<? extends InternalFailure> causes, String expected, String actual, String className, String stacktrace) {
+    DefaultTestAssertionFailure(String message, String description, List<? extends InternalFailure> causes, String expected, String actual, String className, String stacktrace) {
         super(message, description, causes, className, stacktrace);
         this.expected = expected;
         this.actual = actual;

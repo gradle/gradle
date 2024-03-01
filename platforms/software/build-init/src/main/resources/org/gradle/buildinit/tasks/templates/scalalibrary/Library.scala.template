@@ -1,0 +1,4 @@
+${fileComment.multilineComment}${packageDecl.statement}
+class Library {
+  def someLibraryMethod(): Boolean = true
+}

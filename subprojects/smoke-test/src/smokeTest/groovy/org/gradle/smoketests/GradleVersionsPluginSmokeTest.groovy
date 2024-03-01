@@ -37,15 +37,15 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
                 ${mavenCentralRepository()}
             }
-            project(":sub1") {
-                dependencies {
-                    implementation group: 'log4j', name: 'log4j', version: '1.2.14'
-                }
+        """
+        file("sub1/build.gradle") << """
+            dependencies {
+                implementation group: 'log4j', name: 'log4j', version: '1.2.14'
             }
-            project(":sub2") {
-                dependencies {
-                    implementation group: 'junit', name: 'junit', version: '4.10'
-                }
+        """
+        file("sub2/build.gradle") << """
+            dependencies {
+                implementation group: 'junit', name: 'junit', version: '4.10'
             }
         """
         settingsFile << """
@@ -58,18 +58,11 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             .withJvmArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
             .forwardOutput()
 
-        def resolvedConfigurations = ["apiElementsCopy", "archivesCopy", "compileOnlyCopy", "defaultCopy", "implementationCopy", "implementationCopy2", "mainSourceElementsCopy", "runtimeElementsCopy", "runtimeOnlyCopy", "testCompileOnlyCopy", "testImplementationCopy", "testResultsElementsForTestCopy", "testRuntimeOnlyCopy"]
-        def declarationConfiguration = ["compileClasspathCopy", "defaultCopy", "runtimeClasspathCopy", "runtimeElementsCopy", "testCompileClasspathCopy", "testRuntimeClasspathCopy"]
-        resolvedConfigurations.each {
-            runner.expectDeprecationWarning(
-                "The $it configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations",
-                "https://github.com/ben-manes/gradle-versions-plugin/issues/718"
-            )
-        }
+        def declarationConfiguration = ["compileClasspathCopy", "compileClasspathCopy2", "runtimeClasspathCopy", "runtimeClasspathCopy2", "testCompileClasspathCopy", "testCompileClasspathCopy2", "testRuntimeClasspathCopy", "testRuntimeClasspathCopy2"]
         declarationConfiguration.each {
             runner.expectDeprecationWarning(
-                "The $it configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations",
-                "https://github.com/ben-manes/gradle-versions-plugin/issues/718"
+                "The $it configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.",
+                "https://github.com/gradle/gradle/issues/24895"
             )
         }
 

@@ -18,11 +18,13 @@ package org.gradle.api.model;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
@@ -34,6 +36,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
@@ -48,7 +51,7 @@ import java.util.Set;
  *
  * @since 4.0
  */
-@ServiceScope(Scope.Global.class)
+@ServiceScope({Scope.Global.class, Scopes.Project.class})
 public interface ObjectFactory {
     /**
      * Creates a simple immutable {@link Named} object of the given type and name.
@@ -261,4 +264,14 @@ public interface ObjectFactory {
      * @since 5.0
      */
     RegularFileProperty fileProperty();
+
+    /**
+     * Creates a new {@link DependencyCollector} used for declaring dependencies.
+     *
+     * <strong>Avoid this method if possible and use managed object instantiation instead.</strong>
+     *
+     * @since 8.6
+     */
+    @Incubating
+    DependencyCollector dependencyCollector();
 }

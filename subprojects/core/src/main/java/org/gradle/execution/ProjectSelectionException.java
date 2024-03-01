@@ -18,22 +18,11 @@ package org.gradle.execution;
 
 import org.gradle.api.internal.project.ProjectInternal;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
-
 /**
  * Thrown when the tasks to execute cannot be selected due to a problem resolving the project to select tasks from.
  */
-public class ProjectSelectionException extends TaskSelectionException {
+public class ProjectSelectionException extends BaseSelectionException {
     public ProjectSelectionException(String message) {
-        super(message);
-    }
-
-    @Override
-    public void appendResolutions(Context context) {
-        context.appendResolution(output -> {
-            output.text("Run ");
-            context.getClientMetaData().describeCommand(output.withStyle(UserInput), ProjectInternal.PROJECTS_TASK);
-            output.text(" to get a list of available projects.");
-        });
+        super(message, ProjectInternal.PROJECTS_TASK, "projects");
     }
 }

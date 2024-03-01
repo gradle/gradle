@@ -1,4 +1,3 @@
-import gradlebuild.basics.accessors.groovy
 import gradlebuild.integrationtests.tasks.GenerateLanguageAnnotations
 import java.util.Properties
 
@@ -7,6 +6,13 @@ plugins {
 }
 
 description = "Collection of test fixtures for integration tests, internal use only"
+
+sourceSets {
+    main {
+        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
+        errorprone.enabled = false
+    }
+}
 
 dependencies {
     api(libs.jettyWebApp) {
@@ -35,13 +41,14 @@ dependencies {
     implementation(project(":cli"))
     implementation(project(":process-services"))
     implementation(project(":core-api"))
-    implementation(project(":model-core"))
     implementation(project(":base-services-groovy"))
     implementation(project(":files"))
     implementation(project(":file-collections"))
     implementation(project(":resources"))
     implementation(project(":build-cache"))
+    implementation(project(":build-cache-local"))
     implementation(project(":persistent-cache"))
+    implementation(project(":platform-jvm"))
     implementation(project(":dependency-management"))
     implementation(project(":configuration-cache"))
     implementation(project(":launcher"))
@@ -98,6 +105,28 @@ dependencies {
     }
     implementation(testFixtures(project(":core")))
 
+    implementation(libs.mavenResolverApi) {
+        because("For ApiMavenResolver. API we interact with to resolve Maven graphs & artifacts")
+    }
+    implementation(libs.mavenResolverSupplier) {
+        because("For ApiMavenResolver. Wires together implementation for maven-resolver-api")
+    }
+    implementation(libs.maven3ResolverProvider) {
+        because("For ApiMavenResolver. Provides MavenRepositorySystemUtils")
+    }
+    runtimeOnly(libs.mavenResolverImpl) {
+        because("For ApiMavenResolver. Implements maven-resolver-api")
+    }
+    runtimeOnly(libs.mavenResolverConnectorBasic) {
+        because("For ApiMavenResolver. To use resolver transporters")
+    }
+    runtimeOnly(libs.mavenResolverTransportFile) {
+        because("For ApiMavenResolver. To resolve file:// URLs")
+    }
+    runtimeOnly(libs.mavenResolverTransportHttp) {
+        because("For ApiMavenResolver. To resolve http:// URLs")
+    }
+
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
@@ -117,9 +146,10 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
     mostRecentSnapshot = moduleIdentity.releasedVersions.map { it.mostRecentSnapshot.version }
 }
 
-val copyAgpVersionsInfo by tasks.registering(Copy::class) {
+val copyTestedVersionsInfo by tasks.registering(Copy::class) {
     from(rootProject.layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
-    into(layout.buildDirectory.dir("generated-resources/agp-versions"))
+    from(rootProject.layout.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
+    into(layout.buildDirectory.dir("generated-resources/tested-versions"))
 }
 
 val generateLanguageAnnotations by tasks.registering(GenerateLanguageAnnotations::class) {
@@ -131,7 +161,7 @@ val generateLanguageAnnotations by tasks.registering(GenerateLanguageAnnotations
 sourceSets.main {
     groovy.srcDir(generateLanguageAnnotations.flatMap { it.destDir })
     output.dir(prepareVersionsInfo.map { it.destFile.get().asFile.parentFile })
-    output.dir(copyAgpVersionsInfo)
+    output.dir(copyTestedVersionsInfo)
 }
 
 @CacheableTask

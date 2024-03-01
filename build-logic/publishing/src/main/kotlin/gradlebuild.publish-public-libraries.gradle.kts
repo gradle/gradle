@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import java.time.Year
 
 plugins {
@@ -73,6 +74,10 @@ signing {
 fun configureJavadocVariant() {
     java {
         withJavadocJar()
+    }
+    tasks.named<Javadoc>("javadoc") {
+        // See GradleJavadocsPlugin.generateJavadocs() and the javadocsAll task
+        (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:")
     }
 }
 
@@ -229,8 +234,5 @@ fun publishNormalizedToLocalRepository() {
 tasks.register("promotionBuild") {
     description = "Build production distros, smoke test them and publish"
     group = "publishing"
-    dependsOn(
-        ":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
-        ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks"
-    )
+    dependsOn(":packageBuild", "publish")
 }

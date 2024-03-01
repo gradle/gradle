@@ -40,6 +40,21 @@ performanceTest.registerTestProject("gradleBuildBaseline", RemoteProject) {
     ref = '264bd7744d2e89b2708303cd56bb11bc5003fa7e'
 }
 
+// === Declarative DSL ===
+performanceTest.registerTestProject("largeEmptyMultiProjectDeclarativeDsl", JavaExecProjectGeneratorTask) {
+    outputs.dir new File(buildDir, "largeEmptyMultiProjectDeclarativeDsl")
+    outputs.cacheIf { true }
+    inputs.property('template', "largeEmptyMultiProjectDeclarativeDsl")
+    inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
+        return []
+    }
+    classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava')  || it.name.contains('gradle-') }
+    mainClass = 'org.gradle.performance.generator.DeclarativeDslTestProjectGenerator'
+    args name, buildDir.absolutePath
+}
+
+
+
 // === Java ===
 ['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeMonolithicGroovyProject', 'largeGroovyMultiProject', 'largeJavaMultiProjectNoBuildSrc', 'largeJavaMultiProjectKotlinDsl',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
@@ -406,10 +421,19 @@ performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) 
     ref = "a67ceb08a7b4e4a71e3c151a3abd72a9abe5d703"
 }
 
+performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
+    remoteUri = 'https://github.com/android/nowinandroid.git'
+    // Pinned from main branch
+    ref = "e40fb7925deac9912985522378281ce0f6c9d31a" // latest on September 19th, 2023
+    doLast {
+        setMaxWorkers(outputDirectory, 8)
+    }
+}
+
 performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from main branch
-    ref = '180b7a91054d5fe5b617543bb2f74a3819537b7b'
+    ref = 'e9419cad3583427caca97958301ff98fc8e9a1c3'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }

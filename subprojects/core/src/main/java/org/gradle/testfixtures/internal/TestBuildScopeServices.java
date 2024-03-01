@@ -30,6 +30,7 @@ import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 
 public class TestBuildScopeServices extends BuildScopeServices {
@@ -70,6 +71,11 @@ public class TestBuildScopeServices extends BuildScopeServices {
         @Override
         public Map<String, Object> mergeProperties(Map<String, Object> properties) {
             return properties;
+        }
+
+        @Override
+        public Map<String, Object> getProperties() {
+            return Collections.emptyMap();
         }
     }
 }

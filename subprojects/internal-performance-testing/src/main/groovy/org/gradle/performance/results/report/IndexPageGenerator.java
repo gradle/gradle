@@ -17,6 +17,7 @@
 package org.gradle.performance.results.report;
 
 import org.gradle.performance.results.PerformanceExperiment;
+import org.gradle.performance.results.PerformanceFlakinessDataProvider;
 import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.ResultsStore;
@@ -47,7 +48,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
         long successCount = executionDataProvider.getReportScenarios().stream().filter(PerformanceReportScenario::isSuccessful).count();
         long smallRegressions = executionDataProvider.getReportScenarios().stream()
             .filter(PerformanceReportScenario::isRegressed)
-            .filter(this::failsBuild)
+            .filter(scenario -> !failsBuild(scenario))
             .count();
         long failureCount = executionDataProvider.getReportScenarios().size() - successCount - smallRegressions;
 

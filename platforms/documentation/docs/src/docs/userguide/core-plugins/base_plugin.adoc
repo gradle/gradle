@@ -1,0 +1,110 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[base_plugin]]
+= The Base Plugin
+
+The Base Plugin provides some tasks and conventions that are common to most builds and adds a structure to the build that promotes consistency in how they are run. Its most significant contribution is a set of <<lifecycle_tasks.adoc#sec:lifecycle_tasks,_lifecycle_ tasks>> that act as an umbrella for the more specific tasks provided by other plugins and build authors.
+
+[[sec:base_plugin_usage]]
+== Usage
+
+
+.Applying the Base Plugin
+====
+include::sample[dir="snippets/base/basePlugin/kotlin",files="build.gradle.kts[tags=apply-base-plugin]"]
+include::sample[dir="snippets/base/basePlugin/groovy",files="build.gradle[tags=apply-base-plugin]"]
+====
+
+[[sec:base_tasks]]
+== Task
+
+`clean` — `Delete`::
+Deletes the build directory and everything in it, i.e. the path specified by the link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html#org.gradle.api.file.ProjectLayout:buildDirectory[layout.buildDirectory] project property.
+
+`check` — _lifecycle task_::
+Plugins and build authors should attach their verification tasks, such as ones that run tests, to this lifecycle task using `check.dependsOn(__task__)`.
+
+`assemble` — _lifecycle task_::
+Plugins and build authors should attach tasks that produce distributions and other consumable artifacts to this lifecycle task. For example, `jar` produces the consumable artifact for Java libraries. Attach tasks to this lifecycle task using `assemble.dependsOn(__task__)`.
+
+`build` — _lifecycle task_::
+_Depends on_: `check`, `assemble`
++
+Intended to build everything, including running all tests, producing the production artifacts and generating documentation. You will probably rarely attach concrete tasks directly to `build` as `assemble` and `check` are typically more appropriate.
+
+`build__Configuration__` — task rule::
+Assembles those artifacts attached to the named configuration. For example, `buildRuntimeElements` will execute any task that is required to create any artifact attached to the `runtimeElements` configuration.
+
+`clean__Task__` — task rule::
+Removes the <<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
+
+
+[[sec:base_plugin_configurations]]
+== Dependency management
+
+The Base Plugin adds no <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configurations for dependencies>>, but it does add the following configurations:
+
+`default`::
+A fallback configuration used when dependency resolution is performed without request attributes.
++
+*New builds and plugins should not be using the `default` configuration!*
+It remains solely for backwards compatibility.
+Dependency resolution should be performed with request attributes.
+
+`archives`::
+All artifacts defined on the `archives` configuration are automatically built by the `assemble` task.
++
+*New builds and plugins should not be using the `archives` configuration!*
+It remains solely for backwards compatibility.
+Instead, task dependencies should be declared directly on the `assemble` task.
+
+[[sec:base_plugin_extension]]
+== Contributed extensions
+
+The Base Plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[`base` extension] to the project.
+This allows to configure the following properties inside a dedicated DSL block.
+
+.Using the `base` extension
+====
+include::sample[dir="snippets/files/archivesChangedBaseName/kotlin",files="build.gradle.kts[tags=base-plugin-config]"]
+include::sample[dir="snippets/files/archivesChangedBaseName/groovy",files="build.gradle[tags=base-plugin-config]"]
+====
+
+`archivesName` — default: `$project.name`::
+Provides the default link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveBaseName[AbstractArchiveTask.getArchiveBaseName()] for archive tasks.
+
+`distsDirectory` — default: `layout.buildDirectory.dir("distributions")`::
+Default name of the directory in which distribution archives, i.e. non-JARs, are created.
+
+`libsDirectory` — default: `layout.buildDirectory.dir("libs")`::
+Default name of the directory in which library archives, i.e. JARs, are created.
+
+The plugin also provides default values for the following properties on any task that extends link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]:
+
+`destinationDirectory`::
+Defaults to `distsDirectory` for non-JAR archives and `libsDirectory` for JARs and derivatives of JAR, such as WARs.
+
+`archiveVersion`::
+Defaults to `$project.version` or 'unspecified' if the project has no version.
+
+`archiveBaseName`::
+Defaults to `$archivesBaseName`.
+
+[[sec:base_plugin_conventions]]
+== Conventions (deprecated)
+
+The Base Plugin also adds conventions related to the creation of archives, such as ZIPs, TARs and JARs.
+These are *deprecated* and superseded by the extension described above.
+See the link:{groovyDslPath}/org.gradle.api.plugins.BasePluginConvention.html[BasePluginConvention] DSL documentation for information on them.

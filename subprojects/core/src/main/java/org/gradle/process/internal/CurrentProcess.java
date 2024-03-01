@@ -17,10 +17,13 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.agents.AgentUtils;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 
 import java.lang.management.ManagementFactory;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CurrentProcess {
     private final JavaInfo jvm;
@@ -47,7 +50,11 @@ public class CurrentProcess {
         // Try to infer the effective jvm options for the currently running process.
         // We only care about 'managed' jvm args, anything else is unimportant to the running build
         JvmOptions jvmOptions = new JvmOptions(fileCollectionFactory);
-        jvmOptions.setAllJvmArgs(ManagementFactory.getRuntimeMXBean().getInputArguments());
+        List<String> arguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
+        // TODO(mlopatkin) figure out a nicer way of handling the presence of agent in the foreground daemon.
+        //  Currently it is hard to have a proper "-javaagent:/path/to/jar" in clients that start the daemon, so all code deals with a boolean flag shouldApplyAgent instead.
+        //  It is also possible to have the agent attached at runtime, without the flag, so flag checking is preferred.
+        jvmOptions.setAllJvmArgs(arguments.stream().filter(arg -> !AgentUtils.isGradleInstrumentationAgentSwitch(arg)).collect(Collectors.toList()));
         return jvmOptions;
     }
 }

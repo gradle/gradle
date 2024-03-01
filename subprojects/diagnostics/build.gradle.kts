@@ -4,26 +4,42 @@ plugins {
 
 description = "Contains project diagnostics or report tasks, e.g. help, project report, dependency report and similar"
 
-dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":functional"))
-    implementation(project(":logging"))
-    implementation(project(":file-collections"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":reporting"))
-    implementation(project(":platform-base"))
-    implementation(project(":snapshots"))
-    implementation(project(":dependency-management"))
-    implementation(project(":base-services-groovy"))
-    implementation(project(":build-option"))
+errorprone {
+    disabledChecks.addAll(
+        "BadImport", // 1 occurrences
+        "DefaultCharset", // 1 occurrences
+        "InlineMeInliner", // 1 occurrences
+        "MixedMutabilityReturnType", // 1 occurrences
+        "NonApiType", // 5 occurrences
+        "ProtectedMembersInFinalClass", // 1 occurrences
+        "StringCaseLocaleUsage", // 3 occurrences
+        "UnusedVariable", // 1 occurrences
+    )
+}
 
-    implementation(libs.groovy)
+dependencies {
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":enterprise-logging"))
+    api(project(":file-collections"))
+    api(project(":logging"))
+    api(project(":model-core"))
+    api(project(":platform-base"))
+    api(project(":reporting"))
+
+    api(libs.groovy)
+    api(libs.jsr305)
+    api(libs.inject)
+
+    implementation(project(":functional"))
+    implementation(project(":logging-api"))
+
     implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
     implementation(libs.jatl)
 
     testImplementation(project(":process-services"))
@@ -53,9 +69,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/reporting/model/internal/*")
     excludePatterns.add("org/gradle/api/reporting/dependencies/internal/*")
     excludePatterns.add("org/gradle/api/plugins/internal/*")
-}
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

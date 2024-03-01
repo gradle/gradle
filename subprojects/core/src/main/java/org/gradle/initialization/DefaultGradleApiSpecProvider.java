@@ -35,6 +35,7 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
     @Override
     public Set<String> getExportedPackages() {
         return ImmutableSet.of(
+            //"org.gradle.internal.declarativedsl", // TODO: adding this makes all integration tests fail
             "org.gradle",
             "org.apache.tools.ant",
             "groovy",

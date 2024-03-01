@@ -66,7 +66,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
         BuildTreeWorkGraphController taskGraph
     ) {
         TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, taskPath);
-        Path taskIdentityPath = Path.path(targetBuild.getName()).append(Path.path(taskPath));
+        Path taskIdentityPath = Path.path(targetBuild.getBuildPath()).append(Path.path(taskPath));
         Lazy<IncludedBuildTaskResource> target = Lazy.unsafe().of(() -> taskGraph.locateTask(taskIdentifier));
         return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild) {
             @Override

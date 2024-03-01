@@ -30,20 +30,22 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final FileCollectionFactory fileCollectionFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final ScriptClassPathResolver scriptClassPathResolver;
+    private final BuildLogicBuilder buildLogicBuilder;
     private final FileResolver fileResolver;
     private final ProjectFinder projectFinder = new UnknownProjectFinder("Cannot use project dependencies in a script classpath definition.");
 
-    public DefaultScriptHandlerFactory(DependencyManagementServices dependencyManagementServices,
-                                       FileResolver fileResolver,
-                                       FileCollectionFactory fileCollectionFactory,
-                                       DependencyMetaDataProvider dependencyMetaDataProvider,
-                                       ScriptClassPathResolver scriptClassPathResolver) {
+    public DefaultScriptHandlerFactory(
+        DependencyManagementServices dependencyManagementServices,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        DependencyMetaDataProvider dependencyMetaDataProvider,
+        BuildLogicBuilder buildLogicBuilder
+    ) {
         this.dependencyManagementServices = dependencyManagementServices;
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
-        this.scriptClassPathResolver = scriptClassPathResolver;
+        this.buildLogicBuilder = buildLogicBuilder;
     }
 
     @Override
@@ -54,6 +56,12 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     @Override
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoaderScope classLoaderScope, DomainObjectContext context) {
         DependencyResolutionServices services = dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, projectFinder, context);
-        return new DefaultScriptHandler(scriptSource, services, classLoaderScope, scriptClassPathResolver);
+        return services.getObjectFactory().newInstance(
+            DefaultScriptHandler.class,
+            scriptSource,
+            services,
+            classLoaderScope,
+            buildLogicBuilder
+        );
     }
 }

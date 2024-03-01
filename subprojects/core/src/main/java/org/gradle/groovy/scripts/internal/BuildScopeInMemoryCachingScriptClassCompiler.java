@@ -15,7 +15,6 @@
  */
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.collect.Maps;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
@@ -23,6 +22,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -35,7 +35,7 @@ import java.util.Map;
 public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClassCompiler {
     private final CrossBuildInMemoryCachingScriptClassCache cache;
     private final ScriptClassCompiler scriptClassCompiler;
-    private final Map<ScriptCacheKey, CompiledScript<?, ?>> cachedCompiledScripts = Maps.newHashMap();
+    private final Map<ScriptCacheKey, CompiledScript<?, ?>> cachedCompiledScripts = new HashMap<>();
 
     public BuildScopeInMemoryCachingScriptClassCompiler(CrossBuildInMemoryCachingScriptClassCache cache, ScriptClassCompiler scriptClassCompiler) {
         this.cache = cache;
@@ -43,11 +43,11 @@ public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClass
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, ClassLoaderScope targetScope, CompileOperation<M> operation, Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
+    public <T extends Script, M> CompiledScript<T, M> compile(ScriptSource source, Class<T> scriptBaseClass, Object target, ClassLoaderScope targetScope, CompileOperation<M> operation, Action<? super ClassNode> verifier) {
         ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), targetScope.getExportClassLoader(), operation.getId());
         CompiledScript<T, M> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {
-            compiledScript = cache.getOrCompile(source, targetScope, operation, scriptBaseClass, verifier, scriptClassCompiler);
+            compiledScript = cache.getOrCompile(target, source, targetScope, operation, scriptBaseClass, verifier, scriptClassCompiler);
             cachedCompiledScripts.put(key, compiledScript);
         }
         return compiledScript;

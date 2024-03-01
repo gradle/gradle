@@ -24,6 +24,7 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "omits repeated dependencies in case of circular dependencies"() {
         given:
+        createDirs("client", "a", "b", "c")
         file("settings.gradle") << "include 'client', 'a', 'b', 'c'"
 
         buildFile << """
@@ -33,6 +34,8 @@ allprojects {
     group = "group"
     version = 1.0
 }
+
+dependencies { compile project(":c") }
 
 project(":a") {
     dependencies { compile project(":b") }
@@ -49,21 +52,23 @@ project(":c") {
 """
 
         when:
-        run ":c:dependencies"
+        run ":dependencies"
 
         then:
         output.contains """
 compile
-\\--- project :a
-     +--- project :b
-     |    \\--- project :c (*)
-     \\--- project :c (*)
+\\--- project :c
+     \\--- project :a
+          +--- project :b
+          |    \\--- project :c (*)
+          \\--- project :c (*)
 """
         output.contains '(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
     }
 
     def "marks project dependency that can't be resolved as 'FAILED'"() {
         given:
+        createDirs("A", "B", "C")
         settingsFile << "include 'A', 'B', 'C'"
 
         // Fail due to missing target configurations
@@ -237,8 +242,9 @@ config
             }
 
             task resolveConf {
+                def foo = configurations.foo
                 doLast {
-                    configurations.foo.each { println it }
+                    foo.each { println it }
                 }
             }
         """
@@ -259,6 +265,7 @@ config
 
         mavenRepo.module("foo", "baz", "5.0").publish()
 
+        createDirs("a", "b", "c", "d", "e")
         file("settings.gradle") << """include 'a', 'b', 'c', 'd', 'e'
 rootProject.name = 'root'
 """
@@ -576,6 +583,7 @@ No dependencies
 
     def "dependencies report does not run for subprojects by default"() {
         given:
+        createDirs("a")
         file("settings.gradle") << "include 'a'"
 
         file("build.gradle") << """
@@ -670,6 +678,7 @@ conf
         mavenRepo.module("foo", "bar", "1.0").publish()
         mavenRepo.module("foo", "bar", "2.0").publish()
 
+        createDirs("a", "b", "a/c", "d", "e")
         file("settings.gradle") << """include 'a', 'b', 'a:c', 'd', 'e'
 rootProject.name = 'root'
 """
@@ -739,6 +748,7 @@ compileClasspath - Compile classpath for source set 'main'.
     def "reports external dependency replaced with project dependency"() {
         mavenRepo.module("org.utils", "api",  '1.3').publish()
 
+        createDirs("client", "api2", "impl")
         file("settings.gradle") << "include 'client', 'api2', 'impl'"
 
         buildFile << """
@@ -783,6 +793,7 @@ compile
     def "reports external dependency with version updated by resolve rule"() {
         mavenRepo.module("org.utils", "api", '0.1').publish()
 
+        createDirs("client", "impl")
         file("settings.gradle") << "include 'client', 'impl'"
 
         buildFile << """
@@ -826,6 +837,7 @@ compile
         mavenRepo.module("org.utils", "api", '0.1').publish()
         mavenRepo.module("org.other", "another", '0.1').publish()
 
+        createDirs("client", "impl")
         file("settings.gradle") << "include 'client', 'impl'"
 
         buildFile << """
@@ -1031,12 +1043,13 @@ compileClasspath - Compile classpath for source set 'main'.
 
     def "adding declarations to deprecated configurations for declaration will warn"() {
         given:
+        createDirs("a", "b")
         file("settings.gradle") << "include 'a', 'b'"
 
         buildFile << """
             subprojects {
                 configurations {
-                    compile.deprecateForDeclarationAgainst('implementation')
+                    migratingUnlocked('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE)
                     'default' { extendsFrom compile }
                 }
                 group = "group"
@@ -1047,7 +1060,7 @@ compileClasspath - Compile classpath for source set 'main'.
             }
         """
 
-        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the implementation configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
 
         expect:
         succeeds ':a:dependencies'
@@ -1055,12 +1068,13 @@ compileClasspath - Compile classpath for source set 'main'.
 
     def "adding declarations to invalid configurations for declaration will fail"() {
         given:
+        createDirs("a", "b")
         file("settings.gradle") << "include 'a', 'b'"
 
         buildFile << """
             subprojects {
                 configurations {
-                    compile.canBeDeclaredAgainst = false
+                    compile.canBeDeclared = false
                     'default' { extendsFrom compile }
                 }
                 group = "group"
@@ -1085,39 +1099,38 @@ compileClasspath - Compile classpath for source set 'main'.
                maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                compileOnly.deprecateForResolution("compileClasspath")
-                compileOnly.deprecateForConsumption { builder ->
-                    builder.willBecomeAnErrorInGradle9().withUpgradeGuideSection(8, "foo")
-                }
-                implementation.extendsFrom compileOnly
+                migratingUnlocked('variant', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
+                implementation.extendsFrom variant
             }
             dependencies {
-                compileOnly 'foo:foo:1.0'
+                variant 'foo:foo:1.0'
                 implementation 'foo:bar:2.0'
             }
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         run ":dependencies"
 
         then:
         output.contains """
-compileOnly (n)
-\\--- foo:foo:1.0 (n)
-
 implementation
-+--- foo:foo:1.0
-\\--- foo:bar:2.0
++--- foo:bar:2.0
+\\--- foo:foo:1.0
+
+variant (n)
+\\--- foo:foo:1.0 (n)
 
 (n) - A dependency or dependency configuration that cannot be resolved.
 """
 
         when:
-        run ":dependencies", "--configuration", "compileOnly"
+        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        run ":dependencies", "--configuration", "variant"
 
         then:
         output.contains """
-compileOnly (n)
+variant (n)
 \\--- foo:foo:1.0 (n)
 
 (n) - A dependency or dependency configuration that cannot be resolved.

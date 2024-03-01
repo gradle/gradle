@@ -23,8 +23,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.configuration.project.BuiltInCommand
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.FileUtils
 import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.internal.service.ServiceRegistry

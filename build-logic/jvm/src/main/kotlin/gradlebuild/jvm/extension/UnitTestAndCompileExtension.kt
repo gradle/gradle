@@ -42,7 +42,7 @@ abstract class UnitTestAndCompileExtension(
     }
 
     /**
-     * Enforces **Java 6** compatibility.
+     * Enforces **Java 7** compatibility.
      */
     fun usedInToolingApi() {
         enforceCompatibility(7)

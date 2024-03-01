@@ -18,8 +18,8 @@ package org.gradle.initialization
 
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -35,7 +35,7 @@ class LayoutCommandLineConverterTest extends Specification {
         converter.convert(Arrays.asList(args), new BuildLayoutParameters())
     }
 
-    @Requires(TestPrecondition.NOT_EC2_AGENT)
+    @Requires(UnitTestPreconditions.NotEC2Agent)
     @Issue('https://github.com/gradle/gradle-private/issues/2876')
     def "has reasonable defaults"() {
         expect:

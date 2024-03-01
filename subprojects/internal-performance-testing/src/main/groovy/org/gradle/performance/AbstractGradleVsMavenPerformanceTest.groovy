@@ -20,12 +20,10 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.GradleVsMavenBuildExperimentRunner
 import org.gradle.performance.fixture.GradleVsMavenPerformanceTestRunner
-import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.GradleVsMavenBuildResultsStore
 import org.gradle.performance.results.WritableResultsStore
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
 import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
@@ -33,9 +31,6 @@ import static org.gradle.performance.results.ResultsStoreHelper.createResultsSto
 @CompileStatic
 class AbstractGradleVsMavenPerformanceTest extends AbstractPerformanceTest {
     private static final WritableResultsStore<GradleVsMavenBuildPerformanceResults> RESULT_STORE = createResultsStoreWhenDatabaseAvailable { new GradleVsMavenBuildResultsStore() }
-
-    @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
 
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 

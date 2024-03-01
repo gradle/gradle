@@ -1,0 +1,312 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[composite_builds]]
+= Composite Builds
+
+A composite build is a build that includes other builds.
+
+image::structuring-builds-4.png[]
+
+[[composite_build_intro]]
+A composite build is similar to a Gradle multi-project build, except that instead of including `subprojects`, entire `builds` are included.
+
+Composite builds allow you to:
+
+* Combine builds that are usually developed independently, for instance, when trying out a bug fix in a library that your application uses.
+* Decompose a large multi-project build into smaller, more isolated chunks that can be worked on independently or together as needed.
+
+A build that is included in a composite build is referred to as an *included build*.
+Included builds do not share any configuration with the composite build or the other included builds.
+Each included build is configured and executed in isolation.
+
+[[defining_composite_builds]]
+== Defining a composite build
+
+The following example demonstrates how two Gradle builds, normally developed separately, can be combined into a composite build.
+
+[source,text]
+----
+my-composite
+├── gradle
+├── gradlew
+├── settings.gradle.kts
+├── build.gradle.kts
+├── my-app
+│   ├── settings.gradle.kts
+│   └── app
+│       ├── build.gradle.kts
+│       └── src/main/java/org/sample/my-app/Main.java
+└── my-utils
+    ├── settings.gradle.kts
+    ├── number-utils
+    │   ├── build.gradle.kts
+    │   └── src/main/java/org/sample/numberutils/Numbers.java
+    └── string-utils
+        ├── build.gradle.kts
+        └── src/main/java/org/sample/stringutils/Strings.java
+----
+
+The `my-utils` multi-project build produces two Java libraries, `number-utils` and `string-utils`.
+The `my-app` build produces an executable using functions from those libraries.
+
+The `my-app` build does not depend directly on `my-utils`.
+Instead, it declares binary dependencies on the libraries produced by `my-utils`:
+
+====
+include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="my-app/app/build.gradle.kts[tags=app_dependencies]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
+====
+
+[[command_line_composite]]
+=== Defining a composite build via `--include-build`
+
+The `--include-build` command-line argument turns the executed build into a composite, substituting dependencies from the included build into the executed build.
+
+For example, the output of `./gradlew run --include-build ../my-utils` run from `my-app`:
+
+----
+$ ./gradlew --include-build ../my-utils run
+include::{samplesPath}/build-organization/composite-builds/basic/tests/basicCli.out[]
+----
+
+[[settings_defined_composite]]
+=== Defining a composite build via the settings file
+
+It's possible to make the above arrangement persistent by using link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:includeBuild(java.lang.Object)[Settings.includeBuild(java.lang.Object)] to declare the included build in the `settings.gradle(.kts)` file.
+
+The settings file can be used to add subprojects and included builds simultaneously.
+
+Included builds are added by location:
+
+.settings.gradle.kts
+[source,kotlin]
+----
+includeBuild("my-utils")
+----
+
+[[separate_composite]]
+In the example, the settings.gradle(.kts) file combines otherwise separate builds:
+
+====
+include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="settings.gradle[]"]
+====
+
+To execute the `run` task in the `my-app` build from `my-composite`, run `./gradlew my-app:app:run`.
+
+You can optionally define a `run` task in `my-composite` that depends on `my-app:app:run` so that you can execute `./gradlew run`:
+
+====
+include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="build.gradle.kts[tags=run]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="build.gradle[tags=run]"]
+====
+
+[[included_plugin_builds]]
+=== Including builds that define Gradle plugins
+
+A special case of included builds are builds that define Gradle plugins.
+
+These builds should be included using the `includeBuild` statement inside the `pluginManagement {}` block of the settings file.
+
+Using this mechanism, the included build may also contribute a settings plugin that can be applied in the settings file itself:
+
+====
+include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-plugin-build",files="settings.gradle.kts[tags=include-build]"]
+include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
+====
+
+[[included_builds]]
+== Restrictions on included builds
+
+Most builds can be included in a composite, including other composite builds.
+There are some restrictions.
+
+In a regular build, Gradle ensures that each project has a unique _project path_.
+It makes projects identifiable and addressable without conflicts.
+
+In a composite build, Gradle adds additional qualification to each project from an included build to avoid project path conflicts.
+The full path to identify a project in a composite build is called a _build-tree path_.
+It consists of a _build path_ of an included build and a _project path_ of the project.
+
+By default, build paths and project paths are derived from directory names and structure on disk.
+Since included builds can be located anywhere on disk, their build path is determined by the name of the containing directory.
+This can sometimes lead to conflicts.
+
+To summarize, the included builds must fulfill these requirements:
+
+* Each included build must have a unique build path.
+* Each included build path must not conflict with any project path of the main build.
+
+These conditions guarantee that each project can be uniquely identified even in a composite build.
+
+If conflicts arise, the way to resolve them is by changing the _build name_ of an included build:
+
+.settings.gradle.kts
+[source,kotlin]
+----
+includeBuild("some-included-build") {
+    name = "other-name"
+}
+----
+
+[NOTE]
+====
+When a composite build is included in another composite build, both builds have the same parent.
+In other words, the nested composite build structure is flattened.
+====
+
+[[interacting_with_composite_builds]]
+== Interacting with a composite build
+
+Interacting with a composite build is generally similar to a regular multi-project build.
+Tasks can be executed, tests can be run, and builds can be imported into the IDE.
+
+[[composite_build_executing_tasks]]
+=== Executing tasks
+
+Tasks from an included build can be executed from the command-line or IDE in the same way as tasks from a regular multi-project build.
+Executing a task will result in task dependencies being executed, as well as those tasks required to build dependency artifacts from other included builds.
+
+You can call a task in an included build using a fully qualified path, for example, `:included-build-name:project-name:taskName`.
+Project and task names can be <<command_line_interface.adoc#sec:name_abbreviation,abbreviated>>.
+
+----
+$ ./gradlew :included-build:subproject-a:compileJava
+> Task :included-build:subproject-a:compileJava
+
+$ ./gradlew :i-b:sA:cJ
+> Task :included-build:subproject-a:compileJava
+----
+
+To <<command_line_interface.adoc#sec:excluding_tasks_from_the_command_line,exclude a task from the command line>>, you need to provide the fully qualified path to the task.
+
+NOTE: Included build tasks are automatically executed to generate required dependency artifacts, or the <<#included_build_task_dependencies,including build can declare a dependency on a task from an included build>>.
+
+[[composite_build_ide_integration]]
+=== Importing into the IDE
+
+One of the most useful features of composite builds is IDE integration.
+
+Importing a composite build permits sources from separate Gradle builds to be easily developed together.
+For every included build, each subproject is included as an IntelliJ IDEA Module or Eclipse Project.
+Source dependencies are configured, providing cross-build navigation and refactoring.
+
+[[included_build_declaring_substitutions]]
+== Declaring dependencies substituted by an included build
+
+By default, Gradle will configure each included build to determine the dependencies it can provide.
+The algorithm for doing this is simple.
+Gradle will inspect the group and name for the projects in the included build and substitute project dependencies for any external dependency matching `${project.group}:${project.name}`.
+
+[NOTE]
+====
+By default, substitutions are not registered for the _main_ build.
+
+To make the (sub)projects of the main build addressable by `${project.group}:${project.name}`, you can tell Gradle to treat the main build like an included build by self-including it: `includeBuild(".")`.
+====
+
+There are cases when the default substitutions determined by Gradle are insufficient or must be corrected for a particular composite.
+For these cases, explicitly declaring the substitutions for an included build is possible.
+
+For example, a single-project build called `anonymous-library`, produces a Java utility library but does not declare a value for the group attribute:
+
+====
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin/anonymous-library",files="build.gradle.kts[]"]
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy/anonymous-library",files="build.gradle[]"]
+====
+
+When this build is included in a composite, it will attempt to substitute for the dependency module `undefined:anonymous-library` (`undefined` being the default value for `project.group`, and `anonymous-library` being the root project name).
+Clearly, this isn't useful in a composite build.
+
+To use the unpublished library in a composite build, you can explicitly declare the substitutions that it provides:
+
+====
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin",files="settings.gradle.kts[tags=composite_substitution]"]
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy",files="settings.gradle[tags=composite_substitution]"]
+====
+
+With this configuration, the `my-app` composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of `anonymous-library`.
+
+[[deactivate_included_build_substitutions]]
+=== Deactivate included build substitutions for a configuration
+
+If you need to <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,resolve>> a published version of a module that is also available as part of an included build, you can deactivate the included build substitution rules on the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] of the Configuration that is resolved.
+This is necessary because the rules are globally applied in the build, and Gradle does not consider published versions during resolution by default.
+
+For example, we create a separate `publishedRuntimeClasspath` configuration that gets resolved to the published versions of modules that also exist in one of the local builds.
+This is done by deactivating global dependency substitution rules:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-deactivateGlobalSubstitution/kotlin",files="build.gradle.kts[tags=disableGlobalDependencySubstitutionRules]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-deactivateGlobalSubstitution/groovy",files="build.gradle[tags=disableGlobalDependencySubstitutionRules]"]
+====
+
+A use-case would be to compare published and locally built JAR files.
+
+[[included_build_substitution_requirements]]
+=== Cases where included build substitutions must be declared
+
+Many builds will function automatically as an included build, without declared substitutions.
+Here are some common cases where declared substitutions are required:
+
+* When the `archivesBaseName` property is used to set the name of the published artifact.
+* When a configuration other than `default` is published.
+* When the `MavenPom.addFilter()` is used to publish artifacts that don't match the project name.
+* When the `maven-publish` or `ivy-publish` plugins are used for publishing and the publication coordinates don't match `${project.group}:${project.name}`.
+
+[[included_build_substitution_limitations]]
+=== Cases where composite build substitutions won't work
+
+Some builds won't function correctly when included in a composite, even when dependency substitutions are explicitly declared.
+This limitation is because a substituted project dependency will always point to the `default` configuration of the target project.
+Any time the artifacts and dependencies specified for the default configuration of a project don't match what is published to a repository, the composite build may exhibit different behavior.
+
+Here are some cases where the published module metadata may be different from the project default configuration:
+
+* When a configuration other than `default` is published.
+* When the `maven-publish` or `ivy-publish` plugins are used.
+* When the `POM` or `ivy.xml` file is tweaked as part of publication.
+
+Builds using these features function incorrectly when included in a composite build.
+
+[[included_build_task_dependencies]]
+== Depending on tasks in an included build
+
+While included builds are isolated from one another and cannot declare direct dependencies, a composite build can declare task dependencies on its included builds.
+The included builds are accessed using link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:includedBuilds[Gradle.getIncludedBuilds()] or link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:includedBuild(java.lang.String)[Gradle.includedBuild(java.lang.String)], and a task reference is obtained via the link:{groovyDslPath}/org.gradle.api.initialization.IncludedBuild.html#org.gradle.api.initialization.IncludedBuild:task(java.lang.String)[IncludedBuild.task(java.lang.String)] method.
+
+Using these APIs, it is possible to declare a dependency on a task in a particular included build:
+
+====
+include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="build.gradle.kts[tags=run]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="build.gradle[tags=run]"]
+====
+
+Or you can declare a dependency on tasks with a certain path in some or all of the included builds:
+
+====
+include::sample[dir="samples/build-organization/composite-builds/hierarchical-multirepo/kotlin",files="build.gradle.kts"]
+include::sample[dir="samples/build-organization/composite-builds/hierarchical-multirepo/groovy",files="build.gradle"]
+====
+
+[[current_limitations_and_future_work]]
+== Limitations of composite builds
+
+Limitations of the current implementation include:
+
+* No support for included builds with publications that don't mirror the project default configuration. +
+See <<#included_build_substitution_limitations,Cases where composite builds won't work>>.
+* Multiple composite builds may conflict when run in parallel if more than one includes the same build. +
+Gradle does not share the project lock of a shared composite build between Gradle invocations to prevent concurrent execution.

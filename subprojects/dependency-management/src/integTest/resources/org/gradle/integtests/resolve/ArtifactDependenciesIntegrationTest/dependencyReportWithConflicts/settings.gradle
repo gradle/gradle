@@ -1,3 +1,0 @@
-include 'subproject'
-
-rootProject.buildFileName = 'projectWithConflicts.gradle'

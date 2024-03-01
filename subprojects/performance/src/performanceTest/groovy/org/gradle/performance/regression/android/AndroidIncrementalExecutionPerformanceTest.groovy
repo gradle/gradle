@@ -34,7 +34,7 @@ import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 @RunFor(
-    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = "santaTrackerAndroidBuild")
+    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["santaTrackerAndroidBuild", "nowInAndroidBuild"])
 )
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExecutionPerformanceTest implements AndroidPerformanceTestFixture {
@@ -42,20 +42,19 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
 
     def setup() {
         testProject = AndroidTestProject.findProjectFor(runner.testProject) as IncrementalAndroidTestProject
-        AndroidTestProject.useLatestAgpVersion(runner)
+        AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
+        AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.args.addAll(["--no-build-cache", "--no-scan"])
-        runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.PROPERTY_NAME}=warn")
-        AndroidTestProject.useLatestKotlinVersion(runner)
-        // AGP 7.3 requires Gradle 7.4
-        runner.minimumBaseVersion = "7.4"
+        // use the deprecated property so it works with previous versions
+        runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.DEPRECATED_PROPERTY_NAME}=warn")
+        runner.warmUpRuns = 20
         applyEnterprisePlugin()
-        configureProjectJavaHomeToJdk11()
     }
 
     def "abi change#configurationCaching"() {
         given:
-        if (configurationCachingEnabled) {
+        if (configurationCachingEnabled && IncrementalAndroidTestProject.SANTA_TRACKER == testProject) {
             runner.addBuildMutator { settings ->
                 new BuildMutator() {
                     @Override
@@ -81,7 +80,7 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
 
     def "non-abi change#configurationCaching"() {
         given:
-        if (configurationCachingEnabled) {
+        if (configurationCachingEnabled && IncrementalAndroidTestProject.SANTA_TRACKER == testProject) {
             runner.addBuildMutator { settings ->
                 new BuildMutator() {
                     @Override

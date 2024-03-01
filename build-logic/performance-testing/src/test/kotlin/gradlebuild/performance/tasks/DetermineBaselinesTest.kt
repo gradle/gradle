@@ -49,6 +49,7 @@ class DetermineBaselinesTest {
 
         // mock project.execAndGetStdout
         mockkStatic("gradlebuild.basics.kotlindsl.Kotlin_dsl_upstream_candidatesKt")
+        mockGitOperation(listOf("git", "remote", "-v"), "origin https://github.com/gradle/gradle.git (fetch)")
     }
 
     @After
@@ -83,6 +84,15 @@ class DetermineBaselinesTest {
 
         // then
         verifyBaselineDetermination("my-branch", false, null, "5.1-commit-master-fork-point")
+    }
+
+    @Test
+    fun `not determines fork point commit in security advisory fork`() {
+        // given
+        mockGitOperation(listOf("git", "remote", "-v"), "origin https://github.com/gradle/gradle-ghsa-84mw-qh6q-v842.git (fetch)")
+
+        // then
+        verifyBaselineDetermination("my-branch", false, null, defaultPerformanceBaselines)
     }
 
     @Test

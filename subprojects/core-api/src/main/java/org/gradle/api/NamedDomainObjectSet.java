@@ -31,13 +31,19 @@ import java.util.Set;
  *
  * @param <T> The type of objects in the set
  */
-public interface NamedDomainObjectSet<T> extends NamedDomainObjectCollection<T>, Set<T> {
+public interface NamedDomainObjectSet<T> extends NamedDomainObjectCollection<T>, DomainObjectSet<T> {
 
     /**
      * {@inheritDoc}
      */
     @Override
     <S extends T> NamedDomainObjectSet<S> withType(Class<S> type);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    NamedDomainObjectSet<T> named(Spec<String> nameFilter);
 
     /**
      * {@inheritDoc}

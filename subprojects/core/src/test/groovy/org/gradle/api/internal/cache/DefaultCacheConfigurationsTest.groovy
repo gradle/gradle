@@ -19,13 +19,14 @@ package org.gradle.api.internal.cache
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.cache.MarkingStrategy
 import org.gradle.cache.CleanupFrequency
+import org.gradle.cache.internal.LegacyCacheCleanupEnablement
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.internal.time.TimestampSuppliers.daysAgo
 
 class DefaultCacheConfigurationsTest extends Specification {
-    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class)
+    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Mock(LegacyCacheCleanupEnablement))
 
     def "cannot modify cache configurations via convenience method unless mutable"() {
         when:
@@ -182,7 +183,7 @@ class DefaultCacheConfigurationsTest extends Specification {
     }
 
     def "synchronized configurations reflect changes in property values"() {
-        def mutableCacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations)
+        def mutableCacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations, Mock(LegacyCacheCleanupEnablement))
 
         when:
         cacheConfigurations.synchronize(mutableCacheConfigurations)

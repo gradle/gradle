@@ -16,20 +16,51 @@
 
 package org.gradle.api.internal.tasks.userinput
 
+
 import spock.lang.Specification
 import spock.lang.Subject
 
 class NonInteractiveUserInputHandlerTest extends Specification {
-    @Subject def userInputHandler = new NonInteractiveUserInputHandler()
+    @Subject
+    def userInputHandler = new NonInteractiveUserInputHandler()
 
     def "always returns null for yes/no question"() {
         expect:
-        !userInputHandler.askYesNoQuestion('Accept license?')
+        userInputHandler.askYesNoQuestion('Accept license?') == null
+        userInputHandler.askUser { it.askYesNoQuestion('Accept license?') }.getOrNull() == null
     }
 
     def "always returns default for select question"() {
         expect:
         userInputHandler.selectOption('Select count', [1, 2, 3], 2) == 2
+    }
+
+    def "returns first option when no default"() {
+        expect:
+        userInputHandler.choice('Select count', [1, 2, 3])
+            .ask() == 1
+    }
+
+    def "returns default option for choice"() {
+        expect:
+        userInputHandler.choice('Select count', [1, 2, 3])
+            .defaultOption(2)
+            .ask() == 2
+        userInputHandler.choice('Select count', [1, 2, 3])
+            .whenNotConnected(2)
+            .ask() == 2
+    }
+
+    def "ignores option renderer"() {
+        expect:
+        userInputHandler.choice('Select count', [1, 2, 3])
+            .renderUsing { throw new RuntimeException() }
+            .ask() == 1
+    }
+
+    def "always returns default for int question"() {
+        expect:
+        userInputHandler.askIntQuestion('Enter something', 1, 2) == 2
     }
 
     def "always returns default for text question"() {

@@ -1,0 +1,150 @@
+/**
+ * This script generates an Eclipse plug-in project from a local Tooling API build.
+ * It can be used to compile and execute Buildship from an Eclipse workspace.
+ *
+ * To generate the Eclipse project, execute the 'buildshipEclipseProject' task. The task
+ * takes the shaded Jar, analyzes its content, and assembles an Eclipse plug-in
+ * project in the ${layout.buildDirectory}/buildshipProject folder.
+ *
+ * The $buildDir/buildshipProject folder can be imported into Eclipse by using the
+ * File > Import > Existing Project into workspace... functionality.
+ *
+ * If the Buildship plug-ins are present in the same workspace, then the binary Tooling API
+ * dependency is automatically replaced with the imported project.
+ */
+import java.util.regex.Matcher
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+
+tasks.register("buildshipEclipseProject", CreateBuildshipEclipseProjectTask) {
+    description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
+    toolingApiShadedJar = tasks.named('toolingApiShadedJar').flatMap { it.jarFile }
+    projectVersion = project.version
+    projectDirectory = layout.buildDirectory.dir("buildshipProject").get().asFile
+}
+
+@DisableCachingByDefault(because = "Not worth caching")
+abstract class CreateBuildshipEclipseProjectTask extends DefaultTask {
+
+    @InputFile
+    abstract RegularFileProperty getToolingApiShadedJar()
+
+    @Input
+    abstract Property<String> getProjectVersion()
+
+    @Inject
+    protected abstract FileSystemOperations getFs()
+
+    @OutputDirectory
+    File projectDirectory
+
+    @TaskAction
+    void generateBuildshipProject() {
+
+        File jarFile = toolingApiShadedJar.get().asFile
+
+        // create manifest and place it in the META-INF folder
+        def manifestFile = new File(projectDirectory, "META-INF/MANIFEST.MF")
+        if (!manifestFile.parentFile.exists()) {
+            def success = manifestFile.parentFile.mkdirs()
+            if (!success) {
+                throw new GradleException("Unable to create directory ${manifestFile.parentFile.absolutePath}")
+            }
+        }
+        manifestFile.text = calculateManifest(projectVersion.get(), jarFile)
+
+        // copy the jar to the project location
+        fs.copy {
+            from jarFile
+            into projectDirectory
+        }
+
+        // create the .project and .classpath files
+        new File(projectDirectory, '.project').text = getDotProjectText()
+        new File(projectDirectory, '.classpath').text = getDotClasspathText(jarFile.name)
+    }
+
+    private String calculateManifest(String projectVersion, File jar) {
+        def bundleVersion = getBundleVersion(projectVersion)
+        def qualifier = new Date().format('yyyyMMddkkmm')
+        def packageNames = getPackageNames(jar)
+        def packageExports = getPackageExports(packageNames, bundleVersion)
+     """Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Gradle Tooling API
+Bundle-Vendor: Gradle Inc.
+Bundle-SymbolicName: org.gradle.toolingapi
+Bundle-Version: ${bundleVersion}.v${qualifier}
+Bundle-ClassPath: .
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Export-Package: ${packageExports}
+Require-Bundle: org.slf4j.api;bundle-version="1.7.2"
+"""
+}
+
+    private String getBundleVersion(String projectVersion) {
+        Matcher matcher = projectVersion =~ /(\d+).(\d+)(?:-.*|\.(\d+)(?:-.*)?)?/
+        if (matcher.matches()) {
+            def major = matcher.group(1)
+            def minor = matcher.group(2)
+            def service = matcher.group(3)
+            if (service == null) service = "0"
+            return "${major}.${minor}.${service}"
+        } else {
+            throw new IllegalArgumentException("Invalid project version format: $projectVersion")
+        }
+    }
+
+    private Set<String> getPackageNames(File jar) {
+        def result = [] as Set
+        new ZipInputStream(new FileInputStream(jar)).withCloseable { zip ->
+            ZipEntry e
+            while (e = zip.nextEntry) {
+                if (!e.directory && e.name.endsWith(".class")) {
+                    int index = e.name.lastIndexOf('/')
+                    if (index < 0) index = e.name.length()
+                    String packageName = e.name.substring(0, index).replace('/', '.')
+                    result.add(packageName)
+                }
+            }
+        }
+        result
+    }
+
+    private String getPackageExports(Set<String> packageNames, String bundleVersion) {
+        // the Tooling API has more than two packages
+        StringBuilder exportedPackages = new StringBuilder("${packageNames[0]};version=\"${bundleVersion}\"")
+        for (i in 1..< packageNames.size()) {
+            exportedPackages.append ",\n ${packageNames[i]};version=\"${bundleVersion}\""
+        }
+        exportedPackages.toString()
+    }
+
+    private String getDotProjectText() {
+        """<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+  <name>org.gradle.toolingapi</name><comment/><projects/>
+  <buildSpec>
+    <buildCommand><name>org.eclipse.jdt.core.javabuilder</name><arguments/></buildCommand>
+    <buildCommand><name>org.eclipse.pde.ManifestBuilder</name><arguments/></buildCommand>
+    <buildCommand><name>org.eclipse.pde.SchemaBuilder</name><arguments/></buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.pde.PluginNature</nature>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>
+"""
+    }
+
+    private String getDotClasspathText(String jarName) {
+        """<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+  <classpathentry exported="true" kind="lib" path="${jarName}"/>
+  <classpathentry kind="output" path="bin"/>
+</classpath>
+"""
+    }
+
+
+}

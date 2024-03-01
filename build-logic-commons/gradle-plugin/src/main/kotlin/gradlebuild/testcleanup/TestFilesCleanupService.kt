@@ -130,7 +130,12 @@ abstract class TestFilesCleanupService @Inject constructor(
 
     override fun close() {
         val projectPathToLeftoverFiles = mutableMapOf<String, LeftoverFiles>()
-        // First run: collect and archive leftover files
+        // First run: delete any temporary directories used to extract resources from jars
+        parameters.projectStates.get().values.forEach { projectExtension ->
+            cleanUp(projectExtension.tmpExtractedResourcesDirs())
+        }
+
+        // Second run: collect and archive leftover files
         parameters.projectStates.get().forEach { (projectPath: String, projectExtension: TestFileCleanUpExtension) ->
             val tmpTestFiles = projectExtension.tmpTestFiles()
 
@@ -142,7 +147,7 @@ abstract class TestFilesCleanupService @Inject constructor(
             projectPathToLeftoverFiles[projectPath] = tmpTestFiles
         }
 
-        // Second run: verify and throw exceptions
+        // Third run: verify and throw exceptions
         val exceptions = mutableListOf<Exception>()
         parameters.projectStates.get()
             .filter { projectPathToLeftoverFiles.containsKey(it.key) }
@@ -191,7 +196,7 @@ abstract class TestFilesCleanupService @Inject constructor(
      * Returns non-empty directories: the mapping of directory to at most 4 leftover files' relative path in the directory.
      */
     private
-    fun TestFilesCleanupProjectState.tmpTestFiles(): LeftoverFiles = projectBuildDir.get().asFile.resolve("tmp/test files")
+    fun TestFilesCleanupProjectState.tmpTestFiles(): LeftoverFiles = projectBuildDir.get().asFile.resolve("tmp/teŝt files")
         .listFiles()
         ?.associateWith { dir ->
             val dirPath = dir.toPath()
@@ -204,6 +209,19 @@ abstract class TestFilesCleanupService @Inject constructor(
         }?.filter {
             it.value.isNotEmpty()
         } ?: emptyMap()
+
+    /**
+     * Returns any temporary directories used to extract resources from jars.
+     *
+     * These directories will be created as siblings of the randomly assigned test root directories, with the fixed name {@code tmp-extracted-resources}.
+     */
+    private
+    fun TestFilesCleanupProjectState.tmpExtractedResourcesDirs() = projectBuildDir.get().asFile.resolve("tmp/teŝt files")
+        .listFiles()
+        ?.filter { it.isDirectory }
+        ?.map { it.resolve("tmp-extracted-resources") }
+        ?.filter { it.exists() }
+        .orEmpty()
 
     private
     fun TestFilesCleanupProjectState.prepareReportsForCiPublishing(executedTaskPaths: List<String>, tmpTestFiles: Collection<File>) {

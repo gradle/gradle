@@ -1,0 +1,63 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[part7_gradle_refs]]
+= Part 7: Using Gradle's Reference Materials
+
+Learn about the references you will need as you work with Gradle.
+
+****
+**In this section you will:**
+
+- Learn about References
+- Finish the Tutorial
+****
+
+[[part7_begin]]
+== Before you begin
+
+1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
+2. You ran several tasks in <<part2_gradle_tasks#part2_begin,part 2>>.
+3. You learned about dependency management in <<part3_gradle_dep_man#part3_begin,part 3>>.
+4. You applied a plugin to your app in <<part4_gradle_plugins#part4_begin,part 4>>.
+5. You learned about incremental builds in <<part5_gradle_inc_builds#part5_begin,part 5>>.
+6. You turned on the local cache in <<part6_gradle_caching#part6_begin,part 6>>.
+
+== Step 1. Gradle References
+To work with Gradle, the following references are useful:
+
+- Gradle API http://gradle.org/docs/current/javadoc/[Javadocs]
+- Gradle's https://docs.gradle.org/current/dsl/index.html[Groovy DSL] or Gradle's https://docs.gradle.org/current/kotlin-dsl/index.html[Kotlin DSL]
+
+To find plugins:
+
+- Gradle <<plugin_reference#plugin_reference,Core Plugins>>
+- Gradle link:https://plugins.gradle.org/[Plugin Portal]
+
+To view all Gradle releases:
+
+- https://gradle.org/releases/[Gradle Releases]
+- http://gradle.org/docs/current/release-notes[Release Notes]
+
+For Gradle support:
+
+- link:https://discuss.gradle.org/[Gradle Forum]
+- link:https://gradle-community.slack.com/[Gradle Slack Channel]
+- link:https://gradle.org/courses/[Free Gradle Training]
+
+== Step 2. Next steps
+We recommend going through each section of the User Manual.
+
+[.text-right]
+**Next Step:** <<command_line_interface#command_line_interface,Running Gradle Builds>> >>

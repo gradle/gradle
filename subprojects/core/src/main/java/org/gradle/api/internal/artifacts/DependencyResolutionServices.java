@@ -23,6 +23,13 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 
+/**
+ * Provides access to services required for dependency resolution.
+ * <p>
+ * Note that changes to this type, even seemingly safe ones such as narrowing the return types, can
+ * cause problems for IDEs (the IDE tests should fail upon such changes, alerting us to
+ * this problem).  Thus, this internal API should be treated as semi-public.
+ */
 public interface DependencyResolutionServices {
     RepositoryHandler getResolveRepositoryHandler();
 

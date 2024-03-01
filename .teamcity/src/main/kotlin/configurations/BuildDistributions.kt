@@ -24,6 +24,6 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
 
     artifactRules = """$artifactRules
         subprojects/distributions-full/build/distributions/*.zip => distributions
-        subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
+        platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
     """.trimIndent()
 })

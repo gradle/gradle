@@ -1,0 +1,17 @@
+def makeFile = tasks.register("makeFile") {
+    def sharedFile = layout.buildDirectory.file("some-subdir/shared-file.txt")
+    outputs.file(sharedFile)
+    doFirst {
+        sharedFile.get().asFile << "This file is shared across Gradle subprojects."
+    }
+}
+
+configurations {
+    sharedConfiguration {
+        canBeResolved = false
+    }
+}
+
+artifacts {
+    sharedConfiguration(makeFile)
+}

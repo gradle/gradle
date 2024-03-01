@@ -16,11 +16,9 @@
 
 package org.gradle.execution.plan
 
-
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.specs.Spec
@@ -43,7 +41,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultFinalizedExecutionPlan finalizedPlan
 
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
-    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
 
     def setup() {
@@ -457,7 +455,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         orderingRule << ['dependsOn', 'mustRunAfter', 'shouldRunAfter']
     }
 
-    def "finalizer groups that finalize each other form a cycle"() {
+    def "finalizer groups that finalize each other do not form a cycle"() {
         given:
         TaskInternal finalizerA = createTask("finalizerA")
         TaskInternal finalizerB = createTask("finalizerB")
@@ -986,7 +984,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         def node1 = requiredNode()
         def node2 = requiredNode(node1)
         def node3 = requiredNode(node2)
-        executionPlan.setScheduledNodes([node3, node1, node2])
+        executionPlan.setScheduledWork(scheduledWork(node3, node1, node2))
 
         when:
         populateGraph()
@@ -1182,5 +1180,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         task.getShouldRunAfter() >> brokenDependencies()
         task.getFinalizedBy() >> taskDependencyResolvingTo(task, [])
         return task
+    }
+
+    private ScheduledWork scheduledWork(Node... nodes) {
+        return new ScheduledWork(nodes as List<Node>, nodes as List<Node>)
     }
 }

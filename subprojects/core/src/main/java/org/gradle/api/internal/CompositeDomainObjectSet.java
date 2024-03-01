@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.collections.EventSubscriptionVerifier;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
@@ -28,6 +28,7 @@ import org.gradle.internal.Actions;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -41,7 +42,6 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     private final Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
 
-    private final DefaultDomainObjectSet<T> backingSet;
     private final CollectionCallbackActionDecorator callbackActionDecorator;
 
     @SafeVarargs
@@ -52,17 +52,16 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
     @SafeVarargs
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, CollectionCallbackActionDecorator callbackActionDecorator, DomainObjectCollection<? extends T>... collections) {
-        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), callbackActionDecorator);
-        CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet, callbackActionDecorator);
+        DefaultDomainObjectSet<T> delegate = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), callbackActionDecorator);
+        CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(delegate, callbackActionDecorator);
         for (DomainObjectCollection<? extends T> c : collections) {
             out.addCollection(c);
         }
         return out;
     }
 
-    private CompositeDomainObjectSet(DefaultDomainObjectSet<T> backingSet, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(backingSet);
-        this.backingSet = backingSet;
+    private CompositeDomainObjectSet(DefaultDomainObjectSet<T> delegate, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(delegate);
         this.callbackActionDecorator = callbackActionDecorator;
     }
 
@@ -89,9 +88,14 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
     }
 
+    @Override
+    protected DefaultDomainObjectSet<T> getDelegate() {
+        return (DefaultDomainObjectSet<T>) super.getDelegate();
+    }
+
     @SuppressWarnings("unchecked")
     protected DomainObjectCompositeCollection<T> getStore() {
-        return (DomainObjectCompositeCollection) this.backingSet.getStore();
+        return (DomainObjectCompositeCollection) getDelegate().getStore();
     }
 
     @Override
@@ -110,13 +114,13 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
             collection.all(new InternalAction<T>() {
                 @Override
                 public void execute(T t) {
-                    backingSet.getEventRegister().fireObjectAdded(t);
+                    getDelegate().getEventRegister().fireObjectAdded(t);
                 }
             });
             collection.whenObjectRemoved(new Action<T>() {
                 @Override
                 public void execute(T t) {
-                    backingSet.getEventRegister().fireObjectRemoved(t);
+                    getDelegate().getEventRegister().fireObjectRemoved(t);
                 }
             });
         }
@@ -125,7 +129,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     public void removeCollection(DomainObjectCollection<? extends T> collection) {
         getStore().removeComposited(collection);
         for (T item : collection) {
-            backingSet.getEventRegister().fireObjectRemoved(item);
+            getDelegate().getEventRegister().fireObjectRemoved(item);
         }
     }
 
@@ -162,7 +166,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     // TODO Make this work with pending elements
     private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
 
-        private final List<DomainObjectCollection<? extends T>> store = Lists.newLinkedList();
+        private final List<DomainObjectCollection<? extends T>> store = new LinkedList<>();
 
         public boolean containsCollection(DomainObjectCollection<? extends T> collection) {
             for (DomainObjectCollection<? extends T> ts : store) {
@@ -223,11 +227,6 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
         @Override
         public boolean add(T t) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean addRealized(T element) {
             throw new UnsupportedOperationException();
         }
 
@@ -311,7 +310,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public void onRealize(Action<T> action) {
+        public void onPendingAdded(Action<T> action) {
+
+        }
+
+        @Override
+        public void setSubscriptionVerifier(EventSubscriptionVerifier<T> immediateRealizationSpec) {
 
         }
 

@@ -13,6 +13,30 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.clean checkout",
+    "groups" : [ {
+      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
+      "coverage" : {
+        "per_day" : [ "linux", "macOs", "windows" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.cold daemon",
+    "groups" : [ {
+      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
+      "coverage" : {
+        "per_day" : [ "linux", "macOs", "windows" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.first use",
+    "groups" : [ {
+      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
+      "coverage" : {
+        "per_day" : [ "linux", "macOs", "windows" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.experiment.java.ParallelBuildPerformanceTest.clean assemble with 4 parallel workers",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
@@ -121,6 +145,11 @@
   }, {
     "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change",
     "groups" : [ {
+      "testProject" : "nowInAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
+      }
+    }, {
       "testProject" : "santaTrackerAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux", "windows", "macOs" ]
@@ -129,6 +158,11 @@
   }, {
     "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change with configuration caching",
     "groups" : [ {
+      "testProject" : "nowInAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
+      }
+    }, {
       "testProject" : "santaTrackerAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux", "windows", "macOs" ]
@@ -137,6 +171,11 @@
   }, {
     "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change",
     "groups" : [ {
+      "testProject" : "nowInAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
+      }
+    }, {
       "testProject" : "santaTrackerAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux", "windows", "macOs" ]
@@ -145,15 +184,33 @@
   }, {
     "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change with configuration caching",
     "groups" : [ {
+      "testProject" : "nowInAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux", "windows", "macOs" ]
+      }
+    }, {
       "testProject" : "santaTrackerAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux", "windows", "macOs" ]
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.calculate task graph with test finalizer",
+    "groups" : [ {
+      "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean assembleDebug with clean transforms cache",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "nowInAndroidBuild",
       "coverage" : {
         "per_day" : [ "linux" ]
       }
@@ -175,6 +232,11 @@
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run assembleDebug",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "nowInAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux" ]
       }
@@ -204,6 +266,11 @@
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidStudioPerformanceTest.run Android Studio sync",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "nowInAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux" ]
       }

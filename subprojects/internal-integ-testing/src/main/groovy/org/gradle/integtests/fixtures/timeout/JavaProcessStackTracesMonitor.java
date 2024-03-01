@@ -250,7 +250,7 @@ public class JavaProcessStackTracesMonitor {
     private static ByteArrayOutputStream connectStream(InputStream forkedProcessOutput, CountDownLatch latch) {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(os, true);
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             try {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(forkedProcessOutput));
                 String line;
@@ -262,7 +262,9 @@ public class JavaProcessStackTracesMonitor {
             } finally {
                 latch.countDown();
             }
-        }).start();
+        });
+        thread.setDaemon(true);
+        thread.start();
         return os;
     }
 

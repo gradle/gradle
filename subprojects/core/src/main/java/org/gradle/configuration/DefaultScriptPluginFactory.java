@@ -51,9 +51,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final CompileOperationFactory compileOperationFactory;
     private ScriptPluginFactory scriptPluginFactory;
 
-    public DefaultScriptPluginFactory(ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, Factory<LoggingManagerInternal> loggingFactoryManager,
-                                      AutoAppliedPluginHandler autoAppliedPluginHandler, PluginRequestApplicator pluginRequestApplicator,
-                                      CompileOperationFactory compileOperationFactory) {
+    public DefaultScriptPluginFactory(
+        ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, Factory<LoggingManagerInternal> loggingFactoryManager,
+        AutoAppliedPluginHandler autoAppliedPluginHandler, PluginRequestApplicator pluginRequestApplicator,
+        CompileOperationFactory compileOperationFactory
+    ) {
         this.scriptServices = scriptServices;
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingFactoryManager = loggingFactoryManager;
@@ -107,22 +109,22 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             // Pass 1, extract plugin requests and plugin repositories and execute buildscript {}, ignoring (i.e. not even compiling) anything else
             CompileOperation<?> initialOperation = compileOperationFactory.getPluginsBlockCompileOperation(initialPassScriptTarget);
             Class<? extends BasicScript> scriptType = initialPassScriptTarget.getScriptClass();
-            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope, Actions.doNothing());
+            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, target, baseScope, initialOperation, Actions.doNothing());
             initialRunner.run(target, services);
 
             PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
-            PluginRequests mergedPluginRequests = autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, target);
 
             PluginManagerInternal pluginManager = topLevelScript ? initialPassScriptTarget.getPluginManager() : null;
-            pluginRequestApplicator.applyPlugins(mergedPluginRequests, scriptHandler, pluginManager, targetScope);
-
+            PluginRequests autoAppliedPlugins = autoAppliedPluginHandler.getAutoAppliedPlugins(initialPluginRequests, target);
+            PluginRequests allPlugins = initialPluginRequests.mergeWith(autoAppliedPlugins);
+            pluginRequestApplicator.applyPlugins(allPlugins, scriptHandler, pluginManager, targetScope);
             // Pass 2, compile everything except buildscript {}, pluginManagement{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);
             scriptType = scriptTarget.getScriptClass();
 
             CompileOperation<BuildScriptData> operation = compileOperationFactory.getScriptCompileOperation(scriptSource, scriptTarget);
 
-            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, ClosureCreationInterceptingVerifier.INSTANCE);
+            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, target, targetScope, operation, ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
                 BasicScript script = runner.getScript();
                 script.init(scriptTarget, scriptServices);

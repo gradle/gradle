@@ -34,7 +34,7 @@ class TestFilesCleanupRootPlugin : Plugin<Project> {
         val globalExtension = project.extensions.create<TestFilesCleanupBuildServiceRootExtension>("testFilesCleanupRoot")
         project.gradle.taskGraph.whenReady {
             val testFilesCleanupService = project.gradle.sharedServices.registerIfAbsent("testFilesCleanupBuildService", TestFilesCleanupService::class.java) {
-                parameters.rootBuildDir = project.buildDir
+                parameters.rootBuildDir = project.layout.buildDirectory
                 parameters.projectStates.putAll(globalExtension.projectStates)
                 parameters.testPathToBinaryResultsDirs = allTasks.filterIsInstance<Test>().associate { it.path to it.binaryResultsDirectory.get().asFile }
 
@@ -58,7 +58,7 @@ class TestFilesCleanupRootPlugin : Plugin<Project> {
             return emptyList()
         }
         // e.g. build/test-results/embeddedIntegTest/trace.json
-        return listOf(project.buildDir.resolve("test-results/$name/trace.json"))
+        return listOf(project.layout.buildDirectory.file("test-results/$name/trace.json").get().asFile)
     }
 
     private

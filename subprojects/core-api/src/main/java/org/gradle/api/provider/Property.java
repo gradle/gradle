@@ -47,7 +47,7 @@ import javax.annotation.Nullable;
  * @since 4.3
  */
 @SupportsKotlinAssignmentOverloading
-public interface Property<T> extends Provider<T>, HasConfigurableValue {
+public interface Property<T> extends Provider<T>, HasConfigurableValue, SupportsConvention {
     /**
      * Sets the value of the property to the given value, replacing whatever value the property already had.
      *
@@ -121,6 +121,15 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
     Property<T> value(Provider<? extends T> provider);
 
     /**
+     * {@inheritDoc}
+     * <p>
+     * This is similar to calling {@link #value(Object)} with a <code>null</code> argument.
+     * </p>
+     */
+    @Override
+    Property<T> unset();
+
+    /**
      * Specifies the value to use as the convention (default value) for this property. If the convention is set and
      * no explicit value or value provider has been specified, then the convention will be returned as the value of
      * the property (when queried).
@@ -157,6 +166,16 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * @since 5.1
      */
     Property<T> convention(Provider<? extends T> provider);
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * This is similar to calling {@link #convention(Object)} with a <code>null</code> argument.
+     * </p>
+     */
+    @Override
+    Property<T> unsetConvention();
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property,

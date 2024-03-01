@@ -1,0 +1,141 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+:maven-bom: https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management
+:spring-boot-bom: https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-build-systems.html#using-boot-dependency-management
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
+
+[[java_platform_plugin]]
+= The Java Platform Plugin
+
+The Java Platform plugin brings the ability to declare platforms for the Java ecosystem.
+A platform can be used for different purposes:
+
+- a description of modules which are published together (and for example, share the same version)
+- a set of recommended versions for heterogeneous libraries. A typical example includes the {spring-boot-bom}[Spring Boot BOM]
+- <<sec:java_platform_consumption,sharing a set of dependency versions>> between subprojects
+
+A platform is a special kind of software component which doesn't contain any sources:
+it is only used to reference other libraries, so that they play well together during dependency resolution.
+
+Platforms can be published as {metadata-file-spec}[Gradle Module Metadata] and {maven-bom}[Maven BOMs].
+
+NOTE: The `java-platform` plugin cannot be used in combination with the `java` or `java-library` plugins in a given project.
+Conceptually a project is either a platform, with no binaries, _or_ produces binaries.
+
+[[sec:java_platform_usage]]
+== Usage
+
+To use the Java Platform plugin, include the following in your build script:
+
+.Using the Java Platform plugin
+====
+include::sample[dir="snippets/java-platform/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+====
+
+
+[[sec:java_platform_separation]]
+== API and runtime separation
+
+A major difference between a Maven BOM and a Java platform is that in Gradle dependencies and <<dependency_management_terminology.adoc#sub:terminology_dependency_constraint,constraints>> are declared and scoped to a configuration and the ones extending it.
+While many users will only care about declaring constraints for _compile time_ dependencies, thus inherited by runtime and tests ones, it allows declaring dependencies or constraints that only apply to runtime or test.
+
+For this purpose, the plugin exposes two <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configurations>> that can be used to declare dependencies: `api` and `runtime`.
+The `api` configuration should be used to declare constraints and dependencies which should be used when compiling against the platform, whereas the `runtime` configuration should be used to declare constraints or dependencies which are visible at runtime.
+
+.Declaring API and runtime constraints
+====
+include::sample[dir="snippets/java-platform/quickstart/kotlin",files="build.gradle.kts[tags=constraints]"]
+include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.gradle[tags=constraints]"]
+====
+
+Note that this example makes use of _constraints_ and not dependencies.
+In general, this is what you would like to do: constraints will only apply if such a component is added to the dependency graph, either directly or transitively.
+This means that all constraints listed in a platform would not add a dependency unless another component brings it in: they can be seen as _recommendations_.
+
+[NOTE]
+====
+For example, if a platform declares a constraint on `org:foo:1.1`, and that nothing else brings in a dependency on `foo`, `foo` will _not_ appear in the graph.
+However, if `foo` appears, then usual conflict resolution would kick in.
+If a dependency brings in `org:foo:1.0`, then we would select `org:foo:1.1` to satisfy the platform constraint.
+====
+
+By default, in order to avoid the common mistake of adding a dependency in a platform instead of a constraint, Gradle will fail if you try to do so.
+If, for some reason, you also want to add _dependencies_ in addition to constraints, you need to enable it explicitly:
+
+.Allowing declaration of dependencies
+====
+include::sample[dir="snippets/java-platform/quickstart/kotlin",files="build.gradle.kts[tags=allow-dependencies]"]
+include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.gradle[tags=allow-dependencies]"]
+====
+
+[[sec:java_platform_project_constraints]]
+== Local project constraints
+
+If you have a multi-project build and want to publish a platform that links to subprojects, you can do it by declaring constraints on the subprojects which belong to the platform, as in the example below:
+
+.Declaring constraints on subprojects
+====
+include::sample[dir="snippets/java-platform/multiproject/kotlin/platform",files="build.gradle.kts[tags=project-constraints]"]
+include::sample[dir="snippets/java-platform/multiproject/groovy/platform",files="build.gradle[tags=project-constraints]"]
+====
+
+The project notation will become a classical `group:name:version` notation in the published metadata.
+
+[[sec:java_platform_bom_import]]
+== Sourcing constraints from another platform
+
+Sometimes the platform you define is an extension of another existing platform.
+
+In order to have your platform include the constraints from that third party platform, it needs to be imported as a `platform` _dependency_:
+
+.Importing a platform
+====
+include::sample[dir="snippets/java-platform/quickstart/kotlin",files="build.gradle.kts[tags=platform]"]
+include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.gradle[tags=platform]"]
+====
+
+[[sec:java_platform_publishing]]
+== Publishing platforms
+
+Publishing Java platforms is done by applying the `maven-publish` plugin and configuring a Maven publication that uses the `javaPlatform` component:
+
+.Publishing as a BOM
+====
+include::sample[dir="snippets/java-platform/multiproject/kotlin/platform",files="build.gradle.kts[tags=publishing]"]
+include::sample[dir="snippets/java-platform/multiproject/groovy/platform",files="build.gradle[tags=publishing]"]
+====
+
+This will generate a BOM file for the platform, with a `<dependencyManagement>` block where its `<dependencies>` correspond to the constraints defined in the platform module.
+
+[[sec:java_platform_consumption]]
+== Consuming platforms
+
+Because a Java Platform is a special kind of component, a dependency on a Java platform has to be declared using the `platform` or `enforcedPlatform` keyword, as explained in the <<platforms.adoc#sub:bom_import,managing transitive dependencies>> section.
+For example, if you want to share dependency versions between subprojects, you can define a platform module which would declare all versions:
+
+.Recommend versions in a platform module
+====
+include::sample[dir="snippets/java-platform/recommender/kotlin/platform",files="build.gradle.kts[tags=define-platform]"]
+include::sample[dir="snippets/java-platform/recommender/groovy/platform",files="build.gradle[tags=define-platform]"]
+====
+
+And then have subprojects depend on the platform to get recommendations:
+
+.Get recommendations from a platform
+====
+include::sample[dir="snippets/java-platform/recommender/kotlin/consumer",files="build.gradle.kts[tags=get-recommendations]"]
+include::sample[dir="snippets/java-platform/recommender/groovy/consumer",files="build.gradle[tags=get-recommendations]"]
+====

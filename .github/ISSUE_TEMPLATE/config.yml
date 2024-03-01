@@ -1,5 +1,8 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
-  - name: Gradle Discussion Forums
-    url: https://discuss.gradle.org
-    about: Please ask and answer questions here.
+  - name: Ask for help
+    url: http://help.gradle.org/
+    about: If you need help with Gradle or have a usage question, please reach our community instead of creating an issue.
+  - name: Create an issue without template
+    url: https://github.com/gradle/gradle/issues/new
+    about: This option is only available for repository maintainers.

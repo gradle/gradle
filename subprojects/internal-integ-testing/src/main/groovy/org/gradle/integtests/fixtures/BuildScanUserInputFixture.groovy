@@ -28,7 +28,6 @@ final class BuildScanUserInputFixture {
     public static final String NO = 'no'
     public static final byte EOF = 4
     public static final String PROMPT = "$QUESTION [$YES, $NO]"
-    public static final String BUILD_SCAN_ERROR_MESSAGE_HINT = 'Run with --scan to get full insights.'
     private static final String ANSWER_PREFIX = 'License accepted:'
 
     private BuildScanUserInputFixture() {}

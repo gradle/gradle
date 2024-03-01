@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON
 import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
 import com.alibaba.fastjson.serializer.SerializerFeature
+import common.Arch
 import common.Os
 import common.VersionedSettingsBranch
 import configurations.ParallelizationMethod
@@ -131,6 +132,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             .filter { model.subprojects.getSubprojectByName(it.key) != null }
             .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.testClassAndSourceSet.sourceSet != "test" }) }
             .sortedBy { -it.totalTime }
+            .filter { onlyNativeSubprojectsForIntelMacs(testCoverage, it.subProject.name) }
 
         return parallelize(subProjectTestClassTimes, testCoverage) { numberOfBatches ->
             if (testCoverage.os == Os.LINUX)
@@ -180,5 +182,18 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
                 println("No test statistics found for ${testCoverage.asName()} (${testCoverage.uuid}), re-using the data from ${foundTestCoverage.asName()} (${foundTestCoverage.uuid})")
             }
         }
+    }
+}
+
+fun onlyNativeSubprojectsForIntelMacs(
+    testCoverage: TestCoverage,
+    subprojectName: String
+): Boolean {
+    return if (testCoverage.os == Os.MACOS && testCoverage.arch == Arch.AMD64) {
+        subprojectName.contains("native") ||
+            // Include precondition-tester here so we understand that tests do run on macOS intel as well
+            subprojectName in listOf("file-watching", "snapshots", "workers", "logging", "precondition-tester")
+    } else {
+        true
     }
 }

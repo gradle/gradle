@@ -79,6 +79,26 @@ public class ResultsStoreHelper {
         return System.getProperty(SYSPROP_PERFORMANCE_TEST_CHANNEL, "commits");
     }
 
+    public static OperatingSystem determineOsFromChannel() {
+        String channel = determineChannel();
+        int firstDashIndex = channel.indexOf('-');
+        if (firstDashIndex == -1) {
+            return OperatingSystem.LINUX;
+        }
+        String prefix = channel.startsWith("flakiness-detection")
+            ? "flakiness-detection"
+            : channel.substring(0, firstDashIndex);
+        String channelWithoutPrefix = channel.substring(prefix.length());
+        if (channelWithoutPrefix.startsWith(OperatingSystem.MAC_OS.getChannelSuffix())) {
+            return OperatingSystem.MAC_OS;
+        } else if (channelWithoutPrefix.startsWith(OperatingSystem.WINDOWS.getChannelSuffix())) {
+            return OperatingSystem.WINDOWS;
+        } else {
+            return OperatingSystem.LINUX;
+        }
+
+    }
+
     public static List<String> determineChannelPatterns() {
         List<String> patterns = new ArrayList<>();
         patterns.add(ResultsStoreHelper.determineChannel());

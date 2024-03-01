@@ -16,43 +16,35 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
+import java.util.function.Function;
 
+@ServiceScope(Scopes.Build.class)
 public interface UserInputHandler {
     /**
-     * Prompts the user with a yes/no question and returns the answer.
+     * Prompts the user with a yes/no question and returns the answer. Requires that the user explicitly type "yes" or "no".
      *
      * @param question The text of the question.
-     * @return the answer or {@code null} if not connected to a user console.
+     * @return the answer or {@code null} if not connected to a console.
      */
     @Nullable
     @UsedByScanPlugin
-    Boolean askYesNoQuestion(String question);
+    default Boolean askYesNoQuestion(String question) {
+        return askUser(interaction -> interaction.askYesNoQuestion(question)).getOrNull();
+    }
 
     /**
-     * Prompts the user with a yes/no question and returns the answer.
-     *
-     * @param question The text of the question.
-     * @return the answer or the given default if not connected to a user console.
+     * Ask the user one or more questions to produce a value of type {@link T}.
      */
-    boolean askYesNoQuestion(String question, boolean defaultValue);
+    <T> Provider<T> askUser(Function<? super UserQuestions, ? extends T> interaction);
 
     /**
-     * Prompts the user to select an option from the given list and returns the answer.
-     * Uses the {@link Object#toString()} representation of the options to format the prompt.
-     *
-     * @param question The text of the question.
-     * @return the answer or the given default if not connected to a user console.
+     * Return true if the user input has been interrupted, e.g. via Ctrl+C or some interaction with the client UI.
      */
-    <T> T selectOption(String question, Collection<T> options, T defaultOption);
-
-    /**
-     * Prompts the user to provide a string value.
-     * @param question The text of the question.
-     * @return The answer or the given default if not connected to a user console.
-     */
-    String askQuestion(String question, String defaultValue);
+    boolean interrupted();
 }

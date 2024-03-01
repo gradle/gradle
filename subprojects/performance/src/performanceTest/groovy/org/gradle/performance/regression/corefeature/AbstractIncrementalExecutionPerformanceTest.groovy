@@ -35,7 +35,8 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
     }
 
     protected boolean enableConfigurationCaching(boolean configurationCachingEnabled) {
-        runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME}=${configurationCachingEnabled}")
+        // use the deprecated property so it works with previous versions
+        runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=${configurationCachingEnabled}")
     }
 
     protected static configurationCachingMessage(boolean configurationCachingEnabled) {

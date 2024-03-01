@@ -18,6 +18,7 @@ package org.gradle.test.fixtures
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.concurrent.ManagedScheduledExecutor
+import org.gradle.internal.concurrent.ManagedThreadPoolExecutor
 import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -66,7 +67,13 @@ class ConcurrentTestUtil extends ExternalResource {
         finished()
     }
 
-    //simplistic polling assertion. attempts asserting every x millis up to some max timeout
+    /**
+     * Polls the given assertion until it succeeds, or the timeout expires.
+     * <p>
+     * By default, the assertion is polled every 100ms, and the timeout is 10 seconds.
+     *
+     * @param assertion The assertion to poll.
+     */
     static void poll(
         double timeoutInSeconds = 10,
         double initialDelayInSeconds = 0,
@@ -105,15 +112,23 @@ class ConcurrentTestUtil extends ExternalResource {
 
     ExecutorFactory getExecutorFactory() {
         return new ExecutorFactory() {
+            @Override
             ManagedExecutor create(String displayName) {
                 return new ManagedExecutorStub(ConcurrentTestUtil.this)
             }
 
+            @Override
             ManagedExecutor create(String displayName, int fixedSize) {
                 // Ignores size of thread pool
                 return new ManagedExecutorStub(ConcurrentTestUtil.this)
             }
 
+            @Override
+            ManagedThreadPoolExecutor createThreadPool(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
+                throw new UnsupportedOperationException()
+            }
+
+            @Override
             ManagedScheduledExecutor createScheduled(String displayName, int fixedSize) {
                 throw new UnsupportedOperationException()
             }

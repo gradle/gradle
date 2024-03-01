@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 
@@ -25,7 +26,7 @@ class ProjectSpecs {
 
     static ProjectSpec forStartParameter(StartParameter startParameter, SettingsInternal settings) {
         @SuppressWarnings("deprecation")
-        File explicitBuildFile = startParameter.getBuildFile();
+        File explicitBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
         if (explicitBuildFile != null) {
             return new BuildFileProjectSpec(explicitBuildFile);
         }

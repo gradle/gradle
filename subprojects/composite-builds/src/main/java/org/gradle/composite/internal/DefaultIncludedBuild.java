@@ -40,12 +40,10 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     private final Path identityPath;
     private final BuildDefinition buildDefinition;
     private final boolean isImplicit;
-    private final BuildState owner;
     private final IncludedBuildImpl model;
 
     public DefaultIncludedBuild(
         BuildIdentifier buildIdentifier,
-        Path identityPath,
         BuildDefinition buildDefinition,
         boolean isImplicit,
         BuildState owner,
@@ -55,10 +53,9 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         super(buildTree, buildDefinition.newInstance(), owner);
         this.buildIdentifier = buildIdentifier;
-        this.identityPath = identityPath;
+        this.identityPath = Path.path(buildIdentifier.getBuildPath());
         this.buildDefinition = buildDefinition;
         this.isImplicit = isImplicit;
-        this.owner = owner;
         this.model = instantiator.newInstance(IncludedBuildImpl.class, this);
     }
 
@@ -122,11 +119,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     @Override
     public File getBuildRootDir() {
         return buildDefinition.getBuildRootDir();
-    }
-
-    @Override
-    public Path getCurrentPrefixForProjectsInChildBuilds() {
-        return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildIdentifier.getName());
     }
 
     @Override

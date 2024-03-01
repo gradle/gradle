@@ -60,6 +60,15 @@ public interface TaskProperties {
     ImmutableSortedSet<OutputFilePropertySpec> getOutputFileProperties();
 
     /**
+     * Service reference properties (those annotated with {@link org.gradle.api.services.ServiceReference}).
+     *
+     * It is guaranteed that all the {@link ServiceReferenceSpec}s have a name and that the names are unique.
+     *
+     * @see org.gradle.api.services.ServiceReference
+     */
+    ImmutableSortedSet<ServiceReferenceSpec> getServiceReferences();
+
+    /**
      * Whether output properties have been declared.
      */
     boolean hasDeclaredOutputs();

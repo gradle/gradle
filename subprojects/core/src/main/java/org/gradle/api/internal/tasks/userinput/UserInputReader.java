@@ -16,7 +16,44 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
-public interface UserInputReader {
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-    String readInput();
+/**
+ * Receives interactive responses from the user.
+ */
+@ServiceScope(Scope.Global.class)
+public interface UserInputReader {
+    void startInput();
+
+    void putInput(UserInput input);
+
+    /**
+     * Returns a {@link TextResponse} containing text supplied by the user, or {@link #END_OF_INPUT} if interrupted.
+     */
+    UserInput readInput();
+
+    abstract class UserInput {
+        abstract String getText();
+    }
+
+    UserInput END_OF_INPUT = new UserInput() {
+        @Override
+        String getText() {
+            throw new IllegalStateException("No response available.");
+        }
+    };
+
+    class TextResponse extends UserInput {
+        private final String text;
+
+        public TextResponse(String text) {
+            this.text = text;
+        }
+
+        @Override
+        public String getText() {
+            return text;
+        }
+    }
 }

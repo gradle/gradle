@@ -61,7 +61,7 @@ testing {
                         testClassesDirs += sharedArchTestClasses.filter { it.isDirectory }
                         classpath += sourceSets.main.get().output.classesDirs
                         systemProperty("package.cycle.exclude.patterns", packageCyclesExtension.excludePatterns.get().joinToString(","))
-                        configure<PredictiveTestSelectionExtension> {
+                        extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
                             // PTS doesn't work well with architecture tests which scan all classes
                             enabled = false
                         }

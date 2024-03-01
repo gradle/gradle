@@ -19,15 +19,15 @@ package org.gradle.java
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.JavaInfo
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Assume
-import spock.lang.IgnoreIf
 
 import java.util.concurrent.CountDownLatch
 
-@IgnoreIf({ !GradleContextualExecuter.isParallel() })
+@Requires(IntegTestPreconditions.IsParallelExecutor)
 class ParallelTestTaskIntegrationTest extends AbstractIntegrationSpec {
     String getVersion() {
         return "1.8"
@@ -53,8 +53,8 @@ import ${CountDownLatch.canonicalName}
 def latch = new CountDownLatch(${subprojects.size()})
 subprojects {
     apply plugin: 'java'
-    sourceCompatibility = ${version}
-    targetCompatibility = ${version}
+    java.sourceCompatibility = ${version}
+    java.targetCompatibility = ${version}
 
     ${mavenCentralRepository()}
     dependencies { testImplementation 'junit:junit:4.13' }

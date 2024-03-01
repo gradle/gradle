@@ -27,6 +27,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.HasScriptServices;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -225,7 +226,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      */
     DetachedResolver newDetachedResolver();
 
-
     /**
      * Returns the property that stored {@link Project#getStatus()}.
      * <p>
@@ -236,6 +236,16 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     Property<Object> getInternalStatus();
 
     DependencyMetaDataProvider getDependencyMetaDataProvider();
+
+    /**
+     * When we get the {@link ConfigurationContainer} from internal locations, we'll override
+     * this getter to promise to return a {@link RoleBasedConfigurationContainerInternal} instance, to avoid
+     * the need to cast the result to create role-based configurations.
+     *
+     * @return the configuration container as a {@link RoleBasedConfigurationContainerInternal}
+     */
+    @Override
+    RoleBasedConfigurationContainerInternal getConfigurations();
 
     interface DetachedResolver {
         RepositoryHandler getRepositories();

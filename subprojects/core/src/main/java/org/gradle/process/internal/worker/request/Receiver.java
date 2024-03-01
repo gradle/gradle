@@ -16,25 +16,45 @@
 
 package org.gradle.process.internal.worker.request;
 
+import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.StreamCompletion;
+import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.process.internal.worker.DefaultWorkerLoggingProtocol;
+import org.gradle.process.internal.worker.DefaultWorkerProblemProtocol;
 import org.gradle.process.internal.worker.WorkerProcessException;
+import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
+import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class Receiver extends DefaultWorkerLoggingProtocol implements ResponseProtocol, StreamCompletion, StreamFailureHandler {
+/**
+ * Receives and handles messages about a given worker action executed by a worker process.
+ * <p>
+ * This receiver is used per worker action.
+ */
+@NonNullApi
+public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailureHandler {
     private static final Object NULL = new Object();
     private static final Object END = new Object();
     private final BlockingQueue<Object> received = new ArrayBlockingQueue<Object>(10);
     private final String baseName;
     private Object next;
 
+    // Sub-handlers for the different protocols implemented by ResponseProtocol
+    private final WorkerLoggingProtocol loggingProtocol;
+    private final WorkerProblemProtocol problemProtocol;
+
     public Receiver(String baseName, OutputEventListener outputEventListener) {
-        super(outputEventListener);
+        this.loggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
+        this.problemProtocol = new DefaultWorkerProblemProtocol();
         this.baseName = baseName;
     }
 
@@ -49,6 +69,7 @@ public class Receiver extends DefaultWorkerLoggingProtocol implements ResponsePr
         return next != END;
     }
 
+    @Nullable
     public Object getNextResult() {
         awaitNextResult();
         Object next = this.next;
@@ -78,7 +99,7 @@ public class Receiver extends DefaultWorkerLoggingProtocol implements ResponsePr
     }
 
     @Override
-    public void completed(Object result) {
+    public void completed(@Nullable Object result) {
         try {
             received.put(result == null ? NULL : result);
         } catch (InterruptedException e) {
@@ -99,6 +120,23 @@ public class Receiver extends DefaultWorkerLoggingProtocol implements ResponsePr
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
+
+    @Override
+    public void reportProblem(ProblemReport problem, OperationIdentifier id) {
+        problemProtocol.reportProblem(problem, id);
+    }
+
+    @Override
+    public void sendOutputEvent(LogEvent event) {
+        loggingProtocol.sendOutputEvent(event);
+    }
+
+    @Override
+    public void sendOutputEvent(StyledTextOutputEvent event) {
+        loggingProtocol.sendOutputEvent(event);
+    }
+
+
 
     static class Failure {
         final Throwable failure;

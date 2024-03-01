@@ -1,0 +1,8 @@
+${fileComment.multilineComment}
+#include <iostream>
+#include <stdlib.h>
+#include "${projectName.groovyString}.h"
+
+std::string ${namespace.groovyString}::Greeter::greeting() {
+    return std::string("Hello, World!");
+}

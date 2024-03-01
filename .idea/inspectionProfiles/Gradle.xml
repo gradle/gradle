@@ -1,6 +1,8 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Gradle" />
+    <inspection_tool class="21f28a86-2ba8-3048-9ce1-b6f10d4d4a12" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
+    <inspection_tool class="73cd39e8-e54e-3a38-ad1b-b883fff4b1eb" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
     <inspection_tool class="AsciiDocLinkResolve" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="CatchMayIgnoreException" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="Convert2streamapi" enabled="false" level="INFORMATION" enabled_by_default="false" />
@@ -13,11 +15,16 @@
       </extension>
     </inspection_tool>
     <inspection_tool class="FoldExpressionIntoStream" enabled="false" level="INFORMATION" enabled_by_default="false" />
+    <inspection_tool class="GrMethodMayBeStatic" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
     <inspection_tool class="JavadocBlankLines" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="KotlinUnusedImport" enabled="true" level="ERROR" enabled_by_default="true" />
-    <inspection_tool class="MethodMayBeStatic" enabled="true" level="WARNING" enabled_by_default="true">
+    <inspection_tool class="MethodMayBeStatic" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES">
       <option name="m_onlyPrivateOrFinal" value="false" />
       <option name="m_ignoreEmptyMethods" value="true" />
+    </inspection_tool>
+    <inspection_tool class="MissingOverrideAnnotation" enabled="true" level="ERROR" enabled_by_default="true" editorAttributes="ERRORS_ATTRIBUTES">
+      <option name="ignoreObjectMethods" value="false" />
+      <option name="ignoreAnonymousClassMethods" value="false" />
     </inspection_tool>
     <inspection_tool class="NewMethodNamingConvention" enabled="true" level="ERROR" enabled_by_default="true">
       <extension name="InstanceMethodNamingConvention" enabled="true">
@@ -30,6 +37,65 @@
         <option name="m_minLength" value="2" />
         <option name="m_maxLength" value="999" />
       </extension>
+    </inspection_tool>
+    <inspection_tool class="SSBasedInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <replaceConfiguration name="Join combined with collect" suppressId="join_with_collect" problemDescriptor="Use a `join` method overload" text="$callJoin$($sep$, $callCollect$($src$, $transform$))" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="org.gradle.util.internal.CollectionUtils.join($sep$, $src$, $transform$)">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="src" within="" contains="" />
+        <constraint name="sep" nameOfExprType="String" exprTypeWithinHierarchy="true" within="" contains="" />
+        <constraint name="callJoin" regexp="join" within="" contains="" />
+        <constraint name="callCollect" regexp="collect" within="" contains="" />
+        <constraint name="transform" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Manual array contains" description="Replace checking element presense in array with a utility function" suppressId="manual_array_contains" problemDescriptor="Replace manual array-contains check with utility function" text="for ($TYPE$ $ITEM$ : $ARR$) {&#10;    if ($ITEM$.equals($TARGET$)) {&#10;       return $RES$;&#10;    }&#10;}" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="if (org.gradle.util.internal.ArrayUtils.contains($ARR$, $TARGET$)) {&#10;   return $RES$;&#10;}">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="TYPE" within="" contains="" />
+        <constraint name="ARR" nameOfExprType=".*\[\]" within="" contains="" />
+        <constraint name="RES" nameOfExprType="boolean" exprTypeWithinHierarchy="true" within="" contains="" />
+        <constraint name="ITEM" within="" contains="" />
+        <constraint name="TARGET" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Manual array contains" text="for ($TYPE$ $ITEM$ : $ARR$) {&#10;    if ($TARGET$.equals($ITEM$)) {&#10;       return $RES$;&#10;    }&#10;}" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="if (org.gradle.util.internal.ArrayUtils.contains($ARR$, $TARGET$)) {&#10;    return $RES$;&#10;}">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="TYPE" within="" contains="" />
+        <constraint name="ARR" nameOfExprType=".*\[\]" within="" contains="" />
+        <constraint name="RES" nameOfExprType="boolean" exprTypeWithinHierarchy="true" within="" contains="" />
+        <constraint name="ITEM" within="" contains="" />
+        <constraint name="TARGET" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" description="Many no-argument Guava Collection factory methods are marked in their javadoc &quot;Should be treated as deprecated&quot;.  These should not be used." suppressId="guava-collection-factory" problemDescriptor="Treat some Guava Collection factory methods as Deprecated" text="com.google.common.collect.Lists.newArrayList()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.ArrayList&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Lists.newCopyOnWriteArrayList()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.concurrent.CopyOnWriteArrayList&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Lists.newLinkedList()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.LinkedList&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Maps.newConcurrentMap()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.concurrent.ConcurrentHashMap&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Maps.newHashMap()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.HashMap&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Maps.newLinkedHashMap()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.LinkedHashMap&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Maps.newTreeMap()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.TreeMap&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Sets.newCopyOnWriteArraySet()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.concurrent.CopyOnWriteArraySet&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Sets.newHashSet()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.HashSet&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Sets.newLinkedHashSet()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.LinkedHashSet&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Sets.newTreeSet()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.TreeSet&lt;&gt;()">
+        <constraint name="__context__" within="" contains="" />
+      </replaceConfiguration>
     </inspection_tool>
     <inspection_tool class="SafeVarargsDetector" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="UNUSED_IMPORT" enabled="true" level="ERROR" enabled_by_default="true" />

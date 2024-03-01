@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.fixtures.timeout
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 
 class JavaProcessStackTracesMonitorSpec extends Specification {
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def 'can extract process info from unix ps()'() {
         given:
         def output = '''
@@ -34,7 +34,7 @@ class JavaProcessStackTracesMonitorSpec extends Specification {
  2477 ?        Sl     2:12 /opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java -Djava.security.manager=worker.org.gradle.process.internal.worker.child.BootstrapSecurityManager -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp /home/tcagent1/.gradle/caches/4.9-20180607113442+0000/workerMain/gradle-worker.jar worker.org.gradle.process.internal.worker.GradleWorkerMain 'Gradle Worker Daemon 199\'
  7367 pts/0    R+     0:00 ps x
 15818 ?        Sl     2:15 /opt/jdk/oracle-jdk-8/bin/java -DintegTest.gradleHomeDir=/home/tcagent1/agent/work/668602365d1521fc/subprojects/test-kit/build/integ test -DintegTest.gradleUserHomeDir=/home/tcagent1/agent/work/668602365d1521fc/intTestHomeDir -DintegTest.toolingApiShadedJarDir=/home/tcagent1/agent/work/668602365d1521fc/subprojects/tooling-api/build/shaded-jar -Djava.security.manager=worker.org.gradle.process.internal.worker.child.BootstrapSecurityManager -Dorg.gradle.ci.agentCount=2 -Dorg.gradle.ci.agentNum=1 -Dorg.gradle.integtest.daemon.registry=/home/tcagent1/agent/work/668602365d1521fc/build/daemon -Dorg.gradle.integtest.executer=embedded -Dorg.gradle.integtest.multiversion=default -Dorg.gradle.integtest.native.toolChains=default -Dorg.gradle.integtest.versions=latest -Dorg.gradle.native=false -Dorg.gradle.test.maxParallelForks=4 -XX:+HeapDumpOnOutOfMemoryError -Xmx512m -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -ea -cp /home/tcagent1/.gradle/caches/4.9-20180607113442+0000/workerMain/gradle-worker.jar worker.org.gradle.process.internal.worker.GradleWorkerMain 'Gradle Test Executor 61\'
-24438 ?        Sl     3:46 /opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java -Dorg.gradle.daemon.idletimeout=120000 -Dorg.gradle.daemon.registry.base=/home/tcagent1/agent/work/668602365d1521fc/build/daemon -Dorg.gradle.native.dir=/home/tcagent1/agent/work/668602365d1521fc/intTestHomeDir/worker-1/native -Dorg.gradle.deprecation.trace=true -Djava.io.tmpdir=/home/tcagent1/agent/work/668602365d1521fc/subprojects/test-kit/build/tmp -Dfile.encoding=UTF-8 -Dorg.gradle.classloaderscope.strict=true -Dgradle.internal.noSearchUpwards=true -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false -ea -ea -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/tcagent1/agent/work/668602365d1521fc/intTestHomeDir/worker-1 -Dorg.gradle.appname=gradle -classpath /home/tcagent1/agent/work/668602365d1521fc/subprojects/test-kit/build/integ test/lib/gradle-launcher-4.9.jar org.gradle.launcher.GradleMain --init-script /home/tcagent1/agent/work/668602365d1521fc/subprojects/test-kit/build/tmp/test files/GradleRunnerConsoleInputEndUserIntegrationTest/can_capture_user_in..._provided/xkpwb/testKitDirInit.gradle --no-daemon --stacktrace --gradle-user-home /home/tcagent1/agent/work/668602365d1521fc/intTestHomeDir/worker-1 --warning-mode=all build
+24438 ?        Sl     3:46 /opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java -Dorg.gradle.daemon.idletimeout=120000 -Dorg.gradle.daemon.registry.base=/home/tcagent1/agent/work/668602365d1521fc/build/daemon -Dorg.gradle.native.dir=/home/tcagent1/agent/work/668602365d1521fc/intTestHomeDir/worker-1/native -Dorg.gradle.deprecation.trace=true -Djava.io.tmpdir=/home/tcagent1/agent/work/668602365d1521fc/subprojects/test-kit/build/tmp -Dfile.encoding=UTF-8 -Dorg.gradle.classloaderscope.strict=true -Dgradle.internal.noSearchUpwards=true -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false -ea -ea -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/tcagent1/agent/work/668602365d1521fc/intTestHomeDir/worker-1 -Dorg.gradle.appname=gradle -classpath /home/tcagent1/agent/work/668602365d1521fc/subprojects/test-kit/build/integ test/lib/gradle-launcher-4.9.jar org.gradle.launcher.GradleMain --init-script /home/tcagent1/agent/work/668602365d1521fc/subprojects/test-kit/build/tmp/teŝt files/GradleRunnerConsoleInputEndUserIntegrationTest/can_capture_user_in..._provided/xkpwb/testKitDirInit.gradle --no-daemon --stacktrace --gradle-user-home /home/tcagent1/agent/work/668602365d1521fc/intTestHomeDir/worker-1 --warning-mode=all build
 27347 pts/0    S      0:00 bash
 32167 ?        Ssl    8:50 /opt/files/jdk-linux/jdk-8u161-linux-x64.tar.gz/bin/java -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -Xmx2500m -Dfile.encoding=UTF-8 -Djava.io.tmpdir=/home/tcagent1/agent/temp/buildTmp -Duser.country=US -Duser.language=en -Duser.variant -cp /home/tcagent1/.gradle/wrapper/dists/gradle-4.9-20180607113442+0000-bin/6o1ijseqszb59y1oe4hyx3o6o/gradle-4.9-20180607113442+0000/lib/gradle-launcher-4.9.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 4.9-20180607113442+0000
 '''
@@ -50,7 +50,7 @@ class JavaProcessStackTracesMonitorSpec extends Specification {
         ]
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def 'can extract process info from windows wmic'() {
         given:
         def output = '''
@@ -81,7 +81,7 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
         ]
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def 'can locate jstack on Unix'() {
         expect:
         new JavaProcessStackTracesMonitor.JavaProcessInfo('0', javaCommand).jstackCommand == jstackCommand
@@ -93,7 +93,7 @@ cmd /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:\\tcage
         '/opt/jdk/oracle-jdk-8/jre/bin/java'                       | '/opt/jdk/oracle-jdk-8/bin/jstack'
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def 'can locate jstack on Windows'() {
         expect:
         new JavaProcessStackTracesMonitor.JavaProcessInfo('0', javaCommand).jstackCommand == jstackCommand

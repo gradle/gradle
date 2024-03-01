@@ -18,13 +18,12 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.api.JavaVersion.VERSION_1_8
-import static org.gradle.api.JavaVersion.VERSION_1_9
 
-@Requires(adhoc = { AvailableJavaHomes.getAvailableJdks(VERSION_1_8).size() > 1 && AvailableJavaHomes.getJdk(VERSION_1_9) })
 class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
@@ -32,36 +31,38 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireDaemon().requireIsolatedDaemons()
     }
 
+    @Requires([IntegTestPreconditions.LowestSupportedLTSJavaHomeAvailable, IntegTestPreconditions.HighestSupportedLTSJavaHomeAvailable ])
     def "up-to-date when executing twice in a row"() {
         given:
         setupRunHelloWorldTask()
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
+        executer.withJavaHome AvailableJavaHomes.getLowestSupportedLTS().javaHome
         succeeds "runHelloWorld"
         then:
         executedAndNotSkipped ":runHelloWorld"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
+        executer.withJavaHome AvailableJavaHomes.getLowestSupportedLTS().javaHome
         succeeds "runHelloWorld"
         then:
         skipped ":runHelloWorld"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6694")
+    @Requires([IntegTestPreconditions.LowestSupportedLTSJavaHomeAvailable, IntegTestPreconditions.HighestSupportedLTSJavaHomeAvailable ])
     def "not up-to-date when the Java version changes"() {
         given:
         setupRunHelloWorldTask()
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
+        executer.withJavaHome AvailableJavaHomes.getLowestSupportedLTS().javaHome
         succeeds "runHelloWorld"
         then:
         executedAndNotSkipped ":runHelloWorld"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_9).javaHome
+        executer.withJavaHome AvailableJavaHomes.getHighestSupportedLTS().javaHome
         succeeds "runHelloWorld", "--info"
         then:
         executedAndNotSkipped ":runHelloWorld"
@@ -69,6 +70,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6694")
+    @Requires(IntegTestPreconditions.MoreThanOneJava8HomeAvailable)
     def "up-to-date when the Java executable changes but the version does not"() {
         given:
         setupRunHelloWorldTask()

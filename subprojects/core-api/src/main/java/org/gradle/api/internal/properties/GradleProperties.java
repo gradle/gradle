@@ -34,4 +34,6 @@ public interface GradleProperties {
      * @param properties read-only properties to be merged with the set of loaded properties.
      */
     Map<String, Object> mergeProperties(Map<String, Object> properties);
+
+    Map<String, Object> getProperties();
 }

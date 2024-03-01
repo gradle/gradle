@@ -16,12 +16,17 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.api.NonNullApi;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.FileSystemLocationProperty;
+import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.model.internal.type.ModelType;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -41,6 +46,12 @@ public class MethodOptionElement {
             PropertySetter setter = mutateUsingReturnValue(method);
             return AbstractOptionElement.of(optionName, option, setter, optionValueNotationParserFactory);
         }
+        if (HasMultipleValues.class.isAssignableFrom(method.getReturnType())) {
+            assertCanUseMethodReturnType(optionName, method);
+            PropertySetter setter = mutateUsingReturnValue(method);
+            Class<?> elementType = setter.getRawType();
+            return new MultipleValueOptionElement(optionName, option, elementType, setter, optionValueNotationParserFactory);
+        }
         if (method.getParameterTypes().length == 0) {
             return new BooleanOptionElement(optionName, option, setFlagUsingMethod(method));
         }
@@ -59,6 +70,12 @@ public class MethodOptionElement {
     }
 
     private static PropertySetter mutateUsingReturnValue(Method method) {
+        if (HasMultipleValues.class.isAssignableFrom(method.getReturnType())) {
+            return new MultipleValuePropertyValueSetter(method);
+        }
+        if (FileSystemLocationProperty.class.isAssignableFrom(method.getReturnType())) {
+            return new FileSystemLocationPropertyValueSetter(method);
+        }
         return new PropertyValueSetter(method);
     }
 
@@ -111,8 +128,12 @@ public class MethodOptionElement {
         private final Class<?> elementType;
 
         public PropertyValueSetter(Method method) {
+            this(method, ModelType.of(method.getGenericReturnType()).getTypeVariables().get(0).getRawClass());
+        }
+
+        public PropertyValueSetter(Method method, Class<?> elementType) {
             this.method = method;
-            this.elementType = ModelType.of(method.getGenericReturnType()).getTypeVariables().get(0).getRawClass();
+            this.elementType = elementType;
         }
 
         @Override
@@ -134,6 +155,36 @@ public class MethodOptionElement {
         public void setValue(Object target, Object value) {
             Property<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, method).invoke(target));
             property.set(value);
+        }
+
+        protected Method getMethod() {
+            return method;
+        }
+    }
+
+    @NonNullApi
+    private static class MultipleValuePropertyValueSetter extends PropertyValueSetter {
+        public MultipleValuePropertyValueSetter(Method method) {
+            super(method);
+        }
+
+        @Override
+        public void setValue(Object target, Object value) {
+            HasMultipleValues<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getMethod()).invoke(target));
+            property.set((Iterable<?>) value);
+        }
+    }
+
+    @NonNullApi
+    private static class FileSystemLocationPropertyValueSetter extends PropertyValueSetter {
+        public FileSystemLocationPropertyValueSetter(Method method) {
+            super(method, FileSystemLocation.class);
+        }
+
+        @Override
+        public void setValue(Object target, Object value) {
+            FileSystemLocationProperty<FileSystemLocation> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getMethod()).invoke(target));
+            property.set(new File((String)value));
         }
     }
 

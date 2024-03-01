@@ -37,8 +37,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.ManagedFactories;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
-import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
@@ -55,6 +55,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
@@ -68,10 +69,10 @@ import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Factory;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -81,7 +82,7 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ScopedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
@@ -100,17 +101,16 @@ import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegi
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import java.io.File;
 
 /**
  * Contains the services for a given project.
  */
-public class ProjectScopeServices extends DefaultServiceRegistry {
+public class ProjectScopeServices extends ScopedServiceRegistry {
     private final ProjectInternal project;
     private final Factory<LoggingManagerInternal> loggingManagerInternalFactory;
 
     public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
-        super(parent);
+        super(Scopes.Project.class, "Project services", parent);
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
         register(registration -> {
@@ -137,6 +137,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected DeferredProjectConfiguration createDeferredProjectConfiguration() {
         return new DeferredProjectConfiguration(project);
     }
+
     protected LoggingManagerInternal createLoggingManager() {
         return loggingManagerInternalFactory.create();
     }
@@ -167,7 +168,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
-        return new DefaultTemporaryFileProvider(() -> new File(project.getBuildDir(), "tmp"));
+        return new DefaultTemporaryFileProvider(() -> project.getLayout().getBuildDirectory().dir("tmp").get().getAsFile());
     }
 
     protected Factory<AntBuilder> createAntBuilderFactory() {
@@ -191,13 +192,14 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return parentFactory.createChild(project, taskScheme.getInstantiationScheme().withServices(this));
     }
 
-    protected TaskInstantiator createTaskInstantiator(ITaskFactory taskFactory) {
-        return new TaskInstantiator(taskFactory, project);
+    protected TaskInstantiator createTaskInstantiator(TaskIdentityFactory taskIdentityFactory, ITaskFactory taskFactory) {
+        return new TaskInstantiator(taskIdentityFactory, taskFactory, project);
     }
 
     protected TaskContainerInternal createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator, CollectionCallbackActionDecorator decorator) {
         return new DefaultTaskContainerFactory(
             get(Instantiator.class),
+            get(TaskIdentityFactory.class),
             get(ITaskFactory.class),
             project,
             taskStatistics,
@@ -207,9 +209,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         ).create();
     }
 
-    protected SoftwareComponentContainer createSoftwareComponentContainer(CollectionCallbackActionDecorator decorator, ObjectFactory objectFactory) {
-        Instantiator instantiator = get(Instantiator.class);
-        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator, decorator, objectFactory);
+    protected SoftwareComponentContainer createSoftwareComponentContainer(Instantiator instantiator, InstantiatorFactory instantiatorFactory, ServiceRegistry services, CollectionCallbackActionDecorator decorator) {
+        Instantiator elementInstantiator = instantiatorFactory.decorate(services);
+        return elementInstantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator, elementInstantiator, decorator);
     }
 
     protected ProjectFinder createProjectFinder() {
@@ -220,14 +222,19 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultModelRegistry(ruleExtractor, project.getPath(), run -> project.getOwner().applyToMutableState(p -> run.run()));
     }
 
-
-    protected ScriptHandlerInternal createScriptHandler(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver scriptClassPathResolver) {
+    protected ScriptHandlerInternal createScriptHandler(
+        DependencyManagementServices dependencyManagementServices,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        DependencyMetaDataProvider dependencyMetaDataProvider,
+        BuildLogicBuilder buildLogicBuilder
+    ) {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
             dependencyManagementServices,
             fileResolver,
             fileCollectionFactory,
             dependencyMetaDataProvider,
-            scriptClassPathResolver);
+            buildLogicBuilder);
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), new ScriptScopedContext(project));
     }
 

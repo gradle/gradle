@@ -1,7 +1,8 @@
 import org.gradle.api.internal.FeaturePreviews
+import java.io.PrintWriter
+import java.io.Serializable
 
 pluginManagement {
-    includeBuild("build-logic-settings")
     repositories {
         maven {
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
@@ -13,10 +14,11 @@ pluginManagement {
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-        jcenter {
+        maven {
+            name = "Gradle public repository"
+            url = uri("https://repo.gradle.org/gradle/public")
             content {
                 includeModule("org.openmbee.junit", "junit-xml-parser")
-                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
             }
         }
         gradlePluginPortal()
@@ -24,10 +26,10 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.12.3") // Sync with `build-logic/build-platform/build.gradle.kts`
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("gradlebuild.internal.cc-experiment")
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
+    id("com.gradle.enterprise").version("3.16.2") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
+    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.9.1")
+    id("org.gradle.toolchains.foojay-resolver-convention") version ("0.8.0")
+//    id("net.ltgt.errorprone").version("3.1.0")
 }
 
 includeBuild("build-logic-commons")
@@ -35,145 +37,233 @@ includeBuild("build-logic")
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
+val architectureElements = mutableListOf<ArchitectureElementBuilder>()
+
 // If you include a new subproject here, you will need to execute the
 // ./gradlew generateSubprojectsInfo
 // task to update metadata about the build for CI
 
-include("distributions-dependencies") // platform for dependency versions
-include("core-platform")              // platform for Gradle distribution core
+unassigned {
+    subproject("distributions-dependencies") // platform for dependency versions
+    subproject("core-platform")              // platform for Gradle distribution core
+}
 
 // Gradle Distributions - for testing and for publishing a full distribution
-include("distributions-core")
-include("distributions-basics")
-include("distributions-publishing")
-include("distributions-jvm")
-include("distributions-native")
-include("distributions-full")
+unassigned {
+    subproject("distributions-full")
+}
 
 // Gradle implementation projects
-include("configuration-cache")
-include("functional")
-include("api-metadata")
-include("base-services")
-include("base-services-groovy")
-include("worker-services")
-include("logging-api")
-include("logging")
-include("process-services")
-include("jvm-services")
-include("core")
-include("dependency-management")
-include("wrapper")
-include("wrapper-shared")
-include("cli")
-include("launcher")
-include("bootstrap")
-include("messaging")
-include("resources")
-include("resources-http")
-include("resources-gcs")
-include("resources-s3")
-include("resources-sftp")
-include("plugins")
-include("scala")
-include("ide")
-include("ide-native")
-include("maven")
-include("code-quality")
-include("antlr")
-include("tooling-api")
-include("build-events")
-include("tooling-api-builders")
-include("signing")
-include("ear")
-include("native")
-include("reporting")
-include("diagnostics")
-include("publish")
-include("ivy")
-include("jacoco")
-include("build-init")
-include("build-option")
-include("platform-base")
-include("platform-native")
-include("platform-jvm")
-include("language-jvm")
-include("language-java")
-include("java-compiler-plugin")
-include("language-groovy")
-include("language-native")
-include("tooling-native")
-include("plugin-use")
-include("plugin-development")
-include("model-core")
-include("model-groovy")
-include("build-cache-http")
-include("testing-base")
-include("testing-native")
-include("testing-jvm")
-include("testing-jvm-infrastructure")
-include("testing-junit-platform")
-include("test-kit")
-include("installation-beacon")
-include("composite-builds")
-include("workers")
-include("persistent-cache")
-include("build-cache-base")
-include("build-cache")
-include("core-api")
-include("version-control")
-include("file-collections")
-include("file-temp")
-include("files")
-include("hashing")
-include("snapshots")
-include("file-watching")
-include("build-cache-packaging")
-include("execution")
-include("build-profile")
-include("kotlin-dsl")
-include("kotlin-dsl-provider-plugins")
-include("kotlin-dsl-tooling-models")
-include("kotlin-dsl-tooling-builders")
-include("worker-processes")
-include("base-annotations")
-include("security")
-include("normalization-java")
-include("enterprise")
-include("enterprise-operations")
-include("enterprise-logging")
-include("enterprise-workers")
-include("build-operations")
-include("problems")
-include("instrumentation-agent")
+unassigned {
+    subproject("core")
+    subproject("plugins")
+    subproject("build-events")
+    subproject("diagnostics")
+    subproject("composite-builds")
+    subproject("core-api")
+}
 
-// Plugin portal projects
-include("kotlin-dsl-plugins")
+// Core platform
+val core = platform("core") {
+
+    // Core Runtime Module
+    module("core-runtime") {
+        subproject("base-annotations")
+        subproject("base-services")
+        subproject("bootstrap")
+        subproject("build-operations")
+        subproject("build-option")
+        subproject("build-profile")
+        subproject("cli")
+        subproject("distributions-basics")
+        subproject("distributions-core")
+        subproject("file-temp")
+        subproject("files")
+        subproject("functional")
+        subproject("installation-beacon")
+        subproject("instrumentation-agent")
+        subproject("instrumentation-declarations")
+        subproject("internal-instrumentation-api")
+        subproject("internal-instrumentation-processor")
+        subproject("launcher")
+        subproject("logging")
+        subproject("logging-api")
+        subproject("messaging")
+        subproject("native")
+        subproject("process-services")
+        subproject("worker-services")
+        subproject("wrapper")
+        subproject("wrapper-shared")
+    }
+
+    // Core Configuration Module
+    module("core-configuration") {
+        subproject("api-metadata")
+        subproject("base-services-groovy")
+        subproject("configuration-cache")
+        subproject("file-collections")
+        subproject("input-tracking")
+        subproject("kotlin-dsl")
+        subproject("kotlin-dsl-provider-plugins")
+        subproject("kotlin-dsl-tooling-builders")
+        subproject("kotlin-dsl-tooling-models")
+        subproject("kotlin-dsl-plugins")
+        subproject("kotlin-dsl-integ-tests")
+        subproject("model-core")
+        subproject("model-groovy")
+        subproject("declarative-dsl-api")
+        subproject("declarative-dsl-provider")
+        subproject("declarative-dsl-core")
+    }
+
+    // Core Execution Module
+    module("core-execution") {
+        subproject("build-cache")
+        subproject("build-cache-base")
+        subproject("build-cache-local")
+        subproject("build-cache-http")
+        subproject("build-cache-packaging")
+        subproject("build-cache-spi")
+        subproject("file-watching")
+        subproject("execution")
+        subproject("hashing")
+        subproject("persistent-cache")
+        subproject("snapshots")
+        subproject("worker-processes")
+        subproject("workers")
+    }
+}
+
+// Documentation Module
+module("documentation") {
+    subproject("docs")
+    subproject("docs-asciidoctor-extensions-base")
+    subproject("docs-asciidoctor-extensions")
+    subproject("samples")
+}
+
+// IDE Module
+module("ide") {
+    subproject("base-ide-plugins")
+    subproject("ide")
+    subproject("ide-native")
+    subproject("ide-plugins")
+    subproject("problems")
+    subproject("problems-api")
+    subproject("tooling-api")
+    subproject("tooling-api-builders")
+}
+
+// Software Platform
+val software = platform("software") {
+    uses(core)
+    subproject("antlr")
+    subproject("build-init")
+    subproject("dependency-management")
+    subproject("plugins-distribution")
+    subproject("distributions-publishing")
+    subproject("ivy")
+    subproject("maven")
+    subproject("platform-base")
+    subproject("plugins-version-catalog")
+    subproject("publish")
+    subproject("resources")
+    subproject("resources-http")
+    subproject("resources-gcs")
+    subproject("resources-s3")
+    subproject("resources-sftp")
+    subproject("reporting")
+    subproject("security")
+    subproject("signing")
+    subproject("testing-base")
+    subproject("test-suites-base")
+    subproject("version-control")
+}
+
+// JVM Platform
+val jvm = platform("jvm") {
+    uses(core)
+    uses(software)
+    subproject("code-quality")
+    subproject("core-jvm")
+    subproject("distributions-jvm")
+    subproject("ear")
+    subproject("jacoco")
+    subproject("jvm-services")
+    subproject("language-groovy")
+    subproject("language-java")
+    subproject("language-jvm")
+    subproject("toolchains-jvm")
+    subproject("java-compiler-plugin")
+    subproject("java-platform")
+    subproject("normalization-java")
+    subproject("platform-jvm")
+    subproject("plugins-application")
+    subproject("plugins-groovy")
+    subproject("plugins-java")
+    subproject("plugins-java-base")
+    subproject("plugins-java-library")
+    subproject("plugins-jvm-test-fixtures")
+    subproject("plugins-jvm-test-suite")
+    subproject("plugins-test-report-aggregation")
+    subproject("scala")
+    subproject("testing-jvm")
+    subproject("testing-jvm-infrastructure")
+    subproject("testing-junit-platform")
+    subproject("war")
+}
+
+// Extensibility Platform
+platform("extensibility") {
+    uses(core)
+    uses(jvm)
+    subproject("plugin-use")
+    subproject("plugin-development")
+    subproject("test-kit")
+}
+
+// Native Platform
+platform("native") {
+    uses(core)
+    uses(software)
+    subproject("distributions-native")
+    subproject("platform-native")
+    subproject("language-native")
+    subproject("tooling-native")
+    subproject("testing-native")
+}
+
+
+// Develocity Module
+module("enterprise") {
+    subproject("enterprise")
+    subproject("enterprise-logging")
+    subproject("enterprise-operations")
+    subproject("enterprise-plugin-performance")
+    subproject("enterprise-workers")
+}
+
+module("build-infrastructure") {
+    subproject("precondition-tester")
+}
 
 // Internal utility and verification projects
-include("docs")
-include("docs-asciidoctor-extensions-base")
-include("docs-asciidoctor-extensions")
-include("samples")
-include("architecture-test")
-include("internal-testing")
-include("internal-integ-testing")
-include("internal-performance-testing")
-include("internal-architecture-testing")
-include("internal-build-reports")
-include("integ-test")
-include("kotlin-dsl-integ-tests")
-include("distributions-integ-tests")
-include("soak")
-include("smoke-test")
-include("performance")
-include("build-scan-performance")
+unassigned {
+    subproject("architecture-test")
+    subproject("internal-testing")
+    subproject("internal-integ-testing")
+    subproject("internal-performance-testing")
+    subproject("internal-architecture-testing")
+    subproject("internal-build-reports")
+    subproject("integ-test")
+    subproject("distributions-integ-tests")
+    subproject("soak")
+    subproject("smoke-test")
+    subproject("performance")
+    subproject("smoke-ide-test") // eventually should be owned by IDEX team
+}
 
 rootProject.name = "gradle"
-
-for (project in rootProject.children) {
-    project.projectDir = file("subprojects/${project.name}")
-}
 
 FeaturePreviews.Feature.values().forEach { feature ->
     if (feature.isActive) {
@@ -194,3 +284,207 @@ gradle.settingsEvaluated {
         throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
     }
 }
+
+// region platform include DSL
+
+gradle.rootProject {
+    tasks.register("architectureDoc", GeneratorTask::class.java) {
+        description = "Generates the architecture documentation"
+        outputFile = layout.projectDirectory.file("architecture/README.md")
+        elements = provider { architectureElements.map { it.build() } }
+    }
+}
+
+abstract class GeneratorTask : DefaultTask() {
+    private val markerComment = "<!-- This diagram is generated. Use `./gradlew :architectureDoc` to update it -->"
+    private val startDiagram = "```mermaid"
+    private val endDiagram = "```"
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @get:Input
+    abstract val elements: ListProperty<ArchitectureElement>
+
+    @TaskAction
+    fun generate() {
+        val markdownFile = outputFile.asFile.get()
+        val content = markdownFile.readText().lines()
+        val markerPos = content.indexOfFirst { it.contains(markerComment) }
+        if (markerPos < 0) {
+            throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
+        }
+        val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
+        if (endPos < 0) {
+            throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
+        }
+        val head = content.subList(0, markerPos)
+
+        markdownFile.bufferedWriter().use {
+            PrintWriter(it).run {
+                for (line in head) {
+                    println(line)
+                }
+                graph(elements.get())
+            }
+        }
+    }
+
+    private fun PrintWriter.graph(elements: List<ArchitectureElement>) {
+        println(
+            """
+            $markerComment
+            $startDiagram
+        """.trimIndent()
+        )
+        val writer = NodeWriter(this, "    ")
+        writer.node("graph TD")
+        for (element in elements) {
+            if (element is Platform) {
+                writer.platform(element)
+            } else {
+                writer.element(element)
+            }
+        }
+        println(endDiagram)
+    }
+
+    private fun NodeWriter.platform(platform: Platform) {
+        println()
+        node("subgraph ${platform.id}[\"${platform.name} platform\"]") {
+            for (child in platform.children) {
+                element(child)
+            }
+        }
+        node("end")
+        node("style ${platform.id} fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;")
+        for (dep in platform.uses) {
+            node("${platform.id} --> $dep")
+        }
+    }
+
+    private fun NodeWriter.element(element: ArchitectureElement) {
+        println()
+        node("${element.id}[\"${element.name} module\"]")
+        node("style ${element.id} stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px,color:#000;")
+    }
+
+    private class NodeWriter(private val writer: PrintWriter, private val indent: String) {
+        fun println() {
+            writer.println()
+        }
+
+        fun node(node: String) {
+            writer.print(indent)
+            writer.println(node)
+        }
+
+        fun node(node: String, builder: NodeWriter.() -> Unit) {
+            writer.print(indent)
+            writer.println(node)
+            builder(NodeWriter(writer, "$indent    "))
+        }
+    }
+}
+
+/**
+ * Defines a top-level architecture module.
+ */
+fun module(moduleName: String, moduleConfiguration: ArchitectureModuleBuilder.() -> Unit) {
+    val module = ArchitectureModuleBuilder(moduleName)
+    architectureElements.add(module)
+    module.moduleConfiguration()
+}
+
+/**
+ * Defines a platform.
+ */
+fun platform(platformName: String, platformConfiguration: PlatformBuilder.() -> Unit): PlatformBuilder {
+    val platform = PlatformBuilder(platformName)
+    architectureElements.add(platform)
+    platform.platformConfiguration()
+    return platform
+}
+
+/**
+ * Defines a bucket of unassigned projects.
+ */
+fun unassigned(moduleConfiguration: ProjectScope.() -> Unit) =
+    ProjectScope("subprojects").moduleConfiguration()
+
+class ProjectScope(
+    private val basePath: String
+) {
+    fun subproject(projectName: String) {
+        include(projectName)
+        project(":$projectName").projectDir = file("$basePath/$projectName")
+    }
+}
+
+class ElementId(val id: String) : Serializable {
+    override fun toString(): String {
+        return id
+    }
+}
+
+sealed class ArchitectureElement(
+    val name: String,
+    val id: ElementId
+) : Serializable
+
+class Platform(name: String, id: ElementId, val uses: List<ElementId>, val children: List<ArchitectureModule>) : ArchitectureElement(name, id)
+
+class ArchitectureModule(name: String, id: ElementId) : ArchitectureElement(name, id)
+
+sealed class ArchitectureElementBuilder(
+    val name: String
+) {
+    val id: ElementId = ElementId(name.replace("-", "_"))
+
+    abstract fun build(): ArchitectureElement
+}
+
+class ArchitectureModuleBuilder(
+    name: String,
+    private val projectScope: ProjectScope
+) : ArchitectureElementBuilder(name) {
+    constructor(name: String) : this(name, ProjectScope("platforms/$name"))
+
+    fun subproject(projectName: String) {
+        projectScope.subproject(projectName)
+    }
+
+    override fun build(): ArchitectureModule {
+        return ArchitectureModule(name, id)
+    }
+}
+
+class PlatformBuilder(
+    name: String,
+    private val projectScope: ProjectScope
+) : ArchitectureElementBuilder(name) {
+    private val modules = mutableListOf<ArchitectureModuleBuilder>()
+    private val uses = mutableListOf<PlatformBuilder>()
+
+    constructor(name: String) : this(name, ProjectScope("platforms/$name"))
+
+    fun subproject(projectName: String) {
+        projectScope.subproject(projectName)
+    }
+
+    fun uses(platform: PlatformBuilder) {
+        uses.add(platform)
+    }
+
+    fun module(platformName: String, moduleConfiguration: ArchitectureModuleBuilder.() -> Unit) {
+        val module = ArchitectureModuleBuilder(platformName)
+        modules.add(module)
+        module.moduleConfiguration()
+    }
+
+    override fun build(): Platform {
+        return Platform(name, id, uses.map { it.id }, modules.map { it.build() })
+    }
+}
+
+// endregion

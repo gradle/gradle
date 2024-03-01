@@ -17,7 +17,7 @@
 /**
  * This package contains a number of utilities used to facilitate the
  * integration of Java plugins. It provides the implementation of the
- * {@link org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities} service.
+ * {@link org.gradle.api.plugins.jvm.internal.JvmPluginServices} service.
  */
 @NonNullApi
 package org.gradle.api.plugins.jvm.internal;

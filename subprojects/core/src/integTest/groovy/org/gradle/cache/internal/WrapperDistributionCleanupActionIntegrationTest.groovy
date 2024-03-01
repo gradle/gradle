@@ -17,11 +17,11 @@
 package org.gradle.cache.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.embedded }) // tests a real Gradle distribution
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // tests a real Gradle distribution
 class WrapperDistributionCleanupActionIntegrationTest extends AbstractIntegrationSpec {
 
     def "reads Gradle version from actual distribution"() {

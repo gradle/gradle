@@ -30,6 +30,12 @@ class IncrementalAndroidTestProject extends AndroidTestProject implements Increm
         taskToRunForChange: ':santa-tracker:assembleDebug'
     )
 
+    static final NOW_IN_ANDROID = new IncrementalAndroidTestProject(
+        templateName: 'nowInAndroidBuild',
+        pathToChange: 'core/model/src/main/kotlin/com/google/samples/apps/nowinandroid/core/model/data/Topic.kt',
+        taskToRunForChange: ':core:model:assemble'
+    )
+
     static final UBER_MOBILE_APP = new IncrementalAndroidTestProject(
         templateName: 'uberMobileApp',
         pathToChange: 'leafModuleAvg/src/main/java/leafModuleAvgpackageJava0/Foo0.java',

@@ -19,8 +19,8 @@ package org.gradle.api.tasks
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -28,128 +28,6 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements Unreada
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
-
-    def "copy task uses platform charset to filter text files by default"() {
-        given:
-        file('files').createDir()
-        file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
-        buildScript """
-            task (copy, type: Copy) {
-                from 'files'
-                into 'dest'
-                expand(one: 1)
-            }
-        """.stripIndent()
-        executer.beforeExecute { it.withDefaultCharacterEncoding('ISO-8859-1') }
-
-        when:
-        run 'copy'
-
-        then:
-        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
-
-        when:
-        run 'copy'
-
-        then:
-        skipped(':copy')
-        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
-
-        when:
-        file('files/accents.c').write('áëü $one', 'ISO-8859-1')
-        run 'copy'
-
-        then:
-        executedAndNotSkipped(':copy')
-        file('dest/accents.c').getText('ISO-8859-1') == 'áëü 1'
-    }
-
-    def "copy task uses declared charset to filter text files"() {
-        given:
-        file('files').createDir()
-        file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
-        buildScript """
-            task (copy, type: Copy) {
-                from 'files'
-                into 'dest'
-                expand(one: 1)
-                filteringCharset = 'ISO-8859-1'
-            }
-        """.stripIndent()
-        executer.beforeExecute { it.withDefaultCharacterEncoding('UTF-8') }
-
-        when:
-        run 'copy'
-
-        then:
-        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
-
-        when:
-        run 'copy'
-
-        then:
-        skipped(':copy')
-        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
-
-        when:
-        file('files/accents.c').write('áëü $one', 'ISO-8859-1')
-        run 'copy'
-
-        then:
-        executedAndNotSkipped(':copy')
-        file('dest/accents.c').getText('ISO-8859-1') == 'áëü 1'
-    }
-
-    def "copy action uses platform charset to filter text files by default"() {
-        given:
-        file('files').createDir()
-        file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
-        buildScript """
-            task copy {
-                def fs = services.get(FileSystemOperations)
-                doLast {
-                    fs.copy {
-                        from 'files'
-                        into 'dest'
-                        expand(one: 1)
-                    }
-                }
-            }
-        """.stripIndent()
-        executer.beforeExecute { it.withDefaultCharacterEncoding('ISO-8859-1') }
-
-        when:
-        run 'copy'
-
-        then:
-        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
-    }
-
-    def "copy action uses declared charset to filter text files"() {
-        given:
-        file('files').createDir()
-        file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
-        buildScript """
-            task copy {
-                def fs = services.get(FileSystemOperations)
-                doLast {
-                    fs.copy {
-                        from 'files'
-                        into 'dest'
-                        expand(one: 1)
-                        filteringCharset = 'ISO-8859-1'
-                    }
-                }
-            }
-        """.stripIndent()
-        executer.beforeExecute { it.withDefaultCharacterEncoding('UTF-8') }
-
-        when:
-        run 'copy'
-
-        then:
-        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
-    }
 
     def "can use filesMatching with List"() {
         given:
@@ -219,7 +97,7 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements Unreada
         false // TODO This test can pass on Windows with proper locale, this force the test to fail, remove once fixed
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Requires(UnitTestPreconditions.UnixDerivative)
     @Issue("https://github.com/gradle/gradle/issues/2552")
     def "copying files to a directory with named pipes fails"() {
         def input = file("input.txt").createFile()

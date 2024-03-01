@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.integtests.fixtures.RichConsoleStyling;
@@ -73,7 +74,12 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withArgument(String arg);
 
     /**
-     * Sets the environment variables to use when executing the build. Defaults to the environment of this process.
+     * Sets the additional environment variables to use when executing the build.
+     * <p>
+     * The provided environment is added to the environment variables of this process, so it is only possible to add new variables or modify values of existing ones.
+     * Not propagating a variable of this process to the executed build at all is not supported.
+     * <p>
+     * Setting "JAVA_HOME" this way is not supported.
      */
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
 
@@ -114,6 +120,11 @@ public interface GradleExecuter extends Stoppable {
      * it just modifies result of DefaultGradleVersion.current() for the Gradle that is run by the executer.
      */
     GradleExecuter withGradleVersionOverride(GradleVersion gradleVersion);
+
+    /**
+     * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
+     */
+    GradleExecuter withJavaHome(String userHomeDir);
 
     /**
      * Sets the java home dir. Setting to null requests that the executer use the real default java home dir rather than the default used for testing.
@@ -209,17 +220,23 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withFullDeprecationStackTraceEnabled();
 
     /**
-     * Downloads and sets up the JVM arguments for running the Gradle daemon with the file leak detector: https://file-leak-detector.kohsuke.org/
+     * Downloads and sets up the JVM arguments for running the Gradle daemon with the file leak detector: https://github.com/jenkinsci/lib-file-leak-detector
      *
-     * NOTE: This requires running the test with JDK8 and the forking executer.
+     * NOTE: This requires running the test with at least JDK8 and the forking executer. This will apply the file leak detection version suitable for executor Java version.
+     * If your build sets a different Java version you can use {@link #withFileLeakDetection(JavaVersion, String...)} to specify the Java version for which the file leak detection should be enabled.
      *
      * This should not be checked-in on. This is only for local debugging.
      *
-     * By default, this starts a HTTP server on port 19999, so you can observe which files are open. Passing any arguments disables this behavior.
+     * By default, this starts a HTTP server on port 19999, so you can observe which files are open on http://localhost:19999. Passing any arguments disables this behavior.
      *
      * @param args the arguments to pass the file leak detector java agent
      */
     GradleExecuter withFileLeakDetection(String... args);
+
+    /**
+     * Same as {@link #withFileLeakDetection(String...)}, but allows to specify the Java version for which the file leak detection should be enabled.
+     */
+    GradleExecuter withFileLeakDetection(JavaVersion javaVersion, String... args);
 
     /**
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
@@ -340,12 +357,20 @@ public interface GradleExecuter extends Stoppable {
      * also switch to the more specific {@link #expectDocumentedDeprecationWarning(String)} if the warning includes a documentation
      * link and you don't want to (ironically) see code testing deprecation appearing as if it itself were deprecated.
      */
-    GradleExecuter expectDeprecationWarning(String warning);
+    default GradleExecuter expectDeprecationWarning(String warning) {
+        return expectDeprecationWarning(new ExpectedDeprecationWarning(warning));
+    }
+
+    GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
      * Expects the given deprecation warning, allowing to pass documentation url with /current/ version and asserting against the actual current version instead.
      */
-    GradleExecuter expectDocumentedDeprecationWarning(String warning);
+    default GradleExecuter expectDocumentedDeprecationWarning(String warning) {
+        return expectDocumentedDeprecationWarning(new ExpectedDeprecationWarning(warning));
+    }
+
+    GradleExecuter expectDocumentedDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during

@@ -23,7 +23,7 @@ import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.isPromotionBuild
-import gradlebuild.basics.kotlindsl.execAndGetStdout
+import gradlebuild.basics.kotlindsl.execAndGetStdoutIgnoringError
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
@@ -86,7 +86,7 @@ fun Project.extractCiData() {
     if (isCiServer) {
         buildScan {
             background {
-                setCompileAllScanSearch(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
+                setCompileAllScanSearch(execAndGetStdoutIgnoringError("git", "rev-parse", "--verify", "HEAD"))
             }
             if (isEc2Agent()) {
                 tag("EC2")
@@ -110,6 +110,12 @@ fun Project.extractCiData() {
         buildScan {
             buildScanPublished {
                 println("##teamcity[buildStatus text='{build.status.text}: ${this.buildScanUri}']")
+            }
+            buildFinished {
+                println("##teamcity[setParameter name='env.GRADLE_RUNNER_FINISHED' value='true']")
+                if (failure == null) {
+                    println("##teamcity[buildStatus status='SUCCESS' text='Retried build succeeds']")
+                }
             }
         }
     }

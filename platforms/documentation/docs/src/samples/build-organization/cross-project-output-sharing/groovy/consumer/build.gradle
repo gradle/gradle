@@ -1,0 +1,17 @@
+configurations {
+    sharedConfiguration {
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    sharedConfiguration(project("path": ":producer", "configuration": "sharedConfiguration"))
+}
+
+tasks.register("showFile") {
+    FileCollection sharedFiles = configurations.getByName("sharedConfiguration")
+    inputs.files(sharedFiles)
+    doFirst {
+        logger.lifecycle("Shared file contains the text: '{}'", sharedFiles.singleFile.text)
+    }
+}

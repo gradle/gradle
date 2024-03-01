@@ -91,7 +91,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This breaks the provider
             options.links(javadocs.getJavaApi().get().toString(), javadocs.getGroovyApi().get().toString());
 
-            task.source(extension.getDocumentedSource());
+            task.source(extension.getDocumentedSource().filter(f -> f.getName().endsWith(".java")));
 
             task.setClasspath(extension.getClasspath());
 
@@ -104,6 +104,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
 
             if (BuildEnvironment.INSTANCE.getJavaVersion().isJava11Compatible()) {
+                // TODO html4 output was removed in Java 13, see https://bugs.openjdk.org/browse/JDK-8215578
                 options.addBooleanOption("html4", true);
                 options.addBooleanOption("-no-module-directories", true);
 

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.accessors.kotlin
+import gradlebuild.basics.accessors.kotlinMainSourceSet
+import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
@@ -28,8 +27,7 @@ plugins {
 }
 
 configurations.transitiveSourcesElements {
-    val main = sourceSets.main.get()
-    main.kotlin.srcDirs.forEach {
+    (kotlinMainSourceSet.srcDirs + sourceSets.main.get().resources.srcDirs).forEach {
         outgoing.artifact(it)
     }
 }
@@ -53,38 +51,11 @@ tasks {
         configureKotlinCompilerForGradleBuild()
     }
 
-    codeQuality {
-        dependsOn(ktlintCheck)
-    }
-
-    runKtlintCheckOverKotlinScripts {
-        // Only check the build files, not all *.kts files in the project
-        includes += listOf("*.gradle.kts")
-    }
-
     withType<Test>().configureEach {
-
-        shouldRunAfter(ktlintCheck)
-
         // enables stricter ClassLoaderScope behaviour
         systemProperty(
             DefaultClassLoaderScope.STRICT_MODE_PROPERTY,
             true
-        )
-    }
-}
-
-fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
-    compilerOptions {
-        allWarningsAsErrors = true
-        apiVersion = KotlinVersion.KOTLIN_1_8
-        languageVersion = KotlinVersion.KOTLIN_1_8
-        jvmTarget = JvmTarget.JVM_1_8
-        freeCompilerArgs.addAll(
-            "-Xjsr305=strict",
-            "-java-parameters",
-            "-Xsam-conversions=class",
-            "-Xskip-metadata-version-check",
         )
     }
 }

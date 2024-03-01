@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.internal.InternalListener;
+import org.gradle.internal.code.UserCodeApplicationContext;
 
 /**
  * Decorates listener functions/objects to fire {@link ExecuteListenerBuildOperationType} build operations when later executed.

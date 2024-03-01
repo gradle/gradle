@@ -25,6 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.flow.FlowProviders;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.ExtensionAware;
@@ -272,6 +273,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      *
      * @param closure The closure to execute.
      * @deprecated This method is not supported when configuration caching is enabled.
+     * @see FlowProviders#getBuildWorkResult()
      */
     @Deprecated
     void buildFinished(Closure closure);
@@ -284,6 +286,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * @param action The action to execute.
      * @since 3.4
      * @deprecated This method is not supported when configuration caching is enabled.
+     * @see FlowProviders#getBuildWorkResult()
      */
     @Deprecated
     void buildFinished(Action<? super BuildResult> action);
@@ -301,10 +304,8 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Adds the given listener to this build. The listener may implement any of the given listener interfaces:
      *
      * <ul>
-     * <li>{@link org.gradle.BuildListener}
      * <li>{@link org.gradle.api.execution.TaskExecutionGraphListener}
      * <li>{@link org.gradle.api.ProjectEvaluationListener}
-     * <li>{@link org.gradle.api.logging.StandardOutputListener}
      * <li>{@link org.gradle.api.artifacts.DependencyResolutionListener}
      * </ul>
      *
@@ -312,6 +313,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Their usage is deprecated and adding a listener of these types become an error in a future Gradle version:</p>
      *
      * <ul>
+     * <li>{@link org.gradle.BuildListener}
      * <li>{@link org.gradle.api.execution.TaskExecutionListener}
      * <li>{@link org.gradle.api.execution.TaskActionListener}
      * <li>{@link org.gradle.api.tasks.testing.TestListener}

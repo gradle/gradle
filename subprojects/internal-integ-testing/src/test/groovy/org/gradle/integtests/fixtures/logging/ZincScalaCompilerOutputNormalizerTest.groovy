@@ -77,4 +77,41 @@ BUILD SUCCESSFUL in 0s
         then:
         normalized == expected
     }
+
+    def "successfully normalizes Scala compiler warning"() {
+        given:
+        String input = """
+> Task :app:compileJava NO-SOURCE
+> Task :app:compileScala
+[Warn] : -target is deprecated: Use -release instead to compile against the correct platform API.
+one warning found
+
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava NO-SOURCE
+> Task :app:compileTestScala
+[Warn] : -target is deprecated: Use -release instead to compile against the correct platform API.
+one warning found
+
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses
+> Task :app:test
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 0s
+7 actionable tasks: 7 executed
+""".trim()
+
+        when:
+        String normalized = outputNormalizer.normalize(input, executionMetadata)
+
+        then:
+        normalized == expected
+    }
 }

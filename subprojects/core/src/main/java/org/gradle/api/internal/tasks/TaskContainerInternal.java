@@ -64,5 +64,5 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
      *
      * TODO:configuration-cache - review this
      */
-    <T extends Task> T createWithoutConstructor(String name, Class<T> type);
+    <T extends Task> T createWithoutConstructor(String name, Class<T> type, long uniqueId);
 }

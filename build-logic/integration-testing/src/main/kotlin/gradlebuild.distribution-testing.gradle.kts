@@ -16,15 +16,14 @@
 
 import gradlebuild.basics.repoRoot
 import gradlebuild.cleanup.services.CachesCleaner
-import gradlebuild.integrationtests.tasks.DistributionTest
+import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
+import gradlebuild.integrationtests.tasks.DistributionTest
 
 plugins {
     java
     id("gradlebuild.module-identity")
 }
-
-val docsProjectLocation = "subprojects/docs" // TODO instead of reaching directly into the project we should use dependency management
 
 val intTestHomeDir = repoRoot().dir("intTestHomeDir")
 
@@ -62,13 +61,11 @@ fun DistributionTest.configureGradleTestEnvironment() {
 
     gradleInstallationForTest.apply {
         if (executerRequiresDistribution(taskName)) {
-            gradleHomeDir.setFrom(
-                if (executerRequiresFullDistribution(taskName)) {
-                    configurations["${prefix}TestFullDistributionRuntimeClasspath"]
-                } else {
-                    configurations["${prefix}TestDistributionRuntimeClasspath"]
-                }
-            )
+            gradleHomeDir = if (executerRequiresFullDistribution(taskName)) {
+                configurations["${prefix}TestFullDistributionRuntimeClasspath"]
+            } else {
+                configurations["${prefix}TestDistributionRuntimeClasspath"]
+            }
         }
         // Set the base user home dir to be share by integration tests.
         // The actual user home dir will be a subfolder using the name of the distribution.
@@ -76,20 +73,20 @@ fun DistributionTest.configureGradleTestEnvironment() {
         // The user home dir is not wiped out by clean. Move the daemon working space underneath the build dir so they don't pile up on CI.
         // The actual daemon registry dir will be a subfolder using the name of the distribution.
         daemonRegistry = repoRoot().dir("build/daemon")
-        gradleSnippetsDir = repoRoot().dir("$docsProjectLocation/src/snippets")
+        gradleSnippetsDir = repoRoot().dir("platforms/documentation/docs/src/snippets") // TODO use dependency management
     }
 
     // Wire the different inputs for local distributions and repos that are declared by dependencies in the build scripts
-    normalizedDistributionZip.distributionZip.setFrom(configurations["${prefix}TestNormalizedDistributionPath"])
-    binDistributionZip.distributionZip.setFrom(configurations["${prefix}TestBinDistributionPath"])
-    allDistributionZip.distributionZip.setFrom(configurations["${prefix}TestAllDistributionPath"])
-    docsDistributionZip.distributionZip.setFrom(configurations["${prefix}TestDocsDistributionPath"])
-    srcDistributionZip.distributionZip.setFrom(configurations["${prefix}TestSrcDistributionPath"])
-    localRepository.localRepo.setFrom(configurations["${prefix}TestLocalRepositoryPath"])
+    normalizedDistributionZip.distributionZip = configurations["${prefix}TestNormalizedDistributionPath"]
+    binDistributionZip.distributionZip = configurations["${prefix}TestBinDistributionPath"]
+    allDistributionZip.distributionZip = configurations["${prefix}TestAllDistributionPath"]
+    docsDistributionZip.distributionZip = configurations["${prefix}TestDocsDistributionPath"]
+    srcDistributionZip.distributionZip = configurations["${prefix}TestSrcDistributionPath"]
+    localRepository.localRepo = configurations["${prefix}TestLocalRepositoryPath"]
 }
 
 fun DistributionTest.setJvmArgsOfTestJvm() {
-    jvmArgs("-Xmx512m", "-XX:+HeapDumpOnOutOfMemoryError")
+    jvmArgs("-Xmx${project.the<IntegrationTestExtension>().testJvmXmx.get()}", "-XX:+HeapDumpOnOutOfMemoryError")
     if (!javaVersion.isJava8Compatible) {
         jvmArgs("-XX:MaxPermSize=768m")
     }

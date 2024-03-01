@@ -21,15 +21,18 @@ import groovy.lang.Closure;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SecondParam;
 import groovy.transform.stc.SimpleType;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.dsl.Dependencies;
-import org.gradle.api.artifacts.dsl.DependencyAdder;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.util.internal.CollectionUtils;
@@ -40,31 +43,31 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This file is used to add <a href="https://groovy-lang.org/metaprogramming.html#_extension_modules">Groovy Extension Module</a> to {@link DependencyAdder} and {@link DependencyModifier} to make the Groovy DSL more idiomatic.
+ * This file is used to add <a href="https://groovy-lang.org/metaprogramming.html#_extension_modules">Groovy Extension Module</a> to {@link DependencyCollector} and {@link DependencyModifier} to make the Groovy DSL more idiomatic.
  * <p>
  * These extension methods allow an interface to implement a dependencies block in the Groovy DSL by
  * <ul>
- * <li>exposing an instance of {@link DependencyAdder} to add dependencies without explicitly calling {@link DependencyAdder#add(Dependency)}</li>
+ * <li>exposing an instance of {@link DependencyCollector} to add dependencies without explicitly calling {@link DependencyCollector#add(Dependency)}</li>
+ * <li>exposing an instance of {@link DependencyCollector} to add dependencies without explicitly calling {@link DependencyCollector#addConstraint(DependencyConstraint)} or {@link DependencyCollector#addConstraint(Provider)}</li>
  * <li>exposing an instance of {@link DependencyModifier} to modify dependencies without explicitly calling {@link DependencyModifier#modify(ModuleDependency)}</li>
  * </ul>
  * </p>
  *
  * <p>
- * There are {@code call(...)} equivalents for all the {@code add(...)} methods in {@link DependencyAdder}.
+ * There are {@code call(...)} equivalents for all the {@code add(...)} and {@code addConstraint(...)} methods in {@link DependencyCollector}.
  * </p>
  *
  * <p>
  * There are {@code call(...)} equivalents for all the {@code modify(...)} methods in {@link DependencyModifier}.
  * </p>
  *
- * @since 7.6
- *
  * @see Dependencies
- * @see DependencyAdder
+ * @see DependencyCollector
  * @see DependencyModifier
  * @see DependencyFactory
  *
  * See DependenciesExtension for Kotlin DSL version of this.
+ * @since 7.6
  */
 @SuppressWarnings("unused")
 public class DependenciesExtensionModule {
@@ -88,7 +91,6 @@ public class DependenciesExtensionModule {
      * </ul>
      *
      * @param map a map of configuration parameters for the dependency
-     *
      * @return the dependency
      */
     public static ExternalModuleDependency module(Dependencies self, Map<String, CharSequence> map) {
@@ -102,7 +104,7 @@ public class DependenciesExtensionModule {
         String group = extract(map, GROUP);
         String name = extract(map, NAME);
         String version = extract(map, VERSION);
-        assert name != null;
+        assert name != null : "Just for types, this is not possible";
         return self.module(group, name, version);
     }
 
@@ -116,9 +118,7 @@ public class DependenciesExtensionModule {
      *
      * @param dependencyNotation dependency to modify
      * @return the modified dependency
-     *
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
-     *
      * @since 8.0
      */
     public static ExternalModuleDependency call(DependencyModifier self, CharSequence dependencyNotation) {
@@ -130,7 +130,6 @@ public class DependenciesExtensionModule {
      *
      * @param providerConvertibleToDependency dependency to modify
      * @return the modified dependency
-     *
      * @since 8.0
      */
     public static Provider<? extends MinimalExternalModuleDependency> call(DependencyModifier self, ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
@@ -142,7 +141,6 @@ public class DependenciesExtensionModule {
      *
      * @param providerToDependency dependency to modify
      * @return the modified dependency
-     *
      * @since 8.0
      */
     public static <D extends ModuleDependency> Provider<D> call(DependencyModifier self, Provider<D> providerToDependency) {
@@ -154,7 +152,6 @@ public class DependenciesExtensionModule {
      *
      * @param dependency dependency to modify
      * @return the modified dependency
-     *
      * @since 8.0
      */
     public static <D extends ModuleDependency> D call(DependencyModifier self, D dependency) {
@@ -167,7 +164,7 @@ public class DependenciesExtensionModule {
      * @param dependencyNotation dependency to add
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
      */
-    public static void call(DependencyAdder self, CharSequence dependencyNotation) {
+    public static void call(DependencyCollector self, CharSequence dependencyNotation) {
         self.add(dependencyNotation);
     }
 
@@ -178,7 +175,7 @@ public class DependenciesExtensionModule {
      * @param configuration an action to configure the dependency
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
      */
-    public static void call(DependencyAdder self, CharSequence dependencyNotation, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
+    public static void call(DependencyCollector self, CharSequence dependencyNotation, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
         self.add(dependencyNotation, ConfigureUtil.configureUsing(configuration));
     }
 
@@ -187,7 +184,7 @@ public class DependenciesExtensionModule {
      *
      * @param files files to add as a dependency
      */
-    public static void call(DependencyAdder self, FileCollection files) {
+    public static void call(DependencyCollector self, FileCollection files) {
         self.add(files);
     }
 
@@ -197,7 +194,7 @@ public class DependenciesExtensionModule {
      * @param files files to add as a dependency
      * @param configuration an action to configure the dependency
      */
-    public static void call(DependencyAdder self, FileCollection files, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.FileCollectionDependency") Closure<?> configuration) {
+    public static void call(DependencyCollector self, FileCollection files, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.FileCollectionDependency") Closure<?> configuration) {
         self.add(files, ConfigureUtil.configureUsing(configuration));
     }
 
@@ -206,7 +203,7 @@ public class DependenciesExtensionModule {
      *
      * @param externalModule external module to add as a dependency
      */
-    public static void call(DependencyAdder self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule) {
+    public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule) {
         self.add(externalModule);
     }
 
@@ -216,7 +213,7 @@ public class DependenciesExtensionModule {
      * @param externalModule external module to add as a dependency
      * @param configuration an action to configure the dependency
      */
-    public static void call(DependencyAdder self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
+    public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
         self.add(externalModule, ConfigureUtil.configureUsing(configuration));
     }
 
@@ -225,7 +222,7 @@ public class DependenciesExtensionModule {
      *
      * @param dependency dependency to add
      */
-    public static void call(DependencyAdder self, Dependency dependency) {
+    public static void call(DependencyCollector self, Dependency dependency) {
         self.add(dependency);
     }
 
@@ -235,26 +232,82 @@ public class DependenciesExtensionModule {
      * @param dependency dependency to add
      * @param configuration an action to configure the dependency
      */
-    public static <D extends Dependency> void call(DependencyAdder self, D dependency, @ClosureParams(SecondParam.class) Closure<?> configuration) {
+    public static <D extends Dependency> void call(DependencyCollector self, D dependency, @ClosureParams(SecondParam.class) Closure<?> configuration) {
         self.add(dependency, ConfigureUtil.configureUsing(configuration));
     }
 
-    /**
-     * Add a dependency.
-     *
-     * @param dependency dependency to add
-     */
-    public static void call(DependencyAdder self, Provider<? extends Dependency> dependency) {
-        self.add(dependency);
+    private static InvalidUserDataException badProviderError(Class<?> given) {
+        return new InvalidUserDataException(
+            "Providers of type '" + given.getName() + "' are not supported. Only Provider<Dependency> and Provider<DependencyConstraint> are supported. Try using the Provider#map method to convert to a supported type."
+        );
     }
 
     /**
-     * Add a dependency.
+     * Add a dependency or dependency constraint.
      *
-     * @param dependency dependency to add
-     * @param configuration an action to configure the dependency
+     * <p>
+     * Unfortunately, this method cannot be split into two methods, one for {@link Dependency} and one for {@link DependencyConstraint},
+     * because Groovy cannot distinguish between the two.
+     * </p>
+     *
+     * @param dependencyOrDependencyConstraint dependency or dependency constraint to add
      */
-    public static <D extends Dependency> void call(DependencyAdder self, Provider<? extends D> dependency, @ClosureParams(SecondParam.FirstGenericType.class) Closure<?> configuration) {
-        self.add(dependency, ConfigureUtil.configureUsing(configuration));
+    public static void call(DependencyCollector self, Provider<?> dependencyOrDependencyConstraint) {
+        call(self, dependencyOrDependencyConstraint, null);
+    }
+
+    /**
+     * Add a dependency or dependency constraint.
+     *
+     * @param dependencyOrDependencyConstraint dependency or dependency constraint to add
+     * @param configuration an action to configure the dependency or dependency constraint
+     */
+    public static <D> void call(DependencyCollector self, Provider<? extends D> dependencyOrDependencyConstraint, @ClosureParams(SecondParam.FirstGenericType.class) Closure<?> configuration) {
+        Class<?> providerType = Providers.internal(dependencyOrDependencyConstraint).getType();
+        if (providerType == null) {
+            self.add(dependencyOrDependencyConstraint.map(it -> {
+                if (it instanceof Dependency) {
+                    return (Dependency) it;
+                }
+                if (it instanceof DependencyConstraint) {
+                    return null;
+                }
+                throw badProviderError(it.getClass());
+            }), ConfigureUtil.configureUsing(configuration));
+            self.addConstraint(dependencyOrDependencyConstraint.map(it -> {
+                if (it instanceof DependencyConstraint) {
+                    return (DependencyConstraint) it;
+                }
+                if (it instanceof Dependency) {
+                    return null;
+                }
+                throw badProviderError(it.getClass());
+            }), ConfigureUtil.configureUsing(configuration));
+        } else if (Dependency.class.isAssignableFrom(providerType)) {
+            self.add(dependencyOrDependencyConstraint.map(it -> (Dependency) it), ConfigureUtil.configureUsing(configuration));
+        } else if (DependencyConstraint.class.isAssignableFrom(providerType)) {
+            self.addConstraint(dependencyOrDependencyConstraint.map(it -> (DependencyConstraint) it), ConfigureUtil.configureUsing(configuration));
+        } else {
+            throw badProviderError(providerType);
+        }
+    }
+
+    /**
+     * Add a dependency constraint.
+     *
+     * @param dependencyConstraint dependency constraint to add
+     */
+    public static void call(DependencyCollector self, DependencyConstraint dependencyConstraint) {
+        self.addConstraint(dependencyConstraint);
+    }
+
+    /**
+     * Add a dependency constraint.
+     *
+     * @param dependencyConstraint dependency constraint to add
+     * @param configuration an action to configure the dependency constraint
+     */
+    public static void call(DependencyCollector self, DependencyConstraint dependencyConstraint, @ClosureParams(value = SecondParam.class) Closure<?> configuration) {
+        self.addConstraint(dependencyConstraint, ConfigureUtil.configureUsing(configuration));
     }
 }

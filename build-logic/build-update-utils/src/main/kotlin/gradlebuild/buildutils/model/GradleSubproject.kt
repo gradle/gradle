@@ -17,4 +17,4 @@
 package gradlebuild.buildutils.model
 
 
-data class GradleSubproject(val dirName: String, val name: String, val unitTests: Boolean, val functionalTests: Boolean, val crossVersionTests: Boolean)
+data class GradleSubproject(val name: String, val path: String, val unitTests: Boolean, val functionalTests: Boolean, val crossVersionTests: Boolean)

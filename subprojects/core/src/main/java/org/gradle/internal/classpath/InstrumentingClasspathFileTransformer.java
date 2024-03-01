@@ -17,79 +17,80 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.archive.ZipEntry;
-import org.gradle.api.internal.file.archive.ZipInput;
-import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
-import org.gradle.internal.Pair;
-import org.gradle.internal.file.FileException;
+import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.internal.classpath.transforms.ClassTransform;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.util.internal.GFileUtils;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 
 import static java.lang.String.format;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 
-class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
-    private static final int CACHE_FORMAT = 5;
+public class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
+    private static final int CACHE_FORMAT = 6;
 
     private final FileLockManager fileLockManager;
-    private final ClasspathWalker classpathWalker;
-    private final ClasspathBuilder classpathBuilder;
-    private final Policy policy;
-    private final CachedClasspathTransformer.Transform transform;
-    private final HashCode configHash;
-
-    public interface Policy {
-        void applyConfigurationTo(Hasher hasher);
-
-        boolean instrumentFile(File file);
-
-        boolean includeEntry(ClasspathEntryVisitor.Entry entry);
-    }
+    private final ClasspathFileHasher fileHasher;
+    private final ClasspathElementTransformFactory classpathElementTransformFactory;
+    private final ClassTransform transform;
 
     public InstrumentingClasspathFileTransformer(
         FileLockManager fileLockManager,
-        ClasspathWalker classpathWalker,
-        ClasspathBuilder classpathBuilder,
-        Policy policy,
-        CachedClasspathTransformer.Transform transform
+        ClasspathFileHasher classpathFileHasher,
+        ClasspathElementTransformFactory classpathElementTransformFactory,
+        ClassTransform transform,
+        GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry
     ) {
         this.fileLockManager = fileLockManager;
-        this.classpathWalker = classpathWalker;
-        this.classpathBuilder = classpathBuilder;
-        this.policy = policy;
+
+        this.fileHasher = createFileHasherWithConfig(
+            configHashFor(classpathElementTransformFactory, transform, gradleCoreInstrumentationTypeRegistry),
+            classpathFileHasher);
+        this.classpathElementTransformFactory = classpathElementTransformFactory;
         this.transform = transform;
-        this.configHash = configHashFor(transform);
     }
 
-    private HashCode configHashFor(CachedClasspathTransformer.Transform transform) {
+    private static HashCode configHashFor(ClasspathElementTransformFactory classpathElementTransformFactory, ClassTransform transform, GradleCoreInstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
-        policy.applyConfigurationTo(hasher);
+        hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
+        gradleCoreInstrumentationTypeRegistry.getInstrumentedTypesHash().ifPresent(hasher::putHash);
+        gradleCoreInstrumentationTypeRegistry.getUpgradedPropertiesHash().ifPresent(hasher::putHash);
+        classpathElementTransformFactory.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();
     }
 
+    private static ClasspathFileHasher createFileHasherWithConfig(HashCode configHash, ClasspathFileHasher fileHasher) {
+        return sourceSnapshot -> {
+            Hasher hasher = Hashing.newHasher();
+            hasher.putHash(configHash);
+            hasher.putHash(fileHasher.hashOf(sourceSnapshot));
+            if (sourceSnapshot.getType() == FileType.Directory) {
+                // Prior to 8.7 we were combining instrumented classes from both directories and JARs into JARs.
+                // Now we store instrumented directories as directories, so we invalidate these.
+                // However, transformed JARs should be left intact.
+                hasher.putBoolean(true);
+            }
+            return hasher.hash();
+        };
+    }
+
     @Override
-    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
+    public File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentationTypeRegistry typeRegistry) {
         String destDirName = hashOf(sourceSnapshot);
         File destDir = new File(cacheDir, destDirName);
-        String destFileName = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
+        String destFileName = source.getName();
         File receipt = new File(destDir, destFileName + ".receipt");
         File transformed = new File(destDir, destFileName);
 
@@ -105,7 +106,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 // Lock was acquired after a concurrent writer had already finished.
                 return transformed;
             }
-            transform(source, transformed);
+            transform(source, transformed, typeRegistry);
             try {
                 receipt.createNewFile();
             } catch (IOException e) {
@@ -120,6 +121,11 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         }
     }
 
+    @Override
+    public ClasspathFileHasher getFileHasher() {
+        return fileHasher;
+    }
+
     private FileLock exclusiveLockFor(File file) {
         return fileLockManager.lock(
             file,
@@ -129,111 +135,10 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private String hashOf(FileSystemLocationSnapshot sourceSnapshot) {
-        Hasher hasher = Hashing.defaultFunction().newHasher();
-        hasher.putHash(configHash);
-        // TODO - apply runtime classpath normalization?
-        hasher.putHash(sourceSnapshot.getHash());
-        return hasher.hash().toString();
+        return fileHasher.hashOf(sourceSnapshot).toString();
     }
 
-    private void transform(File source, File dest) {
-        if (policy.instrumentFile(source)) {
-            instrument(source, dest);
-        } else {
-            LOGGER.debug("Signed archive '{}'. Skipping instrumentation.", source.getName());
-            GFileUtils.copyFile(source, dest);
-        }
-    }
-
-    private void instrument(File source, File dest) {
-        classpathBuilder.jar(dest, builder -> {
-            try {
-                visitEntries(source, builder);
-            } catch (FileException e) {
-                // Badly formed archive, so discard the contents and produce an empty JAR
-                LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
-            }
-        });
-    }
-
-    private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {
-        classpathWalker.visit(source, entry -> {
-            try {
-                if (!policy.includeEntry(entry)) {
-                    return;
-                }
-                if (entry.getName().endsWith(".class")) {
-                    ClassReader reader = new ClassReader(entry.getContent());
-                    ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                    Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter);
-                    reader.accept(chain.right, 0);
-                    byte[] bytes = classWriter.toByteArray();
-                    builder.put(chain.left.getPathString(), bytes, entry.getCompressionMethod());
-                } else {
-                    builder.put(entry.getName(), entry.getContent(), entry.getCompressionMethod());
-                }
-            } catch (Throwable e) {
-                throw new IOException("Failed to process the entry '" + entry.getName() + "' from '" + source + "'", e);
-            }
-        });
-    }
-
-    private static boolean isSignedJar(File source) {
-        if (!source.isFile()) {
-            return false;
-        }
-        try (ZipInput entries = FileZipInput.create(source)) {
-            for (ZipEntry entry : entries) {
-                String entryName = entry.getName();
-                if (entryName.startsWith("META-INF/") && entryName.endsWith(".SF")) {
-                    return true;
-                }
-            }
-        } catch (FileException e) {
-            // Ignore malformed archive
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return false;
-    }
-
-    public static Policy instrumentForLoadingWithClassLoader() {
-        return new Policy() {
-            @Override
-            public void applyConfigurationTo(Hasher hasher) {
-                // Do nothing, this is compatible with the old instrumentation
-            }
-
-            @Override
-            public boolean instrumentFile(File file) {
-                return !isSignedJar(file);
-            }
-
-            @Override
-            public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
-                // include everything
-                return true;
-            }
-        };
-    }
-
-    public static Policy instrumentForLoadingWithAgent() {
-        return new Policy() {
-            @Override
-            public void applyConfigurationTo(Hasher hasher) {
-                hasher.putInt(1);
-            }
-
-            @Override
-            public boolean instrumentFile(File file) {
-                return true;
-            }
-
-            @Override
-            public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
-                // Only include classes in the result, resources will be loaded from the original JAR by the class loader.
-                return entry.getName().endsWith(".class");
-            }
-        };
+    private void transform(File source, File dest, InstrumentationTypeRegistry typeRegistry) {
+        classpathElementTransformFactory.createTransformer(source, this.transform, typeRegistry).transform(dest);
     }
 }

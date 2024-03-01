@@ -1,0 +1,33 @@
+// tag::custom-test-source-set[]
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+}
+
+def functionalTest = sourceSets.create('functionalTest')
+def functionalTestTask = tasks.register('functionalTest', Test) {
+    group = 'verification'
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+    useJUnitPlatform()
+}
+
+tasks.named("check") {
+    dependsOn functionalTestTask
+}
+
+gradlePlugin {
+    testSourceSets sourceSets.functionalTest
+}
+
+dependencies {
+    functionalTestImplementation('org.spockframework:spock-core:2.2-groovy-3.0') {
+        exclude group: 'org.codehaus.groovy'
+    }
+    functionalTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+// end::custom-test-source-set[]
+
+repositories {
+    mavenCentral()
+}

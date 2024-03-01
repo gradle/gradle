@@ -19,7 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
+import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.StringTextResource

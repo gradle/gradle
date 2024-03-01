@@ -30,6 +30,7 @@ import com.tngtech.archunit.thirdparty.com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @AnalyzeClasses(
     packages = "org.gradle",
@@ -47,10 +48,14 @@ public class PackageCycleTest {
         return javaClass.isAnnotation() || IGNORED_CLASSES_FOR_CYCLES.stream().anyMatch(prefix -> javaClass.getFullName().startsWith(prefix));
     }
 
-    private static Set<String> ignoredPackagesForCycles() {
+    private static Stream<String> excludePatterns() {
         String patterns = System.getProperty("package.cycle.exclude.patterns");
         return Arrays.stream(patterns.split(","))
-            .map(String::trim)
+            .map(String::trim);
+    }
+
+    private static Set<String> ignoredPackagesForCycles() {
+        return excludePatterns()
             .filter(pattern -> !isClassNamePattern(pattern))
             .map(pattern -> pattern.replace("/**", ".."))
             .map(pattern -> pattern.replace("/*", ""))
@@ -63,9 +68,7 @@ public class PackageCycleTest {
     }
 
     private static Set<String> ignoredClassesForCycles() {
-        String patterns = System.getProperty("package.cycle.exclude.patterns");
-        return Arrays.stream(patterns.split(" "))
-            .map(String::trim)
+        return excludePatterns()
             .filter(PackageCycleTest::isClassNamePattern)
             .map(pattern -> pattern.replace("/", "."))
             .map(pattern -> pattern.replace("*", ""))

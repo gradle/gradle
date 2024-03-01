@@ -21,6 +21,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.internal.file.Chmod;
+import org.gradle.internal.file.PathTraversalChecker;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
@@ -54,15 +55,25 @@ public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeEle
      * Returns the archive entry for this element.
      *
      * @return the archive entry
-     * @implSpec this method should be overriden to return a more specific type
+     * @implSpec this method should be overridden to return a more specific type
      */
     protected abstract ArchiveEntry getArchiveEntry();
 
     /**
      * Returns a safe name for the name of a file contained in the archive.
-     * @see org.gradle.util.internal.ZipSlip#safeZipEntryName(String)
+     *
+     * @see PathTraversalChecker#safePathName(String)
      */
-    protected abstract String safeEntryName();
+    protected String safeEntryName() {
+        return PathTraversalChecker.safePathName(getEntryName());
+    }
+
+    /**
+     * Returns unsafe name for the name of a file contained in the archive.
+     *
+     * @see AbstractArchiveFileTreeElement#safeEntryName
+     */
+    protected abstract String getEntryName();
 
     @Override
     public File getFile() {

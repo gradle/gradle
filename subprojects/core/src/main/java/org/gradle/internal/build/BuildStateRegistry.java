@@ -19,6 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.buildtree.NestedBuildTree;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
@@ -65,6 +66,12 @@ public interface BuildStateRegistry {
     BuildState getBuild(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
 
     /**
+     * Finds a build. Returns null if there's no build with the given identifier.
+     */
+    @Nullable
+    BuildState findBuild(BuildIdentifier buildIdentifier);
+
+    /**
      * Notification that the settings have been loaded for the root build.
      *
      * <p>This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
@@ -97,7 +104,7 @@ public interface BuildStateRegistry {
     /**
      * Creates a new standalone nested build tree.
      */
-    NestedBuildTree addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName);
+    NestedBuildTree addNestedBuildTree(BuildInvocationScopeId buildInvocationScopeId, BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName);
 
     /**
      * Visits all registered builds, ordered by {@link BuildState#getIdentityPath()}

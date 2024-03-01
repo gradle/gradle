@@ -1,0 +1,6 @@
+${fileComment.multilineComment}${packageDecl.javaStatement}
+public class Library {
+    public boolean someLibraryMethod() {
+        return true;
+    }
+}

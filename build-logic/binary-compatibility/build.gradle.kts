@@ -8,8 +8,8 @@ description = "Provides a plugin for configuring japicmp-gradle-plugin to detect
 dependencies {
     api("me.champeau.gradle:japicmp-gradle-plugin")
 
-    implementation(project(":basics"))
-    implementation(project(":module-identity"))
+    implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
 
     implementation("com.google.code.gson:gson")
     implementation("com.google.guava:guava")

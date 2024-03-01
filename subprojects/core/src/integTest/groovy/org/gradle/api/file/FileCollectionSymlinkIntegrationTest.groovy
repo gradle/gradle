@@ -20,21 +20,22 @@ import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.escapeString
 import static org.gradle.work.ChangeType.ADDED
 import static org.gradle.work.ChangeType.REMOVED
 
-@Requires(TestPrecondition.SYMLINKS)
+@Requires(UnitTestPreconditions.Symlinks)
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()
+        // This is required for the daemon to clean up symlinks between builds
+        executer.requireDaemon()
+        executer.requireIsolatedDaemons()
     }
 
     def "#desc can handle symlinks"() {
@@ -66,11 +67,11 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         noExceptionThrown()
 
         where:
-        desc                                 | code
-        "project.files()"                    | "project.files(file, symlink, symlinked)"
-        "project.fileTree()"                 | "project.fileTree(baseDir)"
-        "project.layout.files()"             | "project.layout.files(file, symlink, symlinked)"
-        "project.objects.fileCollection()"   | "project.objects.fileCollection().from(file, symlink, symlinked)"
+        desc                               | code
+        "project.files()"                  | "project.files(file, symlink, symlinked)"
+        "project.fileTree()"               | "project.fileTree(baseDir)"
+        "project.layout.files()"           | "project.layout.files(file, symlink, symlinked)"
+        "project.objects.fileCollection()" | "project.objects.fileCollection().from(file, symlink, symlinked)"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1365")
@@ -363,9 +364,6 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         output.text == "${[REMOVED]}"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
-    )
     def "broken symlink in #inputType.simpleName fails validation"() {
         def brokenInputFile = file('brokenInput').createLink("brokenInputFileTarget")
         buildFile << """

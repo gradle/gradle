@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.JavaMethod;
@@ -36,43 +34,18 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class OptionReader {
     private final ListMultimap<Class<?>, OptionElement> cachedOptionElements = ArrayListMultimap.create();
     private final Map<OptionElement, JavaMethod<Object, Collection>> cachedOptionValueMethods = new HashMap<OptionElement, JavaMethod<Object, Collection>>();
     private final OptionValueNotationParserFactory optionValueNotationParserFactory = new OptionValueNotationParserFactory();
 
-    @VisibleForTesting
-    static final Map<String, BuiltInOptionElement> BUILT_IN_OPTIONS = Stream.of(
-        new BuiltInOptionElement(
-            "Causes the task to be re-run even if up-to-date.",
-            "rerun",
-            task -> task.getOutputs().upToDateWhen(Specs.satisfyNone())
-        )
-    ).collect(Collectors.toMap(BuiltInOptionElement::getOptionName, Function.identity(), (a, b) -> a, LinkedHashMap::new));
 
-    /**
-     * Builds a list of implicit built-in options available for every task.
-     */
-    private List<OptionDescriptor> buildBuiltInOptions(Object target, Collection<String> reserved) {
-        return BUILT_IN_OPTIONS.values().stream().map(optionElement ->
-            new InstanceOptionDescriptor(target, optionElement, null, reserved.contains(optionElement.getOptionName()))
-        ).collect(Collectors.toList());
-    }
-
-    public List<OptionDescriptor> getOptions(Object target) {
-        return getOptions(target, true);
-    }
-
-    public List<OptionDescriptor> getOptions(Object target, boolean validOnly) {
+    public Map<String, OptionDescriptor> getOptions(Object target) {
         final Class<?> targetClass = target.getClass();
         Map<String, OptionDescriptor> options = new HashMap<String, OptionDescriptor>();
         if (!cachedOptionElements.containsKey(targetClass)) {
@@ -82,15 +55,7 @@ public class OptionReader {
             JavaMethod<Object, Collection> optionValueMethod = cachedOptionValueMethods.get(optionElement);
             options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(target, optionElement, optionValueMethod));
         }
-        List<OptionDescriptor> taskOptions = CollectionUtils.sort(options.values());
-        for (OptionDescriptor builtInOption : buildBuiltInOptions(target, options.keySet())) {
-            // built-in options only enabled if they do not clash with task-declared ones
-            if (!validOnly || !builtInOption.isClashing()) {
-                taskOptions.add(builtInOption);
-            }
-        }
-
-        return taskOptions;
+        return options;
     }
 
     private void loadClassDescriptorInCache(Object target) {
@@ -255,5 +220,4 @@ public class OptionReader {
                     type.getName()));
         }
     }
-
 }

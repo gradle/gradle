@@ -24,16 +24,20 @@ import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
-import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.configuration.inputs.AccessTrackingEnvMap;
+import org.gradle.internal.configuration.inputs.AccessTrackingProperties;
+import org.gradle.internal.configuration.inputs.InstrumentedInputs;
+import org.gradle.internal.configuration.inputs.InstrumentedInputsListener;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.InstrumentationInterceptor;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
@@ -48,94 +52,48 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.classpath.InstrumentedUtil.findStaticOrThrowError;
-import static org.gradle.internal.classpath.InstrumentedUtil.kotlinDefaultMethodType;
+import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
+import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
+import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
 
 public class Instrumented {
-    private static final Listener NO_OP = new Listener() {
-        @Override
-        public void systemPropertyQueried(String key, @Nullable Object value, String consumer) {
-        }
-
-        @Override
-        public void systemPropertyChanged(Object key, @Nullable Object value, String consumer) {
-        }
-
-        @Override
-        public void systemPropertyRemoved(Object key, String consumer) {
-        }
-
-        @Override
-        public void systemPropertiesCleared(String consumer) {
-        }
-
-        @Override
-        public void envVariableQueried(String key, @Nullable String value, String consumer) {
-        }
-
-        @Override
-        public void externalProcessStarted(String command, String consumer) {
-        }
-
-        @Override
-        public void fileOpened(File file, String consumer) {
-        }
-
-        @Override
-        public void fileObserved(File file, String consumer) {
-        }
-
-        @Override
-        public void fileSystemEntryObserved(File file, String consumer) {
-        }
-
-        @Override
-        public void directoryContentObserved(File file, String consumer) {
-        }
-    };
-
-    private static final AtomicReference<Listener> LISTENER = new AtomicReference<>(NO_OP);
-
-    public static void setListener(Listener listener) {
-        LISTENER.set(listener);
+    @SuppressWarnings("deprecation")
+    private static InstrumentedInputsListener listener() {
+        return InstrumentedInputs.listener();
     }
 
-    public static void discardListener() {
-        setListener(NO_OP);
+    /**
+     * This API follows the requirements in {@link org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassSourceGroovyCallInterceptorsProvider}.
+     *
+     * @deprecated This should not be called from the sources.
+     */
+    @SuppressWarnings("unused")
+    @Deprecated
+    public static List<CallInterceptor> getCallInterceptors() {
+        return Arrays.asList(
+            new SystemGetPropertyInterceptor(),
+            new SystemSetPropertyInterceptor(),
+            new SystemGetPropertiesInterceptor(),
+            new SystemSetPropertiesInterceptor(),
+            new SystemClearPropertyInterceptor(),
+            new IntegerGetIntegerInterceptor(),
+            new LongGetLongInterceptor(),
+            new BooleanGetBooleanInterceptor(),
+            new SystemGetenvInterceptor(),
+            new RuntimeExecInterceptor(),
+            new ProcessGroovyMethodsExecuteInterceptor(),
+            new ProcessBuilderStartInterceptor(),
+            new ProcessBuilderStartPipelineInterceptor()
+        );
     }
-
-    private static final CallInterceptorsSet CALL_INTERCEPTORS = new CallInterceptorsSet(
-        new SystemGetPropertyInterceptor(),
-        new SystemSetPropertyInterceptor(),
-        new SystemGetPropertiesInterceptor(),
-        new SystemSetPropertiesInterceptor(),
-        new SystemClearPropertyInterceptor(),
-        new IntegerGetIntegerInterceptor(),
-        new LongGetLongInterceptor(),
-        new BooleanGetBooleanInterceptor(),
-        new SystemGetenvInterceptor(),
-        new RuntimeExecInterceptor(),
-        new FileCheckInterceptor.FileExistsInterceptor(),
-        new FileCheckInterceptor.FileIsFileInterceptor(),
-        new FileCheckInterceptor.FileIsDirectoryInterceptor(),
-        new FileListFilesInterceptor(),
-        new FilesReadStringInterceptor(),
-        new FileTextInterceptor(),
-        new ProcessGroovyMethodsExecuteInterceptor(),
-        new ProcessBuilderStartInterceptor(),
-        new ProcessBuilderStartPipelineInterceptor(),
-        new FileInputStreamConstructorInterceptor());
-
 
     // Called by generated code
     @SuppressWarnings("unused")
-    public static void groovyCallSites(CallSiteArray array) {
+    public static void groovyCallSites(CallSiteArray array, BytecodeInterceptorFilter interceptorFilter) {
         for (CallSite callSite : array.array) {
-            array.array[callSite.getIndex()] = CALL_INTERCEPTORS.maybeDecorateGroovyCallSite(callSite);
+            array.array[callSite.getIndex()] = getGroovyCallDecorator(interceptorFilter).maybeDecorateGroovyCallSite(callSite);
         }
     }
 
@@ -152,8 +110,17 @@ public class Instrumented {
      * @return the produced CallSite
      * @see IndyInterface
      */
-    public static java.lang.invoke.CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
-        return CALL_INTERCEPTORS.maybeDecorateIndyCallSite(
+    // Called by generated code
+    @SuppressWarnings("unused")
+    public static java.lang.invoke.CallSite bootstrapInstrumentationOnly(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
+        return getGroovyCallDecorator(BytecodeInterceptorFilter.INSTRUMENTATION_ONLY).maybeDecorateIndyCallSite(
+            IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
+    }
+
+    // Called by generated code
+    @SuppressWarnings("unused")
+    public static java.lang.invoke.CallSite bootstrapAll(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
+        return getGroovyCallDecorator(BytecodeInterceptorFilter.ALL).maybeDecorateIndyCallSite(
             IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
     }
 
@@ -353,33 +320,41 @@ public class Instrumented {
         return builder.start();
     }
 
-    public static boolean fileExists(File file, String consumer) {
+    public static void fileSystemEntryObserved(File file, String consumer) {
         listener().fileSystemEntryObserved(file, consumer);
+    }
+
+    public static boolean fileExists(File file, String consumer) {
+        fileSystemEntryObserved(file, consumer);
         return file.exists();
     }
 
     public static boolean fileIsFile(File file, String consumer) {
-        listener().fileSystemEntryObserved(file, consumer);
+        fileSystemEntryObserved(file, consumer);
         return file.isFile();
     }
 
     public static boolean fileIsDirectory(File file, String consumer) {
-        listener().fileSystemEntryObserved(file, consumer);
+        fileSystemEntryObserved(file, consumer);
         return file.isDirectory();
     }
 
-    public static File[] fileListFiles(File file, String consumer) {
+    public static void directoryContentObserved(File file, String consumer) {
         listener().directoryContentObserved(file, consumer);
+    }
+
+    public static File[] fileListFiles(File file, String consumer) {
+        directoryContentObserved(file, consumer);
         return file.listFiles();
     }
 
     public static File[] fileListFiles(File file, FileFilter fileFilter, String consumer) {
-        listener().directoryContentObserved(file, consumer);
+        directoryContentObserved(file, consumer);
         return file.listFiles(fileFilter);
     }
 
     public static File[] fileListFiles(File file, FilenameFilter fileFilter, String consumer) {
-        listener().directoryContentObserved(file, consumer);
+        directoryContentObserved(file, consumer);
         return file.listFiles(fileFilter);
     }
 
@@ -394,15 +369,15 @@ public class Instrumented {
     }
 
     private static final Lazy<MethodHandle> FILESKT_READ_TEXT_DEFAULT =
-        Lazy.locking().of(() -> findStaticOrThrowError(FilesKt.class, "readText$default", kotlinDefaultMethodType(String.class, File.class, Charset.class)));
+        lazyKotlinStaticDefaultHandle(FilesKt.class, "readText", String.class, File.class, Charset.class);
 
     public static String filesReadString(Path file, String consumer) throws Throwable {
-        listener().fileOpened(file.toFile(), consumer);
+        FileUtils.tryReportFileOpened(file, consumer);
         return (String) FILES_READ_STRING_PATH.get().invokeExact(file);
     }
 
     public static String filesReadString(Path file, Charset charset, String consumer) throws Throwable {
-        listener().fileOpened(file.toFile(), consumer);
+        FileUtils.tryReportFileOpened(file, consumer);
         return (String) FILES_READ_STRING_PATH_CHARSET.get().invokeExact(file, charset);
     }
 
@@ -490,10 +465,6 @@ public class Instrumented {
         externalProcessStarted(joinCommand(command), consumer);
     }
 
-    private static Listener listener() {
-        return LISTENER.get();
-    }
-
     private static String convertToString(Object arg) {
         if (arg instanceof CharSequence) {
             return ((CharSequence) arg).toString();
@@ -507,73 +478,6 @@ public class Instrumented {
 
     private static String joinCommand(List<?> command) {
         return command.stream().map(String::valueOf).collect(Collectors.joining(" "));
-    }
-
-    public interface Listener {
-        /**
-         * Invoked when the code reads the system property with the String key.
-         *
-         * @param key the name of the property
-         * @param value the value of the property at the time of reading or {@code null} if the property is not present
-         * @param consumer the name of the class that is reading the property value
-         */
-        void systemPropertyQueried(String key, @Nullable Object value, String consumer);
-
-        /**
-         * Invoked when the code updates or adds the system property.
-         *
-         * @param key the name of the property, can be non-string
-         * @param value the new value of the property, can be {@code null} or non-string
-         * @param consumer the name of the class that is updating the property value
-         */
-        void systemPropertyChanged(Object key, @Nullable Object value, String consumer);
-
-        /**
-         * Invoked when the code removes the system property. The property may not be present.
-         *
-         * @param key the name of the property, can be non-string
-         * @param consumer the name of the class that is removing the property value
-         */
-        void systemPropertyRemoved(Object key, String consumer);
-
-        /**
-         * Invoked when all system properties are removed.
-         *
-         * @param consumer the name of the class that is removing the system properties
-         */
-        void systemPropertiesCleared(String consumer);
-
-        /**
-         * Invoked when the code reads the environment variable.
-         *
-         * @param key the name of the variable
-         * @param value the value of the variable
-         * @param consumer the name of the class that is reading the variable
-         */
-        void envVariableQueried(String key, @Nullable String value, String consumer);
-
-        /**
-         * Invoked when the code starts an external process. The command string with all argument is provided for reporting but its value may not be suitable to actually invoke the command because all
-         * arguments are joined together (separated by space) and there is no escaping of special characters.
-         *
-         * @param command the command used to start the process (with arguments)
-         * @param consumer the name of the class that is starting the process
-         */
-        void externalProcessStarted(String command, String consumer);
-
-        /**
-         * Invoked when the code opens a file.
-         *
-         * @param file the absolute file that was open
-         * @param consumer the name of the class that is opening the file
-         */
-        void fileOpened(File file, String consumer);
-
-        void fileObserved(File file, String consumer);
-
-        void fileSystemEntryObserved(File file, String consumer);
-
-        void directoryContentObserved(File file, String consumer);
     }
 
     /**
@@ -747,13 +651,13 @@ public class Instrumented {
     /**
      * The interceptor for all overloads of {@code Runtime.exec}.
      */
-    private static class RuntimeExecInterceptor extends CallInterceptor {
+    private static class RuntimeExecInterceptor extends CallInterceptor implements InstrumentationInterceptor {
         public RuntimeExecInterceptor() {
             super(InterceptScope.methodsNamed("exec"));
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             int argsCount = invocation.getArgsCount();
             if (1 <= argsCount && argsCount <= 3) {
                 Optional<Process> result = tryCallExec(invocation.getReceiver(), invocation.getArgument(0), invocation.getOptionalArgument(1), invocation.getOptionalArgument(2), consumer);
@@ -788,132 +692,16 @@ public class Instrumented {
         }
     }
 
-    private static abstract class FileCheckInterceptor extends CallInterceptor {
-        private final BiFunction<File, String, Boolean> invokeWhenIntercepted;
-
-        public FileCheckInterceptor(String methodName, BiFunction<File, String, Boolean> invokeWhenIntercepted) {
-            super(InterceptScope.methodsNamed(methodName));
-            this.invokeWhenIntercepted = invokeWhenIntercepted;
-        }
-
-        @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
-            if (invocation.getArgsCount() == 0) {
-                Object receiver = invocation.getReceiver();
-                if (receiver instanceof File) {
-                    File fileReceiver = (File) receiver;
-                    return invokeWhenIntercepted.apply(fileReceiver, consumer);
-                }
-            }
-            return invocation.callOriginal();
-        }
-
-        static class FileExistsInterceptor extends FileCheckInterceptor {
-            public FileExistsInterceptor() {
-                super("exists", Instrumented::fileExists);
-            }
-        }
-
-        static class FileIsFileInterceptor extends FileCheckInterceptor {
-            public FileIsFileInterceptor() {
-                super("isFile", Instrumented::fileIsFile);
-            }
-        }
-
-        static class FileIsDirectoryInterceptor extends FileCheckInterceptor {
-            public FileIsDirectoryInterceptor() {
-                super("isDirectory", Instrumented::fileIsDirectory);
-            }
-        }
-    }
-
-    private static class FileListFilesInterceptor extends CallInterceptor {
-        public FileListFilesInterceptor() {
-            super(InterceptScope.methodsNamed("listFiles"));
-        }
-
-        @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
-            if (invocation.getArgsCount() <= 1) {
-                Object receiver = invocation.getReceiver();
-                if (receiver instanceof File) {
-                    File fileReceiver = (File) receiver;
-                    if (invocation.getArgsCount() == 0) {
-                        return Instrumented.fileListFiles(fileReceiver, consumer);
-                    } else if (invocation.getArgsCount() == 1) {
-                        Object arg0 = invocation.getArgument(0);
-                        if (arg0 instanceof FileFilter) {
-                            return Instrumented.fileListFiles(fileReceiver, (FileFilter) arg0, consumer);
-                        } else if (arg0 instanceof FilenameFilter) {
-                            return Instrumented.fileListFiles(fileReceiver, (FilenameFilter) arg0, consumer);
-                        }
-                    }
-                }
-            }
-            return invocation.callOriginal();
-        }
-    }
-
-    private static class FilesReadStringInterceptor extends ClassBoundCallInterceptor {
-        public FilesReadStringInterceptor() {
-            super(Files.class, InterceptScope.methodsNamed("readString"));
-        }
-
-        @Override
-        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
-            if (invocation.getArgsCount() >= 1 && invocation.getArgsCount() <= 2) {
-                Object arg0 = invocation.getArgument(0);
-                if (arg0 instanceof Path) {
-                    Path arg0Path = (Path) arg0;
-                    if (invocation.getArgsCount() == 1) {
-                        return Instrumented.filesReadString(arg0Path, consumer);
-                    } else if (invocation.getArgsCount() == 2) {
-                        Object arg1 = invocation.getArgument(1);
-                        if (arg1 instanceof Charset) {
-                            Charset arg1Charset = (Charset) arg1;
-                            return Instrumented.filesReadString(arg0Path, arg1Charset, consumer);
-                        }
-                    }
-                }
-            }
-            return invocation.callOriginal();
-        }
-    }
-
-    private static class FileTextInterceptor extends CallInterceptor {
-        public FileTextInterceptor() {
-            super(InterceptScope.readsOfPropertiesNamed("text"), InterceptScope.methodsNamed("getText"));
-        }
-
-        @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
-            Object receiver = invocation.getReceiver();
-            if (receiver instanceof File) {
-                File receiverFile = (File) receiver;
-                if (invocation.getArgsCount() == 0) {
-                    return groovyFileGetText(receiverFile, consumer);
-                } else if (invocation.getArgsCount() == 1) {
-                    Object arg0 = invocation.getArgument(0);
-                    if (arg0 instanceof String) {
-                        String arg0String = (String) arg0;
-                        return groovyFileGetText(receiverFile, arg0String, consumer);
-                    }
-                }
-            }
-            return invocation.callOriginal();
-        }
-    }
-
     /**
      * The interceptor for Groovy's {@code String.execute}, {@code String[].execute}, and {@code List.execute}. This also handles {@code ProcessGroovyMethods.execute}.
      */
-    private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor {
+    private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor implements InstrumentationInterceptor {
         protected ProcessGroovyMethodsExecuteInterceptor() {
             super(InterceptScope.methodsNamed("execute"));
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             // Static calls have Class<ProcessGroovyMethods> as a receiver, command as a first argument, optional arguments follow.
             // "Extension" calls have command as a receiver and optional arguments as arguments.
             boolean isStaticCall = invocation.getReceiver().equals(ProcessGroovyMethods.class);
@@ -974,13 +762,13 @@ public class Instrumented {
     /**
      * The interceptor for {@link ProcessBuilder#start()}.
      */
-    private static class ProcessBuilderStartInterceptor extends CallInterceptor {
+    private static class ProcessBuilderStartInterceptor extends CallInterceptor implements InstrumentationInterceptor {
         ProcessBuilderStartInterceptor() {
             super(InterceptScope.methodsNamed("start"));
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             Object receiver = invocation.getReceiver();
             if (receiver instanceof ProcessBuilder) {
                 return start((ProcessBuilder) receiver, consumer);
@@ -1006,51 +794,4 @@ public class Instrumented {
             return invocation.callOriginal();
         }
     }
-
-    /**
-     * The interceptor for {@link FileInputStream#FileInputStream(File)} and {@link FileInputStream#FileInputStream(String)}.
-     */
-    private static class FileInputStreamConstructorInterceptor extends CallInterceptor {
-        public FileInputStreamConstructorInterceptor() {
-            super(InterceptScope.constructorsOf(FileInputStream.class));
-        }
-
-        @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
-            if (invocation.getArgsCount() == 1) {
-                Object argument = invocation.getArgument(0);
-                if (argument instanceof CharSequence) {
-                    String path = convertToString(argument);
-                    fileOpened(path, consumer);
-                    return new FileInputStream(path);
-                } else if (argument instanceof File) {
-                    File file = (File) argument;
-                    fileOpened(file, consumer);
-                    return new FileInputStream(file);
-                }
-            }
-            return invocation.callOriginal();
-
-        }
-    }
 }
-
-class InstrumentedUtil {
-    static MethodHandle findStaticOrThrowError(Class<?> refc, String name, MethodType methodType) {
-        try {
-            return MethodHandles.lookup().findStatic(refc, name, methodType);
-        } catch (NoSuchMethodException e) {
-            throw new NoSuchMethodError(e.getMessage());
-        } catch (IllegalAccessException e) {
-            throw new IllegalAccessError(e.getMessage());
-        }
-    }
-
-    static MethodType kotlinDefaultMethodType(Class<?> returnType, Class<?>... parameterTypes) {
-        Class<?>[] defaultParameterTypes = Arrays.copyOf(parameterTypes, parameterTypes.length + 2);
-        defaultParameterTypes[parameterTypes.length] = int.class; // default value mask
-        defaultParameterTypes[parameterTypes.length + 1] = Object.class; // default signature marker
-        return MethodType.methodType(returnType, defaultParameterTypes);
-    }
-}
-

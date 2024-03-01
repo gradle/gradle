@@ -69,7 +69,8 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         BuildStateRegistry buildStateRegistry = buildScopeServices.get(BuildStateRegistry.class);
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
         BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(), buildOperationExecutor);
-        BuildTreeFinishExecutor finishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
+        BuildTreeFinishExecutor finishExecutor = new OperationFiringBuildTreeFinishExecutor(buildOperationExecutor,
+            new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController));
         this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createRootBuildController(buildLifecycleController, workExecutor, finishExecutor);
     }
 
@@ -131,11 +132,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     @Override
     public StartParameterInternal getStartParameter() {
         return getBuildController().getGradle().getStartParameter();
-    }
-
-    @Override
-    public Path getCurrentPrefixForProjectsInChildBuilds() {
-        return Path.ROOT;
     }
 
     @Override

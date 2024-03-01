@@ -16,11 +16,13 @@
 
 package org.gradle.api.reporting.dependencies.internal;
 
-import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails.ProjectNameAndPath;
+import org.gradle.api.tasks.diagnostics.internal.ProjectsWithConfigurations;
 import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
@@ -43,7 +45,7 @@ import java.util.Set;
  *
  * @see JsonProjectDependencyRenderer
  */
-public class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
+public class HtmlDependencyReporter extends ReportRenderer<ProjectsWithConfigurations<ProjectNameAndPath, ConfigurationDetails>, File> {
     private File outputDirectory;
     private final JsonProjectDependencyRenderer renderer;
 
@@ -52,20 +54,20 @@ public class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
     }
 
     @Override
-    public void render(final Set<Project> projects, File outputDirectory) {
+    public void render(final ProjectsWithConfigurations<ProjectNameAndPath, ConfigurationDetails> projectsWithConfigurations, File outputDirectory) {
         this.outputDirectory = outputDirectory;
 
         HtmlReportRenderer renderer = new HtmlReportRenderer();
-        renderer.render(projects, new ReportRenderer<Set<Project>, HtmlReportBuilder>() {
+        renderer.render(projectsWithConfigurations.getProjects(), new ReportRenderer<Set<ProjectNameAndPath>, HtmlReportBuilder>() {
             @Override
-            public void render(Set<Project> model, HtmlReportBuilder builder) {
-                Transformer<String, Project> htmlPageScheme = projectNamingScheme("html");
-                Transformer<String, Project> jsScheme = projectNamingScheme("js");
+            public void render(Set<ProjectNameAndPath> model, HtmlReportBuilder builder) {
+                Transformer<String, ProjectNameAndPath> htmlPageScheme = projectNamingScheme("html");
+                Transformer<String, ProjectNameAndPath> jsScheme = projectNamingScheme("js");
                 ProjectPageRenderer projectPageRenderer = new ProjectPageRenderer(jsScheme);
-                builder.renderRawHtmlPage("index.html", projects, new ProjectsPageRenderer(htmlPageScheme));
-                for (Project project : projects) {
+                builder.renderRawHtmlPage("index.html", model, new ProjectsPageRenderer(htmlPageScheme));
+                for (ProjectNameAndPath project : model) {
                     String jsFileName = jsScheme.transform(project);
-                    generateJsFile(project, jsFileName);
+                    generateJsFile(project, projectsWithConfigurations.getConfigurationsFor(project), jsFileName);
                     String htmlFileName = htmlPageScheme.transform(project);
                     builder.renderRawHtmlPage(htmlFileName, project, projectPageRenderer);
                 }
@@ -75,17 +77,17 @@ public class HtmlDependencyReporter extends ReportRenderer<Set<Project>, File> {
         }, outputDirectory);
     }
 
-    private void generateJsFile(Project project, String fileName) {
-        String json = renderer.render(project);
+    private void generateJsFile(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, String fileName) {
+        String json = renderer.render(project, configurations);
         String content = "var projectDependencyReport = " + json + ";";
         GFileUtils.writeFile(content, new File(outputDirectory, fileName), "utf-8");
     }
 
-    private Transformer<String, Project> projectNamingScheme(final String extension) {
+    private Transformer<String, ProjectNameAndPath> projectNamingScheme(final String extension) {
         return project -> toFileName(project, "." + extension);
     }
 
-    private String toFileName(Project project, String extension) {
+    private String toFileName(ProjectNameAndPath project, String extension) {
         String name = project.getPath();
         if (name.equals(":")) {
             return "root" + extension;

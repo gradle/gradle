@@ -24,7 +24,6 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
@@ -39,6 +38,7 @@ import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
+import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
@@ -57,7 +57,9 @@ import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
+import org.gradle.internal.agents.AgentInitializer;
+import org.gradle.internal.agents.AgentStatus;
+import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
@@ -66,7 +68,6 @@ import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector;
-import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -116,16 +117,16 @@ import java.util.List;
  */
 public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
-    protected final ClassPath additionalModuleClassPath;
     private final GradleBuildEnvironment environment;
+    private final AgentStatus agentStatus;
 
-    public GlobalScopeServices(final boolean longLiving) {
-        this(longLiving, ClassPath.EMPTY);
+    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus) {
+        this(longLiving, agentStatus, ClassPath.EMPTY);
     }
 
-    public GlobalScopeServices(final boolean longLiving, ClassPath additionalModuleClassPath) {
-        super();
-        this.additionalModuleClassPath = additionalModuleClassPath;
+    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus, ClassPath additionalModuleClassPath) {
+        super(additionalModuleClassPath);
+        this.agentStatus = agentStatus;
         this.environment = () -> longLiving;
     }
 
@@ -137,6 +138,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         }
         registration.add(DefaultScriptFileResolverListeners.class);
         registration.add(BuildLayoutFactory.class);
+        registration.add(DefaultUserInputReader.class);
     }
 
     CurrentBuildOperationRef createCurrentBuildOperationRef() {
@@ -157,7 +159,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         BuildOperationListenerManager listenerManager
     ) {
         return new DefaultBuildOperationProgressEventEmitter(
-            clock,
+            clock::getCurrentTime,
             currentBuildOperationRef,
             listenerManager.getBroadcaster()
         );
@@ -173,8 +175,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         );
     }
 
-    JdkToolsInitializer createJdkToolsInitializer() {
-        return new DefaultJdkToolsInitializer(new DefaultClassLoaderFactory());
+    JdkToolsInitializer createJdkToolsInitializer(ClassLoaderFactory classLoaderFactory) {
+        return new DefaultJdkToolsInitializer(classLoaderFactory);
     }
 
     InstanceGenerator createInstantiator(InstantiatorFactory instantiatorFactory) {
@@ -285,14 +287,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
                 pluginModuleRegistry));
     }
 
-    DefaultModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
-        return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
-    }
-
-    CurrentGradleInstallation createCurrentGradleInstallation() {
-        return CurrentGradleInstallation.locate();
-    }
-
     PluginModuleRegistry createPluginModuleRegistry(ModuleRegistry moduleRegistry) {
         return new DefaultPluginModuleRegistry(moduleRegistry);
     }
@@ -312,5 +306,13 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     DefaultWorkValidationWarningRecorder createValidationWarningReporter() {
         return new DefaultWorkValidationWarningRecorder();
+    }
+
+    AgentStatus createAgentStatus() {
+        return agentStatus;
+    }
+
+    AgentInitializer createAgentInitializer() {
+        return new AgentInitializer(agentStatus);
     }
 }

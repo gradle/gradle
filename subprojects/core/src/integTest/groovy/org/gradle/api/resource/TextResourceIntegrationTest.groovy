@@ -124,14 +124,10 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
             }
 """
         then:
-        def failure = fails("uriText")
-
-        failure.assertHasCause(
-            "Loading a TextResource from an insecure URI, without explicit opt-in, is unsupported. " +
-                "The provided URI '${server.uri}/myConfig-${uuid}.txt' uses an insecure protocol (HTTP). " +
-                "Switch the URI to '${GUtil.toSecureUrl(server.uri)}/myConfig-${uuid}.txt' or try 'resources.text.fromInsecureUri(\"${server.uri}/myConfig-${uuid}.txt\")' to silence the warning. " +
-                Documentation.dslReference(TextResourceFactory, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage()
-        )
+        fails("uriText")
+            .assertHasCause("Loading a TextResource from an insecure URI, without explicit opt-in, is unsupported. The provided URI '${server.uri}/myConfig-${uuid}.txt' uses an insecure protocol (HTTP).")
+            .assertHasResolution("Switch the URI to '${GUtil.toSecureUrl(server.uri)}/myConfig-${uuid}.txt' or try 'resources.text.fromInsecureUri(\"${server.uri}/myConfig-${uuid}.txt\")' to silence the warning.")
+            .assertHasResolution(Documentation.dslReference(TextResourceFactory, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage())
     }
 
     def "uri backed text resource over https"() {

@@ -1,0 +1,12 @@
+def prefix = "init $gradle.identityPath"
+
+println "$prefix QUIET out"
+logging.captureStandardOutput LogLevel.INFO
+println "$prefix INFO out"
+
+System.err.println "$prefix ERROR err"
+logging.captureStandardError LogLevel.INFO
+System.err.println "$prefix INFO err"
+
+logger.lifecycle("$prefix lifecycle log")
+logger.info("$prefix info log")

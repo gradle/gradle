@@ -43,6 +43,9 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         iterationMatchers = ['^.+PROGRAMMATIC$']
     )
     def "can configure with settings.gradle - enabled by #by"() {
+        // Build scripts are cached in global cache since they are compiled as ImmutableUnitOfWork,
+        // so to avoid flakiness we run with own GradleUserHome
+        executer.requireOwnGradleUserHomeDir()
         def enablingCode = by == EnabledBy.PROGRAMMATIC ? """\ngradle.startParameter.buildCacheEnabled = true\n""" : ""
         if (by == EnabledBy.INVOCATION_SWITCH) {
             executer.beforeExecute {
@@ -102,8 +105,8 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         i1BuildSrcCache.empty
         i2Cache.empty
         buildSrcCache.empty
-        mainCache.listCacheFiles().size() == 5 // root, i1, i1BuildSrc, i2, buildSrc
-        isConfigCache() || i3Cache.listCacheFiles().size() == 1
+        mainCache.listCacheFiles().size() == 15 // 10 (plugins block and script body block for every project) + 5 (root, i1, i1BuildSrc, i2, buildSrc tasks) = 15
+        isConfigCache() || i3Cache.listCacheFiles().size() == 3
 
         and:
         if (isNotConfigCache()) {
@@ -162,13 +165,33 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
                             Thread.sleep(1000)
                         }
                     }
+                    ${mavenCentralRepository()}
+                    testing.suites.test.useJUnitJupiter()
                 }
                 tasks.build.dependsOn(subprojects.tasks.build)
                 tasks.clean.dependsOn(subprojects.tasks.clean)
             """
-            file("src/test/java/Test.java") << """class Test {}"""
-            file("first/src/test/java/Test.java") << """class TestFirst {}"""
-            file("second/src/test/java/Test.java") << """class TestSecond {}"""
+            file("src/test/java/Test.java") <<
+                """
+                class Test {
+                    @org.junit.jupiter.api.Test
+                    public void test() {}
+                }
+                """
+            file("first/src/test/java/TestFirst.java") <<
+                """
+                class TestFirst {
+                    @org.junit.jupiter.api.Test
+                    public void test() {}
+                }
+                """
+            file("second/src/test/java/TestSecond.java") <<
+                """
+                class TestSecond {
+                    @org.junit.jupiter.api.Test
+                    public void test() {}
+                }
+                """
         }
 
         settingsFile << localCache.localCacheConfiguration() << """

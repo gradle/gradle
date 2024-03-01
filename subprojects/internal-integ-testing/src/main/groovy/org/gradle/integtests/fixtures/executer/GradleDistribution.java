@@ -175,4 +175,9 @@ public interface GradleDistribution {
      * Returns true if this version runs tests when building `buildSrc`
      */
     boolean isRunsBuildSrcTests();
+
+    /**
+     * Returns true if it as a Gradle version that supports Kotlin scripts
+     */
+    boolean isSupportsKotlinScript();
 }

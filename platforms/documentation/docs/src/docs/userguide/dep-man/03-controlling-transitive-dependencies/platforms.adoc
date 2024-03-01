@@ -1,0 +1,537 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[sec:sharing-dep-versions-between-projects]]
+= Sharing dependency versions between projects
+
+[[sub:central-declaration-of-dependencies]]
+== Central declaration of dependencies
+
+[[sub:version-catalog]]
+=== Using a version catalog
+
+A _version catalog_ is a list of dependencies, represented as dependency coordinates, that a user can pick from when declaring dependencies in a build script.
+
+For example, instead of declaring a dependency using a string notation, the dependency coordinates can be picked from a _version catalog_:
+
+.Using a library declared in a version catalog
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=simple_dependency_use]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=simple_dependency_use]"]
+====
+
+In this context, `libs` is a catalog and `groovy` represents a dependency available in this catalog. A version catalog provides a number of advantages over declaring the dependencies directly in build scripts:
+
+- For each catalog, Gradle generates _type-safe accessors_ so that you can easily add dependencies with autocompletion in the IDE.
+- Each catalog is visible to all projects of a build. It is a central place to declare a version of a dependency and to make sure that a change to that version applies to every subproject.
+- Catalogs can declare <<platforms.adoc#sec:dependency-bundles, dependency bundles>>, which are "groups of dependencies" that are commonly used together.
+- Catalogs can separate the group and name of a dependency from its actual version and use <<platforms.adoc#sec:common-version-numbers, version references>> instead, making it possible to share a version declaration between multiple dependencies.
+
+Adding a dependency using the `libs.someLib` notation works exactly like if you had hardcoded the group, artifact and version directly in the build script.
+
+WARNING: A dependency catalog doesn't enforce the version of a dependency: like a regular dependency notation, it declares the requested version or a <<rich_versions.adoc#rich-version-constraints,rich version>>.
+That version is not necessarily the version that is selected during <<dependency_resolution#understanding_dependency_resolution,conflict resolution>>.
+
+[[sub:version-catalog-declaration]]
+=== Declaring a version catalog
+
+Version catalogs can be declared in the `settings.gradle(.kts)` file.
+In the example above, in order to make `groovy` available via the `libs` catalog, we need to associate an alias with GAV (group, artifact, version) coordinates:
+
+.Declaring a version catalog
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="settings.gradle.kts[tags=simple_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="settings.gradle[tags=simple_catalog]"]
+====
+
+[[sub:mapping-aliases-to-accessors]]
+==== Aliases and their mapping to type safe accessors
+
+Aliases must consist of a series of identifiers separated by a dash (`-`, recommended), an underscore (`_`) or a dot (`.`).
+Identifiers themselves must consist of ascii characters, preferably lowercase, eventually followed by numbers.
+
+For example:
+
+- `guava` is a valid alias
+- `groovy-core` is a valid alias
+- `commons-lang3` is a valid alias
+- `androidx.awesome.lib` is also a valid alias
+- but `this.#is.not!`
+
+Then type safe accessors are generated for _each subgroup_.
+For example, given the following aliases in a version catalog named `libs`:
+
+`guava`, `groovy-core`, `groovy-xml`, `groovy-json`, `androidx.awesome.lib`
+
+We would generate the following type-safe accessors:
+
+- `libs.guava`
+- `libs.groovy.core`
+- `libs.groovy.xml`
+- `libs.groovy.json`
+- `libs.androidx.awesome.lib`
+
+Where the `libs` prefix comes from the version catalog name.
+
+In case you want to avoid the generation of a subgroup accessor, we recommend relying on case to differentiate.
+For example the aliases `groovyCore`, `groovyJson` and `groovyXml` would be mapped to the `libs.groovyCore`, `libs.groovyJson` and `libs.groovyXml` accessors respectively.
+
+When declaring aliases, it's worth noting that any of the `-`, `_` and `.` characters can be used as separators, but the generated catalog will have all normalized to `.`:
+for example `foo-bar` as an alias is converted to `foo.bar` automatically.
+
+--
+Some keywords are reserved, so they cannot be used as an alias. Next words cannot be used as an alias:
+
+- extensions
+- class
+- convention
+
+Additional to that next words cannot be used as a first subgroup of an alias for dependencies (for bundles, versions and plugins this restriction doesn't apply):
+
+- bundles
+- versions
+- plugins
+
+So for example for dependencies an alias `versions-dependency` is not valid, but `versionsDependency` or `dependency-versions` are valid.
+--
+
+[[sec:common-version-numbers]]
+==== Dependencies with same version numbers
+
+In the first example in <<platforms.adoc#sub:version-catalog-declaration, declaring a version catalog>>, we can see that we declare 3 aliases for various components of the `groovy` library and that all of them share the same version number.
+
+Instead of repeating the same version number, we can declare a version and reference it:
+
+.Declaring versions separately from libraries
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="settings.gradle.kts[tags=catalog_with_versions]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="settings.gradle[tags=catalog_with_versions]"]
+====
+
+Versions declared separately are _also_ available via type-safe accessors, making them usable for more use cases than dependency versions, in particular for tooling:
+
+.Using a version declared in a version catalog
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=use_version]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_version]"]
+====
+
+If the alias of a declared version is also a prefix of some more specific alias, as in `libs.versions.zinc` and `libs.versions.zinc.apiinfo`, then
+the value of the more generic version is available via link:{javadocPath}/org/gradle/api/provider/ProviderConvertible.html#asProvider--[`asProvider()`] on the type-safe accessor:
+
+.Using a version from a version catalog when there are more specific aliases
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-asprovider/kotlin",files="build.gradle.kts[tags=use_version_asprovider]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-asprovider/groovy",files="build.gradle[tags=use_version_asprovider]"]
+====
+
+Dependencies declared in a catalog are exposed to build scripts via an extension corresponding to their name.
+In the example above, because the catalog declared in settings is named `libs`, the extension is available via the name `libs` in all build scripts of the current build.
+Declaring dependencies using the following notation...
+
+.Dependency notation correspondance
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=use_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_catalog]"]
+====
+
+...has **exactly the same** effect as writing:
+
+.Dependency notation correspondance
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=use_catalog_equiv]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_catalog_equiv]"]
+====
+
+Versions declared in the catalog are <<rich_versions.adoc#rich-version-constraints,rich versions>>.
+Please refer to the link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html[version catalog builder API] for the full version declaration support documentation.
+
+[[sec:dependency-bundles]]
+==== Dependency bundles
+
+Because it's frequent that some dependencies are systematically used together in different projects, a version catalog offers the concept of a "dependency bundle".
+A bundle is basically an alias for several dependencies.
+For example, instead of declaring 3 individual dependencies like above, you could write:
+
+.Using a dependency bundle
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=use_dependency_bundle]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_dependency_bundle]"]
+====
+
+The bundle named `groovy` needs to be declared in the catalog:
+
+.Declaring a dependency bundle
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="settings.gradle.kts[tags=catalog_with_bundle]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="settings.gradle[tags=catalog_with_bundle]"]
+====
+
+The semantics are again equivalent: adding a single bundle is equivalent to adding all dependencies which are part of the bundle individually.
+
+[[sec:plugins_ver]]
+==== Plugins
+
+In addition to libraries, version catalog supports declaring plugin versions.
+While libraries are represented by their group, artifact and version coordinates, Gradle plugins are identified by their id and version only.
+Therefore, they need to be declared separately:
+
+WARNING: You cannot use a plugin declared in a version catalog in your settings file or settings plugin (because catalogs are defined in settings themselves, it would be a chicken and egg problem).
+
+.Declaring a plugin version
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="settings.gradle.kts[tags=catalog_with_plugin]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="settings.gradle[tags=catalog_with_plugin]"]
+====
+
+Then the plugin is accessible in the `plugins` block and can be consumed in any project of the build using:
+
+.Using a plugin declared in a catalog
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=use_plugin]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_plugin]"]
+====
+
+[[sec:multiple]]
+==== Using multiple catalogs
+
+Aside from the conventional `libs` catalog, you can declare any number of catalogs through the `Settings` API.
+This allows you to separate dependency declarations in multiple sources in a way that makes sense for your projects.
+
+.Using a custom catalog
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="settings.gradle.kts[tags=extra_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="settings.gradle[tags=extra_catalog]"]
+====
+
+[NOTE]
+====
+Each catalog will generate an extension applied to all projects for accessing its content.
+As such it makes sense to reduce the chance of collisions by picking a name that reduces the potential conflicts.
+As an example, one option is to pick a name that ends with `Libs`.
+====
+
+[[sub:conventional-dependencies-toml]]
+=== The libs.versions.toml file
+
+In addition to the settings API above, Gradle offers a conventional file to declare a catalog.
+If a `libs.versions.toml` file is found in the `gradle` subdirectory of the root build, then a catalog will be automatically declared with the contents of this file.
+
+--
+Declaring a `libs.versions.toml` file doesn't make it the single source of truth for dependencies: it's a conventional location where dependencies can be declared.
+As soon as you start using catalogs, it's strongly recommended to declare all your dependencies in a catalog and not hardcode group/artifact/version strings in build scripts.
+Be aware that it may happen that plugins add dependencies, which are dependencies defined outside of this file.
+
+Just like `src/main/java` is a convention to find the Java sources, which doesn't prevent additional source directories to be declared (either in a build script or a plugin), the presence of the `libs.versions.toml` file doesn't prevent the declaration of dependencies elsewhere.
+
+The presence of this file does, however, suggest that most dependencies, if not all, will be declared in this file.
+Therefore, updating a dependency version, for most users, should only consists of changing a line in this file.
+--
+
+By default, the `libs.versions.toml` file will be an input to the `libs` catalog.
+It is possible to change the name of the default catalog, for example if you already have an extension with the same name:
+
+.Changing the default extension name
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin",files="settings.gradle.kts[tags=change_default_extension_name]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy",files="settings.gradle[tags=change_default_extension_name]"]
+====
+
+[[sub::toml-dependencies-format]]
+==== The version catalog TOML file format
+
+The https://toml.io/[TOML] file consists of 4 major sections:
+
+- the `[versions]` section is used to declare versions which can be referenced by dependencies
+- the `[libraries]` section is used to declare the aliases to coordinates
+- the `[bundles]` section is used to declare dependency bundles
+- the `[plugins]` section is used to declare plugins
+
+For example:
+
+.The libs.versions.toml file
+----
+include::{snippetsPath}/dependencyManagement/catalogs-toml/groovy/gradle/libs.versions.toml[]
+----
+
+Versions can be declared either as a single string, in which case they are interpreted as a _required_ version, or as a <<rich_versions.adoc#rich-version-constraints,rich versions>>:
+
+```
+[versions]
+my-lib = { strictly = "[1.0, 2.0[", prefer = "1.2" }
+```
+
+Supported members of a version declaration are:
+
+- `require`: the <<rich_versions.adoc#sec:required-version,required version>>
+- `strictly`: the <<rich_versions.adoc#sec:strict-version,strict version>>
+- `prefer`: the <<rich_versions.adoc#sec:preferred-version,preferred version>>
+- `reject`: the list of <<rich_versions.adoc#sec:rejected-version,rejected versions>>
+- `rejectAll`: a boolean to reject all <<rich_versions.adoc#sec:rejected-version,versions>>
+
+Dependency declaration can either be declared as a simple string, in which case they are interpreted as `group:artifact:version` coordinates, or separating the version declaration from the group and name:
+
+NOTE: For aliases, the rules described in the section <<platforms.adoc#sub:mapping-aliases-to-accessors, aliases and their mapping to type safe accessors>> apply as well.
+
+.Different dependency notations
+----
+include::{snippetsPath}/dependencyManagement/catalogs-toml/groovy/gradle/test-libs.versions.toml[]
+----
+
+In case you want to reference a version declared in the `[versions]` section, you should use the `version.ref` property:
+
+```
+[versions]
+some = "1.4"
+
+[libraries]
+my-lib = { group = "com.mycompany", name="mylib", version.ref="some" }
+```
+
+--
+The TOML file format is very lenient and lets you write "dotted" properties as shortcuts to full object declarations.
+For example, this:
+
+```
+a.b.c="d"
+```
+
+is equivalent to:
+
+```
+a.b = { c = "d" }
+```
+
+or
+
+```
+a = { b = { c = "d" } }
+```
+
+See the https://toml.io[TOML specification] for details.
+--
+
+[[sub:type-unsafe-access-to-catalog]]
+=== Type unsafe API
+
+Version catalogs can be accessed through a type unsafe API. This API is available in situations where generated accessors are not. It is accessed through the version catalog extension:
+
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=type_unsafe_access]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=type_unsafe_access]"]
+====
+
+Check the link:{javadocPath}/org/gradle/api/artifacts/VersionCatalog.html[version catalog API] for all supported methods.
+
+[[sec:sharing-catalogs]]
+== Sharing catalogs
+
+Version catalogs are used in a single build (possibly multi-project build) but may also be shared between builds.
+For example, an organization may want to create a catalog of dependencies that different projects, from different teams, may use.
+
+[[sec:importing-catalog-from-file]]
+=== Importing a catalog from a TOML file
+
+The link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html[version catalog builder API] supports including a model from an external file.
+This makes it possible to reuse the catalog of the main build for `buildSrc`, if needed.
+For example, the `buildSrc/settings.gradle(.kts)` file can include this file using:
+
+.Sharing the dependency catalog with buildSrc
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin/buildSrc",files="settings.gradle.kts[tags=import_main_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy/buildSrc",files="settings.gradle[tags=import_main_catalog]"]
+====
+
+[WARNING]
+====
+Only a single file will be accepted when using the link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html#from-java.lang.Object-[VersionCatalogBuilder.from(Object dependencyNotation)] method.
+This means that notations like link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)] must refer to a single file, otherwise the build will fail.
+
+If a more complicated structure is required (version catalogs imported from multiple files), it's advisable to use a code-based approach, instead of TOML file.
+====
+
+This technique can therefore be used to declare multiple catalogs from different files:
+
+.Declaring additional catalogs
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin",files="settings.gradle.kts[tags=additional_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy",files="settings.gradle[tags=additional_catalog]"]
+====
+
+[[sec:version-catalog-plugin]]
+=== The version catalog plugin
+
+While importing catalogs from local files is convenient, it doesn't solve the problem of sharing a catalog in an organization or for external consumers.
+One option to share a catalog is to write a settings plugin, publish it on the Gradle plugin portal or an internal repository, and let the consumers apply the plugin on their settings file.
+
+Alternatively, Gradle offers a _version catalog_ plugin, which offers the ability to declare, then publish a catalog.
+
+To do this, you need to apply the `version-catalog` plugin:
+
+.Applying the version catalog plugin
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-versionCatalogPlugin/kotlin",files="build.gradle.kts[tags=apply_plugin]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-versionCatalogPlugin/groovy",files="build.gradle[tags=apply_plugin]"]
+====
+
+This plugin will then expose the link:{javadocPath}/org/gradle/api/plugins/catalog/CatalogPluginExtension.html[catalog extension] that you can use to declare a catalog:
+
+.Definition of a catalog
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-versionCatalogPlugin/kotlin",files="build.gradle.kts[tags=catalog_spec]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-versionCatalogPlugin/groovy",files="build.gradle[tags=catalog_spec]"]
+====
+
+Such a catalog can then be published by applying either the `maven-publish` or `ivy-publish` plugin and configuring the publication to use the `versionCatalog` component:
+
+.Publishing a catalog
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-versionCatalogPlugin/kotlin",files="build.gradle.kts[tags=catalog_publish]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-versionCatalogPlugin/groovy",files="build.gradle[tags=catalog_publish]"]
+====
+
+When publishing such a project, a `libs.versions.toml` file will automatically be generated (and uploaded), which can then be <<platforms.adoc#sec:importing-published-catalog,consumed from other Gradle builds>>.
+
+[[sec:importing-published-catalog]]
+=== Importing a published catalog
+
+A catalog produced by the <<platforms.adoc#sec:version-catalog-plugin, version catalog plugin>> can be imported via the settings API:
+
+.Using a published catalog
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/consumer",files="settings.gradle.kts[tags=consume_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/consumer",files="settings.gradle[tags=consume_catalog]"]
+====
+
+[[sec:overwriting-catalog-versions]]
+==== Overwriting catalog versions
+
+In case a catalog declares a version, you can overwrite the version when importing the catalog:
+
+.Overwriting versions declared in a published catalog
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/consumer",files="settings.gradle.kts[tags=overwrite_version]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/consumer",files="settings.gradle[tags=overwrite_version]"]
+====
+
+In the example above, any dependency which was using the `groovy` version as reference will be automatically updated to use `3.0.6`.
+
+NOTE: Again, overwriting a version doesn't mean that the actual _resolved_ dependency version will be the same: this only changes what is _imported_, that is to say what is used when declaring a dependency.
+The actual version will be subject to traditional conflict resolution, if any.
+
+[[sub:using-platform-to-control-transitive-deps]]
+== Using a platform to control transitive versions
+
+A <<dependency_management_terminology.adoc#sub::terminology_platform,platform>> is a special software component which can be used to control transitive dependency versions.
+In most cases it's exclusively composed of <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> which will either _suggest_ dependency versions or _enforce_ some versions.
+As such, this is a perfect tool whenever you need to _share dependency versions between projects_.
+In this case, a project will typically be organized this way:
+
+- a `platform` project which defines constraints for the various dependencies found in the different sub-projects
+- a number of sub-projects which _depend on_ the platform and declare dependencies _without version_
+
+In the Java ecosystem, Gradle provides a <<java_platform_plugin.adoc#java_platform_plugin,plugin>> for this purpose.
+
+It's also common to find platforms published as Maven BOMs which <<#sub:bom_import,Gradle supports natively>>.
+
+A dependency on a platform is created using the `platform` keyword:
+
+.Getting versions declared in a platform
+====
+include::sample[dir="snippets/java-platform/recommender/kotlin/consumer",files="build.gradle.kts[tags=get-recommendations]"]
+include::sample[dir="snippets/java-platform/recommender/groovy/consumer",files="build.gradle[tags=get-recommendations]"]
+====
+
+--
+This `platform` notation is a short-hand notation which actually performs several operations under the hood:
+
+* it sets the link:{javadocPath}/org/gradle/api/attributes/Category.html[org.gradle.category attribute] to `platform`, which means that Gradle will select the _platform_ component of the dependency.
+* it sets the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#endorseStrictVersions--[endorseStrictVersions] behavior by default, meaning that if the platform declares strict dependencies, they will be enforced.
+
+This means that by default, a dependency to a platform triggers the inheritance of all <<rich_versions.adoc#sec:strict-version,strict versions>> defined in that platform, which can be useful for platform authors to make sure that all consumers respect their decisions in terms of versions of dependencies.
+This can be turned off by explicitly calling the `doNotEndorseStrictVersions` method.
+--
+
+[[sub:bom_import]]
+== Importing Maven BOMs
+
+Gradle provides support for importing https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies[bill of materials (BOM) files], which are effectively `.pom` files that use `<dependencyManagement>` to control the dependency versions of direct and transitive dependencies.
+The BOM support in Gradle works similar to using `<scope>import</scope>` when depending on a BOM in Maven.
+In Gradle however, it is done via a regular dependency declaration on the BOM:
+
+.Depending on a BOM to import its dependency constraints
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+====
+
+In the example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
+This way, if you are developing for a platform like Spring Boot, you do not have to declare any versions yourself but can rely on the versions the platform provides.
+
+Gradle treats all entries in the `<dependencyManagement>` block of a BOM similar to <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,Gradle's dependency constraints>>.
+This means that any version defined in the `<dependencyManagement>` block can impact the dependency resolution result.
+In order to qualify as a BOM, a `.pom` file needs to have `<packaging>pom</packaging>` set.
+
+However often BOMs are not only providing versions as recommendations, but also a way to override any other version found in the graph.
+You can enable this behavior by using the `enforcedPlatform` keyword, instead of `platform`, when importing the BOM:
+
+.Importing a BOM, making sure the versions it defines override any other version found
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+====
+
+[WARNING]
+====
+Using `enforcedPlatform` needs to be considered with care if your software component can be consumed by others.
+This declaration is effectively transitive and so will apply to the dependency graph of your consumers.
+Unfortunately they will have to use `exclude` if they happen to disagree with one of the forced versions.
+Instead, if your reusable software component has a strong opinion on some third party dependency versions, consider using a <<rich_versions.adoc#sec:strict-version,rich version declaration>> with a `strictly`.
+====
+
+[[sub:platforms-vs-catalog]]
+== Should I use a platform or a catalog?
+
+Because platforms and catalogs both talk about dependency versions and can both be used to share dependency versions in a project, there might be a confusion regarding what to use and if one is preferable to the other.
+
+In short, you should:
+
+- use catalogs to only define dependencies and their versions for projects and to generate type-safe accessors
+- use platform to apply versions to dependency graph and to affect dependency resolution
+
+A catalog helps with centralizing the dependency versions and is only, as it name implies, a catalog of dependencies you can pick from.
+We recommend using it to declare the coordinates of your dependencies, in all cases.
+It will be used by Gradle to generate type-safe accessors, present short-hand notations for external dependencies and it allows sharing those coordinates between different projects easily.
+Using a catalog will not have any kind of consequence on downstream consumers: it's transparent to them.
+
+A platform is a more heavyweight construct: it's a component of a dependency graph, like any other library.
+If you depend on a platform, that platform is itself a component in the graph.
+It means, in particular, that:
+
+- <<dependency_constraints.adoc#dependency-constraints,Constraints>> defined in a platform can influence _transitive_ dependencies, not only the direct dependencies of your project.
+- A platform is versioned, and a transitive dependency in the graph can depend on a different version of the platform, causing various dependency upgrades.
+- A platform can tie components together, and in particular can be used as a construct for <<dependency_version_alignment.adoc#version_alignment, aligning versions>>.
+- A dependency on a platform is "inherited" by the consumers of your dependency: it means that a dependency on a platform can influence what versions of libraries would be used by your consumers even if you don't directly, or transitively, depend on components the platform references.
+
+In summary, using a catalog is always a good engineering practice as it centralizes common definitions, allows sharing of dependency versions or plugin versions, but it is an "implementation detail" of the build: it will not be visible to consumers and unused elements of a catalog are just ignored.
+
+A platform is meant to influence the dependency resolution graph, for example by adding constraints on transitive dependencies: it's a solution for structuring a dependency graph and influencing the resolution result.
+
+In practice, your project can both use a catalog _and_ declare a platform which itself uses the catalog:
+
+.Using a catalog within a platform definition
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformUsage/kotlin",files="build.gradle.kts[tags=platform_uses_catalog]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformUsage/groovy",files="build.gradle[tags=platform_uses_catalog]"]
+====

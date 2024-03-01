@@ -52,6 +52,8 @@ dependencies {
     implementation 'org.scala-lang:scala-library:2.11.12'
 }
 
+testing.suites.test.useJUnitJupiter()
+
 sourceSets.each {
     configure(it) {
         resources.srcDir 'src'
@@ -74,17 +76,17 @@ sourceSets.each {
         file('src/resources/org/gradle/main/resource2.txt') << 'some text'
         file('src/resources/org/gradle/test/resource2.txt') << 'some text'
         file('src/org/gradle/main/JavaClass.java') << 'package org.gradle; public class JavaClass { }'
-        file('src/org/gradle/test/JavaClassTest.java') << 'package org.gradle; class JavaClassTest { JavaClass c = new JavaClass(); }'
+        file('src/org/gradle/test/JavaClassTest.java') << 'package org.gradle; class JavaClassTest { JavaClass c = new JavaClass(); @org.junit.jupiter.api.Test public void test() { } }'
         file('src/java/org/gradle/main/JavaClass2.java') << 'package org.gradle; class JavaClass2 { }'
-        file('src/java/org/gradle/test/JavaClassTest2.java') << 'package org.gradle; class JavaClassTest2 { JavaClass c = new JavaClass(); }'
+        file('src/java/org/gradle/test/JavaClassTest2.java') << 'package org.gradle; class JavaClassTest2 { JavaClass c = new JavaClass(); @org.junit.jupiter.api.Test public void test() { } }'
         file('src/org/gradle/main/GroovyClass.groovy') << 'package org.gradle; class GroovyClass { }'
-        file('src/org/gradle/test/GroovyClassTest.groovy') << 'package org.gradle; class GroovyClassTest { GroovyClass c = new GroovyClass() }'
+        file('src/org/gradle/test/GroovyClassTest.groovy') << 'package org.gradle; class GroovyClassTest { GroovyClass c = new GroovyClass(); @org.junit.jupiter.api.Test void test() { } }'
         file('src/groovy/org/gradle/main/GroovyClass2.groovy') << 'package org.gradle; class GroovyClass2 { }'
-        file('src/groovy/org/gradle/test/GroovyClassTest2.groovy') << 'package org.gradle; class GroovyClassTest2 { GroovyClass c = new GroovyClass() }'
+        file('src/groovy/org/gradle/test/GroovyClassTest2.groovy') << 'package org.gradle; class GroovyClassTest2 { GroovyClass c = new GroovyClass(); @org.junit.jupiter.api.Test public void test() { } }'
         file('src/org/gradle/main/ScalaClass.scala') << 'package org.gradle; class ScalaClass { }'
-        file('src/org/gradle/test/ScalaClassTest.scala') << 'package org.gradle; class ScalaClassTest { val c: ScalaClass = new ScalaClass() }'
+        file('src/org/gradle/test/ScalaClassTest.scala') << 'package org.gradle; class ScalaClassTest { val c: ScalaClass = new ScalaClass(); @org.junit.jupiter.api.Test def test { } }'
         file('src/scala/org/gradle/main/ScalaClass2.scala') << 'package org.gradle; class ScalaClass2 { }'
-        file('src/scala/org/gradle/test/ScalaClassTest2.scala') << 'package org.gradle; class ScalaClassTest2 { val c: ScalaClass = new ScalaClass() }'
+        file('src/scala/org/gradle/test/ScalaClassTest2.scala') << 'package org.gradle; class ScalaClassTest2 { val c: ScalaClass = new ScalaClass(); @org.junit.jupiter.api.Test def test { } }'
 
         executer.withTasks('build').run()
 

@@ -22,7 +22,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.AbstractTaskTest
@@ -59,7 +59,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "default task"() {
         given:
-        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
+        def identity = TestTaskIdentities.create(TEST_TASK_NAME, Task, project)
         Task task = AbstractTask.injectIntoNewInstance(project, identity, { TestUtil.newInstance(DefaultTask) } as Callable)
 
         expect:
@@ -75,7 +75,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "can inject values into task when using no-args constructor"() {
         given:
-        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
+        def identity = TestTaskIdentities.create(TEST_TASK_NAME, Task, project)
         def task = AbstractTask.injectIntoNewInstance(project, identity, { TestUtil.newInstance(DefaultTask) } as Callable)
 
         expect:

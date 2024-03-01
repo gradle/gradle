@@ -24,7 +24,6 @@ import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.Path;
 
 import java.io.File;
 
@@ -40,7 +39,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
         this.instantiator = instantiator;
     }
 
-    private void validateBuildDirectory(File dir) {
+    private static void validateBuildDirectory(File dir) {
         if (!dir.exists()) {
             throw new InvalidUserDataException(String.format("Included build '%s' does not exist.", dir));
         }
@@ -50,11 +49,10 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     }
 
     @Override
-    public IncludedBuildState createBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, boolean isImplicit, BuildState owner) {
+    public IncludedBuildState createBuild(BuildIdentifier buildIdentifier, BuildDefinition buildDefinition, boolean isImplicit, BuildState owner) {
         validateBuildDirectory(buildDefinition.getBuildRootDir());
         return new DefaultIncludedBuild(
             buildIdentifier,
-            identityPath,
             buildDefinition,
             isImplicit,
             owner,

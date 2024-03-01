@@ -18,14 +18,15 @@ package promotion
 
 import common.gradleWrapper
 import common.promotionBuildParameters
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
+import jetbrains.buildServer.configs.kotlin.BuildSteps
+import jetbrains.buildServer.configs.kotlin.FailureAction
+import jetbrains.buildServer.configs.kotlin.RelativeId
 import vcsroots.gradlePromotionMaster
 
 abstract class BasePublishGradleDistribution(
     // The branch to be promoted
     val promotedBranch: String,
-    val prepTask: String,
+    val prepTask: String?,
     val triggerName: String,
     val gitUserName: String = "bot-teamcity",
     val gitUserEmail: String = "bot-teamcity@gradle.com",
@@ -36,7 +37,7 @@ abstract class BasePublishGradleDistribution(
 
     init {
         artifactRules = """
-        **/build/git-checkout/subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
+        **/build/git-checkout/platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
         **/build/distributions/*.zip => promote-build-distributions
         **/build/website-checkout/data/releases.xml
         **/build/git-checkout/build/reports/integTest/** => distribution-tests
@@ -47,18 +48,22 @@ abstract class BasePublishGradleDistribution(
         dependencies {
             snapshot(RelativeId("Check_Stage_${this@BasePublishGradleDistribution.triggerName}_Trigger")) {
                 synchronizeRevisions = false
+                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyCancel = FailureAction.FAIL_TO_START
             }
         }
 
-        steps {
-            buildStep(
-                this@BasePublishGradleDistribution.extraParameters,
-                this@BasePublishGradleDistribution.gitUserName,
-                this@BasePublishGradleDistribution.gitUserEmail,
-                this@BasePublishGradleDistribution.triggerName,
-                this@BasePublishGradleDistribution.prepTask,
-                "checkNeedToPromote"
-            )
+        if (this@BasePublishGradleDistribution.prepTask != null) {
+            steps {
+                buildStep(
+                    this@BasePublishGradleDistribution.extraParameters,
+                    this@BasePublishGradleDistribution.gitUserName,
+                    this@BasePublishGradleDistribution.gitUserEmail,
+                    this@BasePublishGradleDistribution.triggerName,
+                    this@BasePublishGradleDistribution.prepTask,
+                    "checkNeedToPromote"
+                )
+            }
         }
     }
 }

@@ -1,0 +1,348 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[publishing_maven]]
+= The Maven Publish Plugin
+
+The Maven Publish Plugin provides the ability to publish build artifacts to an https://maven.apache.org/[Apache Maven] repository.
+A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>>) and other tools that understand the Maven repository format.
+You can learn about the fundamentals of publishing in <<publishing_setup.adoc#publishing_overview,Publishing Overview>>.
+
+
+[[publishing_maven:usage]]
+== Usage
+
+To use the Maven Publish Plugin, include the following in your build script:
+
+.Applying the Maven Publish Plugin
+====
+include::sample[dir="snippets/maven-publish/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/maven-publish/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+====
+
+The Maven Publish Plugin uses an extension on the project named `publishing` of type link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]. This extension provides a container of named publications and a container of named repositories. The Maven Publish Plugin works with link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] publications and link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] repositories.
+
+[[publishing_maven:tasks]]
+== Tasks
+
+[[publishing_maven:generate-pom]]
+`generatePomFileFor__PubName__Publication` — link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.GenerateMavenPom.html[GenerateMavenPom]::
+Creates a POM file for the publication named _PubName_, populating the known metadata such as project name, project version, and the dependencies. The default location for the POM file is _build/publications/$pubName/pom-default.xml_.
+
+`publish__PubName__PublicationTo__RepoName__Repository` — link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository]::
+Publishes the _PubName_ publication to the repository named _RepoName_. If you have a repository definition without an explicit name, _RepoName_ will be "Maven".
+
+`publish__PubName__PublicationToMavenLocal` — link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal]::
+Copies the _PubName_ publication to the local Maven cache — typically _<home directory of the current user>/.m2/repository_ — along with the publication's POM file and other metadata.
+
+`publish`::
+_Depends on_: All `publish__PubName__PublicationTo__RepoName__Repository` tasks
++
+An aggregate task that publishes all defined publications to all defined repositories. It does _not_ include copying publications to the local Maven cache.
+
+`publishToMavenLocal`::
+_Depends on_: All `publish__PubName__PublicationToMavenLocal` tasks
++
+Copies all defined publications to the local Maven cache, including their metadata (POM files, etc.).
+
+
+[[publishing_maven:publications]]
+== Publications
+
+This plugin provides <<dependency_management_terminology.adoc#sub:terminology_publication,publications>> of type link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication]. To learn how to define and use publications, see the section on <<publishing_setup.adoc#sec:basic_publishing,basic publishing>>.
+
+There are four main things you can configure in a Maven publication:
+
+ * A <<dependency_management_terminology.adoc#sub:terminology_component,component>> — via link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:from(org.gradle.api.component.SoftwareComponent)[MavenPublication.from(org.gradle.api.component.SoftwareComponent)].
+ * <<publishing_customization.adoc#sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:artifact(java.lang.Object)[MavenPublication.artifact(java.lang.Object)] method. See link:{groovyDslPath}/org.gradle.api.publish.maven.MavenArtifact.html[MavenArtifact] for the available configuration options for custom Maven artifacts.
+ * Standard metadata like `artifactId`, `groupId` and `version`.
+ * Other contents of the POM file — via link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:pom(org.gradle.api.Action)[MavenPublication.pom(org.gradle.api.Action)].
+
+You can see all of these in action in the <<#publishing_maven:complete_example,complete publishing example>>. The API documentation for `MavenPublication` has additional code samples.
+
+[[sec:identity_values_in_the_generated_pom]]
+=== Identity values in the generated POM
+
+The attributes of the generated POM file will contain identity values derived from the following project properties:
+
+* `groupId` - link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[Project.getGroup()]
+* `artifactId` - link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:name[Project.getName()]
+* `version` - link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:version[Project.getVersion()]
+
+Overriding the default identity values is easy: simply specify the `groupId`, `artifactId` or `version` attributes when configuring the link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication].
+
+.Customizing the publication identity
+====
+include::sample[dir="snippets/maven-publish/customize-identity/kotlin/library",files="build.gradle.kts[tags=customize-identity]"]
+include::sample[dir="snippets/maven-publish/customize-identity/groovy/library",files="build.gradle[tags=customize-identity]"]
+====
+
+TIP: Certain repositories will not be able to handle all supported characters. For example, the `:` character cannot be used as an identifier when publishing to a filesystem-backed repository on Windows.
+
+Maven restricts `groupId` and `artifactId` to a limited character set (`[A-Za-z0-9_\\-.]+`) and Gradle enforces this restriction. For `version` (as well as the artifact `extension` and `classifier` properties), Gradle will handle any valid Unicode character.
+
+The only Unicode values that are explicitly prohibited are `\`, `/` and any ISO control character. Supplied values are validated early in publication.
+
+[[sec:modifying_the_generated_pom]]
+=== Customizing the generated POM
+
+The generated POM file can be customized before publishing. For example, when publishing a library to Maven Central you will need to set certain metadata. The Maven Publish Plugin provides a DSL for that purpose. Please see link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPom.html[MavenPom] in the DSL Reference for the complete documentation of available properties and methods. The following sample shows how to use the most common ones:
+
+.Customizing the POM file
+====
+include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=pom-customization]"]
+include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=pom-customization]"]
+====
+
+[[publishing_maven:resolved_dependencies]]
+=== Customizing dependencies versions
+
+Two strategies are supported for publishing dependencies:
+
+Declared versions (default)::
+This strategy publishes the versions that are defined by the build script author with the dependency declarations in the `dependencies` block.
+Any other kind of processing, for example through <<resolution_rules.adoc#resolution_rules,a rule changing the resolved version>>, will not be taken into account for the publication.
+
+Resolved versions::
+This strategy publishes the versions that were resolved during the build, possibly by applying resolution rules and automatic conflict resolution.
+This has the advantage that the published versions correspond to the ones the published artifact was tested against.
+
+Example use cases for resolved versions:
+
+* A project uses dynamic versions for dependencies but prefers exposing the resolved version for a given release to its consumers.
+* In combination with <<dependency_locking.adoc#dependency-locking,dependency locking>>, you want to publish the locked versions.
+* A project leverages the rich versions constraints of Gradle, which have a lossy conversion to Maven.
+Instead of relying on the conversion, it publishes the resolved versions.
+
+This is done by using the `versionMapping` DSL method which allows to configure the link:{javadocPath}/org/gradle/api/publish/VersionMappingStrategy.html[VersionMappingStrategy]:
+
+.Using resolved versions
+====
+include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=versions-resolved]"]
+include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=versions-resolved]"]
+====
+
+In the example above, Gradle will use the versions resolved on the `runtimeClasspath` for dependencies declared in `api`, which are mapped to the `compile` scope of Maven.
+Gradle will also use the versions resolved on the `runtimeClasspath` for dependencies declared in `implementation`, which are mapped to the `runtime` scope of Maven.
+`fromResolutionResult()` indicates that Gradle should use the default classpath of a variant and `runtimeClasspath` is the default classpath of `java-runtime`.
+
+[[publishing_maven:repositories]]
+== Repositories
+
+This plugin provides <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>> of type link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_setup.adoc#sec:basic_publishing,basic publishing>>.
+
+Here's a simple example of defining a publishing repository:
+
+.Declaring repositories to publish to
+====
+include::sample[dir="snippets/maven-publish/quickstart/kotlin",files="build.gradle.kts[tags=repositories]"]
+include::sample[dir="snippets/maven-publish/quickstart/groovy",files="build.gradle[tags=repositories]"]
+====
+
+The two main things you will want to configure are the repository's:
+
+ * URL (required)
+ * Name (optional)
+
+You can define multiple repositories as long as they have unique names within the build script. You may also declare one (and only one) repository without a name. That repository will take on an implicit name of "Maven".
+
+You can also configure any authentication details that are required to connect to the repository. See link:{groovyDslPath}/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html[MavenArtifactRepository] for more details.
+
+[[publishing_maven:snapshot_and_release_repositories]]
+=== Snapshot and release repositories
+
+It is a common practice to publish snapshots and releases to different Maven repositories. A simple way to accomplish this is to configure the repository URL based on the project version. The following sample uses one URL for versions that end with "SNAPSHOT" and a different URL for the rest:
+
+.Configuring repository URL based on project version
+====
+include::sample[dir="snippets/maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=repo-url-from-variable]"]
+include::sample[dir="snippets/maven-publish/javaProject/groovy",files="build.gradle[tags=repo-url-from-variable]"]
+====
+
+Similarly, you can use a <<build_environment.adoc#build_environment, project or system property>> to decide which repository to publish to. The following example uses the release repository if the project property `release` is set, such as when a user runs `gradle -Prelease publish`:
+
+.Configuring repository URL based on project property
+====
+include::sample[dir="snippets/maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=repo-url-from-project-property]"]
+include::sample[dir="snippets/maven-publish/javaProject/groovy",files="build.gradle[tags=repo-url-from-project-property]"]
+====
+
+[[publishing_maven:install]]
+== Publishing to Maven Local
+
+For integration with a local Maven installation, it is sometimes useful to publish the module into the Maven local repository (typically at _<home directory of the current user>/.m2/repository_), along with its POM file and other metadata. In Maven parlance, this is referred to as 'installing' the module.
+
+The Maven Publish Plugin makes this easy to do by automatically creating a link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal] task for each link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] in the `publishing.publications` container. The task name follows the pattern of `publish__PubName__PublicationToMavenLocal`. Each of these tasks is wired into the `publishToMavenLocal` aggregate task. You do not need to have `mavenLocal()` in your `publishing.repositories` section.
+
+[[publishing_maven:relocation]]
+== Publishing Maven relocation information
+
+When a project changes the `groupId` or `artifactId` (the _coordinates_) of an artifact it publishes, it is important to let users know where the new artifact can be found. Maven can help with that through the _relocation_ feature. The way this works is that a project publishes an additional artifact under the old coordinates consisting only of a minimal _relocation POM_; that POM file specifies where the new artifact can be found. Maven repository browsers and build tools can then inform the user that the coordinates of an artifact have changed.
+
+For this, a project adds an additional `MavenPublication` specifying a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPomRelocation.html[MavenPomRelocation]:
+
+.Specifying a relocation POM
+====
+include::sample[dir="snippets/maven-publish/specify-relocation/kotlin/library",files="build.gradle.kts[tags=specify-relocation]"]
+include::sample[dir="snippets/maven-publish/specify-relocation/groovy/library",files="build.gradle[tags=specify-relocation]"]
+====
+
+Only the property which has changed needs to be specified under `relocation`, that is `artifactId` and / or `groupId`. All other properties are optional.
+
+[TIP]
+====
+Specifying the `version` can be useful when the new artifact has a different version, for example because version numbering has started at 1.0.0 again.
+
+A custom `message` allows explaining why the artifact coordinates have changed.
+====
+
+The relocation POM should be created for what would be the next version of the old artifact. For example when the artifact coordinates of `com.example:lib:1.0.0` are changed and the artifact with the new coordinates continues version numbering and is published as `com.new-example:lib:2.0.0`, then the relocation POM should specify a relocation from `com.example:lib:2.0.0` to `com.new-example:lib:2.0.0`.
+
+A relocation POM only has to be published once, the build file configuration for it should be removed again once it has been published.
+
+Note that a relocation POM is not suitable for all situations; when an artifact has been split into two or more separate artifacts then a relocation POM might not be helpful.
+
+[[publishing_maven:retroactive_relocation]]
+=== Retroactively publishing relocation information
+
+It is possible to publish relocation information retroactively after the coordinates of an artifact have changed in the past, and no relocation information was published back then.
+
+The same recommendations as described above apply. To ease migration for users, it is important to pay attention to the `version` specified in the relocation POM. The relocation POM should allow the user to move to the new artifact in one step, and then allow them to update to the latest version in a separate step. For example when for the coordinates of `com.new-example:lib:5.0.0` were changed in version 2.0.0, then ideally the relocation POM should be published for the old coordinates `com.example:lib:2.0.0` relocating to `com.new-example:lib:2.0.0`. The user can then switch from `com.example:lib` to `com.new-example` and then separately update from version 2.0.0 to 5.0.0, handling breaking changes (if any) step by step.
+
+When relocation information is published retroactively, it is not necessary to wait for next regular release of the project, it can be published in the meantime. As mentioned above, the relocation information should then be removed again from the build file once the relocation POM has been published.
+
+[[publishing_maven:relocation_duplicate_dependencies]]
+=== Avoiding duplicate dependencies
+
+When only the coordinates of the artifact have changed, but package names of the classes inside the artifact have remained the same, dependency conflicts can occur. A project might (transitively) depend on the old artifact but at the same time also have a dependency on the new artifact which both contain the same classes, potentially with incompatible changes.
+
+To detect such conflicting duplicate dependencies, <<dependency_capability_conflict.adoc#sub:declaring-component-capabilities,capabilities>> can be published as part of the <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.  For an example using a <<java_library_plugin.adoc#java_library_plugin,Java Library>> project, see <<component_capabilities.adoc#sec:declaring-additional-capabilities-for-a-local-component,declaring additional capabilities for a local component>>.
+
+[[publishing_maven:relocation_dry_run]]
+=== Performing a dry run
+
+To verify that relocation information works as expected before publishing it to a remote repository, it can first be <<#publishing_maven:install,published to the local Maven repository>>. Then a local test Gradle or Maven project can be created which has the relocation artifact as dependency.
+
+[[publishing_maven:complete_example]]
+== Complete example
+
+The following example demonstrates how to sign and publish a Java library including sources, Javadoc, and a customized POM:
+
+.Publishing a Java library
+====
+include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=all]"]
+include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=all]"]
+====
+
+The result is that the following artifacts will be published:
+
+* The POM: `my-library-1.0.pom`
+* The primary JAR artifact for the Java component: `my-library-1.0.jar`
+* The sources JAR artifact that has been explicitly configured: `my-library-1.0-sources.jar`
+* The Javadoc JAR artifact that has been explicitly configured: `my-library-1.0-javadoc.jar`
+
+The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts and signature files.
+
+TIP: publishToMavenLocal` does not create checksum files in `$USER_HOME/.m2/repository`.
+If you want to verify that the checksum files are created correctly, or use them for later publishing, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL and using that as the publishing target instead.
+
+[[publishing_maven:deferred_configuration]]
+== Removal of deferred configuration behavior
+
+Prior to Gradle 5.0, the `publishing {}` block was (by default) implicitly treated as if all the logic inside it was executed after the project is evaluated.
+This behavior caused quite a bit of confusion and was deprecated in Gradle 4.8, because it was the only block that behaved that way.
+
+You may have some logic inside your publishing block or in a plugin that is depending on the deferred configuration behavior.
+For instance, the following logic assumes that the subprojects will be evaluated when the artifactId is set:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+subprojects {
+    publishing {
+        publications {
+            create<MavenPublication>("mavenJava") {
+                from(components["java"])
+                artifactId = tasks.jar.get().archiveBaseName.get()
+            }
+        }
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+subprojects {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifactId = jar.archiveBaseName
+            }
+        }
+    }
+}
+----
+=====
+====
+
+This kind of logic must now be wrapped in an `afterEvaluate {}` block.
+
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+subprojects {
+    publishing {
+        publications {
+            create<MavenPublication>("mavenJava") {
+                from(components["java"])
+                afterEvaluate {
+                    artifactId = tasks.jar.get().archiveBaseName.get()
+                }
+            }
+        }
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+subprojects {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                afterEvaluate {
+                    artifactId = jar.archiveBaseName
+                }
+            }
+        }
+    }
+}
+----
+=====
+====

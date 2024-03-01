@@ -1,0 +1,96 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[pmd_plugin]]
+= The PMD Plugin
+
+The PMD plugin performs quality checks on your project's Java source files using https://pmd.github.io/[PMD] and generates reports from these checks.
+
+[[sec:pmd_usage]]
+== Usage
+
+To use the PMD plugin, include the following in your build script:
+
+.Using the PMD plugin
+====
+include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=use-pmd-plugin]"]
+include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=use-pmd-plugin]"]
+====
+
+The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running `gradle check`.
+
+Note that PMD will run with the same Java version used to run Gradle.
+
+[[sec:pmd_tasks]]
+== Tasks
+
+The PMD plugin adds the following tasks to the project:
+
+`pmdMain` — link:{groovyDslPath}/org.gradle.api.plugins.quality.Pmd.html[Pmd]::
++
+Runs PMD against the production Java source files.
+
+`pmdTest` — link:{groovyDslPath}/org.gradle.api.plugins.quality.Pmd.html[Pmd]::
++
+Runs PMD against the test Java source files.
+
+The PMD plugin adds the following dependencies to tasks defined by the Java plugin.
+
+.PMD plugin - additional task dependencies
+[%header%autowidth,compact]
+|===
+| Task name | Depends on
+| `check`   | All PMD tasks, including `pmdMain` and `pmdTest`.
+|===
+
+[[sec:pmd_dependency_management]]
+== Dependency management
+
+The PMD plugin adds the following dependency configurations:
+
+.PMD plugin - dependency configurations
+[%header%autowidth,compact]
+|===
+| Name | Meaning
+| `pmd` | The PMD libraries to use
+| `pmdAux` | The additional libraries that are available for type resolution during analysis. This might be useful if PMD complains about missing classes.
+|===
+
+[[sec:pmd_configuration]]
+== Configuration
+
+====
+include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=customize-pmd]"]
+include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=customize-pmd]"]
+====
+
+See the link:{groovyDslPath}/org.gradle.api.plugins.quality.PmdExtension.html[PmdExtension] class in the API documentation.
+
+[[sec:pmd_conf_threads]]
+=== Parallel analysis
+
+You can configure the number of threads to be used by PMD for running its analysis.
+
+====
+include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=pmd-threads]"]
+include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=pmd-threads]"]
+====
+
+[NOTE]
+====
+This configuration is internal to PMD and is not linked to <<performance#parallel_execution,the number of workers>> used by Gradle.
+It means that you have to pay attention to the value entered here and make sure it still makes sense in a multi project build.
+This is because parallel Gradle task execution could result in different PMD tasks from different projects running in parallel.
+If multiple PMD tasks execute simultaneously in n projects, then up to a maximum of (n * `thread`) PMD threads could run at the same time.
+====

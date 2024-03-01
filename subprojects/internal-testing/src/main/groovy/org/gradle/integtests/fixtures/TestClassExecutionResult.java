@@ -18,15 +18,46 @@ package org.gradle.integtests.fixtures;
 
 import org.hamcrest.Matcher;
 
+import java.util.List;
+
 public interface TestClassExecutionResult {
     /**
      * Asserts that the given tests (and only the given tests) were executed for the given test class.
      */
     TestClassExecutionResult assertTestsExecuted(String... testNames);
 
+    /**
+     * Asserts that the given tests (and only the given tests) were executed for the given test class.
+     *
+     * This supports JUnit5 parameterized tests where the test name and display name may not match.
+     */
+    TestClassExecutionResult assertTestsExecuted(TestCase... testCases);
+
     TestClassExecutionResult assertTestCount(int tests, int failures, int errors);
 
     int getTestCount();
+
+    /**
+     * Asserts that the given tests have the given outcome for the given test class.
+     */
+    default TestClassExecutionResult assertTestOutcomes(TestOutcome status, String... testNames) {
+        if (status == TestOutcome.SKIPPED) {
+            return assertTestsSkipped(testNames);
+        }
+        for (String testName : testNames) {
+            switch (status) {
+                case PASSED:
+                    assertTestPassed(testName);
+                    break;
+                case FAILED:
+                    assertTestFailedIgnoreMessages(testName);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown test outcome: " + status);
+            }
+        }
+        return this;
+    }
 
     /**
      * Asserts that the given tests (and only the given tests) were skipped for the given test class.
@@ -48,6 +79,9 @@ public interface TestClassExecutionResult {
     TestClassExecutionResult assertTestFailed(String name, String displayName, Matcher<? super String>... messageMatchers);
 
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers);
+
+    TestClassExecutionResult assertTestFailedIgnoreMessages(String name);
+
     /**
      *
      */
@@ -81,4 +115,12 @@ public interface TestClassExecutionResult {
     TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher);
 
     TestClassExecutionResult assertDisplayName(String classDisplayName);
+
+    interface TestCase {
+        String getName();
+
+        String getDisplayName();
+
+        List<String> getMessages();
+    }
 }

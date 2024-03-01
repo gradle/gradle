@@ -62,14 +62,15 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         def result = runner('checkContainerUp')
+            .expectDeprecationWarning(
+                "The org.gradle.api.plugins.WarPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#war_convention_deprecation",
+                "https://github.com/gretty-gradle-plugin/gretty/issues/266")
             .expectDeprecationWarningIf(
-                grettyVersion < VersionNumber.parse('4.0.0'),
-                "The org.gradle.util.VersionNumber type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations",
-                ""
-            ).build()
+                grettyVersion < VersionNumber.parse("4.1.0"),
+                "The org.gradle.util.VersionNumber type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations",
+                "https://github.com/gretty-gradle-plugin/gretty/issues/297"
+            )
+            .build()
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS
@@ -86,6 +87,9 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
     }
 
     static def grettyConfigForCurrentJavaVersion() {
-        TestedVersions.gretty.findAll { JavaVersion.current().isCompatibleWith(it.javaMinVersion as JavaVersion) }
+        TestedVersions.gretty.findAll {
+            JavaVersion.current().isCompatibleWith(it.javaMinVersion as JavaVersion) &&
+                (it.javaMaxVersion == null || JavaVersion.current() <= JavaVersion.toVersion(it.javaMaxVersion))
+        }
     }
 }

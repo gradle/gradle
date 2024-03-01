@@ -1,8 +1,0 @@
-
-> Task :show
-value = convention 1
-value = convention 2
-value = value
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed

@@ -15,30 +15,42 @@
  */
 package org.gradle.internal.build;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.api.internal.project.HoldsProjectState;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.EntryTaskSelector;
+import org.gradle.execution.TaskSelection;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
-import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.Describables;
+import org.gradle.internal.Pair;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import static org.gradle.util.Path.path;
 
 @SuppressWarnings("deprecation")
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
@@ -48,13 +60,17 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         // Scheduling tasks for execution
         TaskSchedule,
         ReadyToRun,
+        BuildFinishHooks,
+        ReadyToReset,
         // build has finished and should do no further work
         Finished
     }
 
+    public static final ImmutableList<State> CONFIGURATION_STATES = ImmutableList.of(State.Configure, State.TaskSchedule, State.ReadyToRun);
+
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
-    private final InternalBuildFinishedListener buildFinishedListener;
+    private final BuildModelLifecycleListener buildModelLifecycleListener;
     private final BuildWorkPreparer workPreparer;
     private final BuildWorkExecutor workExecutor;
     private final BuildToolingModelControllerFactory toolingModelControllerFactory;
@@ -62,13 +78,14 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final StateTransitionController<State> state;
     private final GradleInternal gradle;
     private boolean hasTasks;
+    private boolean hasFiredBeforeModelDiscarded;
 
     public DefaultBuildLifecycleController(
         GradleInternal gradle,
         BuildModelController buildModelController,
         ExceptionAnalyser exceptionAnalyser,
         BuildListener buildListener,
-        InternalBuildFinishedListener buildFinishedListener,
+        BuildModelLifecycleListener buildModelLifecycleListener,
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
         BuildToolingModelControllerFactory toolingModelControllerFactory,
@@ -80,9 +97,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildListener = buildListener;
         this.workPreparer = workPreparer;
         this.workExecutor = workExecutor;
-        this.buildFinishedListener = buildFinishedListener;
+        this.buildModelLifecycleListener = buildModelLifecycleListener;
         this.toolingModelControllerFactory = toolingModelControllerFactory;
-        this.state = controllerFactory.newController(Describables.of("state of", gradle.getOwner().getDisplayName()), State.Configure);
+        this.state = controllerFactory.newController(Describables.of("state of", targetBuild().getDisplayName()), State.Configure);
     }
 
     @Override
@@ -117,8 +134,32 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public void resetLifecycle() {
-        state.restart(State.Configure, () -> gradle.resetState());
+    public void resetModel() {
+        state.restart(State.ReadyToReset, State.Configure, () -> {
+            gradle.resetState();
+            for (HoldsProjectState service : gradle.getServices().getAll(HoldsProjectState.class)) {
+                service.discardAll();
+            }
+        });
+    }
+
+    @Override
+    public ExecutionResult<Void> beforeModelReset() {
+        return state.transition(CONFIGURATION_STATES, State.ReadyToReset, failures -> fireBeforeModelDiscarded(false));
+    }
+
+    @Override
+    public ExecutionResult<Void> beforeModelDiscarded(boolean failed) {
+        return state.transition(State.BuildFinishHooks, State.Finished, failures -> fireBeforeModelDiscarded(failed));
+    }
+
+    private ExecutionResult<Void> fireBeforeModelDiscarded(boolean failed) {
+        if (hasFiredBeforeModelDiscarded) {
+            return ExecutionResult.succeeded();
+        } else {
+            hasFiredBeforeModelDiscarded = true;
+            return ExecutionResult.maybeFailing(() -> buildModelLifecycleListener.beforeModelDiscarded(gradle, failed));
+        }
     }
 
     @Override
@@ -162,6 +203,97 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         });
     }
 
+    @NonNullApi
+    private class EntryTaskSelectorContext implements EntryTaskSelector.Context {
+
+        @Override
+        public TaskSelection getSelection(String taskPath) {
+            // We assume taskPath is valid since the selector has been used before
+            return selectionOf(path(taskPath));
+        }
+
+        private TaskSelection selectionOf(Path taskPath) {
+            Path taskProjectPath = taskPath.getParent();
+            assert taskProjectPath != null;
+            ProjectInternal taskProject = resolveProject(taskProjectPath);
+            if (taskProject != null) {
+                String taskName = taskPath.getName();
+                return new TaskSelection(
+                    taskProject.getPath(),
+                    taskName,
+                    tasks -> tasks.add(taskProject.getTasks().getByName(taskName))
+                );
+            }
+            return new TaskSelection(null, null, tasks -> {});
+        }
+
+        @Override
+        public GradleInternal getGradle() {
+            return gradle;
+        }
+
+        @Nullable
+        private ProjectInternal resolveProject(Path path) {
+            assert path.isAbsolute();
+
+            // Try to resolve the path as "<included-build-path>:<project-path>"
+            Pair<Path, BuildState> includedBuildPrefix = resolveIncludedBuildPrefixOf(path);
+            if (includedBuildPrefix != null) {
+                Path includedBuildPath = includedBuildPrefix.left;
+                BuildState includedBuild = includedBuildPrefix.right;
+                Path projectPath = path.removeFirstSegments(includedBuildPath.segmentCount());
+                return findProjectOf(includedBuild, projectPath);
+            }
+
+            return findProjectOf(targetBuild(), path);
+        }
+
+        /**
+         * Finds the longest {@code path} prefix that identifies an included build and returns a pair
+         * with the matching {@code path} prefix and {@link BuildState included build reference}.
+         *
+         * @return {@code null} if no {@code path} prefix identifying an included build is found
+         */
+        @Nullable
+        private Pair<Path, BuildState> resolveIncludedBuildPrefixOf(Path path) {
+            Path resolvedPath = null;
+            BuildState resolvedBuild = null;
+
+            int prefixLength = 1;
+            while (prefixLength <= path.segmentCount()) {
+                Path candidatePath = path.takeFirstSegments(prefixLength);
+                BuildState existingBuild = findBuild(candidatePath);
+                if (existingBuild == null) {
+                    break;
+                }
+                resolvedPath = candidatePath;
+                resolvedBuild = existingBuild;
+                prefixLength++;
+            }
+
+            return resolvedPath != null
+                ? Pair.of(resolvedPath, resolvedBuild)
+                : null;
+        }
+
+        @Nullable
+        private ProjectInternal findProjectOf(BuildState build, Path projectPath) {
+            ProjectState project = build.getProjects().findProject(projectPath);
+            return project != null
+                ? project.getMutableModel()
+                : null;
+        }
+
+        @Nullable
+        private BuildState findBuild(Path buildPath) {
+            return getBuildStateRegistry().findBuild(new DefaultBuildIdentifier(buildPath));
+        }
+
+        private BuildStateRegistry getBuildStateRegistry() {
+            return gradle.getServices().get(BuildStateRegistry.class);
+        }
+    }
+
     @Override
     public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {
         // Execute tasks and transition back to "configure", as this build may run more tasks;
@@ -169,7 +301,17 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         if (workPlan.empty) {
             return ExecutionResult.succeeded();
         }
-        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle, workPlan.finalizedPlan));
+        return state.tryTransition(State.ReadyToRun, State.Configure, () -> {
+            List<BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan>> finalizations = workPlan.finalizations;
+            if (!finalizations.isEmpty()) {
+                EntryTaskSelectorContext context = new EntryTaskSelectorContext();
+                for (BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization : finalizations) {
+                    finalization.accept(context, workPlan.finalizedPlan.getContents());
+                }
+                workPlan.finalizations.clear();
+            }
+            return workExecutor.execute(gradle, workPlan.finalizedPlan);
+        });
     }
 
     private DefaultBuildWorkPlan unpack(BuildWorkPlan plan) {
@@ -182,12 +324,16 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
-        return action.apply(toolingModelControllerFactory.createController(gradle.getOwner(), this));
+        return action.apply(toolingModelControllerFactory.createController(targetBuild(), this));
+    }
+
+    private BuildState targetBuild() {
+        return gradle.getOwner();
     }
 
     @Override
     public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
-        return state.finish(State.Finished, stageFailures -> {
+        return state.transition(CONFIGURATION_STATES, State.BuildFinishHooks, stageFailures -> {
             // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
             // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
             // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
@@ -197,15 +343,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
                 reportableFailure = exceptionAnalyser.transform(stageFailures.getFailures());
             }
             BuildResult buildResult = new BuildResult(hasTasks ? "Build" : "Configure", gradle, reportableFailure);
-            ExecutionResult<Void> finishResult;
-            try {
-                buildListener.buildFinished(buildResult);
-                buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle(), buildResult.getFailure() != null);
-                finishResult = ExecutionResult.succeeded();
-            } catch (Throwable t) {
-                finishResult = ExecutionResult.failed(t);
-            }
-            return finishResult;
+            return ExecutionResult.maybeFailing(() -> buildListener.buildFinished(buildResult));
         });
     }
 
@@ -224,6 +362,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         private final DefaultBuildLifecycleController owner;
         private final ExecutionPlan plan;
         private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
+        private final List<BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan>> finalizations = new ArrayList<>();
         private FinalizedExecutionPlan finalizedPlan;
         private boolean empty = true;
 
@@ -240,6 +379,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         @Override
         public void addFilter(Spec<Task> filter) {
             plan.addFilter(filter);
+        }
+
+        @Override
+        public void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
+            finalizations.add(finalization);
         }
 
         @Override
@@ -268,8 +412,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void setScheduledNodes(List<? extends Node> nodes) {
-            plan.setScheduledNodes(nodes);
+        public void setScheduledWork(ScheduledWork work) {
+            plan.setScheduledWork(work);
         }
     }
 }

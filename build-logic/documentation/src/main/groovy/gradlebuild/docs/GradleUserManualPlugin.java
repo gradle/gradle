@@ -34,6 +34,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.ysb33r.grolifant.api.core.jvm.ExecutionMode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +46,9 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 
 public class GradleUserManualPlugin implements Plugin<Project> {
+
+    public static final String DOCS_GRADLE_ORG = "https://docs.gradle.org/";
+
     @Override
     public void apply(Project project) {
         ProjectLayout layout = project.getLayout();
@@ -111,6 +115,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 return;
             }
 
+            task.setExecutionMode(ExecutionMode.OUT_OF_PROCESS);
             task.outputOptions(options -> {
                 options.setSeparateOutputDirs(false);
                 options.setBackends(singletonList("html5"));
@@ -233,6 +238,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.outputOptions(options -> options.setBackends(singletonList("pdf")));
             // TODO: This breaks the provider
             task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-pdf").get().getAsFile());
+            // The PDF rendering needs at least 2GB of heap
+            task.jvm(options -> options.setMaxHeapSize("2g"));
         });
 
         TaskProvider<AsciidoctorTask> userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask.class, task -> {
@@ -260,7 +267,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("toc-title", "Contents");
             attributes.put("groovyDslPath", "../dsl");
             attributes.put("javadocPath", "../javadoc");
-            attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
+            attributes.put("kotlinDslPath", "../kotlin-dsl");
             // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
             // TODO: This breaks the provider
             attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
@@ -312,10 +319,11 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         attributes.put("toclevels", 2);
 
         // TODO: This breaks if version is changed later
-        attributes.put("groovyDslPath", "https://docs.gradle.org/" + project.getVersion() + "/dsl");
-        attributes.put("javadocPath", "https://docs.gradle.org/" + project.getVersion() + "/javadoc");
-        attributes.put("samplesPath", "https://docs.gradle.org/" + project.getVersion() + "/samples");
-        attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
+        String versionUrl = DOCS_GRADLE_ORG + project.getVersion();
+        attributes.put("groovyDslPath", versionUrl + "/dsl");
+        attributes.put("javadocPath", versionUrl + "/javadoc");
+        attributes.put("samplesPath", versionUrl + "/samples");
+        attributes.put("kotlinDslPath", versionUrl + "/kotlin-dsl");
         // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
         // TODO: This breaks the provider
         attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:

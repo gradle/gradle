@@ -31,6 +31,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "context travels to transitive dependencies"() {
         given:
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -107,6 +108,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-foo', fileName: 'c-foo.jar')
                     }
                 }
@@ -124,6 +126,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-bar', fileName: 'c-bar.jar')
                     }
                 }
@@ -136,6 +139,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         mavenRepo.module('com.acme.external', 'external', '1.2')
             .dependsOn('com.acme.external', 'c', '0.1')
             .publish()
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -216,6 +220,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                     artifact(name: 'b-transitive')
                     module('com.acme.external:external:1.2') {
                         edge('com.acme.external:c:0.1', ':includedBuild', 'com.acme.external:c:2.0-SNAPSHOT') {
+                            compositeSubstitute()
                             artifact(name: 'c-foo', fileName: 'c-foo.jar')
                         }
                     }
@@ -235,6 +240,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                     artifact(name: 'b-transitive')
                     module('com.acme.external:external:1.2') {
                         edge('com.acme.external:c:0.1', ':includedBuild', 'com.acme.external:c:2.0-SNAPSHOT') {
+                            compositeSubstitute()
                             artifact(name: 'c-bar', fileName: 'c-bar.jar')
                         }
                     }
@@ -248,6 +254,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         ivyRepo.module('com.acme.external', 'external', '1.2')
             .dependsOn('com.acme.external', 'c', '0.1')
             .publish()
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -324,6 +331,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                     artifact(name: 'b-transitive')
                     module('com.acme.external:external:1.2') {
                         edge('com.acme.external:c:0.1', ':includedBuild', 'com.acme.external:c:2.0-SNAPSHOT') {
+                            compositeSubstitute()
                             artifact(name: 'c-foo', fileName: 'c-foo.jar')
                         }
                     }
@@ -347,6 +355,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                     artifact(name: 'b-transitive')
                     module('com.acme.external:external:1.2') {
                         edge('com.acme.external:c:0.1', ':includedBuild', 'com.acme.external:c:2.0-SNAPSHOT') {
+                            compositeSubstitute()
                             artifact(name: 'c-bar', fileName: 'c-bar.jar')
                         }
                     }
@@ -357,6 +366,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "attribute values are matched across builds - #type"() {
         given:
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -438,6 +448,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-foo', fileName: 'c-foo.jar')
                     }
                 }
@@ -455,6 +466,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-bar', fileName: 'c-bar.jar')
                     }
                 }
@@ -470,6 +482,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "compatibility and disambiguation rules can be defined by consuming build"() {
         given:
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -567,6 +580,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-foo', fileName: 'c-foo.jar')
                     }
                 }
@@ -584,6 +598,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-bar', fileName: 'c-bar.jar')
                     }
                 }
@@ -593,6 +608,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "reports failure to resolve due to incompatible attribute values"() {
         given:
+        createDirs("a", "b", "includedBuild")
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
@@ -677,9 +693,9 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         then:
         failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
         failure.assertHasCause("""No matching variant of project :includedBuild was found. The consumer was configured to find attribute 'flavor' with value 'free' but:
-  - Variant 'bar' capability com.acme.external:external:2.0-SNAPSHOT:
+  - Variant 'bar':
       - Incompatible because this component declares attribute 'flavor' with value 'blue' and the consumer needed attribute 'flavor' with value 'free'
-  - Variant 'foo' capability com.acme.external:external:2.0-SNAPSHOT:
+  - Variant 'foo':
       - Incompatible because this component declares attribute 'flavor' with value 'red' and the consumer needed attribute 'flavor' with value 'free'""")
 
         when:
@@ -702,6 +718,7 @@ All of them match the consumer attributes:
         buildTypedAttributesPlugin('1.1')
 
         given:
+        createDirs("a", "b", "includedBuild")
         settingsFile.text = """
             pluginManagement {
                 repositories {
@@ -802,6 +819,7 @@ All of them match the consumer attributes:
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-foo', fileName: 'c-foo.jar')
                     }
                 }
@@ -819,6 +837,7 @@ All of them match the consumer attributes:
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-bar', fileName: 'c-bar.jar')
                     }
                 }
