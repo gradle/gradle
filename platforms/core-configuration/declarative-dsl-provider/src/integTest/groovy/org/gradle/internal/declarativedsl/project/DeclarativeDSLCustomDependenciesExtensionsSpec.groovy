@@ -48,6 +48,7 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
 
         and: "a build script that adds dependencies using the custom extension"
         file("build.gradle.something") << defineDeclarativeDSLBuildScript()
+        file("settings.gradle") << defineSettings()
 
         expect: "a dependency has been added to the api configuration"
         succeeds("dependencies", "--configuration", "api")
@@ -55,7 +56,7 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
 
         and: "a dependency has been added to the implementation configuration"
         succeeds("dependencies", "--configuration", "implementation")
-        outputContains("com.apache.commons:commons-lang3:3.12.0")
+        outputContains("org.apache.commons:commons-lang3:3.12.0")
     }
 
     def 'can configure an extension using DependencyCollector in declarative DSL and build a java plugin'() {
@@ -85,10 +86,11 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         and: "a build script that adds dependencies using the custom extension, and defines a source file requiring the dependencies to compile"
         file("src/main/java/com/example/Lib.java") << defineExampleJavaClass()
         file("build.gradle.something") << defineDeclarativeDSLBuildScript()
+        file("settings.gradle") << defineSettings()
 
         expect: "the library can be built successfully"
         succeeds("build")
-        file("build/libs/${testDirectory.name}.jar").exists()
+        file("build/libs/example.jar").exists()
     }
 
     private String defineDependenciesExtension() {
@@ -186,9 +188,21 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
             library {
                 dependencies {
                     api("com.google.guava:guava:30.1.1-jre")
-                    implementation("com.apache.commons:commons-lang3:3.12.0")
+                    implementation("org.apache.commons:commons-lang3:3.12.0")
                 }
             }
+        """
+    }
+
+    private String defineSettings() {
+        return """
+            dependencyResolutionManagement {
+                repositories {
+                    mavenCentral()
+                }
+            }
+
+            rootProject.name = 'example'
         """
     }
 }
