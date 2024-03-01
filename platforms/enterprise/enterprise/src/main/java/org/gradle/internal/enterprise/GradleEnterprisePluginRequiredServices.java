@@ -32,4 +32,6 @@ public interface GradleEnterprisePluginRequiredServices {
     StyledTextOutputFactory getStyledTextOutputFactory();
 
     GradleEnterprisePluginBackgroundJobExecutors getBackgroundJobExecutors();
+
+    DevelocityPluginUnsafeConfigurationService getUnsafeConfigurationService();
 }

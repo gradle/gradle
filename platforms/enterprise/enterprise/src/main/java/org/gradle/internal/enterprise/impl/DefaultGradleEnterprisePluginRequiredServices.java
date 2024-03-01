@@ -17,6 +17,7 @@
 package org.gradle.internal.enterprise.impl;
 
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
+import org.gradle.internal.enterprise.DevelocityPluginUnsafeConfigurationService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginRequiredServices;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
@@ -25,15 +26,18 @@ public class DefaultGradleEnterprisePluginRequiredServices implements GradleEnte
     private final UserInputHandler userInputHandler;
     private final StyledTextOutputFactory styledTextOutputFactory;
     private final DefaultGradleEnterprisePluginBackgroundJobExecutors backgroundJobExecutors;
+    private final DevelocityPluginUnsafeConfigurationService unsafeConfigurationService;
 
     public DefaultGradleEnterprisePluginRequiredServices(
         UserInputHandler userInputHandler,
         StyledTextOutputFactory styledTextOutputFactory,
-        DefaultGradleEnterprisePluginBackgroundJobExecutors backgroundJobExecutors
+        DefaultGradleEnterprisePluginBackgroundJobExecutors backgroundJobExecutors,
+        DevelocityPluginUnsafeConfigurationService unsafeConfigurationService
     ) {
         this.userInputHandler = userInputHandler;
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.backgroundJobExecutors = backgroundJobExecutors;
+        this.unsafeConfigurationService = unsafeConfigurationService;
     }
 
     @Override
@@ -49,5 +53,10 @@ public class DefaultGradleEnterprisePluginRequiredServices implements GradleEnte
     @Override
     public DefaultGradleEnterprisePluginBackgroundJobExecutors getBackgroundJobExecutors() {
         return backgroundJobExecutors;
+    }
+
+    @Override
+    public DevelocityPluginUnsafeConfigurationService getUnsafeConfigurationService() {
+        return unsafeConfigurationService;
     }
 }
