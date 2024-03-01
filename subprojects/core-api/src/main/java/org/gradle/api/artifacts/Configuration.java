@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -109,6 +110,16 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      */
     @Deprecated
     class Namer implements org.gradle.api.Namer<Configuration> {
+
+        public Namer() {
+            DeprecationLogger.deprecateType(Namer.class)
+                .replaceWith("Named.Namer.INSTANCE")
+                .withContext("Configuration implements Named, so you can use Named.Namer.INSTANCE instead of Configuration.Namer")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_namers")
+                .nagUser();
+        }
+
         @Override
         public String determineName(Configuration configuration) {
             return Named.Namer.INSTANCE.determineName(configuration);
