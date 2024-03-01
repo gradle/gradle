@@ -243,8 +243,8 @@ Configuration compileClasspath (i)
 Compile classpath for source set 'main'.
 
 Attributes
+    - org.gradle.api-view            = public
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -288,8 +288,8 @@ Configuration testCompileClasspath (i)
 Compile classpath for source set 'test'.
 
 Attributes
+    - org.gradle.api-view            = public
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -369,8 +369,8 @@ Configuration compileClasspath (i)
 Compile classpath for source set 'main'.
 
 Attributes
+    - org.gradle.api-view            = public
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -414,8 +414,8 @@ Configuration testCompileClasspath (i)
 Compile classpath for source set 'test'.
 
 Attributes
+    - org.gradle.api-view            = public
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -639,8 +639,8 @@ Disambiguation Rules
 The following Attributes have disambiguation rules defined.
 
     - flavor (1)
+    - org.gradle.api-view
     - org.gradle.category
-    - org.gradle.compile-view
     - org.gradle.dependency.bundling
     - org.gradle.jvm.environment
     - org.gradle.jvm.version
@@ -700,8 +700,8 @@ Disambiguation Rules
 The following Attributes have disambiguation rules defined.
 
     - flavor
+    - org.gradle.api-view (3)
     - org.gradle.category (1)
-    - org.gradle.compile-view (3)
     - org.gradle.dependency.bundling (6)
     - org.gradle.jvm.environment (7)
     - org.gradle.jvm.version (4)

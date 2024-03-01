@@ -54,16 +54,16 @@ public interface JvmEcosystemAttributesDetails {
     JvmEcosystemAttributesDetails runtimeUsage();
 
     /**
-     * Provides the API view of a component during compile time. Only applicable
+     * Provides the public API view of a component during compile time. Only applicable
      * when combined with {@link #apiUsage()}.
      */
-    JvmEcosystemAttributesDetails apiCompileView();
+    JvmEcosystemAttributesDetails publicApiView();
 
     /**
-     * Provides the implementation view of a component during compile time. Only applicable
+     * Provides the private API view of a component during compile time. Only applicable
      * when combined with {@link #apiUsage()}.
      */
-    JvmEcosystemAttributesDetails implementationCompileView();
+    JvmEcosystemAttributesDetails privateApiView();
 
     /**
      * Provides or requires a component which dependencies are found

@@ -361,7 +361,7 @@ Here is the output of the `outgoingVariants` task on a freshly generated `java-l
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API compile elements for the 'main' feature.
+Public API elements for the 'main' feature.
 
 Capabilities
     - new-java-library:lib:unspecified (default capability)

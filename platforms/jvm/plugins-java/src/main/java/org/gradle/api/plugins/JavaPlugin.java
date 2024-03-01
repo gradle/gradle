@@ -277,7 +277,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         configureTestTaskOrdering(project.getTasks());
         configureDiagnostics(project, javaComponent.getMainFeature());
         configureBuild(project);
-        disableImplementationCompileElementsForKmp(project, javaComponent.getMainFeature());
+        disablePrivateApiElementsForKmp(project, javaComponent.getMainFeature());
     }
 
     private static JvmFeatureInternal createMainFeature(ProjectInternal project, SourceSetContainer sourceSets) {
@@ -310,7 +310,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         component.addVariantsFromConfiguration(mainFeature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", false, mainFeature.getCompileClasspathConfiguration()));
         component.addVariantsFromConfiguration(mainFeature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", false, mainFeature.getRuntimeClasspathConfiguration()));
 
-        // Note: `implementationCompileElements` is intentionally not published!
+        // Note: `privateApiElements` is intentionally not published!
         // It is an internal detail of the component and should only be accessible within the component.
         // Until we implement some variant visibility model, we should not publish this variant.
 
@@ -434,10 +434,10 @@ public abstract class JavaPlugin implements Plugin<Project> {
      *
      * We maintain compatibility with these old kmp versions by setting this configuration to non-consumable ourselves.
      */
-    private static void disableImplementationCompileElementsForKmp(Project project, JvmFeatureInternal feature) {
+    private static void disablePrivateApiElementsForKmp(Project project, JvmFeatureInternal feature) {
         assert GradleVersion.current().compareTo(GradleVersion.version("9.0")) < 0; // Delete this method in 9.0
         project.getPlugins().withId("org.jetbrains.kotlin.multiplatform", a -> {
-            Configuration conf = feature.getImplementationCompileElementsConfiguration();
+            Configuration conf = feature.getPrivateApiElementsConfiguration();
             DeprecationLogger.whileDisabled(() -> conf.setCanBeConsumed(false));
         });
     }

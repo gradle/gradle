@@ -17,7 +17,7 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.CompileView;
+import org.gradle.api.attributes.ApiView;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
@@ -54,14 +54,14 @@ public class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemAttribu
     }
 
     @Override
-    public JvmEcosystemAttributesDetails apiCompileView() {
-        attributes.attribute(CompileView.VIEW_ATTRIBUTE, objectFactory.named(CompileView.class, CompileView.JAVA_API));
+    public JvmEcosystemAttributesDetails publicApiView() {
+        attributes.attribute(ApiView.VIEW_ATTRIBUTE, objectFactory.named(ApiView.class, ApiView.PUBLIC));
         return this;
     }
 
     @Override
-    public JvmEcosystemAttributesDetails implementationCompileView() {
-        attributes.attribute(CompileView.VIEW_ATTRIBUTE, objectFactory.named(CompileView.class, CompileView.JAVA_IMPLEMENTATION));
+    public JvmEcosystemAttributesDetails privateApiView() {
+        attributes.attribute(ApiView.VIEW_ATTRIBUTE, objectFactory.named(ApiView.class, ApiView.PRIVATE));
         return this;
     }
 

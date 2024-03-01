@@ -63,7 +63,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     public void configureAsCompileClasspath(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
             configuration,
-            details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM().apiCompileView()
+            details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM().publicApiView()
         );
     }
 
@@ -87,15 +87,15 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     public void configureAsApiElements(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
             configuration,
-            details -> details.library().apiUsage().asJar().withExternalDependencies().apiCompileView()
+            details -> details.library().apiUsage().asJar().withExternalDependencies().publicApiView()
         );
     }
 
     @Override
-    public void configureAsImplementationCompileElements(HasConfigurableAttributes<?> configuration) {
+    public void configureAsPrivateApiElements(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
             configuration,
-            details -> details.library().apiUsage().asJar().withExternalDependencies().implementationCompileView()
+            details -> details.library().apiUsage().asJar().withExternalDependencies().privateApiView()
         );
     }
 
@@ -166,8 +166,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("classesAndResources");
         variant.setDescription("Directories containing compiled class files and resources for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES));
-
-        // Classes
         variant.artifactsProvider(() -> {
             FileCollection dirs = sourceSet.getOutput();
             return dirs.getFiles().stream()

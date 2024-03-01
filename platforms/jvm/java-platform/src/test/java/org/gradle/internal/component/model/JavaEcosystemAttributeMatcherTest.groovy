@@ -17,7 +17,7 @@
 package org.gradle.internal.component.model
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.CompileView
+import org.gradle.api.attributes.ApiView
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmVersion
@@ -51,13 +51,13 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8)
 
         def apiElements = createApiElements(8, false)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -70,13 +70,13 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8)
 
         def apiElements = createApiElements(8, true)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -89,13 +89,13 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8)
 
         def apiElements = createApiElements(8, false)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -108,13 +108,13 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8)
 
         def apiElements = createApiElements(8, true)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -123,93 +123,93 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         matches == apiElements[1]
     }
 
-    def "resolve compileClasspath for implementation compile jar classes with java plugin"() {
-        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, CompileView.JAVA_IMPLEMENTATION)
+    def "resolve compileClasspath for implementation private API jar classes with java plugin"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, ApiView.PRIVATE)
 
         def apiElements = createApiElements(8, false)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
 
         then:
-        matches == implementationCompileElements[0]
+        matches == privateApiElements[0]
     }
 
-    def "resolve compileClasspath for implementation compile view jar with java-library plugin"() {
-        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, CompileView.JAVA_IMPLEMENTATION)
+    def "resolve compileClasspath for implementation private API jar with java-library plugin"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, ApiView.PRIVATE)
 
         def apiElements = createApiElements(8, true)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
 
         then:
-        matches == implementationCompileElements[0]
+        matches == privateApiElements[0]
     }
 
-    def "resolve compileClasspath for implementation compile view classes with java plugin"() {
-        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8, CompileView.JAVA_IMPLEMENTATION)
+    def "resolve compileClasspath for implementation private API classes with java plugin"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8, ApiView.PRIVATE)
 
         def apiElements = createApiElements(8, false)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
 
         then:
-        matches == implementationCompileElements[1]
+        matches == privateApiElements[1]
     }
 
-    def "resolve compileClasspath for implementation compile view classes with java-library plugin"() {
-        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8, CompileView.JAVA_IMPLEMENTATION)
+    def "resolve compileClasspath for implementation private API classes with java-library plugin"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8, ApiView.PRIVATE)
 
         def apiElements = createApiElements(8, true)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
 
         then:
-        matches == implementationCompileElements[1]
+        matches == privateApiElements[1]
     }
 
     def "resolve runtimeClasspath with java plugin"() {
         def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
 
         def apiElements = createApiElements(8, false)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)\
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -222,13 +222,13 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8)
 
         def apiElements = createApiElements(8, true)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -237,18 +237,18 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         matches == runtimeElements[0]
     }
 
-    def "resolve runtimeClasspath for implementation compile view with java plugin"() {
-        // Even if we request the implementation compile view during compile-time, we still want runtimeElements during runtime
-        def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8, compileView)
+    def "resolve runtimeClasspath for implementation private API with java plugin"() {
+        // Even if we request the private API view during compile-time, we still want runtimeElements during runtime
+        def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8, apiView)
 
         def apiElements = createApiElements(8, false)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -257,21 +257,21 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         matches == runtimeElements[0]
 
         where:
-        compileView << [CompileView.JAVA_API, CompileView.JAVA_IMPLEMENTATION]
+        apiView << [ApiView.PUBLIC, ApiView.PRIVATE]
     }
 
-    def "resolve runtimeClasspath for implementation compile view with java-library plugin"() {
-        // Even if we request the implementation compile view during compile-time, we still want runtimeElements during runtime
-        def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8, compileView)
+    def "resolve runtimeClasspath for implementation private API with java-library plugin"() {
+        // Even if we request the private API view during compile-time, we still want runtimeElements during runtime
+        def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8, apiView)
 
         def apiElements = createApiElements(8, true)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -280,27 +280,27 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         matches == runtimeElements[0]
 
         where:
-        compileView << [CompileView.JAVA_API, CompileView.JAVA_IMPLEMENTATION]
+        apiView << [ApiView.PUBLIC, ApiView.PRIVATE]
     }
 
     def "resolve compileClasspath with java plugin targetJvm={8,11} requesting 9"() {
         def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
 
         def apiElements = createApiElements(8, false)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         def apiElements11 = createApiElements(11, false)
-        def implementationCompileElements11 = createImplementationCompileElements(11)
+        def privateApiElements11 = createPrivateApiElements(11)
         def runtimeElements11 = createRuntimeElements(11)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
             apiElements11,
-            implementationCompileElements11,
+            privateApiElements11,
             runtimeElements11,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -313,20 +313,20 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
 
         def apiElements = createApiElements(8, true)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         def apiElements11 = createApiElements(11, true)
-        def implementationCompileElements11 = createImplementationCompileElements(11)
+        def privateApiElements11 = createPrivateApiElements(11)
         def runtimeElements11 = createRuntimeElements(11)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
             apiElements11,
-            implementationCompileElements11,
+            privateApiElements11,
             runtimeElements11,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -338,27 +338,27 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
 
         def apiElements = createApiElements(8, false)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         def apiElements9 = createApiElements(9, false)
-        def implementationCompileElements9 = createImplementationCompileElements(9)
+        def privateApiElements9 = createPrivateApiElements(9)
         def runtimeElements9 = createRuntimeElements(9)
 
         def apiElements11 = createApiElements(11, false)
-        def implementationCompileElements11 = createImplementationCompileElements(11)
+        def privateApiElements11 = createPrivateApiElements(11)
         def runtimeElements11 = createRuntimeElements(11)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
             apiElements9,
-            implementationCompileElements9,
+            privateApiElements9,
             runtimeElements9,
             apiElements11,
-            implementationCompileElements11,
+            privateApiElements11,
             runtimeElements11,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -370,27 +370,27 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 9)
 
         def apiElements = createApiElements(8, true)
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         def apiElements9 = createApiElements(9, true)
-        def implementationCompileElements9 = createImplementationCompileElements(9)
+        def privateApiElements9 = createPrivateApiElements(9)
         def runtimeElements9 = createRuntimeElements(9)
 
         def apiElements11 = createApiElements(11, true)
-        def implementationCompileElements11 = createImplementationCompileElements(11)
+        def privateApiElements11 = createPrivateApiElements(11)
         def runtimeElements11 = createRuntimeElements(11)
 
         when:
         def candidates = [
             apiElements,
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
             apiElements9,
-            implementationCompileElements9,
+            privateApiElements9,
             runtimeElements9,
             apiElements11,
-            implementationCompileElements11,
+            privateApiElements11,
             runtimeElements11,
         ]
         def matches = matchConfigurations(candidates, requested)
@@ -424,21 +424,21 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         matches == apiElements9[0]
     }
 
-    def "resolves implementation compile view when api compile view is requested if api is not available"() {
-        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, CompileView.JAVA_API)
+    def "resolves private API when public API is requested if public API is not available"() {
+        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, ApiView.PUBLIC)
 
-        def implementationCompileElements = createImplementationCompileElements(8)
+        def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
 
         when:
         def candidates = [
-            implementationCompileElements,
+            privateApiElements,
             runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
 
         then:
-        matches == implementationCompileElements[0]
+        matches == privateApiElements[0]
     }
 
     /**
@@ -479,27 +479,27 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         return variantMatches[0]
     }
 
-    private static AttributeContainerInternal attributes(String usage, String libraryElements, Integer targetJvm, String compileView = null) {
+    private static AttributeContainerInternal attributes(String usage, String libraryElements, Integer targetJvm, String apiView = null) {
         Map<Attribute<Object>, Object> attrs = [
             (Usage.USAGE_ATTRIBUTE): AttributeTestUtil.named(Usage, usage),
             (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE): targetJvm,
             (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE): AttributeTestUtil.named(LibraryElements, libraryElements)] +
-            (compileView != null ? [(CompileView.VIEW_ATTRIBUTE): AttributeTestUtil.named(CompileView, compileView)] : [:])
+            (apiView != null ? [(ApiView.VIEW_ATTRIBUTE): AttributeTestUtil.named(ApiView, apiView)] : [:])
         return AttributeTestUtil.attributesTyped(attrs)
     }
 
     def createApiElements(int version, boolean javaLibrary) {
-        def jars = [attributes(Usage.JAVA_API, LibraryElements.JAR, version, CompileView.JAVA_API)]
+        def jars = [attributes(Usage.JAVA_API, LibraryElements.JAR, version, ApiView.PUBLIC)]
         if (javaLibrary) {
-            jars << attributes(Usage.JAVA_API, LibraryElements.CLASSES, version, CompileView.JAVA_API)
+            jars << attributes(Usage.JAVA_API, LibraryElements.CLASSES, version, ApiView.PUBLIC)
         }
         return jars
     }
 
-    def createImplementationCompileElements(int version) {
+    def createPrivateApiElements(int version) {
         return [
-            attributes(Usage.JAVA_API, LibraryElements.JAR, version, CompileView.JAVA_IMPLEMENTATION),
-            attributes(Usage.JAVA_API, LibraryElements.CLASSES_AND_RESOURCES, version, CompileView.JAVA_IMPLEMENTATION)
+            attributes(Usage.JAVA_API, LibraryElements.JAR, version, ApiView.PRIVATE),
+            attributes(Usage.JAVA_API, LibraryElements.CLASSES_AND_RESOURCES, version, ApiView.PRIVATE)
         ]
     }
 

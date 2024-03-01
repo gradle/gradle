@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.attributes.CompileView
+import org.gradle.api.attributes.ApiView
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
@@ -179,15 +179,15 @@ class JavaEcosystemSupportTest extends Specification {
 
     }
 
-    def "check compile view compatibility rules consumer=#consumer and producer=#producer compatible=#compatible"() {
+    def "check API view compatibility rules consumer=#consumer and producer=#producer compatible=#compatible"() {
         CompatibilityCheckDetails details = Mock(CompatibilityCheckDetails)
 
         when:
-        new JavaEcosystemSupport.CompileViewCompatibilityRules().execute(details)
+        new JavaEcosystemSupport.ApiViewCompatibilityRules().execute(details)
 
         then:
-        1 * details.getConsumerValue() >> compileView(consumer)
-        1 * details.getProducerValue() >> compileView(producer)
+        1 * details.getConsumerValue() >> apiView(consumer)
+        1 * details.getProducerValue() >> apiView(producer)
         if (compatible) {
             1 * details.compatible()
         } else {
@@ -195,43 +195,43 @@ class JavaEcosystemSupportTest extends Specification {
         }
 
         where:
-        consumer                        | producer                        | compatible
-        null                            | CompileView.JAVA_API            | true
-        null                            | CompileView.JAVA_IMPLEMENTATION | true
-        null                            | "other"                         | true
-        CompileView.JAVA_API            | CompileView.JAVA_IMPLEMENTATION | true
-        CompileView.JAVA_API            | "other"                         | false
-        CompileView.JAVA_IMPLEMENTATION | CompileView.JAVA_API            | false
-        CompileView.JAVA_IMPLEMENTATION | "other"                         | false
-        "other"                         | CompileView.JAVA_API            | false
-        "other"                         | CompileView.JAVA_IMPLEMENTATION | false
-        "other"                         | "something"                     | false
+        consumer        | producer         | compatible
+        null            | ApiView.PUBLIC  | true
+        null            | ApiView.PRIVATE | true
+        null            | "other"         | true
+        ApiView.PUBLIC  | ApiView.PRIVATE | true
+        ApiView.PUBLIC  | "other"         | false
+        ApiView.PRIVATE | ApiView.PUBLIC  | false
+        ApiView.PRIVATE | "other"         | false
+        "other"         | ApiView.PUBLIC  | false
+        "other"         | ApiView.PRIVATE | false
+        "other"         | "something"     | false
     }
 
-    def "check compile view disambiguation rules consumer=#consumer and candidates=#candidates chooses=#expected"() {
+    def "check API view disambiguation rules consumer=#consumer and candidates=#candidates chooses=#expected"() {
         MultipleCandidatesDetails details = Mock(MultipleCandidatesDetails)
 
         when:
-        new JavaEcosystemSupport.CompileViewDisambiguationRules(compileView(CompileView.JAVA_API)).execute(details)
+        new JavaEcosystemSupport.ApiViewDisambiguationRules(apiView(ApiView.PUBLIC)).execute(details)
 
         then:
-        1 * details.getConsumerValue() >> compileView(consumer)
-        1 * details.getCandidateValues() >> candidates.collect { compileView(it) }
+        1 * details.getConsumerValue() >> apiView(consumer)
+        1 * details.getCandidateValues() >> candidates.collect { apiView(it) }
         if (expected != null) {
             1 * details.closestMatch({ assert it.name == expected })
         }
 
         where:
-        consumer                        | candidates                                              | expected
-        null                            | [CompileView.JAVA_API]                                  | CompileView.JAVA_API
-        null                            | [CompileView.JAVA_IMPLEMENTATION]                       | null
-        null                            | [CompileView.JAVA_API, CompileView.JAVA_IMPLEMENTATION] | CompileView.JAVA_API
-        CompileView.JAVA_API            | [CompileView.JAVA_API]                                  | CompileView.JAVA_API
-        CompileView.JAVA_API            | [CompileView.JAVA_IMPLEMENTATION]                       | null
-        CompileView.JAVA_API            | [CompileView.JAVA_API, CompileView.JAVA_IMPLEMENTATION] | CompileView.JAVA_API
-        CompileView.JAVA_IMPLEMENTATION | [CompileView.JAVA_API]                                  | null
-        CompileView.JAVA_IMPLEMENTATION | [CompileView.JAVA_IMPLEMENTATION]                       | CompileView.JAVA_IMPLEMENTATION
-        CompileView.JAVA_IMPLEMENTATION | [CompileView.JAVA_API, CompileView.JAVA_IMPLEMENTATION] | CompileView.JAVA_IMPLEMENTATION
+        consumer        | candidates                        | expected
+        null            | [ApiView.PUBLIC]                  | ApiView.PUBLIC
+        null            | [ApiView.PRIVATE]                 | null
+        null            | [ApiView.PUBLIC, ApiView.PRIVATE] | ApiView.PUBLIC
+        ApiView.PUBLIC  | [ApiView.PUBLIC]                  | ApiView.PUBLIC
+        ApiView.PUBLIC  | [ApiView.PRIVATE]                 | null
+        ApiView.PUBLIC  | [ApiView.PUBLIC, ApiView.PRIVATE] | ApiView.PUBLIC
+        ApiView.PRIVATE | [ApiView.PUBLIC]                  | null
+        ApiView.PRIVATE | [ApiView.PRIVATE]                 | ApiView.PRIVATE
+        ApiView.PRIVATE | [ApiView.PUBLIC, ApiView.PRIVATE] | ApiView.PRIVATE
     }
 
     def "check bundling compatibility rules consumer=#consumer producer=#producer compatible=#compatible"() {
@@ -312,11 +312,11 @@ class JavaEcosystemSupportTest extends Specification {
         }
     }
 
-    private CompileView compileView(String value) {
+    private ApiView apiView(String value) {
         if (value == null) {
             null
         } else {
-            TestUtil.objectFactory().named(CompileView, value)
+            TestUtil.objectFactory().named(ApiView, value)
         }
     }
 

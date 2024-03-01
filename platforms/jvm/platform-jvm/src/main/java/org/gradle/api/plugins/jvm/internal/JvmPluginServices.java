@@ -63,18 +63,18 @@ public interface JvmPluginServices extends JvmEcosystemUtilities {
     void configureAsCompileClasspath(HasConfigurableAttributes<?> configuration);
 
     /**
-     * Configures a consumable configuration to provide an API compile classpath.
+     * Configures a consumable configuration to provide a public API classpath.
      *
      * @param configuration the configuration to be configured
      */
     void configureAsApiElements(HasConfigurableAttributes<?> configuration);
 
     /**
-     * Configures a consumable configuration to provide an implementation compile classpath.
+     * Configures a consumable configuration to provide a private API classpath.
      *
      * @param configuration the configuration to be configured
      */
-    void configureAsImplementationCompileElements(HasConfigurableAttributes<?> configuration);
+    void configureAsPrivateApiElements(HasConfigurableAttributes<?> configuration);
 
     /**
      * Configures a consumable configuration to provide a runtime classpath.

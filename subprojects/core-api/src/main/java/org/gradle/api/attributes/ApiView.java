@@ -20,35 +20,35 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * Differentiates between the different views of a library's compile classpath.
+ * Differentiates between the different API views that a library exposes during compilation.
  *
  * <p>This attribute is only applicable when paired with the {@link Usage#JAVA_API} attribute.</p>
  *
  * @since 8.8
  */
 @Incubating
-public interface CompileView extends Named {
+public interface ApiView extends Named {
 
     /**
-     * The attribute that tracks a variant's compile view.
+     * The attribute that tracks a variant's compilation API.
      *
      * @since 8.8
      */
-    Attribute<CompileView> VIEW_ATTRIBUTE = Attribute.of("org.gradle.compile-view", CompileView.class);
+    Attribute<ApiView> VIEW_ATTRIBUTE = Attribute.of("org.gradle.api-view", ApiView.class);
 
     /**
-     * The API of a Java library's compile classpath. These are the set of dependencies required to
-     * compile against a Java library's public API.
+     * The public API of a library. This is a subset of the private API and is intended to expose
+     * dependencies accessible to consumers under normal circumstances.
      *
      * @since 8.8
      */
-    String JAVA_API = "java-api";
+    String PUBLIC = "public";
 
     /**
-     * The implementation compile view of a Java library. These are the set of dependencies required to compile
-     * a Java library itself, including all internal and public classes.
+     * The private API of a library. It contains all dependencies required to compile the library itself
+     * and exposes dependencies that are not exposed as part of the library's public API.
      *
      * @since 8.8
      */
-    String JAVA_IMPLEMENTATION = "java-implementation";
+    String PRIVATE = "private";
 }

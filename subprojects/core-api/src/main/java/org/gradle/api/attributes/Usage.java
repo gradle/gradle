@@ -28,8 +28,8 @@ public interface Usage extends Named {
     Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of("org.gradle.usage", Usage.class);
 
     /**
-     * Represents the compilation variant of a component. The compilation dependencies
-     * can be further refined by using the {@link CompileView} attribute.
+     * The API variant of a component. The API dependencies
+     * can be further refined by using the {@link ApiView} attribute.
      *
      * <p>The artifacts are packaged as class path elements, either a JAR or a classes directory.</p>
      *

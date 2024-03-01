@@ -143,7 +143,7 @@ project(':consumer') {
                 apply plugin: 'jvm-ecosystem'
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
                 if ($requestViewAttribute) {
-                    configurations.consume.attributes.attribute(CompileView.VIEW_ATTRIBUTE, objects.named(CompileView, CompileView.JAVA_API))
+                    configurations.consume.attributes.attribute(ApiView.VIEW_ATTRIBUTE, objects.named(ApiView, ApiView.PUBLIC))
                 }
             }
         """
@@ -155,7 +155,7 @@ project(':consumer') {
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:classes", ":other-java:compileJava", ":other-java:jar", ":other-java:processResources", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         assertResolveOutput("""
             files: [java.jar]
-            java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-api, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
+            java.jar (project :java) {artifactType=jar, org.gradle.api-view=public, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
         """)
 
         where:
@@ -169,7 +169,7 @@ project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
                 configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
                 if ($requestViewAttribute) {
-                    configurations.consume.attributes.attribute(CompileView.VIEW_ATTRIBUTE, objects.named(CompileView, CompileView.JAVA_API))
+                    configurations.consume.attributes.attribute(ApiView.VIEW_ATTRIBUTE, objects.named(ApiView, ApiView.PUBLIC))
                 }
             }
         """
@@ -181,7 +181,7 @@ project(':consumer') {
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         assertResolveOutput("""
             files: [java.jar]
-            java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-api, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
+            java.jar (project :java) {artifactType=jar, org.gradle.api-view=public, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
         """)
 
         where:
@@ -222,7 +222,7 @@ project(':consumer') {
             project(':consumer') {
                 apply plugin: 'jvm-ecosystem'
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-                configurations.consume.attributes.attribute(CompileView.VIEW_ATTRIBUTE, objects.named(CompileView, CompileView.JAVA_IMPLEMENTATION))
+                configurations.consume.attributes.attribute(ApiView.VIEW_ATTRIBUTE, objects.named(ApiView, ApiView.PRIVATE))
                 if ($requestJarAttribute) {
                     configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
                 }
@@ -236,10 +236,10 @@ project(':consumer') {
         result.assertTasksExecuted(":java:classes", ":java:compileJava", ":java:jar", ":java:processResources", ":other-java:classes", ":other-java:compileJava", ":other-java:jar", ":other-java:processResources", ":consumer:resolve")
         assertResolveOutput("""
             files: [java.jar, file-dep.jar, compile-only-1.0.jar, other-java.jar, implementation-1.0.jar]
-            java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-implementation, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
+            java.jar (project :java) {artifactType=jar, org.gradle.api-view=private, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
             file-dep.jar {artifactType=jar, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
             compile-only-1.0.jar (test:compile-only:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
-            other-java.jar (project :other-java) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-implementation, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
+            other-java.jar (project :other-java) {artifactType=jar, org.gradle.api-view=private, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
             implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
         """)
 
@@ -252,7 +252,7 @@ project(':consumer') {
             project(':consumer') {
                 apply plugin: 'jvm-ecosystem'
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-                configurations.consume.attributes.attribute(CompileView.VIEW_ATTRIBUTE, objects.named(CompileView, CompileView.JAVA_IMPLEMENTATION))
+                configurations.consume.attributes.attribute(ApiView.VIEW_ATTRIBUTE, objects.named(ApiView, ApiView.PRIVATE))
                 configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.${requestedElements}))
             }
         """
@@ -264,12 +264,12 @@ project(':consumer') {
         result.assertTasksExecuted(":consumer:resolve", ":java:classes", ":java:compileJava", ":java:processResources", ":other-java:classes", ":other-java:compileJava", ":other-java:jar", ":other-java:processResources")
         assertResolveOutput("""
             files: [main, main, file-dep.jar, compile-only-1.0.jar, main, main, implementation-1.0.jar]
-            main (project :java) {artifactType=directory, org.gradle.category=library, org.gradle.compile-view=java-implementation, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes+resources, org.gradle.usage=java-api}
-            main (project :java) {artifactType=directory, org.gradle.category=library, org.gradle.compile-view=java-implementation, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes+resources, org.gradle.usage=java-api}
+            main (project :java) {artifactType=directory, org.gradle.api-view=private, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes+resources, org.gradle.usage=java-api}
+            main (project :java) {artifactType=directory, org.gradle.api-view=private, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes+resources, org.gradle.usage=java-api}
             file-dep.jar {artifactType=jar, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
             compile-only-1.0.jar (test:compile-only:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
-            main (project :other-java) {artifactType=directory, org.gradle.category=library, org.gradle.compile-view=java-implementation, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes+resources, org.gradle.usage=java-api}
-            main (project :other-java) {artifactType=directory, org.gradle.category=library, org.gradle.compile-view=java-implementation, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes+resources, org.gradle.usage=java-api}
+            main (project :other-java) {artifactType=directory, org.gradle.api-view=private, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes+resources, org.gradle.usage=java-api}
+            main (project :other-java) {artifactType=directory, org.gradle.api-view=private, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes+resources, org.gradle.usage=java-api}
             implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
         """)
 
