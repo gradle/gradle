@@ -19,6 +19,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -160,6 +161,7 @@ public abstract class ScalaRuntime {
      * @see #getScalaVersion(Iterable)
      * @since 8.8
      */
+    @Incubating
     @Nullable
     public String findScalaVersion(Iterable<? extends File> classpath) {
         return highestScalaLibraryVersion(classpath).orElse(null);
@@ -174,6 +176,7 @@ public abstract class ScalaRuntime {
      * @see #findScalaVersion(Iterable)
      * @since 8.8
      */
+    @Incubating
     public String getScalaVersion(Iterable<? extends File> classpath) {
         return highestScalaLibraryVersion(classpath).orElseThrow(() ->
             new GradleException(String.format("Cannot infer Scala version because no Scala Library JAR was found. "
@@ -190,6 +193,7 @@ public abstract class ScalaRuntime {
      * @see #configureAsScalaClasspath(Configuration, Provider)
      * @since 8.8
      */
+    @Incubating
     public Configuration configureAsScalaClasspath(Configuration configuration, @Nullable String scalaVersion) {
         configureAsResolvableRuntimeClasspath(configuration);
         List<Dependency> dependencies = scalaVersion != null ? getScalaDependencies(scalaVersion) : Collections.emptyList();
@@ -207,6 +211,7 @@ public abstract class ScalaRuntime {
      * @see #configureAsScalaClasspath(Configuration, String)
      * @since 8.8
      */
+    @Incubating
     public Configuration configureAsScalaClasspath(Configuration configuration, Provider<String> scalaVersion) {
         configureAsResolvableRuntimeClasspath(configuration);
         Provider<List<Dependency>> dependencies = scalaVersion.map(this::getScalaDependencies).orElse(Collections.emptyList());
@@ -229,6 +234,7 @@ public abstract class ScalaRuntime {
      * @return the name of the Scala classpath configuration
      * @since 8.8
      */
+    @Incubating
     public String getScalaClasspathConfigurationNameFor(String type, String name) {
         return "scalaClasspathFor" + StringUtils.capitalize(type) + StringUtils.capitalize(name);
     }
@@ -245,6 +251,7 @@ public abstract class ScalaRuntime {
      * @see #registerScalaClasspathConfigurationFor(String, String, Provider)
      * @since 8.8
      */
+    @Incubating
     public NamedDomainObjectProvider<Configuration> registerScalaClasspathConfigurationFor(String type, String name, @Nullable String scalaVersion) {
         String configurationName = getScalaClasspathConfigurationNameFor(type, name);
         return project.getConfigurations().register(configurationName,
@@ -263,6 +270,7 @@ public abstract class ScalaRuntime {
      * @see #registerScalaClasspathConfigurationFor(String, String, String)
      * @since 8.8
      */
+    @Incubating
     public NamedDomainObjectProvider<Configuration> registerScalaClasspathConfigurationFor(String type, String name, Provider<String> scalaVersion) {
         String configurationName = getScalaClasspathConfigurationNameFor(type, name);
         return project.getConfigurations().register(configurationName,
@@ -276,6 +284,7 @@ public abstract class ScalaRuntime {
      * @return a provider that the registered configuration can be retrieved from
      * @since 8.8
      */
+    @Incubating
     public NamedDomainObjectProvider<Configuration> registerScalaClasspathConfigurationFor(ScalaTask task) {
         return registerScalaClasspathConfigurationFor(Providers.ofNamed(task));
     }
@@ -287,6 +296,7 @@ public abstract class ScalaRuntime {
      * @return a provider that the registered configuration can be retrieved from
      * @since 8.8
      */
+    @Incubating
     public NamedDomainObjectProvider<Configuration> registerScalaClasspathConfigurationFor(NamedDomainObjectProvider<? extends ScalaTask> task) {
         Provider<String> scalaVersion = task.map(ScalaTask::getClasspath).map(this::findScalaVersion);
         return registerScalaClasspathConfigurationFor("task", task.getName(), scalaVersion);

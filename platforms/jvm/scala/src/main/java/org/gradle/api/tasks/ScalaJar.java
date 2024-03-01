@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
@@ -40,6 +41,7 @@ import java.util.stream.StreamSupport;
  *
  * @since 8.8
  */
+@Incubating
 public class ScalaJar {
 
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("scala(\\d+)?-(\\w.*?)(?:_\\1)?(?:-(\\d.*))?\\.jar");
@@ -53,6 +55,7 @@ public class ScalaJar {
      * @param file the file to inspect
      * @param modulePredicate predicate that the module name must match
      * @return a {@link ScalaJar} instance if the given file is a Scala JAR file with a matching module name, {@code null} otherwise
+     * @since 8.8
      */
     @Nullable
     public static ScalaJar inspect(File file, Predicate<String> modulePredicate) {
@@ -103,6 +106,7 @@ public class ScalaJar {
      * @param files the files to inspect
      * @param modulePredicate predicate that the module name must match
      * @return a stream of {@link ScalaJar} instances describing the Scala JAR files with a matching module name
+     * @since 8.8
      */
     public static Stream<ScalaJar> inspect(Stream<? extends File> files, Predicate<String> modulePredicate) {
         return files.map(file -> ScalaJar.inspect(file, modulePredicate)).filter(Objects::nonNull);
@@ -115,6 +119,7 @@ public class ScalaJar {
      * @param files the files to inspect
      * @param modulePredicate predicate that the module name must match
      * @return a stream of {@link ScalaJar} instances describing the Scala JAR files with a matching module name
+     * @since 8.8
      */
     public static Stream<ScalaJar> inspect(Iterable<? extends File> files, Predicate<String> modulePredicate) {
         return inspect(StreamSupport.stream(files.spliterator(), false), modulePredicate);
@@ -136,6 +141,7 @@ public class ScalaJar {
      * Returns the Scala JAR file.
      *
      * @return The Scala JAR file.
+     * @since 8.8
      */
     public File getFile() {
         return file;
@@ -145,6 +151,7 @@ public class ScalaJar {
      * Returns the Scala JAR module name (compiler, library, jdbc, etc.).
      *
      * @return The Scala JAR module name (compiler, library, jdbc, etc.).
+     * @since 8.8
      */
     public String getModule() {
         return module;
@@ -154,6 +161,7 @@ public class ScalaJar {
      * Returns the Scala JAR version string.
      *
      * @return The Scala JAR version string.
+     * @since 8.8
      */
     public String getVersion() {
         return version;
@@ -163,6 +171,7 @@ public class ScalaJar {
      * Returns the Scala JAR version number.
      *
      * @return The Scala JAR version number.
+     * @since 8.8
      */
     public VersionNumber getVersionNumber() {
         return versionNumber;

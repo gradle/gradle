@@ -9,6 +9,44 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.assertScalaClasspathIsNonEmpty()",
+            "acceptation": "Copied ScalaCompile.assertScalaClasspathIsNonEmpty as-is",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaTask",
+            "member": "Class org.gradle.api.tasks.scala.ScalaTask",
+            "acceptation": "Common interface for ScalaCompile and ScalaDoc containing declaration of pre-existing shared methods",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaTask",
+            "member": "Method org.gradle.api.tasks.scala.ScalaTask.getClasspath()",
+            "acceptation": "The methods declared by ScalaTask already existed in ScalaCompile and ScalaDoc, it would be misleading to tag them with @since or @Incubating",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaTask",
+            "member": "Method org.gradle.api.tasks.scala.ScalaTask.getScalaClasspath()",
+            "acceptation": "The methods declared by ScalaTask already existed in ScalaCompile and ScalaDoc, it would be misleading to tag them with @since or @Incubating",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaTask",
+            "member": "Method org.gradle.api.tasks.scala.ScalaTask.setClasspath(org.gradle.api.file.FileCollection)",
+            "acceptation": "The methods declared by ScalaTask already existed in ScalaCompile and ScalaDoc, it would be misleading to tag them with @since or @Incubating",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaTask",
+            "member": "Method org.gradle.api.tasks.scala.ScalaTask.setScalaClasspath(org.gradle.api.file.FileCollection)",
+            "acceptation": "The methods declared by ScalaTask already existed in ScalaCompile and ScalaDoc, it would be misleading to tag them with @since or @Incubating",
+            "changes": []
+        },
+        {
             "type": "org.gradle.tooling.events.problems.ProblemDescriptor",
             "member": "Method org.gradle.tooling.events.problems.ProblemDescriptor.getDetails()",
             "acceptation": "This is an incubating API and therefore the change is acceptable",
