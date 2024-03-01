@@ -39,4 +39,16 @@ throw new BadException()
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Unable to get message for failure of type BadException due to null")
     }
+
+    def "can handle circular exception"() {
+        buildFile << """
+            Exception selfReferencingException = new Exception("boom")
+            selfReferencingException.initCause(new Exception("boom", selfReferencingException))
+            throw selfReferencingException
+        """
+
+        expect:
+        fails("help", "-s")
+        result.assertHasErrorOutput("Caused by: java.lang.Throwable: [CIRCULAR REFERENCE: java.lang.Exception: boom]")
+    }
 }

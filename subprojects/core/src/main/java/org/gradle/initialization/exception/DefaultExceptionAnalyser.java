@@ -24,10 +24,15 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.problems.Location;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
+import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultExceptionAnalyser implements ExceptionCollector {
     private final ProblemDiagnosticsFactory diagnosticsFactory;
@@ -98,7 +103,13 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
         Throwable locationAware = null;
         Throwable result = null;
         Throwable contextMatch = null;
-        for (Throwable current = exception; current != null; current = current.getCause()) {
+        // Guard against malicious overrides of Throwable.equals by
+        // using a Set with identity equality semantics.
+        Set<Throwable> dejaVu = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (Throwable current = exception, parent = null; current != null; parent = current, current = current.getCause()) {
+            if (!dejaVu.add(current)) {
+                current = patchCircularCause(current, parent);
+            }
             if (current instanceof LocationAwareException) {
                 locationAware = current;
             } else if (current instanceof GradleScriptException || current instanceof TaskExecutionException) {
@@ -115,6 +126,18 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
             return contextMatch;
         } else {
             return exception;
+        }
+    }
+
+    private static @NotNull Throwable patchCircularCause(Throwable current, Throwable parent) {
+        try {
+            Field causeField = Throwable.class.getDeclaredField("cause");
+            causeField.setAccessible(true);
+            current = new Throwable("[CIRCULAR REFERENCE: " + current + "]" );
+            causeField.set(parent, current);
+            return current;
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return current;
         }
     }
 }
