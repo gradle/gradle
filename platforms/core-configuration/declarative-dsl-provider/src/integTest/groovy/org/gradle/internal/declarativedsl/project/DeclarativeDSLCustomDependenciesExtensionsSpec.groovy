@@ -76,8 +76,10 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
                     // api and implementation configurations created by plugin
                     project.getPluginManager().apply(JavaLibraryPlugin.class);
 
-                    // inner dependencies extension automatically wired to configurations created by plugin
-                    project.getExtensions().create("library", LibraryExtension.class);
+                    // create and wire the custom dependencies extension's dependencies to the global configurations created by the plugin
+                    LibraryExtension restricted = project.getExtensions().create("library", LibraryExtension.class);
+                    project.getConfigurations().getByName("api").fromDependencyCollector(restricted.getDependencies().getApi());
+                    project.getConfigurations().getByName("implementation").fromDependencyCollector(restricted.getDependencies().getImplementation());
                 }
             }
         """
