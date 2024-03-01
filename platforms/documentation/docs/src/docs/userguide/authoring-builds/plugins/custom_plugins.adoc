@@ -30,7 +30,7 @@ But when users want to organize their build logic or need specific build capabil
 As such, we distinguish between three different kinds of plugins:
 
 1. *Core Plugins* - plugins that come from Gradle.
-2. *Community Plugins* - public plugins that come from the link:https://plugins.gradle.org/[Gradle Plugin Portal].
+2. *Community Plugins* - plugins that come from the public link:https://plugins.gradle.org/[Gradle Plugin Portal].
 3. *Custom Plugins* - plugins that you develop yourself.
 
 == Custom plugins
@@ -56,7 +56,7 @@ There are different types of *custom plugins*:
 |<<sec:custom_plugins_standalone_project,3>>
 |<<sec:custom_plugins_standalone_project,Binary plugins>>
 |Standalone project
-|A shared plugin (i.e., community plugin)
+|A shared plugin
 |Produces and publishes a JAR which you can then use in multiple builds and share with others.
 |===
 
@@ -186,7 +186,7 @@ dependencyResolutionManagement {
 ----
 
 We also define one subproject that we will use to define our convention plugin called `java-plugin`.
-In the subproject, we create a build file and apply the link:https://plugins.gradle.org/plugin/org.gradle.kotlin.kotlin-dsl[`kotlin-dsl` plugin]:
+In the subproject, we create a build file and apply the link:https://plugins.gradle.org/plugin/org.gradle.kotlin.kotlin-dsl[`kotlin-dsl`] plugin:
 
 [source,kotlin]
 .buildSrc/java-plugin/build.gradle.kts
@@ -233,10 +233,9 @@ kotlin {
 }
 ----
 
-The name of the file `my-java-library` is the ID of the plugin, which we can now use in all of our subprojects.
+The name of the file `my-java-library` is the ID of our brand new plugin, which we can now use in all of our subprojects.
 
-We can change all of our subprojects' build files to apply our convention `my-java-library` plugin.
-The `business-logic` build file becomes much simpler:
+The `business-logic` build file becomes much simpler by applying our convention `my-java-library` plugin:
 
 [source,kotlin]
 .business-logic/build.gradle.kts
@@ -246,7 +245,7 @@ plugins {
 }
 ----
 
-Our new convention plugin enables us to easily share common configurations across all our build files.
+This convention plugin enables us to easily share common configurations across all our build files.
 Any modifications can be made in one place, simplifying maintenance.
 
 [[sec:applying_external_plugins]]

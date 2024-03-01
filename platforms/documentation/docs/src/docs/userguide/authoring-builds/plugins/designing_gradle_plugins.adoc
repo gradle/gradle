@@ -12,108 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[writing-and-using-custom-task-types]]
-== Prefer writing and using custom task types
+= Designing Plugins
 
-Gradle tasks can be defined as ad-hoc tasks, simple task definitions of type `DefaultTask` with one or many actions, or as <<custom_tasks.adoc#custom_tasks,enhanced tasks>>, the ones that use a custom task type and expose its configurability with the help of properties.
-Generally speaking, custom tasks provide the means for reusability, maintainability, configurability and testability.
-The same principles hold true when providing tasks as part of plugins.
-Always prefer custom task types over ad-hoc tasks.
-Consumers of your plugin will also have the chance to reuse the existing task type if they want to add more tasks to the build script.
-
-Let’s say you implemented a plugin that resolves the latest version of a dependency in a binary repository by making HTTP calls by providing a custom task type.
-The custom task is provided by a plugin that takes care of communicating via HTTP and processing the response in machine-readable format like XML or JSON.
-
-.LatestArtifactVersion.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/LatestArtifactVersion.java[tags=snippet]
-----
-
-The end user of the task can now easily create multiple tasks of that type with different configuration.
-All the imperative, potentially complex logic is completely hidden in the custom task implementation.
-
-====
-include::sample[dir="snippets/developingPlugins/customTask/kotlin",files="build.gradle.kts[tags=direct-task-register]"]
-include::sample[dir="snippets/developingPlugins/customTask/groovy",files="build.gradle[tags=direct-task-register]"]
-====
-
-== Benefiting from incremental tasks
-
-Gradle uses declared inputs and outputs to determine if a task is up-to-date and needs to perform any work.
-If none of the inputs or outputs have changed, Gradle can skip that task.
-Gradle calls this mechanism incremental build support.
-The advantage of <<incremental_build.adoc#incremental_build,incremental build support>> is that it can significantly improve the performance of a build.
-
-It’s very common for Gradle plugins to introduce custom task types.
-As a plugin author that means that you’ll have to annotate all properties of a task with input or output annotations.
-It’s highly recommended to equip every task with the information to run up-to-date checking.
-Remember: for up-to-date checking to work properly a task needs to define both inputs and outputs.
-
-Let’s consider the following sample task for illustration.
-The task generates a given number of files in an output directory.
-The text written to those files is provided by a String property.
-
-.Generate.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/incrementalTask/groovy/buildSrc/src/main/java/Generate.java[tags=snippet]
-----
-
-The first section of this guide talks about the <<plugin-development-plugin,Plugin Development plugin>>.
-As an added benefit of applying the plugin to your project, the task `validatePlugins` automatically checks for an existing input/output annotation for every public property defined in a custom task type implementation.
-
-[[modeling_dsl_like_apis]]
-== Modeling DSL-like APIs
-
-DSLs exposed by plugins should be readable and easy to understand.
-For illustration let's consider the following extension provided by a plugin.
-In its current form it offers a "flat" list of properties for configuring the creation of a web site.
-
-====
-include::sample[dir="snippets/developingPlugins/pluginExtension/kotlin",files="build-flat.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="build-flat.gradle[]"]
-====
-
-As the number of exposed properties grows, you might want to introduce a nested, more expressive structure.
-The following code snippet adds a new configuration block named `customData` as part of the extension.
-You might have noticed that it provides a stronger indication of what those properties mean.
-
-====
-include::sample[dir="snippets/developingPlugins/pluginExtension/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="build.gradle[]"]
-====
-
-It's fairly easy to implement the backing objects of such an extension.
-First of all, you'll need to introduce a new data object for managing the properties `websiteUrl` and `vcsUrl`.
-
-.CustomData.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/CustomData.java[tags=snippet]
-----
-
-In the extension, you'll need to create an instance of the `CustomData` class and a method that can delegate the captured values to the data instance.
-To configure underlying data objects define a parameter of type link:{javadocPath}/org/gradle/api/Action.html[Action].
-The following example demonstrates the use of `Action` in an extension definition.
-
-.SiteExtension.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
-----
-
-
-= Designing Gradle plugins
-
-For beginners to Gradle implementing plugins can look like a daunting task that includes many considerations and deep knowledge:
-organizing and structuring plugin logic, testing and debugging plugin code as well as publishing the plugin artifact to a repository for consumption.
-
-In this section, you will learn how to properly design Gradle plugins based on established practices and apply them to your own projects.
-This section assumes you have:
-
-- Basic understanding of software engineering practices
-- Knowledge of Gradle fundamentals like project organization, task creation and configuration as well as the Gradle build lifecycle
+This section explains how to properly design Gradle plugins based on established practices and apply them to your own projects.
 
 == Architecture
 
@@ -282,4 +183,95 @@ In turn those dependencies might conflict with other versions of the same librar
 When writing Gradle plugins consider if you really need a specific library or if you could just implement a simple method yourself.
 
 For logic that is executed as part of task execution, use the <<worker_api.adoc#tasks_parallel_worker, Worker API>> that allows you to isolate libraries.
+
+[[writing-and-using-custom-task-types]]
+== Prefer writing and using custom task types
+
+Gradle tasks can be defined as ad-hoc tasks, simple task definitions of type `DefaultTask` with one or many actions, or as <<custom_tasks.adoc#custom_tasks,enhanced tasks>>, the ones that use a custom task type and expose its configurability with the help of properties.
+Generally speaking, custom tasks provide the means for reusability, maintainability, configurability and testability.
+The same principles hold true when providing tasks as part of plugins.
+Always prefer custom task types over ad-hoc tasks.
+Consumers of your plugin will also have the chance to reuse the existing task type if they want to add more tasks to the build script.
+
+Let’s say you implemented a plugin that resolves the latest version of a dependency in a binary repository by making HTTP calls by providing a custom task type.
+The custom task is provided by a plugin that takes care of communicating via HTTP and processing the response in machine-readable format like XML or JSON.
+
+.LatestArtifactVersion.java
+[source,java]
+----
+include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/LatestArtifactVersion.java[tags=snippet]
+----
+
+The end user of the task can now easily create multiple tasks of that type with different configuration.
+All the imperative, potentially complex logic is completely hidden in the custom task implementation.
+
+====
+include::sample[dir="snippets/developingPlugins/customTask/kotlin",files="build.gradle.kts[tags=direct-task-register]"]
+include::sample[dir="snippets/developingPlugins/customTask/groovy",files="build.gradle[tags=direct-task-register]"]
+====
+
+== Benefiting from incremental tasks
+
+Gradle uses declared inputs and outputs to determine if a task is up-to-date and needs to perform any work.
+If none of the inputs or outputs have changed, Gradle can skip that task.
+Gradle calls this mechanism incremental build support.
+The advantage of <<incremental_build.adoc#incremental_build,incremental build support>> is that it can significantly improve the performance of a build.
+
+It’s very common for Gradle plugins to introduce custom task types.
+As a plugin author that means that you’ll have to annotate all properties of a task with input or output annotations.
+It’s highly recommended to equip every task with the information to run up-to-date checking.
+Remember: for up-to-date checking to work properly a task needs to define both inputs and outputs.
+
+Let’s consider the following sample task for illustration.
+The task generates a given number of files in an output directory.
+The text written to those files is provided by a String property.
+
+.Generate.java
+[source,java]
+----
+include::{snippetsPath}/developingPlugins/incrementalTask/groovy/buildSrc/src/main/java/Generate.java[tags=snippet]
+----
+
+The first section of this guide talks about the <<plugin-development-plugin,Plugin Development plugin>>.
+As an added benefit of applying the plugin to your project, the task `validatePlugins` automatically checks for an existing input/output annotation for every public property defined in a custom task type implementation.
+
+[[modeling_dsl_like_apis]]
+== Modeling DSL-like APIs
+
+DSLs exposed by plugins should be readable and easy to understand.
+For illustration let's consider the following extension provided by a plugin.
+In its current form it offers a "flat" list of properties for configuring the creation of a web site.
+
+====
+include::sample[dir="snippets/developingPlugins/pluginExtension/kotlin",files="build-flat.gradle.kts[]"]
+include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="build-flat.gradle[]"]
+====
+
+As the number of exposed properties grows, you might want to introduce a nested, more expressive structure.
+The following code snippet adds a new configuration block named `customData` as part of the extension.
+You might have noticed that it provides a stronger indication of what those properties mean.
+
+====
+include::sample[dir="snippets/developingPlugins/pluginExtension/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="build.gradle[]"]
+====
+
+It's fairly easy to implement the backing objects of such an extension.
+First of all, you'll need to introduce a new data object for managing the properties `websiteUrl` and `vcsUrl`.
+
+.CustomData.java
+[source,java]
+----
+include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/CustomData.java[tags=snippet]
+----
+
+In the extension, you'll need to create an instance of the `CustomData` class and a method that can delegate the captured values to the data instance.
+To configure underlying data objects define a parameter of type link:{javadocPath}/org/gradle/api/Action.html[Action].
+The following example demonstrates the use of `Action` in an extension definition.
+
+.SiteExtension.java
+[source,java]
+----
+include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
+----
 
