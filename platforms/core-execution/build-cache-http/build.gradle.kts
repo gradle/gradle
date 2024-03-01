@@ -30,5 +30,7 @@ dependencies {
     integTestImplementation(testFixtures(project(":build-cache")))
     integTestImplementation(libs.jetty)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("Uses application plugin.")
+    }
 }

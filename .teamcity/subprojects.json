@@ -716,6 +716,13 @@
   {
     "name": "plugins",
     "path": "subprojects/plugins",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "plugins-application",
+    "path": "platforms/jvm/plugins-application",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

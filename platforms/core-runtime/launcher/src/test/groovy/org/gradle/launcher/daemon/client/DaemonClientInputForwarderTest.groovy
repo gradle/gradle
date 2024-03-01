@@ -94,11 +94,15 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
     def "one line of text is forwarded as user response"() {
         when:
         source << toPlatformLineSeparators("abc\n")
+
+        then:
+        receiveStdin toPlatformLineSeparators("abc\n")
+
+        when:
         userInputReceiver.readAndForwardText()
         source << toPlatformLineSeparators("def\njkl\n")
 
         then:
-        receiveStdin toPlatformLineSeparators("abc\n")
         receiveUserResponse toPlatformLineSeparators("def\n")
         receiveStdin toPlatformLineSeparators("jkl\n")
 

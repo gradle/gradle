@@ -36,7 +36,7 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
     override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
         receiverClass.memberFunctions.forEach { function ->
             // TODO: `convertBinding` is invoked here with the receiverClass passed as the receiver and non-resolved argument origins; this probably needs a different API shape
-            if (function.name == name && FunctionBinding.convertBinding(function, receiverClass, parameterValueBinding.bindingMap, configureLambdaHandler) != null) {
+            if (function.name == name && FunctionBinding.convertBinding(function, receiverClass, parameterValueBinding.bindingMap, parameterValueBinding.providesConfigureBlock, configureLambdaHandler) != null) {
                 return RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(function, configureLambdaHandler))
             }
         }

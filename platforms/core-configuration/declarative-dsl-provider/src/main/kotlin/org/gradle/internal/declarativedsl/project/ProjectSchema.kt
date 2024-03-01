@@ -70,7 +70,7 @@ fun projectEvaluationSchemaComponent(
     target: ProjectInternal,
     targetScope: ClassLoaderScope
 ) = gradleDslGeneralSchemaComponent() +
-    ThirdPartyProjectExtensionsComponent(target) +
+    ThirdPartyExtensionsComponent(ProjectTopLevelReceiver::class, target, "projectExtension") +
     DependencyConfigurationsComponent(target) +
     TypesafeProjectAccessorsComponent(targetScope)
 

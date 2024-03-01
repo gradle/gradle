@@ -18,10 +18,13 @@ package org.gradle.internal.enterprise;
 
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Infrastructure like services used by the plugin.
  */
+@ServiceScope(Scopes.Gradle.class)
 public interface GradleEnterprisePluginRequiredServices {
 
     UserInputHandler getUserInputHandler();
@@ -29,4 +32,6 @@ public interface GradleEnterprisePluginRequiredServices {
     StyledTextOutputFactory getStyledTextOutputFactory();
 
     GradleEnterprisePluginBackgroundJobExecutors getBackgroundJobExecutors();
+
+    DevelocityPluginUnsafeConfigurationService getUnsafeConfigurationService();
 }

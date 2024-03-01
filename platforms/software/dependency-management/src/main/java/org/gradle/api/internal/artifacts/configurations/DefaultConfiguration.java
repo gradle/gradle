@@ -1367,7 +1367,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private void preventIllegalParentMutation(MutationType type) {
         // TODO Deprecate and eventually prevent these mutations in parent when already resolved
-        if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
+        if (type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES) {
             return;
         }
 
@@ -1378,8 +1378,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private void preventIllegalMutation(MutationType type) {
         // TODO: Deprecate and eventually prevent these mutations when already resolved
-        if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
-            assertIsDeclarable();
+        if (type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES) {
+            assertIsDeclarable("Changing " + type);
             return;
         }
 
@@ -1403,7 +1403,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private void markAsModified(MutationType type) {
         // TODO: Should not be ignoring DEPENDENCY_ATTRIBUTE modifications after resolve
-        if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
+        if (type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES) {
             return;
         }
         // Strategy mutations will not require a re-resolve
@@ -1516,9 +1516,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    private void assertIsDeclarable() {
+    private void assertIsDeclarable(String action) {
         if (!canBeDeclaredAgainst) {
-            throw new IllegalStateException("Declaring dependencies for configuration '" + name + "' is not allowed as it is defined as 'canBeDeclared=false'.");
+            throw new IllegalStateException(action + " for configuration '" + name + "' is not allowed as it is defined as 'canBeDeclared=false'.");
         }
     }
 

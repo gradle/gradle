@@ -123,7 +123,7 @@ class DeclarativeReflectionToObjectConverter(
         return when (val runtimeFunction = functionResolver.resolve(receiverKClass, dataFun.simpleName, origin.parameterBindings)) {
             is RuntimeFunctionResolver.Resolution.Resolved -> {
                 val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value) }
-                runtimeFunction.function.callBy(receiverInstance, bindingWithValues)
+                runtimeFunction.function.callBy(receiverInstance, bindingWithValues, origin.parameterBindings.providesConfigureBlock)
             }
 
             RuntimeFunctionResolver.Resolution.Unresolved -> error("could not resolve a member function $dataFun call in the owner class $receiverKClass")
@@ -146,11 +146,11 @@ class DeclarativeReflectionToObjectConverter(
         val receiverInstance = getObjectByResolvedOrigin(receiverOrigin)
             ?: error("Tried to invoke a function $function on a null receiver $receiverOrigin")
         val receiverKClass = receiverInstance::class
-        val parameterBinding = ParameterValueBinding(mapOf(function.dataParameter to valueOrigin))
+        val parameterBinding = ParameterValueBinding(mapOf(function.dataParameter to valueOrigin), false)
 
         when (val runtimeFunction = functionResolver.resolve(receiverKClass, function.simpleName, parameterBinding)) {
             is RuntimeFunctionResolver.Resolution.Resolved ->
-                runtimeFunction.function.callBy(receiverInstance, parameterBinding.bindingMap.mapValues { getObjectByResolvedOrigin(it.value) }).result
+                runtimeFunction.function.callBy(receiverInstance, parameterBinding.bindingMap.mapValues { getObjectByResolvedOrigin(it.value) }, parameterBinding.providesConfigureBlock).result
             RuntimeFunctionResolver.Resolution.Unresolved -> error("could not resolve a member function $function call in the owner class $receiverKClass")
         }
     }

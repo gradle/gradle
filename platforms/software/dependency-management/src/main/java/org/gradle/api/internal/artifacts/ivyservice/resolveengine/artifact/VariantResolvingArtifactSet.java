@@ -30,7 +30,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.GraphVariantSelectionResult;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
@@ -145,7 +144,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
      */
     private ImmutableSet<ResolvedVariant> getArtifactVariantsForReselection(ImmutableAttributes requestAttributes) {
         // First, find the graph variant containing the artifact variants to select among.
-        GraphVariantSelectionResult selectedGraphVariants = graphVariantSelector.selectVariantsLenient(
+        VariantGraphResolveState graphVariant = graphVariantSelector.selectByAttributeMatchingLenient(
             requestAttributes,
             capabilities,
             component,
@@ -155,14 +154,9 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
 
         // It is fine if no graph variants satisfy our request.
         // Variant reselection allows no target variants to be found.
-        if (selectedGraphVariants.getVariants().isEmpty()) {
+        if (graphVariant == null) {
             return ImmutableSet.of();
         }
-
-        // The graphVariantSelector will always select a single variant.
-        // However, the interface does not reflect that since the type used here is shared with Ivy, which can select multiple variants.
-        assert selectedGraphVariants.getVariants().size() == 1;
-        VariantGraphResolveState graphVariant = selectedGraphVariants.getVariants().get(0);
 
         // Next, return all artifact variants for the selected graph variant.
         return getArtifactsForGraphVariant(graphVariant);

@@ -1213,14 +1213,14 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org.gradle.test:lib:1.1') {
+                edge('org.gradle.test:lib:{strictly 1.1}', 'org.gradle.test:lib:1.1') {
                     variant('enforced-platform-runtime', [
                         'org.gradle.status': 'release',
                         'org.gradle.usage': 'java-runtime',
                         'org.gradle.category': 'enforced-platform'])
                     noArtifacts()
                 }
-                module('org.gradle.test:lib.subgroup:1.1') {
+                edge('org.gradle.test:lib.subgroup:{strictly 1.1}', 'org.gradle.test:lib.subgroup:1.1') {
                     variant('enforced-platform-runtime', [
                         'org.gradle.status': 'release',
                         'org.gradle.usage': 'java-runtime',

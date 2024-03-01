@@ -31,7 +31,9 @@ dependencies {
     crossVersionTestImplementation(libs.ant)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("Uses application plugin.")
+    }
 }
 
 testFilesCleanup.reportOnly = true
