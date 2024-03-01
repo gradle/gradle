@@ -53,7 +53,7 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
     private Set<InstallationLocation> asInstallations(String listOfDirectories) {
         return Arrays.stream(listOfDirectories.split(","))
             .filter(path -> !path.trim().isEmpty())
-            .map(path -> new InstallationLocation(fileResolver.resolve(path), getSourceName()))
+            .map(path -> new InstallationLocation(fileResolver.resolve(path), getSourceName(), false))
             .collect(Collectors.toSet());
     }
 

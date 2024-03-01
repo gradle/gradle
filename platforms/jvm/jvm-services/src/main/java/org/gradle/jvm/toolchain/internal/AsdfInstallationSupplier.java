@@ -53,7 +53,7 @@ public class AsdfInstallationSupplier extends AutoDetectingInstallationSupplier 
     private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
         return candidatesDir -> {
             final File root = new File(candidatesDir, "installs/java");
-            return FileBasedInstallationFactory.fromDirectory(root, getSourceName());
+            return FileBasedInstallationFactory.fromDirectory(root, getSourceName(), true);
         };
     }
 

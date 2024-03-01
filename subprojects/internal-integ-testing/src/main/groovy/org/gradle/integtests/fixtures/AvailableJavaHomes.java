@@ -331,7 +331,7 @@ public abstract class AvailableJavaHomes {
             return System.getenv().entrySet()
                 .stream()
                 .filter(it -> JDK_PATTERN.matcher(it.getKey()).matches())
-                .map(entry -> new InstallationLocation(new File(entry.getValue()), "env var " + entry.getKey()))
+                .map(entry -> new InstallationLocation(new File(entry.getValue()), "env var " + entry.getKey(), false))
                 .collect(Collectors.toSet());
         }
     }
@@ -357,7 +357,7 @@ public abstract class AvailableJavaHomes {
                     .filter(File::isDirectory)
                     .filter(file -> file.getName().toLowerCase().contains("jdk") || file.getName().toLowerCase().contains("jre"))
                     .filter(file -> new File(file, OperatingSystem.current().getExecutableName("bin/java")).exists())
-                    .map(file -> new InstallationLocation(file, getSourceName()))
+                    .map(file -> new InstallationLocation(file, getSourceName(), true))
                     .collect(Collectors.toSet());
             }
             return Collections.emptySet();

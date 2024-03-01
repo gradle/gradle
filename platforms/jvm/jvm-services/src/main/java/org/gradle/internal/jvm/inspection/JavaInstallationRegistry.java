@@ -18,6 +18,7 @@ package org.gradle.internal.jvm.inspection;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -138,14 +139,21 @@ public class JavaInstallationRegistry {
             .collect(Collectors.toSet());
     }
 
+    private void logInstallationProblem(InstallationLocation installationLocation, String message, Object... params) {
+        // If a user has explicitly configured a java installation, we should always log problems with it visibly, because they have bad configuration they can change.
+        // But if we are just locating it automatically, we should log problems less visibly, because the user may be unable to fix the problem.
+        LogLevel level = installationLocation.isAutoDetected() ? LogLevel.INFO : LogLevel.WARN;
+        logger.log(level, message, params);
+    }
+
     protected boolean installationExists(InstallationLocation installationLocation) {
         File file = installationLocation.getLocation();
         if (!file.exists()) {
-            logger.warn("Directory {} used for java installations does not exist", installationLocation.getDisplayName());
+            logInstallationProblem(installationLocation, "Directory {} used for java installations does not exist", installationLocation.getDisplayName());
             return false;
         }
         if (!file.isDirectory()) {
-            logger.warn("Path for java installation {} points to a file, not a directory", installationLocation.getDisplayName());
+            logInstallationProblem(installationLocation, "Path for java installation {} points to a file, not a directory", installationLocation.getDisplayName());
             return false;
         }
         return true;
@@ -153,7 +161,7 @@ public class JavaInstallationRegistry {
 
     protected boolean installationHasExecutable(InstallationLocation installationLocation) {
         if (!hasJavaExecutable(installationLocation.getLocation())) {
-            logger.warn("Path for java installation {} does not contain a java executable", installationLocation.getDisplayName());
+            logInstallationProblem(installationLocation, "Path for java installation {} does not contain a java executable", installationLocation.getDisplayName());
             return false;
         }
         return true;
@@ -164,7 +172,7 @@ public class JavaInstallationRegistry {
         try {
             final File canonicalFile = file.getCanonicalFile();
             final File javaHome = findJavaHome(canonicalFile);
-            return new InstallationLocation(javaHome, location.getSource(), location.isAutoProvisioned());
+            return new InstallationLocation(javaHome, location.getSource(), location.isAutoDetected(), location.isAutoProvisioned());
         } catch (IOException e) {
             throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
         }
@@ -175,7 +183,7 @@ public class JavaInstallationRegistry {
         final File parentPath = home.getParentFile();
         final boolean isEmbeddedJre = home.getName().equalsIgnoreCase("jre");
         if (isEmbeddedJre && hasJavaExecutable(parentPath)) {
-            return new InstallationLocation(parentPath, location.getSource());
+            return new InstallationLocation(parentPath, location.getSource(), location.isAutoDetected());
         }
         return location;
     }

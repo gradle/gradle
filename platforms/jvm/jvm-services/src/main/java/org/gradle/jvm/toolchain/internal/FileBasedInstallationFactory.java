@@ -25,14 +25,14 @@ import static java.util.stream.Collectors.toSet;
 
 public class FileBasedInstallationFactory {
 
-    public static Set<InstallationLocation> fromDirectory(File rootDirectory, String supplierName) {
+    public static Set<InstallationLocation> fromDirectory(File rootDirectory, String supplierName, boolean autoDetected) {
         final File[] javaCandidates = rootDirectory.listFiles();
         if (javaCandidates == null) {
             return Collections.emptySet();
         }
         return Stream.of(javaCandidates)
             .filter(File::isDirectory)
-            .map(d -> new InstallationLocation(d, supplierName))
+            .map(d -> new InstallationLocation(d, supplierName, autoDetected))
             .collect(toSet());
     }
 

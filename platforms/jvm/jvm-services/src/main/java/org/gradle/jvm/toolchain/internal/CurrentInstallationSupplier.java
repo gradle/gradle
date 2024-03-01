@@ -42,7 +42,7 @@ public class CurrentInstallationSupplier extends AutoDetectingInstallationSuppli
     }
 
     private InstallationLocation asInstallation(File javaHome) {
-        return new InstallationLocation(javaHome, getSourceName());
+        return new InstallationLocation(javaHome, getSourceName(), true);
     }
 
 }

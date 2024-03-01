@@ -22,19 +22,22 @@ import java.io.File;
 
 public class InstallationLocation implements Describable {
 
-    private File location;
+    private final File location;
 
-    private String source;
+    private final String source;
 
-    private boolean autoProvisioned;
+    private final boolean autoDetected;
 
-    public InstallationLocation(File location, String source) {
-        this(location, source, false);
+    private final boolean autoProvisioned;
+
+    public InstallationLocation(File location, String source, boolean autoDetected) {
+        this(location, source, autoDetected, false);
     }
 
-    public InstallationLocation(File location, String source, boolean autoProvisioned) {
+    public InstallationLocation(File location, String source, boolean autoDetected, boolean autoProvisioned) {
         this.location = location;
         this.source = source;
+        this.autoDetected = autoDetected;
         this.autoProvisioned = autoProvisioned;
     }
 
@@ -49,6 +52,15 @@ public class InstallationLocation implements Describable {
 
     public String getSource() {
         return source;
+    }
+
+    /**
+     * Flag for if this location was auto-detected, i.e. not explicitly configured by the user.
+     *
+     * This is used to lower the severity of issues related to this location.
+     */
+    public boolean isAutoDetected() {
+        return autoDetected;
     }
 
     public boolean isAutoProvisioned() {

@@ -107,7 +107,7 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
                     }
                 }
                 return locations.stream()
-                    .map(jdkHome -> new InstallationLocation(new File(jdkHome), getSourceName()))
+                    .map(jdkHome -> new InstallationLocation(new File(jdkHome), getSourceName(), true))
                     .collect(Collectors.toSet());
             } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
                 if (LOGGER.isDebugEnabled()) {

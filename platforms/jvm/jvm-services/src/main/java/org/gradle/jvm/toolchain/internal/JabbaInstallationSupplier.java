@@ -48,7 +48,7 @@ public class JabbaInstallationSupplier extends AutoDetectingInstallationSupplier
     private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
         return jabbaHome -> {
             final File root = new File(jabbaHome, "jdk");
-            return FileBasedInstallationFactory.fromDirectory(root, getSourceName());
+            return FileBasedInstallationFactory.fromDirectory(root, getSourceName(), true);
         };
     }
 

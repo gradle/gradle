@@ -71,7 +71,7 @@ public class OsXInstallationSupplier extends AutoDetectingInstallationSupplier {
     }
 
     private InstallationLocation asInstallation(File javaHome) {
-        return new InstallationLocation(javaHome, getSourceName());
+        return new InstallationLocation(javaHome, getSourceName(), true);
     }
 
     private Reader executeJavaHome() {
