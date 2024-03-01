@@ -101,7 +101,7 @@ BUILD SUCCESSFUL
 
 Now we see that, instead of executing the `:compileJava` task, the outputs of the task have been loaded from the build cache.
 The other tasks have not been loaded from the build cache since they are not cacheable. This is due to
-`:classes` and `:assemble` being <<more_about_tasks.adoc#sec:lifecycle_tasks,lifecycle tasks>> and `:processResources`
+`:classes` and `:assemble` being <<lifecycle_tasks.adoc#sec:lifecycle_tasks,lifecycle tasks>> and `:processResources`
 and `:jar` being Copy-like tasks which are not cacheable since it is generally faster to execute them.
 
 [[sec:task_output_caching_details]]

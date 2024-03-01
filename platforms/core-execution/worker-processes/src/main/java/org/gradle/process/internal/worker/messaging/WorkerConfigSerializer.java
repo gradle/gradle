@@ -48,19 +48,21 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
     public WorkerConfig read(Decoder decoder) throws IOException {
         LogLevel logLevel = LogLevel.values()[decoder.readSmallInt()];
         boolean shouldPublishJvmMemoryInfo = decoder.readBoolean();
+        boolean useNativeServices = decoder.readBoolean();
         String gradleUserHomeDirPath = decoder.readString();
         MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
         final long workerId = decoder.readSmallLong();
         final String displayName = decoder.readString();
         Action<? super WorkerProcessContext> workerAction = deserializeWorker(decoder.readBinary(), getClass().getClassLoader());
 
-        return new WorkerConfig(logLevel, shouldPublishJvmMemoryInfo, gradleUserHomeDirPath, serverAddress, workerId, displayName, workerAction);
+        return new WorkerConfig(logLevel, shouldPublishJvmMemoryInfo, gradleUserHomeDirPath, serverAddress, workerId, displayName, workerAction, useNativeServices);
     }
 
     @Override
     public void write(Encoder encoder, WorkerConfig config) throws IOException {
         encoder.writeSmallInt(config.getLogLevel().ordinal());
         encoder.writeBoolean(config.shouldPublishJvmMemoryInfo());
+        encoder.writeBoolean(config.useNativeServices());
         encoder.writeString(config.getGradleUserHomeDirPath());
         new MultiChoiceAddressSerializer().write(encoder, config.getServerAddress());
         encoder.writeSmallLong(config.getWorkerId());

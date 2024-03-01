@@ -139,7 +139,7 @@ object DomResolutionTest {
             """
             ContainerElementResolved -> element addAndConfigure(String): TopLevelElement
             LiteralValueResolved -> correct
-            ElementNotResolved(BlockMismatch)
+            ElementNotResolved(UnresolvedSignature)
             LiteralValueResolved -> lambda missing
             ElementNotResolved(UnresolvedSignature)
             LiteralValueResolved -> incorrect signature
@@ -265,6 +265,7 @@ object DomResolutionTest {
 
     private
     class ComplexValueOne
+
     private
     class ComplexValueTwo
 

@@ -64,6 +64,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private ClassPath resolvedClasspath;
     private RepositoryHandler repositoryHandler;
     private DependencyHandler dependencyHandler;
+    private ScriptClassPathResolutionContext resolutionContext;
     private RoleBasedConfigurationContainerInternal configContainer;
     private Configuration classpathConfiguration;
 
@@ -102,7 +103,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     public ClassPath getInstrumentedScriptClassPath() {
         if (resolvedClasspath == null) {
             if (classpathConfiguration != null) {
-                Factory<ClassPath> classPathFactory = () -> buildLogicBuilder.resolveClassPath(classpathConfiguration, dependencyHandler, configContainer);
+                Factory<ClassPath> classPathFactory = () -> buildLogicBuilder.resolveClassPath(classpathConfiguration, resolutionContext);
                 if (getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
                     resolvedClasspath = classPathFactory.create();
                 } else {
@@ -153,11 +154,11 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
-            buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
+            resolutionContext = buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
-            buildLogicBuilder.prepareClassPath(classpathConfiguration, dependencyHandler);
+            buildLogicBuilder.prepareClassPath(classpathConfiguration, resolutionContext);
         }
     }
 

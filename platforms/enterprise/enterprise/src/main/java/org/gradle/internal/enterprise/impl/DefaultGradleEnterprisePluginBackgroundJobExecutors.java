@@ -16,13 +16,11 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.configurationcache.InputTrackingState;
 import org.gradle.internal.concurrent.ExecutorPolicy;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.ManagedExecutorImpl;
+import org.gradle.internal.enterprise.DevelocityPluginUnsafeConfigurationService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBackgroundJobExecutors;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -33,10 +31,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-@ServiceScope(Scopes.Gradle.class)
 public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements GradleEnterprisePluginBackgroundJobExecutors {
     private final ManagedExecutor executorService = createExecutor();
-    private final InputTrackingState inputTrackingState;
+    private final DevelocityPluginUnsafeConfigurationService unsafeConfigurationService;
 
     private static ManagedExecutor createExecutor() {
         ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
@@ -51,8 +48,8 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
     }
 
     @Inject
-    public DefaultGradleEnterprisePluginBackgroundJobExecutors(InputTrackingState inputTrackingState) {
-        this.inputTrackingState = inputTrackingState;
+    public DefaultGradleEnterprisePluginBackgroundJobExecutors(DevelocityPluginUnsafeConfigurationService unsafeConfigurationService) {
+        this.unsafeConfigurationService = unsafeConfigurationService;
     }
 
     @Override
@@ -61,16 +58,10 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
     }
 
     private void executeUserJob(Runnable job) {
-        executorService.execute(() -> runWithInputTrackingDisabled(job));
-    }
-
-    private void runWithInputTrackingDisabled(Runnable job) {
-        inputTrackingState.disableForCurrentThread();
-        try {
+        executorService.execute(() -> unsafeConfigurationService.withConfigurationInputTrackingDisabled(() -> {
             job.run();
-        } finally {
-            inputTrackingState.restoreForCurrentThread();
-        }
+            return null;
+        }));
     }
 
     @Override

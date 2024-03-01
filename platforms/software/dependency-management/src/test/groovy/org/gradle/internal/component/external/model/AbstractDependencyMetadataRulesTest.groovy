@@ -23,7 +23,6 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSupport
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl
@@ -76,7 +75,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         DependencyManagementTestUtil.platformSupport().configureSchema(schema)
         GradlePluginVariantsSupport.configureSchema(schema)
-        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
         schema
     }
 

@@ -54,11 +54,6 @@ public class DslOriginDependencyMetadataWrapper extends DelegatingDependencyMeta
     }
 
     @Override
-    public String getDependencyConfiguration() {
-        return delegate.getDependencyConfiguration();
-    }
-
-    @Override
     public boolean isForce() {
         return delegate.isForce();
     }

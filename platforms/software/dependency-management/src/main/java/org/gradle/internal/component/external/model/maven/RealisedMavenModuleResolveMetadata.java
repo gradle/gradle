@@ -75,7 +75,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         VariantMetadataRules variantMetadataRules = metadata.getVariantMetadataRules();
         ImmutableList<? extends ComponentVariant> variants = LazyToRealisedModuleComponentResolveMetadataHelper.realiseVariants(metadata, variantMetadataRules, metadata.getVariants());
         Map<String, ModuleConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(metadata.getConfigurationNames().size());
-        List<ModuleConfigurationMetadata> derivedVariants = ImmutableList.of();
+        ImmutableList<ModuleConfigurationMetadata> derivedVariants = ImmutableList.of();
         if (variants.isEmpty()) {
             Optional<List<? extends ModuleConfigurationMetadata>> sourceVariants = metadata.deriveVariants();
             if (sourceVariants.isPresent()) {
@@ -101,8 +101,9 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                     );
                     builder.add(derivedVariantMetadata);
                 }
-                derivedVariants = addVariantsFromRules(metadata, builder.build(), variantMetadataRules);
+                derivedVariants = builder.build();
             }
+            derivedVariants = addVariantsFromRules(metadata, derivedVariants, variantMetadataRules);
         }
         for (String configurationName : metadata.getConfigurationNames()) {
             configurations.put(configurationName, createConfiguration(metadata, configurationName));
@@ -110,7 +111,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return new RealisedMavenModuleResolveMetadata(metadata, variants, derivedVariants, configurations);
     }
 
-    private static List<ModuleConfigurationMetadata> addVariantsFromRules(
+    private static ImmutableList<ModuleConfigurationMetadata> addVariantsFromRules(
         ModuleComponentResolveMetadata componentMetadata,
         ImmutableList<ModuleConfigurationMetadata> derivedVariants,
         VariantMetadataRules variantMetadataRules
@@ -224,9 +225,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     }
 
     static ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, MavenDependencyDescriptor incoming) {
-        ConfigurationBoundExternalDependencyMetadata dependency = new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
-        dependency.alwaysUseAttributeMatching();
-        return dependency;
+        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming, true);
     }
 
     private final NamedObjectInstantiator objectInstantiator;

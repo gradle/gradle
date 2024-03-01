@@ -52,7 +52,6 @@ dependencies {
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
-    ignoreParameterizedVarargType() // [unchecked] Possible heap pollution from parameterized vararg type: GenerateBuildDashboard.aggregate()
 }
 
 packageCycles {

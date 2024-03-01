@@ -131,12 +131,11 @@ sealed interface ObjectOrigin {
         override val receiver: ObjectOrigin,
         override val function: SchemaFunction,
         override val originElement: FunctionCall,
+        override val parameterBindings: ParameterValueBinding,
         override val invocationId: Long,
         val accessor: ConfigureAccessor,
     ) : FunctionInvocationOrigin, ReceiverOrigin, DelegatingObjectOrigin {
         override fun toString(): String = accessor.access(receiver, this).toString()
-
-        override val parameterBindings: ParameterValueBinding = ParameterValueBinding(emptyMap())
 
         override val delegate: ObjectOrigin
             get() = accessor.access(receiver, this)
@@ -224,7 +223,10 @@ sealed interface ObjectOrigin {
 }
 
 
-data class ParameterValueBinding(val bindingMap: Map<DataParameter, ObjectOrigin>)
+data class ParameterValueBinding(
+    val bindingMap: Map<DataParameter, ObjectOrigin>,
+    val providesConfigureBlock: Boolean
+)
 
 
 private
@@ -245,4 +247,7 @@ fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, 
         append("(")
         append(parameterBindings.bindingMap.entries.joinToString { (k, v) -> "${k.name} = $v" })
         append(")")
+        if (parameterBindings.providesConfigureBlock) {
+            append(" { ... }")
+        }
     }

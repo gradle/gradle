@@ -55,7 +55,7 @@ import java.util.List;
  */
 public final class ResolutionFailureDescriberRegistry {
     private final InstanceGenerator instanceGenerator;
-    private final LinkedHashMap<Class<? extends ResolutionFailure>, List<ResolutionFailureDescriber<?, ?>>> describers = new LinkedHashMap<>();
+    private final LinkedHashMap<Class<? extends ResolutionFailure>, List<ResolutionFailureDescriber<?>>> describers = new LinkedHashMap<>();
 
     private ResolutionFailureDescriberRegistry(InstanceGenerator instanceGenerator) {
         this.instanceGenerator = instanceGenerator;
@@ -108,10 +108,10 @@ public final class ResolutionFailureDescriberRegistry {
      * @param <FAILURE> The type of failure to describe
      * @return The list of describers registered for the given failure type
      */
-    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<?, FAILURE>> getDescribers(Class<FAILURE> failureType) {
-        List<ResolutionFailureDescriber<?, FAILURE>> result = new ArrayList<>();
+    public <FAILURE extends ResolutionFailure> List<ResolutionFailureDescriber<FAILURE>> getDescribers(Class<FAILURE> failureType) {
+        List<ResolutionFailureDescriber<FAILURE>> result = new ArrayList<>();
         describers.getOrDefault(failureType, Collections.emptyList()).forEach(d -> {
-            @SuppressWarnings("unchecked") ResolutionFailureDescriber<?, FAILURE> typedDescriber = (ResolutionFailureDescriber<?, FAILURE>) d;
+            @SuppressWarnings("unchecked") ResolutionFailureDescriber<FAILURE> typedDescriber = (ResolutionFailureDescriber<FAILURE>) d;
             result.add(typedDescriber);
         });
         return result;
@@ -125,8 +125,8 @@ public final class ResolutionFailureDescriberRegistry {
      * @param describerType A describer that can potentially describe failures of the given type
      * @param <FAILURE> The type of failure to describe
      */
-    public <FAILURE extends ResolutionFailure> void registerDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<?, FAILURE>> describerType) {
-        ResolutionFailureDescriber<?, ?> describer = instanceGenerator.newInstance(describerType);
+    public <FAILURE extends ResolutionFailure> void registerDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<FAILURE>> describerType) {
+        ResolutionFailureDescriber<?> describer = instanceGenerator.newInstance(describerType);
         describers.computeIfAbsent(failureType, k -> new ArrayList<>()).add(describer);
     }
 }

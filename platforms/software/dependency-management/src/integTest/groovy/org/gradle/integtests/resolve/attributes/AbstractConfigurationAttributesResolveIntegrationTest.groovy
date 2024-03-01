@@ -648,8 +648,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
-  - None of the variants have attributes."""
+        failure.assertHasCause """Selected configuration 'default' on 'project :b' but it can't be used as a project dependency because it isn't intended for consumption by other components."""
     }
 
     def "does not select explicit configuration when it's not consumable"() {

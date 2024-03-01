@@ -22,7 +22,7 @@ import kotlin.reflect.KFunction
 
 
 interface RestrictedRuntimeFunction {
-    fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): InvocationResult
+    fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): InvocationResult
 
     data class InvocationResult(val result: Any?, val capturedValue: Any?)
 }
@@ -30,8 +30,8 @@ interface RestrictedRuntimeFunction {
 
 internal
 class ReflectionFunction(private val kFunction: KFunction<*>, private val configureLambdaHandler: ConfigureLambdaHandler) : RestrictedRuntimeFunction {
-    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>): RestrictedRuntimeFunction.InvocationResult {
-        val params = FunctionBinding.convertBinding(kFunction, receiver, binding, configureLambdaHandler)
+    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): RestrictedRuntimeFunction.InvocationResult {
+        val params = FunctionBinding.convertBinding(kFunction, receiver, binding, hasLambda, configureLambdaHandler)
             ?: error("signature of $kFunction does not match the arguments: $binding")
         val captor = params.valueCaptor
         return RestrictedRuntimeFunction.InvocationResult(kFunction.callBy(params.map), captor?.value)

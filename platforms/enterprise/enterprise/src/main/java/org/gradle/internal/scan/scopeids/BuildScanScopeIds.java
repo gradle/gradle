@@ -17,11 +17,14 @@
 package org.gradle.internal.scan.scopeids;
 
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Obtained from the Gradle object services.
  * Exists to remove linkage against types such as {@link BuildInvocationScopeId} and friends.
  */
+@ServiceScope(Scopes.Gradle.class)
 public interface BuildScanScopeIds {
 
     String getBuildInvocationId();

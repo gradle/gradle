@@ -16,17 +16,20 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.internal.component.AmbiguousGraphVariantsException;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.CapabilitiesDescriber;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import static org.gradle.internal.exceptions.StyledException.style;
@@ -34,21 +37,19 @@ import static org.gradle.internal.exceptions.StyledException.style;
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link VariantAwareAmbiguousResolutionFailure}.
  */
-public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousGraphVariantsException, VariantAwareAmbiguousResolutionFailure> {
+public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<VariantAwareAmbiguousResolutionFailure> {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
 
     @Override
-    public AmbiguousGraphVariantsException describeFailure(VariantAwareAmbiguousResolutionFailure failure) {
-        String message = buildAmbiguousGraphVariantsFailureMsg(failure);
-        AmbiguousGraphVariantsException result = new AmbiguousGraphVariantsException(message);
-        suggestSpecificDocumentation(result, AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION);
-        suggestReviewAlgorithm(result);
-        return result;
+    public VariantSelectionException describeFailure(VariantAwareAmbiguousResolutionFailure failure, Optional<AttributesSchemaInternal> schema) {
+        String message = buildAmbiguousGraphVariantsFailureMsg(failure, schema.orElseThrow(IllegalArgumentException::new));
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION), suggestReviewAlgorithm());
+        return new VariantSelectionException(message, failure, resolutions);
     }
 
-    private String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure failure) {
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
+    private String buildAmbiguousGraphVariantsFailureMsg(VariantAwareAmbiguousResolutionFailure failure, AttributesSchemaInternal schema) {
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema);
 
         Map<String, ResolutionCandidateAssessor.AssessedCandidate> ambiguousVariants = new TreeMap<>();
         for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
@@ -71,7 +72,7 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
         // to make sure the output is consistently the same between invocations
         formatter.startChildren();
         for (ResolutionCandidateAssessor.AssessedCandidate assessedCandidate : ambiguousVariants.values()) {
-            formatUnselectable(assessedCandidate, formatter, failure.getTargetComponent(), describer);
+            formatUnselectable(assessedCandidate, formatter, failure.getTargetComponentId(), describer);
         }
         formatter.endChildren();
 
@@ -81,13 +82,13 @@ public abstract class AmbiguousGraphVariantsFailureDescriber extends AbstractRes
     private void formatUnselectable(
         ResolutionCandidateAssessor.AssessedCandidate assessedCandidate,
         TreeFormatter formatter,
-        ComponentGraphResolveMetadata targetComponent,
+        ModuleVersionIdentifier targetComponentId,
         AttributeDescriber describer
     ) {
         formatter.node("Variant '");
         formatter.append(assessedCandidate.getDisplayName());
         formatter.append("'");
-        formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(targetComponent, assessedCandidate.getCandidateCapabilities().asSet()));
+        formatter.append(" " + CapabilitiesDescriber.describeCapabilitiesWithTitle(targetComponentId, assessedCandidate.getCandidateCapabilities().asSet()));
 
         formatAttributeMatchesForAmbiguity(assessedCandidate, formatter, describer);
     }
