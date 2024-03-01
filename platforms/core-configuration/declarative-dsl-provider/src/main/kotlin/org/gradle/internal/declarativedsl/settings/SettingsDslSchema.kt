@@ -17,12 +17,32 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
+import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.plus
+import org.gradle.internal.declarativedsl.plugins.PluginsInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.project.ThirdPartyExtensionsComponent
 import org.gradle.internal.declarativedsl.project.gradleDslGeneralSchemaComponent
+
+
+internal
+fun settingsInterpretationSequence(
+    settings: SettingsInternal,
+    targetScope: ClassLoaderScope,
+    scriptSource: ScriptSource
+): InterpretationSequence =
+    InterpretationSequence(
+        listOf(
+            PluginsInterpretationSequenceStep("settingsPlugins", settings, targetScope, scriptSource) { it.services },
+            SimpleInterpretationSequenceStep("settings", settings) { settingsEvaluationSchema(settings) }
+        )
+    )
 
 
 internal

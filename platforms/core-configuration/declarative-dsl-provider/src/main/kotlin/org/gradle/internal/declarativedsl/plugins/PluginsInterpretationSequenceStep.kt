@@ -37,11 +37,11 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 internal
 class PluginsInterpretationSequenceStep<T>(
+    override val stepIdentifier: String = "plugins",
     private val target: T,
     private val targetScope: ClassLoaderScope,
     private val scriptSource: ScriptSource,
     private val getTargetServices: (T) -> ServiceRegistry,
-    override val stepIdentifier: String = "plugins",
 ) : InterpretationSequenceStep<PluginsTopLevelReceiver> {
     override fun evaluationSchemaForStep(): EvaluationSchema = EvaluationSchema(
         schemaForPluginsBlock,
@@ -74,5 +74,13 @@ val analyzeTopLevelPluginsBlockOnly = AnalysisStatementFilter { statement, scope
 
 
 internal
+val analyzeEverythingExceptPluginsBlock = AnalysisStatementFilter { statement, scopes ->
+    if (scopes.last().receiver is ObjectOrigin.TopLevelReceiver) {
+        !isPluginsCall(statement)
+    } else true
+}
+
+
+private
 fun isPluginsCall(statement: DataStatement) =
     statement is FunctionCall && statement.name == "plugins" && statement.args.size == 1 && statement.args.single() is FunctionArgument.Lambda
