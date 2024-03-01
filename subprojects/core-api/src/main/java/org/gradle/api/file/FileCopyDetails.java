@@ -77,7 +77,6 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      *
      * @since 8.3
      */
-    @Incubating
     void permissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**

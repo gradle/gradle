@@ -15,8 +15,6 @@
  */
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -113,6 +111,5 @@ public interface FileTreeElement {
      *
      * @since 8.3
      */
-    @Incubating
     FilePermissions getPermissions();
 }

@@ -18,7 +18,6 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 
@@ -142,7 +141,6 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @since 8.3
      */
-    @Incubating
     Property<ConfigurableFilePermissions> getFilePermissions();
 
     /**
@@ -151,7 +149,6 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @since 8.3
      */
-    @Incubating
     CopyProcessingSpec filePermissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**
@@ -160,7 +157,6 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @since 8.3
      */
-    @Incubating
     Property<ConfigurableFilePermissions> getDirPermissions();
 
     /**
@@ -169,7 +165,6 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @since 8.3
      */
-    @Incubating
     CopyProcessingSpec dirPermissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**
