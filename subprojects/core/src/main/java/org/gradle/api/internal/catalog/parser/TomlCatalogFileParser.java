@@ -322,10 +322,14 @@ public class TomlCatalogFileParser {
         if (gav instanceof String) {
             List<String> split = SPLITTER.splitToList((String) gav);
             if (split.size() != 3) {
-                throw throwVersionCatalogProblemException(builder ->
+                throw throwVersionCatalogProblemException(builder -> {
                     configureVersionCatalogError(builder, getInVersionCatalog(versionCatalogBuilder.getName()) + ", on alias '" + alias + "' notation '" + gav + "' is not a valid dependency notation.", INVALID_DEPENDENCY_NOTATION)
                         .details("When using a string to declare library coordinates, you must use a valid dependency notation")
-                        .solution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2"));
+                        .solution("Make sure that the coordinates consist of 3 parts separated by colons, e.g.: my.group:artifact:1.2");
+                    if (split.size() == 2) {
+                        builder.solution("To declare without a version, use '" + alias + ".module' instead, i.e.: " + alias + ".module = \"" + gav + "\"");
+                    }
+                });
             }
             String group = notEmpty(split.get(0), "group", alias);
             String name = notEmpty(split.get(1), "name", alias);
