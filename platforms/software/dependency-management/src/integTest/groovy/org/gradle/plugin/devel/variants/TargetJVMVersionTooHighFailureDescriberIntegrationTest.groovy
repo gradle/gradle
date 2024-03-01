@@ -205,57 +205,58 @@ class TargetJVMVersionTooHighFailureDescriberIntegrationTest extends AbstractInt
     def 'spring boot 3 plugin usage with jvm < 17 uses custom error message'() {
         given:
         buildFile << """
-        plugins {
-            id "application"
-            id "org.springframework.boot" version "3.2.1"           // Any version of Spring Boot >= 3
-            id "io.spring.dependency-management" version "1.1.4"    // Align this with the Spring Boot version (see TestedVersions)
-        }
-
-        ${mavenCentralRepository()}
-
-        application {
-            applicationDefaultJvmArgs = ['-DFOO=42']
-        }
-
-        dependencies {
-            implementation 'org.springframework.boot:spring-boot-starter'
-        }
-
-        testing.suites.test {
-            useJUnitJupiter()
-            dependencies {
-                implementation 'org.springframework.boot:spring-boot-starter-test'
+            plugins {
+                id "application"
+                id "org.springframework.boot" version "3.2.1"           // Any version of Spring Boot >= 3
+                id "io.spring.dependency-management" version "1.1.4"    // Align this with the Spring Boot version (see TestedVersions)
             }
-        }
-    """.stripIndent()
+
+            ${mavenCentralRepository()}
+
+            application {
+                applicationDefaultJvmArgs = ['-DFOO=42']
+            }
+
+            dependencies {
+                implementation 'org.springframework.boot:spring-boot-starter'
+            }
+
+            testing.suites.test {
+                useJUnitJupiter()
+                dependencies {
+                    implementation 'org.springframework.boot:spring-boot-starter-test'
+                }
+            }
+        """.stripIndent()
 
         file('src/main/java/example/Application.java') << """
-        package example;
+            package example;
 
-        import org.springframework.boot.SpringApplication;
-        import org.springframework.boot.autoconfigure.SpringBootApplication;
+            import org.springframework.boot.SpringApplication;
+            import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-        @SpringBootApplication
-        public class Application {
-            public static void main(String[] args) {
-                SpringApplication.run(Application.class, args);
-                System.out.println("FOO: " + System.getProperty("FOO"));
+            @SpringBootApplication
+            public class Application {
+                public static void main(String[] args) {
+                    SpringApplication.run(Application.class, args);
+                    System.out.println("FOO: " + System.getProperty("FOO"));
+                }
             }
-        }
-    """.stripIndent()
+        """.stripIndent()
+
         file("src/test/java/example/ApplicationTest.java") << """
-        package example;
+            package example;
 
-        import org.junit.jupiter.api.Test;
-        import org.springframework.boot.test.context.SpringBootTest;
+            import org.junit.jupiter.api.Test;
+            import org.springframework.boot.test.context.SpringBootTest;
 
-        @SpringBootTest
-        class ApplicationTest {
-            @Test
-            void contextLoads() {
+            @SpringBootTest
+            class ApplicationTest {
+                @Test
+                void contextLoads() {
+                }
             }
-        }
-    """
+        """
 
         when:
         fails 'build', "--stacktrace"
