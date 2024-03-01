@@ -26,6 +26,8 @@ import org.gradle.api.tasks.Internal;
 
 /**
  * Common interface for Scala tasks.
+ *
+ * @since 8.8
  */
 public interface ScalaTask extends Task, IConventionAware, Named {
 
