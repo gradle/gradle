@@ -131,13 +131,13 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         long contextId = resolutionContext.getContextId();
         CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();
         try (ResolutionScope resolutionScope = buildService.newResolutionScope(contextId)) {
+            ArtifactView originalDependencies = getOriginalDependencies(classpathConfiguration);
             resolutionScope.setAnalysisResult(getAnalysisResult(classpathConfiguration));
-            resolutionScope.setOriginalClasspath(classpathConfiguration);
-            ArtifactCollection originalDependencies = getOriginalDependencies(classpathConfiguration);
+            resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
             ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
             List<File> instrumentedClasspath = InstrumentationClasspathMerger.mergeToClasspath(
-                originalDependencies,
+                originalDependencies.getArtifacts(),
                 instrumentedExternalDependencies,
                 instrumentedProjectDependencies
             );
@@ -154,10 +154,10 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         }).getFiles();
     }
 
-    private static ArtifactCollection getOriginalDependencies(Configuration classpathConfiguration) {
+    private static ArtifactView getOriginalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.componentFilter(it -> !isGradleApi(it));
-        }).getArtifacts();
+        });
     }
 
     private static ArtifactCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
