@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
-
+import org.gradle.configurationcache.fixtures.SomeToolingModel
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -61,7 +61,7 @@ class IsolatedProjectsToolingApiParallelModelQueryIntegrationTest extends Abstra
         and:
         fixture.assertStateStored {
             projectsConfigured(":buildSrc", ":")
-            modelsCreated(":", 1)
+            modelsCreated(SomeToolingModel, ":") // only single model is created and reused
         }
     }
 
