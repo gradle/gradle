@@ -186,7 +186,6 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
                 hasher.putHash(snapshot.getHash());
                 hasher.putString(file.getName());
-                hasher.putBoolean(internalServices.getGlobalCacheLocations().isInsideGlobalCache(file.getAbsolutePath()));
                 return hasher.hash().toString();
             });
         }
