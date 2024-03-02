@@ -19,7 +19,6 @@ package org.gradle.configurationcache.isolated
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 
 class IsolatedProjectsToolingApiParallelModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
@@ -30,8 +29,7 @@ class IsolatedProjectsToolingApiParallelModelQueryIntegrationTest extends Abstra
         server.start()
     }
 
-    @ToBeImplemented
-    def "intermediate models are requested in parallel, but creation happens only once"() {
+    def "intermediate model is cached and reused for nested concurrent requests"() {
         withSomeToolingModelBuilderPluginInBuildSrc("""
             Thread.sleep(3000) // Simulate long-running builder to ensure overlap
         """)
@@ -63,7 +61,7 @@ class IsolatedProjectsToolingApiParallelModelQueryIntegrationTest extends Abstra
         and:
         fixture.assertStateStored {
             projectsConfigured(":buildSrc", ":")
-            modelsCreated(":", 3) // When fixed should be only one SomeToolingModel
+            modelsCreated(":", 1)
         }
     }
 
