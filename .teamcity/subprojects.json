@@ -350,8 +350,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "execution-integ-tests",
-    "path": "platforms/core-execution/execution-integ-tests",
+    "name": "execution-e2e-tests",
+    "path": "platforms/core-execution/execution-e2e-tests",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
