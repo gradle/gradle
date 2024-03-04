@@ -102,13 +102,6 @@ public abstract class DefaultToolchainSpec implements JavaToolchainSpecInternal 
     }
 
     @Override
-    public void finalizeProperties() {
-        getLanguageVersion().finalizeValue();
-        getVendor().finalizeValue();
-        getImplementation().finalizeValue();
-    }
-
-    @Override
     public String toString() {
         return getDisplayName();
     }

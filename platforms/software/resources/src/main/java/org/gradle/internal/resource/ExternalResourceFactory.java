@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
+package org.gradle.internal.resource;
 
-import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.authentication.Authentication;
 
-import java.io.File;
+import java.net.URI;
+import java.util.Collection;
 
-@EventScope({Scope.Global.class, Scope.Build.class})
-public interface FileResourceListener {
-    /**
-     * Called when a file system resource is accessed as a regular file.
-     */
-    void fileObserved(File file);
+public interface ExternalResourceFactory {
 
-    /**
-     * Called when the children of a file system resource are listed.
-     */
-    void directoryChildrenObserved(File file);
+    ExternalResourceRepository createExternalResource(URI source, Collection<Authentication> authentications);
 }

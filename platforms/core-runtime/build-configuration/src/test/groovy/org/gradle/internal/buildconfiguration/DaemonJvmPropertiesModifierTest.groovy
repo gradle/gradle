@@ -19,7 +19,7 @@ package org.gradle.internal.buildconfiguration
 import org.gradle.api.JavaVersion
 import org.gradle.internal.buildconfiguration.resolvers.ToolchainRepositoriesResolver
 import org.gradle.internal.buildconfiguration.resolvers.UnconfiguredToolchainRepositoriesResolver
-import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmModifier
+import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesModifier
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.platform.Architecture
@@ -34,7 +34,7 @@ import spock.lang.Specification
 
 import javax.annotation.Nullable
 
-class UpdateDaemonJvmModifierTest extends Specification {
+class DaemonJvmPropertiesModifierTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -47,9 +47,9 @@ class UpdateDaemonJvmModifierTest extends Specification {
             (createBuildPlatform(Architecture.X86_64, OperatingSystem.MAC_OS)): "https://server/whatever2",
             (createBuildPlatform(Architecture.X86, OperatingSystem.WINDOWS)): "https://server/whatever3"
         ])
-        def updateDaemonJvmModifier = new UpdateDaemonJvmModifier(toolchainRepositoriesResolver)
+        def propertiesModifier = new DaemonJvmPropertiesModifier(toolchainRepositoriesResolver)
         when:
-        updateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, JvmVendorSpec.IBM, JvmImplementation.VENDOR_SPECIFIC)
+        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, JvmVendorSpec.IBM, JvmImplementation.VENDOR_SPECIFIC)
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "11"
@@ -63,9 +63,9 @@ class UpdateDaemonJvmModifierTest extends Specification {
 
     def "writes only non-null properties into file"() {
         given:
-        def updateDaemonJvmModifier = new UpdateDaemonJvmModifier(new FakeResolver())
+        def propertiesModifier = new DaemonJvmPropertiesModifier(new FakeResolver())
         when:
-        updateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, null, JvmImplementation.VENDOR_SPECIFIC)
+        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, null, JvmImplementation.VENDOR_SPECIFIC)
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "11"
@@ -75,9 +75,9 @@ class UpdateDaemonJvmModifierTest extends Specification {
 
     def "writes only java version when no other properties are given"() {
         given:
-        def updateDaemonJvmModifier = new UpdateDaemonJvmModifier(new FakeResolver())
+        def propertiesModifier = new DaemonJvmPropertiesModifier(new FakeResolver())
         when:
-        updateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, null, null)
+        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, null, null)
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "11"
@@ -87,14 +87,14 @@ class UpdateDaemonJvmModifierTest extends Specification {
 
     def "existing properties are removed when null is passed"() {
         given:
-        def updateDaemonJvmModifier = new UpdateDaemonJvmModifier(new FakeResolver())
+        def propertiesModifier = new DaemonJvmPropertiesModifier(new FakeResolver())
         daemonJvmPropertiesFile.text = """
             ${DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY}=11
             ${DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY}=IBM
             ${DaemonJvmPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY}=vendor-specific
         """
         when:
-        updateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_15, null, null)
+        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_15, null, null)
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "15"
@@ -104,14 +104,14 @@ class UpdateDaemonJvmModifierTest extends Specification {
 
     def "existing unrecognized properties are not preserved"() {
         given:
-        def updateDaemonJvmModifier = new UpdateDaemonJvmModifier(new FakeResolver())
+        def propertiesModifier = new DaemonJvmPropertiesModifier(new FakeResolver())
         daemonJvmPropertiesFile.text = """
             # this comment is not preserved
             com.example.foo=bar
             ${DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY}=15
         """
         when:
-        updateDaemonJvmModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, JvmVendorSpec.IBM, JvmImplementation.VENDOR_SPECIFIC)
+        propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaVersion.VERSION_11, JvmVendorSpec.IBM, JvmImplementation.VENDOR_SPECIFIC)
         then:
         def props = daemonJvmPropertiesFile.properties
         props.size() == 3

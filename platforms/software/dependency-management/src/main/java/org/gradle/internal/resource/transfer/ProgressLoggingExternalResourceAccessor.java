@@ -126,7 +126,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
                         context.failed(ResourceExceptions.getMissing(metaData.getLocation()));
                         return null;
                     }
-                    ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation);
+                    ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation::logProcessedBytes);
                     return action.execute(stream, metaData);
                 });
             } finally {

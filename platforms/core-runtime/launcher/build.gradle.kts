@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":problems"))
     implementation(project(":toolchains-jvm-shared"))
     implementation(project(":declarative-dsl-provider"))
+    implementation(project(":resources-http"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)

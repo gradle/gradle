@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,10 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService
+import org.gradle.jvm.toolchain.internal.install.exceptions.NoToolchainAvailableException
 import org.gradle.platform.Architecture
 import org.gradle.platform.BuildPlatform
+import org.gradle.platform.OperatingSystem
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -178,7 +180,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=12, vendor=any, implementation=vendor-specific} for LINUX on x86_64."
+        e.message == "Cannot find a Java installation on your machine matching toolchain requirements: {languageVersion=12, vendor=any, implementation=vendor-specific} for LINUX on x86_64."
         e.cause.message == "Configured toolchain download repositories can't match requested specification"
     }
 
@@ -303,16 +305,6 @@ class JavaToolchainQueryServiceTest extends Specification {
         def registry = createInstallationRegistry([])
         def installed = false
         def provisionService = new JavaToolchainProvisioningService() {
-            @Override
-            boolean isAutoDownloadEnabled() {
-                return true
-            }
-
-            @Override
-            boolean hasConfiguredToolchainRepositories() {
-                return true
-            }
-
             File tryInstall(JavaToolchainSpec spec) {
                 installed = true
                 new File("/path/12")
@@ -335,16 +327,6 @@ class JavaToolchainQueryServiceTest extends Specification {
         def registry = createInstallationRegistry([])
         def installed = false
         def provisionService = new JavaToolchainProvisioningService() {
-            @Override
-            boolean isAutoDownloadEnabled() {
-                return true
-            }
-
-            @Override
-            boolean hasConfiguredToolchainRepositories() {
-                return true
-            }
-
             File tryInstall(JavaToolchainSpec spec) {
                 installed = true
                 new File("/path/12.broken")
@@ -368,16 +350,6 @@ class JavaToolchainQueryServiceTest extends Specification {
         def registry = createInstallationRegistry([])
         int installed = 0
         def provisionService = new JavaToolchainProvisioningService() {
-            @Override
-            boolean isAutoDownloadEnabled() {
-                return true
-            }
-
-            @Override
-            boolean hasConfiguredToolchainRepositories() {
-                return true
-            }
-
             File tryInstall(JavaToolchainSpec spec) {
                 installed++
                 new File("/path/12")
@@ -498,8 +470,8 @@ class JavaToolchainQueryServiceTest extends Specification {
     ) {
         def buildPlatform = new BuildPlatform() {
             @Override
-            org.gradle.platform.OperatingSystem getOperatingSystem() {
-                return org.gradle.platform.OperatingSystem.LINUX
+            OperatingSystem getOperatingSystem() {
+                return OperatingSystem.LINUX
             }
 
             @Override
@@ -507,6 +479,7 @@ class JavaToolchainQueryServiceTest extends Specification {
                 return Architecture.X86_64
             }
         }
-        new JavaToolchainQueryService(registry, detector, TestFiles.fileFactory(), provisioningService, TestUtil.objectFactory(), currentJavaHome, buildPlatform)
+        def fallbackToolchainSpec = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec.class)
+        new JavaToolchainQueryService(detector, TestFiles.fileFactory(), provisioningService, registry, fallbackToolchainSpec, buildPlatform, currentJavaHome)
     }
 }

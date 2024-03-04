@@ -18,8 +18,6 @@ package org.gradle.internal.resource.transfer;
 
 import org.gradle.internal.operations.BuildOperationContext;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 
 public class AbstractProgressLoggingHandler {
@@ -36,39 +34,6 @@ public class AbstractProgressLoggingHandler {
 
         public String getLocation() {
             return location.toASCIIString();
-        }
-    }
-
-    protected static class ProgressLoggingInputStream extends InputStream {
-        private final InputStream inputStream;
-        private final ResourceOperation resourceOperation;
-
-        public ProgressLoggingInputStream(InputStream inputStream, ResourceOperation resourceOperation) {
-            this.inputStream = inputStream;
-            this.resourceOperation = resourceOperation;
-        }
-
-        @Override
-        public void close() throws IOException {
-            inputStream.close();
-        }
-
-        @Override
-        public int read() throws IOException {
-            throw new UnsupportedOperationException("Reading from a remote resource should be buffered.");
-        }
-
-        @Override
-        public int read(byte[] b, int off, int len) throws IOException {
-            int read = inputStream.read(b, off, len);
-            if (read > 0) {
-                doLogProgress(read);
-            }
-            return read;
-        }
-
-        private void doLogProgress(long numberOfBytes) {
-            resourceOperation.logProcessedBytes(numberOfBytes);
         }
     }
 }

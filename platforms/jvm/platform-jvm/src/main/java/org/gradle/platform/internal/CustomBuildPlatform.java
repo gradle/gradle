@@ -23,7 +23,7 @@ import org.gradle.platform.OperatingSystem;
 
 import javax.inject.Inject;
 
-public abstract class CustomBuildPlatform extends DefaultBuildPlatform {
+public class CustomBuildPlatform extends DefaultBuildPlatform {
 
     private Supplier<Architecture> architecture;
 

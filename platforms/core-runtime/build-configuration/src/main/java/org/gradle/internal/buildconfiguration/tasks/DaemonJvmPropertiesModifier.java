@@ -27,22 +27,22 @@ import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
-public class UpdateDaemonJvmModifier {
+import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getToolchainUrlPropertyForPlatform;
+
+public class DaemonJvmPropertiesModifier {
 
     private final ToolchainRepositoriesResolver toolchainRepositoriesResolver;
 
-    public UpdateDaemonJvmModifier(ToolchainRepositoriesResolver toolchainRepositoriesResolver) {
+    public DaemonJvmPropertiesModifier(ToolchainRepositoriesResolver toolchainRepositoriesResolver) {
         this.toolchainRepositoriesResolver = toolchainRepositoriesResolver;
     }
 
@@ -86,11 +86,5 @@ public class UpdateDaemonJvmModifier {
                 version.getMajorVersion(), minimumSupportedVersion.getMajorVersion());
             throw new IllegalArgumentException(exceptionMessage);
         }
-    }
-
-    private String getToolchainUrlPropertyForPlatform(BuildPlatform buildPlatform) {
-        String operatingSystem = GUtil.toCamelCase(buildPlatform.getOperatingSystem().name().replace("_", " ").toLowerCase(Locale.ROOT));
-        String architecture = GUtil.toCamelCase(buildPlatform.getArchitecture().name().replace("_", " ").toLowerCase(Locale.ROOT));
-        return String.format(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_FORMAT, operatingSystem, architecture);
     }
 }

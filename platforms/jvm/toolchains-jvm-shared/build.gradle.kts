@@ -31,9 +31,11 @@ dependencies {
     api(project(":jvm-services"))
     api(project(":persistent-cache"))
     api(project(":core"))
+    api(project(":model-core"))
+    api(project(":resources"))
+    api(project(":platform-jvm"))
 
     implementation(project(":logging"))
-    implementation(project(":platform-jvm"))
 
     implementation(libs.guava)
     implementation(libs.slf4jApi)

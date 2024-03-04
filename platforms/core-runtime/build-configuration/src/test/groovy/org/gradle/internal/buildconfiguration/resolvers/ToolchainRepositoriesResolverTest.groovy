@@ -25,14 +25,10 @@ import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository
-import org.gradle.platform.Architecture
-import org.gradle.platform.BuildPlatform
-import org.gradle.platform.OperatingSystem
-import org.gradle.platform.internal.CustomBuildPlatform
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import java.util.stream.Collectors
+import static org.gradle.internal.buildconfiguration.resolvers.ToolchainSupportedPlatformsMatrix.getToolchainSupportedBuildPlatforms
 
 class ToolchainRepositoriesResolverTest extends Specification {
 
@@ -61,7 +57,7 @@ class ToolchainRepositoriesResolverTest extends Specification {
         def result = resolver.resolveToolchainDownloadUrlsByPlatform(JavaVersion.VERSION_11, JvmVendorSpec.AMAZON, JvmImplementation.VENDOR_SPECIFIC)
 
         then:
-        expectedToolchainSupportedPlatforms().containsAll(result.keySet())
+        getToolchainSupportedBuildPlatforms().containsAll(result.keySet())
         result.values().toSet().toList() == [Optional.empty()]
     }
 
@@ -74,7 +70,7 @@ class ToolchainRepositoriesResolverTest extends Specification {
         def result = resolver.resolveToolchainDownloadUrlsByPlatform(JavaVersion.VERSION_17, JvmVendorSpec.AZUL, JvmImplementation.VENDOR_SPECIFIC)
 
         then:
-        expectedToolchainSupportedPlatforms().containsAll(result.keySet())
+        getToolchainSupportedBuildPlatforms().containsAll(result.keySet())
         result.values().toSet().toList() == [Optional.of(URI.create('https://server/whatever1'))]
     }
 
@@ -87,18 +83,8 @@ class ToolchainRepositoriesResolverTest extends Specification {
         def result = resolver.resolveToolchainDownloadUrlsByPlatform(JavaVersion.VERSION_1_8, JvmVendorSpec.IBM, JvmImplementation.J9)
 
         then:
-        expectedToolchainSupportedPlatforms().containsAll(result.keySet())
+        getToolchainSupportedBuildPlatforms().containsAll(result.keySet())
         result.values().toSet().toList() == [Optional.of(URI.create('https://server/whatever1'))]
-    }
-
-    private List<BuildPlatform> expectedToolchainSupportedPlatforms() {
-        return [Architecture.AARCH64, Architecture.X86_64].stream()
-            .flatMap(architecture ->
-                OperatingSystem.values().toList().stream().map(operatingSystem ->
-                    TestUtil.objectFactory().newInstance(CustomBuildPlatform.class, architecture, operatingSystem)
-                )
-            )
-            .collect(Collectors.toList())
     }
 
     private void mockRegistryWithRepositoryResolvedUrl(List<String> repositoriesResolvedUrls) {

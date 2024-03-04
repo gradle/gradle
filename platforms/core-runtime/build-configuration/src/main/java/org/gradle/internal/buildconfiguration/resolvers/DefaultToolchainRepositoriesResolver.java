@@ -29,24 +29,19 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
-import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
-import org.gradle.platform.OperatingSystem;
-import org.gradle.platform.internal.CustomBuildPlatform;
 
 import javax.annotation.Nullable;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
+import static org.gradle.internal.buildconfiguration.resolvers.ToolchainSupportedPlatformsMatrix.getToolchainSupportedBuildPlatforms;
 
 public class DefaultToolchainRepositoriesResolver implements ToolchainRepositoriesResolver {
 
-    private static final List<Architecture> TOOLCHAIN_SUPPORTED_ARCHITECTURES = Arrays.asList(Architecture.AARCH64, Architecture.X86_64);
-    private static final List<OperatingSystem> TOOLCHAIN_SUPPORTED_OPERATING_SYSTEM = Arrays.asList(OperatingSystem.values());
     private final JavaToolchainResolverRegistryInternal toolchainResolverRegistry;
     private final ObjectFactory objectFactory;
 
@@ -69,14 +64,8 @@ public class DefaultToolchainRepositoriesResolver implements ToolchainRepositori
         JavaToolchainSpec toolchainSpec = createToolchainSpec(toolchainVersion, toolchainVendor, toolchainImplementation);
         Map<BuildPlatform, Optional<URI>> toolchainDownloadUrlByPlatformMap = new HashMap<>();
 
-        TOOLCHAIN_SUPPORTED_ARCHITECTURES.stream()
-            .flatMap(architecture ->
-                TOOLCHAIN_SUPPORTED_OPERATING_SYSTEM.stream().map(operatingSystem -> {
-                    BuildPlatform buildPlatform = objectFactory.newInstance(CustomBuildPlatform.class, architecture, operatingSystem);
-                    return new DefaultJavaToolchainRequest(toolchainSpec, buildPlatform);
-                })
-            )
-            .collect(Collectors.toList())
+        getToolchainSupportedBuildPlatforms().stream()
+            .map(buildPlatform -> new DefaultJavaToolchainRequest(toolchainSpec, buildPlatform))
             .forEach(javaToolchainRequest -> {
                 Optional<URI> downloadUrl = resolveToolchainDownloadUrlRequest(toolchainRepositories, javaToolchainRequest);
                 toolchainDownloadUrlByPlatformMap.put(javaToolchainRequest.getBuildPlatform(), downloadUrl);

@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
@@ -27,8 +26,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ResourceExceptions;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.jvm.toolchain.JavaToolchainResolver;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
@@ -38,11 +35,11 @@ import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
 import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
+import org.gradle.jvm.toolchain.internal.install.exceptions.MissingToolchainException;
 import org.gradle.platform.BuildPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
@@ -59,15 +56,6 @@ import static org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplie
 public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJavaToolchainProvisioningService.class);
-
-    private static class MissingToolchainException extends GradleException {
-
-        public MissingToolchainException(JavaToolchainSpec spec, URI uri, @Nullable Throwable cause) {
-            super("Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + uri + "'" + (cause != null ? ", due to: " + cause.getMessage() : "."));
-        }
-
-    }
-
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
 
     private final JavaToolchainResolverRegistryInternal toolchainResolverRegistry;
@@ -171,18 +159,6 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                 throw new MissingToolchainException(spec, uri, e);
             }
         }
-    }
-
-    private String getFileName(URI uri, ExternalResource resource) {
-        ExternalResourceMetaData metaData = resource.getMetaData();
-        if (metaData == null) {
-            throw ResourceExceptions.getMissing(uri);
-        }
-        String fileName = metaData.getFilename();
-        if (fileName == null) {
-            throw new GradleException("Can't determine filename for resource located at: " + uri);
-        }
-        return fileName;
     }
 
     private <T> T wrapInOperation(String displayName, Callable<T> provisioningStep) {

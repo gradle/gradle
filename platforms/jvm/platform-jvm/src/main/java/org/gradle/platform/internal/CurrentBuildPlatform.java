@@ -24,7 +24,7 @@ import org.gradle.platform.OperatingSystem;
 
 import javax.inject.Inject;
 
-public abstract class CurrentBuildPlatform extends DefaultBuildPlatform {
+public class CurrentBuildPlatform extends DefaultBuildPlatform {
 
     private Supplier<Architecture> architecture;
 
