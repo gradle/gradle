@@ -18,6 +18,7 @@ package org.gradle.internal.event;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
@@ -41,6 +42,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.gradle.util.internal.ArrayUtils.contains;
+import static org.gradle.util.internal.CollectionUtils.join;
 
 public class DefaultListenerManager implements ScopedListenerManager {
     private static final List<Class<? extends Annotation>> ANNOTATIONS = ImmutableList.of(StatefulListener.class, ListenerService.class);
@@ -205,14 +209,27 @@ public class DefaultListenerManager implements ScopedListenerManager {
         if (scope == null) {
             throw new IllegalArgumentException(String.format("Listener type %s is not annotated with @EventScope.", listenerClass.getName()));
         }
-        if (!scope.value().equals(this.scope)) {
-            throw new IllegalArgumentException(String.format("Listener type %s with scope %s cannot be used to generate events in scope %s.", listenerClass.getName(), scope.value().getSimpleName(), this.scope.getSimpleName()));
+        if (!contains(scope.value(), this.scope)) {
+            throw new IllegalArgumentException(String.format("Listener type %s with %s cannot be used to generate events in scope '%s'.", listenerClass.getName(), displayScopes(scope.value()), this.scope.getSimpleName()));
         }
     }
 
     @Override
     public DefaultListenerManager createChild(Class<? extends Scope> scope) {
         return new DefaultListenerManager(scope, this);
+    }
+
+    private static String displayScopes(Class<? extends Scope>[] scopes) {
+        if (scopes.length == 1) {
+            return "service scope '" + scopes[0].getSimpleName() + "'";
+        }
+
+        return "service scopes " + join(", ", scopes, new InternalTransformer<String, Class<? extends Scope>>() {
+            @Override
+            public String transform(Class<? extends Scope> aClass) {
+                return "'" + aClass.getSimpleName() + "'";
+            }
+        });
     }
 
     /**

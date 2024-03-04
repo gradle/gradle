@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal.install;
+package org.gradle.jvm.toolchain.internal.install.exceptions;
 
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 
-import java.io.File;
+import javax.annotation.Nullable;
+import java.net.URI;
 
-public interface JavaToolchainProvisioningService {
+@Contextual
+public class MissingToolchainException extends GradleException {
 
-    File tryInstall(JavaToolchainSpec spec) throws ToolchainDownloadFailedException;
-
-    boolean isAutoDownloadEnabled();
-
-    boolean hasConfiguredToolchainRepositories();
+    public MissingToolchainException(JavaToolchainSpec spec, URI uri, @Nullable Throwable cause) {
+        super("Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + uri + "'.", cause);
+    }
 }

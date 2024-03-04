@@ -74,6 +74,7 @@ dependencies {
     runtimeOnly(projects.javaCompilerPlugin)
 
     testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.native)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.toolchainsJvm))

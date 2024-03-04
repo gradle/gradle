@@ -94,7 +94,6 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.io)
-    implementation(projects.toolchainsJvm)
     implementation(projects.messaging)
     implementation(projects.modelCore)
     implementation(projects.serialization)

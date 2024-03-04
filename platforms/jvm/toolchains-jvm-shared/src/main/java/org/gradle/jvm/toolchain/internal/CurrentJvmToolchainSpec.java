@@ -17,10 +17,13 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 import javax.inject.Inject;
 
+@ServiceScope(Scope.Build.class)
 public abstract class CurrentJvmToolchainSpec extends DefaultToolchainSpec {
 
     @Inject

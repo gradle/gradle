@@ -41,12 +41,13 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.JvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.CurrentBuildPlatform;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverService;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainExternalResourceFactory;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
@@ -62,13 +63,20 @@ import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
+import org.gradle.jvm.toolchain.internal.install.JavaToolchainHttpRedirectVerifierFactory;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
+import org.gradle.platform.internal.CurrentBuildPlatform;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 
 import java.util.List;
 
 public class ToolchainsJvmServices extends AbstractGradleModuleServices {
     protected static class BuildServices implements ServiceRegistrationProvider {
+
+        @Provides
+        protected CurrentJvmToolchainSpec createJavaToolchainSpec(ObjectFactory objectFactory) {
+            return objectFactory.newInstance(CurrentJvmToolchainSpec.class);
+        }
 
         @Provides
         protected JavaToolchainResolverRegistryInternal createJavaToolchainResolverRegistry(
@@ -132,7 +140,9 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
         registration.add(DefaultJavaToolchainResolverService.class);
         registration.add(DefaultJavaToolchainService.class);
         registration.add(DefaultJavaToolchainProvisioningService.class);
+        registration.add(DefaultToolchainExternalResourceFactory.class);
         registration.add(SecureFileDownloader.class);
         registration.add(JavaToolchainQueryService.class);
+        registration.add(JavaToolchainHttpRedirectVerifierFactory.class);
     }
 }
