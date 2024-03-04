@@ -20,13 +20,20 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isCallNamed
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isConfiguringCall
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
+import org.gradle.internal.declarativedsl.analysis.and
+import org.gradle.internal.declarativedsl.analysis.implies
+import org.gradle.internal.declarativedsl.analysis.not
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.plus
 import org.gradle.internal.declarativedsl.plugins.PluginsInterpretationSequenceStep
+import org.gradle.internal.declarativedsl.plugins.isTopLevelPluginsBlock
 import org.gradle.internal.declarativedsl.project.ThirdPartyExtensionsComponent
 import org.gradle.internal.declarativedsl.project.gradleDslGeneralSchemaComponent
 
@@ -39,6 +46,7 @@ fun settingsInterpretationSequence(
 ): InterpretationSequence =
     InterpretationSequence(
         listOf(
+            SimpleInterpretationSequenceStep("settingsPluginManagement", settings) { pluginManagementEvaluationSchema() },
             PluginsInterpretationSequenceStep("settingsPlugins", settings, targetScope, scriptSource) { it.services },
             SimpleInterpretationSequenceStep("settings", settings) { settingsEvaluationSchema(settings) }
         )
@@ -46,9 +54,26 @@ fun settingsInterpretationSequence(
 
 
 internal
+fun pluginManagementEvaluationSchema(): EvaluationSchema =
+    buildEvaluationSchema(Settings::class, gradleDslGeneralSchemaComponent(), isTopLevelPluginManagementBlock)
+
+
+internal
 fun settingsEvaluationSchema(settings: Settings): EvaluationSchema {
     val schemaBuildingComponent = gradleDslGeneralSchemaComponent() +
         ThirdPartyExtensionsComponent(Settings::class, settings, "settingsExtension")
 
-    return buildEvaluationSchema(Settings::class, schemaBuildingComponent, analyzeEverything)
+    return buildEvaluationSchema(Settings::class, schemaBuildingComponent, ignoreTopLevelPluginsAndPluginManagement)
 }
+
+
+private
+val isPluginManagementCall: AnalysisStatementFilter = isConfiguringCall.and(isCallNamed("pluginManagement"))
+
+
+private
+val isTopLevelPluginManagementBlock = isTopLevelElement.implies(isPluginManagementCall)
+
+
+private
+val ignoreTopLevelPluginsAndPluginManagement = isTopLevelElement.implies(isPluginManagementCall.not().and(isTopLevelPluginsBlock.not()))
