@@ -72,6 +72,7 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
+    crossVersionTestImplementation(testFixtures(projects.toolchainsJvmShared))
 }
 
 packageCycles {
