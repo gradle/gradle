@@ -72,8 +72,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public boolean constantTimeIsEmpty() {
-        // We can't determine empty state in constant time.
-        return false;
+        return inserted.isEmpty();
     }
 
     @Override
