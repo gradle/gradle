@@ -12,28 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-==== Note for plugins published without `java-gradle-plugin`
-If your plugin was published without using the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, the publication will be lacking <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>>, which is needed for <<plugins.adoc#sec:plugins_block,plugins DSL>> to locate the plugin.
-In this case, the recommended way to resolve the plugin in another project is to add a `resolutionStrategy` section to the `pluginManagement {}` block of the project's settings file as shown below.
-
-.Resolution strategy for plugins without Plugin Marker Artifact
-====
-include::sample[dir="snippets/plugins/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
-include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
-====
-
-
-[[sec:publishing_your_plugin]]
-=== Publishing your plugin
-
-If you are publishing your plugin internally for use within your organization, you can publish it like any other code artifact.
-See the <<publishing_ivy.adoc#publishing_ivy,Ivy>> and <<publishing_maven.adoc#publishing_maven,Maven>> chapters on publishing artifacts.
-
-If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the http://plugins.gradle.org[Gradle Plugin Portal].
-This site provides the ability to search for and gather information about plugins contributed by the Gradle community.
-Please refer to the corresponding <<publishing_gradle_plugins.adoc#publishing_portal,section>> on how to make your plugin available on this site.
-
-
 [[publishing_portal]]
 = Publishing Plugins to the Gradle Plugin Portal
 :portal: Gradle Plugin Portal
@@ -41,36 +19,27 @@ Please refer to the corresponding <<publishing_gradle_plugins.adoc#publishing_po
 :publishplugin: Plugin Publishing Plugin
 :plugin-reference-documentation: https://plugins.gradle.org/docs/publish-plugin[reference documentation of the {publishplugin}]
 
-Publishing a plugin is the main way to make it available for others to use.
-One approach is to publish the plugin to a private repository, which is common when you want to restrict who can use it.
-But if you want the plugin to be available to anyone in the world, i.e. public, then you should publish it to the https://plugins.gradle.org[{portal}], a centralized, searchable repository dedicated to Gradle plugins.
+Publishing a plugin is the primary way to make it available for others to use.
+While you can publish to a private repository to restrict access, publishing to the https://plugins.gradle.org[{portal}] makes your plugin available to anyone in the world.
 
-This section will show you how to use the https://plugins.gradle.org/plugin/com.gradle.plugin-publish[{publishplugin}] to publish plugins to the {portal} using a convenient DSL.
-Taking this approach eliminates a large number of configuration steps and provides a number of checks to validate that your plugin meets the criteria enforced by the {portal}.
+This guide shows you how to use the link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish[`com.gradle.plugin-publish`] plugin to publish plugins to the https://plugins.gradle.org[{portal}] using a convenient DSL.
+This approach streamlines configuration steps and provides validation checks to ensure your plugin meets the {portal}'s criteria.
 
-== Start with an existing Gradle plugin project
+== Prerequisites
 
-You will need an existing plugin project for this tutorial.
-If you don't have your own, you may use the link:../samples/sample_gradle_plugin.html[Greeting plugin sample].
+You'll need an existing Gradle plugin project for this tutorial. If you don't have one, you can use the link:../samples/sample_gradle_plugin.html[Greeting plugin sample].
 
-Don't worry about cluttering up the {portal} with a trivial example plugin: trying to publish this plugin will safely fail with a permission error.
+Note that attempting to publish this plugin will safely fail with a permission error, so don't worry about cluttering up the {portal} with a trivial example plugin.
 
-== Create an account on the {portal}
+== Account setup
 
-If you have never published a plugin to the {portal} before, you first need to create an account there.
-This consists of three steps:
-
-. Create an account
-. Create an API key
-. Add your API key to your Gradle configuration
-
-Start by going to the https://plugins.gradle.org/user/register[registration page] — which looks like the image below – and creating an account.
+Before publishing your plugin, you need to create an account on the {portal} if you haven't already.
+Follow the instructions on the https://plugins.gradle.org/user/register[registration page] to create an account and obtain an API key from the "API Keys" tab of your profile page.
 
 .Registration page
 image::plugin-portal-registration-page.png[]
 
-Follow the instructions on that page.
-Once you have logged in, you can get your API key via the "API Keys" tab of your profile page.
+Store your API key in your Gradle configuration (gradle.publish.key and gradle.publish.secret) or use a plugin like Seauc Credentials plugin or Gradle Credentials plugin for secure management.
 
 .API keys is the third tab
 image::plugin-portal-api-keys.png[]
@@ -78,21 +47,18 @@ image::plugin-portal-api-keys.png[]
 It is common practice to copy and paste the text into your <<build_environment.adoc#sec:gradle_configuration_properties,$HOME/.gradle/gradle.properties>> file, but you can also place it in any other valid location.
 All that the plugin requires is that `gradle.publish.key` and `gradle.publish.secret` are available as project properties when the appropriate Plugin Portal tasks are executed.
 
-If you are concerned about placing your credentials in `gradle.properties`, investigate use of
-https://plugins.gradle.org/plugin/de.qaware.seu.as.code.credentials[Seauc Credentials plugin] or the
-https://plugins.gradle.org/plugin/nu.studer.credentials[Gradle Credentials plugin].
-
-Once you have the API key you can publish as many plugins as you like.
+If you are concerned about placing your credentials in `gradle.properties`, check out the https://plugins.gradle.org/plugin/de.qaware.seu.as.code.credentials[Seauc Credentials plugin] or the https://plugins.gradle.org/plugin/nu.studer.credentials[Gradle Credentials plugin].
 
 [[plugin-publishing-plugin]]
-== Add the {publishplugin} to the project
+== Adding the {publishplugin}
 
-Add the {publishplugin} to the `plugins` block.
+To publish your plugin, add the `com.gradle.plugin-publish` plugin to your project's `build.gradle` or `build.gradle.kts` file:
 
 ====
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugins_block]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugins_block]"]
 ====
+
 The latest version of the {publishplugin} can be found on the https://plugins.gradle.org/plugin/com.gradle.plugin-publish[{portal}].
 
 NOTE: Since version 1.0.0 the Plugin Publish Plugin automatically applies the
@@ -101,11 +67,9 @@ NOTE: Since version 1.0.0 the Plugin Publish Plugin automatically applies the
 If using older versions of the Plugin Publish Plugin, these helper plugins need to be applied explicitly.
 
 [[configure_the_plugin_publishing_plugin]]
-== Configure the {publishplugin}
+== Configuring the {publishplugin}
 
-The first thing to do when configuring the publication of your plugins is to specify the common properties that apply to all of them.
-This includes their identity plus the sources and documentation related to them.
-This will help people browsing the portal find more information about your plugins and learn how to contribute to their development.
+Configure the `com.gradle.plugin-publish` plugin in your `build.gradle` or `build.gradle.kts` file.
 
 ====
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=global_config]"]
@@ -120,12 +84,7 @@ to configure further options of your plugin publication.
 <5> Provide the source repository URI so that others can find it, if they want to contribute.
 <6> Set specific properties for each of the plugins you want to publish; see next section.
 
-Next you need to define the specific plugins you intend to publish.
-Their most important property is their `id`, as that both uniquely identifies plugins on the {portal} and prevents namespace clashes between different plugin authors.
-
-NOTE: If you would like to associate your plugin with a particular organization, you also set the ID based on that organization’s domain using the reverse-domain pattern used for Java packages, for example `org.example.greeting`.
-If the plugin doesn't belong to any specific organization, then the plugin ID should be associated with the author, for example by using the author's GitHub ID in a reverse domain pattern, like `io.github.johndoe`.
-Remember that the plugin id and project group should match, i.e. have the same top level namespace.
+Define common properties for all plugins, such as group, version, website, and source repository, using the `gradlePlugin{}` block:
 
 ====
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=per_plugin_config]"]
@@ -139,7 +98,6 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files=
 <6> Set the plugin name in human-readable form.
 <7> Set a description to be displayed on the portal. It provides useful information to people who might want to use your plugin.
 <8> Specifies the categories your plugin covers. Makes the plugin more likely to be discovered by people needing its functionality.
-
 
 As an example consider the configuration for the https://plugins.gradle.org/plugin/org.ysb33r.gradletest[GradleTest plugin], which is already published to the {portal}.
 
@@ -167,8 +125,18 @@ To enable it, all that's needed is to apply the <<signing_plugin.adoc#signing_pl
 Starting from version 1.0.0 of Plugin Publish Plugin, shadowing the dependencies of your plugin (ie. publishing it as a fat jar) has been made automatic.
 To enable it, all that's needed is to apply the https://github.com/johnrengelman/shadow[`com.github.johnrengelman.shadow`] plugin in your build.
 
+[[sec:publishing_your_plugin]]
+== Publishing the plugin
+
+If you are publishing your plugin internally for use within your organization, you can publish it like any other code artifact.
+See the <<publishing_ivy.adoc#publishing_ivy,Ivy>> and <<publishing_maven.adoc#publishing_maven,Maven>> chapters on publishing artifacts.
+
+If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the http://plugins.gradle.org[Gradle Plugin Portal].
+This site provides the ability to search for and gather information about plugins contributed by the Gradle community.
+Please refer to the corresponding <<publishing_gradle_plugins.adoc#publishing_portal,section>> on how to make your plugin available on this site.
+
 [[custom-plugin-repositories]]
-== Publish your plugin to a local repository
+=== Publish locally
 
 To check how the artifacts of your published plugin look, or to use it only locally or internal in your company, you can publish it to any maven repository, including a local folder.
 For that, you only need to <<publishing_maven.adoc#publishing_maven:repositories,configure repositories for publishing>>.
@@ -181,24 +149,23 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files=
 
 To use the repository in another build, you have to add it to <<plugins.adoc#sec:custom_plugin_repositories,the repositories of the `pluginManagement {}` block>> in your `settings.gradle(.kts)` file.
 
-== Publish your plugin to the Plugin Portal
+=== Publish to the Plugin Portal
 
-Publish the plugin by using the `publishPlugin` task.
+Publish the plugin by using the `publishPlugin` task:
 
 [listing]
 ----
 $ ./gradlew publishPlugins
 ----
 
-You can validate your plugins before actually publishing them using the `--validate-only` flag:
+You can validate your plugins before publishing using the `--validate-only` flag:
 
 [listing]
 ----
 $ ./gradlew publishPlugins --validate-only
 ----
 
-
-If you have not configured your {portal} key and secret values in your `gradle.properties` file, you can specify them on the command-line
+If you have not configured your `gradle.properties` for the {portal}, you can specify them on the command-line:
 
 [listing]
 ----
@@ -208,6 +175,7 @@ $ ./gradlew publishPlugins -Pgradle.publish.key=<key> -Pgradle.publish.secret=<s
 NOTE: If you attempt to publish the example Greeting Plugin with the ID used in this section, you will encounter a permission failure.
 That's expected and ensures that the portal won't be overrun with multiple experimental and duplicate greeting-type plugins.
 
+After approval, your plugin will be available on the Gradle Plugin Portal for others to discover and use.
 
 [[consume]]
 == Consume the published plugin
@@ -218,3 +186,14 @@ For further details see https://plugins.gradle.org/docs/publish-plugin-new#appro
 
 Once your plugin is approved, you'll be able to find instructions for its use at a URL of the form *+https://plugins.gradle.org/plugin/<your-plugin-id>+*.
 For example, the Greeting Plugin example is already on the portal at https://plugins.gradle.org/plugin/org.example.greeting.
+
+== Plugins published without {portal}
+
+If your plugin was published without using the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, the publication will be lacking <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>>, which is needed for <<plugins.adoc#sec:plugins_block,plugins DSL>> to locate the plugin.
+In this case, the recommended way to resolve the plugin in another project is to add a `resolutionStrategy` section to the `pluginManagement {}` block of the project's settings file as shown below.
+
+.Resolution strategy for plugins without Plugin Marker Artifact
+====
+include::sample[dir="snippets/plugins/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
+====

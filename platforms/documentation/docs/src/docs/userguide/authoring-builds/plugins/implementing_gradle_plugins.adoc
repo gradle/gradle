@@ -22,7 +22,7 @@ This section covers key aspects of developing Gradle plugins.
 
 The <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> can be used to assist in the development of Gradle plugins.
 
-This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the `api` configuration, generate the required plugin descriptors in the resulting JAR file and configure the <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> to be used when publishing.
+This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the `api` configuration, generate the required plugin descriptors in the resulting JAR file, and configure the <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> to be used when publishing.
 
 To apply and configure the plugin, add the following code to your build file:
 
@@ -36,12 +36,11 @@ Every plugin project should apply this plugin.
 [[sec:creating_a_plugin_id]]
 == Creating a plugin ID
 
-
 Plugin IDs are fully qualified, similar to Java packages (i.e., a reverse domain name).
 This format helps prevent naming collisions and allows for grouping plugins with similar ownership.
 
 A clear plugin identifier simplifies the process of applying the plugin to a project.
-To create a clear ID:
+To create a plugin ID:
 
 1. *Choose a Name:* Select a descriptive name that reflects the purpose of your plugin. Use a single term if possible.
 2. *Add a Domain Name:* Append a domain name to the plugin name to create a unique identifier. This helps avoid conflicts with other plugins that may have similar functionality.
