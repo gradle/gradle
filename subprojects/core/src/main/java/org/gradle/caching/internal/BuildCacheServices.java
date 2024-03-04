@@ -36,21 +36,17 @@ import org.gradle.caching.internal.packaging.impl.TarPackerFileSystemSupport;
 import org.gradle.caching.internal.services.BuildCacheControllerFactory;
 import org.gradle.caching.internal.services.DefaultBuildCacheControllerFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
-import org.gradle.caching.local.internal.DirectoryBuildCacheFileStoreFactory;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.ThreadLocalBufferProvider;
-import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
-import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -103,15 +99,6 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 List<BuildCacheServiceRegistration> allBuildCacheServiceFactories
             ) {
                 return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
-            }
-
-            DirectoryBuildCacheFileStoreFactory createDirectoryBuildCacheFileStoreFactory(ChecksumService checksumService) {
-                return new DirectoryBuildCacheFileStoreFactory() {
-                    @Override
-                    public PathKeyFileStore createFileStore(File baseDir) {
-                        return new DefaultPathKeyFileStore(checksumService, baseDir);
-                    }
-                };
             }
 
             BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {

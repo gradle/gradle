@@ -23,8 +23,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.io.IoConsumer;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.Closeable;
@@ -35,6 +33,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -43,15 +43,13 @@ import java.util.function.Consumer;
 @NonNullApi
 public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, LocalBuildCache {
 
-    private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
     private final BuildCacheTempFileStore tempFileStore;
     private final FileAccessTracker fileAccessTracker;
     private final String failedFileSuffix;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public DirectoryBuildCache(PathKeyFileStore fileStore, PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
-        this.fileStore = fileStore;
+    public DirectoryBuildCache(PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
         this.persistentCache = persistentCache;
         this.tempFileStore = tempFileStore;
         this.fileAccessTracker = fileAccessTracker;
@@ -92,12 +90,11 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     }
 
     private void loadInsideLock(HashCode key, Consumer<? super File> reader) {
-        LocallyAvailableResource resource = fileStore.get(key.toString());
-        if (resource == null) {
+        File file = getCacheEntryFile(key);
+        if (!file.exists()) {
             return;
         }
 
-        File file = resource.getFile();
         fileAccessTracker.markAccessed(file);
 
         try {
@@ -146,9 +143,14 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
         });
     }
 
-    private void storeInsideLock(HashCode key, File file) {
-        LocallyAvailableResource resource = fileStore.move(key.toString(), file);
-        fileAccessTracker.markAccessed(resource.getFile());
+    private void storeInsideLock(HashCode key, File sourceFile) {
+        File targetFile = getCacheEntryFile(key);
+        try {
+            Files.move(sourceFile.toPath(), targetFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) {
+            throw new org.gradle.api.UncheckedIOException("Couldn't move cache entry into local cache: " + key, e);
+        }
+        fileAccessTracker.markAccessed(targetFile);
     }
 
     @Override
@@ -159,5 +161,9 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     @Override
     public void close() {
         persistentCache.close();
+    }
+
+    private File getCacheEntryFile(HashCode key) {
+        return new File(persistentCache.getBaseDir(), key.toString());
     }
 }

@@ -26,7 +26,6 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.file.FileAccessTimeJournal
-import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -41,10 +40,9 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def cacheRepository = Mock(UnscopedCacheBuilderFactory)
     def globalScopedCache = Mock(GlobalScopedCacheBuilderFactory)
     def resolver = Mock(FileResolver)
-    def fileStoreFactory = Mock(DirectoryBuildCacheFileStoreFactory)
     def cleanupActionDecorator = Mock(CleanupActionDecorator)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, fileStoreFactory, cleanupActionDecorator, fileAccessTimeJournal, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.createDir("tmp")))
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, cleanupActionDecorator, fileAccessTimeJournal, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.createDir("tmp")))
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()
@@ -59,7 +57,6 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * config.getDirectory() >> null
         1 * config.getRemoveUnusedEntriesAfterDays() >> 10
         1 * globalScopedCache.baseDirForCrossVersionCache("build-cache-1") >> cacheDir
-        1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         1 * cleanupActionDecorator.decorate(_) >> Mock(CleanupAction)
         0 * _
@@ -75,7 +72,6 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * config.getDirectory() >> cacheDir
         1 * config.getRemoveUnusedEntriesAfterDays() >> 10
         1 * resolver.resolve(cacheDir) >> cacheDir
-        1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         1 * cleanupActionDecorator.decorate(_) >> Mock(CleanupAction)
         0 * _
