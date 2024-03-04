@@ -27,9 +27,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 import org.junit.Rule
 
-class InstrumentationTypeRegistryTest extends ConcurrentSpec {
-
-    private static final THIS_CLASS_NAME = InstrumentationTypeRegistryTest.class.name.replace(".", "/")
+class InstrumentingTypeRegistryTest extends ConcurrentSpec {
 
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
@@ -41,16 +39,16 @@ class InstrumentationTypeRegistryTest extends ConcurrentSpec {
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def parallelExecutorFactory = new DefaultCachedClasspathTransformer.ParallelTransformExecutor(cache, executorFactory.create("test"))
-    def gradleCoreRegistry = new TestGradleCoreInstrumentationTypeRegistry([
-        ("$THIS_CLASS_NAME\$DefaultTask".toString()): ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set,
-        ("$THIS_CLASS_NAME\$VerificationTask".toString()): ["org/gradle/api/VerificationTask"] as Set
+    def gradleCoreRegistry = new TestGradleCoreInstrumentingTypeRegistry([
+        "org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest\$DefaultTask": ["org/gradle/api/Task", "org/gradle/api/internal/TaskInternal"] as Set,
+        "org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest\$VerificationTask": ["org/gradle/api/VerificationTask"] as Set
     ])
 
     def "should collect instrumented types"() {
         given:
         def dir = testDir.file("thing.dir")
         createClasses(dir)
-        def factory = new DefaultInstrumentationTypeRegistryFactory(
+        def factory = new DefaultInstrumentingTypeRegistryFactory(
             gradleCoreRegistry,
             cache,
             parallelExecutorFactory,
@@ -67,13 +65,13 @@ class InstrumentationTypeRegistryTest extends ConcurrentSpec {
         superTypes ==~ [
             'org/gradle/api/Task',
             'org/gradle/api/internal/TaskInternal',
-            "$THIS_CLASS_NAME\$DefaultTask",
+            'org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest$DefaultTask',
             "org/gradle/api/VerificationTask",
-            "$THIS_CLASS_NAME\$VerificationTask",
-            "$THIS_CLASS_NAME\$B",
-            "$THIS_CLASS_NAME\$C",
-            "$THIS_CLASS_NAME\$D"
-        ].collect { it.toString() }
+            "org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest\$VerificationTask",
+            'org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest$B',
+            'org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest$C',
+            'org/gradle/internal/classpath/types/InstrumentingTypeRegistryTest$D'
+        ]
     }
 
     def createClasses(TestFile dir) {
@@ -107,11 +105,11 @@ class InstrumentationTypeRegistryTest extends ConcurrentSpec {
         return clazz.classLoader.getResource(clazz.name.replace('.', '/') + ".class").bytes
     }
 
-    private static class TestGradleCoreInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
+    private static class TestGradleCoreInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
 
         private final Map<String, Set<String>> instrumentedSuperTypes
 
-        TestGradleCoreInstrumentationTypeRegistry(Map<String, Set<String>> instrumentedSuperTypes) {
+        TestGradleCoreInstrumentingTypeRegistry(Map<String, Set<String>> instrumentedSuperTypes) {
             this.instrumentedSuperTypes = instrumentedSuperTypes
         }
 
