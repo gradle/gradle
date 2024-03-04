@@ -68,9 +68,15 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         if (location instanceof org.gradle.api.problems.FileLocation) {
             if (location instanceof org.gradle.api.problems.LineInFileLocation) {
                 return new DevelocityLineInFileLocation((org.gradle.api.problems.LineInFileLocation) location);
+            } else if (location instanceof org.gradle.api.problems.OffsetInFileLocation) {
+                return new DevelocityOffsetInFileLocation((org.gradle.api.problems.OffsetInFileLocation) location);
             } else {
                 return new DevelocityFileLocation((org.gradle.api.problems.FileLocation) location);
             }
+        } else if (location instanceof org.gradle.api.problems.internal.TaskPathLocation) {
+            return new DevelocityTaskPathLocation((org.gradle.api.problems.internal.TaskPathLocation) location);
+        } else if (location instanceof org.gradle.api.problems.internal.PluginIdLocation) {
+            return new DevelocityPluginIdLocation((org.gradle.api.problems.internal.PluginIdLocation) location);
         } else {
             return new DevelocityProblemLocation(location);
         }
@@ -210,6 +216,69 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         @Override
         public Integer getLength() {
             return lineInFileLocation.getLength();
+        }
+    }
+
+    private static class DevelocityOffsetInFileLocation extends DevelocityFileLocation implements OffsetInFileLocation {
+
+        private final org.gradle.api.problems.OffsetInFileLocation offsetInFileLocation;
+
+        public DevelocityOffsetInFileLocation(org.gradle.api.problems.OffsetInFileLocation offsetInFileLocation) {
+            super(offsetInFileLocation);
+            this.offsetInFileLocation = offsetInFileLocation;
+        }
+
+        @Override
+        public int getOffset() {
+            return offsetInFileLocation.getOffset();
+        }
+
+        @Override
+        public int getLength() {
+            return offsetInFileLocation.getLength();
+        }
+    }
+
+    private static class DevelocityTaskPathLocation implements TaskPathLocation {
+
+        private final org.gradle.api.problems.internal.TaskPathLocation taskPathLocation;
+
+        public DevelocityTaskPathLocation(org.gradle.api.problems.internal.TaskPathLocation taskPathLocation) {
+            this.taskPathLocation = taskPathLocation;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return ":";
+        }
+
+        @Override
+        public String getPath() {
+            return taskPathLocation.getBuildTreePath();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return taskPathLocation.toString();
+        }
+    }
+
+    private static class DevelocityPluginIdLocation implements PluginIdLocation {
+
+        private final org.gradle.api.problems.internal.PluginIdLocation pluginIdLocation;
+
+        public DevelocityPluginIdLocation(org.gradle.api.problems.internal.PluginIdLocation pluginIdLocation) {
+            this.pluginIdLocation = pluginIdLocation;
+        }
+
+        @Override
+        public String getPluginId() {
+            return pluginIdLocation.getPluginId();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return pluginIdLocation.toString();
         }
     }
 }
