@@ -24,6 +24,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
+    @Issue('https://plugins.gradle.org/plugin/io.github.goooler.shadow')
     def 'shadow plugin #version'() {
         given:
         buildFile << """
@@ -31,7 +32,7 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
             plugins {
                 id 'java' // or 'groovy' Must be explicitly applied
-                id 'com.github.johnrengelman.shadow' version '$version'
+                id '$pluginId' version '$pluginVersion'
             }
 
             ${mavenCentralRepository()}
@@ -66,6 +67,7 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         runner('clean').build()
         result = runner('shadowJar')
             .expectLegacyDeprecationWarning(BaseDeprecations.FILE_TREE_ELEMENT_GET_MODE_DEPRECATION)
+            .withArguments("--stacktrace")
             .build()
 
         then:
@@ -77,13 +79,16 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         }
 
         where:
-        version << TestedVersions.shadow
+        pluginId                            | pluginVersion
+        "com.github.johnrengelman.shadow"   | TestedVersions.shadow
+        "io.github.goooler.shadow"          | TestedVersions.shadowFork
     }
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'com.github.johnrengelman.shadow': TestedVersions.shadow
+            'com.github.johnrengelman.shadow': Versions.of(TestedVersions.shadow),
+            'io.github.goooler.shadow': Versions.of(TestedVersions.shadowFork)
         ]
     }
 }
