@@ -28,37 +28,33 @@ dependencies {
     api(projects.buildOperations)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.dependencyManagement)
     api(projects.enterpriseOperations)
     api(projects.enterpriseLogging)
     api(projects.fileCollections)
     api(projects.fileOperations)
     api(projects.jvmServices)
-    api(projects.modelCore)
     api(projects.native)
     api(projects.persistentCache)
     api(projects.platformBase)
     api(projects.processServices)
     api(projects.resources)
     api(projects.toolchainsJvmShared)
+    api(projects.dependencyManagement)
 
     api(libs.kotlinStdlib)
     api(libs.inject)
-    api(libs.jsr305)
-    api(libs.nativePlatform) {
-        because("Required for SystemInfo")
-    }
 
     implementation(projects.baseDiagnostics)
     implementation(projects.fileTemp)
     implementation(projects.logging)
+    implementation(projects.modelCore)
 
-    implementation(libs.commonsIo)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
+    testImplementation(testFixtures(projects.toolchainsJvmShared))
 
     testFixturesImplementation(projects.native)
     testFixturesImplementation(projects.internalIntegTesting)

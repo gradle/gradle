@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.platform.internal;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -41,7 +41,12 @@ public class CurrentBuildPlatform {
 
     @Inject
     public CurrentBuildPlatform(final SystemInfo systemInfo, final org.gradle.internal.os.OperatingSystem operatingSystem) {
-        this.architecture = Suppliers.memoize(() -> getArchitecture(systemInfo));
+        this.architecture = Suppliers.memoize(new Supplier<Architecture>() {
+            @Override
+            public Architecture get() {
+                return getArchitecture(systemInfo);
+            }
+        });
         this.operatingSystem = getOperatingSystem(operatingSystem);
     }
 

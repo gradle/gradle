@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
+package org.gradle.internal.resource.transfer;
 
-import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scope;
+import java.io.IOException;
 
-import java.io.File;
+public interface ProgressLoggingInputSteamListener {
 
-@EventScope({Scope.Global.class, Scope.Build.class})
-public interface FileResourceListener {
-    /**
-     * Called when a file system resource is accessed as a regular file.
-     */
-    void fileObserved(File file);
-
-    /**
-     * Called when the children of a file system resource are listed.
-     */
-    void directoryChildrenObserved(File file);
+    void onProcessedBytes(int numberOfBytes) throws IOException;
 }

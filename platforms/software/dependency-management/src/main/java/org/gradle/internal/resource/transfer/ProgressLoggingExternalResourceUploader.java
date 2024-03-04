@@ -61,7 +61,7 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
 
         @Override
         public InputStream open() {
-            return new ProgressLoggingInputStream(delegate.open(), uploadOperation);
+            return new ProgressLoggingInputStream(delegate.open(), uploadOperation::logProcessedBytes);
         }
 
         @Override

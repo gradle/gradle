@@ -2282,6 +2282,7 @@ Class <org.gradle.internal.resource.EmptyFileTextResource> is not annotated (dir
 Class <org.gradle.internal.resource.ExternalResource$ContentAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ExternalResource.java:0)
 Class <org.gradle.internal.resource.ExternalResource$ContentAndMetadataAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ExternalResource.java:0)
 Class <org.gradle.internal.resource.ExternalResource> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ExternalResource.java:0)
+Class <org.gradle.internal.resource.ExternalResourceFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ExternalResourceFactory.java:0)
 Class <org.gradle.internal.resource.ExternalResourceListBuildOperationType$Details> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ExternalResourceListBuildOperationType.java:0)
 Class <org.gradle.internal.resource.ExternalResourceListBuildOperationType$Result> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ExternalResourceListBuildOperationType.java:0)
 Class <org.gradle.internal.resource.ExternalResourceListBuildOperationType> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ExternalResourceListBuildOperationType.java:0)
