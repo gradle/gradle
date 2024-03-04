@@ -109,12 +109,12 @@ public abstract class Documentation implements DocLink {
 
         @Override
         public String getUrl() {
-            return null;
+            return "";
         }
 
         @Override
         public String getConsultDocumentationMessage() {
-            return null;
+            return "";
         }
 
         @Override

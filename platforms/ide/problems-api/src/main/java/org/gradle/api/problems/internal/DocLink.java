@@ -30,13 +30,11 @@ public interface DocLink extends Serializable {
     /**
      * The URL to the documentation page.
      */
-    @Nullable
     String getUrl();
 
     /**
      * A message that tells the user to consult the documentation.
      * There are currently 2 different messages used for this, hence this method.
      */
-    @Nullable
     String getConsultDocumentationMessage();
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import javax.annotation.Nullable;
-
 public class DefaultDocLink implements DocLink {
 
     private final String url;
@@ -26,13 +24,11 @@ public class DefaultDocLink implements DocLink {
         this.url = url;
     }
 
-    @Nullable
     @Override
     public String getUrl() {
         return url;
     }
 
-    @Nullable
     @Override
     public String getConsultDocumentationMessage() {
         return "For more information, please refer to " + url + ".";
