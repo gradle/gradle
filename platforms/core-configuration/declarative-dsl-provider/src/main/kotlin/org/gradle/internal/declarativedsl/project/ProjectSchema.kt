@@ -25,7 +25,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationS
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.plus
 import org.gradle.internal.declarativedsl.plugins.PluginsInterpretationSequenceStep
-import org.gradle.internal.declarativedsl.plugins.analyzeEverythingExceptPluginsBlock
+import org.gradle.internal.declarativedsl.plugins.ignoreTopLevelPluginsBlock
 
 
 internal
@@ -51,5 +51,5 @@ fun projectEvaluationSchema(
         DependencyConfigurationsComponent(target) +
         TypesafeProjectAccessorsComponent(targetScope)
 
-    return buildEvaluationSchema(ProjectTopLevelReceiver::class, component, analyzeEverythingExceptPluginsBlock)
+    return buildEvaluationSchema(ProjectTopLevelReceiver::class, component, ignoreTopLevelPluginsBlock)
 }
