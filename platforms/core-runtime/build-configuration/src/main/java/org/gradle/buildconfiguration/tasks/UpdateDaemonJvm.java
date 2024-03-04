@@ -27,7 +27,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
-import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmModifier;
+import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesModifier;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.internal.IncubationLogger;
@@ -48,14 +48,17 @@ import java.util.stream.Collectors;
 @DisableCachingByDefault(because = "Not worth caching")
 @Incubating
 public abstract class UpdateDaemonJvm extends DefaultTask {
+
+    private final DaemonJvmPropertiesModifier daemonJvmPropertiesModifier;
+
     /**
      * Constructor.
      *
      * @since 8.8
      */
     @Inject
-    public UpdateDaemonJvm() {
-
+    public UpdateDaemonJvm(DaemonJvmPropertiesModifier daemonJvmPropertiesModifier) {
+        this.daemonJvmPropertiesModifier = daemonJvmPropertiesModifier;
     }
 
     @TaskAction
@@ -68,7 +71,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
         } else {
             jvmVendor = null; // any vendor is acceptable
         }
-        UpdateDaemonJvmModifier.updateJvmCriteria(
+        daemonJvmPropertiesModifier.updateJvmCriteria(
             getPropertiesFile().get().getAsFile(),
             getJvmVersion().get(),
             jvmVendor,
