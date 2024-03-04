@@ -136,7 +136,10 @@ public interface CopyProcessingSpec extends ContentFilterable {
     CopyProcessingSpec setDirMode(@Nullable Integer mode);
 
     /**
-     * Property for configuring file access permissions.
+     * Property for querying and configuring file access permissions.
+     * If the property has no value set, that means that existing permissions are preserved.
+     * It is dependent on the copy action implementation whether these permissions will actually be applied.
+     *
      * For details see {@link ConfigurableFilePermissions}.
      *
      * @since 8.3
@@ -152,7 +155,10 @@ public interface CopyProcessingSpec extends ContentFilterable {
     CopyProcessingSpec filePermissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**
-     * Property for configuring directory access permissions.
+     * Property for querying and configuring directory access permissions.
+     * If the property has no value set, that means that existing permissions are preserved.
+     * It is dependent on the copy action implementation whether these permissions will actually be applied.
+     *
      * For details see {@link ConfigurableFilePermissions}.
      *
      * @since 8.3
