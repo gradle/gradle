@@ -18,7 +18,6 @@ dependencies {
     api(project(":functional"))
     api(project(":hashing"))
     api(project(":persistent-cache"))
-    api(project(":resources"))
 
     implementation(libs.guava)
     implementation(libs.h2Database) {
