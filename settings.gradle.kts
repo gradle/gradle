@@ -124,6 +124,7 @@ val core = platform("core") {
         subproject("build-cache-http")
         subproject("build-cache-packaging")
         subproject("build-cache-spi")
+        subproject("execution-e2e-tests")
         subproject("file-watching")
         subproject("execution")
         subproject("hashing")
