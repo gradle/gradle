@@ -78,7 +78,11 @@ This should not impact catalogs that use the <<platforms.adoc#sub::toml-dependen
 [[unix_file_permissions_deprecated]]
 ==== Unix mode based file permissions deprecated ====
 
-A new API for defining file permissions has been added, see link:{javadocPath}/org/gradle/api/file/FileAccessPermissions.html[FileAccessPermissions].
+A new API for defining file permissions has been added, see:
+
+- link:{javadocPath}/org/gradle/api/file/FilePermissions.html[FilePermissions].
+- link:{javadocPath}/org/gradle/api/file/ConfigurableFilePermissions.html[ConfigurableFilePermissions].
+
 Unix mode based old methods have been deprecated:
 
 - link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getFileMode--[CopyProcessingSpec.getFileMode]
