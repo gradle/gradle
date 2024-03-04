@@ -117,7 +117,7 @@ class JvmInstallationMetadataMatcherTest extends Specification {
     }
 
     private InstallationLocation testLocation(File javaHome) {
-        new InstallationLocation(javaHome, "test")
+        new InstallationLocation(javaHome, "test", false)
     }
 
     private static Map<String, String> semeruJvm11() {

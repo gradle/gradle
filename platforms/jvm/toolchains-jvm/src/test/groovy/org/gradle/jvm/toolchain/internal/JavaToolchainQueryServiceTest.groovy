@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.jvm.inspection.JvmInstallationProblemDeduplicator
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -481,7 +482,7 @@ class JavaToolchainQueryServiceTest extends Specification {
                 installations.collect{ locationFor(it) } as Set<InstallationLocation>
             }
         }
-        def registry = new JavaInstallationRegistry([supplier], detector, new TestBuildOperationExecutor(), OperatingSystem.current(), new NoOpProgressLoggerFactory()) {
+        def registry = new JavaInstallationRegistry([supplier], detector, new TestBuildOperationExecutor(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemDeduplicator()) {
             @Override
             boolean installationExists(InstallationLocation installationLocation) {
                 return true
@@ -499,8 +500,8 @@ class JavaToolchainQueryServiceTest extends Specification {
         return (begin..end).collect { it.toString() }
     }
 
-    private InstallationLocation locationFor(String version){
-        return new InstallationLocation(new File("/path/${version}").absoluteFile, "test")
+    private InstallationLocation locationFor(String version) {
+        return new InstallationLocation(new File("/path/${version}").absoluteFile, "test", false)
     }
 
     private JavaToolchainQueryService createQueryService(
