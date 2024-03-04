@@ -84,7 +84,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         val isolatedProjects = startParameter.isolatedProjects.get()
         val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
-        val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
+        val parallelToolingActions = options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
         val modelAsProjectDependency = isolatedProjects && options.getOption(modelProjectDependencies).get()
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE

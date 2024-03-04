@@ -96,7 +96,7 @@ public class BuildModelParameters {
     }
 
     /**
-     * When {@link #isParallelProjectExecution()} is true, should Tooling API actions run in parallel?
+     * Should nested build actions run in parallel?
      */
     public boolean isParallelToolingApiActions() {
         return parallelToolingApiActions;
