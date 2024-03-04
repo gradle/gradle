@@ -16,15 +16,10 @@
 
 package org.gradle.internal.classpath
 
-import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import java.nio.file.Files
@@ -32,18 +27,9 @@ import java.util.function.Supplier
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
-import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
-
-    def serializer = new InstrumentationAnalysisSerializer(new StringInterner())
 
     def "buildSrc and included builds should be cached in global cache"() {
         given:
@@ -106,14 +92,13 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
+        allTransformsFor("commons-lang3-3.8.1.jar") == ["ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
         gradleUserHomeOutput("instrumented/instrumented-commons-lang3-3.8.1.jar").exists()
     }
 
     def "directories should be instrumented"() {
         given:
-        requireOwnGradleUserHomeDir()
         withIncludedBuild("first")
         withIncludedBuild("second")
         buildFile << """
@@ -131,13 +116,9 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("main") ==~ [
+        allTransformsFor("main") == [
             // Only the folder name is reported, so we cannot distinguish first and second
-            "InstrumentationAnalysisTransform",
-            "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform",
-            "InstrumentationAnalysisTransform",
-            "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform"
         ]
     }
@@ -216,205 +197,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         outputContains("MyPlugin patched from buildSrc")
     }
 
-    def "classpath can contain non-existing file"() {
-        given:
-        executer.requireOwnGradleUserHomeDir()
-        buildFile << """
-            buildscript { dependencies { classpath files("does-not-exist.jar") } }
-        """
-
-        when:
-        succeeds()
-
-        then:
-        noExceptionThrown()
-    }
-
-    def "should analyze plugin artifacts"() {
-        given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
-        multiProjectJavaBuild("subproject", "api", "animals") {
-            file("$it/api/src/main/java/org/gradle/api/Plugin.java") << "package org.gradle.api; public interface Plugin {}"
-            file("$it/api/src/main/java/org/gradle/api/Task.java") << "package org.gradle.api; public interface Task {}"
-            file("$it/api/src/main/java/org/gradle/api/DefaultTask.java") << "package org.gradle.api; public class DefaultTask implements Task {}"
-            file("$it/api/src/main/java/org/gradle/api/GradleException.java") << "package org.gradle.api; public class GradleException {}"
-            file("$it/animals/src/main/java/test/gradle/test/Dogs.java").createFile().text = """
-                package test.gradle.test;
-                import org.gradle.api.*;
-
-                class GermanShepherd extends Dog implements Animal {
-                    public void plugin() {
-                        ((Plugin) null).toString();
-                        new GradleException();
-                    }
-                }
-                abstract class Dog implements Mammal {
-                    public void task() {
-                        ((Task) null).toString();
-                        ((DefaultTask) null).toString();
-                    }
-                }
-                interface Mammal extends Animal {
-                }
-                interface Animal {
-                }
-            """
-        }
-        executer.inDirectory(file("subproject")).withTasks("jar").run()
-        buildFile << """
-            buildscript {
-                 repositories {
-                    maven { url "$mavenRepo.uri" }
-                }
-                dependencies {
-                    classpath(files("./subproject/animals/build/libs/animals-1.0.jar"))
-                }
-            }
-        """
-
-        when:
-        run("tasks", "--info")
-
-        then:
-        allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
-        def analyzeDir = analyzeOutput("animals-1.0.jar")
-        analyzeDir.exists()
-        serializer.readTypesMap(analyzeDir.file(SUPER_TYPES_FILE_NAME)) == [
-            "test/gradle/test/Dog": ["test/gradle/test/Mammal"] as Set<String>,
-            "test/gradle/test/GermanShepherd": ["test/gradle/test/Animal", "test/gradle/test/Dog"] as Set<String>,
-            "test/gradle/test/Mammal": ["test/gradle/test/Animal"] as Set<String>
-        ]
-        serializer.readTypes(analyzeDir.file(DEPENDENCIES_FILE_NAME)) == [
-            "org/gradle/api/DefaultTask",
-            "org/gradle/api/GradleException",
-            "org/gradle/api/Plugin",
-            "org/gradle/api/Task",
-            "test/gradle/test/Animal",
-            "test/gradle/test/Dog",
-            "test/gradle/test/Mammal"
-        ] as Set<String>
-    }
-
-    def "should output only org.gradle supertypes for class dependencies"() {
-        given:
-        requireOwnGradleUserHomeDir()
-        multiProjectJavaBuild("subproject") {
-            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
-            file("$it/api/src/main/java/B.java") << "public class B extends C {}"
-            file("$it/api/src/main/java/C.java") << "import org.gradle.D; public class C extends D {}"
-            file("$it/api/src/main/java/org/gradle/D.java") << "package org.gradle; public class D extends E {}"
-            file("$it/api/src/main/java/org/gradle/E.java") << "package org.gradle; public class E {}"
-        }
-        buildFile << """
-            buildscript {
-                dependencies {
-                    // Add them as separate jars
-                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
-                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
-                }
-            }
-        """
-
-        when:
-        executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
-
-        then:
-        mergeOutput("impl-1.0.jar").exists()
-        mergeOutput("api-1.0.jar").exists()
-        def implMergeDir = mergeOutput("impl-1.0.jar")
-        serializer.readTypesMap(implMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME)) == [
-            "B": ["org/gradle/D", "org/gradle/E"] as Set
-        ]
-        def apiMergeDir = mergeOutput("api-1.0.jar")
-        serializer.readTypesMap(apiMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME)) == [
-            "C": ["org/gradle/D", "org/gradle/E"] as Set,
-            "org/gradle/D": ["org/gradle/D", "org/gradle/E"] as Set,
-            "org/gradle/E": ["org/gradle/E"] as Set
-        ]
-    }
-
-    @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
-        reason = "Cc doesn't get invalidated when file dependency changes"
-    )
-    def "should re-instrument jar if classpath changes and class starts extending a Gradle core class transitively"() {
-        given:
-        requireOwnGradleUserHomeDir()
-        multiProjectJavaBuild("subproject") {
-            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
-            file("$it/api/src/main/java/B.java") << "public class B {}"
-        }
-        buildFile << """
-            buildscript {
-                dependencies {
-                    // Add them as separate jars
-                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
-                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
-                }
-            }
-        """
-
-        when:
-        executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
-
-        then:
-        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 1
-        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 1
-
-        when:
-        file("subproject/api/src/main/java/B.java").text = "import org.gradle.C; public class B extends C {}"
-        file("subproject/api/src/main/java/org/gradle/C.java") << "package org.gradle; public class C {}"
-        executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
-
-        then:
-        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 2
-        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 2
-    }
-
-    @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
-        reason = "Cc doesn't get invalidated when file dependency changes"
-    )
-    def "should not re-instrument jar if classpath changes but class doesn't extend Gradle core class"() {
-        given:
-        requireOwnGradleUserHomeDir()
-        multiProjectJavaBuild("subproject") {
-            file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
-            file("$it/api/src/main/java/B.java") << "public class B {}"
-        }
-        buildFile << """
-            buildscript {
-                dependencies {
-                    // Add them as separate jars
-                    classpath(files("./subproject/impl/build/libs/impl-1.0.jar"))
-                    classpath(files("./subproject/api/build/libs/api-1.0.jar"))
-                }
-            }
-        """
-
-        when:
-        executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
-
-        then:
-        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 1
-        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 1
-
-        when:
-        file("subproject/api/src/main/java/B.java").text = "public class B extends C {}"
-        file("subproject/api/src/main/java/C.java") << "public class C {}"
-        executer.inDirectory(file("subproject")).withTasks("jar").run()
-        run("tasks", "-D$GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY=true")
-
-        then:
-        gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 2
-        gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 1
-    }
-
     def withBuildSrc() {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
         file("buildSrc/settings.gradle") << "\n"
@@ -433,50 +215,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         settingsFile << """
             includeBuild("./$folderName")
         """
-    }
-
-    def javaBuild(String projectName = "included", Action<String> init) {
-        file("$projectName/build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-            group = "org.test"
-            version = "1.0"
-        """
-        file("$projectName/settings.gradle") << """
-            rootProject.name = '$projectName'
-        """
-        init(projectName)
-    }
-
-    def multiProjectJavaBuild(String projectName = "included", Action<String> init) {
-        multiProjectJavaBuild(projectName, "api", "impl", init)
-    }
-
-    def multiProjectJavaBuild(String rootName = "included", String apiProjectName, String implProjectName, Action<String> init) {
-        file("$rootName/$apiProjectName/build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-            group = "org.test"
-            version = "1.0"
-        """
-        file("$rootName/$implProjectName/build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-            group = "org.test"
-            version = "1.0"
-
-            dependencies {
-                implementation project(":$apiProjectName")
-            }
-        """
-        file("$rootName/settings.gradle") << """
-            rootProject.name = '$rootName'
-            include("$apiProjectName", "$implProjectName")
-        """
-        init(rootName)
     }
 
     def withExternalPlugin(String name, String pluginId, Supplier<String> implementationBody = {}) {
@@ -532,34 +270,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
             }
         }
         return transforms
-    }
-
-    Set<TestFile> analyzeOutputs(String artifactName, File cacheDir = getCacheDir()) {
-        return findOutputs("$ANALYSIS_OUTPUT_DIR/$METADATA_FILE_NAME", cacheDir).findAll {
-            serializer.readMetadata(it).artifactName == artifactName
-        }.collect { it.parentFile } as Set<TestFile>
-    }
-
-    TestFile analyzeOutput(String artifactName, File cacheDir = getCacheDir()) {
-        def dirs = analyzeOutputs(artifactName, cacheDir)
-        if (dirs.size() == 1) {
-            return dirs.first()
-        }
-        throw new AssertionError("Could not find exactly one analyze directory for $artifactName: $dirs")
-    }
-
-    Set<TestFile> mergeOutputs(String artifactName, File cacheDir = getCacheDir()) {
-        return findOutputs("$MERGE_OUTPUT_DIR/$METADATA_FILE_NAME", cacheDir).findAll {
-            serializer.readMetadata(it).artifactName == artifactName
-        }.collect { it.parentFile } as Set<TestFile>
-    }
-
-    TestFile mergeOutput(String artifactName, File cacheDir = getCacheDir()) {
-        def dirs = mergeOutputs(artifactName, cacheDir)
-        if (dirs.size() == 1) {
-            return dirs.first()
-        }
-        throw new AssertionError("Could not find exactly one merge directory for $artifactName: $dirs")
     }
 
     TestFile gradleUserHomeOutput(String outputEndsWith, File cacheDir = getCacheDir()) {
