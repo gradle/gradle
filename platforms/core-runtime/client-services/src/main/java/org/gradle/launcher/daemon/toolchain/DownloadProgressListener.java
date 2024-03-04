@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.launcher.daemon.toolchain;
 
-package org.gradle.internal.resource.local;
+import java.net.URI;
 
-import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scope;
+public interface DownloadProgressListener {
 
-import java.io.File;
+    void downloadStarted(URI uri, long contentLengthBytes, long startTime);
 
-@EventScope({Scope.Global.class, Scope.Build.class})
-public interface FileResourceListener {
-    /**
-     * Called when a file system resource is accessed as a regular file.
-     */
-    void fileObserved(File file);
+    void downloadStatusChanged(URI uri, long downloadedBytes, long contentLengthBytes, long eventTime);
 
-    /**
-     * Called when the children of a file system resource are listed.
-     */
-    void directoryChildrenObserved(File file);
+    void downloadFinished(URI uri, long downloadedBytes, long startTime, long finishTime);
+
+    void downloadFailed(URI uri, Exception exception, long downloadedBytes, long startTime, long finishTime);
 }

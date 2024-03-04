@@ -34,6 +34,7 @@ dependencies {
     api(projects.core)
     api(projects.native)
     api(projects.resources)
+    api(projects.modelCore)
 
     implementation(projects.functional)
 
@@ -44,6 +45,7 @@ dependencies {
     implementation(libs.commonsLang)
 
     testImplementation(testFixtures(projects.core))
+    testImplementation(projects.dependencyManagement)
 
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")

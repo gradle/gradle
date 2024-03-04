@@ -83,7 +83,7 @@ public class DefaultBuildPlatform implements BuildPlatform, Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof DefaultBuildPlatform)) {
             return false;
         }
         DefaultBuildPlatform that = (DefaultBuildPlatform) o;
