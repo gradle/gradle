@@ -58,6 +58,7 @@ public class FetchCustomModelInParallel implements BuildAction<List<SomeToolingM
         }
     }
 
+    // CHECKSTYLE:OFF
     private static void awaitBlockingHttpServer(String url0) {
         System.out.println("[G] calling " + url0);
         try {
@@ -74,4 +75,5 @@ public class FetchCustomModelInParallel implements BuildAction<List<SomeToolingM
         }
         System.out.println("[G] response received for " + url0);
     }
+    // CHECKSTYLE:ON
 }
