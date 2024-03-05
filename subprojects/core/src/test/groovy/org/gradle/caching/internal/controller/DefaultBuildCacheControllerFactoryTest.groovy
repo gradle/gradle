@@ -75,7 +75,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
     }
 
     private FinalizeBuildCacheConfigurationBuildOperationType.Result buildOpResult() {
-        buildOperationExecuter.log.mostRecentResult(FinalizeBuildCacheConfigurationBuildOperationType)
+        buildOperationRunner.log.mostRecentResult(FinalizeBuildCacheConfigurationBuildOperationType)
     }
 
     def 'local cache service is created when remote is not configured'() {
