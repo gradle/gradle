@@ -1563,6 +1563,7 @@ Class <org.gradle.initialization.layout.BuildLayout> is not annotated (directly 
 Class <org.gradle.initialization.layout.BuildLayoutConfiguration> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildLayoutConfiguration.java:0)
 Class <org.gradle.initialization.layout.BuildLayoutFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildLayoutFactory.java:0)
 Class <org.gradle.initialization.layout.GlobalCacheDir> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (GlobalCacheDir.java:0)
+Class <org.gradle.initialization.layout.ProjectCacheDir$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ProjectCacheDir.java:0)
 Class <org.gradle.initialization.layout.ProjectCacheDir> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ProjectCacheDir.java:0)
 Class <org.gradle.initialization.layout.ResolvedBuildLayout> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ResolvedBuildLayout.java:0)
 Class <org.gradle.initialization.properties.DefaultProjectPropertiesLoader> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultProjectPropertiesLoader.java:0)
