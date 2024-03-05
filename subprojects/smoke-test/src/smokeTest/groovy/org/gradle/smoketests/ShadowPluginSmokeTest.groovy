@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
@@ -50,8 +51,13 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             }
             """.stripIndent()
 
+
         when:
-        def result = runner('shadowJar').build()
+        def shadowJarRunner = runner('shadowJar')
+        if (hasDeprecations) {
+            shadowJarRunner.expectLegacyDeprecationWarning(FILE_TREE_ELEMENT_GET_MODE_DEPRECATION)
+        }
+        def result = shadowJarRunner.build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
@@ -63,7 +69,11 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         runner('clean').build()
-        result = runner('shadowJar').build()
+        shadowJarRunner = runner('shadowJar')
+        if (hasDeprecations) {
+            shadowJarRunner.expectLegacyDeprecationWarning(FILE_TREE_ELEMENT_GET_MODE_DEPRECATION)
+        }
+        result = shadowJarRunner.build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
@@ -74,9 +84,9 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         }
 
         where:
-        pluginId                            | pluginVersion
-        "com.github.johnrengelman.shadow"   | TestedVersions.shadow
-        "io.github.goooler.shadow"          | TestedVersions.shadowFork
+        pluginId                            | pluginVersion                 | hasDeprecations
+        "com.github.johnrengelman.shadow"   | TestedVersions.shadow         | true
+        "io.github.goooler.shadow"          | TestedVersions.shadowFork     | false
     }
 
     @Override
@@ -86,4 +96,12 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'io.github.goooler.shadow': Versions.of(TestedVersions.shadowFork)
         ]
     }
+
+    public static final String FILE_TREE_ELEMENT_GET_MODE_DEPRECATION = "The FileTreeElement.getMode() method has been deprecated. " +
+        "This is scheduled to be removed in Gradle 9.0. " +
+        "Please use the getPermissions() method instead. " +
+        "Consult the upgrading guide for further information: " +
+        new DocumentationRegistry().getDocumentationFor("upgrading_version_8","unix_file_permissions_deprecated")
+
+
 }
