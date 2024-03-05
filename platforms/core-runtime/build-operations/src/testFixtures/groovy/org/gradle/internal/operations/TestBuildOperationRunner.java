@@ -22,6 +22,8 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
@@ -32,6 +34,7 @@ import java.util.concurrent.LinkedBlockingDeque;
  * A BuildOperationRunner for tests.
  * Simply execute given operations, does not support current/parent operations.
  */
+@SuppressWarnings("Since15")
 public class TestBuildOperationRunner implements BuildOperationRunner {
 
     public final Log log = new Log();
@@ -217,7 +220,7 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
                 if (record.failure == null) {
                     record.failure = failure;
                 }
-                throw new RuntimeException(failure);
+                throw throwAsUncheckedException(failure);
             }
         }
 
@@ -232,7 +235,7 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
                 if (record.failure == null) {
                     record.failure = failure;
                 }
-                throw new RuntimeException(failure);
+                throw throwAsUncheckedException(failure);
             }
             return t;
         }
@@ -247,7 +250,7 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
                 if (record.failure == null) {
                     record.failure = failure;
                 }
-                throw new RuntimeException(failure);
+                throw throwAsUncheckedException(failure);
             }
         }
 
@@ -286,5 +289,21 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
 
     public void reset() {
         log.records.clear();
+    }
+
+    private static RuntimeException throwAsUncheckedException(Throwable t) {
+        if (t instanceof InterruptedException) {
+            Thread.currentThread().interrupt();
+        }
+        if (t instanceof RuntimeException) {
+            throw (RuntimeException) t;
+        }
+        if (t instanceof Error) {
+            throw (Error) t;
+        }
+        if (t instanceof IOException) {
+            throw new UncheckedIOException((IOException) t);
+        }
+        throw new RuntimeException(t);
     }
 }
