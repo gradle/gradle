@@ -46,8 +46,8 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.resource.local.PathKeyFileStore;
@@ -171,7 +171,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
 
             BuildCacheControllerFactory createBuildCacheControllerFactory(
                 StartParameterInternal startParameter,
-                BuildOperationExecutor buildOperationExecutor,
+                BuildOperationRunner buildOperationRunner,
                 BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
                 TemporaryFileProvider temporaryFileProvider,
                 BuildCacheEntryPacker packer,
@@ -180,7 +180,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
             ) {
                 return new DefaultBuildCacheControllerFactory(
                     startParameter,
-                    buildOperationExecutor,
+                    buildOperationRunner,
                     buildOperationProgressEventEmitter,
                     originMetadataFactory,
                     stringInterner,
