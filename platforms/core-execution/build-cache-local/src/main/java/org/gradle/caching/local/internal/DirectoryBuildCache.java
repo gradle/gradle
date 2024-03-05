@@ -124,6 +124,7 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
 
     @Override
     public void storeLocally(HashCode key, File file) {
+        // We need to lock other processes out here because garbage collection can be under way in another process
         persistentCache.withFileLock(() -> storeInsideLock(key, file));
     }
 
