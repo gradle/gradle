@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
@@ -29,20 +28,7 @@ import org.gradle.api.tasks.Internal;
  *
  * @since 8.8
  */
-public interface ScalaTask extends Task, IConventionAware, Named {
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p><em>Note:</em> The "{@code extends }{@link Named}" clause was added to this interface as a temporary solution to work around the
-     * problem that {@link Task} itself does not currently extend {@link Named}. Once that's fixed, we should remove both the clause as well
-     * as this method declaration.</p>
-     *
-     * @see <a href="https://github.com/gradle/gradle/pull/28282">PR #28282 - Make Task extend Named, just like Configuration</a>
-     */
-    @Internal
-    @Override
-    String getName();
+public interface ScalaTask extends Task, IConventionAware {
 
     /**
      * {@inheritDoc}
