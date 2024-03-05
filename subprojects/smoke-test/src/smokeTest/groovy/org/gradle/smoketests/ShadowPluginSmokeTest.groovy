@@ -25,7 +25,7 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
     @Issue('https://plugins.gradle.org/plugin/io.github.goooler.shadow')
-    def 'shadow plugin #version'() {
+    def 'shadow plugin (#pluginId) #(pluginVersion)'() {
         given:
         buildFile << """
             import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
@@ -51,9 +51,7 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             """.stripIndent()
 
         when:
-        def result = runner('shadowJar')
-            .expectLegacyDeprecationWarning(BaseDeprecations.FILE_TREE_ELEMENT_GET_MODE_DEPRECATION)
-            .build()
+        def result = runner('shadowJar').build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
@@ -65,10 +63,7 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         runner('clean').build()
-        result = runner('shadowJar')
-            .expectLegacyDeprecationWarning(BaseDeprecations.FILE_TREE_ELEMENT_GET_MODE_DEPRECATION)
-            .withArguments("--stacktrace")
-            .build()
+        result = runner('shadowJar').build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
