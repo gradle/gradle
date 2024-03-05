@@ -23,7 +23,7 @@ errorprone {
 
 dependencies {
     api(project(":base-annotations"))
-    api(project(":enterprise-logging"))
+    api(project(":build-operations"))
     api(project(":base-services"))
     api(project(":messaging"))
     api(project(":native"))

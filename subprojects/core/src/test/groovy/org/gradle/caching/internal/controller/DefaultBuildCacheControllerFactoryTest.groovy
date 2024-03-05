@@ -36,7 +36,7 @@ import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -46,7 +46,7 @@ import java.util.function.Consumer
 class DefaultBuildCacheControllerFactoryTest extends Specification {
 
     def buildCacheEnabled = true
-    def buildOperationExecuter = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
     def buildOperationProgressEmitter = new NoOpBuildOperationProgressEventEmitter()
     def config = new DefaultBuildCacheConfiguration(TestUtil.instantiatorFactory().inject(), [
         new DefaultBuildCacheServiceRegistration(DirectoryBuildCache, TestDirectoryBuildCacheServiceFactory),
@@ -63,7 +63,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
             Stub(StartParameterInternal) {
                 isBuildCacheEnabled() >> buildCacheEnabled
             },
-            buildOperationExecuter,
+            buildOperationRunner,
             buildOperationProgressEmitter,
             Stub(OriginMetadataFactory),
             Stub(StringInterner),
