@@ -38,7 +38,7 @@ To enable build scans on a gradle command, add `--scan` to the command line opti
 
 [source,text]
 ----
- ./gradlew build --scans
+ ./gradlew build --scan
 ----
 
 You may be prompted to agree to the terms to use Build Scans.
