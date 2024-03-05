@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -25,6 +26,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
+import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.provider.DefaultSetProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.provider.Provider;
@@ -70,9 +72,9 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
         }
 
         if (mutable instanceof AbstractModuleDependency) {
-            ((AbstractModuleDependency) mutable).addMutationValidator(validator -> {
+            ((AbstractModuleDependency) mutable).addMutationValidator(dep -> {
                 if (((PropertyInternal<?>) getDependencies()).isFinalized()) {
-                    DeprecationLogger.deprecateAction("Mutating dependency " + mutable + " after it has been finalized")
+                    DeprecationLogger.deprecateAction("Mutating dependency " + dep + " after it has been finalized")
                         .willBecomeAnErrorInGradle9()
                         .withUpgradeGuideSection(8, "dependency_mutate_dependency_collector_after_finalize")
                         .nagUser();
@@ -163,12 +165,16 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     }
 
 
-    private static DependencyConstraint applyConstraintConfiguration(DependencyConstraint dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
+    private DependencyConstraint applyConstraintConfiguration(DependencyConstraint dependencyConstraint, @Nullable Action<? super DependencyConstraint> config) {
         if (config != null) {
             config.execute(dependencyConstraint);
         }
 
-        // TODO Use DependencyConstraint mutation validator https://github.com/gradle/gradle/issues/27904
+        ((DependencyConstraintInternal) dependencyConstraint).addMutationValidator(constraint -> {
+            if (((PropertyInternal<?>) getDependencyConstraints()).isFinalized()) {
+                throw new InvalidUserCodeException("Cannot mutate dependency constraint " + constraint + " after it has been finalized");
+            }
+        });
 
         return dependencyConstraint;
     }

@@ -27,7 +27,7 @@ val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
-val nativePlatformVersion = "0.22-milestone-25"
+val nativePlatformVersion = "0.22-milestone-26"
 val slf4jVersion = "1.7.36"
 val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val tomljVersion = "1.0.0"
@@ -128,6 +128,7 @@ dependencies {
         api(libs.junit5JupiterApi)      { version { strictly(junit5Version) }}
         api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
         api(libs.junitPlatform)         { version { strictly("1.8.2") }}
+        api(libs.junitPlatformEngine)   { version { strictly("1.8.2") }}
         api(libs.jzlib)                 { version { strictly("1.1.3") }}
         api(libs.kryo)                  { version { strictly("2.24.0") }}
         api(libs.log4jToSlf4j)          { version { strictly(slf4jVersion) }}

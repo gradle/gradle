@@ -31,7 +31,7 @@ class GradleBuildCrossVersionTestConfigurationCacheSmokeTest extends AbstractGra
         configurationCacheRun(tasks, 0)
 
         then:
-        assertConfigurationCacheStateStored()
+        result.assertConfigurationCacheStateStored()
 
         when:
         run([":configuration-cache:clean"])
@@ -40,7 +40,7 @@ class GradleBuildCrossVersionTestConfigurationCacheSmokeTest extends AbstractGra
         configurationCacheRun(tasks, 1)
 
         then:
-        assertConfigurationCacheStateLoaded()
+        result.assertConfigurationCacheStateLoaded()
         result.task(":configuration-cache:embeddedCrossVersionTest").outcome == TaskOutcome.FROM_CACHE
     }
 }

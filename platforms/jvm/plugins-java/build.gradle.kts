@@ -42,6 +42,7 @@ dependencies {
     integTestImplementation(testFixtures(project(":workers")))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
 packageCycles {

@@ -165,11 +165,11 @@ class DocumentResolver(
             ErrorReason.UnresolvedAssignmentRhs -> UnresolvedValueUsed
 
             ErrorReason.MissingConfigureLambda,
+            ErrorReason.UnusedConfigureLambda,
             is ErrorReason.UnresolvedFunctionCallArguments,
             is ErrorReason.UnresolvedFunctionCallReceiver,
             is ErrorReason.UnresolvedFunctionCallSignature,
             is ErrorReason.DuplicateLocalValue,
-            ErrorReason.UnusedConfigureLambda,
             is ErrorReason.ValReassignment,
             is ErrorReason.AmbiguousFunctions,
             is ErrorReason.AmbiguousImport,

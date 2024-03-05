@@ -24,13 +24,8 @@ import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
-import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
-import org.gradle.internal.declarativedsl.demo.assignmentTrace
 import org.gradle.internal.declarativedsl.demo.resolve
-import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
-import org.gradle.internal.declarativedsl.objectGraph.reflect
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -55,7 +50,7 @@ object AccessorTest {
                 x = 123
             }""".trimIndent()
         )
-        assertEquals(123, runtimeInstanceFromResult(resolution).myHiddenInstance.x)
+        assertEquals(123, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.x)
     }
 
     @Test
@@ -69,26 +64,9 @@ object AccessorTest {
                 y = "test"
             }""".trimIndent()
         )
-        val runtimeInstanceFromResult = runtimeInstanceFromResult(resolution)
+        val runtimeInstanceFromResult = runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver)
         assertEquals(123, runtimeInstanceFromResult.myLambdaReceiver.x)
         assertEquals("test", runtimeInstanceFromResult.myLambdaReceiver.y)
-    }
-
-    private
-    fun runtimeInstanceFromResult(resolution: ResolutionResult): MyReceiver {
-        val trace = assignmentTrace(resolution)
-        val context = ReflectionContext(SchemaTypeRefContext(schema), resolution, trace)
-        val topLevel = reflect(resolution.topLevelReceiver, context)
-
-        val runtimeInstance = MyReceiver()
-        DeclarativeReflectionToObjectConverter(
-            emptyMap(),
-            runtimeInstance,
-            MemberFunctionResolver(configureLambdas),
-            ReflectionRuntimePropertyResolver,
-            runtimeCustomAccessors
-        ).apply(topLevel)
-        return runtimeInstance
     }
 
     // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
@@ -123,7 +101,7 @@ object AccessorTest {
     val schema = schemaFromTypes(
         MyReceiver::class,
         this::class.nestedClasses,
-        functionExtractor = DefaultFunctionExtractor(isPublicAndRestricted, configureLambdas) + functionContributorWithCustomAccessor
+        functionExtractor = DefaultFunctionExtractor(configureLambdas, isPublicAndRestricted) + functionContributorWithCustomAccessor
     )
 
     internal

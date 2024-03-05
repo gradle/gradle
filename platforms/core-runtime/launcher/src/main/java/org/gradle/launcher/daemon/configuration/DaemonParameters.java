@@ -49,6 +49,7 @@ public class DaemonParameters {
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
     private final DaemonJvmOptions jvmOptions;
     private boolean applyInstrumentationAgent = true;
+    private boolean useNativeServices = true;
     private Map<String, String> envVariables;
     private boolean enabled = true;
     private boolean hasJvmArgs;
@@ -215,6 +216,15 @@ public class DaemonParameters {
 
     public DaemonParameters setApplyInstrumentationAgent(boolean applyInstrumentationAgent) {
         this.applyInstrumentationAgent = applyInstrumentationAgent;
+        return this;
+    }
+
+    public boolean useNativeServices() {
+        return useNativeServices;
+    }
+
+    public DaemonParameters setUseNativeServices(boolean useNativeServices) {
+        this.useNativeServices = useNativeServices;
         return this;
     }
 

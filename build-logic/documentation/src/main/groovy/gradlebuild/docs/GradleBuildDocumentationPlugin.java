@@ -129,7 +129,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
             int webserverPort = 8000;
             task.getJavaLauncher().set(
                 task.getProject().getExtensions().getByType(JavaToolchainService.class)
-                    .launcherFor(spec -> spec.getLanguageVersion().set(JavaLanguageVersion.of(18)))
+                    .launcherFor(spec -> spec.getLanguageVersion().set(JavaLanguageVersion.of(21)))
             );
             task.workingDir(extension.getDocumentationRenderedRoot());
             task.getMainModule().set("jdk.httpserver");

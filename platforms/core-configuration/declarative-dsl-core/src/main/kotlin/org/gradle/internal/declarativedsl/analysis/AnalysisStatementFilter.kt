@@ -20,7 +20,7 @@ import org.gradle.internal.declarativedsl.language.DataStatement
 
 
 fun interface AnalysisStatementFilter {
-    fun shouldAnalyzeStatement(statement: DataStatement, scopes: List<AnalysisScope>): Boolean
+    fun shouldAnalyzeStatement(statement: DataStatement, scopes: List<AnalysisScopeView>): Boolean
 }
 
 

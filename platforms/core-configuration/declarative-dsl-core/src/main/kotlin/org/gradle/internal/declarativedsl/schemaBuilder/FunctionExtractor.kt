@@ -27,9 +27,9 @@ import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DataParameter
 import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.NOT_ALLOWED
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.OPTIONAL
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.AddAndConfigure.ConfigureBlockRequirement.REQUIRED
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.OPTIONAL
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.REQUIRED
 import org.gradle.internal.declarativedsl.analysis.ParameterSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 import kotlin.reflect.KClass
@@ -74,12 +74,17 @@ operator fun FunctionExtractor.plus(other: FunctionExtractor): CompositeFunction
 
 
 class DefaultFunctionExtractor(
-    private val includeFilter: MemberFilter,
-    private val configureLambdas: ConfigureLambdaHandler
+    private val configureLambdas: ConfigureLambdaHandler,
+    private val includeFilter: MemberFilter = isPublicAndRestricted,
 ) : FunctionExtractor {
-    override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        kClass.memberFunctions.filter { it.visibility == KVisibility.PUBLIC && includeFilter.shouldIncludeMember(it) }
-            .map { function -> memberFunction(kClass, function, preIndex, configureLambdas) }
+    override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> {
+        val functionsClaimedByProperties = preIndex.getClaimedFunctions(kClass)
+        return kClass.memberFunctions.filter {
+            it.visibility == KVisibility.PUBLIC &&
+                includeFilter.shouldIncludeMember(it) &&
+                it !in functionsClaimedByProperties
+        }.map { function -> memberFunction(kClass, function, preIndex, configureLambdas) }
+    }
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> =
         kClass.constructors.filter { it.visibility == KVisibility.PUBLIC && includeFilter.shouldIncludeMember(it) }

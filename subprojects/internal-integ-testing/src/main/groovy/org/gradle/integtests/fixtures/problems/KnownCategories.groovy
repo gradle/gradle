@@ -46,6 +46,7 @@ class KnownCategories {
         [namespace: "org.gradle", category: "dependency-version-catalog", subcategories: ["too-many-import-files"]],
         [namespace: "org.gradle", category: "dependency-version-catalog", subcategories: ["too-many-import-invocation"]],
         [namespace: "org.gradle", category: "dependency-version-catalog", subcategories: ["no-import-files"]],
+        [namespace: "org.gradle", category: "dependency-version-catalog", subcategories: ["invalid-dependency-notation"]],
         [namespace: "org.gradle", category: "deprecation", subcategories: ["build-invocation"]],
         [namespace: "org.gradle", category: "deprecation", subcategories: ["user-code-direct"]],
         [namespace: "org.gradle", category: "deprecation", subcategories: ["user-code-indirect"]],

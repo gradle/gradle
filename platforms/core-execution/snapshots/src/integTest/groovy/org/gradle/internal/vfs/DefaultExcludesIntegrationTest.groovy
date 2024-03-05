@@ -144,10 +144,21 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
     }
 
     @Issue("https://github.com/gradle/gradle/issues/27225")
-    def "default excludes are remove properly"() {
-        settingsFile << removeDefaultExclude()
+    def "default excludes are removed properly"() {
+        def defaultExclude = '.gitignore'
+        def defaultExcludeFile = file("input/$defaultExclude")
+        defaultExcludeFile << "some content"
+
+        settingsFile << removeDefaultExclude(defaultExclude)
 
         when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        file("build/output/$defaultExclude").exists()
+
+        when:
+        defaultExcludeFile.text = "changed"
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")
@@ -159,9 +170,9 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         """
     }
 
-    private static String removeDefaultExclude() {
+    private static String removeDefaultExclude(String defaultExcludedFileName) {
         """
-            ${DirectoryScanner.name}.removeDefaultExclude('**/.gitignore')
+            ${DirectoryScanner.name}.removeDefaultExclude('**/${defaultExcludedFileName}')
         """
     }
 }

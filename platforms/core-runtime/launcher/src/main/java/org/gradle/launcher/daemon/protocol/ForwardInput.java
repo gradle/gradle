@@ -15,15 +15,17 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
+/**
+ * Carries some text that should be made available via the daemon's System.in
+ */
 public class ForwardInput extends InputMessage {
     private final byte[] bytes;
-    
+
     public ForwardInput(byte[] bytes) {
         this.bytes = bytes;
     }
-    
+
     public byte[] getBytes() {
         return bytes;
     }
-    
 }
