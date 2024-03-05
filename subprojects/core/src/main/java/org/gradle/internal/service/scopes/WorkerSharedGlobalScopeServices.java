@@ -58,6 +58,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventListenerAdapter
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
+import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
@@ -159,6 +160,14 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     ClassLoaderFactory createClassLoaderFactory() {
         return new DefaultClassLoaderFactory();
+    }
+
+    BuildOperationListenerManager createBuildOperationListenerManager() {
+        return new DefaultBuildOperationListenerManager();
+    }
+
+    CurrentBuildOperationRef createCurrentBuildOperationRef() {
+        return CurrentBuildOperationRef.instance();
     }
 
     BuildOperationRunner createBuildOperationRunner(
