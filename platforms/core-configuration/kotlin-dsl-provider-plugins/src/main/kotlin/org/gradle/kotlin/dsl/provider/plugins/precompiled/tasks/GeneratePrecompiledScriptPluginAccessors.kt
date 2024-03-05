@@ -21,8 +21,16 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.artifacts.DependencyManagementServices
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
+import org.gradle.api.internal.initialization.ScriptClassPathResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
@@ -41,7 +49,6 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.internal.Try
 import org.gradle.internal.build.NestedRootBuildRunner.createNestedBuildTree
-import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
@@ -340,7 +347,6 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
      */
     private
     fun projectSchemaFor(plugins: PluginRequests): Try<TypedProjectSchema> {
-        val buildLogicClassPath = buildLogicClassPath()
         val projectDir = uniqueTempDirectory()
         val startParameter = projectSchemaBuildStartParameterFor(projectDir)
         return createNestedBuildTree("$path:${projectDir.name}", startParameter, services).run { controller ->
@@ -350,7 +356,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     val baseScope = classLoaderScopeRegistry.coreAndPluginsScope.createChild("accessors-classpath", null).apply {
                         // we export the build logic classpath to the base scope here so that all referenced plugins
                         // can be resolved in the root project scope created below.
-                        export(buildLogicClassPath)
+                        export(buildLogicClassPath(gradle))
                         lock()
                     }
                     val rootProjectScope = baseScope.createChild("accessors-root-project", null)
@@ -409,11 +415,27 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun buildLogicClassPath(): ClassPath =
-        services.get<CachedClasspathTransformer>().transform(
-            DefaultClassPath.of(runtimeClassPathFiles),
-            CachedClasspathTransformer.StandardTransform.BuildLogic
+    fun buildLogicClassPath(gradle: Gradle): ClassPath {
+        // Ideally we would pass already instrumented classpath to a task and then just export it to the classloader.
+        // But since we do some artifact transform caching via BuildService, that would add some complexity when wiring GeneratePrecompiledScriptPluginAccessors task.
+        val dependencyManagementServices = gradle.serviceOf<DependencyManagementServices>()
+        val dependencyResolutionServices = dependencyManagementServices.create(
+            gradle.serviceOf<FileResolver>(),
+            gradle.serviceOf<FileCollectionFactory>(),
+            gradle.serviceOf<DependencyMetaDataProvider>(),
+            UnknownProjectFinder("Project dependencies are not allowed at GeneratePrecompiledScriptPluginAccessors resolution"),
+            RootScriptDomainObjectContext.PLUGINS
         )
+
+        val dependencies = dependencyResolutionServices.dependencyHandler
+        val configurations = dependencyResolutionServices.configurationContainer
+        val classpath = dependencies.create(runtimeClassPathFiles)
+        val configuration = configurations.detachedConfiguration(classpath)
+        val resolver = gradle.serviceOf<ScriptClassPathResolver>()
+        val resolutionContext = resolver.prepareDependencyHandler(dependencies)
+        resolver.prepareClassPath(configuration, resolutionContext)
+        return resolver.resolveClassPath(configuration, resolutionContext)
+    }
 
     private
     fun uniqueTempDirectory() =
