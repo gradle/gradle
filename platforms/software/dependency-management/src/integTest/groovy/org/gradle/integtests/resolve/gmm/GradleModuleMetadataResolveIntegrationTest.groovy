@@ -22,9 +22,14 @@ import spock.lang.Issue
 class GradleModuleMetadataResolveIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/26468")
-    def "can consume gmm with dependency missing artifactSelector extension"() {
+    def "can consume gmm with dependency null or empty artifactSelector extension"() {
         given:
-        mavenRepo.module("org", "transitive", "1.0").artifact(classifier: "cls").withNoPom().withModuleMetadata().publish()
+        mavenRepo.module("org", "transitive", "1.0")
+            .artifact(classifier: "cls")
+            .artifact(classifier: "cls", type: "")
+            .withNoPom()
+            .withModuleMetadata()
+            .publish()
 
         def module = mavenRepo.module("org", "foo")
         module.withNoPom().publish()
@@ -96,7 +101,7 @@ class GradleModuleMetadataResolveIntegrationTest extends AbstractIntegrationSpec
             task resolve {
                 def files = configurations.runtimeClasspath
                 doLast {
-                    assert files*.name == ["foo-1.0.jar", "transitive-1.0-cls.jar"]
+                    assert files*.name == ["foo-1.0.jar", "${expectedFile}"]
                 }
             }
         """
@@ -105,6 +110,8 @@ class GradleModuleMetadataResolveIntegrationTest extends AbstractIntegrationSpec
         succeeds("resolve")
 
         where:
-        artifactDeclaration << ['', '"extension": "",']
+        artifactDeclaration | expectedFile
+        ""                  | "transitive-1.0-cls.jar"
+        '"extension": "",'  | "transitive-1.0-cls"
     }
 }

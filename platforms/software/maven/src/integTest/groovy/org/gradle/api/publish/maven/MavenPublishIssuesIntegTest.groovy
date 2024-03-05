@@ -462,6 +462,8 @@ subprojects {
                 id("maven-publish")
             }
 
+            ${mavenTestRepository()}
+
             group = "org"
             version = "1.0"
 
@@ -481,10 +483,17 @@ subprojects {
                     }
                 }
             }
+
+            task resolve {
+                def files = configurations.runtimeClasspath
+                doLast {
+                    assert files*.name == ["foo-1.0-cls.jar"]
+                }
+            }
         """
 
         when:
-        succeeds("publish")
+        succeeds("publish", "resolve")
 
         then:
         mavenRepo.module("org", "producer", "1.0").parsedModuleMetadata.variant("runtimeElements") {
@@ -497,15 +506,70 @@ subprojects {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26468")
-    def "defaults to type for extension on published dependency artifact"() {
+    def "defaults to type for null extension on published dependency artifact"() {
         given:
-        mavenRepo.module("org", "foo").artifact(classifier: "cls").publish()
+        mavenRepo.module("org", "foo").artifact(type: "type").publish()
         settingsFile << 'rootProject.name = "producer"'
         buildFile << """
             plugins {
                 id("java-library")
                 id("maven-publish")
             }
+
+            ${mavenTestRepository()}
+
+            group = "org"
+            version = "1.0"
+
+            dependencies {
+                implementation("org:foo:1.0") {
+                    artifact {
+                        type = "type"
+                    }
+                }
+            }
+
+            publishing {
+                ${mavenTestRepository()}
+                publications {
+                    maven(MavenPublication) {
+                        from(components.java)
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath
+                doLast {
+                    assert files*.name == ["foo-1.0.type"]
+                }
+            }
+        """
+
+        when:
+        succeeds("publish", "resolve")
+
+        then:
+        mavenRepo.module("org", "producer", "1.0").parsedModuleMetadata.variant("runtimeElements") {
+            def fooDep = dependencies.find { it.group == "org" && it.module == "foo" }
+            assert fooDep != null
+            assert fooDep.artifactSelector.type == "type"
+            assert fooDep.artifactSelector.extension == "type"
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26468")
+    def "does not default to type for empty extension on published dependency artifact"() {
+        given:
+        mavenRepo.module("org", "foo").artifact(type: "").publish()
+        settingsFile << 'rootProject.name = "producer"'
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            ${mavenTestRepository()}
 
             group = "org"
             version = "1.0"
@@ -527,17 +591,24 @@ subprojects {
                     }
                 }
             }
+
+            task resolve {
+                def files = configurations.runtimeClasspath
+                doLast {
+                    assert files*.name == ["foo-1.0"]
+                }
+            }
         """
 
         when:
-        succeeds("publish")
+        succeeds("publish", "resolve")
 
         then:
         mavenRepo.module("org", "producer", "1.0").parsedModuleMetadata.variant("runtimeElements") {
             def fooDep = dependencies.find { it.group == "org" && it.module == "foo" }
             assert fooDep != null
             assert fooDep.artifactSelector.type == "type"
-            assert fooDep.artifactSelector.extension == "type"
+            assert fooDep.artifactSelector.extension == ""
         }
     }
 }
