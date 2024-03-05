@@ -43,26 +43,14 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         buildFile """
             import org.gradle.internal.jvm.Jvm
 
+            def providers = project.providers
+
             task checkJavaHome {
-                doLast {
-                    assert Jvm.current().javaHome == new File(project.providers.gradleProperty('expectedJavaHome').get())
+                doFirst {
+                    assert Jvm.current().javaHome == new File(providers.gradleProperty('expectedJavaHome').get())
                 }
             }
-            task checkGradleUserHomeViaSystemEnv {
-                doLast {
-                    assert gradle.gradleUserHomeDir == file('customUserHome')
-                }
-            }
-            task checkDefaultGradleUserHome {
-                doLast {
-                    assert gradle.gradleUserHomeDir == new File(System.properties['user.home'], ".gradle")
-                }
-            }
-            task checkSystemPropertyGradleUserHomeHasPrecedence {
-                doLast {
-                    assert gradle.gradleUserHomeDir == file('systemPropCustomUserHome')
-                }
-            }
+
             task checkSystemProperty {
                 def custom1 = project.providers.systemProperty('customProp1')
                 def custom2 = project.providers.systemProperty('customProp2')
@@ -167,7 +155,14 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
     def "can define gradle user home via environment variable"() {
         // the actual testing is done in the build script.
         when:
-        createProject()
+        buildFile """
+            task checkGradleUserHomeViaSystemEnv {
+                doLast {
+                    assert gradle.gradleUserHomeDir == file('customUserHome')
+                }
+            }
+        """
+
         File gradleUserHomeDir = file('customUserHome')
 
         then:
@@ -183,7 +178,13 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
     @Issue('https://github.com/gradle/gradle-private/issues/2876')
     def "check default gradle user home"() {
         given:
-        createProject()
+        buildFile """
+            task checkDefaultGradleUserHome {
+                doLast {
+                    assert gradle.gradleUserHomeDir == new File(System.properties['user.home'], ".gradle")
+                }
+            }
+        """
 
         when:
         // the actual testing is done in the build script.
@@ -266,7 +267,13 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
 
     def "system property GRADLE_USER_HOME has precedence over environment variable"() {
         given:
-        createProject()
+        buildFile """
+            task checkSystemPropertyGradleUserHomeHasPrecedence {
+                doLast {
+                    assert gradle.gradleUserHomeDir == file('systemPropCustomUserHome')
+                }
+            }
+        """
 
         when:
         // the actual testing is done in the build script.
