@@ -43,16 +43,16 @@ The previous step will help you identify potential problems by issuing deprecati
 [[mutate_configuration_after_locking]]
 ==== Deprecate mutating configuration after observation
 
-In order to ensure the accuracy of dependency resolution, Gradle ensures that Configurations are not mutated after they have been used as part of a dependency graph.
+To ensure the accuracy of dependency resolution, Gradle ensures that Configurations are not mutated after they have been used as part of a dependency graph.
 
-* Resolvable configurations should not have their resolution strategy, dependencies, hierarchy, etc. modified after they have been resolved.
-* Consumable configurations should not have their dependencies, hierarchy, attributes, etc. modified after they have been published or consumed as variant.
-* Dependency scope configurations should not have their dependencies, constraints, etc. modified after a configuration that extends from them are observed.
+* Resolvable configurations should not have their resolution strategy, dependencies, hierarchy, etc., modified after they have been resolved.
+* Consumable configurations should not have their dependencies, hierarchy, attributes, etc., modified after they have been published or consumed as a variant.
+* Dependency scope configurations should not have their dependencies, constraints, etc., modified after a configuration that extends from them are observed.
 
-Gradle already throws an exception for many of these circumstances, but in comes cases it does not.
-As of Gradle 9.0, all of these cases will result in an error.
+Gradle already throws an exception for many of these circumstances, but in some cases, it does not.
+As of Gradle 9.0, all these cases will result in an error.
 After a configuration of any type has been observed, it should be considered immutable.
-The following properties of a configuration are covered by this validation:
+This validation covers the following properties of a configuration:
 
 * Resolution Strategy
 * Dependencies
@@ -60,11 +60,11 @@ The following properties of a configuration are covered by this validation:
 * Exclude Rules
 * Artifacts
 * Role (consumable, resolvable, dependency scope)
-* Hierarchy (extendsFrom)
+* Hierarchy (`extendsFrom`)
 * Others (Transitive, Visible)
 
 In many cases, this deprecation is caused by mutating a configuration in a link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#beforeResolve-org.gradle.api.Action-[`beforeResolve`] hook.
-This hook is only executed after a configuration is fully resolved, but not when it is partially resolved for computing task dependencies.
+This hook is only executed after a configuration is fully resolved but not when it is partially resolved for computing task dependencies.
 
 Consider the following code that showcases the deprecated behavior:
 
@@ -111,7 +111,7 @@ For the following cases, consider the suggested options for replacing mutations 
 * **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>
 * **Roles**: Configuration roles should be set upon creation and not changed afterward.
 * **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged, but is permitted within a `withDependenices` hook.
-* **Resolution Strategy**: Mutating a configuration's ResolutionStrategy is still permitted in a `beforeResolve` hook, however this is not a recommended practice.
+* **Resolution Strategy**: Mutating a configuration's ResolutionStrategy is still permitted in a `beforeResolve` hook; however, this is not recommended.
 
 
 [[deprecated_namers]]
