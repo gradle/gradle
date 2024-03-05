@@ -40,6 +40,7 @@ class KnownProblemIds {
         'compilation:java:java-compilation-warning',
         'compilation:java:java-compilation-advice',
         'dependency-version-catalog:alias-not-finished',
+        'dependency-version-catalog:invalid-dependency-notation',
         'dependency-version-catalog:reserved-alias-name',
         'dependency-version-catalog:catalog-file-does-not-exist',
         'dependency-version-catalog:toml-syntax-error',

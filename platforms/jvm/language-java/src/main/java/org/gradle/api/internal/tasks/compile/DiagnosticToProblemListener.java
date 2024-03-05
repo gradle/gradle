@@ -48,28 +48,10 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @VisibleForTesting
     static void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        spec.id(mapKindToId(diagnostic.getKind()), mapKindToLabel(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
-        spec.details(diagnostic.getMessage(Locale.getDefault()));
-
-        addCategory(spec, diagnostic);
+        spec.id(mapKindToId(diagnostic.getKind()), mapKindToLabel(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java())
+            .details(diagnostic.getMessage(Locale.getDefault()))
+            .severity(mapKindToSeverity(diagnostic.getKind()));
         addLocations(spec, diagnostic);
-    }
-
-    private static void addCategory(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
-        Severity severity = mapKindToSeverity(diagnostic.getKind());
-        switch (severity) {
-            case ADVICE:
-                spec.category("compilation", "java", "compilation-advice");
-                break;
-            case WARNING:
-                spec.category("compilation", "java", "compilation-warning");
-                break;
-            case ERROR:
-                spec.category("compilation", "java", "compilation-failed");
-                break;
-        }
-
-        spec.severity(severity);
     }
 
     private static void addLocations(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {

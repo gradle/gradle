@@ -146,7 +146,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
             current = current.getParent();
         }
         Collections.reverse(categories);
-        return Pair.of(categories.get(0), categories.subList(1, categories.size()));
+        return Pair.of(categories.get(0), new ArrayList<>(categories.subList(1, categories.size()))); // ArrayList$SubList is not serializable, hence the new ArrayList instance
     }
 
     private static InternalLabel toInternalLabel(String label, @Nullable String contextualLabel) {
