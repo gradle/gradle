@@ -1695,8 +1695,8 @@ All Artifacts:
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
         resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf") >> new DefaultDependencyLockingState(true, [constraint] as Set, { entry -> false })
-        dependencyLockingProvider.loadLockState("child") >> DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT
+        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(true, [constraint] as Set, { entry -> false })
+        dependencyLockingProvider.loadLockState("child", _) >> DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT
 
         when:
         def child = conf("child")
@@ -1712,7 +1712,7 @@ All Artifacts:
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
         resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf") >> new DefaultDependencyLockingState(true, [constraint] as Set, {entry -> false })
+        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(true, [constraint] as Set, {entry -> false })
 
         when:
         def conf = conf()
@@ -1728,7 +1728,7 @@ All Artifacts:
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
         resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf") >> new DefaultDependencyLockingState(strict, [constraint] as Set, {entry -> false })
+        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(strict, [constraint] as Set, {entry -> false })
 
         when:
         def conf = conf()

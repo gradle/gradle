@@ -59,13 +59,13 @@ public class ResolvedArtifactSetResolver {
             @Override
             public void run(BuildOperationContext context) {
                 ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);
-                dependencyVerificationOverride.artifactsAccessed(resolutionHost.getDisplayName());
+                dependencyVerificationOverride.artifactsAccessed(resolutionHost.displayName().getDisplayName());
                 context.setResult(new ResolveArtifactsBuildOperationType.Result() {});
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String displayName = "Resolve files of " + resolutionHost.getDisplayName();
+                String displayName = "Resolve files of " + resolutionHost.displayName().getDisplayName();
                 return BuildOperationDescriptor
                     .displayName(displayName)
                     .progressDisplayName(displayName)

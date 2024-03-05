@@ -92,12 +92,12 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
         if (resolveContext.getResolutionStrategy().isDependencyLockingEnabled()) {
             DependencyLockingProvider dependencyLockingProvider = resolveContext.getResolutionStrategy().getDependencyLockingProvider();
-            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(resolveContext.getName());
+            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(resolveContext.getDependencyLockingId(), resolveContext.getResolutionHost().displayName());
             if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
                 // Invalid lock state, need to do a real resolution to gather locking failures
                 return delegate.resolveGraph(resolveContext);
             }
-            dependencyLockingProvider.persistResolvedDependencies(resolveContext.getName(), Collections.emptySet(), Collections.emptySet());
+            dependencyLockingProvider.persistResolvedDependencies(resolveContext.getDependencyLockingId(), resolveContext.getResolutionHost().displayName(), Collections.emptySet(), Collections.emptySet());
         }
 
         VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
