@@ -33,8 +33,6 @@ dependencies {
     api(libs.jsr305)
     api(libs.guava)
 
-    implementation(project(":build-operations"))
-
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
