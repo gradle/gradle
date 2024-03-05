@@ -136,15 +136,17 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         return new DefaultProblemCategory("", rootCategory, subcategories); // TODO look at problem category in Tooling API events
     }
 
-    private static Pair<String, List<String>> categories(ProblemGroup problemId) {
-        List<String> subcategories = new ArrayList<>();
-        ProblemGroup current = problemId;
-        while (current.getParent() != null) {
-            subcategories.add(current.getId());
+    private static Pair<String, List<String>> categories(ProblemId problemId) {
+        List<String> categories = new ArrayList<>();
+        // put the problem id at the beginning of the list
+        categories.add(0, problemId.getId());
+        ProblemGroup current = problemId.getParent();
+        while (current != null) {
+            categories.add(0, current.getGroupId());
             current = current.getParent();
         }
-        Collections.reverse(subcategories);
-        return Pair.of(current.getId(), subcategories);
+        Collections.reverse(categories);
+        return Pair.of(categories.get(0), categories.subList(1, categories.size()));
     }
 
     private static InternalLabel toInternalLabel(String label, @Nullable String contextualLabel) {

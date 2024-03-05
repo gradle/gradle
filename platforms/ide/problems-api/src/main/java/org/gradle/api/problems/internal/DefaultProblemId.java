@@ -19,9 +19,54 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 
-public class DefaultProblemId extends DefaultProblemGroup implements ProblemId {
+public class DefaultProblemId implements ProblemId {
+
+    private final String id;
+    private final String displayName;
+    private final ProblemGroup parent;
 
     public DefaultProblemId(String id, String displayName, ProblemGroup parent) {
-        super(id, displayName, parent);
+        this.id = id;
+        this.displayName = displayName;
+        this.parent = parent;
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    public ProblemGroup getParent() {
+        return parent;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || o.getClass().isAssignableFrom(ProblemId.class)) {
+            return false;
+        }
+
+        ProblemId that = (ProblemId) o;
+
+        if (!id.equals(that.getId())) {
+            return false;
+        }
+        return parent.equals(that.getParent());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + parent.hashCode();
+        return result;
     }
 }

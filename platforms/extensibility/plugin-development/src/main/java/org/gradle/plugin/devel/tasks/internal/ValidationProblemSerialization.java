@@ -559,7 +559,7 @@ public class ValidationProblemSerialization {
                 return null;
             }
             JsonObject group = groupObject.getAsJsonObject();
-            String id = group.get("id").getAsString();
+            String id = group.get("groupId").getAsString();
             String displayName = group.get("displayName").getAsString();
             ProblemGroup parent = deserializeGroup(group.get("parent"));
             return new DefaultProblemGroup(id, displayName, parent);
@@ -577,7 +577,7 @@ public class ValidationProblemSerialization {
         private static void serializeGroup(JsonObject result, @Nullable ProblemGroup group) {
             if (group != null) {
                 JsonObject groupObject = new JsonObject();
-                groupObject.addProperty("id", group.getId());
+                groupObject.addProperty("groupId", group.getGroupId());
                 groupObject.addProperty("displayName", group.getDisplayName());
                 serializeGroup(groupObject, group.getParent());
                 result.add("parent", groupObject);

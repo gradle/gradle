@@ -41,7 +41,7 @@ public interface ProblemGroup {
      *
      * @since 8.8
      */
-    String getId();
+    String getGroupId();
 
     /**
      * Returns a human-readable label describing the group.

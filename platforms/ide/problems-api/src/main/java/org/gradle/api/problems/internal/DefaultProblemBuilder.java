@@ -189,7 +189,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     private static ProblemGroup cloneGroup(ProblemGroup original) {
-        return new DefaultProblemGroup(original.getId(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
+        return new DefaultProblemGroup(original.getGroupId(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
     }
 
     @Override

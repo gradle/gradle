@@ -23,12 +23,31 @@ import org.gradle.api.Incubating;
  * <p>
  * Problem IDs have a similar contracts as ProblemGroup. They have a container problem group returned by {@link #getParent()}.
  * Problem IDs are uniquely identified based on their ids and parents' ids.
- * <p>
- * The {@link #getParent()} method always returns a non-null value for problem IDs, but it cannot be expressed with Java annotations as it conflicts with the annotation on {@link ProblemGroup#getParent()}.
  *
  * @since 8.8
  */
 @Incubating
-public interface ProblemId extends ProblemGroup {
+public interface ProblemId {
 
+    /**
+     * The ID of the problem.
+     *
+     * @since 8.8
+     */
+    String getId();
+
+    /**
+     * Returns a human-readable label describing the problem ID.
+     * <p>
+     * The display name should not be considered when determining problem equality.
+     * @since 8.8
+     */
+    String getDisplayName();
+
+    /**
+     * Returns the parent group.
+     *
+     * @since 8.8
+     */
+    ProblemGroup getParent();
 }
