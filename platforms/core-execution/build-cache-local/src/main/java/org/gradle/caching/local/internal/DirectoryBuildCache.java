@@ -37,6 +37,8 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 
 @NonNullApi
@@ -46,6 +48,7 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     private final BuildCacheTempFileStore tempFileStore;
     private final FileAccessTracker fileAccessTracker;
     private final String failedFileSuffix;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public DirectoryBuildCache(PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
         this.persistentCache = persistentCache;
@@ -77,7 +80,15 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     @Override
     public void loadLocally(HashCode key, Consumer<? super File> reader) {
         // We need to lock other processes out here because garbage collection can be under way in another process
-        persistentCache.withFileLock(() -> loadInsideLock(key, reader));
+        persistentCache.withFileLock(() -> {
+            // Additional locking necessary because of https://github.com/gradle/gradle/issues/3537
+            lock.readLock().lock();
+            try {
+                loadInsideLock(key, reader);
+            } finally {
+                lock.readLock().unlock();
+            }
+        });
     }
 
     private void loadInsideLock(HashCode key, Consumer<? super File> reader) {
@@ -125,7 +136,15 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     @Override
     public void storeLocally(HashCode key, File file) {
         // We need to lock other processes out here because garbage collection can be under way in another process
-        persistentCache.withFileLock(() -> storeInsideLock(key, file));
+        persistentCache.withFileLock(() -> {
+            // Additional locking necessary because of https://github.com/gradle/gradle/issues/3537
+            lock.writeLock().lock();
+            try {
+                storeInsideLock(key, file);
+            } finally {
+                lock.writeLock().unlock();
+            }
+        });
     }
 
     private void storeInsideLock(HashCode key, File sourceFile) {
