@@ -17,7 +17,6 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.problems.internal.DefaultProblemGroup;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -25,28 +24,27 @@ import javax.annotation.concurrent.Immutable;
 /**
  * Represents a group of problems.
  * <p>
- * Groups are organized in hierarchy where the parent group should represent the more broad category.
+ * Groups are organized in hierarchy where the parent group should represent the more broad problem group.
  * <p>
- * Two group instances are considered equal if their Id's are the same and their parents are also equal to each other.
+ * Two problem groups  are considered equal if their {@link #getName()} and their parents' are equal.
+ *
  * @since 8.8
  * @see ProblemId
- * @see DefaultProblemGroup
  */
 @Incubating
 @Immutable
 public interface ProblemGroup {
 
     /**
-     * The ID of the problem group.
+     * The name of the problem group.
      *
      * @since 8.8
      */
-    String getGroupId();
+    String getName();
 
     /**
      * Returns a human-readable label describing the group.
-     * <p>
-     * The display name should not be considered when determining problem equality.
+     *
      * @since 8.8
      */
     String getDisplayName();

@@ -19,10 +19,9 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * Represents am ID for a unique problem definition.
+ * Represents an identifier for a problem definition.
  * <p>
- * Problem IDs have a similar contracts as ProblemGroup. They have a container problem group returned by {@link #getParent()}.
- * Problem IDs are uniquely identified based on their ids and parents' ids.
+ * Two problem IDs are considered equal if their {@link #getName()} and their parents' are equal.
  *
  * @since 8.8
  */
@@ -30,22 +29,21 @@ import org.gradle.api.Incubating;
 public interface ProblemId {
 
     /**
-     * The ID of the problem.
+     * The name of the problem.
      *
      * @since 8.8
      */
-    String getId();
+    String getName();
 
     /**
-     * Returns a human-readable label describing the problem ID.
-     * <p>
-     * The display name should not be considered when determining problem equality.
+     * A human-readable label describing the problem ID.
+     *
      * @since 8.8
      */
     String getDisplayName();
 
     /**
-     * Returns the parent group.
+     * The parent group.
      *
      * @since 8.8
      */

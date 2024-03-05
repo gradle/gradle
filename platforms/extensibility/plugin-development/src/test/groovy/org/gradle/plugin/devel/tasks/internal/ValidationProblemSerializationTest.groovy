@@ -42,9 +42,9 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].definition.id.id == "id"
+        deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
-        deserialized[0].definition.id.parent.groupId == "validation"
+        deserialized[0].definition.id.parent.name == "validation"
         deserialized[0].definition.id.parent.displayName == "Validation"
         deserialized[0].definition.id.parent.parent == null
 
@@ -65,7 +65,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].definition.id.id == "type"
+        deserialized[0].definition.id.name == "type"
         deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations[0].path == "location"
         deserialized[0].locations[0].line == 1
@@ -88,7 +88,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].definition.id.id == "id"
+        deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations[0].path == "location"
         deserialized[0].locations[0].line == 1
@@ -127,7 +127,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].definition.id.id == "id"
+        deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations == [] as List
         deserialized[0].definition.documentationLink == null
@@ -147,7 +147,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].definition.id.id == "id"
+        deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations == [] as List
         deserialized[0].definition.documentationLink == null
@@ -171,7 +171,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].definition.id.id == "id"
+        deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations == [] as List
         deserialized[0].definition.documentationLink == null
@@ -193,7 +193,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.size() == 1
-        deserialized[0].definition.id.id == "id"
+        deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
         deserialized[0].locations == [] as List
         deserialized[0].definition.documentationLink == null

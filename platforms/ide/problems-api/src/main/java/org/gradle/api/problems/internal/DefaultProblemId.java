@@ -19,7 +19,9 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 
-public class DefaultProblemId implements ProblemId {
+import java.io.Serializable;
+
+public class DefaultProblemId implements ProblemId, Serializable {
 
     private final String id;
     private final String displayName;
@@ -32,7 +34,7 @@ public class DefaultProblemId implements ProblemId {
     }
 
     @Override
-    public String getId() {
+    public String getName() {
         return id;
     }
 
@@ -57,7 +59,7 @@ public class DefaultProblemId implements ProblemId {
 
         ProblemId that = (ProblemId) o;
 
-        if (!id.equals(that.getId())) {
+        if (!id.equals(that.getName())) {
             return false;
         }
         return parent.equals(that.getParent());

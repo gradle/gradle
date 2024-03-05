@@ -45,10 +45,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         def problem = collectedProblem
         problem['definition']['id'] == [
-            id: 'missing-id',
+            name: 'missing-id',
             displayName: 'Problem id must be specified',
             parent: [
-                'id': 'problems-api',
+                'name': 'problems-api',
                 'displayName': 'Problems API',
                 'parent': null
             ]
@@ -71,10 +71,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         def problem = collectedProblem
         problem['definition']['id'] == [
-            id: 'type',
+            name: 'type',
             displayName: 'label',
             parent: [
-                id: 'generic',
+                name: 'generic',
                 displayName: 'Generic',
                 parent: null
             ]
@@ -99,10 +99,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         def problem = collectedProblem
         problem['definition']['id'] == [
-            id: 'type',
+            name: 'type',
             displayName: 'label',
             parent: [
-                id: 'generic',
+                name: 'generic',
                 displayName: 'Generic',
                 parent: null
             ]
@@ -263,10 +263,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         def problem = collectedProblem
         problem['definition']['id'] == [
-            id: 'invalid-additional-data',
+            name: 'invalid-additional-data',
             displayName: 'ProblemBuilder.additionalData() only supports values of type String',
             parent: [
-                id: 'problems-api',
+                name: 'problems-api',
                 displayName: 'Problems API',
                 parent: null
             ]
@@ -349,7 +349,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         problems.size() == 10
         problems.every {
             it['definition']['id']["displayName"] == "label" &&
-            it['definition']["id"]['id'] == 'type' &&
+            it['definition']["id"]['name'] == 'type' &&
             it['definition']["severity"] == "WARNING" &&
             it['solutions'] == ["solution"]
         }

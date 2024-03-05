@@ -22,14 +22,14 @@ class KnownProblemIds {
         assert problem != null
         def id = problem['definition']['id']
         assert id != null : "Id must be present"
-        assert id['id'] != null : "Must specify a main id: $id"
+        assert id['name'] != null : "Must specify a main id: $id"
         assert id['displayName'] != null : "Must specify displayName: $id"
         def fqId = toFullyQualifiedId(id)
         assert KNOWN_IDS.contains(fqId): "Unknown problem id: ${fqId}"
     }
 
     private static String toFullyQualifiedId(problem) {
-         return "${problem['parent'] ? toFullyQualifiedId(problem['parent']) + ":" :  ""}" + problem['id']
+         return "${problem['parent'] ? toFullyQualifiedId(problem['parent']) + ":" :  ""}" + problem['name']
     }
 
     private static final def KNOWN_IDS = [

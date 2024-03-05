@@ -177,19 +177,19 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder id(String id, String displayName) {
-        this.id = new DefaultProblemId(id, displayName, cloneGroup(SharedProblemGroup.generic()));
+    public InternalProblemBuilder id(String name, String displayName) {
+        this.id = new DefaultProblemId(name, displayName, cloneGroup(SharedProblemGroup.generic()));
         return this;
     }
 
     @Override
-    public InternalProblemBuilder id(String id, String displayName, ProblemGroup parent) {
-        this.id = new DefaultProblemId(id, displayName, cloneGroup(parent));
+    public InternalProblemBuilder id(String name, String displayName, ProblemGroup parent) {
+        this.id = new DefaultProblemId(name, displayName, cloneGroup(parent));
         return this;
     }
 
     private static ProblemGroup cloneGroup(ProblemGroup original) {
-        return new DefaultProblemGroup(original.getGroupId(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
+        return new DefaultProblemGroup(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
     }
 
     @Override

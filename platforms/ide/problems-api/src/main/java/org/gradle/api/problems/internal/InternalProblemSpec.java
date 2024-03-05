@@ -48,10 +48,10 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec documentedAt(DocLink doc);
 
     @Override
-    InternalProblemSpec id(String id, String displayName);
+    InternalProblemSpec id(String name, String displayName);
 
     @Override
-    InternalProblemSpec id(String id, String displayName, ProblemGroup parent);
+    InternalProblemSpec id(String name, String displayName, ProblemGroup parent);
 
     @Override
     InternalProblemSpec contextualLabel(String contextualLabel);

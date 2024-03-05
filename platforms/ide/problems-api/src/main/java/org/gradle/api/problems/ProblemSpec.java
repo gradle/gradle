@@ -35,25 +35,25 @@ public interface ProblemSpec {
      * <p>
      * Calling this method will set the reported problem group to {@link SharedProblemGroup#generic()}
      *
-     * @param id the id of the problem. As a convention kebab-case-formatting should be used.
+     * @param name the name of the problem. As a convention kebab-case-formatting should be used.
      * @param displayName a human-readable representation of the problem, free of any contextual information.
      * @return this
      * @since 8.8
      */
-    ProblemSpec id(String id, String displayName);
+    ProblemSpec id(String name, String displayName);
 
     /**
      * Defines simple identification for this problem.
      * <p>
-     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}..
+     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
      *
-     * @param id the id of the problem. As a convention kebab-case-formatting should be used.
+     * @param name the name of the problem. As a convention kebab-case-formatting should be used.
      * @param displayName a human-readable representation of the problem, free of any contextual information.
      * @param parent the container problem group.
      * @return this
      * @since 8.8
      */
-    ProblemSpec id(String id, String displayName, ProblemGroup parent);
+    ProblemSpec id(String name, String displayName, ProblemGroup parent);
 
     /**
      * Declares a short, but context-dependent message for this problem.

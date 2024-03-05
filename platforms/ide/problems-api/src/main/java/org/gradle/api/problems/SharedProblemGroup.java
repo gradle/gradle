@@ -43,17 +43,17 @@ public abstract class SharedProblemGroup implements ProblemGroup {
     }
 
     private static class BasicProblemGroup implements ProblemGroup {
-        private final String groupId;
+        private final String name;
         private final String displayName;
 
         BasicProblemGroup(String id, String displayName) {
-            this.groupId = id;
+            this.name = id;
             this.displayName = displayName;
         }
 
         @Override
-        public String getGroupId() {
-            return groupId;
+        public String getName() {
+            return name;
         }
 
         @Override

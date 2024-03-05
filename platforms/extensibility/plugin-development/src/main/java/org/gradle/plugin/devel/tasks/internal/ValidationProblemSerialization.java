@@ -547,11 +547,11 @@ public class ValidationProblemSerialization {
         @Override
         public ProblemId deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             JsonObject problemObject = jsonElement.getAsJsonObject();
-            String id = problemObject.get("id").getAsString();
+            String name = problemObject.get("name").getAsString();
             String displayName = problemObject.get("displayName").getAsString();
             ProblemGroup group = deserializeGroup(problemObject.get("parent"));
             assert group != null; // ID must have a parent group, but group parents can be null
-            return new DefaultProblemId(id, displayName, group);
+            return new DefaultProblemId(name, displayName, group);
         }
 
         private static @Nullable ProblemGroup deserializeGroup(@Nullable JsonElement groupObject) {
@@ -559,16 +559,16 @@ public class ValidationProblemSerialization {
                 return null;
             }
             JsonObject group = groupObject.getAsJsonObject();
-            String id = group.get("groupId").getAsString();
+            String name = group.get("name").getAsString();
             String displayName = group.get("displayName").getAsString();
             ProblemGroup parent = deserializeGroup(group.get("parent"));
-            return new DefaultProblemGroup(id, displayName, parent);
+            return new DefaultProblemGroup(name, displayName, parent);
         }
 
         @Override
         public JsonElement serialize(ProblemId problemId, Type type, JsonSerializationContext jsonSerializationContext) {
             JsonObject result = new JsonObject();
-            result.addProperty("id", problemId.getId());
+            result.addProperty("name", problemId.getName());
             result.addProperty("displayName", problemId.getDisplayName());
             serializeGroup(result, problemId.getParent());
             return result;
@@ -577,7 +577,7 @@ public class ValidationProblemSerialization {
         private static void serializeGroup(JsonObject result, @Nullable ProblemGroup group) {
             if (group != null) {
                 JsonObject groupObject = new JsonObject();
-                groupObject.addProperty("groupId", group.getGroupId());
+                groupObject.addProperty("name", group.getName());
                 groupObject.addProperty("displayName", group.getDisplayName());
                 serializeGroup(groupObject, group.getParent());
                 result.add("parent", groupObject);

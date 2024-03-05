@@ -139,10 +139,10 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
     private static Pair<String, List<String>> categories(ProblemId problemId) {
         List<String> categories = new ArrayList<>();
         // put the problem id at the beginning of the list
-        categories.add(0, problemId.getId());
+        categories.add(0, problemId.getName());
         ProblemGroup current = problemId.getParent();
         while (current != null) {
-            categories.add(0, current.getGroupId());
+            categories.add(0, current.getName());
             current = current.getParent();
         }
         Collections.reverse(categories);

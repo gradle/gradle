@@ -29,10 +29,10 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     Problem build();
 
     @Override
-    InternalProblemBuilder id(String id, String displayName);
+    InternalProblemBuilder id(String name, String displayName);
 
     @Override
-    InternalProblemBuilder id(String id, String displayName, ProblemGroup parent);
+    InternalProblemBuilder id(String name, String displayName, ProblemGroup parent);
 
     @Override
     InternalProblemBuilder taskPathLocation(String buildTreePath);
