@@ -18,4 +18,6 @@ dependencies {
     api(project(":base-annotations"))
 
     implementation(libs.slf4jApi)
+
+    testFixturesImplementation(libs.guava)
 }

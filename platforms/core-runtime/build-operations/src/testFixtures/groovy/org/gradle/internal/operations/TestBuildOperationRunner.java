@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
-import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -33,7 +32,6 @@ import java.util.concurrent.LinkedBlockingDeque;
  * A BuildOperationRunner for tests.
  * Simply execute given operations, does not support current/parent operations.
  */
-// TODO Move to :build-operations' test fixtures
 public class TestBuildOperationRunner implements BuildOperationRunner {
 
     public final Log log = new Log();
@@ -137,14 +135,17 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
                 .toList();
         }
 
+        @SuppressWarnings("unused")
         public <R, D, T extends BuildOperationType<D, R>> D mostRecentDetails(Class<T> type) {
             return mostRecent(type).details;
         }
 
+        @SuppressWarnings("unused")
         public <R, D, T extends BuildOperationType<D, R>> R mostRecentResult(Class<T> type) {
             return mostRecent(type).result;
         }
 
+        @SuppressWarnings("unused")
         public <D, R, T extends BuildOperationType<D, R>> Throwable mostRecentFailure(Class<T> type) {
             return mostRecent(type).failure;
         }
@@ -216,7 +217,7 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
                 if (record.failure == null) {
                     record.failure = failure;
                 }
-                throw UncheckedException.throwAsUncheckedException(failure);
+                throw new RuntimeException(failure);
             }
         }
 
@@ -231,7 +232,7 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
                 if (record.failure == null) {
                     record.failure = failure;
                 }
-                throw UncheckedException.throwAsUncheckedException(failure);
+                throw new RuntimeException(failure);
             }
             return t;
         }
@@ -246,7 +247,7 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
                 if (record.failure == null) {
                     record.failure = failure;
                 }
-                throw UncheckedException.throwAsUncheckedException(failure);
+                throw new RuntimeException(failure);
             }
         }
 
