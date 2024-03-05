@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -147,8 +148,13 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
         File targetFile = getCacheEntryFile(key);
         try {
             Files.move(sourceFile.toPath(), targetFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+        } catch (FileAlreadyExistsException ignore) {
+            // We already have the file in the build cache
+            // Note that according to the documentation of `Files.move()`, whether this exception is thrown
+            // is implementation specific: it can also happen that the target file gets overwritten, as if
+            // `REPLACE_EXISTING` was specified. This seems to match the behavior exhibited by `File.renameTo()`.
         } catch (IOException e) {
-            throw new org.gradle.api.UncheckedIOException("Couldn't move cache entry into local cache: " + key, e);
+            throw new UncheckedIOException("Couldn't move cache entry into local cache: " + key, e);
         }
         fileAccessTracker.markAccessed(targetFile);
     }

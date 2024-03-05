@@ -65,6 +65,7 @@ class DirectoryBuildCacheTest extends Specification {
         0 * fileAccessTracker.markAccessed(_)
     }
 
+
     def "marks file accessed when storing and loading locally"() {
         File cachedFile = null
 
@@ -108,5 +109,34 @@ class DirectoryBuildCacheTest extends Specification {
         then:
         1 * fileAccessTracker.markAccessed(cachedFile)
         loaded
+    }
+
+    def "handles storing twice"() {
+        File cachedFile = null
+
+        given:
+        def originalFile = temporaryFolder.createFile("foo")
+        originalFile.text = "bar"
+
+        when:
+        cache.store(key) { output ->
+            output.write("foo".getBytes())
+        }
+
+        then:
+        1 * fileAccessTracker.markAccessed(_) >> { File file -> cachedFile = file }
+        cachedFile.absolutePath.startsWith(cacheDir.absolutePath)
+
+        when:
+        cache.store(key) { output ->
+            output.write("bar".getBytes())
+        }
+
+        then:
+        1 * fileAccessTracker.markAccessed(cachedFile)
+
+        // Note that we don't know which variant of the file ended up in the cache,
+        // as `Files.move()` and `File.renameTo()` can either fail or replace the
+        // already existing file; it's up to the implementation.
     }
 }
