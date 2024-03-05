@@ -18,22 +18,31 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.internal.declarativedsl.analysis.DataParameter
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
+import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KFunction
 
 
-interface RestrictedRuntimeFunction {
+interface DeclarativeRuntimeFunction {
     fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): InvocationResult
+
+    fun callByWithErrorHandling(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): InvocationResult {
+        try {
+            return callBy(receiver, binding, hasLambda)
+        } catch (ite: InvocationTargetException) {
+            throw ite.cause ?: ite
+        }
+    }
 
     data class InvocationResult(val result: Any?, val capturedValue: Any?)
 }
 
 
 internal
-class ReflectionFunction(private val kFunction: KFunction<*>, private val configureLambdaHandler: ConfigureLambdaHandler) : RestrictedRuntimeFunction {
-    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): RestrictedRuntimeFunction.InvocationResult {
+class ReflectionFunction(private val kFunction: KFunction<*>, private val configureLambdaHandler: ConfigureLambdaHandler) : DeclarativeRuntimeFunction {
+    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
         val params = FunctionBinding.convertBinding(kFunction, receiver, binding, hasLambda, configureLambdaHandler)
             ?: error("signature of $kFunction does not match the arguments: $binding")
         val captor = params.valueCaptor
-        return RestrictedRuntimeFunction.InvocationResult(kFunction.callBy(params.map), captor?.value)
+        return DeclarativeRuntimeFunction.InvocationResult(kFunction.callBy(params.map), captor?.value)
     }
 }
