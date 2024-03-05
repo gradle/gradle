@@ -45,6 +45,7 @@ public interface BuildOperationExecutor {
      * Runtime exceptions are rethrown as is.
      * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
      */
+    // TODO Use BuildOperationRunner directly
     void run(RunnableBuildOperation buildOperation);
 
     /**
@@ -55,11 +56,13 @@ public interface BuildOperationExecutor {
      * Runtime exceptions are rethrown as is.
      * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
      */
+    // TODO Use BuildOperationRunner directly
     <T> T call(CallableBuildOperation<T> buildOperation);
 
     /**
      * Executes the given build operation with the given worker, returns the result.
      */
+    // TODO Use BuildOperationRunner directly
     <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent);
 
     /**
@@ -67,6 +70,7 @@ public interface BuildOperationExecutor {
      *
      * When a parent operation is finished any unfinished child operations will be failed.
      */
+    // TODO Use BuildOperationRunner directly
     BuildOperationContext start(BuildOperationDescriptor.Builder descriptor);
 
     /**
