@@ -399,4 +399,64 @@ include 'consumer', 'producer'
         expect:
         succeeds("resolve")
     }
+
+    def "modifying dependency and constraint attributes are deprecated after resolution"() {
+        given:
+        ["1.0", "2.0"].each { version ->
+            mavenRepo.module("org", "foo", version).publish()
+            mavenRepo.module("org", "bar", version).publish()
+            mavenRepo.module("org", "baz", version).publish()
+            mavenRepo.module("org", "qux", version).publish()
+        }
+
+        buildFile << """
+            ${mavenTestRepository()}
+
+            configurations {
+                dependencyScope("parent")
+                dependencyScope("deps") {
+                    extendsFrom(parent)
+                }
+                resolvable("res") {
+                    extendsFrom(deps)
+                    incoming.beforeResolve {
+                        dependencies.each { dep ->
+                            dep.version {
+                                require "2.0"
+                            }
+                        }
+                        dependencyConstraints.each { dep ->
+                            dep.version {
+                                require "2.0"
+                            }
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                parent "org:foo:1.0"
+                deps "org:bar:1.0"
+                constraints {
+                    parent "org:baz:1.0"
+                    deps "org:qux:1.0"
+                }
+            }
+
+            task resolve {
+                def files = configurations.res
+                dependsOn(files) // Ensures we calculate build dependenices, and thus perform a resolution before beforeResolve.
+                doLast {
+                    println files.files
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':deps' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':parent' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency constraint attributes of configuration ':deps' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency constraint attributes of configuration ':parent' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        succeeds("resolve")
+    }
 }

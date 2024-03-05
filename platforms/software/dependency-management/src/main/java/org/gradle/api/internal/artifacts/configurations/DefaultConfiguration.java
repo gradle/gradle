@@ -1383,32 +1383,52 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         preventIllegalParentMutation(type);
-        notifyChildren(type);
-        maybePreventMutation(type, type + " of parent");
+        boolean emittedDeprecation = maybePreventMutation(type, type + " of parent");
+
+        // Notify children of this mutation, but don't emit a deprecation if we already emitted one
+        // at this level, otherwise we spam for no reason. We can remove this once the deprecation
+        // turns into an error, since the error will short-circuit the child notifications.
+        if (emittedDeprecation) {
+            DeprecationLogger.whileDisabled(() -> notifyChildren(type));
+        } else {
+            notifyChildren(type);
+        }
     }
 
     @Override
     public void validateMutation(MutationType type) {
         preventIllegalMutation(type);
-        notifyChildren(type);
-        maybePreventMutation(type, type.toString());
+        boolean emittedDeprecation = maybePreventMutation(type, type.toString());
+
+        // Notify children of this mutation, but don't emit a deprecation if we already emitted one
+        // at this level, otherwise we spam for no reason. We can remove this once the deprecation
+        // turns into an error, since the error will short-circuit the child notifications.
+        if (emittedDeprecation) {
+            DeprecationLogger.whileDisabled(() -> notifyChildren(type));
+        } else {
+            notifyChildren(type);
+        }
     }
 
     /**
      * Emit a warning (and eventually throw an exception) if a mutation of type {@code type} occurs
      * during a forbidden state.
+     *
+     * @return true if a deprecation was emitted
      */
-    private void maybePreventMutation(MutationType type, String typeDescription) {
+    private boolean maybePreventMutation(MutationType type, String typeDescription) {
         // If an external party has seen the public state (variant metadata) of our configuration,
         // we forbid any mutation that mutates the public state. The resolution strategy does
         // not mutate the public state of the configuration, so we allow it.
         if (observed && type != MutationType.STRATEGY) {
             DeprecationLogger.deprecateBehaviour(String.format("Mutating the %s of %s after it has been resolved or consumed.", typeDescription, this.getDisplayName()))
-                .withAdvice("After a Configuration has been resolved, observed via dependency-management, or published, it should not be modified further.")
+                .withAdvice("After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "mutate_configuration_after_locking")
                 .nagUser();
+            return true;
         }
+        return false;
     }
 
     private void preventIllegalParentMutation(MutationType type) {
