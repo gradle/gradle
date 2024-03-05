@@ -43,14 +43,15 @@ The previous step will help you identify potential problems by issuing deprecati
 [[mutate_configuration_after_locking]]
 ==== Deprecate mutating configuration after observation
 
-To ensure the accuracy of dependency resolution, Gradle ensures that Configurations are not mutated after they have been used as part of a dependency graph.
+To ensure the accuracy of dependency resolution, Gradle checks that Configurations are not mutated after they have been used as part of a dependency graph.
 
-* Resolvable configurations should not have their resolution strategy, dependencies, hierarchy, etc., modified after they have been resolved.
-* Consumable configurations should not have their dependencies, hierarchy, attributes, etc., modified after they have been published or consumed as a variant.
-* Dependency scope configurations should not have their dependencies, constraints, etc., modified after a configuration that extends from them are observed.
+* Resolvable configurations should not have their resolution strategy, dependencies, hierarchy, etc. modified after they have been resolved.
+* Consumable configurations should not have their dependencies, hierarchy, attributes, etc. modified after they have been published or consumed as a variant.
+* Dependency scope configurations should not have their dependencies, constraints, etc. modified after a configuration that extends from them are observed.
 
-Gradle already throws an exception for many of these circumstances, but in some cases, it does not.
-As of Gradle 9.0, all these cases will result in an error.
+In prior versions of Gradle, many of these circumstances were detected and handled by failing the build. 
+However, some cases went undetected or did not trigger build failures.
+In Gradle 9.0, all changes to a configuration after it has been observed will become an error.
 After a configuration of any type has been observed, it should be considered immutable.
 This validation covers the following properties of a configuration:
 
@@ -63,7 +64,8 @@ This validation covers the following properties of a configuration:
 * Hierarchy (`extendsFrom`)
 * Others (Transitive, Visible)
 
-In many cases, this deprecation is caused by mutating a configuration in a link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#beforeResolve-org.gradle.api.Action-[`beforeResolve`] hook.
+Starting in Gradle 8.8, a deprecation warning will be emitted in cases that were not already an error.
+Usually, this deprecation is caused by mutating a configuration in a link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#beforeResolve-org.gradle.api.Action-[`beforeResolve`] hook.
 This hook is only executed after a configuration is fully resolved but not when it is partially resolved for computing task dependencies.
 
 Consider the following code that showcases the deprecated behavior:
@@ -83,6 +85,7 @@ configurations.runtimeClasspath {
     // but before it is fully resolved during artifact resolution.
     // Configurations should not be mutated in this hook
     incoming.beforeResolve {
+        // Add a dependency on `com:foo` if not already present
         if (allDependencies.none { it.group == "com" && it.name == "foo" }) {
             configurations.implementation.get().dependencies.add(project.dependencies.create("com:foo:1.0"))
         }
@@ -104,13 +107,13 @@ tasks.register("resolve") {
 ======
 =====
 
-For the following cases, consider the suggested options for replacing mutations within a `beforeResolve` hook:
+For the following use cases, consider these alternatives when replacing a `beforeResolve` hook:
 
 * **Adding dependencies**: Use link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[`withDependencies`].
-* **Changing dependency versions**: Use dependency constraints. (See <<using_preferred_versions, Declaring preferred version constraints>>)
-* **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>
+* **Changing dependency versions**: Use <<using_preferred_versions,preferred version constraints>>.
+* **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
 * **Roles**: Configuration roles should be set upon creation and not changed afterward.
-* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged, but is permitted within a `withDependenices` hook.
+* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged, but is permitted within a `withDependencies` hook.
 * **Resolution Strategy**: Mutating a configuration's ResolutionStrategy is still permitted in a `beforeResolve` hook; however, this is not recommended.
 
 
