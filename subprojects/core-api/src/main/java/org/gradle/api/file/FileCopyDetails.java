@@ -17,7 +17,6 @@ package org.gradle.api.file;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -86,7 +85,6 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      *
      * @since 8.3
      */
-    @Incubating
     void setPermissions(FilePermissions permissions);
 
     /**

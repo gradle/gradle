@@ -90,7 +90,6 @@ public interface FileSystemOperations {
      *
      * @since 8.3
      */
-    @Incubating
     ConfigurableFilePermissions filePermissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**
@@ -102,7 +101,6 @@ public interface FileSystemOperations {
      *
      * @since 8.3
      */
-    @Incubating
     ConfigurableFilePermissions directoryPermissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**
@@ -115,7 +113,6 @@ public interface FileSystemOperations {
      *
      * @since 8.3
      */
-    @Incubating
     ConfigurableFilePermissions permissions(String unixNumericOrSymbolic);
 
     /**
@@ -128,7 +125,6 @@ public interface FileSystemOperations {
      *
      * @since 8.3
      */
-    @Incubating
     ConfigurableFilePermissions permissions(int unixNumeric);
 
     /**
@@ -136,6 +132,5 @@ public interface FileSystemOperations {
      *
      * @since 8.3
      */
-    @Incubating
     Provider<ConfigurableFilePermissions> permissions(Provider<String> permissions);
 }
