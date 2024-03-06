@@ -76,7 +76,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         def problems = collectedProblems
         problems.size() == 2
         for (def problem in (problems)) {
-            assertProblem(problem, "ERROR") { details ->
+            assertProblem(problem, "ERROR", true) { details ->
                 assert details == "';' expected"
             }
         }
@@ -93,7 +93,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 4
         for (def problem in collectedProblems) {
-            assertProblem(problem, "ERROR") { details ->
+            assertProblem(problem, "ERROR", true) { details ->
                 assert details == "';' expected"
             }
         }
@@ -109,7 +109,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 2
         for (def problem in collectedProblems) {
-            assertProblem(problem, "WARNING") { details ->
+            assertProblem(problem, "WARNING", true) { details ->
                 assert details == "redundant cast to java.lang.String"
             }
         }
@@ -126,7 +126,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 4
         for (def problem in collectedProblems) {
-            assertProblem(problem, "WARNING") { details ->
+            assertProblem(problem, "WARNING", true) { details ->
                 assert details == "redundant cast to java.lang.String"
             }
         }
@@ -143,7 +143,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 4
         for (def problem in collectedProblems) {
-            assertProblem(problem, "ERROR") { details ->
+            assertProblem(problem, "ERROR", true) { details ->
                 assert details == "';' expected"
             }
         }
@@ -168,7 +168,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
         warningProblems.size() == 2
         for (def problem in warningProblems) {
-            assertProblem(problem, "WARNING") {details ->
+            assertProblem(problem, "WARNING", true) { details ->
                 assert details == "redundant cast to java.lang.String"
             }
         }
@@ -178,7 +178,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
         errorProblems.size() == 2
         for (def problem in errorProblems) {
-            assertProblem(problem, "ERROR") { details ->
+            assertProblem(problem, "ERROR", true) { details ->
                 assert details == "';' expected"
             }
         }
@@ -202,7 +202,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
         warningProblems.size() == 2
         for (def problem in warningProblems) {
-            assertProblem(problem, "WARNING") {details ->
+            assertProblem(problem, "WARNING", true) { details ->
                 assert details == "redundant cast to java.lang.String"
             }
         }
@@ -212,7 +212,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             it['definition']["severity"] == "ERROR"
         }
         errorProblems.size() == 1
-        assertProblem(errorProblems[0], "ERROR") {details ->
+        assertProblem(errorProblems[0], "ERROR", false) { details ->
             assert details == "warnings found and -Werror specified"
         }
     }
@@ -232,13 +232,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     void assertProblem(
         ReceivedProblem problem,
         String severity,
+        boolean expectPreciseLocation = true,
         @ClosureParams(
             value = SimpleType,
             options = [
                 "java.lang.String"
             ]
-        )
-            Closure extraChecks = null
+        ) Closure extraChecks = null
     ) {
         assert problem['definition']["severity"] == severity: "Expected severity to be ${severity}, but was ${problem['definition']["severity"]}"
         switch (severity) {
@@ -259,14 +259,28 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         assert locations.size() == 1: "Expected one location, but received ${locations.size()}"
 
         def fileLocation = locations.find {
-            it.containsKey("path") && it.containsKey("line") && it.containsKey("column") && it.containsKey("length")
+            it.keySet() == ["path"].toSet()
         }
         assert fileLocation != null: "Expected a file location, but it was null"
-        assert fileLocation["line"] != null: "Expected a line number, but it was null"
-        assert fileLocation["column"] != null: "Expected a column number, but it was null"
-        assert fileLocation["length"] != null: "Expected a length, but it was null"
-
         def fileLocationPath = fileLocation["path"] as String
+
+        if (expectPreciseLocation) {
+            def positionLocation = locations.find {
+                it.keySet() == ["path", "line", "column", "length"].toSet()
+            }
+            assert positionLocation != null: "Expected a precise file location, but it was null"
+
+            def offsetLocation = locations.find {
+                it.keySet() == ["path", "offset", "length"].toSet()
+            }
+            assert offsetLocation != null: "Expected a precise file location, but it was null"
+        }
+
+        def taskLocation = locations.find {
+            it.containsKey("buildTreePath")
+        }
+        assert taskLocation != null: "Expected a task location, but it was null"
+
         def occurrences = possibleFileLocations.get(fileLocationPath)
         assert occurrences: "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFileLocations.keySet()}"
         visitedFileLocations.putIfAbsent(fileLocationPath, 0)
