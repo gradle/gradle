@@ -73,10 +73,10 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private static void addLocations(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
         String resourceName = diagnostic.getSource() != null ? getPath(diagnostic.getSource()) : null;
-        long line = diagnostic.getLineNumber();
-        long column = diagnostic.getColumnNumber();
-        long start = diagnostic.getStartPosition();
-        long end = diagnostic.getEndPosition();
+        int line = clampLocation(diagnostic.getLineNumber());
+        int column = clampLocation(diagnostic.getColumnNumber());
+        int start = clampLocation(diagnostic.getStartPosition());
+        int end = clampLocation(diagnostic.getEndPosition());
 
         // We only set the location if we have a resource to point to
         if (resourceName != null) {
@@ -106,6 +106,22 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 // ... we can report the start and extent
                 spec.offsetInFileLocation(resourceName, start, end - start);
             }
+        }
+    }
+
+    /**
+     * Clamp the value to an int, or return {@link Diagnostic#NOPOS} if the value is too large.
+     * <p>
+     * This is used to ensure that we don't report invalid locations.
+     *
+     * @param value the value to clamp
+     * @return either the clamped value, or {@link Diagnostic#NOPOS}
+     */
+    private static int clampLocation(long value) {
+        if (value > Integer.MAX_VALUE) {
+            return Math.toIntExact(Diagnostic.NOPOS);
+        } else {
+            return (int) value;
         }
     }
 

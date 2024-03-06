@@ -18,11 +18,11 @@ package org.gradle.api.problems.internal;
 
 public class DefaultLineInFileLocation extends DefaultFileLocation implements LineInFileLocation {
 
-    private final long line;
-    private final long column;
-    private final long length;
+    private final int line;
+    private final int column;
+    private final int length;
 
-    private DefaultLineInFileLocation(String path, long line, long column, long length) {
+    private DefaultLineInFileLocation(String path, int line, int column, int length) {
         super(path);
         this.line = line;
         this.column = column;
@@ -30,29 +30,29 @@ public class DefaultLineInFileLocation extends DefaultFileLocation implements Li
     }
 
     @Override
-    public long getLine() {
+    public int getLine() {
         return line;
     }
 
     @Override
-    public long getColumn() {
+    public int getColumn() {
         return column;
     }
 
     @Override
-    public long getLength() {
+    public int getLength() {
         return length;
     }
 
-    public static FileLocation from(String path, Long line) {
+    public static FileLocation from(String path, Integer line) {
         return new DefaultLineInFileLocation(path, line, -1, -1);
     }
 
-    public static FileLocation from(String path, Long line, Long column) {
+    public static FileLocation from(String path, Integer line, Integer column) {
         return new DefaultLineInFileLocation(path, line, column, -1);
     }
 
-    public static FileLocation from(String path, Long line, Long column, Long length) {
+    public static FileLocation from(String path, Integer line, Integer column, Integer length) {
         return new DefaultLineInFileLocation(path, line, column, length);
     }
 }

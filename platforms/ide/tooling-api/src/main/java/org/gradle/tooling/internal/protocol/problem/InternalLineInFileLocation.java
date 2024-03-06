@@ -18,9 +18,9 @@ package org.gradle.tooling.internal.protocol.problem;
 
 public interface InternalLineInFileLocation extends InternalFileLocation {
 
-    long getLine();
+    int getLine();
 
-    long getColumn();
+    int getColumn();
 
-    long getLength();
+    int getLength();
 }

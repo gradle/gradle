@@ -18,27 +18,27 @@ package org.gradle.api.problems.internal;
 
 public class DefaultOffsetInFileLocation extends DefaultFileLocation implements OffsetInFileLocation {
 
-    private final long offset;
-    private final long length;
+    private final int offset;
+    private final int length;
 
-    private DefaultOffsetInFileLocation(String path, long offset, long length) {
+    private DefaultOffsetInFileLocation(String path, int offset, int length) {
         super(path);
         this.offset = offset;
         this.length = length;
     }
 
-    public static FileLocation from(String path, long offset, long length) {
+    public static FileLocation from(String path, int offset, int length) {
         return new DefaultOffsetInFileLocation(path, offset, length);
     }
 
 
     @Override
-    public long getOffset() {
+    public int getOffset() {
         return offset;
     }
 
     @Override
-    public long getLength() {
+    public int getLength() {
         return length;
     }
 }
