@@ -19,16 +19,13 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
-import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequence
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
+import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.plus
 import org.gradle.internal.declarativedsl.plugins.PluginsInterpretationSequenceStep
-import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
-import org.gradle.internal.declarativedsl.plugins.isPluginsCall
+import org.gradle.internal.declarativedsl.plugins.ignoreTopLevelPluginsBlock
 
 
 internal
@@ -38,46 +35,21 @@ fun projectInterpretationSequence(
     scriptSource: ScriptSource
 ) = InterpretationSequence(
     listOf(
-        step1Plugins(target, targetScope, scriptSource),
-        step2Project(target, targetScope)
+        PluginsInterpretationSequenceStep("plugins", target, targetScope, scriptSource, ProjectInternal::getServices),
+        SimpleInterpretationSequenceStep("project", target) { projectEvaluationSchema(target, targetScope) }
     )
 )
 
 
 private
-fun step1Plugins(target: ProjectInternal, targetScope: ClassLoaderScope, scriptSource: ScriptSource): InterpretationSequenceStep<PluginsTopLevelReceiver> =
-    PluginsInterpretationSequenceStep(target, targetScope, scriptSource, ProjectInternal::getServices)
-
-
-private
-fun step2Project(target: ProjectInternal, targetScope: ClassLoaderScope) = object : InterpretationSequenceStep<ProjectInternal> {
-    override val stepIdentifier: String = "project"
-
-    override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema(
-        ProjectTopLevelReceiver::class,
-        projectEvaluationSchemaComponent(target, targetScope),
-        analysisStatementFilter = analyzeEverythingExceptPluginsBlock,
-    )
-
-    override fun topLevelReceiver(): ProjectInternal = target
-
-    override fun whenEvaluated(resultReceiver: ProjectInternal) = Unit
-}
-
-
-private
-fun projectEvaluationSchemaComponent(
+fun projectEvaluationSchema(
     target: ProjectInternal,
     targetScope: ClassLoaderScope
-) = gradleDslGeneralSchemaComponent() +
-    ThirdPartyExtensionsComponent(ProjectTopLevelReceiver::class, target, "projectExtension") +
-    DependencyConfigurationsComponent(target) +
-    TypesafeProjectAccessorsComponent(targetScope)
+): EvaluationSchema {
+    val component = gradleDslGeneralSchemaComponent() +
+        ThirdPartyExtensionsComponent(ProjectTopLevelReceiver::class, target, "projectExtension") +
+        DependencyConfigurationsComponent(target) +
+        TypesafeProjectAccessorsComponent(targetScope)
 
-
-private
-val analyzeEverythingExceptPluginsBlock = AnalysisStatementFilter { statement, scopes ->
-    if (scopes.last().receiver is ObjectOrigin.TopLevelReceiver) {
-        !isPluginsCall(statement)
-    } else true
+    return buildEvaluationSchema(ProjectTopLevelReceiver::class, component, ignoreTopLevelPluginsBlock)
 }
