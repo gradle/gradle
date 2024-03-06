@@ -53,11 +53,11 @@ The superinterface, link:{javadocPath}/org/gradle/api/Namer.html[`Namer`], is *n
 
 ==== Changes in the Problems API
 
-We implemented several refactorings around the Problems API.
-One notable change is the separation if a problem definition and contextual information.
-The complete design spec is available here: https://docs.google.com/document/d/1T_vM-Upa23aA21sanFTTLZa3j9xV6R32djJk6-muWzI/edit#heading=h.610fausqnpu6
-Implementing the spec, we introduced the following breaking changes to the `ProblemSpec` interface:
-the `label(string)` and `description(String) methods are replaced with the `id(String, String)` method and its overloaded variants.
+We have implemented several refactorings of the Problems API, including a significant change in the way problem definitions and contextual information are handled. 
+The complete design specification can be found [here](https://docs.google.com/document/d/1T_vM-Upa23aA21sanFTTLZa3j9xV6R32djJk6-muWzI/edit#heading=h.610fausqnpu6).
+
+In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
+- The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
 
 [[changes_8.7]]
 == Upgrading from 8.6 and earlier
