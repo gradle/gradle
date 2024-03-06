@@ -77,10 +77,11 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             include 'a', 'b'
         """
+        // Avoid missing project directory deprecation warnings
+        testDirectory.file("a").mkdirs()
+        testDirectory.file("b").mkdirs()
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Configuring project ':a' without an existing directory is deprecated. The configured projectDirectory '${testDirectory.file('a').path}' does not exist, can't be written to or is not a directory. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Make sure the project directory exists and can be written. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_missing_project_directory")
-        executer.expectDocumentedDeprecationWarning("Configuring project ':b' without an existing directory is deprecated. The configured projectDirectory '${testDirectory.file('b').path}' does not exist, can't be written to or is not a directory. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Make sure the project directory exists and can be written. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_missing_project_directory")
         executer.expectDocumentedDeprecationWarning("Resolution of the configuration :a:myconf was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
         executer.expectDocumentedDeprecationWarning("Resolution of the configuration :b:myconf was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
 
