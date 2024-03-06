@@ -200,7 +200,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     @Deprecated
     public void setMode(int mode) {
         DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setMode()")
-            .replaceWith("permissions(Action)")
+            .replaceWithExample("permissions(permissions -> permissions.unix(mode))")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
             .nagUser();

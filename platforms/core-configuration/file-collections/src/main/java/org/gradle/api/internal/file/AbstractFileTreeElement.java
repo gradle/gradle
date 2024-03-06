@@ -110,7 +110,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
     @Deprecated
     public int getMode() {
         DeprecationLogger.deprecateMethod(FileTreeElement.class, "getMode()")
-            .replaceWith("getPermissions()")
+            .replaceWithExample("getPermissions().toUnixNumeric()")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
             .nagUser();
