@@ -243,10 +243,10 @@ public class ValidationProblemSerialization {
         private static FileLocation readObject(JsonReader in) throws IOException {
             String subtype = null;
             String path = null;
-            Integer offset = null;
-            Integer line = null;
-            Integer column = null;
-            Integer length = null;
+            Long offset = null;
+            Long line = null;
+            Long column = null;
+            Long length = null;
             while (in.hasNext()) {
                 String name = in.nextName();
                 switch (name) {
@@ -259,19 +259,19 @@ public class ValidationProblemSerialization {
                         break;
                     }
                     case "offset": {
-                        offset = in.nextInt();
+                        offset = in.nextLong();
                         break;
                     }
                     case "line": {
-                        line = in.nextInt();
+                        line = in.nextLong();
                         break;
                     }
                     case "column": {
-                        column = in.nextInt();
+                        column = in.nextLong();
                         break;
                     }
                     case "length": {
-                        length = in.nextInt();
+                        length = in.nextLong();
                         break;
                     }
                     default:
