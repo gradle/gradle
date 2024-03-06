@@ -243,19 +243,19 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         assert problem['definition']["severity"] == severity: "Expected severity to be ${severity}, but was ${problem['definition']["severity"]}"
         switch (severity) {
             case "ERROR":
-                assert problem['definition']["label"] == "Java compilation error": "Expected label 'Java compilation error', but was ${problem['definition']["label"]}"
+                assert problem['definition']["id"]["displayName"] == "Java compilation error": "Expected label 'Java compilation error', but was ${problem['definition']["id"]["displayName"]}"
                 break
             case "WARNING":
-                assert problem['definition']["label"] == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem['definition']["message"]}"
+                assert problem['definition']["id"]["displayName"] == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem['definition']["id"]["displayName"]}"
                 break
             default:
                 throw new IllegalArgumentException("Unknown severity: ${severity}")
         }
 
-        def details = problem['context']["details"] as String
+        def details = problem["details"] as String
         assert details: "Expected details to be non-null, but was null"
 
-        def locations = problem['context']["locations"] as List<Map<String, Object>>
+        def locations = problem["locations"] as List<Map<String, Object>>
         // We use this counter to assert that we have visited all locations
         def assertedLocationCount = 0
 
