@@ -23,6 +23,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Features for Develocity used during settings configuration to register lifecycle callbacks.
+ * <p>
+ * This service is for lifecycle callbacks that don't have a stable API, yet,
+ * to not break the Develocity plugin going forward.
  *
  * @since 8.8
  */
