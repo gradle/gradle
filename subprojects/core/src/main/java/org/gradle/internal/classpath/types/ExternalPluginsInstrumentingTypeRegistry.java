@@ -25,40 +25,37 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
- * {@link InstrumentationTypeRegistry} for checking type information for external plugins.
+ * InstrumentingTypeRegistry for checking type information for external plugins.
  * It combines data of direct super types that when visiting external plugins classes and Gradle core types data, to calculated final information for external types.
  */
-public class ExternalPluginsInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
+public class ExternalPluginsInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
 
-    private static final String GRADLE_CORE_PACKAGE_PREFIX = "org/gradle/";
-
-    private final InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry;
+    private final InstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry;
     private final Map<String, Set<String>> directSuperTypes;
-    private final Map<String, Set<String>> instrumentedSuperTypes = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> superTypes = new ConcurrentHashMap<>();
 
-    public ExternalPluginsInstrumentationTypeRegistry(Map<String, Set<String>> directSuperTypes, InstrumentationTypeRegistry gradleCoreInstrumentationTypeRegistry) {
+    public ExternalPluginsInstrumentingTypeRegistry(Map<String, Set<String>> directSuperTypes, InstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
         this.directSuperTypes = ImmutableMap.copyOf(directSuperTypes);
-        this.gradleCoreInstrumentationTypeRegistry = gradleCoreInstrumentationTypeRegistry;
+        this.gradleCoreInstrumentingTypeRegistry = gradleCoreInstrumentingTypeRegistry;
     }
 
     @Override
     public Set<String> getSuperTypes(String type) {
         // TODO: This can probably be optimized: optimize it if it has performance impact
         Set<String> superTypes = Collections.emptySet();
-        if (type.startsWith(GRADLE_CORE_PACKAGE_PREFIX)) {
-            superTypes = gradleCoreInstrumentationTypeRegistry.getSuperTypes(type);
+        if (type.startsWith("org/gradle")) {
+            superTypes = gradleCoreInstrumentingTypeRegistry.getSuperTypes(type);
         }
         return !superTypes.isEmpty() ? superTypes : computeAndCacheSuperTypesForExternalType(type);
     }
 
     private Set<String> computeAndCacheSuperTypesForExternalType(String type) {
-        return Collections.unmodifiableSet(this.instrumentedSuperTypes.computeIfAbsent(type, this::computeInstrumentedSuperTypes));
+        return Collections.unmodifiableSet(this.superTypes.computeIfAbsent(type, this::computeSuperTypes));
     }
 
-    private Set<String> computeInstrumentedSuperTypes(String type) {
+    private Set<String> computeSuperTypes(String type) {
         Queue<String> superTypes = new ArrayDeque<>(getDirectSuperTypes(type));
         Set<String> collected = new HashSet<>();
         collected.add(type);
@@ -68,23 +65,19 @@ public class ExternalPluginsInstrumentationTypeRegistry implements Instrumentati
                 superTypes.addAll(getDirectSuperTypes(superType));
             }
         }
-        // Keep just classes in the `org.gradle.` package. If we ever allow 3rd party plugins to contribute instrumentation,
-        // we would need to be more precise and actually check if types are instrumented.
-        return collected.stream()
-            .filter(superType -> superType.startsWith(GRADLE_CORE_PACKAGE_PREFIX))
-            .collect(Collectors.toSet());
+        return collected;
     }
 
     private Set<String> getDirectSuperTypes(String type) {
         Set<String> superTypes = directSuperTypes.getOrDefault(type, Collections.emptySet());
-        if (!superTypes.isEmpty() || !type.startsWith(GRADLE_CORE_PACKAGE_PREFIX)) {
+        if (!superTypes.isEmpty() || !type.startsWith("org/gradle")) {
             return superTypes;
         }
-        return gradleCoreInstrumentationTypeRegistry.getSuperTypes(type);
+        return gradleCoreInstrumentingTypeRegistry.getSuperTypes(type);
     }
 
     @Override
     public boolean isEmpty() {
-        return directSuperTypes.isEmpty() && gradleCoreInstrumentationTypeRegistry.isEmpty();
+        return directSuperTypes.isEmpty() && gradleCoreInstrumentingTypeRegistry.isEmpty();
     }
 }

@@ -20,7 +20,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.transforms.ClassTransform;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -35,13 +35,13 @@ public class TestInstrumentedClassLoader extends TransformingClassLoader {
     private final ClassTransform transform;
     private final Predicate<String> shouldLoadTransformedClass;
     private final ClassLoader source;
-    private final InstrumentationTypeRegistry typeRegistry;
+    private final InstrumentingTypeRegistry typeRegistry;
 
     TestInstrumentedClassLoader(
         ClassLoader source,
         Predicate<String> shouldLoadTransformedClass,
         ClassTransform transform,
-        InstrumentationTypeRegistry typeRegistry
+        InstrumentingTypeRegistry typeRegistry
     ) {
         super("test-transformed-loader", source, Collections.emptyList());
         this.shouldLoadTransformedClass = shouldLoadTransformedClass;

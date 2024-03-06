@@ -30,3 +30,19 @@ interface InterpretationSequenceStep<R : Any> {
     fun topLevelReceiver(): R
     fun whenEvaluated(resultReceiver: R)
 }
+
+
+/**
+ * Implements a straightforward interpretation sequence step that uses the specified [topLevelReceiver]
+ * and produces an evaluation schema with [buildEvaluationSchema] immediately before the step runs.
+ */
+internal
+class SimpleInterpretationSequenceStep<T : Any>(
+    override val stepIdentifier: String,
+    private val topLevelReceiver: T,
+    private val buildEvaluationSchema: () -> EvaluationSchema
+) : InterpretationSequenceStep<T> {
+    override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema()
+    override fun topLevelReceiver(): T = topLevelReceiver
+    override fun whenEvaluated(resultReceiver: T) = Unit
+}
