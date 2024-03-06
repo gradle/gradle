@@ -33,6 +33,7 @@ public class GradleEnterprisePluginServices extends AbstractPluginServiceRegistr
         registration.add(DefaultGradleEnterprisePluginBuildState.class);
         registration.add(DefaultGradleEnterprisePluginConfig.class);
         registration.add(DefaultGradleEnterprisePluginBackgroundJobExecutors.class);
+        registration.add(DefaultDevelocityPluginUnsafeConfigurationService.class);
 
         // legacy
         registration.add(DefaultBuildScanClock.class);

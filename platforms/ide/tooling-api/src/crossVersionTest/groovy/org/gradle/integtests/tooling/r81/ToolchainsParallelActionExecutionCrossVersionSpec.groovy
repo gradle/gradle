@@ -21,9 +21,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.BuildActionFailureException
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion(">=8.1")
-@Flaky(because='https://github.com/gradle/gradle-private/issues/3829')
+@Flaky(because = 'https://github.com/gradle/gradle-private/issues/3829')
 class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -81,7 +82,9 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
         then:
         def e = thrown(BuildActionFailureException)
         def root = rootCause(e)
-        root.message.startsWith('No locally installed toolchains match')
+        root.message.startsWith(targetVersion >= GradleVersion.version("8.8") ?
+            'No matching toolchain could be found in the locally installed toolchains' :
+            'No locally installed toolchains match')
     }
 
     def rootCause(Exception e) {

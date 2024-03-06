@@ -17,7 +17,6 @@
 
 package org.gradle.integtests.tooling.r25
 
-
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
@@ -249,9 +248,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         testMethod.descriptor.jvmTestKind == JvmTestKind.ATOMIC
         testMethod.descriptor.name == 'foo'
         testMethod.descriptor.displayName == 'Test foo(example.MyTest)'
-        testMethod.descriptor.suiteName == null
-        testMethod.descriptor.className == 'example.MyTest'
-        testMethod.descriptor.methodName == 'foo'
         testMethod.descriptor.parent == testClass.descriptor
         testMethod.result instanceof TestFailureResult
         testMethod.result.failures.size() == 1

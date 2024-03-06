@@ -21,7 +21,7 @@ import spock.lang.Ignore
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/17812")
-class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
+class DependencyResolutionFromTaskContextIntegrationTest extends AbstractIntegrationSpec {
     @Ignore("https://github.com/gradle/gradle/issues/22088")
     def "fails when configuring tasks which do dependency resolution from non-project context in constructor"() {
         buildFile << """

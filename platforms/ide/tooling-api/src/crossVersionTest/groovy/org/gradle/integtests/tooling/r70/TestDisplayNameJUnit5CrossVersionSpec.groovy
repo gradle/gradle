@@ -25,7 +25,11 @@ import spock.lang.Timeout
 @Timeout(120)
 @ToolingApiVersion('>=6.1')
 @TargetGradleVersion(">=7.0")
-class TestDisplayNameCrossVersionSpec extends TestLauncherSpec {
+/**
+ * @see org.gradle.integtests.tooling.r88.TestDisplayNameJUnit4CrossVersionSpec and
+ * @see org.gradle.integtests.tooling.r88.TestDisplayNameSpockCrossVersionSpec
+ */
+class TestDisplayNameJUnit5CrossVersionSpec extends TestLauncherSpec {
     @Override
     void addDefaultTests() {
     }
@@ -47,6 +51,7 @@ class TestDisplayNameCrossVersionSpec extends TestLauncherSpec {
         """
     }
 
+    @TargetGradleVersion(">=8.8")
     def "reports display names of class and method"() {
         file("src/test/java/org/example/SimpleTests.java") << """package org.example;
 
@@ -72,10 +77,10 @@ public class SimpleTests {
             task(":test") {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
-                        suite("org.example.SimpleTests") {
-                            displayName "a class display name"
+                        testClass("org.example.SimpleTests") {
+                            testDisplayName "a class display name"
                             test("test()") {
-                                displayName "and a test display name"
+                                testDisplayName "and a test display name"
                             }
                         }
                     }
@@ -84,6 +89,7 @@ public class SimpleTests {
         }
     }
 
+    @TargetGradleVersion(">=8.8")
     def "reports display names of nested test classes"() {
         file("src/test/java/org/example/TestingAStackDemo.java") << """package org.example;
 
@@ -184,31 +190,31 @@ class TestingAStackDemo {
             task(":test") {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
-                        suite("org.example.TestingAStackDemo") {
-                            displayName "A stack"
+                        testClass("org.example.TestingAStackDemo") {
+                            testDisplayName "A stack"
                             test("isInstantiatedWithNew()") {
-                                displayName "is instantiated with new Stack()"
+                                testDisplayName "is instantiated with new Stack()"
                             }
-                            suite("org.example.TestingAStackDemo\$WhenNew") {
-                                displayName "when new"
+                            testClass("org.example.TestingAStackDemo\$WhenNew") {
+                                testDisplayName "when new"
                                 test("isEmpty()") {
-                                    displayName "is empty"
+                                    testDisplayName "is empty"
                                 }
                                 test("throwsExceptionWhenPeeked()") {
-                                    displayName "throws EmptyStackException when peeked"
+                                    testDisplayName "throws EmptyStackException when peeked"
                                 }
                                 test("throwsExceptionWhenPopped()") {
-                                    displayName "throws EmptyStackException when popped"
+                                    testDisplayName "throws EmptyStackException when popped"
                                 }
-                                suite("org.example.TestingAStackDemo\$WhenNew\$AfterPushing") {
+                                testClass("org.example.TestingAStackDemo\$WhenNew\$AfterPushing") {
                                     test("isNotEmpty()") {
-                                        displayName "it is no longer empty"
+                                        testDisplayName "it is no longer empty"
                                     }
                                     test("returnElementWhenPeeked()") {
-                                        displayName "returns the element when peeked but remains not empty"
+                                        testDisplayName "returns the element when peeked but remains not empty"
                                     }
                                     test("returnElementWhenPopped()") {
-                                        displayName "returns the element when popped and is empty"
+                                        testDisplayName "returns the element when popped and is empty"
                                     }
                                 }
                             }
@@ -219,6 +225,7 @@ class TestingAStackDemo {
         }
     }
 
+    @TargetGradleVersion(">=8.8")
     def "reports display names of parameterized tests"() {
         file("src/test/java/org/example/ParameterizedTests.java") << """package org.example;
 
@@ -238,7 +245,7 @@ public class ParameterizedTests {
         assertEquals(3, param.length());
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "{index} ==> the test for ''{0}''")
     @DisplayName("2nd test")
     @ValueSource(strings = {"foo", "bar"})
     void test2(String param) {
@@ -257,23 +264,24 @@ public class ParameterizedTests {
             task(":test") {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
-                        suite("org.example.ParameterizedTests") {
-                            suite("test1(String)") {
-                                displayName "1st test"
+                        testClass("org.example.ParameterizedTests") {
+                            testDisplayName "Parameterized test"
+                            testMethodSuite("test1(String)") {
+                                testDisplayName "1st test"
                                 test("test1(String)[1]") {
-                                    displayName "[1] foo"
+                                    testDisplayName "[1] foo"
                                 }
                                 test("test1(String)[2]") {
-                                    displayName "[2] bar"
+                                    testDisplayName "[2] bar"
                                 }
                             }
-                            suite("test2(String)") {
-                                displayName "2nd test"
+                            testMethodSuite("test2(String)") {
+                                testDisplayName "2nd test"
                                 test("test2(String)[1]") {
-                                    displayName "[1] foo"
+                                    testDisplayName "1 ==> the test for 'foo'"
                                 }
                                 test("test2(String)[2]") {
-                                    displayName "[2] bar"
+                                    testDisplayName "2 ==> the test for 'bar'"
                                 }
                             }
                         }
@@ -283,6 +291,7 @@ public class ParameterizedTests {
         }
     }
 
+    @TargetGradleVersion(">=8.8")
     def "reports display names for dynamic tests"() {
         file("src/test/java/org/example/DynamicTests.java") << """package org.example;
 
@@ -333,26 +342,114 @@ public class DynamicTests {
             task(":test") {
                 suite("Gradle Test Run :test") {
                     suite("Gradle Test Executor") {
-                        suite("org.example.DynamicTests") {
-                            suite("testFactory()") {
-                                displayName "Test suite 'testFactory()'"
-                                suite("testFactory()[1]") {
-                                    displayName "some container"
-                                    suite("testFactory()[1][1]") {
-                                        displayName "some nested container"
+                        testClass("org.example.DynamicTests") {
+                            testDisplayName "DynamicTests"
+                            testMethodSuite("testFactory()") {
+                                testDisplayName "testFactory()"
+                                testMethodSuite("testFactory()[1]") {
+                                    testDisplayName "some container"
+                                    testMethodSuite("testFactory()[1][1]") {
+                                        testDisplayName "some nested container"
                                         test("testFactory()[1][1][1]") {
-                                            displayName "foo"
+                                            testDisplayName "foo"
                                         }
                                         test("testFactory()[1][1][2]") {
-                                            displayName "bar"
+                                            testDisplayName "bar"
                                         }
                                     }
                                 }
                             }
-                            suite("anotherTestFactory()") {
-                                displayName "another test factory"
+                            testMethodSuite("anotherTestFactory()") {
+                                testDisplayName "another test factory"
                                 test("anotherTestFactory()[1]") {
-                                    displayName "foo"
+                                    testDisplayName "foo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @TargetGradleVersion(">=8.8")
+    def "reports transformed display names with DisplayNameGeneration"() {
+        file("src/test/java/org/example/ComplexTests.java") << """package org.example;
+
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
+@DisplayName("some_name for_tests")
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+public class ComplexTests {
+
+    @Test
+    public void test() {
+    }
+
+    @Test
+    public void simple_test() {
+    }
+
+    @Test
+    @DisplayName("pretty pretty_test")
+    public void ugly_test() {
+    }
+
+    @ParameterizedTest
+    @CsvSource({"10, 'first'", "20, 'second'"})
+    public void parametrized_test(int value, String name) {
+        System.out.println(name + " " + value);
+    }
+
+    @ParameterizedTest
+    @DisplayName("pretty parametrized test")
+    @CsvSource({"30, 'third'", "40, 'fourth'"})
+    public void ugly_parametrized_test(int value, String name) {
+        System.out.println(name + " " + value);
+    }
+}
+"""
+
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withTaskAndTestClasses(':test', ['org.example.ComplexTests*'])
+        }
+
+        then:
+        jvmTestEvents {
+            task(":test") {
+                suite("Gradle Test Run :test") {
+                    suite("Gradle Test Executor") {
+                        testClass("org.example.ComplexTests") {
+                            testDisplayName "some_name for_tests"
+
+                            test("test()") {
+                                testDisplayName "test"
+                            }
+                            test("simple_test()") {
+                                testDisplayName "simple test"
+                            }
+                            test("ugly_test()") {
+                                testDisplayName "pretty pretty_test"
+                            }
+                            testMethodSuite("parametrized_test(int, String)") {
+                                testDisplayName "parametrized test (int, String)"
+                                test("parametrized_test(int, String)[1]") {
+                                    testDisplayName "[1] 10, first"
+                                }
+                                test("parametrized_test(int, String)[2]") {
+                                    testDisplayName "[2] 20, second"
+                                }
+                            }
+                            testMethodSuite("ugly_parametrized_test(int, String)") {
+                                testDisplayName "pretty parametrized test"
+                                test("ugly_parametrized_test(int, String)[1]") {
+                                    testDisplayName "[1] 30, third"
+                                }
+                                test("ugly_parametrized_test(int, String)[2]") {
+                                    testDisplayName "[2] 40, fourth"
                                 }
                             }
                         }

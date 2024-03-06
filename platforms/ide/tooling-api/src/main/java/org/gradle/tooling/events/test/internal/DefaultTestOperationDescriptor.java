@@ -38,4 +38,9 @@ public class DefaultTestOperationDescriptor extends DefaultOperationDescriptor i
     public InternalOperationDescriptor getInternalOperationDescriptor() {
         return internalTestDescriptor;
     }
+
+    @Override
+    public String getTestDisplayName() {
+        return internalTestDescriptor.getTestDisplayName();
+    }
 }
