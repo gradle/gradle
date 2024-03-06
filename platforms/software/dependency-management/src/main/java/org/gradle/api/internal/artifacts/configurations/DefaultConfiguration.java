@@ -296,7 +296,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.configurationAttributes = new FreezableAttributeContainer(attributesFactory.mutable(), this.displayName);
 
         this.intrinsicFiles = newFileCollection(false, () ->
-            new ArtifactSelectionSpec(configurationAttributes.asImmutable(), Specs.satisfyAll(), false, false, getResolutionStrategy().getSortOrder())
+            new ArtifactSelectionSpec(configurationAttributes.asImmutable(), Specs.satisfyAll(), null, false, getResolutionStrategy().getSortOrder())
         );
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
@@ -890,7 +890,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
                     return newFileCollection(false, () -> new ArtifactSelectionSpec(
-                        fullAttributes, filter, false, false, getResolutionStrategy().getSortOrder()
+                        fullAttributes, filter, null, false, getResolutionStrategy().getSortOrder()
                     ));
                 }
             );
@@ -1886,11 +1886,17 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;
 
-            return new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants, config.reselectVariant);
+            return new ConfigurationArtifactView(
+                viewAttributes,
+                config.lockComponentFilter(),
+                config.lenient,
+                allowNoMatchingVariants,
+                config.variantReselectionSpec
+            );
         }
 
         private DefaultConfiguration.ArtifactViewConfiguration createArtifactViewConfiguration() {
-            return instantiator.newInstance(ArtifactViewConfiguration.class, attributesFactory, configurationAttributes);
+            return instantiator.newInstance(ArtifactViewConfiguration.class, attributesFactory, configurationAttributes, instantiator);
         }
 
         @Override
@@ -1909,14 +1915,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             private final Spec<? super ComponentIdentifier> componentFilter;
             private final boolean lenient;
             private final boolean allowNoMatchingVariants;
-            private final boolean selectFromAllVariants;
+            private final ArtifactSelectionSpec.VariantReselectionSpec variantReselectionSpec;
 
-            ConfigurationArtifactView(AttributeContainerInternal viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
+            ConfigurationArtifactView(AttributeContainerInternal viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, @Nullable ArtifactSelectionSpec.VariantReselectionSpec variantReselectionSpec) {
                 this.viewAttributes = viewAttributes;
                 this.componentFilter = componentFilter;
                 this.lenient = lenient;
                 this.allowNoMatchingVariants = allowNoMatchingVariants;
-                this.selectFromAllVariants = selectFromAllVariants;
+                this.variantReselectionSpec = variantReselectionSpec;
             }
 
             @Override
@@ -1932,7 +1938,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             @Override
             public ResolutionBackedFileCollection getFiles() {
                 return newFileCollection(lenient, () -> new ArtifactSelectionSpec(
-                    viewAttributes.asImmutable(), componentFilter, selectFromAllVariants, allowNoMatchingVariants, getResolutionStrategy().getSortOrder()
+                    viewAttributes.asImmutable(), componentFilter, variantReselectionSpec, allowNoMatchingVariants, getResolutionStrategy().getSortOrder()
                 ));
             }
         }
@@ -1976,23 +1982,25 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     public static class ArtifactViewConfiguration implements ArtifactView.ViewConfiguration {
+        private final Instantiator instantiator;
         private final ImmutableAttributesFactory attributesFactory;
         private final AttributeContainerInternal configurationAttributes;
         private AttributeContainerInternal viewAttributes;
         private Spec<? super ComponentIdentifier> componentFilter;
         private boolean lenient;
-        private boolean reselectVariant;
+        private ArtifactSelectionSpec.VariantReselectionSpec variantReselectionSpec;
         private boolean attributesUsed;
 
-        public ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes) {
+        public ArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal configurationAttributes, Instantiator instantiator) {
             this.attributesFactory = attributesFactory;
             this.configurationAttributes = configurationAttributes;
+            this.instantiator = instantiator;
         }
 
         @Override
         public AttributeContainer getAttributes() {
             if (viewAttributes == null) {
-                if (reselectVariant) {
+                if (variantReselectionSpec != null) {
                     viewAttributes = attributesFactory.mutable();
                 } else {
                     viewAttributes = attributesFactory.mutable(configurationAttributes);
@@ -2010,9 +2018,21 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ArtifactViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter) {
-            assertComponentFilterUnset();
+            if (this.componentFilter != null) {
+                throw new IllegalStateException("The component filter can only be set once before the view was computed");
+            }
             this.componentFilter = componentFilter;
             return this;
+        }
+
+        @Override
+        public void variantReselection(Action<? super ArtifactView.VariantReselectionDetails> spec) {
+            if (variantReselectionSpec != null) {
+                throw new IllegalStateException("The variant reselection details can only be set once before the view was computed");
+            }
+            ArtifactView.VariantReselectionDetails details = instantiator.newInstance(ArtifactView.VariantReselectionDetails.class);
+            spec.execute(details);
+            this.variantReselectionSpec = new ArtifactSelectionSpec.VariantReselectionSpec(details.getForAllCapabilities());
         }
 
         @Override
@@ -2033,14 +2053,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ArtifactViewConfiguration withVariantReselection() {
-            this.reselectVariant = true;
+            variantReselection(details -> {});
             return this;
-        }
-
-        private void assertComponentFilterUnset() {
-            if (componentFilter != null) {
-                throw new IllegalStateException("The component filter can only be set once before the view was computed");
-            }
         }
 
         private Spec<? super ComponentIdentifier> lockComponentFilter() {

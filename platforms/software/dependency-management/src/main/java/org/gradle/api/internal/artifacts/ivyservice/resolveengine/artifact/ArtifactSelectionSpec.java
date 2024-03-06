@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 
+import javax.annotation.Nullable;
+
 /**
  * A set of parameters governing the selection of artifacts from a dependency graph.
  */
@@ -28,20 +30,20 @@ public class ArtifactSelectionSpec {
 
     private final ImmutableAttributes requestAttributes;
     private final Spec<? super ComponentIdentifier> componentFilter;
-    private final boolean selectFromAllVariants;
+    private final VariantReselectionSpec variantReselectionSpec;
     private final boolean allowNoMatchingVariants;
     private final ResolutionStrategy.SortOrder sortOrder;
 
     public ArtifactSelectionSpec(
         ImmutableAttributes requestAttributes,
         Spec<? super ComponentIdentifier> componentFilter,
-        boolean selectFromAllVariants,
+        @Nullable VariantReselectionSpec variantReselectionSpec,
         boolean allowNoMatchingVariants,
         ResolutionStrategy.SortOrder sortOrder
     ) {
         this.requestAttributes = requestAttributes;
         this.componentFilter = componentFilter;
-        this.selectFromAllVariants = selectFromAllVariants;
+        this.variantReselectionSpec = variantReselectionSpec;
         this.allowNoMatchingVariants = allowNoMatchingVariants;
         this.sortOrder = sortOrder;
     }
@@ -61,11 +63,12 @@ public class ArtifactSelectionSpec {
     }
 
     /**
-     * If false, selection is restricted only to the artifacts exposed a selected node in the graph.
-     * If true, selection is expanded to include artifacts from any variant exposed by the component that a given node belongs to.
+     * If null, selection is restricted only to the artifacts exposed a selected node in the graph.
+     * If present, selection is expanded to include artifacts from any variant exposed by the component that a given node belongs to.
      */
-    public boolean getSelectFromAllVariants() {
-        return selectFromAllVariants;
+    @Nullable
+    public VariantReselectionSpec getVariantReselectionSpec() {
+        return variantReselectionSpec;
     }
 
     /**
@@ -80,5 +83,27 @@ public class ArtifactSelectionSpec {
      */
     public ResolutionStrategy.SortOrder getSortOrder() {
         return sortOrder;
+    }
+
+    /**
+     * Controls how variant reselection is performed.
+     */
+    public static class VariantReselectionSpec {
+
+        private final boolean selectFromAllCapabilities;
+
+        public VariantReselectionSpec(boolean selectFromAllCapabilities) {
+            this.selectFromAllCapabilities = selectFromAllCapabilities;
+        }
+
+        /**
+         * If true, all matching variants from all capabilities are selected.
+         * If false, standard graph variant matching is performed on the target component, and
+         * only a single variant is selected that matches the requested capabilities from the
+         * original dependency.
+         */
+        public boolean getSelectFromAllCapabilities() {
+            return selectFromAllCapabilities;
+        }
     }
 }

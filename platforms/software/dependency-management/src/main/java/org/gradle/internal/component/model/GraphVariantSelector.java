@@ -151,6 +151,25 @@ public class GraphVariantSelector {
     }
 
     /**
+     * Select all variants from the target component that match the consumer attributes, regardless of their declared capabilities.
+     */
+    public List<VariantGraphResolveState> selectAllMatchingVariants(
+        ImmutableAttributes consumerAttributes,
+        ComponentGraphResolveState targetComponentState,
+        AttributesSchemaInternal consumerSchema
+    ) {
+        GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
+        assert candidates.isUseVariants();
+
+        AttributeMatcher matcher = consumerSchema.withProducer(targetComponentState.getMetadata().getAttributesSchema());
+        return matcher.matches(
+            candidates.getVariants(),
+            consumerAttributes,
+            AttributeMatchingExplanationBuilder.logging()
+        );
+    }
+
+    /**
      * Select the legacy configuration from the target component, validating that the selected
      * configuration otherwise satisfies variant selection criteria.
      */

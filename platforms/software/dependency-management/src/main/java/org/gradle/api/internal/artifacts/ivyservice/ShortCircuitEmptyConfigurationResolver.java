@@ -147,7 +147,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         @Override
         public ArtifactSelectionSpec getImplicitSelectionSpec() {
             return new ArtifactSelectionSpec(
-                ImmutableAttributes.EMPTY, Specs.satisfyAll(), false, false, ResolutionStrategy.SortOrder.DEFAULT
+                ImmutableAttributes.EMPTY, Specs.satisfyAll(), null, false, ResolutionStrategy.SortOrder.DEFAULT
             );
         }
 

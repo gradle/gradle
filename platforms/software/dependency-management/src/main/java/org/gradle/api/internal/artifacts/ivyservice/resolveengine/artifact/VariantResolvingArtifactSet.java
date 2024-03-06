@@ -38,6 +38,9 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -91,31 +94,51 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         if (!spec.getComponentFilter().isSatisfiedBy(componentId)) {
             return ResolvedArtifactSet.EMPTY;
         } else {
-
-            if (spec.getSelectFromAllVariants() && !artifacts.isEmpty()) {
-                // Variants with overridden artifacts cannot be reselected since
-                // we do not know the "true" attributes of the requested artifact.
-                return ResolvedArtifactSet.EMPTY;
-            }
-
-            ImmutableSet<ResolvedVariant> variants;
             try {
-                if (!spec.getSelectFromAllVariants()) {
-                    variants = ownArtifacts.get();
-                } else {
-                    variants = getArtifactVariantsForReselection(spec.getRequestAttributes());
+                if (spec.getVariantReselectionSpec() != null) {
+                    return reselectVariants(variantSelector, spec, spec.getVariantReselectionSpec());
                 }
+
+                ImmutableSet<ResolvedVariant> artifactVariants = ownArtifacts.get();
+                return selectMatchingArtifactVariant(variantSelector, spec, artifactVariants);
             } catch (Exception e) {
                 return new BrokenResolvedArtifactSet(e);
             }
-
-            if (variants.isEmpty() && spec.getAllowNoMatchingVariants()) {
-                return ResolvedArtifactSet.EMPTY;
-            }
-
-            ResolvedVariantSet variantSet = new DefaultResolvedVariantSet(componentId, producerSchema, overriddenAttributes, variants);
-            return variantSelector.select(variantSet, spec.getRequestAttributes(), spec.getAllowNoMatchingVariants(), this::asTransformed);
         }
+    }
+
+    /**
+     * Perform graph variant reselection, optionally selecting a single graph variant or "fanning-out"
+     * to select multiple graph variants from all capabilities.
+     */
+    private ResolvedArtifactSet reselectVariants(
+        ArtifactVariantSelector variantSelector,
+        ArtifactSelectionSpec spec,
+        ArtifactSelectionSpec.VariantReselectionSpec reselectionSpec
+    ) {
+        if (!artifacts.isEmpty()) {
+            // Variants with overridden artifacts cannot be reselected since
+            // we do not know the "true" attributes of the requested artifact.
+            return ResolvedArtifactSet.EMPTY;
+        }
+
+        if (reselectionSpec.getSelectFromAllCapabilities()) {
+            return reselectFromAllCapabilities(variantSelector, spec);
+        }
+
+        return reselectUsingRequestedCapabilities(variantSelector, spec);
+    }
+
+    /**
+     * Perform artifact variant selection on a set of artifact variants.
+     */
+    private ResolvedArtifactSet selectMatchingArtifactVariant(
+        ArtifactVariantSelector variantSelector,
+        ArtifactSelectionSpec spec,
+        ImmutableSet<ResolvedVariant> artifactVariants
+    ) {
+        ResolvedVariantSet variantSet = new DefaultResolvedVariantSet(componentId, producerSchema, overriddenAttributes, artifactVariants);
+        return variantSelector.select(variantSet, spec.getRequestAttributes(), spec.getAllowNoMatchingVariants(), this::asTransformed);
     }
 
     private ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory, TransformedVariantFactory transformedVariantFactory) {
@@ -135,31 +158,60 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     }
 
     /**
-     * Gets all artifact variants that should be considered for artifact selection.
-     *
-     * <p>This emulates the normal variant selection process where graph variants are first
-     * considered, then artifact variants. We first consider graph variants, which leverages the
-     * same algorithm used during graph variant selection. This considers requested and declared
-     * capabilities.</p>
+     * Selects artifacts from all graph variants using the new attributes, regardless of their capabilities.
      */
-    private ImmutableSet<ResolvedVariant> getArtifactVariantsForReselection(ImmutableAttributes requestAttributes) {
-        // First, find the graph variant containing the artifact variants to select among.
-        VariantGraphResolveState graphVariant = graphVariantSelector.selectByAttributeMatchingLenient(
-            requestAttributes,
+    private ResolvedArtifactSet reselectFromAllCapabilities(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec) {
+        Collection<VariantGraphResolveState> graphVariants = graphVariantSelector.selectAllMatchingVariants(
+            spec.getRequestAttributes(),
+            component,
+            consumerSchema
+        );
+
+        List<ResolvedArtifactSet> allArtifacts = new ArrayList<>(graphVariants.size());
+        for (VariantGraphResolveState graphVariant : graphVariants) {
+            allArtifacts.add(selectMatchingArtifactVariant(variantSelector, spec, getArtifactsForGraphVariant(graphVariant)));
+        }
+        return CompositeResolvedArtifactSet.of(allArtifacts);
+    }
+
+    /**
+     * Selects artifacts from a single graph variant using the new attributes.
+     */
+    private ResolvedArtifactSet reselectUsingRequestedCapabilities(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec) {
+        VariantGraphResolveState graphVariant = selectNewGraphVariant(spec);
+        if (graphVariant == null) {
+            return ResolvedArtifactSet.EMPTY;
+        }
+
+        ImmutableSet<ResolvedVariant> artifactVariants = getArtifactsForGraphVariant(graphVariant);
+        return selectMatchingArtifactVariant(variantSelector, spec, artifactVariants);
+    }
+
+    /**
+     * Selects a graph variant in the same manner that graph variants are selected during
+     * graph resolution.
+     *
+     * @return null if a graph variant could not be selected and the spec permits no matching variants.
+     */
+    @Nullable
+    private VariantGraphResolveState selectNewGraphVariant(ArtifactSelectionSpec spec) {
+        if (spec.getAllowNoMatchingVariants()) {
+            return graphVariantSelector.selectByAttributeMatchingLenient(
+                spec.getRequestAttributes(),
+                capabilities,
+                component,
+                consumerSchema,
+                Collections.emptyList()
+            );
+        }
+
+        return graphVariantSelector.selectByAttributeMatching(
+            spec.getRequestAttributes(),
             capabilities,
             component,
             consumerSchema,
             Collections.emptyList()
         );
-
-        // It is fine if no graph variants satisfy our request.
-        // Variant reselection allows no target variants to be found.
-        if (graphVariant == null) {
-            return ImmutableSet.of();
-        }
-
-        // Next, return all artifact variants for the selected graph variant.
-        return getArtifactsForGraphVariant(graphVariant);
     }
 
     /**

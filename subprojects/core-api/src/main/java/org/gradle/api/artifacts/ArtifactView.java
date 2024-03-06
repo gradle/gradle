@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
@@ -96,5 +97,40 @@ public interface ArtifactView extends HasAttributes {
          */
         @Incubating
         ViewConfiguration withVariantReselection();
+
+        /**
+         * Configures {@link #withVariantReselection() Variant Reselection} behavior.
+         *
+         * @since 8.8
+         */
+        @Incubating
+        void variantReselection(Action<? super VariantReselectionDetails> spec);
+    }
+
+    /**
+     * Details for configuring variant reselection behavior.
+     *
+     * @since 8.8
+     */
+    @Incubating
+    interface VariantReselectionDetails {
+
+        /**
+         * Gets whether variant reselection should fan-out to all capabilities.
+         *
+         * @see #setForAllCapabilities(boolean)
+         *
+         * @since 8.8
+         */
+        boolean getForAllCapabilities();
+
+        /**
+         * Sets whether variant reselection should fan-out to all capabilities, so that
+         * a single variant in the original resolved graph may be reselected to several
+         * artifacts in the original variant's component, regardless of their capabilities.
+         *
+         * @since 8.8
+         */
+        void setForAllCapabilities(boolean fromAllCapabilities);
     }
 }

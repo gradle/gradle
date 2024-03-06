@@ -22,18 +22,21 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.testing.DefaultAggregateTestReport;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.testing.AggregateTestReport;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
@@ -89,8 +92,8 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
             report.getReportTask().configure(task -> {
                 Callable<FileCollection> testResults = () ->
                     testResultsConf.getIncoming().artifactView(view -> {
-                        view.withVariantReselection();
-                        view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+                        view.variantReselection(details -> details.setForAllCapabilities(true));
+                        view.componentFilter(projectComponent());
                         view.attributes(attributes -> {
                             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
                             attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
@@ -122,5 +125,9 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
                 });
             });
         });
+    }
+
+    private static Spec<ComponentIdentifier> projectComponent() {
+        return SerializableLambdas.spec(id -> id instanceof ProjectComponentIdentifier);
     }
 }

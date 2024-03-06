@@ -30,6 +30,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -43,8 +44,6 @@ import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 import javax.inject.Inject;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * Adds configurations to for resolving variants containing JaCoCo code coverage results, which may span multiple subprojects.  Reacts to the presence of the jvm-test-suite plugin and creates
@@ -105,7 +104,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         reporting.getReports().withType(JacocoCoverageReport.class).all(report -> {
             report.getReportTask().configure(task -> {
                 ArtifactView executionData = codeCoverageResultsConf.getIncoming().artifactView(view -> {
-                    view.withVariantReselection();
+                    view.variantReselection(details -> details.setForAllCapabilities(true));
                     view.componentFilter(projectComponent());
                     view.attributes(attributes -> {
                         attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
@@ -136,7 +135,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
     }
 
     private static Spec<ComponentIdentifier> projectComponent() {
-        return spec(id -> id instanceof ProjectComponentIdentifier);
+        return SerializableLambdas.spec(id -> id instanceof ProjectComponentIdentifier);
     }
 
     private void configureReportTaskInputs(JacocoReport task, ArtifactView classDirectories, ArtifactView sourceDirectories, ArtifactView executionData) {

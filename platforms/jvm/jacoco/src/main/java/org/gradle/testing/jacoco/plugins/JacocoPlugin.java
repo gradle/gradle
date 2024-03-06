@@ -23,7 +23,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.TestSuiteTargetName;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
@@ -45,6 +44,7 @@ import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -117,14 +117,13 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     }
 
     private void createCoverageDataVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        @SuppressWarnings("deprecation") final Configuration variant = project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        Configuration variant = project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
-        variant.setVisible(false);
+        variant.getOutgoing().capability(new ProjectDerivedCapability(project, suite.getName()));
 
-        final ObjectFactory objects = project.getObjects();
+        ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {
             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-            attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
             attributes.attribute(TestSuiteTargetName.TEST_SUITE_TARGET_NAME_ATTRIBUTE, objects.named(TestSuiteTargetName.class, target.getName()));
             attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
             attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));

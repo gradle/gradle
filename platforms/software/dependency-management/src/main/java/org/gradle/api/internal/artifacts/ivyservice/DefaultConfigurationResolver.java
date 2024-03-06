@@ -334,7 +334,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private static ArtifactSelectionSpec getImplicitSelectionSpec(ResolveContext resolveContext) {
         ImmutableAttributes requestAttributes = resolveContext.getAttributes().asImmutable();
         ResolutionStrategy.SortOrder sortOrder = resolveContext.getResolutionStrategy().getSortOrder();
-        return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), false, false, sortOrder);
+        return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), null, false, sortOrder);
     }
 
     private ResolvedArtifactsGraphVisitor artifactVisitorFor(DependencyArtifactsVisitor artifactsVisitor, ComponentResolvers resolvers) {

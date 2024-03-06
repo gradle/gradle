@@ -164,6 +164,128 @@ class ArtifactVariantReselectionIntegrationTest extends AbstractIntegrationSpec 
         succeeds(":resolve")
     }
 
+    def "can perform variant reselection across all capabilities"() {
+        given:
+        settingsFile << "include 'producer'"
+        file("producer/build.gradle") << multiFeatureProducer()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                ${declaredDependencies}
+            }
+
+            task resolve {
+                def reselected = configurations.runtimeClasspath.incoming.artifactView {
+                    variantReselection {
+                        forAllCapabilities = true
+                    }
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
+                    }
+                }.files
+                doLast {
+                    assert reselected*.name == ["producer-1.0-sources.jar", "producer-1.0-with-sources2-sources.jar", "producer-1.0-with-sources-sources.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds(":resolve")
+
+        where:
+        // We test cases where we have a single dependency or multiple dependencies on the same component,
+        // potentially resolving to different variants of that component. We want to ensure that we do not
+        // reselect the same variants multiple times when fanning-out to all capabilities.
+        declaredDependencies << [
+            """
+                implementation(project(":producer")) {
+                    capabilities {
+                        requireCapability("com.example:producer-without-sources:1.0")
+                    }
+                }
+            """,
+            """
+                implementation(project(":producer"))
+            """,
+            """
+                implementation(project(":producer"))
+                implementation(project(":producer")) {
+                    capabilities {
+                        requireCapability("com.example:producer-without-sources:1.0")
+                    }
+                }
+            """
+        ]
+    }
+
+    def "can perform variant reselection across all capabilities in the Kotlin DSL"() {
+        given:
+        settingsFile << "include 'producer'"
+        file("producer/build.gradle") << multiFeatureProducer()
+
+        buildKotlinFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                ${declaredDependencies}
+            }
+
+            tasks.register("resolve") {
+                val reselected = configurations.runtimeClasspath.get().incoming.artifactView {
+                    variantReselection {
+                        forAllCapabilities = true
+                    }
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.EXTERNAL))
+                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType::class.java, DocsType.SOURCES))
+                    }
+                }.files
+                doLast {
+                    assert(reselected.map { it.name } == listOf("producer-1.0-sources.jar", "producer-1.0-with-sources2-sources.jar", "producer-1.0-with-sources-sources.jar"))
+                }
+            }
+        """
+
+        expect:
+        succeeds(":resolve")
+
+        where:
+        // We test cases where we have a single dependency or multiple dependencies on the same component,
+        // potentially resolving to different variants of that component. We want to ensure that we do not
+        // reselect the same variants multiple times when fanning-out to all capabilities.
+        declaredDependencies << [
+            """
+                implementation(project(":producer")) {
+                    capabilities {
+                        requireCapability("com.example:producer-without-sources:1.0")
+                    }
+                }
+            """,
+            """
+                implementation(project(":producer"))
+            """,
+            """
+                implementation(project(":producer"))
+                implementation(project(":producer")) {
+                    capabilities {
+                        requireCapability("com.example:producer-without-sources:1.0")
+                    }
+                }
+            """
+        ]
+    }
+
     private static String multiFeatureProducer() {
         """
             plugins {
