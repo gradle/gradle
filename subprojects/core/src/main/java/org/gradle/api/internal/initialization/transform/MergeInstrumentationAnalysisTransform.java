@@ -76,12 +76,11 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         Property<Long> getContextId();
 
         /**
-         * Original classpath is an input, since if original classpath changes that means
-         * that also type hierarchy could have changed, so we need to re-merge the hierarchy.
+         * Analysis result is an input, but we access it through build service.
          */
         @InputFiles
         @PathSensitive(PathSensitivity.NAME_ONLY)
-        ConfigurableFileCollection getOriginalClasspath();
+        ConfigurableFileCollection getAnalysisResult();
     }
 
     @Inject

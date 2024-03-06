@@ -86,8 +86,8 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         return getResolutionData(contextId).getArtifactHash(file);
     }
 
-    public FileCollection getOriginalClasspath(long contextId) {
-        return getResolutionData(contextId).getOriginalClasspath();
+    public FileCollection getAnalysisResult(long contextId) {
+        return getResolutionData(contextId).getAnalysisResult();
     }
 
     private ResolutionData getResolutionData(long contextId) {
