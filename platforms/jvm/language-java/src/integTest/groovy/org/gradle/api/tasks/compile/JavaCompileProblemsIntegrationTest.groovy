@@ -35,7 +35,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     /**
      * A map of all visited file locations, and the number of occurrences we have found in the problems.
      * <p>
-     * This field will be updated by {@link #assertProblem(ReceivedProblem, String, Closure)} as it asserts a problem.
+     * This field will be updated by {@link #assertProblem(ReceivedProblem, String, Boolean, Closure)} as it asserts a problem.
      */
     private final Map<String, Integer> visitedFileLocations = [:]
 
