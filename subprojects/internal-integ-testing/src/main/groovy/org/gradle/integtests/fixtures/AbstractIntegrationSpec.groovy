@@ -362,8 +362,17 @@ abstract class AbstractIntegrationSpec extends Specification {
         executer.usingProjectDirectory(file(path))
     }
 
+    /**
+     * Use requireOwnGradleUserHomeDir(because) instead
+     */
+    @Deprecated
     protected GradleExecuter requireOwnGradleUserHomeDir() {
         executer.requireOwnGradleUserHomeDir()
+        executer
+    }
+
+    protected GradleExecuter requireOwnGradleUserHomeDir(String because) {
+        executer.requireOwnGradleUserHomeDir(because)
         executer
     }
 

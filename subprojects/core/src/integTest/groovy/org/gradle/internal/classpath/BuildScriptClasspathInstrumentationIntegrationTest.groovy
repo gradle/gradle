@@ -52,10 +52,12 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def serializer = new InstrumentationAnalysisSerializer(new StringInterner())
 
+    def setup() {
+        requireOwnGradleUserHomeDir("We test content in the global cache")
+    }
+
     def "buildSrc and included builds should be cached in global cache"() {
         given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
         withBuildSrc()
         withIncludedBuild()
         buildFile << """
@@ -98,8 +100,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "external dependencies should not be copied to the global artifact transform cache"() {
         given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
         buildFile << """
             buildscript {
                 ${mavenCentralRepository()}
@@ -120,7 +120,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "directories should be instrumented"() {
         given:
-        requireOwnGradleUserHomeDir()
         withIncludedBuild("first")
         withIncludedBuild("second")
         buildFile << """
@@ -151,7 +150,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "order of entries in the effective classpath stays the same as in the original classpath"() {
         given:
-        requireOwnGradleUserHomeDir()
         withIncludedBuild()
         mavenRepo.module("org", "commons", "3.2.1").publish()
         buildFile << """
@@ -187,7 +185,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     @Issue("https://github.com/gradle/gradle/issues/28114")
     def "buildSrc can monkey patch external plugins even after instrumentation"() {
         given:
-        requireOwnGradleUserHomeDir()
         withExternalPlugin("myPlugin", "my.plugin") {
             """throw new RuntimeException("A bug in a plugin");"""
         }
@@ -227,7 +224,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "classpath can contain non-existing file"() {
         given:
-        executer.requireOwnGradleUserHomeDir()
         buildFile << """
             buildscript { dependencies { classpath files("does-not-exist.jar") } }
         """
@@ -241,8 +237,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "should analyze plugin artifacts"() {
         given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
         multiProjectJavaBuild("subproject", "api", "animals") {
             file("$it/api/src/main/java/org/gradle/api/Plugin.java") << "package org.gradle.api; public interface Plugin {}"
             file("$it/api/src/main/java/org/gradle/api/Task.java") << "package org.gradle.api; public interface Task {}"
@@ -307,7 +301,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "should output only org.gradle supertypes for class dependencies"() {
         given:
-        requireOwnGradleUserHomeDir()
         multiProjectJavaBuild("subproject") {
             file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
             file("$it/api/src/main/java/B.java") << "public class B extends C {}"
@@ -350,7 +343,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     )
     def "should re-instrument jar if classpath changes and class starts extending a Gradle core class transitively"() {
         given:
-        requireOwnGradleUserHomeDir()
         multiProjectJavaBuild("subproject") {
             file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
             file("$it/api/src/main/java/B.java") << "public class B {}"
@@ -390,7 +382,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     )
     def "should not re-instrument jar if classpath changes but class doesn't extend Gradle core class"() {
         given:
-        requireOwnGradleUserHomeDir()
         multiProjectJavaBuild("subproject") {
             file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
             file("$it/api/src/main/java/B.java") << "public class B {}"
@@ -426,7 +417,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     @Issue("https://github.com/gradle/gradle/issues/28301")
     def "instrumentation and upgrades work when repository is changed from remote to local"() {
-        executer.requireOwnGradleUserHomeDir()
         def mavenRemote = new MavenHttpRepository(server, "/repo", HttpRepository.MetadataType.DEFAULT, mavenRepo)
         def remoteModule = mavenRemote.module("test.gradle", "test-plugin", "0.2").publish()
         remoteModule.pom.expectDownload()
