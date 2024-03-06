@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
@@ -41,39 +42,87 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
-        String message = diagnostic.getMessage(Locale.getDefault());
-        String label = mapKindToLabel(diagnostic.getKind());
+        problemReporter.reporting(spec -> buildProblem(diagnostic, spec));
+    }
 
-        String resourceName = diagnostic.getSource() != null ? getPath(diagnostic.getSource()) : null;
-        int line = Math.toIntExact(diagnostic.getLineNumber());
-        int column = Math.toIntExact(diagnostic.getColumnNumber());
-        int length = Math.toIntExact(diagnostic.getEndPosition() - diagnostic.getStartPosition());
+    @VisibleForTesting
+    static void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
+        spec.label(mapKindToLabel(diagnostic.getKind()));
+        spec.details(diagnostic.getMessage(Locale.getDefault()));
+
+        addCategory(spec, diagnostic);
+        addLocations(spec, diagnostic);
+    }
+
+    private static void addCategory(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
         Severity severity = mapKindToSeverity(diagnostic.getKind());
+        switch (severity) {
+            case ADVICE:
+                spec.category("compilation", "java", "compilation-advice");
+                break;
+            case WARNING:
+                spec.category("compilation", "java", "compilation-warning");
+                break;
+            case ERROR:
+                spec.category("compilation", "java", "compilation-failed");
+                break;
+        }
 
-        problemReporter.reporting(problem -> {
-            ProblemSpec spec = problem
-                .label(label)
-                .severity(severity)
-                .details(message);
+        spec.severity(severity);
+    }
 
-            // The category of the problem depends on the severity
-            switch (severity) {
-                case ADVICE:
-                    spec.category("compilation", "java", "compilation-advice");
-                    break;
-                case WARNING:
-                    spec.category("compilation", "java", "compilation-warning");
-                    break;
-                case ERROR:
-                    spec.category("compilation", "java", "compilation-failed");
-                    break;
+    private static void addLocations(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+        String resourceName = diagnostic.getSource() != null ? getPath(diagnostic.getSource()) : null;
+        int line = clampLocation(diagnostic.getLineNumber());
+        int column = clampLocation(diagnostic.getColumnNumber());
+        int start = clampLocation(diagnostic.getStartPosition());
+        int end = clampLocation(diagnostic.getEndPosition());
+
+        // We only set the location if we have a resource to point to
+        if (resourceName != null) {
+            spec.fileLocation(resourceName);
+            // If we know the line ...
+            if (line > 0) {
+                // ... and the column ...
+                if (column > 0) {
+                    // ... and we know how long the error is (i.e. end - start)
+                    // (end should be greater than start, so we can prevent negative lengths)
+                    if (0 < start && start <= end) {
+                        // ... we can report the line, column, and extent ...
+                        spec.lineInFileLocation(resourceName, line, column, end - start);
+                    } else {
+                        // ... otherwise we can still report the line and column
+                        spec.lineInFileLocation(resourceName, line, column);
+                    }
+                } else {
+                    // ... otherwise we can still report the line
+                    spec.lineInFileLocation(resourceName, line);
+                }
             }
 
-            // We only set the location if we have a resource to point to
-            if (resourceName != null) {
-                spec.lineInFileLocation(resourceName, line, column, length);
+            // If we know the offsets ...
+            // (offset doesn't require line and column to be set, hence the separate check)
+            if (0 < start && start <= end) {
+                // ... we can report the start and extent
+                spec.offsetInFileLocation(resourceName, start, end - start);
             }
-        });
+        }
+    }
+
+    /**
+     * Clamp the value to an int, or return {@link Diagnostic#NOPOS} if the value is too large.
+     * <p>
+     * This is used to ensure that we don't report invalid locations.
+     *
+     * @param value the value to clamp
+     * @return either the clamped value, or {@link Diagnostic#NOPOS}
+     */
+    private static int clampLocation(long value) {
+        if (value > Integer.MAX_VALUE) {
+            return Math.toIntExact(Diagnostic.NOPOS);
+        } else {
+            return (int) value;
+        }
     }
 
     private static String getPath(JavaFileObject fileObject) {
