@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
@@ -41,56 +42,71 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
-        String message = diagnostic.getMessage(Locale.getDefault());
-        String label = mapKindToLabel(diagnostic.getKind());
+        problemReporter.reporting(spec -> buildProblem(diagnostic, spec));
+    }
 
+    @VisibleForTesting
+    static void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
+        spec.label(mapKindToLabel(diagnostic.getKind()));
+        spec.details(diagnostic.getMessage(Locale.getDefault()));
+
+        addCategory(spec, diagnostic);
+        addLocations(spec, diagnostic);
+    }
+
+    private static void addCategory(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+        Severity severity = mapKindToSeverity(diagnostic.getKind());
+        switch (severity) {
+            case ADVICE:
+                spec.category("compilation", "java", "compilation-advice");
+                break;
+            case WARNING:
+                spec.category("compilation", "java", "compilation-warning");
+                break;
+            case ERROR:
+                spec.category("compilation", "java", "compilation-failed");
+                break;
+        }
+
+        spec.severity(severity);
+    }
+
+    private static void addLocations(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
         String resourceName = diagnostic.getSource() != null ? getPath(diagnostic.getSource()) : null;
         long line = diagnostic.getLineNumber();
         long column = diagnostic.getColumnNumber();
         long start = diagnostic.getStartPosition();
         long end = diagnostic.getEndPosition();
 
-        Severity severity = mapKindToSeverity(diagnostic.getKind());
-
-        problemReporter.reporting(problem -> {
-            ProblemSpec spec = problem
-                .label(label)
-                .severity(severity)
-                .details(message);
-
-            // The category of the problem depends on the severity
-            switch (severity) {
-                case ADVICE:
-                    spec.category("compilation", "java", "compilation-advice");
-                    break;
-                case WARNING:
-                    spec.category("compilation", "java", "compilation-warning");
-                    break;
-                case ERROR:
-                    spec.category("compilation", "java", "compilation-failed");
-                    break;
-            }
-
-            // We only set the location if we have a resource to point to
-            if (resourceName != null) {
-                // If we know the start and end position ...
-                if (line > 0) {
-                    if (column > 0) {
-                        if (start > 0 && end > 0) {
-                            spec.offsetInFileLocation(resourceName, start, end);
-                            long length = end - start;
-                            spec.lineInFileLocation(resourceName, start, column, length);
-                        } else {
-                            spec.lineInFileLocation(resourceName, line, column);
-                        }
+        // We only set the location if we have a resource to point to
+        if (resourceName != null) {
+            spec.fileLocation(resourceName);
+            // If we know the line ...
+            if (line > 0) {
+                // ... and the column ...
+                if (column > 0) {
+                    // ... and we know how long the error is (i.e. end - start)
+                    // (end should be greater than start, so we can prevent negative lengths)
+                    if (0 < start && start <= end) {
+                        // ... we can report the line, column, and extent ...
+                        spec.lineInFileLocation(resourceName, line, column, end - start);
                     } else {
-                        spec.lineInFileLocation(resourceName, line);
+                        // ... otherwise we can still report the line and column
+                        spec.lineInFileLocation(resourceName, line, column);
                     }
                 } else {
-                    spec.fileLocation(resourceName);
+                    // ... otherwise we can still report the line
+                    spec.lineInFileLocation(resourceName, line);
                 }
             }
-        });
+
+            // If we know the offsets ...
+            // (offset doesn't require line and column to be set, hence the separate check)
+            if (0 < start && start <= end) {
+                // ... we can report the start and extent
+                spec.offsetInFileLocation(resourceName, start, end - start);
+            }
+        }
     }
 
     private static String getPath(JavaFileObject fileObject) {
