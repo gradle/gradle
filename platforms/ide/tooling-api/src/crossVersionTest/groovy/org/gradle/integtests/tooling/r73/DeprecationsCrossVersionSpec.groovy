@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 
 class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
-    @TargetGradleVersion(">=7.3 <8.0")
+    @TargetGradleVersion(">=7.3")
     def "deprecation is reported when tooling model builder resolves configuration from a project other than its target"() {
         settingsFile << """
             include("a")
@@ -65,53 +65,5 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         stdout.toString().contains("Deprecated Gradle features were used in this build")
-    }
-
-    @TargetGradleVersion(">=8.0")
-    def "deprecation warning when tooling model builder resolves configuration from a project other than its target post Gradle 8.0"() {
-        settingsFile << """
-            include("a")
-        """
-        buildFile << """
-            import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
-            import org.gradle.tooling.provider.model.ToolingModelBuilder
-            import org.gradle.api.Project
-
-            class MyModelBuilder implements ToolingModelBuilder {
-                boolean canBuild(String modelName) {
-                    return modelName == "${List.class.name}"
-                }
-                Object buildAll(String modelName, Project project) {
-                    println("creating model for \$project")
-                    project.allprojects.each { p ->
-                        p.configurations.compileClasspath.files()
-                    }
-                    return ["result"]
-                }
-            }
-
-            project.services.get(ToolingModelBuilderRegistry.class).register(new MyModelBuilder())
-
-            allprojects {
-                apply plugin: 'java-library'
-            }
-            project(':a') {
-                dependencies {
-                    implementation rootProject
-                }
-            }
-        """
-
-        when:
-        withConnection {
-            def builder = it.model(List)
-            builder.withArguments("--parallel")
-            collectOutputs(builder)
-            return builder.get()
-        }
-
-        then:
-        assertHasConfigureSuccessfulLogging(true)
-        result.assertOutputContains("Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.")
     }
 }
