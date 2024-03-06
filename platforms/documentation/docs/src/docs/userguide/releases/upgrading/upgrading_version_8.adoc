@@ -35,6 +35,20 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.8]]
+== Upgrading from 8.7 and earlier
+
+=== Deprecations
+
+[[deprecated_namers]]
+==== Deprecated `Namer` of `Task` and `Configuration`
+`Task` and `Configuration` have a link:{javadocPath}/org/gradle/api/Namer.html[`Namer`] inner class (also called `Namer`) that can be used as a common way to retrieve the name of a task or configuration. 
+Now that these types implement link:{javadocPath}/org/gradle/api/Named.html[`Named`], these classes are no longer necessary and have been deprecated. 
+They will be removed in Gradle 9.0. 
+Use link:{javadocPath}/org/gradle/api/Named.Namer.html#INSTANCE[`Named.Namer.INSTANCE`] instead.
+
+The superinterface, link:{javadocPath}/org/gradle/api/Namer.html[`Namer`], is *not* being deprecated.
+
 [[changes_8.7]]
 == Upgrading from 8.6 and earlier
 

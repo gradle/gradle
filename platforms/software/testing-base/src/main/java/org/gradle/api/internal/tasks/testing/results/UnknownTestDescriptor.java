@@ -35,6 +35,11 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
+    public String getMethodName() {
+        return null;
+    }
+
+    @Override
     public boolean isComposite() {
         return false;
     }
