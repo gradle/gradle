@@ -79,9 +79,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         InternalProblems problemsService = validationContext.getProblemsService();
         InternalProblemReporter reporter = problemsService.getInternalReporter();
         List<Problem> problems = validationContext.getProblems();
-        for (Problem problem : problems) {
-            reporter.report(problem);
-        }
 
         Map<Severity, ImmutableList<Problem>> problemsMap = problems.stream()
             .collect(
@@ -91,6 +88,9 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         ImmutableList<Problem> errors = problemsMap.getOrDefault(ERROR, of());
 
         if (!warnings.isEmpty()) {
+            for (Problem warning : warnings) {
+                reporter.report(warning);
+            }
             warningReporter.recordValidationWarnings(work, warnings);
         }
 
@@ -170,9 +170,14 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         Set<String> uniqueErrors = validationErrors.stream()
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(toImmutableSet());
-        throw WorkValidationException.forProblems(uniqueErrors)
+        WorkValidationException workValidationException = WorkValidationException.forProblems(uniqueErrors)
             .withSummaryForContext(work.getDisplayName(), validationContext)
             .get();
+        InternalProblemReporter reporter = validationContext.getProblemsService().getInternalReporter();
+        for (Problem validationError : validationErrors) {
+            reporter.report(validationError.toBuilder().withException(workValidationException).build());
+        }
+        throw workValidationException;
     }
 
     public interface ValidationWarningRecorder {
