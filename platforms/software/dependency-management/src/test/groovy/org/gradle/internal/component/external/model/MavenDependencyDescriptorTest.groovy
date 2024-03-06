@@ -40,7 +40,7 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
-import org.gradle.internal.component.ExternalConfigurationNotFoundException
+
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.MavenScope
@@ -51,6 +51,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.internal.component.model.ModuleConfigurationMetadata
+import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException
 
 class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     final ModuleExclusions moduleExclusions = new ModuleExclusions()
@@ -212,7 +213,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         dep.selectLegacyConfigurations(fromComponent, fromCompile, toComponent, resolutionFailureHandler)
 
         then:
-        thrown(ExternalConfigurationNotFoundException)
+        thrown(ConfigurationSelectionException)
     }
 
     def "fails when runtime configuration is not defined in target component"() {
@@ -229,7 +230,7 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent, resolutionFailureHandler)
 
         then:
-        thrown(ExternalConfigurationNotFoundException)
+        thrown(ConfigurationSelectionException)
     }
 
     private static MavenDependencyDescriptor mavenDependencyMetadata(MavenScope scope, ModuleComponentSelector selector, List<ExcludeMetadata> excludes) {

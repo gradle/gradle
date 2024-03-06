@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
@@ -104,7 +105,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                             return tasks;
                         }
                     },
-                    new Task.Namer(),
+                    Named.Namer.INSTANCE,
                     "Project.<init>.tasks()",
                     new Namer()
                 );

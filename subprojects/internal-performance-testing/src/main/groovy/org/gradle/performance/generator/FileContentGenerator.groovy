@@ -83,11 +83,8 @@ abstract class FileContentGenerator {
         ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}
 
         dependencies{
-        ${
-            language == Language.GROOVY ? versionCatalogDependencyDeclaration('implementation', 'groovy') : ""
+        ${language == Language.GROOVY ? versionCatalogDependencyDeclaration('implementation', 'groovy') : ""}
         }
-        }
-
 
         ${tasksConfiguration()}
         """
@@ -101,6 +98,7 @@ abstract class FileContentGenerator {
             return (0..config.subProjects - 1).collect {
                 if (config.compositeBuild.usePredefinedPublications()) {
                     """
+
                     includeBuild("project$it") {
                         dependencySubstitution {
                             substitute(module("org.gradle.test.performance:project${it}")).using(project(":"))
@@ -119,7 +117,9 @@ abstract class FileContentGenerator {
             String includedProjects = ""
             if (config.subProjects != 0) {
                 includedProjects = """
-                    ${(0..config.subProjects - 1).collect { "include(\"project$it\")" }.join("\n")}
+                    ${(0..config.subProjects - 1).collect { projectNumber ->
+                    "include(\"project$projectNumber${(0..config.projectDepth).collect { subprojectNumber -> ":sub${subprojectNumber}project${projectNumber}" }.join("")}\")"
+                }.join("\n")}
                 """
             }
 

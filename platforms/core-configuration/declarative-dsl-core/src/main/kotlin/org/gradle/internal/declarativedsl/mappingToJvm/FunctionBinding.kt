@@ -29,6 +29,7 @@ object FunctionBinding {
         kFunction: KFunction<*>,
         receiver: Any,
         arguments: Map<DataParameter, Any?>,
+        hasLambda: Boolean,
         configureLambdaHandler: ConfigureLambdaHandler
     ): Binding? {
         var captor: ConfigureLambdaHandler.ValueCaptor? = null
@@ -46,7 +47,7 @@ object FunctionBinding {
                     param == kFunction.instanceParameter -> put(param, receiver)
                     param == kFunction.extensionReceiverParameter -> put(param, receiver)
 
-                    configureLambdaHandler.getTypeConfiguredByLambda(param.type) != null -> {
+                    hasLambda && configureLambdaHandler.getTypeConfiguredByLambda(param.type) != null -> {
                         val newCaptor = configureLambdaHandler.produceValueCaptor(param.type)
                         check(captor == null) { "multiple lambda argument captors are not supported" }
                         captor = newCaptor
@@ -63,6 +64,9 @@ object FunctionBinding {
             }
 
             if (used < namedArguments.size)
+                return null
+
+            if (hasLambda && captor == null)
                 return null
         }
         return Binding(map, captor)

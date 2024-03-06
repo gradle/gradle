@@ -89,7 +89,7 @@ dependencies {
         because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")
     }
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 

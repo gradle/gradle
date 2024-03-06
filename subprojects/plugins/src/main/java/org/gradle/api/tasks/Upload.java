@@ -130,7 +130,7 @@ public abstract class Upload extends ConventionTask {
      */
     @Nullable
     @Deprecated
-    @SuppressWarnings("UnusedDeclaration")
+    @SuppressWarnings({"UnusedDeclaration", "rawtypes"})
     public RepositoryHandler repositories(@Nullable @DelegatesTo(RepositoryHandler.class) Closure configureClosure) {
         return null;
     }

@@ -37,7 +37,7 @@ fun schemaFromTypes(
     defaultImports: List<FqName> = emptyList(),
     configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda,
     propertyExtractor: PropertyExtractor = DefaultPropertyExtractor(isPublicAndRestricted),
-    functionExtractor: FunctionExtractor = DefaultFunctionExtractor(isPublicAndRestricted, configureLambdas),
+    functionExtractor: FunctionExtractor = DefaultFunctionExtractor(configureLambdas, isPublicAndRestricted),
     typeDiscovery: TypeDiscovery = TypeDiscovery.none
 ): AnalysisSchema =
     DataSchemaBuilder(typeDiscovery, propertyExtractor, functionExtractor).schemaFromTypes(

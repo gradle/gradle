@@ -64,8 +64,12 @@ class DataSchemaBuilder(
     class PreIndex {
         private
         val properties = mutableMapOf<KClass<*>, MutableMap<String, DataProperty>>()
+
         private
         val propertyOriginalTypes = mutableMapOf<KClass<*>, MutableMap<String, KType>>()
+
+        private
+        val claimedFunctions = mutableMapOf<KClass<*>, MutableSet<KFunction<*>>>()
 
         fun addType(kClass: KClass<*>) {
             properties.getOrPut(kClass) { mutableMapOf() }
@@ -77,12 +81,18 @@ class DataSchemaBuilder(
             propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }[property.name] = originalType
         }
 
+        fun claimFunction(kClass: KClass<*>, kFunction: KFunction<*>) {
+            claimedFunctions.getOrPut(kClass) { mutableSetOf() }.add(kFunction)
+        }
+
         val types: Iterable<KClass<*>>
             get() = properties.keys
 
         fun hasType(kClass: KClass<*>): Boolean = kClass in properties
 
         fun getAllProperties(kClass: KClass<*>): List<DataProperty> = properties[kClass]?.values.orEmpty().toList()
+
+        fun getClaimedFunctions(kClass: KClass<*>): Set<KFunction<*>> = claimedFunctions[kClass].orEmpty()
 
         fun getProperty(kClass: KClass<*>, name: String) = properties[kClass]?.get(name)
         fun getPropertyType(kClass: KClass<*>, name: String) = propertyOriginalTypes[kClass]?.get(name)
@@ -104,6 +114,7 @@ class DataSchemaBuilder(
                 addType(type)
                 val properties = propertyExtractor.extractProperties(type)
                 properties.forEach {
+                    it.claimedFunctions.forEach { claimFunction(type, it) }
                     addProperty(
                         type,
                         DataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDeclarativeDsl, it.isDirectAccessOnly),

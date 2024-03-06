@@ -124,6 +124,7 @@ val core = platform("core") {
         subproject("build-cache-http")
         subproject("build-cache-packaging")
         subproject("build-cache-spi")
+        subproject("execution-e2e-tests")
         subproject("file-watching")
         subproject("execution")
         subproject("hashing")
@@ -185,6 +186,7 @@ val jvm = platform("jvm") {
     uses(core)
     uses(software)
     subproject("code-quality")
+    subproject("core-jvm")
     subproject("distributions-jvm")
     subproject("ear")
     subproject("jacoco")
@@ -197,6 +199,7 @@ val jvm = platform("jvm") {
     subproject("java-platform")
     subproject("normalization-java")
     subproject("platform-jvm")
+    subproject("plugins-application")
     subproject("plugins-groovy")
     subproject("plugins-java")
     subproject("plugins-java-base")
@@ -288,12 +291,16 @@ gradle.settingsEvaluated {
 gradle.rootProject {
     tasks.register("architectureDoc", GeneratorTask::class.java) {
         description = "Generates the architecture documentation"
-        outputFile = layout.projectDirectory.file("architecture/readme.md")
+        outputFile = layout.projectDirectory.file("architecture/README.md")
         elements = provider { architectureElements.map { it.build() } }
     }
 }
 
 abstract class GeneratorTask : DefaultTask() {
+    private val markerComment = "<!-- This diagram is generated. Use `./gradlew :architectureDoc` to update it -->"
+    private val startDiagram = "```mermaid"
+    private val endDiagram = "```"
+
     @get:OutputFile
     abstract val outputFile: RegularFileProperty
 
@@ -302,14 +309,23 @@ abstract class GeneratorTask : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        outputFile.asFile.get().bufferedWriter().use {
+        val markdownFile = outputFile.asFile.get()
+        val content = markdownFile.readText().lines()
+        val markerPos = content.indexOfFirst { it.contains(markerComment) }
+        if (markerPos < 0) {
+            throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
+        }
+        val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
+        if (endPos < 0) {
+            throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
+        }
+        val head = content.subList(0, markerPos)
+
+        markdownFile.bufferedWriter().use {
             PrintWriter(it).run {
-                println(
-                    """
-                    <!-- This is a generated file. Use `./gradlew :architectureDoc` to generate -->
-                    # Gradle platform architecture
-                """.trimIndent()
-                )
+                for (line in head) {
+                    println(line)
+                }
                 graph(elements.get())
             }
         }
@@ -318,41 +334,57 @@ abstract class GeneratorTask : DefaultTask() {
     private fun PrintWriter.graph(elements: List<ArchitectureElement>) {
         println(
             """
-            ```mermaid
-                graph TD
+            $markerComment
+            $startDiagram
         """.trimIndent()
         )
+        val writer = NodeWriter(this, "    ")
+        writer.node("graph TD")
         for (element in elements) {
             if (element is Platform) {
-                platform(element)
+                writer.platform(element)
             } else {
-                element(element)
+                writer.element(element)
             }
         }
-        println("```")
+        println(endDiagram)
     }
 
-    private fun PrintWriter.platform(platform: Platform) {
+    private fun NodeWriter.platform(platform: Platform) {
         println()
-        println("subgraph ${platform.id}[\"${platform.name} platform\"]")
-        for (child in platform.children) {
-            element(child)
+        node("subgraph ${platform.id}[\"${platform.name} platform\"]") {
+            for (child in platform.children) {
+                element(child)
+            }
         }
-        println("end")
-        println("style ${platform.id} fill:#c2e0f4,stroke:#3498db,stroke-width:2px;")
+        node("end")
+        node("style ${platform.id} fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;")
         for (dep in platform.uses) {
-            println("${platform.id} --> $dep")
+            node("${platform.id} --> $dep")
         }
     }
 
-    private fun PrintWriter.element(element: ArchitectureElement) {
+    private fun NodeWriter.element(element: ArchitectureElement) {
         println()
-        println(
-            """
-            ${element.id}["${element.name} module"]
-            style ${element.id} stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px;
-        """.trimIndent()
-        )
+        node("${element.id}[\"${element.name} module\"]")
+        node("style ${element.id} stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px,color:#000;")
+    }
+
+    private class NodeWriter(private val writer: PrintWriter, private val indent: String) {
+        fun println() {
+            writer.println()
+        }
+
+        fun node(node: String) {
+            writer.print(indent)
+            writer.println(node)
+        }
+
+        fun node(node: String, builder: NodeWriter.() -> Unit) {
+            writer.print(indent)
+            writer.println(node)
+            builder(NodeWriter(writer, "$indent    "))
+        }
     }
 }
 
@@ -390,7 +422,7 @@ class ProjectScope(
     }
 }
 
-class ElementId(val id: String): Serializable {
+class ElementId(val id: String) : Serializable {
     override fun toString(): String {
         return id
     }
