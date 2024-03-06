@@ -18,8 +18,6 @@
 tasks.withType<AbstractArchiveTask>().configureEach {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
-    @Suppress("DEPRECATION")
     dirPermissions { unix("0755") }
-    @Suppress("DEPRECATION")
     filePermissions { unix("0644") }
 }
