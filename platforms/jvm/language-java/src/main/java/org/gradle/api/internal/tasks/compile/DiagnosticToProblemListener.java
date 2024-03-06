@@ -23,6 +23,7 @@ import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 
+import javax.annotation.Nullable;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
@@ -48,10 +49,16 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @VisibleForTesting
     static void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        spec.id(mapKindToId(diagnostic.getKind()), mapKindToLabel(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java())
-            .details(diagnostic.getMessage(Locale.getDefault()))
-            .severity(mapKindToSeverity(diagnostic.getKind()));
+        spec.id(mapKindToId(diagnostic.getKind()), mapKindToLabel(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
+        spec.severity(mapKindToSeverity(diagnostic.getKind()));
+        addDetails(spec, diagnostic.getMessage(Locale.getDefault()));
         addLocations(spec, diagnostic);
+    }
+
+    private static void addDetails(ProblemSpec spec, @Nullable String diagnosticMessage) {
+        if (diagnosticMessage != null) {
+            spec.details(diagnosticMessage);
+        }
     }
 
     private static void addLocations(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
