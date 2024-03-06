@@ -49,6 +49,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.isAnalysisMetadataDir;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.outputOriginalArtifact;
 
 /**
  * A transform that merges all instrumentation related metadata for a single artifact.<br><br>
@@ -99,7 +100,7 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         if (isAnalysisMetadataDir(input)) {
             doMergeAndOutputAnalysis(input, outputs);
         } else {
-            doOutputOriginalArtifact(input, outputs);
+            outputOriginalArtifact(outputs, input);
         }
     }
 
@@ -128,13 +129,5 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         long contextId = getParameters().getContextId().get();
         CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
         return buildService.getInstrumentationTypeRegistry(contextId);
-    }
-
-    private static void doOutputOriginalArtifact(File input, TransformOutputs outputs) {
-        if (input.isDirectory()) {
-            outputs.dir(input);
-        } else {
-            outputs.file(input);
-        }
     }
 }

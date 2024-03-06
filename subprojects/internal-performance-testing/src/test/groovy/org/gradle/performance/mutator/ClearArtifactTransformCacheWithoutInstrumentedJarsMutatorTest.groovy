@@ -45,9 +45,9 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Spec
         createFile(new File(gradleUserHome, "caches/transforms-2/third/metadata.bin"))
         createFile(new File(gradleUserHome, "caches/transforms-2/third/transformed/$ANALYSIS_OUTPUT_DIR/$INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME"))
         createFile(new File(gradleUserHome, "caches/transforms-2/third/transformed/original/file"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/forth/metadata.bin"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/forth/transformed/$MERGE_OUTPUT_DIR/$INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/forth/transformed/original/file"))
+        createFile(new File(gradleUserHome, "caches/transforms-2/fourth/metadata.bin"))
+        createFile(new File(gradleUserHome, "caches/transforms-2/fourth/transformed/$MERGE_OUTPUT_DIR/$INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME"))
+        createFile(new File(gradleUserHome, "caches/transforms-2/fourth/transformed/original/file"))
         def mutator = new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(gradleUserHome, BUILD)
 
         when:
@@ -63,9 +63,9 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Spec
         new File(gradleUserHome, "caches/transforms-2/third/metadata.bin").exists()
         new File(gradleUserHome, "caches/transforms-2/third/transformed/$ANALYSIS_OUTPUT_DIR/$INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME").exists()
         new File(gradleUserHome, "caches/transforms-2/third/transformed/original/file").exists()
-        new File(gradleUserHome, "caches/transforms-2/forth/metadata.bin").exists()
-        new File(gradleUserHome, "caches/transforms-2/forth/transformed/$MERGE_OUTPUT_DIR/$INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME").exists()
-        new File(gradleUserHome, "caches/transforms-2/forth/transformed/original/file").exists()
+        new File(gradleUserHome, "caches/transforms-2/fourth/metadata.bin").exists()
+        new File(gradleUserHome, "caches/transforms-2/fourth/transformed/$MERGE_OUTPUT_DIR/$INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME").exists()
+        new File(gradleUserHome, "caches/transforms-2/fourth/transformed/original/file").exists()
     }
 
     private static void createFile(File file) {

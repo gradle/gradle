@@ -57,6 +57,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.outputOriginalArtifact;
 import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 /**
@@ -162,11 +163,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         File dependenciesFile = new File(outputDir, DEPENDENCIES_FILE_NAME);
         serializer.writeTypes(dependenciesFile, dependencies);
 
-        if (artifact.isDirectory()) {
-            outputs.dir(artifact);
-        } else {
-            outputs.file(artifact);
-        }
+        outputOriginalArtifact(outputs, artifact);
     }
 
     private InstrumentationArtifactMetadata getArtifactMetadata(File artifact) {

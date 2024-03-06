@@ -43,4 +43,12 @@ public class InstrumentationTransformUtils {
     public static boolean isAnalysisMetadataDir(File input) {
         return input.isDirectory() && new File(input, INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME).exists();
     }
+
+    public static void outputOriginalArtifact(TransformOutputs outputs, File originalArtifact) {
+        if (originalArtifact.isDirectory()) {
+            outputs.dir(originalArtifact);
+        } else {
+            outputs.file(originalArtifact);
+        }
+    }
 }
