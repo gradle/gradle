@@ -256,35 +256,39 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         assert details: "Expected details to be non-null, but was null"
 
         def locations = problem['context']["locations"] as List<Map<String, Object>>
-        assert locations.size() == 1: "Expected one location, but received ${locations.size()}"
+        // We use this counter to assert that we have visited all locations
+        def assertedLocationCount = 0
 
         def fileLocation = locations.find {
             it.keySet() == ["path"].toSet()
         }
         assert fileLocation != null: "Expected a file location, but it was null"
         def fileLocationPath = fileLocation["path"] as String
+        // Register that we've asserted this location
+        assertedLocationCount += 1
+        // Check if we expect this file location
+        def occurrences = possibleFileLocations.get(fileLocationPath)
+        assert occurrences: "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFileLocations.keySet()}"
+        visitedFileLocations.putIfAbsent(fileLocationPath, 0)
+        visitedFileLocations[fileLocationPath] += 1
 
         if (expectPreciseLocation) {
             def positionLocation = locations.find {
                 it.keySet() == ["path", "line", "column", "length"].toSet()
             }
             assert positionLocation != null: "Expected a precise file location, but it was null"
+            // Register that we've asserted this location
+            assertedLocationCount += 1
 
             def offsetLocation = locations.find {
                 it.keySet() == ["path", "offset", "length"].toSet()
             }
             assert offsetLocation != null: "Expected a precise file location, but it was null"
+            // Register that we've asserted this location
+            assertedLocationCount += 1
         }
 
-        def taskLocation = locations.find {
-            it.containsKey("buildTreePath")
-        }
-        assert taskLocation != null: "Expected a task location, but it was null"
-
-        def occurrences = possibleFileLocations.get(fileLocationPath)
-        assert occurrences: "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFileLocations.keySet()}"
-        visitedFileLocations.putIfAbsent(fileLocationPath, 0)
-        visitedFileLocations[fileLocationPath] += 1
+        assert assertedLocationCount == locations.size(): "Expected to assert all locations, but only visited ${assertedLocationCount} out of ${locations.size()}"
 
         if (extraChecks != null) {
             extraChecks.call(details)
