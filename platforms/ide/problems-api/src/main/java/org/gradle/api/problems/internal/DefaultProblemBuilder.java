@@ -133,25 +133,25 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line) {
+    public InternalProblemBuilder lineInFileLocation(String path, long line) {
         this.addLocation(DefaultLineInFileLocation.from(path, line));
         return this;
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line, int column) {
+    public InternalProblemBuilder lineInFileLocation(String path, long line, long column) {
         this.addLocation(DefaultLineInFileLocation.from(path, line, column));
         return this;
     }
 
     @Override
-    public InternalProblemBuilder offsetInFileLocation(String path, int offset, int length) {
+    public InternalProblemBuilder offsetInFileLocation(String path, long offset, long length) {
         this.addLocation(DefaultOffsetInFileLocation.from(path, offset, length));
         return this;
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length) {
+    public InternalProblemBuilder lineInFileLocation(String path, long line, long column, long length) {
         this.addLocation(DefaultLineInFileLocation.from(path, line, column, length));
         return this;
     }

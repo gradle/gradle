@@ -23,7 +23,7 @@ import org.gradle.tooling.events.problems.Severity;
 
 public class DefaultSeverity implements Severity {
 
-    private final int severity;
+    private final long severity;
     private final boolean known;
 
     // Using the loading cache ensures that there's only one object in memory per severity level even when the level is unknown by the client
@@ -34,13 +34,13 @@ public class DefaultSeverity implements Severity {
         }
     });
 
-    public DefaultSeverity(int severity, boolean known) {
+    public DefaultSeverity(long severity, boolean known) {
         this.severity = severity;
         this.known = known;
     }
 
     @Override
-    public int getSeverity() {
+    public long getSeverity() {
         return severity;
     }
 
@@ -49,7 +49,7 @@ public class DefaultSeverity implements Severity {
         return known;
     }
 
-    public static Severity from(int severity) {
+    public static Severity from(long severity) {
         if (severity == Severity.ADVICE.getSeverity()) {
             return Severity.ADVICE;
         } else if (severity == Severity.WARNING.getSeverity()) {

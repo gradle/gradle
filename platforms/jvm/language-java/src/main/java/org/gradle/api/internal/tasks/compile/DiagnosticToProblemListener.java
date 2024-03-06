@@ -45,9 +45,11 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         String label = mapKindToLabel(diagnostic.getKind());
 
         String resourceName = diagnostic.getSource() != null ? getPath(diagnostic.getSource()) : null;
-        int line = Math.toIntExact(diagnostic.getLineNumber());
-        int column = Math.toIntExact(diagnostic.getColumnNumber());
-        int length = Math.toIntExact(diagnostic.getEndPosition() - diagnostic.getStartPosition());
+        long line = diagnostic.getLineNumber();
+        long column = diagnostic.getColumnNumber();
+        long start = diagnostic.getStartPosition();
+        long end = diagnostic.getEndPosition();
+
         Severity severity = mapKindToSeverity(diagnostic.getKind());
 
         problemReporter.reporting(problem -> {
@@ -71,7 +73,22 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
             // We only set the location if we have a resource to point to
             if (resourceName != null) {
-                spec.lineInFileLocation(resourceName, line, column, length);
+                // If we know the start and end position ...
+                if (line > 0) {
+                    if (column > 0) {
+                        if (start > 0 && end > 0) {
+                            spec.offsetInFileLocation(resourceName, start, end);
+                            long length = end - start;
+                            spec.lineInFileLocation(resourceName, start, column, length);
+                        } else {
+                            spec.lineInFileLocation(resourceName, line, column);
+                        }
+                    } else {
+                        spec.lineInFileLocation(resourceName, line);
+                    }
+                } else {
+                    spec.fileLocation(resourceName);
+                }
             }
         });
     }

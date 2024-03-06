@@ -60,16 +60,16 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec fileLocation(String path);
 
     @Override
-    InternalProblemSpec lineInFileLocation(String path, int line);
+    InternalProblemSpec lineInFileLocation(String path, long line);
 
     @Override
-    InternalProblemSpec lineInFileLocation(String path, int line, int column);
+    InternalProblemSpec lineInFileLocation(String path, long line, long column);
 
     @Override
-    InternalProblemSpec lineInFileLocation(String path, int line, int column, int length);
+    InternalProblemSpec lineInFileLocation(String path, long line, long column, long length);
 
     @Override
-    InternalProblemSpec offsetInFileLocation(String path, int offset, int length);
+    InternalProblemSpec offsetInFileLocation(String path, long offset, long length);
 
     @Override
     InternalProblemSpec pluginLocation(String pluginId);

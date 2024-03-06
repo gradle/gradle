@@ -19,11 +19,11 @@ package org.gradle.tooling.events.problems.internal;
 import org.gradle.tooling.events.problems.LineInFileLocation;
 
 public class DefaultLineInFileLocation extends DefaultFileLocation implements LineInFileLocation {
-    private final int line;
-    private final int column;
-    private final int length;
+    private final long line;
+    private final long column;
+    private final long length;
 
-    public DefaultLineInFileLocation(String path, int line, int column, int length) {
+    public DefaultLineInFileLocation(String path, long line, long column, long length) {
         super(path);
         this.line = line;
         this.column = column;
@@ -31,17 +31,17 @@ public class DefaultLineInFileLocation extends DefaultFileLocation implements Li
     }
 
     @Override
-    public int getLine() {
+    public long getLine() {
         return line;
     }
 
     @Override
-    public int getColumn() {
+    public long getColumn() {
         return column;
     }
 
     @Override
-    public int getLength() {
+    public long getLength() {
         return length;
     }
 }
