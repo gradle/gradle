@@ -64,6 +64,7 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        stdout.toString().contains("Deprecated Gradle features were used in this build")
+        expectDeprecation("Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.")
+        assertHasConfigureSuccessfulLogging()
     }
 }
