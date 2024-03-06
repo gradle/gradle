@@ -46,7 +46,7 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
 
     @Override
     public void testClassStarted(String testClassName) {
-        currentTestClass = new DefaultTestClassDescriptor(idGenerator.generateId(), testClassName);
+        currentTestClass = new DefaultTestClassDescriptor(idGenerator.generateId(), testClassName, classDisplayName(testClassName));
         resultProcessor.started(currentTestClass, new TestStartEvent(clock.getCurrentTime()));
     }
 
@@ -97,5 +97,15 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
     @Override
     public void failure(Object testId, TestFailure result) {
         resultProcessor.failure(testId, result);
+    }
+
+    //Extract class name from the fully qualified class name
+    private static String classDisplayName(String className) {
+        int lastDot = className.lastIndexOf('.');
+        if (lastDot > 0) {
+            return className.substring(lastDot + 1);
+        } else {
+            return className;
+        }
     }
 }

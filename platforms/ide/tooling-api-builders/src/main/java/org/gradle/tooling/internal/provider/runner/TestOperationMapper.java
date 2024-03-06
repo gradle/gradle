@@ -85,37 +85,11 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
     }
 
     private DefaultTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptorInternal suite) {
-        String name = suite.getName();
-        String displayName = backwardsCompatibleDisplayNameOf(suite);
-        String testKind = InternalJvmTestDescriptor.KIND_SUITE;
-        String className = suite.getClassName();
-        String methodName = null;
-        String testTaskPath = taskTracker.getTaskPath(buildOperationId);
-        return new DefaultTestDescriptor(buildOperationId, name, displayName, testKind, suite.getName(), className, methodName, parentId, testTaskPath);
+        return new DefaultTestDescriptor(buildOperationId, suite.getName(), suite.toString(), suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), suite.getMethodName(), parentId, taskTracker.getTaskPath(buildOperationId));
     }
 
     private DefaultTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptorInternal test) {
-        String name = test.getName();
-        String displayName = backwardsCompatibleDisplayNameOf(test);
-        String testKind = InternalJvmTestDescriptor.KIND_ATOMIC;
-        String className = test.getClassName();
-        String methodName = test.getName();
-        String taskPath = taskTracker.getTaskPath(buildOperationId);
-        return new DefaultTestDescriptor(buildOperationId, name, displayName, testKind, null, className, methodName, parentId, taskPath);
-    }
-
-    /**
-     * This method returns a display name which is "compatible with" what previous
-     * Gradle versions did.
-     */
-    private static String backwardsCompatibleDisplayNameOf(TestDescriptorInternal descriptor) {
-        String className = descriptor.getClassName();
-        String methodName = descriptor.getName();
-        String displayName = descriptor.getDisplayName();
-        if (methodName != null && methodName.equals(displayName) || className != null && className.equals(displayName)) {
-            return descriptor.toString();
-        }
-        return displayName;
+        return new DefaultTestDescriptor(buildOperationId, test.getName(), test.toString(), test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId));
     }
 
     private static AbstractTestResult adapt(TestResult result) {
