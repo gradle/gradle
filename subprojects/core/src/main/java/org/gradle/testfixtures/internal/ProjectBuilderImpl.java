@@ -129,7 +129,7 @@ public class ProjectBuilderImpl {
         ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
         WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
         WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = workerLeaseService.maybeStartWorker();
-        buildServices.get(ProjectParallelExecutionController.class).startProjectExecution(false);
+        buildServices.get(ProjectParallelExecutionController.class).startProjectExecution(false, false);
 
         GradleInternal gradle = build.getMutableModel();
         gradle.setIncludedBuilds(Collections.emptyList());

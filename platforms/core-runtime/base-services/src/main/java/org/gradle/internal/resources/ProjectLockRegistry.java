@@ -20,11 +20,13 @@ import org.gradle.util.Path;
 
 public class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, ProjectLock> {
     private final boolean parallelEnabled;
+    private final boolean parallelToolingModelsEnabled;
     private final LockCache<Path, AllProjectsLock> allProjectsLocks;
 
-    public ProjectLockRegistry(ResourceLockCoordinationService coordinationService, boolean parallelEnabled) {
+    public ProjectLockRegistry(ResourceLockCoordinationService coordinationService, boolean parallelEnabled, boolean parallelToolingModelsEnabled) {
         super(coordinationService);
         this.parallelEnabled = parallelEnabled;
+        this.parallelToolingModelsEnabled = parallelToolingModelsEnabled;
         allProjectsLocks = new LockCache<Path, AllProjectsLock>(coordinationService, this);
     }
 
@@ -44,6 +46,10 @@ public class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, Proj
 
     public ProjectLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
         return doGetResourceLock(buildIdentityPath, parallelEnabled ? projectIdentityPath : buildIdentityPath);
+    }
+
+    public ProjectLock getToolingModelProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
+        return doGetResourceLock(buildIdentityPath, parallelToolingModelsEnabled ? projectIdentityPath : buildIdentityPath);
     }
 
     private ProjectLock doGetResourceLock(final Path buildIdentityPath, final Path lockPath) {

@@ -55,7 +55,7 @@ public class BuildTreeState implements Closeable {
     public <T> T run(Function<? super BuildTreeContext, T> action) {
         BuildModelParameters modelParameters = services.get(BuildModelParameters.class);
         ProjectParallelExecutionController parallelExecutionController = services.get(ProjectParallelExecutionController.class);
-        parallelExecutionController.startProjectExecution(modelParameters.isParallelProjectExecution());
+        parallelExecutionController.startProjectExecution(modelParameters.isParallelProjectExecution(), modelParameters.isParallelToolingApiActions());
         try {
             return action.apply(context);
         } finally {

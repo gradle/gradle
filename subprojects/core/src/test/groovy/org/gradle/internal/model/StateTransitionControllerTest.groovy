@@ -35,7 +35,7 @@ class StateTransitionControllerTest extends ConcurrentSpec {
     final def workerLeaseService = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, 20))
 
     def setup() {
-        workerLeaseService.startProjectExecution(true)
+        workerLeaseService.startProjectExecution(true, true)
     }
 
     StateTransitionController<TestState> controller(TestState initialState) {

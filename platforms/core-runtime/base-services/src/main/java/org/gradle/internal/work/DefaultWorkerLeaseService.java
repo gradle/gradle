@@ -71,9 +71,9 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
-    public void startProjectExecution(boolean parallel) {
+    public void startProjectExecution(boolean parallelExecution, boolean parallelModelBuilding) {
         Registries current = registries.get();
-        Registries next = current.startProjectExecution(parallel);
+        Registries next = current.startProjectExecution(parallelExecution, true);
         setProjectExecutionState(current, next);
     }
 
@@ -177,6 +177,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     @Override
     public ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
         return registries.get().getProjectLockRegistry().getProjectLock(buildIdentityPath, projectIdentityPath);
+    }
+
+    @Override
+    public ResourceLock getToolingModelProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
+        return registries.get().getProjectLockRegistry().getToolingModelProjectLock(buildIdentityPath, projectIdentityPath);
     }
 
     @Override
@@ -419,17 +424,17 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
         abstract TaskExecutionLockRegistry getTaskExecutionLockRegistry();
 
-        abstract Registries startProjectExecution(boolean parallel);
+        abstract Registries startProjectExecution(boolean parallelExecution, boolean parallelModelBuilding);
 
         abstract Registries finishProjectExecution();
     }
 
     private class NoRegistries extends Registries {
         @Override
-        public Registries startProjectExecution(boolean parallel) {
+        public Registries startProjectExecution(boolean parallelExecution, boolean parallelModelBuilding) {
             TaskExecutionLockRegistry taskLockRegistry;
             ProjectLockRegistry projectLockRegistry;
-            projectLockRegistry = new ProjectLockRegistry(coordinationService, parallel);
+            projectLockRegistry = new ProjectLockRegistry(coordinationService, parallelExecution, parallelModelBuilding);
             taskLockRegistry = new TaskExecutionLockRegistry(coordinationService, projectLockRegistry);
             return new ConfiguredRegistries(taskLockRegistry, projectLockRegistry, this);
         }
@@ -472,7 +477,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         }
 
         @Override
-        public Registries startProjectExecution(boolean parallel) {
+        public Registries startProjectExecution(boolean parallelExecution, boolean parallelModelBuilding) {
             throw new IllegalStateException("Project execution already started.");
         }
 

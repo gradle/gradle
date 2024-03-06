@@ -41,7 +41,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     def setupBuildOperationExecutor(int maxThreads) {
         def parallelismConfiguration = new DefaultParallelismConfiguration(true, maxThreads)
         workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), parallelismConfiguration)
-        workerRegistry.startProjectExecution(true)
+        workerRegistry.startProjectExecution(true, true)
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerRegistry), executorFactory, parallelismConfiguration, new DefaultBuildOperationIdFactory())

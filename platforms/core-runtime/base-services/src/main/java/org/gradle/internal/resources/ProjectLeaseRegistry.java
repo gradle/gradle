@@ -35,6 +35,8 @@ public interface ProjectLeaseRegistry {
      */
     ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath);
 
+    ResourceLock getToolingModelProjectLock(Path buildIdentityPath, Path projectIdentityPath);
+
     /**
      * Get a lock for non-isolated tasks for the specified project.
      */

@@ -451,7 +451,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         TreeServices(int workers) {
             def configuration = new DefaultParallelismConfiguration(true, workers)
             workerLeaseService = new DefaultWorkerLeaseService(coordinationService, configuration)
-            workerLeaseService.startProjectExecution(true)
+            workerLeaseService.startProjectExecution(true, true)
             execFactory = new DefaultExecutorFactory()
             planExecutor = new DefaultPlanExecutor(configuration, execFactory, workerLeaseService, cancellationToken, coordinationService, new DefaultInternalOptions([:]))
             buildTaskGraph = new DefaultIncludedBuildTaskGraph(

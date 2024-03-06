@@ -33,7 +33,7 @@ abstract class AbstractWorkerLeaseServiceTest extends ConcurrentSpec {
 
     WorkerLeaseService workerLeaseService(ParallelismConfiguration configuration) {
         def service = new DefaultWorkerLeaseService(coordinationService, configuration)
-        service.startProjectExecution(configuration.parallelProjectExecutionEnabled)
+        service.startProjectExecution(configuration.parallelProjectExecutionEnabled, configuration.parallelProjectExecutionEnabled)
         return service
     }
 

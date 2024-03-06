@@ -214,7 +214,7 @@ class MaxWorkersTest extends ConcurrentSpec {
 
     WorkerLeaseRegistry workerLeaseService(int maxWorkers) {
         def service = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, maxWorkers))
-        service.startProjectExecution(true)
+        service.startProjectExecution(true, true)
         return service
     }
 

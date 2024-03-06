@@ -41,7 +41,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     def projectFactory = Mock(IProjectFactory)
 
     def setup() {
-        workerLeaseService.startProjectExecution(true)
+        workerLeaseService.startProjectExecution(true, true)
     }
 
     def "adds projects for a build"() {

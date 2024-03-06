@@ -251,6 +251,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         private final Path identityPath;
         private final ResourceLock allProjectsLock;
         private final ResourceLock projectLock;
+        private final ResourceLock toolingModelLock;
         private final ResourceLock taskLock;
         private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
         private final ProjectLifecycleController controller;
@@ -276,6 +277,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             this.projectFactory = projectFactory;
             this.allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
             this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identityPath);
+            this.toolingModelLock = workerLeaseService.getToolingModelProjectLock(owner.getIdentityPath(), identityPath);
             this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identityPath);
             this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, buildServices);
         }
@@ -411,6 +413,15 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public <S> S fromMutableState(Function<? super ProjectInternal, ? extends S> function) {
+            return fromMutableState(projectLock, function);
+        }
+
+        @Override
+        public <S> S buildToolingModelFromMutableState(Function<? super ProjectInternal, ? extends S> function) {
+            return fromMutableState(toolingModelLock, function);
+        }
+
+        private <S> S fromMutableState(ResourceLock projectLock, Function<? super ProjectInternal, ? extends S> function) {
             Thread currentThread = Thread.currentThread();
             if (workerLeaseService.isAllowedUncontrolledAccessToAnyProject() || canDoAnythingToThisProject.contains(currentThread)) {
                 // Current thread is allowed to access anything at any time, so run the function

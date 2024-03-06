@@ -26,7 +26,7 @@ public interface ProjectParallelExecutionController {
      *
      * <p>Note: this must be called prior to any projects being created for a build tree.</p>
      */
-    void startProjectExecution(boolean parallel);
+    void startProjectExecution(boolean parallelExecution, boolean parallelModelBuilding);
 
     /**
      * Indicate that project execution is complete.

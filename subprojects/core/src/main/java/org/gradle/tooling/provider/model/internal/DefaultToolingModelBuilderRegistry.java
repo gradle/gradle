@@ -302,7 +302,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
 
         @Override
         public Object build(Object parameter) {
-            return target.fromMutableState(p -> delegate.build(parameter));
+            return target.buildToolingModelFromMutableState(p -> delegate.build(parameter));
         }
     }
 

@@ -140,4 +140,6 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      * <p>When parallel execution is not enabled, the lock is shared between projects within a build, and each build in the build tree has its own shared lock.
      */
     ResourceLock getTaskExecutionLock();
+
+    <S> S buildToolingModelFromMutableState(Function<? super ProjectInternal, ? extends S> function);
 }
