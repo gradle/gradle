@@ -22,24 +22,27 @@ import java.util.Set;
 /**
  * Provides information about types that are visited during instrumentation.
  */
-public interface InstrumentingTypeRegistry {
+public interface InstrumentationTypeRegistry {
 
-    InstrumentingTypeRegistry EMPTY = new EmptyInstrumentingTypeRegistry();
+    InstrumentationTypeRegistry EMPTY = new EmptyInstrumentationTypeRegistry();
 
     /**
-     * Returns super types for a given type.
+     * Returns instrumented Gradle super types for a given type.
      *
-     * Note: As an optimization, for core types it returns only super types that are instrumented with {@link org.gradle.internal.instrumentation.api.annotations.InterceptInherited}.
+     * Note: We currently return just types that uses {@link org.gradle.internal.instrumentation.api.annotations.InterceptInherited}
+     * and their subtypes that live in the `org.gradle.` package.
+     *
+     * TODO: Rename to getInstrumentedSuperTypes();
      */
     Set<String> getSuperTypes(String type);
 
     boolean isEmpty();
 
-    static InstrumentingTypeRegistry empty() {
+    static InstrumentationTypeRegistry empty() {
         return EMPTY;
     }
 
-    class EmptyInstrumentingTypeRegistry implements InstrumentingTypeRegistry {
+    class EmptyInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
         @Override
         public Set<String> getSuperTypes(String type) {
             return Collections.emptySet();

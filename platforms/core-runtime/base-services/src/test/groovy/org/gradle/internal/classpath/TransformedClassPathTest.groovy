@@ -16,9 +16,14 @@
 
 package org.gradle.internal.classpath
 
+
 import spock.lang.Specification
 
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_MARKER_FILE_NAME
+import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME
+import static org.gradle.internal.classpath.TransformedClassPath.LEGACY_INSTRUMENTATION_MARKER_FILE_NAME
+import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class TransformedClassPathTest extends Specification {
     def "transformed jars are returned when present"() {
@@ -176,77 +181,37 @@ class TransformedClassPathTest extends Specification {
 
     def "instrumenting artifact transform output can be converted to classpath"() {
         when:
-        TransformedClassPath cp = TransformedClassPath.fromInstrumentingArtifactTransformOutput(inputClassPath)
+        TransformedClassPath cp = TransformedClassPath.handleInstrumentingArtifactTransform(inputClassPath)
 
         then:
         cp.asFiles == outputClassPath.asFiles
         cp.findTransformedEntryFor(file(original)) == (transformed != null ? file(transformed) : null)
 
         where:
-        inputClassPath                                                                                                                                                            | outputClassPath             | original | transformed
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar")                                                                                      | classPath("1.jar")          | "1.jar"  | "instrumented/instrumented-1.jar"
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar", "2.jar")                                                                             | classPath("1.jar", "2.jar") | "1.jar"  | "instrumented/instrumented-1.jar"
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar", "2.jar")                                                                             | classPath("1.jar", "2.jar") | "2.jar"  | null
-        classPath("1.jar", INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-2.jar", "2.jar")                                                                             | classPath("1.jar", "2.jar") | "2.jar"  | "instrumented/instrumented-2.jar"
-        classPath("1.jar", INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-2.jar", "2.jar")                                                                             | classPath("1.jar", "2.jar") | "1.jar"  | null
-        classPath("1/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/instrumented-1.jar", "1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/instrumented-2.jar", "2.jar") | classPath("1.jar", "2.jar") | "1.jar"  | "instrumented/instrumented-1.jar"
-        classPath("1/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/instrumented-1.jar", "1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/instrumented-2.jar", "2.jar") | classPath("1.jar", "2.jar") | "2.jar"  | "instrumented/instrumented-2.jar"
-
-        classPath("1.jar")                                                                                                                                                        | classPath("1.jar")          | "1.jar"  | null
-        classPath("1.jar", "2.jar")                                                                                                                                               | classPath("1.jar", "2.jar") | "1.jar"  | null
-        classPath("1.jar", "2.jar")                                                                                                                                               | classPath("1.jar", "2.jar") | "2.jar"  | null
+        inputClassPath                                                                                                                                                                              | outputClassPath             | original | transformed
+        classPath(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar")                                                                                               | classPath("1.jar")          | "1.jar"  | "instrumented/instrumented-1.jar"
+        classPath(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar", ORIGINAL_FILE_DOES_NOT_EXIST_MARKER)                                                          | classPath("1.jar")          | "1.jar"  | "instrumented/instrumented-1.jar"
+        classPath("1/$LEGACY_INSTRUMENTATION_MARKER_FILE_NAME", "1.jar", "2/$LEGACY_INSTRUMENTATION_MARKER_FILE_NAME", "2.jar")                                                                     | classPath("1.jar", "2.jar") | "2.jar"  | null
+        classPath(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME, ORIGINAL_FILE_DOES_NOT_EXIST_MARKER)                                                                                                  | classPath()                 | ""       | null
+        classPath("1/$AGENT_INSTRUMENTATION_MARKER_FILE_NAME", "instrumented/instrumented-1.jar", "1.jar", "2/$AGENT_INSTRUMENTATION_MARKER_FILE_NAME", "instrumented/instrumented-2.jar", "2.jar") | classPath("1.jar", "2.jar") | "1.jar"  | "instrumented/instrumented-1.jar"
     }
 
     def "invalid instrumenting artifact transform outputs are detected"() {
         when:
-        TransformedClassPath.fromInstrumentingArtifactTransformOutput(inputClassPath)
+        TransformedClassPath.handleInstrumentingArtifactTransform(inputClassPath)
 
         then:
-        thrown IllegalArgumentException
+        def e = thrown(IllegalArgumentException)
+        normaliseFileSeparators(e.message) == normaliseFileSeparators(message)
 
         where:
-        inputClassPath                                                                                                                                | _
-        transformedClassPath("1.jar": "instrumented/instrumented-1.jar")                                                                              | _
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-1.jar")                                                                   | _
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-2.jar") | _
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "2.jar")                                                          | _
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "1.jar", "1.jar")                                                                                    | _
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "1.jar", "instrumented/instrumented-1.jar")                                                          | _
-    }
-
-    def "instrumenting artifact transform output is recognized"() {
-        when:
-        ClassPath cp = TransformedClassPath.handleInstrumentingArtifactTransform(inputClassPath)
-
-        then:
-        cp instanceof TransformedClassPath
-        cp.asFiles == outputClassPath.asFiles
-
-        where:
-        inputClassPath                                                                                                                                                       | outputClassPath
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar")                                                                                 | classPath("1.jar")
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar", "2.jar")                                                                        | classPath("1.jar", "2.jar")
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar", "2.jar")                                                                        | classPath("1.jar", "2.jar")
-        classPath("1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/instrumented-2.jar", "2.jar")                                                                   | classPath("1.jar", "2.jar")
-        classPath("1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/instrumented-2.jar", "2.jar")                                                                   | classPath("1.jar", "2.jar")
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/instrumented-2.jar", "2.jar") | classPath("1.jar", "2.jar")
-        classPath(INSTRUMENTED_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar", "2/$INSTRUMENTED_MARKER_FILE_NAME", "instrumented/instrumented-2.jar", "2.jar") | classPath("1.jar", "2.jar")
-    }
-
-    def "not instrumenting artifact transform output is recognized"() {
-        when:
-        ClassPath cp = TransformedClassPath.handleInstrumentingArtifactTransform(inputClassPath)
-
-        then:
-        !(cp instanceof TransformedClassPath)
-        cp.asFiles == outputClassPath.asFiles
-
-        where:
-        inputClassPath                                  | outputClassPath
-        classPath("1.jar")                              | classPath("1.jar")
-        classPath("1.jar", "2.jar")                     | classPath("1.jar", "2.jar")
-        classPath("1.jar", "2.jar")                     | classPath("1.jar", "2.jar")
-        ClassPath.EMPTY                                 | ClassPath.EMPTY
+        inputClassPath                                                                                                                                                  | message
+        classPath("instrumented/instrumented-1.jar", "1.jar")                                                                                                           | "Unexpected marker file: instrumented/instrumented-1.jar in instrumented buildscript classpath. Possible reason: Injecting custom artifact transform in between instrumentation stages is not supported."
+        classPath(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar")                                                                            | "Missing the instrumented or original entry for classpath [.gradle-agent-instrumented.marker, instrumented/instrumented-1.jar]"
+        classPath(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-2.jar") | "Instrumented entry ${file("instrumented/instrumented-1.jar").absolutePath} doesn't match original entry ${file("instrumented/instrumented-2.jar").absolutePath}"
+        classPath(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "2.jar")                                                                   | "Instrumented entry ${file("instrumented/instrumented-1.jar").absolutePath} doesn't match original entry ${file("2.jar").absolutePath}"
+        classPath(LEGACY_INSTRUMENTATION_MARKER_FILE_NAME, "instrumented/instrumented-1.jar", "1.jar")                                                                  | "Unexpected marker file: 1.jar in instrumented buildscript classpath. Possible reason: Injecting custom artifact transform in between instrumentation stages is not supported."
+        classPath(AGENT_INSTRUMENTATION_MARKER_FILE_NAME, "1.jar", "instrumented/instrumented-1.jar")                                                                   | "Instrumented entry ${file("1.jar").absolutePath} doesn't match original entry ${file("instrumented/instrumented-1.jar").absolutePath}"
     }
 
     def "transformed classpath is recognized"() {

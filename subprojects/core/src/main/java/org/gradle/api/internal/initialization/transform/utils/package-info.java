@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
-
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-
-import java.io.File;
-
-public interface ClasspathFileTransformer {
-    File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentationTypeRegistry typeRegistry);
-
-    ClasspathFileHasher getFileHasher();
-}
+/**
+ * A package that contains utils for transforms for build logic classpath.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.api.internal.initialization.transform.utils;
