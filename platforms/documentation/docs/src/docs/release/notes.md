@@ -113,7 +113,7 @@ The [task configuration avoidance API](userguide/task_configuration_avoidance.ht
 <a name="enhanced-filtering"></a>
 #### Lazy name-based filtering of tasks
 
-Previously, filtering tasks by name required using the `matching` method using the following pattern:
+Previously, filtering tasks by name required using the `matching` method, in a way like:
 
 ```
 tasks.matching { it.name.contains("pack") }.configureEach {
@@ -121,7 +121,7 @@ tasks.matching { it.name.contains("pack") }.configureEach {
 }
 ```
 
-The problem was that calling `matching` triggered the creation of _all_ tasks, even when the task was not part of the build execution.
+The problem with `matching` is that when the filtered task container it returns gets iterated, the iteration triggers the creation of _all_ lazy tasks from the original container, not just the ones that didn't get filtered out.
 
 Starting from this release, you can use:
 
@@ -131,7 +131,7 @@ tasks.named { it.contains("pack") }.configureEach {
 }
 ```
 
-Using `named` will not cause the registered tasks to be eagerly created.
+The `named` method doesn't suffer from the same problem. If you iterate the filtered task container, only the lazy tasks that are actually in it get created (as opposed to all lazy tasks from the origin container).
 
 This new method is available on all Gradle containers that extend [`NamedDomainObjectSet`](userguide/custom_gradle_types.html#nameddomainobjectset).
 
