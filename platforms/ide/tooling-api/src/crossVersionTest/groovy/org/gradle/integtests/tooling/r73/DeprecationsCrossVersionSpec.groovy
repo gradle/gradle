@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r73
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.util.GradleVersion
 
 class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=7.3")
@@ -64,7 +65,7 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        expectDeprecation("Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.")
+        expectDeprecation("Deprecated Gradle features were used in this build, making it incompatible with Gradle ${targetVersion.compareTo(GradleVersion.version("7.6.4")) > 0 ? "9.0" : "8.0" }.")
         assertHasConfigureSuccessfulLogging()
     }
 }
