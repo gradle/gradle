@@ -23,22 +23,22 @@ import java.io.Serializable;
 
 @NonNullApi
 public class DefaultOffsetInFileLocation extends DefaultFileLocation implements InternalOffsetInFileLocation, Serializable {
-    private final int offset;
-    private final int length;
+    private final long offset;
+    private final long length;
 
-    public DefaultOffsetInFileLocation(String path, int offset, int length) {
+    public DefaultOffsetInFileLocation(String path, long offset, long length) {
         super(path);
         this.offset = offset;
         this.length = length;
     }
 
     @Override
-    public int getOffset() {
+    public long getOffset() {
         return offset;
     }
 
     @Override
-    public int getLength() {
+    public long getLength() {
         return length;
     }
 }
