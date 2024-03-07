@@ -17,6 +17,8 @@ package org.gradle.api.tasks;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Streams;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -76,12 +78,10 @@ import java.util.stream.Stream;
  */
 public abstract class ScalaRuntime {
 
-    private final Project project;
-    private final JvmPluginServices jvmPluginServices;
+    private final ProjectInternal project;
 
     public ScalaRuntime(Project project) {
-        this.project = project;
-        this.jvmPluginServices = ((ProjectInternal) project).getServices().get(JvmPluginServices.class);
+        this.project = (ProjectInternal) project;
     }
 
     /**
@@ -113,10 +113,8 @@ public abstract class ScalaRuntime {
     @Deprecated
     @Nullable
     public File findScalaJar(Iterable<File> classpath, String appendix) {
-        return ScalaJar.inspect(classpath, module -> module.equals(appendix))
-            .map(ScalaJar::getFile)
-            .findFirst()
-            .orElse(null);
+        Iterable<ScalaJar> scalaJars = ScalaJar.inspect(classpath, module -> module.equals(appendix));
+        return FluentIterable.from(scalaJars).transform(ScalaJar::getFile).first().orNull();
     }
 
     /**
@@ -148,7 +146,8 @@ public abstract class ScalaRuntime {
      */
     private Optional<String> highestScalaLibraryVersion(Iterable<? extends File> classpath) {
         // When Scala 3 is used it appears on the classpath together with Scala 2
-        return ScalaJar.inspect(classpath, "library"::equals)
+        Iterable<ScalaJar> scalaJars = ScalaJar.inspect(classpath, "library"::equals);
+        return Streams.stream(scalaJars)
             .max(Comparator.comparing(ScalaJar::getVersionNumber))
             .map(ScalaJar::getVersion);
     }
@@ -223,7 +222,7 @@ public abstract class ScalaRuntime {
         configuration.setCanBeResolved(true);
         configuration.setCanBeConsumed(false);
         configuration.setVisible(false);
-        jvmPluginServices.configureAsRuntimeClasspath(configuration);
+        project.getServices().get(JvmPluginServices.class).configureAsRuntimeClasspath(configuration);
     }
 
     /**

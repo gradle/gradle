@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.scala;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -226,8 +227,9 @@ public abstract class ScalaDoc extends SourceTask implements ScalaTask {
             parameters.getClasspath().from(getClasspath());
             parameters.getOutputDirectory().set(getDestinationDir());
             // When Scala 3 is used it appears on the classpath together with Scala 2
-            boolean isScala3 = ScalaJar.inspect(getScalaClasspath(), "library"::equals)
-                .anyMatch(scalaJar -> scalaJar.getVersionNumber().getMajor() == 3);
+            boolean isScala3 = Iterables.any(
+                ScalaJar.inspect(getScalaClasspath(), "library"::equals),
+                scalaJar -> scalaJar.getVersionNumber().getMajor() == 3);
             parameters.getIsScala3().set(isScala3);
             if (isScala3) {
                 parameters.getSources().from(getFilteredCompilationOutputs());
