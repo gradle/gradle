@@ -18,7 +18,6 @@ package org.gradle.internal.operations;
 
 import org.gradle.api.Action;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -66,11 +65,6 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
         return runner.call(buildOperation);
-    }
-
-    @Override
-    public <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
-        runner.execute(buildOperation, worker, defaultParent);
     }
 
     @Override

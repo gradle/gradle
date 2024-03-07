@@ -65,11 +65,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     @Override
-    public <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
-        runner.execute(buildOperation, worker, defaultParent);
-    }
-
-    @Override
     public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
         return runner.start(descriptor);
     }

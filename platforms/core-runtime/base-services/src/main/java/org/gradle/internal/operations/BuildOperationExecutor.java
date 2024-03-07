@@ -60,12 +60,6 @@ public interface BuildOperationExecutor {
     <T> T call(CallableBuildOperation<T> buildOperation);
 
     /**
-     * Executes the given build operation with the given worker, returns the result.
-     */
-    // TODO Use BuildOperationRunner directly
-    <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent);
-
-    /**
      * Starts an operation that can be finished later.
      *
      * When a parent operation is finished any unfinished child operations will be failed.
