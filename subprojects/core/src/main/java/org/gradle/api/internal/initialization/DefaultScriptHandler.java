@@ -102,17 +102,25 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     public ClassPath getInstrumentedScriptClassPath() {
         if (resolvedClasspath == null) {
             if (classpathConfiguration != null) {
-                Factory<ClassPath> classPathFactory = () -> buildLogicBuilder.resolveClassPath(classpathConfiguration, dependencyHandler, configContainer);
-                if (getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
-                    resolvedClasspath = classPathFactory.create();
-                } else {
-                    resolvedClasspath = ((ResettableConfiguration) classpathConfiguration).callAndResetResolutionState(classPathFactory);
-                }
+                resolvedClasspath = resolveClasspathConfiguration();
             } else {
                 resolvedClasspath = ClassPath.EMPTY;
             }
         }
         return resolvedClasspath;
+    }
+
+    private ClassPath resolveClasspathConfiguration() {
+        if (classpathConfiguration.getIncoming().getDependencies().isEmpty()) {
+            return ClassPath.EMPTY;
+        }
+
+        Factory<ClassPath> classPathFactory = () -> buildLogicBuilder.resolveClassPath(classpathConfiguration, dependencyHandler, configContainer);
+        if (getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
+            return classPathFactory.create();
+        } else {
+            return ((ResettableConfiguration) classpathConfiguration).callAndResetResolutionState(classPathFactory);
+        }
     }
 
     @Override
