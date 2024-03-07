@@ -53,7 +53,6 @@ import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
-import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
@@ -111,9 +110,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         try {
             Map<String, Set<String>> superTypes = new TreeMap<>();
             Set<String> dependencies = new TreeSet<>();
-            if (Boolean.getBoolean(GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY) || !internalServices.get().getGradleCoreInstrumentationTypeRegistry().isEmpty()) {
-                analyzeArtifact(artifact, superTypes, dependencies);
-            }
+            analyzeArtifact(artifact, superTypes, dependencies);
             writeOutput(artifact, outputs, superTypes, dependencies);
         } catch (IOException | FileException ignored) {
             // We support badly formatted jars on the build classpath
