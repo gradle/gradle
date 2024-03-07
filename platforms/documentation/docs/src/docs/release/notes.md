@@ -113,6 +113,10 @@ Previously, the display name could be obtained only by parsing the operation dis
 Additionally, for JUnit5 and Spock, we updated the test descriptor for dynamic and parameterized tests to include information about the class name and method name containing the test.
 These enhancements enable IDEs to offer improved navigation and reporting capabilities for dynamic and parameterized tests.
 
+#### Fix IDE performance issues with large projects
+
+A performance issue in the Tooling API causing delays at the end of task execution in large projects has been identified and fixed.
+This problem occurred while transmitting task information for executed tasks to the IDE.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
