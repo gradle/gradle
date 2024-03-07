@@ -37,12 +37,9 @@ import java.util.regex.Pattern
 import java.util.stream.Collectors
 
 import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -289,12 +286,12 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         def analyzeDir = analyzeOutput("animals-1.0.jar")
         analyzeDir.exists()
-        serializer.readTypesMap(analyzeDir.file(SUPER_TYPES_FILE_NAME)) == [
+        serializer.readFullAnalysis(analyzeDir).typeHierarchy == [
             "test/gradle/test/Dog": ["test/gradle/test/Mammal"] as Set<String>,
             "test/gradle/test/GermanShepherd": ["test/gradle/test/Animal", "test/gradle/test/Dog"] as Set<String>,
             "test/gradle/test/Mammal": ["test/gradle/test/Animal"] as Set<String>
         ]
-        serializer.readTypes(analyzeDir.file(DEPENDENCIES_FILE_NAME)) == [
+        serializer.readFullAnalysis(analyzeDir).dependencies == [
             "org/gradle/api/DefaultTask",
             "org/gradle/api/GradleException",
             "org/gradle/api/Plugin",
@@ -332,11 +329,11 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         mergeOutput("impl-1.0.jar").exists()
         mergeOutput("api-1.0.jar").exists()
         def implMergeDir = mergeOutput("impl-1.0.jar")
-        serializer.readTypesMap(implMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME)) == [
+        serializer.readFullAnalysis(implMergeDir).typeHierarchy == [
             "B": ["org/gradle/D", "org/gradle/E"] as Set
         ]
         def apiMergeDir = mergeOutput("api-1.0.jar")
-        serializer.readTypesMap(apiMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME)) == [
+        serializer.readFullAnalysis(apiMergeDir).typeHierarchy == [
             "C": ["org/gradle/D", "org/gradle/E"] as Set,
             "org/gradle/D": ["org/gradle/D", "org/gradle/E"] as Set,
             "org/gradle/E": ["org/gradle/E"] as Set
@@ -572,9 +569,9 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     }
 
     Set<TestFile> analyzeOutputs(String artifactName, File cacheDir = getCacheDir()) {
-        return findOutputs("$ANALYSIS_OUTPUT_DIR/$METADATA_FILE_NAME", cacheDir).findAll {
-            serializer.readMetadata(it).artifactName == artifactName
-        }.collect { it.parentFile } as Set<TestFile>
+        return findOutputs("$ANALYSIS_OUTPUT_DIR/$ANALYSIS_FILE_NAME", cacheDir).findAll {
+            serializer.readMetadataFromAnalysis(it).artifactName == artifactName
+        }.collect { it } as Set<TestFile>
     }
 
     TestFile analyzeOutput(String artifactName, File cacheDir = getCacheDir()) {
@@ -586,9 +583,9 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     }
 
     Set<TestFile> mergeOutputs(String artifactName, File cacheDir = getCacheDir()) {
-        return findOutputs("$MERGE_OUTPUT_DIR/$METADATA_FILE_NAME", cacheDir).findAll {
-            serializer.readMetadata(it).artifactName == artifactName
-        }.collect { it.parentFile } as Set<TestFile>
+        return findOutputs("$MERGE_OUTPUT_DIR/$ANALYSIS_FILE_NAME", cacheDir).findAll {
+            serializer.readMetadataFromAnalysis(it).artifactName == artifactName
+        }.collect { it } as Set<TestFile>
     }
 
     TestFile mergeOutput(String artifactName, File cacheDir = getCacheDir()) {

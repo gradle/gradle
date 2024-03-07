@@ -18,6 +18,7 @@ package org.gradle.api.internal.initialization.transform;
 
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.InstrumentationInputType;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.PropertiesBackedInstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
@@ -25,9 +26,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.isAnalysisMetadataDir;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.getInputType;
 
 /**
  * Artifact transform that instruments external artifacts with Gradle instrumentation.
@@ -38,13 +37,24 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
     @Override
     public void transform(TransformOutputs outputs) {
         // We simulate fan-in behaviour:
-        // We expect that a transform before this one outputs two artifacts: 1. analysis metadata and 2. the original file.
+        // We expect that a transform before this one outputs three artifacts: 1. analysis metadata, 2. the original file and 3. instrumentation marker file.
         // So if the input is analysis metadata we use it and create instrumented artifact, otherwise it's original artifact and we output that.
         File input = getInput().get().getAsFile();
-        if (isAnalysisMetadataDir(input)) {
-            doOutputTransformedFile(input, outputs);
-        } else if (getParameters().getAgentSupported().get()) {
-            doOutputOriginalArtifact(input, outputs);
+        InstrumentationInputType inputType = getInputType(input);
+        switch (inputType) {
+            case ANALYSIS_DATA:
+                doOutputTransformedFile(input, outputs);
+                return;
+            case ORIGINAL_ARTIFACT:
+                if (getParameters().getAgentSupported().get()) {
+                    doOutputOriginalArtifact(input, outputs);
+                }
+                return;
+            case INSTRUMENTATION_MARKER:
+                // We don't need to do anything with the marker file
+                return;
+            default:
+                throw new IllegalStateException("Unexpected input type: " + inputType);
         }
     }
 
@@ -55,10 +65,9 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
         doTransform(originalArtifact, outputs);
     }
 
-    private InstrumentationArtifactMetadata readArtifactMetadata(File inputDir) {
-        File metadata = new File(inputDir, METADATA_FILE_NAME);
+    private InstrumentationArtifactMetadata readArtifactMetadata(File input) {
         InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.get().getStringInterner());
-        return serializer.readMetadata(metadata);
+        return serializer.readMetadataFromAnalysis(input);
     }
 
     @Override
@@ -67,9 +76,9 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
             @Override
             public InstrumentationTypeRegistry getRegistry() {
                 return PropertiesBackedInstrumentationTypeRegistry.of(() -> {
-                    File dependenciesSuperTypes = new File(getInput().get().getAsFile(), DEPENDENCIES_SUPER_TYPES_FILE_NAME);
+                    File analysisFile = getInput().get().getAsFile();
                     InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.get().getStringInterner());
-                    return serializer.readTypesMap(dependenciesSuperTypes);
+                    return serializer.readTypeHierarchyFromAnalysis(analysisFile);
                 });
             }
 

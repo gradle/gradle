@@ -25,23 +25,32 @@ import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION
 
 public class InstrumentationTransformUtils {
 
+    public enum InstrumentationInputType {
+        ANALYSIS_DATA,
+        INSTRUMENTATION_MARKER,
+        ORIGINAL_ARTIFACT
+    }
+
     public static final String ANALYSIS_OUTPUT_DIR = "analysis";
     public static final String MERGE_OUTPUT_DIR = "merge";
-    public static final String METADATA_FILE_NAME = "metadata.bin";
-    public static final String DEPENDENCIES_FILE_NAME = "dependencies.bin";
-    public static final String SUPER_TYPES_FILE_NAME = "super-types.bin";
-    public static final String DEPENDENCIES_SUPER_TYPES_FILE_NAME = "dependencies-super-types.bin";
+    public static final String ANALYSIS_FILE_NAME = "instrumentation-analysis.bin";
 
-    public static void createInstrumentationClasspathMarker(File outputDir) {
-        GFileUtils.touch(new File(outputDir, INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME));
+    public static InstrumentationInputType getInputType(File input) {
+        if (isAnalysisFile(input)) {
+            return InstrumentationInputType.ANALYSIS_DATA;
+        } else if (isInstrumentationMarkerFile(input)) {
+            return InstrumentationInputType.INSTRUMENTATION_MARKER;
+        } else {
+            return InstrumentationInputType.ORIGINAL_ARTIFACT;
+        }
     }
 
-    public static void createInstrumentationClasspathMarker(TransformOutputs outputs) {
-        GFileUtils.touch(outputs.file(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME));
+    public static boolean isAnalysisFile(File input) {
+        return input.getName().equals(ANALYSIS_FILE_NAME);
     }
 
-    public static boolean isAnalysisMetadataDir(File input) {
-        return input.isDirectory() && new File(input, INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME).exists();
+    public static boolean isInstrumentationMarkerFile(File input) {
+        return input.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME);
     }
 
     public static void outputOriginalArtifact(TransformOutputs outputs, File originalArtifact) {
@@ -50,5 +59,9 @@ public class InstrumentationTransformUtils {
         } else {
             outputs.file(originalArtifact);
         }
+    }
+
+    public static void createInstrumentationClasspathMarker(TransformOutputs outputs) {
+        GFileUtils.touch(outputs.file(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME));
     }
 }

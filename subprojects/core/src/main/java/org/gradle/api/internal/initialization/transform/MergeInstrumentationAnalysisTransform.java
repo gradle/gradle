@@ -25,6 +25,7 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.InjectedInstrumentationServices;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.InstrumentationInputType;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -33,22 +34,20 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
-import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.isAnalysisMetadataDir;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.getInputType;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.outputOriginalArtifact;
 
 /**
@@ -93,13 +92,22 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
     @Override
     public void transform(TransformOutputs outputs) {
         // We simulate fan-in behaviour:
-        // We expect that a transform before this one outputs two artifacts: 1. analysis metadata and 2. the original file.
+        // We expect that a transform before this one outputs three artifacts: 1. analysis metadata, 2. the original file and 3. instrumentation marker file.
         // So if the input is analysis metadata we merge it and output it, otherwise it's original artifact, and we output that.
         File input = getInput().get().getAsFile();
-        if (isAnalysisMetadataDir(input)) {
-            doMergeAndOutputAnalysis(input, outputs);
-        } else {
-            outputOriginalArtifact(outputs, input);
+        InstrumentationInputType inputType = getInputType(input);
+        switch (inputType) {
+            case ANALYSIS_DATA:
+                doMergeAndOutputAnalysis(input, outputs);
+                return;
+            case ORIGINAL_ARTIFACT:
+                outputOriginalArtifact(outputs, input);
+                return;
+            case INSTRUMENTATION_MARKER:
+                // We don't need to do anything with the marker file
+                return;
+            default:
+                throw new IllegalStateException("Unexpected input type: " + inputType);
         }
     }
 
@@ -108,20 +116,18 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(services.getStringInterner());
         InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry();
 
+        InstrumentationArtifactAnalysis analysisData = serializer.readFullAnalysis(input);
         Map<String, Set<String>> dependenciesSuperTypes = new TreeMap<>();
-        File dependenciesFile = new File(input, DEPENDENCIES_FILE_NAME);
-        for (String className : serializer.readTypes(dependenciesFile)) {
+        for (String className : analysisData.getDependencies()) {
             Set<String> superTypes = registry.getSuperTypes(className);
             if (!superTypes.isEmpty()) {
                 dependenciesSuperTypes.put(className, new TreeSet<>(superTypes));
             }
         }
 
-        File outputDir = outputs.dir(MERGE_OUTPUT_DIR);
-        createInstrumentationClasspathMarker(outputDir);
-        File output = new File(outputDir, DEPENDENCIES_SUPER_TYPES_FILE_NAME);
-        serializer.writeTypesMap(output, dependenciesSuperTypes);
-        GFileUtils.copyFile(new File(input, METADATA_FILE_NAME), new File(outputDir, METADATA_FILE_NAME));
+        createInstrumentationClasspathMarker(outputs);
+        File output = outputs.file(MERGE_OUTPUT_DIR + "/" + ANALYSIS_FILE_NAME);
+        serializer.writeAnalysis(output, analysisData.getMetadata(), dependenciesSuperTypes, Collections.emptySet());
     }
 
     private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {

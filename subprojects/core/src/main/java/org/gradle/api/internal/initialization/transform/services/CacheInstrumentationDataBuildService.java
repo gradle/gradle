@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 
 public abstract class CacheInstrumentationDataBuildService implements BuildService<BuildServiceParameters.None> {
 
@@ -160,9 +159,8 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         private Map<String, Set<String>> readDirectSuperTypes() {
             InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
             return getAnalysisResult().getFiles().stream()
-                .filter(InstrumentationTransformUtils::isAnalysisMetadataDir)
-                .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))
-                .flatMap(file -> serializer.readTypesMap(file).entrySet().stream())
+                .filter(InstrumentationTransformUtils::isAnalysisFile)
+                .flatMap(file -> serializer.readTypeHierarchyFromAnalysis(file).entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));
         }
 

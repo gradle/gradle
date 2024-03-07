@@ -52,10 +52,8 @@ import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.outputOriginalArtifact;
 import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
@@ -151,18 +149,10 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     private void writeOutput(File artifact, TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
         StringInterner stringInterner = internalServices.get().getStringInterner();
         InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(stringInterner);
-        File outputDir = outputs.dir(ANALYSIS_OUTPUT_DIR);
-        createInstrumentationClasspathMarker(outputDir);
-
-        File metadataFile = new File(outputDir, METADATA_FILE_NAME);
-        serializer.writeMetadata(metadataFile, getArtifactMetadata(artifact));
-
-        File superTypesFile = new File(outputDir, SUPER_TYPES_FILE_NAME);
-        serializer.writeTypesMap(superTypesFile, superTypes);
-
-        File dependenciesFile = new File(outputDir, DEPENDENCIES_FILE_NAME);
-        serializer.writeTypes(dependenciesFile, dependencies);
-
+        createInstrumentationClasspathMarker(outputs);
+        File analysisFile = outputs.file(ANALYSIS_OUTPUT_DIR + "/" + ANALYSIS_FILE_NAME);
+        InstrumentationArtifactMetadata metadata = getArtifactMetadata(artifact);
+        serializer.writeAnalysis(analysisFile, metadata, superTypes, dependencies);
         outputOriginalArtifact(outputs, artifact);
     }
 
