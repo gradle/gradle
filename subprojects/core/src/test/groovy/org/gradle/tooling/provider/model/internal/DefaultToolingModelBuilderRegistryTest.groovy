@@ -101,7 +101,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         and:
         1 * buildOperationExecutor.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
-        1 * projectState.fromMutableState(_) >> { Function f -> f.apply(project) }
+        1 * projectState.buildToolingModelFromMutableState(_) >> { Function f -> f.apply(project) }
         1 * application.reapply(_) >> { Supplier supplier -> supplier.get() }
         1 * builder2.buildAll("model", project) >> "result"
         0 * _
@@ -173,7 +173,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         e.message == "No parameterized builders are available to build a model of type 'model'."
     }
 
-    def "wraps parameterized model builder in build operation and all project lock"() {
+    def "wraps parameterized model builder in build operation and project lock"() {
         def builder = Mock(ParameterizedToolingModelBuilder)
         def project = Stub(ProjectInternal)
         def projectState = Mock(ProjectState)
@@ -197,7 +197,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         and:
         1 * buildOperationExecutor.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
-        1 * projectState.fromMutableState(_) >> { Function factory -> factory.apply(project) }
+        1 * projectState.buildToolingModelFromMutableState(_) >> { Function factory -> factory.apply(project) }
         1 * builder.buildAll("model", "param", project) >> "result"
         0 * _
     }
