@@ -19,7 +19,6 @@ package org.gradle.api.tasks;
 import com.google.common.collect.FluentIterable;
 import org.gradle.api.Incubating;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -114,13 +113,11 @@ public class ScalaJar {
     private final File file;
     private final String module;
     private final String version;
-    private final VersionNumber versionNumber;
 
     private ScalaJar(File file, String module, String version) {
         this.file = file;
         this.module = module;
         this.version = version;
-        this.versionNumber = VersionNumber.parse(version);
     }
 
     /**
@@ -151,16 +148,6 @@ public class ScalaJar {
      */
     public String getVersion() {
         return version;
-    }
-
-    /**
-     * Returns the Scala JAR version number.
-     *
-     * @return The Scala JAR version number.
-     * @since 8.8
-     */
-    public VersionNumber getVersionNumber() {
-        return versionNumber;
     }
 
     @Override

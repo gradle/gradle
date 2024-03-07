@@ -35,6 +35,7 @@ import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.scala.ScalaTask;
+import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -148,8 +149,8 @@ public abstract class ScalaRuntime {
         // When Scala 3 is used it appears on the classpath together with Scala 2
         Iterable<ScalaJar> scalaJars = ScalaJar.inspect(classpath, "library"::equals);
         return Streams.stream(scalaJars)
-            .max(Comparator.comparing(ScalaJar::getVersionNumber))
-            .map(ScalaJar::getVersion);
+            .map(ScalaJar::getVersion)
+            .max(Comparator.comparing(VersionNumber::parse));
     }
 
     /**
