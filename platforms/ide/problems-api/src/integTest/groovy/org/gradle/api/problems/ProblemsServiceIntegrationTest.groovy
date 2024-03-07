@@ -47,7 +47,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         problem['definition']['id'] == [
             name: 'missing-id',
             displayName: 'Problem id must be specified',
-            parent: [
+            group: [
                 'name': 'problems-api',
                 'displayName': 'Problems API',
                 'parent': null
@@ -73,7 +73,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         problem['definition']['id'] == [
             name: 'type',
             displayName: 'label',
-            parent: [
+            group: [
                 name: 'generic',
                 displayName: 'Generic',
                 parent: null
@@ -101,7 +101,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         problem['definition']['id'] == [
             name: 'type',
             displayName: 'label',
-            parent: [
+            group: [
                 name: 'generic',
                 displayName: 'Generic',
                 parent: null
@@ -265,7 +265,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         problem['definition']['id'] == [
             name: 'invalid-additional-data',
             displayName: 'ProblemBuilder.additionalData() only supports values of type String',
-            parent: [
+            group: [
                 name: 'problems-api',
                 displayName: 'Problems API',
                 parent: null

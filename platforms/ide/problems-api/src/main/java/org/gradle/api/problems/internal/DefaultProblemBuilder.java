@@ -64,7 +64,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         // Label is mandatory
         if (id == null) {
             return invalidProblem("missing-id", "Problem id must be specified");
-        } else if (id.getParent() == null) {
+        } else if (id.getGroup() == null) {
             return invalidProblem("missing-parent", "Problem id must have a parent");
         }
 

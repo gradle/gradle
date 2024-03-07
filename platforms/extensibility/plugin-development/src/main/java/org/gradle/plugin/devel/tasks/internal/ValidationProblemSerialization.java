@@ -549,20 +549,19 @@ public class ValidationProblemSerialization {
             JsonObject problemObject = jsonElement.getAsJsonObject();
             String name = problemObject.get("name").getAsString();
             String displayName = problemObject.get("displayName").getAsString();
-            ProblemGroup group = deserializeGroup(problemObject.get("parent"));
-            assert group != null; // ID must have a parent group, but group parents can be null
+            ProblemGroup group = deserializeGroup(problemObject.get("group"));
             return new DefaultProblemId(name, displayName, group);
         }
 
-        private static @Nullable ProblemGroup deserializeGroup(@Nullable JsonElement groupObject) {
-            if (groupObject == null) {
-                return null;
-            }
+        private static ProblemGroup deserializeGroup(JsonElement groupObject) {
             JsonObject group = groupObject.getAsJsonObject();
             String name = group.get("name").getAsString();
             String displayName = group.get("displayName").getAsString();
-            ProblemGroup parent = deserializeGroup(group.get("parent"));
-            return new DefaultProblemGroup(name, displayName, parent);
+            JsonElement parent = group.get("parent");
+            if (parent == null) {
+                return new DefaultProblemGroup(name, displayName);
+            }
+            return new DefaultProblemGroup(name, displayName, deserializeGroup(parent));
         }
 
         @Override
@@ -570,18 +569,20 @@ public class ValidationProblemSerialization {
             JsonObject result = new JsonObject();
             result.addProperty("name", problemId.getName());
             result.addProperty("displayName", problemId.getDisplayName());
-            serializeGroup(result, problemId.getParent());
+            result.add("group", serializeGroup(problemId.getGroup()));
             return result;
         }
 
-        private static void serializeGroup(JsonObject result, @Nullable ProblemGroup group) {
-            if (group != null) {
-                JsonObject groupObject = new JsonObject();
-                groupObject.addProperty("name", group.getName());
-                groupObject.addProperty("displayName", group.getDisplayName());
-                serializeGroup(groupObject, group.getParent());
-                result.add("parent", groupObject);
+
+        private static JsonObject serializeGroup(ProblemGroup group) {
+            JsonObject groupObject = new JsonObject();
+            groupObject.addProperty("name", group.getName());
+            groupObject.addProperty("displayName", group.getDisplayName());
+            ProblemGroup parent = group.getParent();
+            if (parent != null) {
+                groupObject.add("parent", serializeGroup(parent));
             }
+            return groupObject;
         }
     }
 }

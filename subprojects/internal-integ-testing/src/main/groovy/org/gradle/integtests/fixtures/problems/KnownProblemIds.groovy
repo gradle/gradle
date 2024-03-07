@@ -29,7 +29,11 @@ class KnownProblemIds {
     }
 
     private static String toFullyQualifiedId(problem) {
-         return "${problem['parent'] ? toFullyQualifiedId(problem['parent']) + ":" :  ""}" + problem['name']
+        "${toFullyQualifiedGroup(problem['group'])}:${problem['name']}"
+    }
+
+    private static String toFullyQualifiedGroup(group) {
+        return "${group['parent'] ? toFullyQualifiedGroup(group['parent']) + ":" :  ""}" + group['name']
     }
 
     private static final def KNOWN_IDS = [

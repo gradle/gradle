@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Represents an identifier for a problem definition.
  * <p>
- * Two problem IDs are considered equal if their {@link #getName()} and their parents' are equal.
+ * Two problem IDs are considered equal if their {@link #getName()} and their groups are equal.
  *
  * @since 8.8
  */
@@ -47,5 +47,5 @@ public interface ProblemId {
      *
      * @since 8.8
      */
-    ProblemGroup getParent();
+    ProblemGroup getGroup();
 }
