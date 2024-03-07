@@ -157,7 +157,7 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
             // is implementation specific: it can also happen that the target file gets overwritten, as if
             // `REPLACE_EXISTING` was specified. This seems to match the behavior exhibited by `File.renameTo()`.
         } catch (IOException e) {
-            throw new UncheckedIOException("Couldn't move cache entry into local cache: " + key, e);
+            throw new UncheckedIOException(String.format("Couldn't move cache entry '%s' into local cache: %s", key, e), e);
         }
         fileAccessTracker.markAccessed(targetFile);
     }
