@@ -14,7 +14,6 @@ dependencies {
     api(project(":build-cache-spi"))
     api(project(":core-api"))
     api(project(":files"))
-    api(project(":file-temp"))
     api(project(":functional"))
     api(project(":hashing"))
     api(project(":persistent-cache"))
