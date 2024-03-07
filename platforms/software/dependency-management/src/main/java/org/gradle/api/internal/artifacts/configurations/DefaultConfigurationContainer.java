@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -69,7 +70,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         DefaultConfigurationFactory defaultConfigurationFactory,
         ResolutionStrategyFactory resolutionStrategyFactory
     ) {
-        super(Configuration.class, instantiator, new Configuration.Namer(), callbackDecorator);
+        super(Configuration.class, instantiator, Named.Namer.INSTANCE, callbackDecorator);
 
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this);
         this.defaultConfigurationFactory = defaultConfigurationFactory;

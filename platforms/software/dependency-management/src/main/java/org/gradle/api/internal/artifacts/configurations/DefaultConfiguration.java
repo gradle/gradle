@@ -1278,12 +1278,17 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return syntheticDependencies.get();
     }
 
+    @Override
+    public String getDependencyLockingId() {
+        return name;
+    }
+
     private List<? extends DependencyMetadata> generateSyntheticDependencies() {
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(getModule());
 
         Stream<LocalComponentDependencyMetadata> dependencyLockingConstraintMetadata = Stream.empty();
         if (getResolutionStrategy().isDependencyLockingEnabled()) {
-            DependencyLockingState dependencyLockingState = dependencyLockingProvider.loadLockState(name);
+            DependencyLockingState dependencyLockingState = dependencyLockingProvider.loadLockState(getDependencyLockingId(), displayName);
             boolean strict = dependencyLockingState.mustValidateLockState();
             dependencyLockingConstraintMetadata = dependencyLockingState.getLockedDependencies().stream().map(lockedDependency -> {
                 String lockedVersion = lockedDependency.getVersion();
@@ -2065,13 +2070,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private class DefaultResolutionHost implements ResolutionHost {
         @Override
-        public String getDisplayName() {
-            return DefaultConfiguration.this.getDisplayName();
-        }
-
-        @Override
-        public DisplayName displayName(String type) {
-            return Describables.of(DefaultConfiguration.this, type);
+        public DisplayName displayName() {
+            return DefaultConfiguration.this.displayName;
         }
 
         @Override

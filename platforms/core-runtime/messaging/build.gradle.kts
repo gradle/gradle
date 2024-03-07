@@ -29,10 +29,10 @@ dependencies {
     api(libs.fastutil)
     api(libs.jsr305)
     api(libs.slf4jApi)
-    api(libs.guava)
 
     implementation(project(":build-operations"))
 
+    implementation(libs.guava)
     implementation(libs.kryo)
 
     testImplementation(testFixtures(project(":core")))

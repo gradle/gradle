@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -30,7 +31,6 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -174,7 +174,7 @@ public class ArtifactSetToFileCollectionFactory {
         return collectingVisitor.getArtifacts();
     }
 
-    private static class NameBackedResolutionHost implements ResolutionHost {
+    private static class NameBackedResolutionHost implements ResolutionHost, DisplayName {
         private final String displayName;
 
         public NameBackedResolutionHost(String displayName) {
@@ -187,8 +187,13 @@ public class ArtifactSetToFileCollectionFactory {
         }
 
         @Override
-        public DisplayName displayName(String type) {
-            return Describables.of(getDisplayName(), type);
+        public String getCapitalizedDisplayName() {
+            return StringUtils.capitalize(displayName);
+        }
+
+        @Override
+        public DisplayName displayName() {
+            return this;
         }
 
         @Override

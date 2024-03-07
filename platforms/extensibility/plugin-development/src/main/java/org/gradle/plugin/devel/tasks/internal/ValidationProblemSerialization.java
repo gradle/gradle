@@ -18,27 +18,37 @@ package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.gradle.api.problems.internal.DefaultProblemGroup;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.DefaultFileLocation;
 import org.gradle.api.problems.internal.DefaultLineInFileLocation;
 import org.gradle.api.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.api.problems.internal.DefaultPluginIdLocation;
+import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
-import org.gradle.api.problems.internal.DefaultProblemReport;
+import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.DefaultTaskPathLocation;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.FileLocation;
 import org.gradle.api.problems.internal.LineInFileLocation;
 import org.gradle.api.problems.internal.OffsetInFileLocation;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.ProblemLocation;
-import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nonnull;
@@ -55,15 +65,16 @@ import java.util.stream.Stream;
 public class ValidationProblemSerialization {
     private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
-    public static List<? extends ProblemReport> parseMessageList(String lines) {
+    public static List<? extends Problem> parseMessageList(String lines) {
         Gson gson = GSON_BUILDER.create();
-        Type type = new TypeToken<List<DefaultProblemReport>>() {}.getType();
-        return gson.<List<DefaultProblemReport>>fromJson(lines, type);
+        Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
+        return gson.<List<DefaultProblem>>fromJson(lines, type);
     }
 
     public static GsonBuilder createGsonBuilder() {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapterFactory(new ProblemReportAdapterFactory());
+        gsonBuilder.registerTypeAdapter(ProblemId.class, new ProblemIdInstanceCreator());
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new LocationAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(ProblemCategory.class, new ProblemCategoryAdapter());
@@ -72,7 +83,9 @@ public class ValidationProblemSerialization {
         return gsonBuilder;
     }
 
-    public static Stream<String> toPlainMessage(List<? extends ProblemReport> problems) {
+
+
+    public static Stream<String> toPlainMessage(List<? extends Problem> problems) {
         return problems.stream()
             .map(problem -> problem.getDefinition().getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
@@ -526,6 +539,49 @@ public class ValidationProblemSerialization {
                 }
             }
             return null;
+        }
+    }
+
+    private static class ProblemIdInstanceCreator implements JsonDeserializer<ProblemId>, JsonSerializer<ProblemId> {
+
+        @Override
+        public ProblemId deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+            JsonObject problemObject = jsonElement.getAsJsonObject();
+            String name = problemObject.get("name").getAsString();
+            String displayName = problemObject.get("displayName").getAsString();
+            ProblemGroup group = deserializeGroup(problemObject.get("parent"));
+            assert group != null; // ID must have a parent group, but group parents can be null
+            return new DefaultProblemId(name, displayName, group);
+        }
+
+        private static @Nullable ProblemGroup deserializeGroup(@Nullable JsonElement groupObject) {
+            if (groupObject == null) {
+                return null;
+            }
+            JsonObject group = groupObject.getAsJsonObject();
+            String name = group.get("name").getAsString();
+            String displayName = group.get("displayName").getAsString();
+            ProblemGroup parent = deserializeGroup(group.get("parent"));
+            return new DefaultProblemGroup(name, displayName, parent);
+        }
+
+        @Override
+        public JsonElement serialize(ProblemId problemId, Type type, JsonSerializationContext jsonSerializationContext) {
+            JsonObject result = new JsonObject();
+            result.addProperty("name", problemId.getName());
+            result.addProperty("displayName", problemId.getDisplayName());
+            serializeGroup(result, problemId.getParent());
+            return result;
+        }
+
+        private static void serializeGroup(JsonObject result, @Nullable ProblemGroup group) {
+            if (group != null) {
+                JsonObject groupObject = new JsonObject();
+                groupObject.addProperty("name", group.getName());
+                groupObject.addProperty("displayName", group.getDisplayName());
+                serializeGroup(groupObject, group.getParent());
+                result.add("parent", groupObject);
+            }
         }
     }
 }

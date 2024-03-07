@@ -44,7 +44,7 @@ import org.gradle.test.fixtures.file.TestFile
 import java.util.function.Predicate
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.NOT_INSTRUMENTED_ATTRIBUTE_VALUE
 
 class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
 
@@ -1488,13 +1488,13 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                     classpath("test:test:1.0")
 
                     registerTransform(MakeColor) {
-                        from.attribute(artifactType, 'jar').attribute(instrumented, '${NOT_INSTRUMENTED.value}')
-                        to.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED.value}')
+                        from.attribute(artifactType, 'jar').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        to.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
                         parameters.targetColor.set('red')
                     }
                     registerTransform(MakeColor) {
-                        from.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED.value}')
-                        to.attribute(artifactType, 'green').attribute(instrumented, '${NOT_INSTRUMENTED.value}')
+                        from.attribute(artifactType, 'red').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        to.attribute(artifactType, 'green').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
                         parameters.targetColor.set('green')
                     }
                 }

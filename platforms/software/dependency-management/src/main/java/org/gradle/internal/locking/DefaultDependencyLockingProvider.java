@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
 import org.gradle.api.artifacts.DependencyArtifactSelector;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -46,6 +47,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.resource.local.FileResourceListener;
 
@@ -100,26 +102,26 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Override
-    public DependencyLockingState loadLockState(String configurationName) {
+    public DependencyLockingState loadLockState(String lockId, DisplayName lockOwner) {
         recordUsage();
         loadLockState();
         if (!writeLocks || partialUpdate) {
-            List<String> lockedModules = findLockedModules(configurationName);
+            List<String> lockedModules = findLockedModules(lockId);
             if (lockedModules == null && lockMode.get() == LockMode.STRICT) {
-                throw new MissingLockStateException(context.identityPath(configurationName).toString());
+                throw new MissingLockStateException(lockOwner);
             }
             if (lockedModules != null) {
                 Set<ModuleComponentIdentifier> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
-                    ModuleComponentIdentifier lockedIdentifier = parseLockNotation(configurationName, module);
+                    ModuleComponentIdentifier lockedIdentifier = parseLockNotation(lockOwner, module);
                     if (!getCompoundLockEntryFilter().isSatisfiedBy(lockedIdentifier) && !isSubstitutedInComposite(lockedIdentifier)) {
                         results.add(lockedIdentifier);
                     }
                 }
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Loaded lock state for configuration '{}', state is: {}", context.identityPath(configurationName), lockedModules);
+                    LOGGER.debug("Loaded state for lock with ID '{}', state is: {}", lockId, lockedModules);
                 } else {
-                    LOGGER.info("Loaded lock state for configuration '{}'", context.identityPath(configurationName));
+                    LOGGER.info("Loaded state for lock with ID '{}'", lockId);
                 }
                 boolean strictlyValidate = !partialUpdate && lockMode.get() != LockMode.LENIENT;
                 return new DefaultDependencyLockingState(strictlyValidate, results, getIgnoredEntryFilter());
@@ -143,10 +145,10 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Nullable
-    private List<String> findLockedModules(String configurationName) {
-        List<String> result = allLockState.get(configurationName);
+    private List<String> findLockedModules(String lockId) {
+        List<String> result = allLockState.get(lockId);
         if (result == null) {
-            result = lockFileReaderWriter.readLockFile(configurationName);
+            result = lockFileReaderWriter.readLockFile(lockId);
         }
         return result;
     }
@@ -177,25 +179,30 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         return false;
     }
 
-    private ModuleComponentIdentifier parseLockNotation(String configurationName, String module) {
+    private ModuleComponentIdentifier parseLockNotation(Describable lockOwner, String module) {
         ModuleComponentIdentifier lockedIdentifier;
         try {
             lockedIdentifier = converter.convertFromLockNotation(module);
         } catch (IllegalArgumentException e) {
-            throw new InvalidLockFileException("configuration '" + context.identityPath(configurationName).getPath() + "'", e, LockFileReaderWriter.FORMATTING_DOC_LINK);
+            throw new InvalidLockFileException(lockOwner.getDisplayName(), e, LockFileReaderWriter.FORMATTING_DOC_LINK);
         }
         return lockedIdentifier;
     }
 
     @Override
-    public void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolvedModules, Set<ModuleComponentIdentifier> changingResolvedModules) {
+    public void persistResolvedDependencies(
+        String lockId,
+        DisplayName lockOwner,
+        Set<ModuleComponentIdentifier> resolvedModules,
+        Set<ModuleComponentIdentifier> changingResolvedModules
+    ) {
         if (writeLocks) {
             List<String> modulesOrdered = getModulesOrdered(resolvedModules);
             if (!changingResolvedModules.isEmpty()) {
-                LOGGER.warn("Dependency lock state for configuration '{}' contains changing modules: {}. This means that dependencies content may still change over time. {}",
-                    context.identityPath(configurationName), getModulesOrdered(changingResolvedModules), DOC_REG.getDocumentationRecommendationFor("details", "dependency_locking"));
+                LOGGER.warn("Dependency lock state for {} contains changing modules: {}. This means that dependencies content may still change over time. {}",
+                    lockOwner, getModulesOrdered(changingResolvedModules), DOC_REG.getDocumentationRecommendationFor("details", "dependency_locking"));
             }
-            allLockState.put(configurationName, modulesOrdered);
+            allLockState.put(lockId, modulesOrdered);
         }
     }
 
@@ -238,10 +245,10 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Override
-    public void confirmConfigurationNotLocked(String configurationName) {
+    public void confirmNotLocked(String lockId) {
         if (writeLocks) {
             loadLockState();
-            allLockState.remove(configurationName);
+            allLockState.remove(lockId);
         }
     }
 

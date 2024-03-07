@@ -31,7 +31,6 @@ import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.provider.SetupLoggingActionExecuter
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -151,7 +150,7 @@ class BuildActionsFactoryTest extends Specification {
     void isInProcess(def action) {
         def runnable = unwrapAction(action)
         def executor = unwrapExecutor(runnable)
-        assert executor instanceof SetupLoggingActionExecuter
+        assert executor instanceof InProcessUserInputHandlingExecutor
     }
 
     void isSingleUseDaemon(def action) {

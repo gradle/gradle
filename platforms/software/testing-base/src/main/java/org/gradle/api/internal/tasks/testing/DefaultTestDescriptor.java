@@ -55,6 +55,11 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
     }
 
     @Override
+    public String getMethodName() {
+        return getName();
+    }
+
+    @Override
     public String getDisplayName() {
         return displayName;
     }

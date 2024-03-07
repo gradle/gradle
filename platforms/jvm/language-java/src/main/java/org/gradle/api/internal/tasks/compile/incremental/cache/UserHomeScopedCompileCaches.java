@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.cache;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.internal.serialize.HierarchicalNameSerializer;
+import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer;
 import org.gradle.cache.Cache;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCacheParameters;
