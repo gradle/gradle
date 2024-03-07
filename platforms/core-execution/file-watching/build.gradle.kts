@@ -23,6 +23,7 @@ dependencies {
     testImplementation(project(":persistent-cache"))
     testImplementation(project(":build-option"))
     testImplementation(project(":enterprise-operations"))
+    testImplementation(testFixtures(project(":build-operations")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":file-collections")))
     testImplementation(testFixtures(project(":tooling-api")))

@@ -16,14 +16,14 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.provider.Property
 import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.initialization.GradleUserHomeDirProvider
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -54,7 +54,6 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
     def usedGradleVersions = Stub(UsedGradleVersions) {
         getUsedGradleVersions() >> ([] as SortedSet)
     }
-    def progressLoggerFactory = Stub(ProgressLoggerFactory)
 
     def releasedWrappers = Stub(CacheResourceConfigurationInternal) {
         getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS)
@@ -79,7 +78,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
             userHomeDirProvider,
             cacheBuilderFactory,
             usedGradleVersions,
-            progressLoggerFactory,
+            new TestBuildOperationRunner(),
             cacheConfigurations
     )
 

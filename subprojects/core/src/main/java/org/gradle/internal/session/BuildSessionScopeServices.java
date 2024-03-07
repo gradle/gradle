@@ -59,11 +59,11 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
@@ -150,11 +150,11 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         GradleUserHomeDirProvider userHomeDirProvider,
         BuildLayout buildLayout,
         Deleter deleter,
-        ProgressLoggerFactory progressLoggerFactory,
+        BuildOperationRunner buildOperationRunner,
         StartParameter startParameter
     ) {
         BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
-        return new ProjectCacheDir(cacheDir.getDir(), progressLoggerFactory, deleter);
+        return new ProjectCacheDir(cacheDir.getDir(), buildOperationRunner, deleter);
     }
 
     BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {

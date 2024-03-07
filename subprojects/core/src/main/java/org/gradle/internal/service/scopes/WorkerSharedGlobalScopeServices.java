@@ -52,7 +52,14 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.services.ProgressLoggingBridge;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationIdFactory;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.operations.BuildOperationProgressEventListenerAdapter;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
+import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
+import org.gradle.internal.operations.DefaultBuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
@@ -78,8 +85,8 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         this.additionalModuleClassPath = additionalModuleClassPath;
     }
 
-    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
-        return new DefaultCacheFactory(fileLockManager, executorFactory, progressLoggerFactory);
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
+        return new DefaultCacheFactory(fileLockManager, executorFactory, buildOperationRunner);
     }
 
     LegacyTypesSupport createLegacyTypesSupport() {
@@ -153,5 +160,29 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     ClassLoaderFactory createClassLoaderFactory() {
         return new DefaultClassLoaderFactory();
+    }
+
+    BuildOperationListenerManager createBuildOperationListenerManager() {
+        return new DefaultBuildOperationListenerManager();
+    }
+
+    CurrentBuildOperationRef createCurrentBuildOperationRef() {
+        return CurrentBuildOperationRef.instance();
+    }
+
+    BuildOperationRunner createBuildOperationRunner(
+        Clock clock,
+        CurrentBuildOperationRef currentBuildOperationRef,
+        ProgressLoggerFactory progressLoggerFactory,
+        BuildOperationIdFactory buildOperationIdFactory,
+        BuildOperationListenerManager buildOperationListenerManager
+    ) {
+        BuildOperationListener listener = buildOperationListenerManager.getBroadcaster();
+        return new DefaultBuildOperationRunner(
+            currentBuildOperationRef,
+            clock::getCurrentTime,
+            buildOperationIdFactory,
+            () -> new BuildOperationProgressEventListenerAdapter(listener, progressLoggerFactory, clock)
+        );
     }
 }
