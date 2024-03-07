@@ -29,9 +29,12 @@ import java.util.Optional;
  * being resolved. This type should remain as minimal as possible.</p>
  */
 public interface ResolutionHost {
-    String getDisplayName();
 
     DisplayName displayName();
+
+    default String getDisplayName() {
+        return displayName().getDisplayName();
+    }
 
     default DisplayName displayName(String type) {
         return Describables.of(displayName(), type);
