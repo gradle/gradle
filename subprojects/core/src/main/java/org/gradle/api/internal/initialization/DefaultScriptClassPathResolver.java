@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT_WITHOUT_DEPENDENCIES;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED;
@@ -69,6 +70,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     public enum InstrumentationPhase {
         NOT_INSTRUMENTED("not-instrumented"),
         ANALYZED_ARTIFACT("analyzed-artifact"),
+        ANALYZED_ARTIFACT_WITHOUT_DEPENDENCIES("analyzed-artifact-without-dependencies"),
         MERGED_ARTIFACT_ANALYSIS("merged-artifact-analysis"),
         INSTRUMENTED_AND_UPGRADED("instrumented-and-upgraded"),
         INSTRUMENTED_ONLY("instrumented-only");
@@ -147,12 +149,19 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     private static FileCollection getAnalysisResult(Configuration classpathConfiguration) {
-        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
+        FileCollection external = classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value));
             // We have to analyze external and project dependencies to get full hierarchies, since
             // for example user could use dependency substitution to replace external dependency with project dependency.
-            config.componentFilter(componentId -> !isGradleApi(componentId));
-        }).getFiles().filter(file -> file.getName().equals(ANALYSIS_FILE_NAME));
+            config.componentFilter(DefaultScriptClassPathResolver::isExternalDependency);
+        }).getFiles();
+        FileCollection project = classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
+            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT_WITHOUT_DEPENDENCIES.value));
+            // We have to analyze external and project dependencies to get full hierarchies, since
+            // for example user could use dependency substitution to replace external dependency with project dependency.
+            config.componentFilter(DefaultScriptClassPathResolver::isProjectDependency);
+        }).getFiles();
+        return project.plus(external).filter(file -> file.getName().equals(ANALYSIS_FILE_NAME));
     }
 
     private static ArtifactView getOriginalDependencies(Configuration classpathConfiguration) {

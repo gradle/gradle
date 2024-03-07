@@ -30,6 +30,7 @@ import org.gradle.api.internal.initialization.transform.utils.InstrumentationAna
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -79,6 +80,8 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     public interface Parameters extends TransformParameters {
         @Internal
         Property<CacheInstrumentationDataBuildService> getBuildService();
+        @Input
+        Property<Boolean> getShouldAnalyzeDependencies();
         @Internal
         Property<Long> getContextId();
     }
@@ -124,7 +127,9 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
                 ClassReader reader = new ClassReader(entry.getContent());
                 String className = reader.getClassName();
                 Set<String> classSuperTypes = collectSuperTypes(reader);
-                collectArtifactClassDependencies(className, reader, dependenciesCollector);
+                if (getParameters().getShouldAnalyzeDependencies().get()) {
+                    collectArtifactClassDependencies(className, reader, dependenciesCollector);
+                }
                 if (!classSuperTypes.isEmpty()) {
                     superTypesCollector.put(className, classSuperTypes);
                 }

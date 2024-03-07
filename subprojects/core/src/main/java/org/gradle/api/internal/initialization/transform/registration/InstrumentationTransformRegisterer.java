@@ -35,6 +35,7 @@ import org.gradle.internal.lazy.Lazy;
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT_WITHOUT_DEPENDENCIES;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.MERGED_ARTIFACT_ANALYSIS;
@@ -73,6 +74,19 @@ public class InstrumentationTransformRegisterer {
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.getValue());
                 spec.parameters(params -> {
                     params.getBuildService().set(service);
+                    params.getShouldAnalyzeDependencies().set(true);
+                    params.getContextId().set(contextId);
+                });
+            }
+        );
+        dependencyHandler.registerTransform(
+            InstrumentationAnalysisTransform.class,
+            spec -> {
+                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED.getValue());
+                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT_WITHOUT_DEPENDENCIES.getValue());
+                spec.parameters(params -> {
+                    params.getBuildService().set(service);
+                    params.getShouldAnalyzeDependencies().set(false);
                     params.getContextId().set(contextId);
                 });
             }
