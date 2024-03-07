@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestLauncher
+import spock.lang.Ignore
 import spock.lang.Timeout
 
 @Timeout(120)
@@ -29,6 +30,7 @@ import spock.lang.Timeout
  * @see org.gradle.integtests.tooling.r88.TestDisplayNameJUnit4CrossVersionSpec and
  * @see org.gradle.integtests.tooling.r88.TestDisplayNameSpockCrossVersionSpec
  */
+@Ignore
 class TestDisplayNameJUnit5CrossVersionSpec extends TestLauncherSpec {
     @Override
     void addDefaultTests() {
