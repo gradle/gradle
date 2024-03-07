@@ -351,7 +351,7 @@ task resolveDependencies {
             }
 
             tasks.register("resolve") {
-                val conf = configurations["runtimeClasspath"]
+                val conf: FileCollection = configurations["runtimeClasspath"]
 
                 // Wire build dependencies
                 dependsOn(conf)

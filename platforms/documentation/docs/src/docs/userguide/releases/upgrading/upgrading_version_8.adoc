@@ -49,7 +49,7 @@ To ensure the accuracy of dependency resolution, Gradle checks that Configuratio
 * Consumable configurations should not have their dependencies, hierarchy, attributes, etc. modified after they have been published or consumed as a variant.
 * Dependency scope configurations should not have their dependencies, constraints, etc. modified after a configuration that extends from them are observed.
 
-In prior versions of Gradle, many of these circumstances were detected and handled by failing the build. 
+In prior versions of Gradle, many of these circumstances were detected and handled by failing the build.
 However, some cases went undetected or did not trigger build failures.
 In Gradle 9.0, all changes to a configuration after it has been observed will become an error.
 After a configuration of any type has been observed, it should be considered immutable.
@@ -93,7 +93,7 @@ configurations.runtimeClasspath {
 }
 
 tasks.register("resolve") {
-    val conf = configurations["runtimeClasspath"]
+    val conf: FileCollection = configurations["runtimeClasspath"]
 
     // Wire build dependencies
     dependsOn(conf)
