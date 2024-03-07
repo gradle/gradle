@@ -65,6 +65,27 @@ class ProcessFixture {
         return bash("ps -o pid,ppid,args -p ${pids.join(' -p ')}").split("\\n")
     }
 
+    void waitForFinish() {
+        if (pid == null) {
+            throw new RuntimeException("Unable to wait for process to finish because provided pid is null!")
+        }
+        if (OperatingSystem.current().unix) {
+            bash("wait $pid")
+        } else if (OperatingSystem.current().windows) {
+            boolean running = true
+            while (running) {
+                String tasklist = execute(["tasklist.exe", "/fi", "\"PID eq $pid\""] as Object[], SafeStreams.emptyInput())
+                if (tasklist.contains("No tasks are running which match the specified criteria.")) {
+                    running = false
+                } else {
+                    Thread.sleep(1000)
+                }
+            }
+        } else {
+            throw new RuntimeException("This implementation does not know how to wait for process to finish on os: " + OperatingSystem.current())
+        }
+    }
+
     private String bash(String commands) {
         return execute(["bash"] as Object[], new ByteArrayInputStream(commands.getBytes()))
     }
