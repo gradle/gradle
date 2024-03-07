@@ -44,9 +44,9 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
-        deserialized[0].definition.id.parent.name == "validation"
-        deserialized[0].definition.id.parent.displayName == "Validation"
-        deserialized[0].definition.id.parent.parent == null
+        deserialized[0].definition.id.group.name == "validation"
+        deserialized[0].definition.id.group.displayName == "Validation"
+        deserialized[0].definition.id.group.parent == null
 
         deserialized[0].locations.isEmpty()
         deserialized[0].definition.documentationLink == null

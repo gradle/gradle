@@ -44,7 +44,7 @@ public class DefaultProblemId implements ProblemId, Serializable {
     }
 
     @Override
-    public ProblemGroup getParent() {
+    public ProblemGroup getGroup() {
         return parent;
     }
 
@@ -62,7 +62,7 @@ public class DefaultProblemId implements ProblemId, Serializable {
         if (!id.equals(that.getName())) {
             return false;
         }
-        return parent.equals(that.getParent());
+        return parent.equals(that.getGroup());
     }
 
     @Override

@@ -140,7 +140,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         List<String> categories = new ArrayList<>();
         // put the problem id at the beginning of the list
         categories.add(0, problemId.getName());
-        ProblemGroup current = problemId.getParent();
+        ProblemGroup current = problemId.getGroup();
         while (current != null) {
             categories.add(0, current.getName());
             current = current.getParent();
