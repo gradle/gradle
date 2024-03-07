@@ -33,6 +33,11 @@ public interface ResolveContext extends DependencyMetaDataProvider {
 
     String getName();
 
+    /**
+     * Identifies this resolve context within a lockfile.
+     */
+    String getDependencyLockingId();
+
     ResolutionHost getResolutionHost();
 
     DomainObjectContext getDomainObjectContext();
