@@ -23,7 +23,7 @@ import org.gradle.internal.SystemProperties
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
-import org.gradle.internal.jvm.inspection.JvmInstallationProblemDeduplicator
+import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
@@ -103,7 +103,7 @@ class JavaInstallationRegistryTest extends Specification {
         def expectedHome = new File(tempFolder, "Contents/Home")
         createExecutable(expectedHome, OperatingSystem.MAC_OS)
 
-        def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], metadataDetector(), new TestBuildOperationExecutor(), OperatingSystem.MAC_OS, new NoOpProgressLoggerFactory(), new JvmInstallationProblemDeduplicator())
+        def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], metadataDetector(), new TestBuildOperationExecutor(), OperatingSystem.MAC_OS, new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter())
 
         when:
         def installations = registry.listInstallations()
@@ -117,7 +117,7 @@ class JavaInstallationRegistryTest extends Specification {
         def expectedHome = new File(tempFolder, "jre")
         createExecutable(expectedHome)
 
-        def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], metadataDetector(), new TestBuildOperationExecutor(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemDeduplicator())
+        def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], metadataDetector(), new TestBuildOperationExecutor(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter())
 
         when:
         def installations = registry.listInstallations()
@@ -133,7 +133,7 @@ class JavaInstallationRegistryTest extends Specification {
         def expectedHome = new File(rootWithMacOsLayout, "Contents/Home")
         assert expectedHome.mkdirs()
 
-        def registry = new JavaInstallationRegistry([forDirectory(rootWithMacOsLayout)], metadataDetector(), new TestBuildOperationExecutor(), OperatingSystem.LINUX, new NoOpProgressLoggerFactory(), new JvmInstallationProblemDeduplicator())
+        def registry = new JavaInstallationRegistry([forDirectory(rootWithMacOsLayout)], metadataDetector(), new TestBuildOperationExecutor(), OperatingSystem.LINUX, new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter())
 
         when:
         def installations = registry.listInstallations()
@@ -145,7 +145,7 @@ class JavaInstallationRegistryTest extends Specification {
     def "detecting installations is tracked as build operation"() {
         def executor = new TestBuildOperationExecutor()
         given:
-        def registry = new JavaInstallationRegistry(Collections.emptyList(), metadataDetector(), executor, OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemDeduplicator())
+        def registry = new JavaInstallationRegistry(Collections.emptyList(), metadataDetector(), executor, OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter())
 
         when:
         registry.listInstallations()
@@ -161,7 +161,7 @@ class JavaInstallationRegistryTest extends Specification {
         file.isDirectory() >> directory
         file.absolutePath >> path
         def logger = Mock(Logger)
-        def deduplicator = new JvmInstallationProblemDeduplicator()
+        def deduplicator = new JvmInstallationProblemReporter()
 
         when:
         def registry = JavaInstallationRegistry.withLogger([forDirectory(file, autoDetected)], metadataDetector(), logger, new TestBuildOperationExecutor(), new NoOpProgressLoggerFactory(), deduplicator)
@@ -191,7 +191,7 @@ class JavaInstallationRegistryTest extends Specification {
         given:
         def logger = Mock(Logger)
         def tempFolder = createTempDir()
-        def deduplicator = new JvmInstallationProblemDeduplicator()
+        def deduplicator = new JvmInstallationProblemReporter()
         def logOutput = "Path for java installation '" + tempFolder + "' (testSource) does not contain a java executable"
 
         when:
@@ -240,7 +240,7 @@ class JavaInstallationRegistryTest extends Specification {
             new TestBuildOperationExecutor(),
             OperatingSystem.current(),
             loggerFactory,
-            new JvmInstallationProblemDeduplicator(),
+            new JvmInstallationProblemReporter(),
         )
 
         when:
@@ -291,7 +291,7 @@ class JavaInstallationRegistryTest extends Specification {
             new TestBuildOperationExecutor(),
             OperatingSystem.current(),
             new NoOpProgressLoggerFactory(),
-            new JvmInstallationProblemDeduplicator(),
+            new JvmInstallationProblemReporter(),
         )
     }
 }

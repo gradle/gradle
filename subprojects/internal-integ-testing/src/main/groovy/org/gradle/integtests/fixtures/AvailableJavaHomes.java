@@ -35,7 +35,7 @@ import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
-import org.gradle.internal.jvm.inspection.JvmInstallationProblemDeduplicator;
+import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.progress.NoOpProgressLoggerFactory;
@@ -278,7 +278,7 @@ public abstract class AvailableJavaHomes {
         DefaultJvmMetadataDetector defaultJvmMetadataDetector =
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
-        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), metadataDetector, null, OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemDeduplicator())
+        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), metadataDetector, null, OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter())
             .toolchains()
             .stream()
             .map(x -> x.metadata)

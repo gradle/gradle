@@ -25,7 +25,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
-import org.gradle.internal.jvm.inspection.JvmInstallationProblemDeduplicator;
+import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
@@ -78,7 +78,7 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.add(JvmInstallationProblemDeduplicator.class);
+        registration.add(JvmInstallationProblemReporter.class);
     }
 
     @Override

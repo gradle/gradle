@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.jvm.inspection.JvmInstallationProblemDeduplicator
+import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -482,7 +482,7 @@ class JavaToolchainQueryServiceTest extends Specification {
                 installations.collect{ locationFor(it) } as Set<InstallationLocation>
             }
         }
-        def registry = new JavaInstallationRegistry([supplier], detector, new TestBuildOperationExecutor(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemDeduplicator()) {
+        def registry = new JavaInstallationRegistry([supplier], detector, new TestBuildOperationExecutor(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter()) {
             @Override
             boolean installationExists(InstallationLocation installationLocation) {
                 return true

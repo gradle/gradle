@@ -18,7 +18,6 @@ package org.gradle.internal.jvm.inspection;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -55,7 +54,7 @@ public class JavaInstallationRegistry {
     private final OperatingSystem os;
 
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final JvmInstallationProblemDeduplicator problemDeduplicator;
+    private final JvmInstallationProblemReporter problemReporter;
 
     @Inject
     public JavaInstallationRegistry(
@@ -64,9 +63,9 @@ public class JavaInstallationRegistry {
         @Nullable BuildOperationExecutor executor,
         OperatingSystem os,
         ProgressLoggerFactory progressLoggerFactory,
-        JvmInstallationProblemDeduplicator problemDeduplicator
+        JvmInstallationProblemReporter problemReporter
     ) {
-        this(suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), executor, os, progressLoggerFactory, problemDeduplicator);
+        this(suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), executor, os, progressLoggerFactory, problemReporter);
     }
 
     private JavaInstallationRegistry(
@@ -76,7 +75,7 @@ public class JavaInstallationRegistry {
        @Nullable BuildOperationExecutor executor,
         OperatingSystem os,
         ProgressLoggerFactory progressLoggerFactory,
-        JvmInstallationProblemDeduplicator problemDeduplicator
+        JvmInstallationProblemReporter problemReporter
     ) {
         this.logger = logger;
         this.executor = executor;
@@ -84,7 +83,7 @@ public class JavaInstallationRegistry {
         this.installations = new Installations(() -> maybeCollectInBuildOperation(suppliers));
         this.os = os;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.problemDeduplicator = problemDeduplicator;
+        this.problemReporter = problemReporter;
     }
 
     @VisibleForTesting
@@ -94,7 +93,7 @@ public class JavaInstallationRegistry {
         Logger logger,
         BuildOperationExecutor executor,
         ProgressLoggerFactory progressLoggerFactory,
-        JvmInstallationProblemDeduplicator problemDeduplicator
+        JvmInstallationProblemReporter problemDeduplicator
     ) {
         return new JavaInstallationRegistry(suppliers, metadataDetector, logger, executor, OperatingSystem.current(), progressLoggerFactory, problemDeduplicator);
     }
@@ -144,24 +143,14 @@ public class JavaInstallationRegistry {
             .collect(Collectors.toSet());
     }
 
-    private void logInstallationProblem(InstallationLocation installationLocation, String message) {
-        if (!problemDeduplicator.shouldReportProblem(message)) {
-            return;
-        }
-        // If a user has explicitly configured a java installation, we should always log problems with it visibly, because they have bad configuration they can change.
-        // But if we are just locating it automatically, we should log problems less visibly, because the user may be unable to fix the problem.
-        LogLevel level = installationLocation.isAutoDetected() ? LogLevel.INFO : LogLevel.WARN;
-        logger.log(level, message);
-    }
-
     protected boolean installationExists(InstallationLocation installationLocation) {
         File file = installationLocation.getLocation();
         if (!file.exists()) {
-            logInstallationProblem(installationLocation, "Directory " + installationLocation.getDisplayName() + " used for java installations does not exist");
+            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Directory " + installationLocation.getDisplayName() + " used for java installations does not exist");
             return false;
         }
         if (!file.isDirectory()) {
-            logInstallationProblem(installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " points to a file, not a directory");
+            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " points to a file, not a directory");
             return false;
         }
         return true;
@@ -169,7 +158,7 @@ public class JavaInstallationRegistry {
 
     protected boolean installationHasExecutable(InstallationLocation installationLocation) {
         if (!hasJavaExecutable(installationLocation.getLocation())) {
-            logInstallationProblem(installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " does not contain a java executable");
+            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " does not contain a java executable");
             return false;
         }
         return true;

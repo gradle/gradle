@@ -21,7 +21,7 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.jvm.inspection.JvmInstallationProblemDeduplicator
+import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
@@ -279,7 +279,7 @@ $errorLines
     }
 
     private JavaInstallationRegistry createRegistry(List<InstallationLocation> locations) {
-        return new JavaInstallationRegistry(null, detector, null, null, new NoOpProgressLoggerFactory(), new JvmInstallationProblemDeduplicator()) {
+        return new JavaInstallationRegistry(null, detector, null, null, new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter()) {
             @Override
             protected Set<InstallationLocation> listInstallations() {
                 return locations;
