@@ -33,6 +33,8 @@ Method <org.gradle.api.tasks.scala.ScalaCompile.getZincClasspath()> does not hav
 Method <org.gradle.api.tasks.scala.ScalaDoc.getClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (ScalaDoc.java:0)
 Method <org.gradle.api.tasks.scala.ScalaDoc.getScalaClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (ScalaDoc.java:0)
 Method <org.gradle.api.tasks.scala.ScalaDoc.getSource()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (ScalaDoc.java:0)
+Method <org.gradle.api.tasks.scala.ScalaTask.getClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (ScalaTask.java:0)
+Method <org.gradle.api.tasks.scala.ScalaTask.getScalaClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (ScalaTask.java:0)
 Method <org.gradle.api.tasks.testing.Test.getBootstrapClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (Test.java:0)
 Method <org.gradle.api.tasks.testing.Test.getClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (Test.java:0)
 Method <org.gradle.api.tasks.testing.Test.getTestClassesDirs()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (Test.java:0)

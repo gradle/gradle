@@ -31,6 +31,8 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -263,18 +265,20 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private static void configureScalaTaskDefaults(final Project project, final ScalaRuntime scalaRuntime) {
-        project.getTasks().withType(ScalaTask.class).configureEach(scalaTask -> {
+        project.getTasks().withType(ScalaTask.class).matching(IConventionAware.class::isInstance).configureEach(scalaTask -> {
             NamedDomainObjectProvider<Configuration> scalaClasspath = scalaRuntime.registerScalaClasspathConfigurationFor(scalaTask);
-            scalaTask.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) scalaClasspath::get);
+            ConventionMapping conventionMapping = ((IConventionAware) scalaTask).getConventionMapping();
+            conventionMapping.map("scalaClasspath", (Callable<FileCollection>) scalaClasspath::get);
         });
     }
 
     private static void configureScalaCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(ScalaCompile.class).configureEach(scalaCompile -> {
-            scalaCompile.getConventionMapping().map("zincClasspath", (Callable<Configuration>) () -> project.getConfigurations().getByName(ZINC_CONFIGURATION_NAME));
-            scalaCompile.getConventionMapping().map("scalaCompilerPlugins", (Callable<FileCollection>) () -> project.getConfigurations().getByName(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
-            scalaCompile.getConventionMapping().map("sourceCompatibility", () -> computeJavaSourceCompatibilityConvention(javaExtension, scalaCompile).toString());
-            scalaCompile.getConventionMapping().map("targetCompatibility", () -> computeJavaTargetCompatibilityConvention(javaExtension, scalaCompile).toString());
+            ConventionMapping conventionMapping = scalaCompile.getConventionMapping();
+            conventionMapping.map("zincClasspath", (Callable<Configuration>) () -> project.getConfigurations().getByName(ZINC_CONFIGURATION_NAME));
+            conventionMapping.map("scalaCompilerPlugins", (Callable<FileCollection>) () -> project.getConfigurations().getByName(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
+            conventionMapping.map("sourceCompatibility", () -> computeJavaSourceCompatibilityConvention(javaExtension, scalaCompile).toString());
+            conventionMapping.map("targetCompatibility", () -> computeJavaTargetCompatibilityConvention(javaExtension, scalaCompile).toString());
             scalaCompile.getScalaCompileOptions().getKeepAliveMode().convention(KeepAliveMode.SESSION);
         });
     }
@@ -297,8 +301,9 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
     private static void configureScalaDocDefaults(final Project project) {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
-            scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
-            scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
+            ConventionMapping conventionMapping = scalaDoc.getConventionMapping();
+            conventionMapping.map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
+            conventionMapping.map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
         });
     }
