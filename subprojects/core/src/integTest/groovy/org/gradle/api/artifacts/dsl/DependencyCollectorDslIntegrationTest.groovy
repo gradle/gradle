@@ -510,7 +510,7 @@ class DependencyCollectorKotlinDslIntegrationTest extends DependencyCollectorDsl
         fails("dependencies")
 
         then:
-        errorOutput.contains("""None of the following functions can be called with the arguments supplied:${' '}
+        result.assertHasErrorOutput("""None of the following functions can be called with the arguments supplied:${' '}
 public operator fun DependencyCollector.invoke""") // Don't care what the other options are, just that it's the right name
     }
 }
