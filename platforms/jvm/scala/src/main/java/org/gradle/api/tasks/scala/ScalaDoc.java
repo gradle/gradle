@@ -42,6 +42,7 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.VersionNumber;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
 
@@ -229,7 +230,7 @@ public abstract class ScalaDoc extends SourceTask implements ScalaTask {
             // When Scala 3 is used it appears on the classpath together with Scala 2
             boolean isScala3 = Iterables.any(
                 ScalaJar.inspect(getScalaClasspath(), "library"::equals),
-                scalaJar -> scalaJar.getVersionNumber().getMajor() == 3);
+                scalaJar -> VersionNumber.parse(scalaJar.getVersion()).getMajor() == 3);
             parameters.getIsScala3().set(isScala3);
             if (isScala3) {
                 parameters.getSources().from(getFilteredCompilationOutputs());

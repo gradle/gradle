@@ -71,7 +71,7 @@ public class ScalaCompileOptionsConfigurer {
         // When Scala 3 is used it appears on the classpath together with Scala 2
         Iterable<ScalaJar> scalaJars = ScalaJar.inspect(scalaClasspath, "library"::equals);
         VersionNumber scalaVersion = Streams.stream(scalaJars)
-            .map(ScalaJar::getVersionNumber)
+            .map(scalaJar -> VersionNumber.parse(scalaJar.getVersion()))
             .max(Comparator.naturalOrder())
             .orElse(VersionNumber.UNKNOWN);
 
