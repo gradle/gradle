@@ -24,6 +24,8 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.process.ExecOperations
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.slf4j.Logger
@@ -550,5 +552,74 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         then:
         output.count('Thinking...') == 0
         outputContains 'The answer is 42'
+    }
+
+    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    @Issue("https://github.com/gradle/gradle/issues/26926")
+    def "restores task fields whose value is instance of #type java record"() {
+        file("buildSrc/src/main/java/SingleField.java") << """
+            public record SingleField(String value) {}
+        """
+        file("buildSrc/src/main/java/ZeroFields.java") << """
+            public record ZeroFields() {}
+        """
+        file("buildSrc/src/main/java/MultipleFields.java") << """
+            public record MultipleFields(String str, int number, String other) {}
+        """
+        file("buildSrc/src/main/java/WithNestedRecords.java") << """
+            public record WithNestedRecords(String str, MultipleFields mf, ZeroFields zf, int number) {}
+        """
+        file("buildSrc/src/main/java/WithExtraDeclaredFields.java") << """
+            public record WithExtraDeclaredFields(String str, int number) {
+                // String extra = "extra"; // not allowed for records
+                public static int SOME_STATIC_FIELD = 300;
+            }
+        """
+
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+        """
+
+        buildFile << """
+            class SomeBean {
+                ${type} value
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+                private final ${type} value
+
+                SomeTask() {
+                    value = ${reference}
+                    bean.value = ${reference}
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value
+                    println "bean.value = " + bean.value
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("this.value = ${output}")
+        outputContains("bean.value = ${output}")
+
+        where:
+        type                      | reference                                                                                        | output
+        "SingleField"             | "new SingleField('some value')"                                                                  | "SingleField[value=some value]"
+        "ZeroFields"              | "new ZeroFields()"                                                                               | "ZeroFields[]"
+        "MultipleFields"          | "new MultipleFields('str', 42, 'other_str')"                                                     | "MultipleFields[str=str, number=42, other=other_str]"
+        "WithNestedRecords"       | "new WithNestedRecords('str', new MultipleFields('str', 42, 'other_str'), new ZeroFields(), 66)" | "WithNestedRecords[str=str, mf=MultipleFields[str=str, number=42, other=other_str], zf=ZeroFields[], number=66]"
+        "WithExtraDeclaredFields" | "new WithExtraDeclaredFields('str', 42)"                                                         | "WithExtraDeclaredFields[str=str, number=42]"
     }
 }
