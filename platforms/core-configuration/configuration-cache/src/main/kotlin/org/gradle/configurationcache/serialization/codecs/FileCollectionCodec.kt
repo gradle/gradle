@@ -162,7 +162,7 @@ class CollectingVisitor : AbstractVisitor() {
             }
 
             is ResolutionBackedFileCollection -> {
-                val displayName = fileCollection.resolutionHost.displayName().displayName
+                val displayName = fileCollection.resolutionHost.displayName
                 val lenient = fileCollection.isLenient
                 val nestedVisitor = ResolutionContentsCollectingVisitor(displayName, lenient)
                 fileCollection.visitStructure(nestedVisitor)

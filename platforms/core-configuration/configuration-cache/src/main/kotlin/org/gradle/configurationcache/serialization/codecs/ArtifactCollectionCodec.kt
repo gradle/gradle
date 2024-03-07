@@ -48,7 +48,7 @@ class ArtifactCollectionCodec(
     override suspend fun WriteContext.encode(value: ArtifactCollectionInternal) {
         val visitor = CollectingArtifactVisitor()
         value.visitArtifacts(visitor)
-        writeString(value.resolutionHost.displayName().displayName)
+        writeString(value.resolutionHost.displayName)
         writeBoolean(value.isLenient)
         writeCollection(visitor.elements)
     }
