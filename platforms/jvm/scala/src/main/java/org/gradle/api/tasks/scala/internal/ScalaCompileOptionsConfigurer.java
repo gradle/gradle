@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.scala.internal;
 
+import com.google.common.collect.Streams;
 import org.gradle.api.tasks.ScalaJar;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
@@ -68,7 +69,8 @@ public class ScalaCompileOptionsConfigurer {
         }
 
         // When Scala 3 is used it appears on the classpath together with Scala 2
-        VersionNumber scalaVersion = ScalaJar.inspect(scalaClasspath, "library"::equals)
+        Iterable<ScalaJar> scalaJars = ScalaJar.inspect(scalaClasspath, "library"::equals);
+        VersionNumber scalaVersion = Streams.stream(scalaJars)
             .map(ScalaJar::getVersionNumber)
             .max(Comparator.naturalOrder())
             .orElse(VersionNumber.UNKNOWN);

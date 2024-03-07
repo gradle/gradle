@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks;
 
+import com.google.common.collect.FluentIterable;
 import org.gradle.api.Incubating;
+import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
@@ -27,14 +29,11 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.function.Predicate;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * Provides information about a Scala JAR file.
@@ -53,18 +52,18 @@ public class ScalaJar {
      * (compiler, library, jdbc, etc.), and returns a {@link ScalaJar} instance describing it if so.
      *
      * @param file the file to inspect
-     * @param modulePredicate predicate that the module name must match
+     * @param moduleSpec predicate that the module name must match
      * @return a {@link ScalaJar} instance if the given file is a Scala JAR file with a matching module name, {@code null} otherwise
      * @since 8.8
      */
     @Nullable
-    public static ScalaJar inspect(File file, Predicate<String> modulePredicate) {
+    public static ScalaJar inspect(File file, Spec<String> moduleSpec) {
         Matcher matcher = FILE_NAME_PATTERN.matcher(file.getName());
         if (!matcher.matches()) {
             return null;
         }
         String module = matcher.group(2);
-        if (!modulePredicate.test(module)) {
+        if (!moduleSpec.isSatisfiedBy(module)) {
             return null;
         }
         try (JarFile jarFile = new JarFile(file)) {
@@ -101,28 +100,15 @@ public class ScalaJar {
 
     /**
      * Inspects the specified files looking for Scala JARs (scala-compiler, scala-library, scala-jdbc, etc.) with a matching module name
-     * (compiler, library, jdbc, etc.), and returns a stream of {@link ScalaJar} instances describing those found.
+     * (compiler, library, jdbc, etc.), and returns an iterable of {@link ScalaJar} instances describing those found.
      *
      * @param files the files to inspect
-     * @param modulePredicate predicate that the module name must match
-     * @return a stream of {@link ScalaJar} instances describing the Scala JAR files with a matching module name
+     * @param moduleSpec predicate that the module name must match
+     * @return an iterable of {@link ScalaJar} instances describing the Scala JAR files with a matching module name
      * @since 8.8
      */
-    public static Stream<ScalaJar> inspect(Stream<? extends File> files, Predicate<String> modulePredicate) {
-        return files.map(file -> ScalaJar.inspect(file, modulePredicate)).filter(Objects::nonNull);
-    }
-
-    /**
-     * Inspects the specified files looking for Scala JARs (scala-compiler, scala-library, scala-jdbc, etc.) with a matching module name
-     * (compiler, library, jdbc, etc.), and returns a stream of {@link ScalaJar} instances describing those found.
-     *
-     * @param files the files to inspect
-     * @param modulePredicate predicate that the module name must match
-     * @return a stream of {@link ScalaJar} instances describing the Scala JAR files with a matching module name
-     * @since 8.8
-     */
-    public static Stream<ScalaJar> inspect(Iterable<? extends File> files, Predicate<String> modulePredicate) {
-        return inspect(StreamSupport.stream(files.spliterator(), false), modulePredicate);
+    public static Iterable<ScalaJar> inspect(Iterable<? extends File> files, Spec<String> moduleSpec) {
+        return FluentIterable.from(files).transform(file -> ScalaJar.inspect(file, moduleSpec)).filter(Objects::nonNull);
     }
 
     private final File file;
