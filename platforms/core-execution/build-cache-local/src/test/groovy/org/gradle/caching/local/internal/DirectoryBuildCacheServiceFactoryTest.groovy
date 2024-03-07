@@ -17,7 +17,6 @@
 package org.gradle.caching.local.internal
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.UnscopedCacheBuilderFactory
@@ -42,7 +41,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def resolver = Mock(FileResolver)
     def cleanupActionDecorator = Mock(CleanupActionDecorator)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, cleanupActionDecorator, fileAccessTimeJournal, TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.createDir("tmp")))
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, cleanupActionDecorator, fileAccessTimeJournal)
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()

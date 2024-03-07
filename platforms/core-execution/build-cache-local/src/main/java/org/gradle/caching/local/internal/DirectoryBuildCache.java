@@ -50,9 +50,15 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     private final String failedFileSuffix;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public DirectoryBuildCache(PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
+    public DirectoryBuildCache(PersistentCache persistentCache, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
         this.persistentCache = persistentCache;
-        this.tempFileStore = tempFileStore;
+        this.tempFileStore = new DefaultBuildCacheTempFileStore((prefix, suffix) -> {
+            try {
+                return Files.createTempFile(persistentCache.getBaseDir().toPath(), prefix, suffix).toFile();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
         this.fileAccessTracker = fileAccessTracker;
         this.failedFileSuffix = failedFileSuffix;
     }

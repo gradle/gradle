@@ -17,7 +17,6 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.PersistentCache;
@@ -54,7 +53,6 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final PathToFileResolver resolver;
     private final CleanupActionDecorator cleanupActionDecorator;
     private final FileAccessTimeJournal fileAccessTimeJournal;
-    private final TemporaryFileProvider temporaryFileProvider;
 
     @Inject
     public DirectoryBuildCacheServiceFactory(
@@ -62,15 +60,13 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         PathToFileResolver resolver,
         CleanupActionDecorator cleanupActionDecorator,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        TemporaryFileProvider temporaryFileProvider
+        FileAccessTimeJournal fileAccessTimeJournal
     ) {
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
         this.cacheBuilderFactory = cacheBuilderFactory;
         this.resolver = resolver;
         this.cleanupActionDecorator = cleanupActionDecorator;
         this.fileAccessTimeJournal = fileAccessTimeJournal;
-        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     @Override
@@ -96,10 +92,9 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             .withDisplayName("Build cache")
             .withInitialLockMode(OnDemand)
             .open();
-        BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(temporaryFileProvider::createTemporaryFile);
         FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
 
-        return new DirectoryBuildCacheService(persistentCache, tempFileStore, fileAccessTracker, FAILED_READ_SUFFIX);
+        return new DirectoryBuildCacheService(persistentCache, fileAccessTracker, FAILED_READ_SUFFIX);
     }
 
     private CacheCleanupStrategy createCacheCleanupStrategy(Supplier<Long> removeUnusedEntriesTimestamp) {

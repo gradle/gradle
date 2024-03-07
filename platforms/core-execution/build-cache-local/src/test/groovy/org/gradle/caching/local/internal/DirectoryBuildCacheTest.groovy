@@ -25,8 +25,6 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.nio.file.Files
-
 @UsesNativeServices
 @CleanupTestDirectory
 class DirectoryBuildCacheTest extends Specification {
@@ -37,9 +35,8 @@ class DirectoryBuildCacheTest extends Specification {
         getBaseDir() >> cacheDir
         withFileLock(_) >> { Runnable r -> r.run() }
     }
-    def tempFileStore = new DefaultBuildCacheTempFileStore({ prefix, suffix -> Files.createTempFile(cacheDir.toPath(), prefix, suffix).toFile() })
     def fileAccessTracker = Mock(FileAccessTracker)
-    def cache = new DirectoryBuildCache(persistentCache, tempFileStore, fileAccessTracker, ".failed")
+    def cache = new DirectoryBuildCache(persistentCache, fileAccessTracker, ".failed")
     def key = TestHashCodes.hashCodeFrom(12345678)
     def hashCode = key.toString()
 
