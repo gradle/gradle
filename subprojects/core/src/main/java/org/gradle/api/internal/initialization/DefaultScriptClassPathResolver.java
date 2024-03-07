@@ -54,9 +54,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT_WITHOUT_DEPENDENCIES;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_AND_UPGRADED;
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.INSTRUMENTED_ONLY;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_FILE_NAME;
 
@@ -138,30 +136,21 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             resolutionScope.setAnalysisResult(getAnalysisResult(classpathConfiguration));
             resolutionScope.setOriginalClasspath(originalDependencies.getFiles());
             ArtifactCollection instrumentedExternalDependencies = getInstrumentedExternalDependencies(classpathConfiguration);
-            ArtifactCollection instrumentedProjectDependencies = getInstrumentedProjectDependencies(classpathConfiguration);
             List<File> instrumentedClasspath = InstrumentationClasspathMerger.mergeToClasspath(
                 originalDependencies.getArtifacts(),
-                instrumentedExternalDependencies,
-                instrumentedProjectDependencies
+                instrumentedExternalDependencies
             );
             return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath);
         }
     }
 
     private static FileCollection getAnalysisResult(Configuration classpathConfiguration) {
-        FileCollection external = classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
+        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value));
             // We have to analyze external and project dependencies to get full hierarchies, since
             // for example user could use dependency substitution to replace external dependency with project dependency.
-            config.componentFilter(DefaultScriptClassPathResolver::isExternalDependency);
-        }).getFiles();
-        FileCollection project = classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT_WITHOUT_DEPENDENCIES.value));
-            // We have to analyze external and project dependencies to get full hierarchies, since
-            // for example user could use dependency substitution to replace external dependency with project dependency.
-            config.componentFilter(DefaultScriptClassPathResolver::isProjectDependency);
-        }).getFiles();
-        return project.plus(external).filter(file -> file.getName().equals(ANALYSIS_FILE_NAME));
+            config.componentFilter(it -> !isGradleApi(it));
+        }).getFiles().filter(file -> file.getName().equals(ANALYSIS_FILE_NAME));
     }
 
     private static ArtifactView getOriginalDependencies(Configuration classpathConfiguration) {
@@ -173,14 +162,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static ArtifactCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_AND_UPGRADED.value));
-            config.componentFilter(DefaultScriptClassPathResolver::isExternalDependency);
-        }).getArtifacts();
-    }
-
-    private static ArtifactCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
-        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_ONLY.value));
-            config.componentFilter(DefaultScriptClassPathResolver::isProjectDependency);
+            config.componentFilter(it -> !isGradleApi(it));
         }).getArtifacts();
     }
 

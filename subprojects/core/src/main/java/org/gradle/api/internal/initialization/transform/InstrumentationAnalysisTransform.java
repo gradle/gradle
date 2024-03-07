@@ -80,8 +80,6 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     public interface Parameters extends TransformParameters {
         @Internal
         Property<CacheInstrumentationDataBuildService> getBuildService();
-        @Input
-        Property<Boolean> getShouldAnalyzeDependencies();
         @Internal
         Property<Long> getContextId();
     }
@@ -127,9 +125,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
                 ClassReader reader = new ClassReader(entry.getContent());
                 String className = reader.getClassName();
                 Set<String> classSuperTypes = collectSuperTypes(reader);
-                if (getParameters().getShouldAnalyzeDependencies().get()) {
-                    collectArtifactClassDependencies(className, reader, dependenciesCollector);
-                }
+                collectArtifactClassDependencies(className, reader, dependenciesCollector);
                 if (!classSuperTypes.isEmpty()) {
                     superTypesCollector.put(className, classSuperTypes);
                 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization.transform.utils;
 
-import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -26,7 +25,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -37,22 +35,12 @@ public class InstrumentationClasspathMerger {
      */
     public static List<File> mergeToClasspath(
         ArtifactCollection originalDependencies,
-        ArtifactCollection externalDependencies,
-        ArtifactCollection projectDependencies
+        ArtifactCollection externalDependencies
     ) {
-        List<OriginalArtifactIdentifier> identifiers = originalDependencies.getArtifacts().stream()
-            .map(OriginalArtifactIdentifier::of)
-            // In some cases we end up with the same artifact multiple times in different locations,
-            // additional user's artifact transform can be injected in between and could produce multiple artifacts from one original artifact.
-            .distinct()
-            .collect(Collectors.toList());
-
-        Ordering<OriginalArtifactIdentifier> ordering = Ordering.explicit(identifiers);
-        return Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream())
+        return externalDependencies.getArtifacts().stream()
             .map(ClassPathTransformedArtifact::ofTransformedArtifact)
             // We sort based on the original classpath to we keep the original order,
             // we also rely on the fact that for ordered streams `sorted()` method has stable sort.
-            .sorted((first, second) -> ordering.compare(first.originalIdentifier, second.originalIdentifier))
             .map(artifact -> artifact.file)
             .collect(Collectors.toList());
     }
