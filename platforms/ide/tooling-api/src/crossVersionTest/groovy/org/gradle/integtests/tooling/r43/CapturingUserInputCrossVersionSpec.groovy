@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r43
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
 
@@ -42,6 +43,7 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
         file('build.gradle') << buildScanPluginApplication()
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4145")
     def "can capture user input if standard input was provided"() {
         when:
         withConnection { ProjectConnection connection ->
