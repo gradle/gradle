@@ -53,14 +53,14 @@ public class ProviderBackedFileCollection extends CompositeFileCollection {
             producer.visitProducerTasks(context);
         } else {
             // Producer is unknown, so unpack the value
-            UnpackingVisitor unpackingVisitor = new UnpackingVisitor(context::add, resolver, taskDependencyFactory, patternSetFactory);
+            UnpackingVisitor unpackingVisitor = new UnpackingVisitor(context::add, resolver, taskDependencyFactory, patternSetFactory, ProviderResolutionStrategy.ALLOW_ABSENT, true);
             unpackingVisitor.add(providerResolutionStrategy.resolve(provider));
         }
     }
 
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-        UnpackingVisitor unpackingVisitor = new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory);
+        UnpackingVisitor unpackingVisitor = new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory, ProviderResolutionStrategy.ALLOW_ABSENT, true);
         unpackingVisitor.add(providerResolutionStrategy.resolve(provider));
     }
 

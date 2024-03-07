@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.internal.provider.ValueState;
 import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
@@ -589,7 +590,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Override
         public void visitContents(Consumer<FileCollectionInternal> visitor) {
-            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory);
+            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory, ProviderResolutionStrategy.ALLOW_ABSENT, true);
             for (Object item : items) {
                 nested.add(item);
             }
