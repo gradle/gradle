@@ -16,18 +16,14 @@
 
 package org.gradle.api.artifacts.dsl
 
-import org.apache.commons.lang.StringEscapeUtils
+
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
-import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers;
+import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
-import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.util.internal.ConfigureUtil
 
 abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegrationSpec {
-    static String toTomlIdentifier(String group, String name) {
-        return "${group.replace('.', '-')}-${name.replace('.', '-')}"
-    }
-
     static final String FOO_GROUP = "org.example"
     static final String FOO_NAME = "foo"
     static final String FOO_VERSION = "1.0"
@@ -48,10 +44,6 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
     static final String PROJECT_NAME = "testproject"
     static final String PROJECT_VERSION = "1.1"
 
-    static String renderString(String content) {
-        return '"' + StringEscapeUtils.escapeJava(content) + '"'
-    }
-
     String singleString(String group, String name, String version) {
         return renderString(group + ":" + name + ":" + version)
     }
@@ -61,7 +53,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
     }
 
     String namedArgs(String group, String name, String version) {
-        return "module(" + makeNamedArgs(group: renderString(group), name: renderString(name), version: renderString(version)) + ")"
+        return "module(" + makeNamedArgs([group: renderString(group), name: renderString(name), version: renderString(version)], dsl) + ")"
     }
 
     String versionCatalog(String group, String name) {
@@ -89,7 +81,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
     }
 
     String dependencyObject(String group, String name, String version) {
-        return cast("project.dependencies.create(" + singleString(group, name, version) + ")", "ModuleDependency")
+        return cast("project.dependencies.create(" + singleString(group, name, version) + ")", "ModuleDependency", dsl)
     }
 
     String files(String path) {
@@ -104,34 +96,6 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
         return "project.provider { $expression }"
     }
 
-    String newStringBuilder(String expression) {
-        return dsl == GradleDsl.GROOVY ? "new StringBuilder($expression)" : "StringBuilder($expression)"
-    }
-
-    String makeNamedArgs(Map<String, String> expressionMap) {
-        if (dsl == GradleDsl.GROOVY) {
-            return expressionMap.collect { k, v -> "${renderString(k)}: " + v }.join(", ")
-        } else {
-            return expressionMap.collect { k, v -> "$k = " + v }.join(", ")
-        }
-    }
-
-    String declareVariable() {
-        return dsl == GradleDsl.GROOVY ? "def" : "val"
-    }
-
-    String instanceOf() {
-        return dsl == GradleDsl.GROOVY ? "instanceof" : "is"
-    }
-
-    String cast(String variable, String type) {
-        return dsl == GradleDsl.GROOVY ? "((${type}) ${variable})" : "(${variable} as ${type})"
-    }
-
-    String setOf(String expression) {
-        return dsl == GradleDsl.GROOVY ? "[$expression]" : "setOf($expression)"
-    }
-
     def setup() {
         createDirs("subproject")
         settingsFile("""
@@ -143,15 +107,14 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             }
         """)
         versionCatalogFile("""
-        [libraries]
-        ${toTomlIdentifier(FOO_GROUP, FOO_NAME)} = "${FOO_GROUP}:${FOO_NAME}:${FOO_VERSION}"
-        ${toTomlIdentifier(BAZ_GROUP, BAZ_NAME)} = "${BAZ_GROUP}:${BAZ_NAME}:${BAZ_VERSION}"
-        ${toTomlIdentifier(PVC_GROUP, PVC_NAME)} = "${PVC_GROUP}:${PVC_NAME}:${PVC_VERSION}"
-        # Extra nested identifier to force ProviderConvertible for PVC
-        ${toTomlIdentifier(PVC_GROUP, PVC_NAME)}-nested = "${PVC_GROUP}:${PVC_NAME}:${PVC_VERSION}"
+            [libraries]
+            org-example-foo = "${FOO_GROUP}:${FOO_NAME}:${FOO_VERSION}"
+            com-example-baz = "${BAZ_GROUP}:${BAZ_NAME}:${BAZ_VERSION}"
+            net-example-provider-convertible = "${PVC_GROUP}:${PVC_NAME}:${PVC_VERSION}"
+            net-example-provider-convertible-nested = "${PVC_GROUP}:${PVC_NAME}:${PVC_VERSION}"
 
-        [bundles]
-        ${MYDEPS_BUNDLE} = ["${toTomlIdentifier(FOO_GROUP, FOO_NAME)}", "${toTomlIdentifier(BAZ_GROUP, BAZ_NAME)}"]
+            [bundles]
+            ${MYDEPS_BUNDLE} = ["org-example-foo", "com-example-baz"]
         """)
         file(BAR_TXT).text = "bar"
     }
@@ -183,7 +146,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
         where:
         expression << ([
             singleString(FOO_GROUP, FOO_NAME, FOO_VERSION),
-            newStringBuilder(singleString(FOO_GROUP, FOO_NAME, FOO_VERSION)),
+            newStringBuilder(singleString(FOO_GROUP, FOO_NAME, FOO_VERSION), dsl),
             multiString(FOO_GROUP, FOO_NAME, FOO_VERSION),
             namedArgs(FOO_GROUP, FOO_NAME, FOO_VERSION),
             versionCatalog(FOO_GROUP, FOO_NAME),
@@ -205,7 +168,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
 
         dependencies {
             // This test can be removed if we stop having two different types for Version Catalog accessors
-            assert(${versionCatalog(PVC_GROUP, PVC_NAME)} ${instanceOf()} ProviderConvertible${dsl == GradleDsl.GROOVY ? "" : "<*>"})
+            assert(${versionCatalog(PVC_GROUP, PVC_NAME)} ${instanceOf(dsl)} ProviderConvertible${dsl == GradleDsl.GROOVY ? "" : "<*>"})
             testingCollector(${expression})
         }
 
@@ -273,7 +236,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
 
         tasks.register("checkDependency") {
             doLast {
-                println("\${${cast("testingCollectorConf.dependencies.iterator().next()", "FileCollectionDependency")}.files.singleFile}")
+                println("\${${cast("testingCollectorConf.dependencies.iterator().next()", "FileCollectionDependency", dsl)}.files.singleFile}")
             }
         }
         """
@@ -302,9 +265,9 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
 
         tasks.register("checkDependency") {
             doLast {
-                ${declareVariable()} dep = testingCollectorConf.dependencies.iterator().next()
-                assert(dep ${instanceOf()} ProjectDependency)
-                assert(${cast("dep", "ProjectDependency")}.dependencyProject == ${expectedProjectExpression})
+                var dep = testingCollectorConf.dependencies.iterator().next()
+                assert(dep ${instanceOf(dsl)} ProjectDependency)
+                assert(${cast("dep", "ProjectDependency", dsl)}.dependencyProject == ${expectedProjectExpression})
             }
         }
         """
@@ -352,7 +315,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
         dependencies {
             testingCollector(${expression}) {
                 because("the action must be tested")
-                ${testExcludes ? "exclude(${makeNamedArgs(group: renderString(BAZ_GROUP), module: renderString(BAZ_NAME))})" : ""}
+                ${testExcludes ? "exclude(${makeNamedArgs([group: renderString(BAZ_GROUP), module: renderString(BAZ_NAME)], dsl)})" : ""}
             }
         }
 
@@ -361,7 +324,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
                 testingCollectorConf.dependencies.forEach {
                     println("\${it.reason}")
                     if (${testExcludes}) {
-                        ${cast("it", "ModuleDependency")}.excludeRules.forEach {
+                        ${cast("it", "ModuleDependency", dsl)}.excludeRules.forEach {
                             println("\${it.group}:\${it.module}")
                         }
                     }
@@ -403,7 +366,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
         dependencies {
             testingCollector.bundle(${versionCatalogBundle(MYDEPS_BUNDLE)}) {
                 because("the action must be tested")
-                exclude(${makeNamedArgs(group: renderString(BAZ_GROUP), module: renderString(BAZ_NAME))})
+                exclude(${makeNamedArgs([group: renderString(BAZ_GROUP), module: renderString(BAZ_NAME)], dsl)})
             }
         }
 
@@ -411,7 +374,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             doLast {
                 testingCollectorConf.dependencies.forEach {
                     println("\${it.reason}")
-                    ${cast("it", "ModuleDependency")}.excludeRules.forEach {
+                    ${cast("it", "ModuleDependency", dsl)}.excludeRules.forEach {
                         println("\${it.group}:\${it.module}")
                     }
                 }
@@ -455,11 +418,11 @@ ${BAZ_GROUP}:${BAZ_NAME}
         outputContains(expectedDependencyCoordinates)
 
         where:
-        expression                                                       | expectedDependencyCoordinates
-        singleString(FOO_GROUP, FOO_NAME, FOO_VERSION)                   | "${FOO_GROUP}:${FOO_NAME}:${FOO_VERSION}"
-        newStringBuilder(singleString(FOO_GROUP, FOO_NAME, FOO_VERSION)) | "${FOO_GROUP}:${FOO_NAME}:${FOO_VERSION}"
-        versionCatalog(FOO_GROUP, FOO_NAME)                              | "${FOO_GROUP}:${FOO_NAME}:${FOO_VERSION}"
-        project()                                                        | "${PROJECT_GROUP}:${PROJECT_NAME}:${PROJECT_VERSION}"
+        expression                                                            | expectedDependencyCoordinates
+        singleString(FOO_GROUP, FOO_NAME, FOO_VERSION)                        | "${FOO_GROUP}:${FOO_NAME}:${FOO_VERSION}"
+        newStringBuilder(singleString(FOO_GROUP, FOO_NAME, FOO_VERSION), dsl) | "${FOO_GROUP}:${FOO_NAME}:${FOO_VERSION}"
+        versionCatalog(FOO_GROUP, FOO_NAME)                                   | "${FOO_GROUP}:${FOO_NAME}:${FOO_VERSION}"
+        project()                                                             | "${PROJECT_GROUP}:${PROJECT_NAME}:${PROJECT_VERSION}"
     }
 
     abstract GradleDsl getDsl();

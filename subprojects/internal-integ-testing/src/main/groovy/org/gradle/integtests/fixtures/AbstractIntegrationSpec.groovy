@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.apache.commons.lang.StringEscapeUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
@@ -828,4 +829,35 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             }
         """
     }
+
+    // Helpers for writing buildscripts using a common syntax
+
+    String renderString(String content) {
+        return '"' + StringEscapeUtils.escapeJava(content) + '"'
+    }
+
+    String newStringBuilder(String expression, GradleDsl dsl = GROOVY) {
+        return dsl == GROOVY ? "new StringBuilder($expression)" : "StringBuilder($expression)"
+    }
+
+    String makeNamedArgs(Map<String, String> expressionMap, GradleDsl dsl = GROOVY) {
+        if (dsl == GROOVY) {
+            return expressionMap.collect { k, v -> "${renderString(k)}: " + v }.join(", ")
+        } else {
+            return expressionMap.collect { k, v -> "$k = " + v }.join(", ")
+        }
+    }
+
+    String instanceOf(GradleDsl dsl = GROOVY) {
+        return dsl == GROOVY ? "instanceof" : "is"
+    }
+
+    String cast(String variable, String type, GradleDsl dsl = GROOVY) {
+        return dsl == GROOVY ? "((${type}) ${variable})" : "(${variable} as ${type})"
+    }
+
+    String setOf(String expression, GradleDsl dsl = GROOVY) {
+        return dsl == GROOVY ? "[$expression]" : "setOf($expression)"
+    }
+
 }
