@@ -104,6 +104,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -142,6 +143,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ProjectDependencyResolver projectDependencyResolver;
     private final DependencyLockingProvider dependencyLockingProvider;
 
+    @Inject
     public DefaultConfigurationResolver(
         DependencyGraphResolver dependencyGraphResolver,
         RepositoriesSupplier repositoriesSupplier,

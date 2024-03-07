@@ -30,7 +30,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationFactory;
@@ -52,10 +51,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
-import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -63,16 +59,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentDetailsSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.SelectedVariantSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
@@ -96,10 +83,8 @@ import org.gradle.api.internal.artifacts.transform.TransformExecutionResult.Tran
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
-import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -118,7 +103,6 @@ import org.gradle.cache.Cache;
 import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -221,6 +205,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultConfigurationFactory.class);
             registration.add(DefaultComponentSelectorConverter.class);
             registration.add(DefaultArtifactResolutionQueryFactory.class);
+            registration.add(DefaultConfigurationResolver.class);
         }
 
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport, ServiceRegistry serviceRegistry) {
@@ -502,76 +487,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {
             return new GraphVariantSelector(resolutionFailureHandler);
-        }
-
-        ConfigurationResolver createDependencyResolver(
-            DependencyGraphResolver dependencyGraphResolver,
-            RepositoriesSupplier repositoriesSupplier,
-            GlobalDependencyResolutionRules metadataHandler,
-            ComponentIdentifierFactory componentIdentifierFactory,
-            ResolutionResultsStoreFactory resolutionResultsStoreFactory,
-            StartParameter startParameter,
-            AttributesSchemaInternal attributesSchema,
-            VariantSelectorFactory variantSelectorFactory,
-            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-            BuildOperationExecutor buildOperationExecutor,
-            ArtifactTypeRegistry artifactTypeRegistry,
-            CalculatedValueContainerFactory calculatedValueContainerFactory,
-            ComponentSelectorConverter componentSelectorConverter,
-            AttributeContainerSerializer attributeContainerSerializer,
-            BuildState currentBuild,
-            ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-            ResolvedArtifactSetResolver artifactSetResolver,
-            AttributeDesugaring attributeDesugaring,
-            ResolveExceptionContextualizer resolveExceptionContextualizer,
-            ComponentDetailsSerializer componentDetailsSerializer,
-            SelectedVariantSerializer selectedVariantSerializer,
-            ResolvedVariantCache resolvedVariantCache,
-            GraphVariantSelector graphVariantSelector,
-            ProjectStateRegistry projectStateRegistry,
-            LocalComponentRegistry localComponentRegistry,
-            List<ResolverProviderFactory> resolverFactories,
-            ExternalModuleComponentResolverFactory moduleDependencyResolverFactory,
-            ProjectDependencyResolver projectDependencyResolver,
-            DependencyLockingProvider dependencyLockingProvider
-        ) {
-            DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
-                dependencyGraphResolver,
-                repositoriesSupplier,
-                metadataHandler,
-                resolutionResultsStoreFactory,
-                startParameter,
-                attributesSchema,
-                variantSelectorFactory,
-                moduleIdentifierFactory,
-                buildOperationExecutor,
-                artifactTypeRegistry,
-                calculatedValueContainerFactory,
-                componentSelectorConverter,
-                attributeContainerSerializer,
-                currentBuild,
-                attributeDesugaring,
-                artifactSetResolver,
-                componentSelectionDescriptorFactory,
-                resolveExceptionContextualizer,
-                componentDetailsSerializer,
-                selectedVariantSerializer,
-                resolvedVariantCache,
-                graphVariantSelector,
-                projectStateRegistry,
-                localComponentRegistry,
-                resolverFactories,
-                moduleDependencyResolverFactory,
-                projectDependencyResolver,
-                dependencyLockingProvider
-            );
-
-            return new ShortCircuitEmptyConfigurationResolver(
-                defaultResolver,
-                componentIdentifierFactory,
-                moduleIdentifierFactory,
-                currentBuild.getBuildIdentifier()
-            );
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

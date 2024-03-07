@@ -68,7 +68,7 @@ import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandl
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConstraintHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
-import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver.EmptyLenientConfiguration
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolvedConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQuery
@@ -279,7 +279,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultConfigurationContainer         | ConfigurationContainer         | "project.configurations"
         DefaultResolutionStrategy             | ResolutionStrategy             | "project.configurations.maybeCreate('some').resolutionStrategy"
         DefaultResolvedConfiguration          | ResolvedConfiguration          | "project.configurations.maybeCreate('some').resolvedConfiguration"
-        EmptyLenientConfiguration             | LenientConfiguration           | "project.configurations.maybeCreate('some').resolvedConfiguration.lenientConfiguration"
+        DefaultLenientConfiguration           | LenientConfiguration | "project.configurations.maybeCreate('some').resolvedConfiguration.lenientConfiguration"
         ConfigurationResolvableDependencies   | ResolvableDependencies         | "project.configurations.maybeCreate('some').incoming"
         DefaultResolutionResult               | ResolutionResult               | "project.configurations.maybeCreate('some').incoming.resolutionResult"
         DefaultDependencyConstraintSet        | DependencyConstraintSet        | "project.configurations.maybeCreate('some').dependencyConstraints"

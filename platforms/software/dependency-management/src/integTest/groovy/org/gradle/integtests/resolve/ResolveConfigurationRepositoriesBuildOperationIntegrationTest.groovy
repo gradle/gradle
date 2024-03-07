@@ -214,8 +214,8 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             repositories {
                 maven {
                     name = 'custom repo'
-                    url = 'http://foo.com'
-                    artifactUrls 'http://foo.com/artifacts1'
+                    url = 'https://foo.com'
+                    artifactUrls 'https://foo.com/artifacts1'
                     metadataSources { gradleMetadata(); artifact() }
                     credentials {
                         username 'user'
@@ -243,8 +243,8 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name == 'custom repo'
             type == 'MAVEN'
             properties.size() == 5
-            properties.URL == 'http://foo.com'
-            properties.ARTIFACT_URLS == ['http://foo.com/artifacts1']
+            properties.URL == 'https://foo.com'
+            properties.ARTIFACT_URLS == ['https://foo.com/artifacts1']
             properties.METADATA_SOURCES == ['gradleMetadata', 'artifact']
             properties.AUTHENTICATED == true
             properties.'AUTHENTICATION_SCHEMES' == ['DigestAuthentication']
@@ -281,9 +281,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             repositories {
                 ivy {
                     name = 'custom repo'
-                    url 'http://myCompanyBucket/ivyrepo'
-                    artifactPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]'
-                    ivyPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml'
+                    url 'https://myCompanyBucket/ivyrepo'
+                    artifactPattern 'https://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]'
+                    ivyPattern 'https://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml'
                     patternLayout {
                         artifact '[module]/[organisation]/[revision]/[artifact]'
                         artifact '3rd-party/[module]/[organisation]/[revision]/[artifact]'
@@ -317,17 +317,17 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             name == 'custom repo'
             type == 'IVY'
             properties.size() == 8
-            properties.URL == 'http://myCompanyBucket/ivyrepo'
+            properties.URL == 'https://myCompanyBucket/ivyrepo'
             properties.LAYOUT_TYPE == 'Pattern'
             properties.M2_COMPATIBLE == true
             properties.IVY_PATTERNS == [
                 '[module]/[organisation]/[revision]/ivy.xml',
-                'http://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml'
+                'https://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml'
             ]
             properties.ARTIFACT_PATTERNS == [
                 '[module]/[organisation]/[revision]/[artifact]',
                 '3rd-party/[module]/[organisation]/[revision]/[artifact]',
-                'http://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]'
+                'https://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]'
             ]
             properties.METADATA_SOURCES == ['gradleMetadata', 'ivyDescriptor', 'artifact']
             properties.AUTHENTICATED == true
@@ -378,7 +378,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     properties.'AUTHENTICATION_SCHEMES' == []
                 } else {
                     properties.size() == 8
-                    properties.URL == 'http://foo.com'
+                    properties.URL == 'https://foo.com'
                     properties.ARTIFACT_PATTERNS == ['[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])']
                     properties.IVY_PATTERNS == ['[organisation]/[module]/[revision]/ivy-[revision].xml']
                     properties.LAYOUT_TYPE == 'Gradle'
@@ -394,10 +394,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
 
         where:
-        definition               | success | artifactPattern
-        "url = 'http://foo.com'" | true    | false
-        "artifactPattern 'foo'"  | true    | true
-        ''                       | false   | false
+        definition                | success | artifactPattern
+        "url = 'https://foo.com'" | true    | false
+        "artifactPattern 'foo'"   | true    | true
+        ''                        | false   | false
     }
 
     def "flat-dir repository attributes are stored"() {
