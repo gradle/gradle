@@ -316,7 +316,6 @@ fun configureTests() {
         if (usesEmbeddedExecuter()) {
             enabled = false
         }
-
     }
 }
 
