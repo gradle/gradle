@@ -61,6 +61,7 @@ abstract class NativeCompilerTest extends Specification {
     private parallelismConfiguration = DefaultParallelismConfiguration.DEFAULT
     protected BuildOperationExecutor buildOperationExecutor = BuildOperationExecutorSupport.builder(parallelismConfiguration)
         .withWorkerLeaseService(workerLeaseService)
+        .withTimeSupplier { timeProvider.currentTime }
         .withExecutionListenerFactory { new BuildOperationProgressEventListenerAdapter(buildOperationListener, new NoOpProgressLoggerFactory(), timeProvider) }
         .build()
 
@@ -166,7 +167,7 @@ abstract class NativeCompilerTest extends Specification {
         sourceFiles.each { sourceFile ->
             1 * commandLineTool.execute(_, _)
         }
-        2 * timeProvider.getCurrentTime()
+        4 * timeProvider.getCurrentTime()
         2 * buildOperationListener.started(_, _)
         2 * buildOperationListener.finished(_, _)
         0 * _
