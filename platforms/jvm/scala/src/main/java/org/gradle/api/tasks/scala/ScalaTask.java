@@ -18,24 +18,14 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.Internal;
 
 /**
  * Common interface for Scala tasks.
  *
  * @since 8.8
  */
-public interface ScalaTask extends Task, IConventionAware {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Internal
-    @Override
-    ConventionMapping getConventionMapping();
+public interface ScalaTask extends Task {
 
     @Classpath
     FileCollection getClasspath();
