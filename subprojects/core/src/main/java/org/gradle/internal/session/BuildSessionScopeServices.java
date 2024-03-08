@@ -187,8 +187,8 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
     }
 
-    CleanupActionDecorator createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
-        return new BuildOperationCleanupActionDecorator(buildOperationExecutor);
+    CleanupActionDecorator createCleanupActionFactory(BuildOperationRunner buildOperationRunner) {
+        return new BuildOperationCleanupActionDecorator(buildOperationRunner);
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
