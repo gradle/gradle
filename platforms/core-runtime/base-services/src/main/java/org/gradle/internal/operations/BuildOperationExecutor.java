@@ -38,17 +38,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ServiceScope(Scopes.BuildSession.class)
 public interface BuildOperationExecutor {
     /**
-     * Calls the given build operation synchronously. Invokes the given operation from the current thread.
-     * Returns the result.
-     *
-     * <p>Rethrows any exception thrown by the action.
-     * Runtime exceptions are rethrown as is.
-     * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
-     */
-    // TODO Use BuildOperationRunner directly
-    <T> T call(CallableBuildOperation<T> buildOperation);
-
-    /**
      * Starts an operation that can be finished later.
      *
      * When a parent operation is finished any unfinished child operations will be failed.

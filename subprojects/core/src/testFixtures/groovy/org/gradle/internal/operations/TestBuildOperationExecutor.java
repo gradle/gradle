@@ -48,11 +48,6 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public <T> T call(CallableBuildOperation<T> buildOperation) {
-        return runner.call(buildOperation);
-    }
-
-    @Override
     public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
         return runner.start(descriptor);
     }
