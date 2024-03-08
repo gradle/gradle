@@ -24,7 +24,7 @@ import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.scopes.Scopes;
@@ -32,7 +32,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +46,7 @@ import java.util.stream.Collectors;
 
 @ServiceScope(Scopes.Build.class)
 public class JavaInstallationRegistry {
-    private final BuildOperationExecutor executor;
+    private final BuildOperationRunner buildOperationRunner;
     private final Installations installations;
     private final JvmMetadataDetector metadataDetector;
     private final Logger logger;
@@ -59,23 +58,23 @@ public class JavaInstallationRegistry {
     public JavaInstallationRegistry(
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
-        @Nullable BuildOperationExecutor executor,
+        BuildOperationRunner buildOperationRunner,
         OperatingSystem os,
         ProgressLoggerFactory progressLoggerFactory
     ) {
-        this(suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), executor, os, progressLoggerFactory);
+        this(suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory);
     }
 
     private JavaInstallationRegistry(
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
         Logger logger,
-       @Nullable BuildOperationExecutor executor,
+        BuildOperationRunner buildOperationRunner,
         OperatingSystem os,
         ProgressLoggerFactory progressLoggerFactory
     ) {
         this.logger = logger;
-        this.executor = executor;
+        this.buildOperationRunner = buildOperationRunner;
         this.metadataDetector = metadataDetector;
         this.installations = new Installations(() -> maybeCollectInBuildOperation(suppliers));
         this.os = os;
@@ -83,22 +82,18 @@ public class JavaInstallationRegistry {
     }
 
     @VisibleForTesting
-    static JavaInstallationRegistry withLogger(
+    public static JavaInstallationRegistry withLogger(
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
         Logger logger,
-        BuildOperationExecutor executor,
+        BuildOperationRunner buildOperationRunner,
         ProgressLoggerFactory progressLoggerFactory
     ) {
-        return new JavaInstallationRegistry(suppliers, metadataDetector, logger, executor, OperatingSystem.current(), progressLoggerFactory);
+        return new JavaInstallationRegistry(suppliers, metadataDetector, logger, buildOperationRunner, OperatingSystem.current(), progressLoggerFactory);
     }
 
     private Set<InstallationLocation> maybeCollectInBuildOperation(List<InstallationSupplier> suppliers) {
-        if (executor != null) {
-            return executor.call(new ToolchainDetectionBuildOperation(() -> collectInstallations(suppliers)));
-        } else {
-            return collectInstallations(suppliers);
-        }
+        return buildOperationRunner.call(new ToolchainDetectionBuildOperation(() -> collectInstallations(suppliers)));
     }
 
     protected Set<InstallationLocation> listInstallations() {
