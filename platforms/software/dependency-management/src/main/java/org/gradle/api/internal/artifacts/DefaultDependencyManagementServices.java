@@ -252,14 +252,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformInvocationFactory createTransformInvocationFactory(
-                ExecutionEngine executionEngine,
-                FileSystemAccess fileSystemAccess,
-                ImmutableTransformWorkspaceServices transformWorkspaceServices,
-                TransformExecutionListener transformExecutionListener,
-                FileCollectionFactory fileCollectionFactory,
-                ProjectStateRegistry projectStateRegistry,
-                BuildOperationExecutor buildOperationExecutor,
-                BuildOperationProgressEventEmitter progressEventEmitter
+            ExecutionEngine executionEngine,
+            FileSystemAccess fileSystemAccess,
+            ImmutableTransformWorkspaceServices transformWorkspaceServices,
+            TransformExecutionListener transformExecutionListener,
+            FileCollectionFactory fileCollectionFactory,
+            ProjectStateRegistry projectStateRegistry,
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationProgressEventEmitter progressEventEmitter
         ) {
             return new DefaultTransformInvocationFactory(
                 executionEngine,
@@ -268,7 +268,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformWorkspaceServices,
                 fileCollectionFactory,
                 projectStateRegistry,
-                buildOperationExecutor,
+                buildOperationRunner,
                 progressEventEmitter
             );
         }
