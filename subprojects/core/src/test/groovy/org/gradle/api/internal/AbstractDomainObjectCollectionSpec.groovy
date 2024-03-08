@@ -28,7 +28,7 @@ import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeApplicationId
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.metaobject.ConfigureDelegate
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.CoreMatchers
@@ -42,9 +42,9 @@ import static org.junit.Assume.assumeTrue
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
-    TestBuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    TestBuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     UserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext()
-    CollectionCallbackActionDecorator callbackActionDecorator = new DefaultCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext)
+    CollectionCallbackActionDecorator callbackActionDecorator = new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext)
 
     abstract boolean isSupportsBuildOperations()
 
@@ -1781,7 +1781,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         addToContainer(a)
 
         then:
-        def callbacks1 = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        def callbacks1 = buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
         callbacks1.size() == 1
         callbacks1.first().details.applicationId == id1.longValue()
 
@@ -1798,7 +1798,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         addToContainer(b)
 
         then:
-        def callbacks = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        def callbacks = buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
         callbacks.size() == 3
         callbacks[1].details.applicationId == id1.longValue()
         callbacks[2].details.applicationId == id2.longValue()
@@ -1818,7 +1818,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         addToContainer(a)
 
         then:
-        buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+        buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
     }
 
     def "does not fire build operation if callback is filtered out by condition"() {
@@ -1835,7 +1835,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         addToContainer(a)
 
         then:
-        buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+        buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
     }
 
     def "fires build operation for existing elements"() {
@@ -1858,7 +1858,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         ids.size() == 1
         ids.first() == id
-        def ops = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        def ops = buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
         ops.size() == 1
         ops.first().details.applicationId == id.longValue()
     }
@@ -1877,7 +1877,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         ids.size() == 1
         ids.first() == null
-        buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+        buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
     }
 
     def "handles nested listener registration"() {
@@ -1906,7 +1906,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         addToContainer(b)
 
         then:
-        def ops = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        def ops = buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
         ops.size() == 4
         ops[0].details.applicationId == id1.longValue()
         ops[1].details.applicationId == id2.longValue()

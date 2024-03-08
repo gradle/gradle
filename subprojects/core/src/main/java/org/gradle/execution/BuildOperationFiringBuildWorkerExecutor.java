@@ -23,21 +23,21 @@ import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 
 public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecutor {
     private final BuildWorkExecutor delegate;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public BuildOperationFiringBuildWorkerExecutor(BuildWorkExecutor delegate, BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperationFiringBuildWorkerExecutor(BuildWorkExecutor delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
-        return buildOperationExecutor.call(new ExecuteTasks(gradle, plan));
+        return buildOperationRunner.call(new ExecuteTasks(gradle, plan));
     }
 
     private class ExecuteTasks implements CallableBuildOperation<ExecutionResult<Void>> {

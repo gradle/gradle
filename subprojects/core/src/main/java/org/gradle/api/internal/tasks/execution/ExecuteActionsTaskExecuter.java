@@ -36,7 +36,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.work.AsyncWorkTracker;
 
 import java.util.List;
@@ -51,7 +51,7 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     private final ExecutionHistoryStore executionHistoryStore;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final AsyncWorkTracker asyncWorkTracker;
     private final org.gradle.api.execution.TaskActionListener actionListener;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
@@ -66,7 +66,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     public ExecuteActionsTaskExecuter(
         ExecutionHistoryStore executionHistoryStore,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         AsyncWorkTracker asyncWorkTracker,
         org.gradle.api.execution.TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
@@ -80,7 +80,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         PathToFileResolver fileResolver
     ) {
         this.executionHistoryStore = executionHistoryStore;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.asyncWorkTracker = asyncWorkTracker;
         this.actionListener = actionListener;
         this.taskCacheabilityResolver = taskCacheabilityResolver;
@@ -101,7 +101,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             context,
             actionListener,
             asyncWorkTracker,
-            buildOperationExecutor,
+            buildOperationRunner,
             classLoaderHierarchyHasher,
             executionHistoryStore,
             fileCollectionFactory,

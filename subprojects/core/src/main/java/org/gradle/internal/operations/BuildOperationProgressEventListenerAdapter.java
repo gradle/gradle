@@ -38,7 +38,7 @@ public class BuildOperationProgressEventListenerAdapter implements DefaultBuildO
     @Override
     public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
         buildOperationListener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, descriptor);
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationRunner.class, descriptor);
         this.progressLogger = progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
     }
 
@@ -49,7 +49,7 @@ public class BuildOperationProgressEventListenerAdapter implements DefaultBuildO
         // This should be pushed down into the progress logger infrastructure so that an operation can have both a display name (that doesn't change) and
         // a status (that does)
         if (statusProgressLogger == null) {
-            statusProgressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, progressLogger);
+            statusProgressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationRunner.class, progressLogger);
             statusProgressLogger.start(descriptor.getDisplayName(), status);
         } else {
             statusProgressLogger.progress(status);

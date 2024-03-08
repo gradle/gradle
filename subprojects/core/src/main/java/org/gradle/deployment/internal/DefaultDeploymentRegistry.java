@@ -25,7 +25,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 
 import java.util.ArrayList;
@@ -43,15 +43,15 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
     private final Map<String, RegisteredDeployment> deployments = new HashMap<>();
     private final PendingChangesManager pendingChangesManager;
     private final PendingChanges pendingChanges;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final ObjectFactory objectFactory;
     private final ContinuousExecutionGate continuousExecutionGate = new DefaultContinuousExecutionGate();
     private boolean stopped;
     private boolean anyStarted;
 
-    public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
+    public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationRunner buildOperationRunner, ObjectFactory objectFactory) {
         this.pendingChangesManager = pendingChangesManager;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.objectFactory = objectFactory;
         this.pendingChanges = new PendingChanges();
         pendingChangesManager.addListener(this);
@@ -69,7 +69,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
         try {
             failIfStopped();
             if (!deployments.containsKey(name)) {
-                return buildOperationExecutor.call(new CallableBuildOperation<T>() {
+                return buildOperationRunner.call(new CallableBuildOperation<T>() {
                     @Override
                     public BuildOperationDescriptor.Builder description() {
                         return BuildOperationDescriptor.displayName("Start deployment '" + name + "'");
