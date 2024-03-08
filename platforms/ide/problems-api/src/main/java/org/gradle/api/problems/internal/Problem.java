@@ -21,15 +21,28 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Describes contextual information for a {@link ProblemDefinition}.
+ * Interface for describing structured information about a problem.
  */
-public interface ProblemContext {
+public interface Problem {
+
+    /**
+     * Returns the problem definition, i.e. the data that is independent of the report context.
+     */
+    ProblemDefinition getDefinition();
+
+    @Nullable
+    String getContextualLabel();
+
+    /**
+     * Returns solutions and advice that contain context-sensitive data, e.g. the message contains references to variables, locations, etc.
+     */
+    List<String> getSolutions();
 
     /**
      * A long description detailing the problem.
      * <p>
      * Details can elaborate on the problem, and provide more information about the problem.
-     * They can be multiple lines long, but should not detail solutions; for that, use {@link ProblemDefinition#getSolutions()}.
+     * They can be multiple lines long, but should not detail solutions; for that, use {@link #getSolutions()}.
      */
     @Nullable
     String getDetails();
@@ -51,4 +64,9 @@ public interface ProblemContext {
      * The only supported value type is {@link String}.
      */
     Map<String, Object> getAdditionalData();
+
+    /**
+     * Returns a problem builder with fields initialized with values from this instance.
+     */
+    InternalProblemBuilder toBuilder();
 }

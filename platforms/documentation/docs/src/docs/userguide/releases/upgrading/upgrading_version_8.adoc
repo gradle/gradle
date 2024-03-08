@@ -40,6 +40,83 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Deprecations
 
+[[mutate_configuration_after_locking]]
+==== Deprecate mutating configuration after observation
+
+To ensure the accuracy of dependency resolution, Gradle checks that Configurations are not mutated after they have been used as part of a dependency graph.
+
+* Resolvable configurations should not have their resolution strategy, dependencies, hierarchy, etc. modified after they have been resolved.
+* Consumable configurations should not have their dependencies, hierarchy, attributes, etc. modified after they have been published or consumed as a variant.
+* Dependency scope configurations should not have their dependencies, constraints, etc. modified after a configuration that extends from them are observed.
+
+In prior versions of Gradle, many of these circumstances were detected and handled by failing the build.
+However, some cases went undetected or did not trigger build failures.
+In Gradle 9.0, all changes to a configuration after it has been observed will become an error.
+After a configuration of any type has been observed, it should be considered immutable.
+This validation covers the following properties of a configuration:
+
+* Resolution Strategy
+* Dependencies
+* Constraints
+* Exclude Rules
+* Artifacts
+* Role (consumable, resolvable, dependency scope)
+* Hierarchy (`extendsFrom`)
+* Others (Transitive, Visible)
+
+Starting in Gradle 8.8, a deprecation warning will be emitted in cases that were not already an error.
+Usually, this deprecation is caused by mutating a configuration in a link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#beforeResolve-org.gradle.api.Action-[`beforeResolve`] hook.
+This hook is only executed after a configuration is fully resolved but not when it is partially resolved for computing task dependencies.
+
+Consider the following code that showcases the deprecated behavior:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+configurations.runtimeClasspath {
+    // `beforeResolve` is called after the configuration is resolved for task dependencies,
+    // but before it is fully resolved during artifact resolution.
+    // Configurations should not be mutated in this hook
+    incoming.beforeResolve {
+        // Add a dependency on `com:foo` if not already present
+        if (allDependencies.none { it.group == "com" && it.name == "foo" }) {
+            configurations.implementation.get().dependencies.add(project.dependencies.create("com:foo:1.0"))
+        }
+    }
+}
+
+tasks.register("resolve") {
+    val conf: FileCollection = configurations["runtimeClasspath"]
+
+    // Wire build dependencies
+    dependsOn(conf)
+
+    // Resolve dependencies
+    doLast {
+        assert(conf.files.map { it.name } == listOf("foo-1.0.jar"))
+    }
+}
+----
+======
+=====
+
+For the following use cases, consider these alternatives when replacing a `beforeResolve` hook:
+
+* **Adding dependencies**: Use link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[`withDependencies`].
+* **Changing dependency versions**: Use <<using_preferred_versions,preferred version constraints>>.
+* **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
+* **Roles**: Configuration roles should be set upon creation and not changed afterward.
+* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged, but is permitted within a `withDependencies` hook.
+* **Resolution Strategy**: Mutating a configuration's ResolutionStrategy is still permitted in a `beforeResolve` hook; however, this is not recommended.
+
+
 [[deprecated_namers]]
 ==== Deprecated `Namer` of `Task` and `Configuration`
 `Task` and `Configuration` have a link:{javadocPath}/org/gradle/api/Namer.html[`Namer`] inner class (also called `Namer`) that can be used as a common way to retrieve the name of a task or configuration.
@@ -67,6 +144,15 @@ The new API has now been promoted to stable and the old methods have been deprec
 - link:{javadocPath}/org/gradle/api/file/FileCopyDetails.html#setMode-int-[FileCopyDetails.setMode]
 
 
+=== Potential breaking changes
+
+==== Changes in the Problems API
+
+We have implemented several refactorings of the Problems API, including a significant change in the way problem definitions and contextual information are handled.
+The complete design specification can be found [here](https://docs.google.com/document/d/1T_vM-Upa23aA21sanFTTLZa3j9xV6R32djJk6-muWzI/edit#heading=h.610fausqnpu6).
+
+In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
+- The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
 
 [[changes_8.7]]
 == Upgrading from 8.6 and earlier
@@ -463,6 +549,7 @@ Build logic like the above example creates challenges in resolving declared depe
 Instead, the build logic can avoid iteration and mutation by declaring a `preferred` version constraint on the dependency's coordinates.
 This allows the dependency management engine to use the version declared on the constraint if no other version is declared.
 
+[[using_preferred_versions]]
 Consider the following example that replaces the above iteration with an indiscriminate <<rich_versions.adoc#sec:preferred-version,preferred>> version constraint:
 
 =====

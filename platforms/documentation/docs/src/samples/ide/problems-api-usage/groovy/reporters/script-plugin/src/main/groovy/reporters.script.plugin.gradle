@@ -6,8 +6,8 @@ def gradleInternal = gradle as GradleInternal
 def problems = gradleInternal.services.get(Problems)
 
 problems.forNamespace('buildscript').reporting {
-    it.label("Deprecated script plugin 'demo-script-plugin'")
-        .category('deprecation', 'plugin')
+    it.id('adhoc-script-deprecation', 'Deprecated script plugin')
+        .contextualLabel("Deprecated script plugin 'demo-script-plugin'")
         .severity(Severity.WARNING)
         .solution("Please use 'standard-plugin-2' instead of this plugin")
 }
@@ -15,8 +15,8 @@ problems.forNamespace('buildscript').reporting {
 tasks.register('warningTask') {
     doLast {
         problems.forNamespace('buildscript').reporting {
-            it.label("Task 'warningTask' is deprecated")
-                .category('deprecation', 'task')
+            it.id('adhoc-task-deprecation', 'Deprecated task')
+                .contextualLabel("Task 'warningTask' is deprecated")
                 .severity(Severity.WARNING)
                 .solution("Please use 'warningTask2' instead of this task")
         }
@@ -26,8 +26,8 @@ tasks.register('warningTask') {
 tasks.register('failingTask') {
     doLast {
         problems.forNamespace('buildscript').throwing {
-            it.label("Task 'failingTask' should not be called")
-                .category('deprecation', 'task')
+            it.id('broken-task', 'Task should not be called')
+                .contextualLabel("Task 'failingTask' should not be called")
                 .severity(Severity.ERROR)
                 .withException(new RuntimeException("The 'failingTask' should not be called"))
                 .solution("Please use 'successfulTask' instead of this task")

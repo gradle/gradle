@@ -33,6 +33,7 @@ dependencies {
     jmhImplementation(libs.snappy)
 
     testImplementation(testFixtures(project(":base-services")))
+    testImplementation(testFixtures(project(":build-operations")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":snapshots")))
 

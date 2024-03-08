@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
+
+import org.gradle.api.Incubating;
 
 /**
- * Interface for describing structured information about a problem.
+ * Represents an identifier for a problem definition.
+ * <p>
+ * Two problem IDs are considered equal if their {@link #getName()} and their groups are equal.
+ *
+ * @since 8.8
  */
-public interface ProblemReport {
+@Incubating
+public interface ProblemId {
 
     /**
-     * Returns the problem definition, i.e. the data that is independent of the report context.
+     * The name of the problem.
+     *
+     * @since 8.8
      */
-    ProblemDefinition getDefinition();
+    String getName();
 
     /**
-     * Returns the contextual information associated with this problem.
+     * A human-readable label describing the problem ID.
+     *
+     * @since 8.8
      */
-    ProblemContext getContext();
+    String getDisplayName();
 
     /**
-     * Returns a problem builder with fields initialized with values from this instance.
+     * The parent group.
+     *
+     * @since 8.8
      */
-    InternalProblemBuilder toBuilder();
+    ProblemGroup getGroup();
 }

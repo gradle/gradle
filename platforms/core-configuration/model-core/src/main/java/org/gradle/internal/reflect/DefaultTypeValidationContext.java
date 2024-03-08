@@ -18,9 +18,10 @@ package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.problems.internal.ProblemReport;
-import org.gradle.api.problems.internal.ProblemCategory;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.DefaultProblemId;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
@@ -34,7 +35,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
     public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
     private final boolean reportCacheabilityProblems;
-    private final ImmutableList.Builder<ProblemReport> problems = ImmutableList.builder();
+    private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
 
     public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable) {
         return new DefaultTypeValidationContext(rootType, cacheable);
@@ -49,30 +50,26 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
-    public static final String[] MISSING_NORMALIZATION_CATEGORY_DETAILS = new String[]
-        {"property", "missing-normalization-annotation"};
-    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = DefaultProblemCategory.create(DefaultProblemCategory.GRADLE_CORE_NAMESPACE, DefaultProblemCategory.VALIDATION, MISSING_NORMALIZATION_CATEGORY_DETAILS);
+    public static final ProblemId MISSING_NORMALIZATION_ID = new DefaultProblemId("missing-normalization-annotation", "Missing normalization", GradleCoreProblemGroup.validation().property());
 
-    public static boolean onlyAffectsCacheableWork(ProblemCategory problemCategory) {
-        return MISSING_NORMALIZATION_CATEGORY.equals(problemCategory);
+    public static boolean onlyAffectsCacheableWork(ProblemId id) {
+        return MISSING_NORMALIZATION_ID.equals(id);
     }
 
 
-
-
     @Override
-    protected void recordProblem(ProblemReport problem) {
-        if (onlyAffectsCacheableWork(problem.getDefinition().getCategory()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
+    protected void recordProblem(Problem problem) {
+        if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
             return;
         }
         problems.add(problem);
     }
 
-    public ImmutableList<ProblemReport> getProblems() {
+    public ImmutableList<Problem> getProblems() {
         return problems.build();
     }
 
-    public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<ProblemReport> validationMessages) {
+    public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<Problem> validationMessages) {
         if (!validationMessages.isEmpty()) {
             String formatString = validationMessages.size() == 1
                 ? "A problem was found with the configuration of %s."

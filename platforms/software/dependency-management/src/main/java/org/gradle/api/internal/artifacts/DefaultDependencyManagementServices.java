@@ -532,14 +532,15 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             LocalComponentRegistry localComponentRegistry,
             List<ResolverProviderFactory> resolverFactories,
             ExternalModuleComponentResolverFactory moduleDependencyResolverFactory,
-            ProjectDependencyResolver projectDependencyResolver
+            ProjectDependencyResolver projectDependencyResolver,
+            DependencyLockingProvider dependencyLockingProvider
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 dependencyGraphResolver,
                 repositoriesSupplier,
                 metadataHandler,
                 resolutionResultsStoreFactory,
-                startParameter.isBuildProjectDependencies(),
+                startParameter,
                 attributesSchema,
                 variantSelectorFactory,
                 moduleIdentifierFactory,
@@ -548,7 +549,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 calculatedValueContainerFactory,
                 componentSelectorConverter,
                 attributeContainerSerializer,
-                currentBuild.getBuildIdentifier(),
+                currentBuild,
                 attributeDesugaring,
                 artifactSetResolver,
                 componentSelectionDescriptorFactory,
@@ -561,7 +562,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 localComponentRegistry,
                 resolverFactories,
                 moduleDependencyResolverFactory,
-                projectDependencyResolver
+                projectDependencyResolver,
+                dependencyLockingProvider
             );
 
             return new ShortCircuitEmptyConfigurationResolver(

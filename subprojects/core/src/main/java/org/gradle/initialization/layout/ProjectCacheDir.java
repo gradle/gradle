@@ -21,8 +21,10 @@ import org.gradle.cache.internal.DefaultCleanupProgressMonitor;
 import org.gradle.cache.internal.VersionSpecificCacheCleanupAction;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.logging.progress.ProgressLogger;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.TimestampSuppliers;
@@ -34,12 +36,12 @@ public class ProjectCacheDir implements Stoppable {
     private static final int MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS = 7;
 
     private final File dir;
-    private final ProgressLoggerFactory progressLoggerFactory;
+    private final BuildOperationRunner buildOperationRunner;
     private final Deleter deleter;
 
-    public ProjectCacheDir(File dir, ProgressLoggerFactory progressLoggerFactory, Deleter deleter) {
+    public ProjectCacheDir(File dir, BuildOperationRunner buildOperationRunner, Deleter deleter) {
         this.dir = dir;
-        this.progressLoggerFactory = progressLoggerFactory;
+        this.buildOperationRunner = buildOperationRunner;
         this.deleter = deleter;
     }
 
@@ -55,12 +57,16 @@ public class ProjectCacheDir implements Stoppable {
             deleter,
             CleanupFrequency.DAILY
         );
-        String description = cleanupAction.getDisplayName();
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(ProjectCacheDir.class).start(description, description);
-        try {
-            cleanupAction.execute(new DefaultCleanupProgressMonitor(progressLogger));
-        } finally {
-            progressLogger.completed();
-        }
+        buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                cleanupAction.execute(new DefaultCleanupProgressMonitor(context));
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(cleanupAction.getDisplayName());
+            }
+        });
     }
 }
