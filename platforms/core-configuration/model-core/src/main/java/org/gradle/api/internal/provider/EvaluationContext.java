@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -67,9 +66,22 @@ public final class EvaluationContext {
     public interface ScopeContext extends AutoCloseable {
         /**
          * Returns the owner of the current scope, which is the last object that started its evaluation.
+         * Can be null if the current scope has no owner (e.g. a just opened nested context).
+         *
          * @return the owner
          */
+        @Nullable
         EvaluationOwner getOwner();
+
+        /**
+         * Opens a nested context. A nested context allows to re-enter evaluation of the objects that are being evaluated in this context.
+         * The newly returned nested context has no owner.
+         * <p>
+         * This method may be marginally more effective than using {@link EvaluationContext#evaluateNested(ScopedEvaluation)}.
+         *
+         * @return the nested context, to close it when done
+         */
+        ScopeContext nested();
 
         /**
          * Removes the owner added to evaluation context when obtaining this class from the context.
@@ -174,7 +186,7 @@ public final class EvaluationContext {
     }
 
     private ScopeContext nested() {
-        return setContext(new PerThreadContext(getContext()));
+        return getContext().nested();
     }
 
     private final class PerThreadContext implements ScopeContext {
@@ -206,6 +218,11 @@ public final class EvaluationContext {
         }
 
         @Override
+        public ScopeContext nested() {
+            return setContext(new PerThreadContext(this));
+        }
+
+        @Override
         public void close() {
             // Closing the "nested" context.
             if (parent != null && evaluationStack.isEmpty()) {
@@ -220,8 +237,11 @@ public final class EvaluationContext {
         }
 
         @Override
+        @Nullable
         public EvaluationOwner getOwner() {
-            Preconditions.checkState(!evaluationStack.isEmpty(), "No object is being evaluated right now");
+            if (evaluationStack.isEmpty()) {
+                return null;
+            }
             return evaluationStack.get(evaluationStack.size() - 1);
         }
 
