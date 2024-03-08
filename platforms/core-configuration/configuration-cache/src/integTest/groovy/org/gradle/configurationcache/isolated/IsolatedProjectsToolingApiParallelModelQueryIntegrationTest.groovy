@@ -17,68 +17,42 @@
 package org.gradle.configurationcache.isolated
 
 import org.gradle.configurationcache.fixtures.SomeToolingModel
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.junit.Rule
 
 class IsolatedProjectsToolingApiParallelModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
-    @Rule
-    BlockingHttpServer server = new BlockingHttpServer()
-
-    def setup() {
-        server.start()
-    }
 
     def "intermediate model is cached and reused for nested concurrent requests"() {
+        // Sleep to ensure concurrent requests for the same model catch up before the first one is finished
         withSomeToolingModelBuilderPluginInBuildSrc("""
-            Thread.sleep(3000) // Simulate long-running builder to ensure overlap
+            Thread.sleep(3000)
         """)
 
         settingsFile << """
             rootProject.name = "root"
         """
 
-        apply(testDirectory)
-
-        // Prebuild buildSrc
-        server.expect("configure-root")
-
-        run()
-
-        given:
-        server.expectConcurrent("nested-1", "nested-2", "nested-3")
-        server.expect("configure-root") // project will be configured only once
-        server.expect("finished")
-
-        when:
-        withIsolatedProjects()
-        def models = runBuildAction(new FetchCustomModelInParallel("${server.uri}"))
-
-        then:
-        models.size == 3
-        models[0].message == "It works from project :"
-
-        and:
-        fixture.assertStateStored {
-            projectsConfigured(":buildSrc", ":")
-            modelsCreated(SomeToolingModel, ":") // only single model is created and reused
-        }
-    }
-
-    TestFile apply(TestFile dir) {
-        def buildFile = dir.file("build.gradle")
         buildFile << """
             plugins {
                 id("my.plugin")
             }
         """
-        configuring(buildFile)
-        return buildFile
-    }
 
-    TestFile configuring(TestFile buildFile) {
-        buildFile << """
-            ${server.callFromBuildUsingExpression("'configure-' + project.name")}
-        """
+        when:
+        withIsolatedProjects()
+        def models = runBuildAction(new FetchCustomModelForSameProjectInParallel())
+
+        then:
+        // Ensure nested requests are all executed and not cached individually
+        outputContains("Executing nested-1")
+        outputContains("Executing nested-2")
+
+        and:
+        models.size == 2
+        models[0].message == "It works from project :"
+
+        and:
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc", ":")
+            modelsCreated(SomeToolingModel, ":") // the model is built only once and reused
+        }
     }
 }
