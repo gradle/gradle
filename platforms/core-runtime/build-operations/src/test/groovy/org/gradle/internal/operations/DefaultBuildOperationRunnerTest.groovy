@@ -665,18 +665,10 @@ class DefaultBuildOperationRunnerTest extends ConcurrentSpec {
         }
 
         and:
-        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operation, @Nullable BuildOperationState p, ReadableBuildOperationContext context ->
-            assert operation.id == child1Id
-        }
-        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operation, @Nullable BuildOperationState p, ReadableBuildOperationContext context ->
-            assert operation.id == child2Id
-        }
-        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operation, @Nullable BuildOperationState p, ReadableBuildOperationContext context ->
-            assert operation.id == parent1Id
-        }
-        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operation, @Nullable BuildOperationState p, ReadableBuildOperationContext context ->
-            assert operation.id == parent2Id
-        }
+        1 * listener.stop({ it.id == child1Id }, _, _, _)
+        1 * listener.stop({ it.id == child2Id }, _, _, _)
+        1 * listener.stop({ it.id == parent1Id }, _, _, _)
+        1 * listener.stop({ it.id == parent2Id }, _, _, _)
     }
 
     def "attaches parent id when sibling operation fails"() {
