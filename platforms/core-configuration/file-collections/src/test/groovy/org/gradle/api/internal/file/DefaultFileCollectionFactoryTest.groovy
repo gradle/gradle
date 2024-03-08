@@ -335,7 +335,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
     }
 
     def 'fails on resolving absent Provider#description in file collection'() {
-        def collection = factory.resolving(provider)
+        def collection = factory.resolvingStrictly(provider)
 
         when:
         collection.files

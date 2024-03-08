@@ -182,9 +182,13 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         return new ResolvingFileCollection(displayName, fileResolver, taskDependencyFactory, patternSetFactory, providerResolutionStrategy, sources);
     }
 
+    public FileCollectionInternal resolvingStrictly(Object sources) {
+        return resolving(ProviderResolutionStrategy.REQUIRE_PRESENT, sources);
+    }
+
     @Override
     public FileCollectionInternal resolving(Object sources) {
-        return resolving(ProviderResolutionStrategy.ALLOW_ABSENT, sources);
+        return resolvingLeniently(sources);
     }
 
     @Override
