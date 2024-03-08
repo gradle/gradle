@@ -33,6 +33,7 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
+import org.gradle.api.internal.provider.EvaluationContext;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
@@ -998,13 +999,20 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                 // Collect any container level add actions added since the last call to configure()
                 onCreate = onCreate.mergeFrom(getEventRegister().getAddActions());
 
-                // Create the domain object
-                object = createDomainObject();
-
-                // Register the domain object
-                add(object, onCreate);
-                realized(AbstractDomainObjectCreatingProvider.this);
-                onLazyDomainObjectRealized();
+                try (EvaluationContext.ScopeContext scope = openScope()) {
+                    // Create the domain object
+                    object = createDomainObject();
+                    // Configuring the domain object may cause circular evaluation, but after initializing this.object
+                    // calculateOwnValue short-circuits it at a cost of exposing a partially constructed value.
+                    // Because of that the circular evaluation that goes through this provider doesn't cause stack overflow.
+                    // To avoid breaking existing code, we open a nested evaluation scope here to allow re-entering the chain.
+                    try (EvaluationContext.ScopeContext ignored = scope.nested()) {
+                        // Register the domain object
+                        add(object, onCreate);
+                        realized(AbstractDomainObjectCreatingProvider.this);
+                        onLazyDomainObjectRealized();
+                    }
+                }
             } catch (Throwable ex) {
                 failure = domainObjectCreationException(ex);
                 throw failure;
