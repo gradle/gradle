@@ -76,6 +76,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -199,6 +200,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     protected HostnameLookup getHostnameLookup() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected BuildOperationRunner getBuildOperationRunner() {
         throw new UnsupportedOperationException();
     }
 
@@ -598,7 +604,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                     junitXml.isOutputPerTestCase(),
                     junitXml.getMergeReruns().get()
                 );
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getOutputLocation().getAsFile().get(), testResultsProvider, xmlResultOptions, getBuildOperationExecutor(), getHostnameLookup().getHostname());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(
+                    junitXml.getOutputLocation().getAsFile().get(),
+                    testResultsProvider,
+                    xmlResultOptions,
+                    getBuildOperationRunner(),
+                    getBuildOperationExecutor(),
+                    getHostnameLookup().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 

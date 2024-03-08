@@ -27,6 +27,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -44,20 +45,22 @@ public class Binary2JUnitXmlReportGenerator {
     @VisibleForTesting
     JUnitXmlResultWriter xmlWriter;
 
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
     private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
-    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options, BuildOperationExecutor buildOperationExecutor, String hostName) {
+    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options, BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor, String hostName) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
         this.xmlWriter = new JUnitXmlResultWriter(hostName, testResultsProvider, options);
+        this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     public void generate() {
         Timer clock = Time.startTimer();
 
-        buildOperationExecutor.getRunner().run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 File[] oldXmlFiles = testResultsDir.listFiles(new FilenameFilter() {
