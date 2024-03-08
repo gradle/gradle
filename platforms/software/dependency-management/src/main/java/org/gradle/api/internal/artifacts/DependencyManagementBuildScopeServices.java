@@ -136,6 +136,7 @@ import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -459,7 +460,7 @@ class DependencyManagementBuildScopeServices {
      */
     ExecutionEngine createExecutionEngine(
         BuildInvocationScopeId buildInvocationScopeId,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CurrentBuildOperationRef currentBuildOperationRef,
@@ -476,20 +477,20 @@ class DependencyManagementBuildScopeServices {
 
         // @formatter:off
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(buildOperationExecutor,
+            new IdentifyStep<>(buildOperationRunner,
             new IdentityCacheStep<>(buildOperationProgressEventEmitter,
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
-            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
+            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new ResolveNonIncrementalCachingStateStep<>(
             new NeverUpToDateStep<>(
             new NoInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, NO_FILTER,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildInvocationScopeId.getId(), outputSnapshotter, NO_FILTER,
             // TODO Use a shared execution pipeline
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new ExecuteStep<>(buildOperationExecutor
+            new ExecuteStep<>(buildOperationRunner
         ))))))))))))));
         // @formatter:on
     }
