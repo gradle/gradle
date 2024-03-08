@@ -22,7 +22,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.authentication.Authentication
 import org.gradle.cache.FileLock
 import org.gradle.internal.operations.BuildOperationDescriptor
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.jvm.toolchain.JavaToolchainDownload
@@ -56,6 +56,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
     def cache = Mock(JdkCacheDirectory)
     def archiveFileLock = Mock(FileLock)
     def buildPlatform = Mock(BuildPlatform)
+    def buildOperationRunner = new TestBuildOperationRunner()
 
     def setup() {
         ExternalResourceMetaData downloadResourceMetadata = Mock(ExternalResourceMetaData)
@@ -74,14 +75,13 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
     def "cache is properly locked around provisioning a jdk"() {
         def spec = Mock(JavaToolchainSpec)
 
-        def operationExecutor = new TestBuildOperationExecutor()
         def providerFactory = createProviderFactory("true")
 
 
         given:
         mockRegistry(mockResolver(Optional.of(DOWNLOAD)))
 
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor, buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
@@ -97,7 +97,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
 
         then:
-        List<BuildOperationDescriptor> descriptors = operationExecutor.log.getDescriptors()
+        List<BuildOperationDescriptor> descriptors = buildOperationRunner.log.getDescriptors()
         descriptors.find { it.name == "Examining toolchain URI " + DOWNLOAD.getUri() }
         descriptors.find { it.name == "Downloading toolchain from URI " + DOWNLOAD.getUri() }
         descriptors.find { it.name == "Unpacking toolchain archive " + ARCHIVE_NAME }
@@ -110,7 +110,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         given:
         mockRegistry(mockResolver(Optional.of(DOWNLOAD)))
         new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
@@ -125,7 +125,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         mockRegistry(mockResolver(Optional.empty()))
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
@@ -141,7 +141,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         mockRegistry(mockResolver(new GradleException("Something went horribly wrong")))
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
@@ -162,7 +162,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
             mockResolver(Optional.of(DOWNLOAD)),
             mockResolver(new GradleException("OMG"))
         )
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
@@ -177,7 +177,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         mockRegistry(mockResolver(Optional.of(DOWNLOAD)))
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
@@ -188,12 +188,11 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
     def "downloads from url"() {
         def spec = Mock(JavaToolchainSpec)
-        def operationExecutor = new TestBuildOperationExecutor()
         def providerFactory = createProviderFactory("true")
 
         given:
         mockRegistry(mockResolver(Optional.of(DOWNLOAD)))
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor, buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
