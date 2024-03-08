@@ -17,9 +17,10 @@
 package org.gradle.api.internal.initialization.transform.utils;
 
 import org.gradle.api.artifacts.transform.TransformOutputs;
-import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
@@ -33,11 +34,11 @@ public class InstrumentationTransformUtils {
     public static final String DEPENDENCIES_SUPER_TYPES_FILE_NAME = "dependencies-super-types.bin";
 
     public static void createInstrumentationClasspathMarker(File outputDir) {
-        GFileUtils.touch(new File(outputDir, INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME));
+        createNewFile(new File(outputDir, INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME));
     }
 
     public static void createInstrumentationClasspathMarker(TransformOutputs outputs) {
-        GFileUtils.touch(outputs.file(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME));
+        createNewFile(outputs.file(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME));
     }
 
     public static boolean isAnalysisMetadataDir(File input) {
@@ -49,6 +50,14 @@ public class InstrumentationTransformUtils {
             outputs.dir(originalArtifact);
         } else {
             outputs.file(originalArtifact);
+        }
+    }
+
+    public static void createNewFile(File file) {
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 }
