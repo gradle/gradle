@@ -73,11 +73,6 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public TestBuildOperationRunner getRunner() {
-        return runner;
-    }
-
-    @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
         runAll(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
     }
