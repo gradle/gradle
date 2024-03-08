@@ -70,10 +70,6 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
 
     @SuppressWarnings("DefaultCharset")
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
-        // We check here if the Problems API is used
-        // If it's not used, the compiler interfaces interpret "null" as "use the default diagnostic listener"
-        DiagnosticListener<JavaFileObject> diagnosticListener = shouldUseProblemsApiReporting() ? diagnosticToProblemListener : null;
-
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         ContextAwareJavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
 
@@ -81,13 +77,13 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         Charset charset = Optional.ofNullable(compileOptions.getEncoding())
             .map(Charset::forName)
             .orElse(null);
-        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(diagnosticListener, null, charset);
+        StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(diagnosticToProblemListener, null, charset);
 
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
 
-        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticListener, options, spec.getClassesToProcess(), compilationUnits, context);
+        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticToProblemListener, options, spec.getClassesToProcess(), compilationUnits, context);
         if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
             task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
                 task,
@@ -101,11 +97,6 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
         task = new ResourceCleaningCompilationTask(task, fileManager);
         return task;
-    }
-
-    private static boolean shouldUseProblemsApiReporting() {
-        String property = System.getProperty("org.gradle.internal.emit-compiler-problems");
-        return Boolean.parseBoolean(property);
     }
 
     private static boolean emptySourcepathIn(List<String> options) {
