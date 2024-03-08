@@ -418,14 +418,14 @@ class DependencyManagementBuildScopeServices {
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         InMemoryCacheDecoratorFactory decoratorFactory,
         RepositoryTransportFactory transportFactory,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildCommencedTimeProvider timeProvider,
         BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory,
         FileHasher fileHasher,
         StartParameter startParameter,
         ListenerManager listenerManager
     ) {
-        return new DefaultSignatureVerificationServiceFactory(transportFactory, cacheBuilderFactory, decoratorFactory, buildOperationExecutor, fileHasher, buildScopedCacheBuilderFactory, timeProvider, startParameter.isRefreshKeys(), listenerManager.getBroadcaster(FileResourceListener.class));
+        return new DefaultSignatureVerificationServiceFactory(transportFactory, cacheBuilderFactory, decoratorFactory, buildOperationRunner, fileHasher, buildScopedCacheBuilderFactory, timeProvider, startParameter.isRefreshKeys(), listenerManager.getBroadcaster(FileResourceListener.class));
     }
 
     private void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {

@@ -29,7 +29,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.service.scopes.Scopes;
@@ -61,7 +61,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     private final RepositoryTransportFactory transportFactory;
     private final GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory;
     private final InMemoryCacheDecoratorFactory decoratorFactory;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final FileHasher fileHasher;
     private final BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory;
     private final BuildCommencedTimeProvider timeProvider;
@@ -72,7 +72,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         RepositoryTransportFactory transportFactory,
         GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory,
         InMemoryCacheDecoratorFactory decoratorFactory,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         FileHasher fileHasher,
         BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory,
         BuildCommencedTimeProvider timeProvider,
@@ -82,7 +82,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         this.transportFactory = transportFactory;
         this.globalScopedCacheBuilderFactory = globalScopedCacheBuilderFactory;
         this.decoratorFactory = decoratorFactory;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.fileHasher = fileHasher;
         this.buildScopedCacheBuilderFactory = buildScopedCacheBuilderFactory;
         this.timeProvider = timeProvider;
@@ -97,7 +97,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         PublicKeyService keyService;
         if (useKeyServers) {
             PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), repository);
-            keyService = new CrossBuildCachingKeyService(globalScopedCacheBuilderFactory, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
+            keyService = new CrossBuildCachingKeyService(globalScopedCacheBuilderFactory, decoratorFactory, buildOperationRunner, keyDownloadService, timeProvider, refreshKeys);
         } else {
             keyService = EmptyPublicKeyService.getInstance();
         }
