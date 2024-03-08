@@ -48,11 +48,6 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
-        return runner.start(descriptor);
-    }
-
-    @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
         runAll(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
     }

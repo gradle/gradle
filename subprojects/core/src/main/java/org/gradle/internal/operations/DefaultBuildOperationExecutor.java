@@ -55,11 +55,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     @Override
-    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
-        return runner.start(descriptor);
-    }
-
-    @Override
     public BuildOperationRef getCurrentOperation() {
         return runner.getCurrentOperation();
     }
