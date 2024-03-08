@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.streams.SafeStreams
+import org.gradle.test.fixtures.ConcurrentTestUtil
 
 
 class ProcessFixture {
@@ -65,21 +66,20 @@ class ProcessFixture {
         return bash("ps -o pid,ppid,args -p ${pids.join(' -p ')}").split("\\n")
     }
 
+    /**
+     * Blocks until the process represented by {@link #pid} has exited.
+     */
     void waitForFinish() {
         if (pid == null) {
             throw new RuntimeException("Unable to wait for process to finish because provided pid is null!")
         }
         if (OperatingSystem.current().unix) {
-            bash("wait $pid")
+            ConcurrentTestUtil.poll {
+                bash("ps -o pid= -p $pid; exit 0").trim() == ""
+            }
         } else if (OperatingSystem.current().windows) {
-            boolean running = true
-            while (running) {
-                String tasklist = execute(["tasklist.exe", "/fi", "\"PID eq $pid\""] as Object[], SafeStreams.emptyInput())
-                if (tasklist.contains("No tasks are running which match the specified criteria.")) {
-                    running = false
-                } else {
-                    Thread.sleep(1000)
-                }
+            ConcurrentTestUtil.poll {
+                execute(["tasklist.exe", "/fi", "\"PID eq $pid\""] as Object[], SafeStreams.emptyInput()).contains("No tasks are running which match the specified criteria.")
             }
         } else {
             throw new RuntimeException("This implementation does not know how to wait for process to finish on os: " + OperatingSystem.current())
