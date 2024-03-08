@@ -184,7 +184,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileCollectionInternal resolving(Object sources) {
-        return resolving(ProviderResolutionStrategy.REQUIRE_PRESENT, sources);
+        return resolving(ProviderResolutionStrategy.ALLOW_ABSENT, sources);
     }
 
     @Override
