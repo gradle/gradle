@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.bootstrap;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -62,10 +63,12 @@ public abstract class EntryPoint {
         }
     }
 
+    @VisibleForTesting
     protected ExecutionCompleter createCompleter() {
         return new ProcessCompleter();
     }
 
+    @VisibleForTesting
     protected Action<Throwable> createErrorHandler() {
         DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
         loggingConfiguration.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
