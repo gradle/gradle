@@ -16,12 +16,16 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.annotation.Nullable;
 
 /**
  * Runs build operations: the pieces of work that make up a build.
  * Build operations can be nested inside other build operations.
  */
+@ServiceScope(Scope.Global.class)
 public interface BuildOperationRunner {
     /**
      * Runs the given build operation.
