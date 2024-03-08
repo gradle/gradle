@@ -71,11 +71,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public BuildOperationRef getCurrentOperation() {
-        BuildOperationRef current = getCurrentBuildOperation();
-        if (current == null) {
-            throw new IllegalStateException("No operation is currently running.");
-        }
-        return current;
+        return runner.getCurrentOperation();
     }
 
     @Override

@@ -40,17 +40,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public BuildOperationRef getCurrentOperation() {
-        return new BuildOperationRef() {
-            @Override
-            public OperationIdentifier getId() {
-                return new OperationIdentifier(1L);
-            }
-
-            @Override
-            public OperationIdentifier getParentId() {
-                return null;
-            }
-        };
+        return runner.getCurrentOperation();
     }
 
     public List<BuildOperationDescriptor> getOperations() {
