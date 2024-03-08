@@ -48,11 +48,6 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public void run(RunnableBuildOperation buildOperation) {
-        runner.run(buildOperation);
-    }
-
-    @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
         return runner.call(buildOperation);
     }
