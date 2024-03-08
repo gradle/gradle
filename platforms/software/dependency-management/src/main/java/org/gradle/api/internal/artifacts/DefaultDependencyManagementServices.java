@@ -112,7 +112,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.Cache;
 import org.gradle.cache.ManualEvictionInMemoryCache;
@@ -144,6 +143,7 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resource.local.FileResourceListener;
@@ -274,22 +274,21 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformRegistrationFactory createTransformRegistrationFactory(
-                BuildOperationExecutor buildOperationExecutor,
-                IsolatableFactory isolatableFactory,
-                ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                TransformInvocationFactory transformInvocationFactory,
-                DomainObjectContext domainObjectContext,
-                TransformParameterScheme parameterScheme,
-                TransformActionScheme actionScheme,
-                InputFingerprinter inputFingerprinter,
-                CalculatedValueContainerFactory calculatedValueContainerFactory,
-                FileCollectionFactory fileCollectionFactory,
-                FileLookup fileLookup,
-                ServiceRegistry internalServices,
-                Problems problems
+            BuildOperationRunner buildOperationRunner,
+            IsolatableFactory isolatableFactory,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            TransformInvocationFactory transformInvocationFactory,
+            DomainObjectContext domainObjectContext,
+            TransformParameterScheme parameterScheme,
+            TransformActionScheme actionScheme,
+            InputFingerprinter inputFingerprinter,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            FileCollectionFactory fileCollectionFactory,
+            FileLookup fileLookup,
+            ServiceRegistry internalServices
         ) {
             return new DefaultTransformRegistrationFactory(
-                buildOperationExecutor,
+                buildOperationRunner,
                 isolatableFactory,
                 classLoaderHierarchyHasher,
                 transformInvocationFactory,
