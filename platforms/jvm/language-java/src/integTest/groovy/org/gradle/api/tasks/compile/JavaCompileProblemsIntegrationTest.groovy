@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.test.fixtures.file.TestFile
 
@@ -41,6 +42,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         enableProblemsApiCheck()
+        // Explicitly enable the toolchain detection, as the test will use the toolchain to compile the code
+        executer.withToolchainDetectionEnabled()
 
         propertiesFile << """
             # Feature flag as of 8.6 to enable the Problems API
@@ -60,6 +63,22 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    def setupToolchain(int javaVersion) {
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${javaVersion})
+                }
+            }
+        """
+    }
+
+    def setupForking(boolean forking) {
+        buildFile << """
+            tasks.compileJava.options.fork = ${forking}
+        """
+    }
+
     def cleanup() {
         assert possibleFileLocations == visitedFileLocations: "Not all expected files were visited: ${possibleFileLocations.keySet() - visitedFileLocations.keySet()}"
     }
@@ -69,8 +88,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo"), 2)
 
         when:
-        fails("compileJava")
-
+        fails("compileJava", "--stacktrace", "--info")
 
         then:
         def problems = collectedProblems
@@ -168,7 +186,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
         warningProblems.size() == 2
         for (def problem in warningProblems) {
-            assertProblem(problem, "WARNING") {details ->
+            assertProblem(problem, "WARNING") { details ->
                 assert details == "redundant cast to java.lang.String"
             }
         }
@@ -202,7 +220,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
         warningProblems.size() == 2
         for (def problem in warningProblems) {
-            assertProblem(problem, "WARNING") {details ->
+            assertProblem(problem, "WARNING") { details ->
                 assert details == "redundant cast to java.lang.String"
             }
         }
@@ -212,9 +230,30 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             it['definition']["severity"] == "ERROR"
         }
         errorProblems.size() == 1
-        assertProblem(errorProblems[0], "ERROR") {details ->
+        assertProblem(errorProblems[0], "ERROR") { details ->
             assert details == "warnings found and -Werror specified"
         }
+    }
+
+    def "problems are reported from JDK #javaVersion when forking is #forking"(int javaVersion, boolean forking) {
+        given:
+        setupToolchain(javaVersion)
+        setupForking(forking)
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo"), 2)
+
+        when:
+        fails("compileJava")
+
+        then:
+        collectedProblems.size() == 2
+        for (def problem in collectedProblems) {
+            assertProblem(problem, "ERROR") { details ->
+                assert details == "';' expected"
+            }
+        }
+
+        where:
+        [javaVersion, forking] << getJvmAndForkingCombinations()
     }
 
     /**
@@ -346,6 +385,20 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
     def formatFilePath(TestFile file) {
         return file.absolutePath.toString()
+    }
+
+    def getJvmAndForkingCombinations() {
+        def availableJavaVersions = [
+            AvailableJavaHomes.getJdk8(),
+            AvailableJavaHomes.getJdk11(),
+            AvailableJavaHomes.getJdk21()
+        ].collect {
+            it.javaVersion.majorVersion
+        }
+        // Create all true/false combinations
+        def forkingOptions = [true, false]
+
+        return [availableJavaVersions, forkingOptions].combinations()
     }
 
 }

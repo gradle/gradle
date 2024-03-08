@@ -59,7 +59,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         }
 
         if (!toolchain.isCurrentJvm()) {
-            return getForkingSpec(toolchainJavaHome);
+            return getForkingSpec(toolchainJavaHome, toolchain.getLanguageVersion().asInt());
         }
 
         return getDefaultSpec();
@@ -76,12 +76,12 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
             return getCommandLineSpec(JavaExecutableUtils.resolveExecutable(forkExecutable));
         }
 
-        return getForkingSpec(fallbackJavaHome);
+        return getForkingSpec(fallbackJavaHome, toolchain.getLanguageVersion().asInt());
     }
 
     abstract protected T getCommandLineSpec(File executable);
 
-    abstract protected T getForkingSpec(File javaHome);
+    abstract protected T getForkingSpec(File javaHome, int javaLanguageVersion);
 
     abstract protected T getDefaultSpec();
 }
