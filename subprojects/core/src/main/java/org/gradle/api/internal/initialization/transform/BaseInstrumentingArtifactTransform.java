@@ -27,10 +27,9 @@ import org.gradle.api.internal.initialization.transform.services.InjectedInstrum
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
@@ -72,7 +71,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     @Inject
     public abstract ObjectFactory getObjects();
 
-    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @Classpath
     @InputArtifact
     public abstract Provider<FileSystemLocation> getInput();
 
