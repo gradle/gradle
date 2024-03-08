@@ -52,6 +52,8 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
 
     public DirectoryBuildCache(PersistentCache persistentCache, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
         this.persistentCache = persistentCache;
+        // Create temporary files in the cache directory to ensure they are on the same file system,
+        // and thus can always be moved into the cache proper atomically
         this.tempFileStore = new DefaultBuildCacheTempFileStore((prefix, suffix) -> {
             try {
                 return Files.createTempFile(persistentCache.getBaseDir().toPath(), prefix, suffix).toFile();
