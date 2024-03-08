@@ -37,8 +37,10 @@ object JavaRecordCodec : EncodingProducer, Decoding {
 
     override suspend fun ReadContext.decode(): Any? {
         val clazz = readClass()
+        val fields = clazz.relevantFields
+
         val args = mutableListOf<Any?>()
-        for (field in clazz.relevantFields) {
+        for (field in fields) {
             val fieldName = field.name
             unsupportedFieldTypeFor(field)?.let {
                 reportUnsupportedFieldType(it, "deserialize", fieldName)
@@ -47,9 +49,12 @@ object JavaRecordCodec : EncodingProducer, Decoding {
                 args.add(fieldValue)
             }
         }
-        val constructor = clazz.constructors.find { it.parameterCount == args.size }
-            ?: error("No suitable constructor with ${args.size} arguments found for $clazz")
-        return constructor.newInstance(*args.toTypedArray())
+        val types = fields.map { it.type }.toTypedArray()
+        try {
+            return clazz.getConstructor(*types).newInstance(*args.toTypedArray())
+        } catch (ex: ReflectiveOperationException) {
+            throw IllegalStateException("Failed to create instance of ${clazz.name} with args $args", ex)
+        }
     }
 }
 

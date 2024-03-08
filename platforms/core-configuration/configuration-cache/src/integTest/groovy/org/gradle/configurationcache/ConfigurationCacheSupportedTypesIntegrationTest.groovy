@@ -575,6 +575,22 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
                 public static int SOME_STATIC_FIELD = 300;
             }
         """
+        file("buildSrc/src/main/java/WithExtraConstructors.java") << """
+            public record WithExtraConstructors(String str, int number) {
+                 public WithExtraConstructors(int number, String str) {
+                     this(str + "___", number*10);
+                 }
+                 public WithExtraConstructors(int number, int number2) {
+                     this(String.valueOf(number), number*11);
+                 }
+                 public WithExtraConstructors(int str, int number, int number2) {
+                     this(str + "***", number*number2);
+                 }
+            }
+        """
+        file("buildSrc/src/main/java/WithAlternativeTypes.java") << """
+            public record WithAlternativeTypes(Integer number, Boolean a, boolean b, java.util.TreeSet<String> ts) {}
+        """
 
         file("buildSrc/build.gradle.kts") << """
             plugins {
@@ -621,5 +637,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "MultipleFields"          | "new MultipleFields('str', 42, 'other_str')"                                                     | "MultipleFields[str=str, number=42, other=other_str]"
         "WithNestedRecords"       | "new WithNestedRecords('str', new MultipleFields('str', 42, 'other_str'), new ZeroFields(), 66)" | "WithNestedRecords[str=str, mf=MultipleFields[str=str, number=42, other=other_str], zf=ZeroFields[], number=66]"
         "WithExtraDeclaredFields" | "new WithExtraDeclaredFields('str', 42)"                                                         | "WithExtraDeclaredFields[str=str, number=42]"
+        "WithExtraConstructors"   | "new WithExtraConstructors('str', 42)"                                                           | "WithExtraConstructors[str=str, number=42]"
+        "WithAlternativeTypes"    | "new WithAlternativeTypes(42, true, false as boolean, new TreeSet(['a', 'b', 'c']))"             | "WithAlternativeTypes[number=42, a=true, b=false, ts=[a, b, c]]"
     }
 }
