@@ -73,7 +73,7 @@ import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.locking.DefaultDependencyLockingState
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.WorkerThreadRegistry
@@ -1838,7 +1838,7 @@ All Artifacts:
             dependencyLockingProvider,
             domainObjectContext,
             TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(),
+            new TestBuildOperationRunner(),
             publishArtifactNotationParser,
             immutableAttributesFactory,
             new ResolveExceptionContextualizer(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
