@@ -57,7 +57,7 @@ public class Binary2JUnitXmlReportGenerator {
     public void generate() {
         Timer clock = Time.startTimer();
 
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationExecutor.getRunner().run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 File[] oldXmlFiles = testResultsDir.listFiles(new FilenameFilter() {
