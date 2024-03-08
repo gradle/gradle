@@ -24,27 +24,11 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Executes build operations synchronously, asynchronously or via a {@link BuildOperationQueue}.
- *
- * The executor provides several capabilities:
- *
- * <ul>
- *     <li>Fires events via {@link BuildOperationListener}. For example, this means that notification of build operation
- *     execution can be received by tooling API clients.</li>
- *     <li>Generates progress logging events.</li>
- * </ul>
+ * Executes build operations via a {@link BuildOperationQueue}.
  */
 @ThreadSafe
 @ServiceScope(Scopes.BuildSession.class)
 public interface BuildOperationExecutor {
-    /**
-     * Returns the state of the build operation currently running on this thread. Can be used as parent of a new build operation
-     * started in a different thread (or process). See {@link BuildOperationDescriptor.Builder#parent(BuildOperationRef)}
-     *
-     * @throws IllegalStateException When the current thread is not executing an operation.
-     */
-    BuildOperationRef getCurrentOperation();
-
     /**
      * Submits an arbitrary number of runnable operations, created synchronously by the scheduling action, to be executed in the global
      * build operation thread pool. Operations may execute concurrently. Blocks until all operations are complete.

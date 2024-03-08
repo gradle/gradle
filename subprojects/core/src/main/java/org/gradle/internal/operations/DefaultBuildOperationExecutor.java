@@ -55,11 +55,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     @Override
-    public BuildOperationRef getCurrentOperation() {
-        return runner.getCurrentOperation();
-    }
-
-    @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
         runAll(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
     }

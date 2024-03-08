@@ -38,11 +38,6 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         this.log = runner.log;
     }
 
-    @Override
-    public BuildOperationRef getCurrentOperation() {
-        return runner.getCurrentOperation();
-    }
-
     public List<BuildOperationDescriptor> getOperations() {
         return runner.getOperations();
     }

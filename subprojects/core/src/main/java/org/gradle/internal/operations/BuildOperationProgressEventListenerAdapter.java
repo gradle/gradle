@@ -22,6 +22,14 @@ import org.gradle.internal.time.Clock;
 
 import javax.annotation.Nullable;
 
+/**
+ * Adapts the {@link DefaultBuildOperationRunner.BuildOperationExecutionListener} to the {@link BuildOperationListener} and the {@link ProgressLogger} interfaces.
+ *
+ * This notification of build operation execution can be received by tooling API clients.
+ * The adapter also generates progress logging events.
+ *
+ * TODO Separate these two purposes into separate classes
+ */
 public class BuildOperationProgressEventListenerAdapter implements DefaultBuildOperationRunner.BuildOperationExecutionListener {
     private final BuildOperationListener buildOperationListener;
     private final ProgressLoggerFactory progressLoggerFactory;
