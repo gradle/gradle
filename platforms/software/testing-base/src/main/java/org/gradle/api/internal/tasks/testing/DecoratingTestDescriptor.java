@@ -60,6 +60,11 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
+    public String getMethodName() {
+        return descriptor.getMethodName();
+    }
+
+    @Override
     public String getName() {
         return descriptor.getName();
     }

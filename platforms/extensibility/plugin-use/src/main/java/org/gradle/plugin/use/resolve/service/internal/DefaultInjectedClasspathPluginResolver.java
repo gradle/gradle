@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
-import org.gradle.api.internal.initialization.ScriptClassPathResolutionContext;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
@@ -77,9 +76,9 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
         ConfigurationContainer configurations = dependencyResolutionServices.getConfigurationContainer();
         Dependency injectedClasspathDependency = dependencies.create(fileCollectionFactory.fixed(injectedClasspath.getAsFiles()));
         Configuration configuration = configurations.detachedConfiguration(injectedClasspathDependency);
-        ScriptClassPathResolutionContext resolutionContext = scriptClassPathResolver.prepareDependencyHandler(dependencies);
-        scriptClassPathResolver.prepareClassPath(configuration, resolutionContext);
-        ClassPath instrumentedClassPath = scriptClassPathResolver.resolveClassPath(configuration, resolutionContext);
+        scriptClassPathResolver.prepareDependencyHandler(dependencies);
+        scriptClassPathResolver.prepareClassPath(configuration, dependencies);
+        ClassPath instrumentedClassPath = scriptClassPathResolver.resolveClassPath(configuration);
         return new DefaultPluginRegistry(pluginInspector,
             parentScope.createChild("injected-plugin", null)
                 .local(instrumentedClassPath)

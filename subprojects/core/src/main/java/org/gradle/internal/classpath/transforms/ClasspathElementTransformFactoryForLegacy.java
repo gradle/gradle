@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.service.scopes.Scopes;
@@ -52,7 +52,7 @@ public class ClasspathElementTransformFactoryForLegacy implements ClasspathEleme
     }
 
     @Override
-    public ClasspathElementTransform createTransformer(File source, ClassTransform classTransform, InstrumentationTypeRegistry typeRegistry) {
+    public ClasspathElementTransform createTransformer(File source, ClassTransform classTransform, InstrumentingTypeRegistry typeRegistry) {
         Boolean isMultiReleaseJar = null;
 
         if (source.isFile()) {

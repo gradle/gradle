@@ -739,7 +739,7 @@ dependencies {
         fails 'dependencies'
 
         then:
-        failure.assertHasCause "Resolution strategy has both dependency locking and fail on $desc versions enabled. You must choose between the two modes."
+        failure.assertHasCause "Both dependency locking and fail on $desc versions are enabled. You must choose between the two modes."
 
         where:
         flag                              | desc

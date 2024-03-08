@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.events.test;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
 /**
@@ -24,4 +25,13 @@ import org.gradle.tooling.events.OperationDescriptor;
  * @since 2.4
  */
 public interface TestOperationDescriptor extends OperationDescriptor {
+    /**
+     * Returns the display name of the test.
+     * Not to be confused with {@link #getDisplayName()} which is the display name of the operation.
+     *
+     * @return the display name of the test.
+     * @since 8.8
+     */
+    @Incubating
+    String getTestDisplayName();
 }

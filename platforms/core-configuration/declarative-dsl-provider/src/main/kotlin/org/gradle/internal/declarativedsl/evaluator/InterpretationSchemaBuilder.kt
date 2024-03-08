@@ -44,8 +44,10 @@ sealed interface RestrictedScriptContext {
         val scriptSource: ScriptSource
     }
 
-    object SettingsScript : RestrictedScriptContext
-    object PluginsBlock : RestrictedScriptContext
+    data class SettingsScript(
+        override val targetScope: ClassLoaderScope,
+        override val scriptSource: ScriptSource
+    ) : ScriptDependentContext
 
     class ProjectScript(
         override val targetScope: ClassLoaderScope,

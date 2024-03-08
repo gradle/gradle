@@ -15,15 +15,15 @@
  */
 package org.gradle.cache.internal
 
-
 import org.gradle.cache.CacheCleanupStrategy
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.logging.progress.ProgressLogger
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -47,16 +47,15 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     def cacheCleanup = Mock(CacheCleanupStrategy)
     def lockManager = Mock(FileLockManager)
     def lock = Mock(FileLock)
-    def progressLoggerFactory = Stub(ProgressLoggerFactory) {
-        newOperation(_) >> {
-            def progressLogger = Stub(ProgressLogger)
-            progressLogger.start(_, _) >> progressLogger
-            return progressLogger
+    def buildOperationRunner = Stub(BuildOperationRunner) {
+        run(_ as RunnableBuildOperation) >> { RunnableBuildOperation operation ->
+            def context = Stub(BuildOperationContext)
+            operation.run(context)
         }
     }
 
     @Subject @AutoCleanup
-    def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+    def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), cacheCleanup, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
     def "has useful toString() implementation"() {
         expect:
@@ -86,7 +85,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     def "open locks cache directory with requested mode"() {
-        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(Shared), null, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(Shared), null, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         store.open()
@@ -104,7 +103,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     def "locks requested target"() {
-        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(Shared), null, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(Shared), null, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         store.open()
@@ -122,7 +121,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     def "open does not lock cache directory when None mode requested"() {
-        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), null, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), null, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         store.open()
@@ -185,7 +184,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
     def "does not use gc.properties when no cleanup action is defined"() {
         given:
-        store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), null, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), null, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         store.open()

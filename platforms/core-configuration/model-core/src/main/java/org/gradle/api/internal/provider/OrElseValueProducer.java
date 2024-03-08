@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 class OrElseValueProducer implements ValueSupplier.ValueProducer {
     private final EvaluationContext.EvaluationOwner owner;
@@ -38,7 +39,7 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
     }
 
     private OrElseValueProducer(EvaluationContext.ScopeContext context, ProviderInternal<?> left, @Nullable ProviderInternal<?> right, ValueSupplier.ValueProducer rightProducer) {
-        this.owner = context.getOwner();
+        this.owner = Objects.requireNonNull(context.getOwner());
         this.left = left;
         this.right = right;
         this.leftProducer = left.getProducer();

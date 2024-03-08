@@ -17,7 +17,6 @@
 package org.gradle.api.problems.internal;
 
 
-
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
@@ -25,13 +24,11 @@ import java.io.Serializable;
  * A link to a documentation page.
  * <p>
  * Subtypes can represent different parts of the gradle documentation, e.g. the DSL reference, the user guide, etc.
- *
  */
 public interface DocLink extends Serializable {
 
     /**
      * The URL to the documentation page.
-     *
      */
     @Nullable
     String getUrl();
@@ -39,7 +36,6 @@ public interface DocLink extends Serializable {
     /**
      * A message that tells the user to consult the documentation.
      * There are currently 2 different messages used for this, hence this method.
-     *
      */
     @Nullable
     String getConsultDocumentationMessage();

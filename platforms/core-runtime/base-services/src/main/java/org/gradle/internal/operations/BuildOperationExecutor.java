@@ -36,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 @ServiceScope(Scopes.BuildSession.class)
-public interface BuildOperationExecutor extends BuildOperationRunner {
+public interface BuildOperationExecutor {
     /**
      * Runs the given build operation synchronously. Invokes the given operation from the current thread.
      *
@@ -44,7 +44,7 @@ public interface BuildOperationExecutor extends BuildOperationRunner {
      * Runtime exceptions are rethrown as is.
      * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
      */
-    @Override
+    // TODO Use BuildOperationRunner directly
     void run(RunnableBuildOperation buildOperation);
 
     /**
@@ -55,7 +55,7 @@ public interface BuildOperationExecutor extends BuildOperationRunner {
      * Runtime exceptions are rethrown as is.
      * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
      */
-    @Override
+    // TODO Use BuildOperationRunner directly
     <T> T call(CallableBuildOperation<T> buildOperation);
 
     /**
@@ -63,7 +63,7 @@ public interface BuildOperationExecutor extends BuildOperationRunner {
      *
      * When a parent operation is finished any unfinished child operations will be failed.
      */
-    @Override
+    // TODO Use BuildOperationRunner directly
     BuildOperationContext start(BuildOperationDescriptor.Builder descriptor);
 
     /**
