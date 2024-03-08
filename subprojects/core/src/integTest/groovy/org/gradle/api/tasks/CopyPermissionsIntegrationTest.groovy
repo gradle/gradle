@@ -121,7 +121,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         when:
         executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Please use 'filePermissions(mode == null ? Actions.doNothing() : permissions -> permissions.unix(mode))' instead. " +
+            "Please use the filePermissions(Action) method instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
 
@@ -131,7 +131,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         when:
         executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Please use 'filePermissions(mode == null ? Actions.doNothing() : permissions -> permissions.unix(mode))' instead. " +
+            "Please use the filePermissions(Action) method instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
 
@@ -143,7 +143,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         file("reference.txt").text = "new"
         executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Please use 'filePermissions(mode == null ? Actions.doNothing() : permissions -> permissions.unix(mode))' instead. " +
+            "Please use the filePermissions(Action) method instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
 
@@ -173,7 +173,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         when:
         executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setMode() method has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Please use 'permissions(permissions -> permissions.unix(mode))' instead. " +
+            "Please use the permissions(Action) method instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
         then:
@@ -189,7 +189,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         testSourceFile.text = "new"
         executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setMode() method has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Please use 'permissions(permissions -> permissions.unix(mode))' instead. " +
+            "Please use the permissions(Action) method instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
         then:
@@ -218,7 +218,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         when:
         executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Please use 'filePermissions(mode == null ? Actions.doNothing() : permissions -> permissions.unix(mode))' instead. " +
+            "Please use the filePermissions(Action) method instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
 
@@ -248,7 +248,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         when:
         executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setDirMode(Integer) method has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Please use 'dirPermissions(mode == null ? Actions.doNothing() : permissions -> permissions.unix(mode))' instead. " +
+            "Please use the dirPermissions(Action) method instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
         then:
@@ -257,7 +257,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         when:
         executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setDirMode(Integer) method has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Please use 'dirPermissions(mode == null ? Actions.doNothing() : permissions -> permissions.unix(mode))' instead. " +
+            "Please use the dirPermissions(Action) method instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
         then:
@@ -268,7 +268,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         parent.file("other/file.txt") << "test file"
         executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setDirMode(Integer) method has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Please use 'dirPermissions(mode == null ? Actions.doNothing() : permissions -> permissions.unix(mode))' instead. " +
+            "Please use the dirPermissions(Action) method instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run "copy"
         then:
@@ -414,7 +414,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         when:
         executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setMode() method has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Please use 'permissions(permissions -> permissions.unix(mode))' instead. " +
+            "Please use the permissions(Action) method instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         run 'copy'
 
@@ -532,7 +532,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         if (description == "file mode") {
             executer.expectDocumentedDeprecationWarning("The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
-                "Please use 'filePermissions(mode == null ? Actions.doNothing() : permissions -> permissions.unix(mode))' instead. " +
+                "Please use the filePermissions(Action) method instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unix_file_permissions_deprecated")
         }
         run 'copy'

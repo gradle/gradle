@@ -479,7 +479,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Deprecated
     public Integer getDirMode() {
         DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getDirMode()")
-            .replaceWithExample("getDirPermissions().map(FilePermissions::toUnixNumeric).getOrNull()")
+            .replaceWith("getDirPermissions()")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
             .nagUser();
@@ -490,7 +490,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Deprecated
     public Integer getFileMode() {
         DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getFileMode()")
-            .replaceWithExample("getFilePermissions().map(FilePermissions::toUnixNumeric).getOrNull()")
+            .replaceWith("getFilePermissions()")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
             .nagUser();
@@ -506,7 +506,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Deprecated
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
         DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setDirMode(Integer)")
-            .replaceWithExample("dirPermissions(mode == null ? Actions.doNothing() : permissions -> permissions.unix(mode))")
+            .replaceWith("dirPermissions(Action)")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
             .nagUser();
@@ -518,7 +518,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Deprecated
     public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
         DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setFileMode(Integer)")
-            .replaceWithExample("filePermissions(mode == null ? Actions.doNothing() : permissions -> permissions.unix(mode))")
+            .replaceWith("filePermissions(Action)")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
             .nagUser();
@@ -800,7 +800,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         @Deprecated
         public Integer getFileMode() {
             DeprecationLogger.deprecateMethod(CopySpecResolver.class, "getFileMode()")
-                .replaceWithExample("getImmutableFilePermissions().map(FilePermissions::toUnixNumeric).getOrNull()")
+                .replaceWith("getImmutableFilePermissions()")
                 .willBeRemovedInGradle9()
                 .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
                 .nagUser();
@@ -811,7 +811,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         @Deprecated
         public Integer getDirMode() {
             DeprecationLogger.deprecateMethod(CopySpecResolver.class, "getDirMode()")
-                .replaceWithExample("getImmutableDirPermissions().map(FilePermissions::toUnixNumeric).getOrNull()")
+                .replaceWith("getImmutableDirPermissions()")
                 .willBeRemovedInGradle9()
                 .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
                 .nagUser();

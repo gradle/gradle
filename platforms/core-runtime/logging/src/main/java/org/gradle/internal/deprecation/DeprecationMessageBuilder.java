@@ -145,8 +145,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         private final String subject;
         private T replacement;
 
-        private T replacementExample;
-
         WithReplacement(String subject) {
             this.subject = subject;
         }
@@ -167,15 +165,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             return (SELF) this;
         }
 
-        /**
-         * Constructs advice message from exact replacement example.
-         */
-        @SuppressWarnings("unchecked")
-        public SELF replaceWithExample(T replacementExample) {
-            this.replacementExample = replacementExample;
-            return (SELF) this;
-        }
-
         String formatSubject() {
             return subject;
         }
@@ -188,9 +177,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         @Override
         DeprecationMessage build() {
             setSummary(formatSummary(formatSubject()));
-            if (replacementExample != null) {
-                setAdvice(String.format("Please use '%s' instead.", replacementExample));
-            } else if (replacement != null) {
+            if (replacement != null) {
                 setAdvice(formatAdvice(replacement));
             }
             return super.build();

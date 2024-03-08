@@ -148,7 +148,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         @Deprecated
         public int getMode() {
             DeprecationLogger.deprecateMethod(FileTreeElement.class, "getMode()")
-                .replaceWithExample("getPermissions().toUnixNumeric()")
+                .replaceWith("getPermissions()")
                 .willBeRemovedInGradle9()
                 .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
                 .nagUser();
@@ -235,7 +235,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         @Deprecated
         public int getMode() {
             DeprecationLogger.deprecateMethod(FileTreeElement.class, "getMode()")
-                .replaceWithExample("getPermissions().toUnixNumeric()")
+                .replaceWith("getPermissions()")
                 .willBeRemovedInGradle9()
                 .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
                 .nagUser();
