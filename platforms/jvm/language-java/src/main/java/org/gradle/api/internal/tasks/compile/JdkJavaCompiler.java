@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import com.sun.tools.javac.api.JavacTaskImpl;
+import com.sun.tools.javac.util.Context;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
@@ -27,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -42,12 +43,12 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
 
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
-    private final DiagnosticToProblemListener diagnosticToProblemListener;
+    private final InternalProblems problemsService;
 
     @Inject
     public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, InternalProblems problemsService) {
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
-        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter());
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -66,7 +67,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
         // We check here if the Problems API is used
         // If it's not used, the compiler interfaces interpret "null" as "use the default diagnostic listener"
-        DiagnosticListener<JavaFileObject> diagnosticListener = shouldUseProblemsApiReporting() ? diagnosticToProblemListener : null;
+        DiagnosticToProblemListener diagnosticListener = shouldUseProblemsApiReporting() ? new DiagnosticToProblemListener(problemsService.getInternalReporter()) : null;
 
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
@@ -76,7 +77,12 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
+
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticListener, options, spec.getClassesToProcess(), compilationUnits);
+
+        Context context = ((JavacTaskImpl) task).getContext();
+        diagnosticListener.attachContext(context);
+
         if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
             task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
                 task,

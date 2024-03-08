@@ -16,6 +16,11 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.sun.tools.javac.api.ClientCodeWrapper;
+import com.sun.tools.javac.api.DiagnosticFormatter;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.Log;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
@@ -33,14 +38,21 @@ import java.util.Locale;
  */
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
 
+    private Context context;
     private final ProblemReporter problemReporter;
 
     public DiagnosticToProblemListener(ProblemReporter problemReporter) {
         this.problemReporter = problemReporter;
+        this.context = new Context();
     }
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+        DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
+        JCDiagnostic internalDiagnostic = ((ClientCodeWrapper.DiagnosticSourceUnwrapper) diagnostic).d;
+        String formatted = formatter.format(internalDiagnostic, Locale.getDefault());
+        System.err.println(formatted);
+
         String message = diagnostic.getMessage(Locale.getDefault());
         String label = mapKindToLabel(diagnostic.getKind());
 
@@ -110,4 +122,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         }
     }
 
+    public void attachContext(Context context) {
+        this.context = context;
+    }
 }
