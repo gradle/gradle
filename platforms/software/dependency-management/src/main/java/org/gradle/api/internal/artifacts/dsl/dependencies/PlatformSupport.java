@@ -54,7 +54,7 @@ public class PlatformSupport {
 
     public void configureSchema(AttributesSchemaInternal attributesSchema) {
         configureCategoryDisambiguationRule(attributesSchema);
-        attributesSchema.addFailureDescriber(IncompatibleGraphVariantFailure.class, TargetJVMVersionTooHighFailureDescriber.class);
+        attributesSchema.addFailureDescriber(IncompatibleGraphVariantFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
     }
 
     private void configureCategoryDisambiguationRule(AttributesSchema attributesSchema) {

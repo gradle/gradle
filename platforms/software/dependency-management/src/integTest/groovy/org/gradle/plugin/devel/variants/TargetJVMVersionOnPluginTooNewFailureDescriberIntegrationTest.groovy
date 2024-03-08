@@ -22,109 +22,9 @@ import org.gradle.internal.component.resolution.failure.exception.VariantSelecti
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-class TargetJVMVersionTooHighFailureDescriberIntegrationTest extends AbstractIntegrationSpec {
+class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends AbstractIntegrationSpec {
     Integer currentJava = Integer.valueOf(JavaVersion.current().majorVersion)
     Integer tooHighJava = currentJava + 1
-
-    def 'JVM version too low uses custom error message for dependency'() {
-        given:
-        def producer = file('producer')
-        def consumer = file('consumer')
-
-        file('settings.gradle') << """
-            include 'producer', 'consumer'
-        """
-
-        producer.file('build.gradle') << """
-            plugins {
-                id('java-library')
-            }
-
-            configurations.configureEach {
-                if (canBeConsumed)  {
-                    attributes {
-                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $tooHighJava)
-                    }
-                }
-            }
-        """
-
-        consumer.file('build.gradle') << """
-            plugins {
-                id('java-library')
-            }
-
-            dependencies {
-                implementation project(':producer')
-            }
-        """
-
-        when:
-        fails ':consumer:build', "--stacktrace"
-
-        then:
-        failure.assertHasErrorOutput("""> Could not resolve all task dependencies for configuration ':consumer:compileClasspath'.
-   > Could not resolve project :producer.
-     Required by:
-         project :consumer
-      > project :producer requires at least a Java $tooHighJava JVM. This build uses a Java $currentJava JVM.""")
-        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
-        failure.assertHasResolution("Run this build using a Java $tooHighJava JVM (or newer).")
-    }
-
-    def 'JVM version too low even if non-Library category other variants available uses custom error message for dependency'() {
-        given:
-        def producer = file('producer')
-        def consumer = file('consumer')
-
-        file('settings.gradle') << """
-            include 'producer', 'consumer'
-        """
-
-        producer.file('build.gradle') << """
-            plugins {
-                id('java-library')
-            }
-
-            configurations {
-                consumable("nonLibrary") {
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION))
-                    }
-                }
-            }
-
-            configurations.configureEach {
-                if (canBeConsumed)  {
-                    attributes {
-                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $tooHighJava)
-                    }
-                }
-            }
-        """
-
-        consumer.file('build.gradle') << """
-            plugins {
-                id('java-library')
-            }
-
-            dependencies {
-                implementation project(':producer')
-            }
-        """
-
-        when:
-        fails ':consumer:build', "--stacktrace"
-
-        then:
-        failure.assertHasErrorOutput("""> Could not resolve all task dependencies for configuration ':consumer:compileClasspath'.
-   > Could not resolve project :producer.
-     Required by:
-         project :consumer
-      > project :producer requires at least a Java $tooHighJava JVM. This build uses a Java $currentJava JVM.""")
-        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
-        failure.assertHasResolution("Run this build using a Java $tooHighJava JVM (or newer).")
-    }
 
     def 'JVM version too low uses custom error message for plugin'() {
         given:
@@ -196,7 +96,7 @@ class TargetJVMVersionTooHighFailureDescriberIntegrationTest extends AbstractInt
    > Could not resolve com.example:producer:1.0.
      Required by:
          project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
-      > com.example:producer:1.0 requires at least a Java $tooHighJava JVM. This build uses a Java $currentJava JVM.""")
+      > Plugin com.example:producer:1.0 requires at least a Java $tooHighJava JVM. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
         failure.assertHasResolution("Run this build using a Java $tooHighJava JVM (or newer).")
     }
@@ -266,7 +166,7 @@ class TargetJVMVersionTooHighFailureDescriberIntegrationTest extends AbstractInt
    > Could not resolve org.springframework.boot:spring-boot-gradle-plugin:3.2.1.
      Required by:
          project : > org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.1
-      > org.springframework.boot:spring-boot-gradle-plugin:3.2.1 requires at least a Java 17 JVM. This build uses a Java $currentJava JVM.""")
+      > Plugin org.springframework.boot:spring-boot-gradle-plugin:3.2.1 requires at least a Java 17 JVM. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
         failure.assertHasResolution("Run this build using a Java 17 JVM (or newer).")
     }
