@@ -78,6 +78,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
             return delegate.resolveBuildDependencies(resolveContext);
         }
 
+        resolveContext.markAsObserved();
         VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
         return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE,
             DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(EmptyResults.INSTANCE)
@@ -100,6 +101,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
             dependencyLockingProvider.persistResolvedDependencies(resolveContext.getDependencyLockingId(), resolveContext.getResolutionHost().displayName(), Collections.emptySet(), Collections.emptySet());
         }
 
+        resolveContext.markAsObserved();
         VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
         ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
             graphResults, resolveContext.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
