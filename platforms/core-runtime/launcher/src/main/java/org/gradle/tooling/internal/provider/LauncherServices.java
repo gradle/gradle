@@ -165,7 +165,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             ExecutorFactory executorFactory,
             ListenerManager listenerManager,
             BuildOperationListenerManager buildOperationListenerManager,
-            BuildOperationExecutor buildOperationExecutor,
+            BuildOperationRunner buildOperationRunner,
             WorkInputListeners workListeners,
             FileChangeListeners fileChangeListeners,
             StyledTextOutputFactory styledTextOutputFactory,
@@ -207,7 +207,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
                             new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator, valueSnapshotter),
-                            buildOperationExecutor,
+                            buildOperationRunner,
                             loggingBuildOperationProgressBroadcaster,
                             buildOperationNotificationValve))));
         }
