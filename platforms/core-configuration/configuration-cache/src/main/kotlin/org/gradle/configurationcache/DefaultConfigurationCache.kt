@@ -44,7 +44,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -64,7 +64,7 @@ class DefaultConfigurationCache internal constructor(
     private val buildActionModelRequirements: BuildActionModelRequirements,
     private val buildStateRegistry: BuildStateRegistry,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
-    private val buildOperationExecutor: BuildOperationExecutor,
+    private val buildOperationRunner: BuildOperationRunner,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
     private val encryptionService: EncryptionService,
     private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
@@ -349,7 +349,7 @@ class DefaultConfigurationCache internal constructor(
             InstrumentedInputs.discardListener()
         }
 
-        buildOperationExecutor.withStoreOperation(cacheKey.string) {
+        buildOperationRunner.withStoreOperation(cacheKey.string) {
             store.useForStore { layout ->
                 try {
                     val stateFile = layout.fileFor(stateType)
@@ -390,7 +390,7 @@ class DefaultConfigurationCache internal constructor(
         // when loading the task graph.
         scopeRegistryListener.dispose()
 
-        val result = buildOperationExecutor.withLoadOperation {
+        val result = buildOperationRunner.withLoadOperation {
             store.useForStateLoad(stateType, action)
         }
         crossConfigurationTimeBarrier()
