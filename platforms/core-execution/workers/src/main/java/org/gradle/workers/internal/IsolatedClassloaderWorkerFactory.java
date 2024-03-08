@@ -19,21 +19,21 @@ package org.gradle.workers.internal;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.worker.RequestHandler;
 
 public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final ServiceRegistry internalServices;
     private final ClassLoaderRegistry classLoaderRegistry;
     private final LegacyTypesSupport legacyTypesSupport;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final InstantiatorFactory instantiatorFactory;
 
-    public IsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry internalServices, ClassLoaderRegistry classLoaderRegistry, LegacyTypesSupport legacyTypesSupport, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public IsolatedClassloaderWorkerFactory(BuildOperationRunner buildOperationRunner, ServiceRegistry internalServices, ClassLoaderRegistry classLoaderRegistry, LegacyTypesSupport legacyTypesSupport, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
+        this.buildOperationRunner = buildOperationRunner;
         this.internalServices = internalServices;
         this.classLoaderRegistry = classLoaderRegistry;
         this.legacyTypesSupport = legacyTypesSupport;
@@ -43,7 +43,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
 
     @Override
     public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
-        return new AbstractWorker(buildOperationExecutor) {
+        return new AbstractWorker(buildOperationRunner) {
             @Override
             public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
                 return executeWrappedInBuildOperation(spec, parentBuildOperation, workSpec -> {
