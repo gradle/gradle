@@ -70,6 +70,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     @Override
+    public BuildOperationRunner getRunner() {
+        return runner;
+    }
+
+    @Override
     public BuildOperationRef getCurrentOperation() {
         BuildOperationRef current = getCurrentBuildOperation();
         if (current == null) {

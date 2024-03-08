@@ -66,6 +66,8 @@ public interface BuildOperationExecutor {
     // TODO Use BuildOperationRunner directly
     BuildOperationContext start(BuildOperationDescriptor.Builder descriptor);
 
+    BuildOperationRunner getRunner();
+
     /**
      * Returns the state of the build operation currently running on this thread. Can be used as parent of a new build operation
      * started in a different thread (or process). See {@link BuildOperationDescriptor.Builder#parent(BuildOperationRef)}
