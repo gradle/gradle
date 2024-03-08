@@ -595,7 +595,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         try {
             if (testReporter == null) {
-                testReporter = new DefaultTestReport(getBuildOperationExecutor());
+                testReporter = new DefaultTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
             }
 
             JUnitXmlReport junitXml = reports.getJunitXml();

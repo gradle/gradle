@@ -27,6 +27,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -42,10 +43,12 @@ import java.util.List;
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 
 public class DefaultTestReport implements TestReporter {
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
     private final static Logger LOG = Logging.getLogger(DefaultTestReport.class);
 
-    public DefaultTestReport(BuildOperationExecutor buildOperationExecutor) {
+    public DefaultTestReport(BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor) {
+        this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -85,7 +88,7 @@ public class DefaultTestReport implements TestReporter {
     private void generateFiles(AllTestResults model, final TestResultsProvider resultsProvider, final File reportDir) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
-            buildOperationExecutor.getRunner().run(new RunnableBuildOperation() {
+            buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
                     // Clean-up old HTML report directories
