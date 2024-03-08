@@ -16,7 +16,7 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.problems.rendering.ProblemRenderer;
 
 import java.util.List;
@@ -26,19 +26,19 @@ public class JavaCompilerProblemRenderer implements ProblemRenderer {
     private static final String JAVA_COMPILER_CATEGORY = "org.gradle:compilation:java";
 
     @Override
-    public void render(List<Problem> problems) {
+    public void render(List<ProblemReport> problems) {
         problems
             .stream()
             .filter(JavaCompilerProblemRenderer::isJavaCompilerProblem)
             .forEach(JavaCompilerProblemRenderer::printFormattedMessageToErrorStream);
     }
 
-    private static void printFormattedMessageToErrorStream(Problem problem) {
-        String formatted = (String) problem.getAdditionalData().get("formatted");
+    private static void printFormattedMessageToErrorStream(ProblemReport problem) {
+        String formatted = (String) problem.getContext().getAdditionalData().get("formatted");
         System.err.println(formatted);
     }
 
-    private static boolean isJavaCompilerProblem(Problem problem) {
-        return problem.getCategory().toString().startsWith(JAVA_COMPILER_CATEGORY);
+    private static boolean isJavaCompilerProblem(ProblemReport problem) {
+        return problem.getDefinition().getCategory().getCategory().startsWith(JAVA_COMPILER_CATEGORY);
     }
 }

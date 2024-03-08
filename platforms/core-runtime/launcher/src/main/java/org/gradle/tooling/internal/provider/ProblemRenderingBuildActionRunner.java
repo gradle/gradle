@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.invocation.BuildAction;
@@ -39,7 +39,7 @@ public class ProblemRenderingBuildActionRunner implements BuildActionRunner, Bui
 
     private final BuildActionRunner delegate;
     private final Collection<ProblemRenderer> renderers = new ArrayList<>();
-    private final List<Problem> problems = new ArrayList<>();
+    private final List<ProblemReport> problems = new ArrayList<>();
 
     public ProblemRenderingBuildActionRunner(BuildOperationListenerManager listenerManager, BuildActionRunner delegate) {
         this.delegate = delegate;
