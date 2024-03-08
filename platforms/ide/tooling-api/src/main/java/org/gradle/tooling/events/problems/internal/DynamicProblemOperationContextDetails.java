@@ -20,13 +20,9 @@ import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.Details;
-import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.FailureContainer;
-import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
-import org.gradle.tooling.events.problems.ProblemCategory;
-import org.gradle.tooling.events.problems.ProblemDescriptor;
-import org.gradle.tooling.events.problems.Severity;
+import org.gradle.tooling.events.problems.ProblemContextDetails;
 import org.gradle.tooling.events.problems.Solution;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
@@ -34,9 +30,9 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 @NonNullApi
-public class DynamicProblemOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
+public class DynamicProblemOperationContextDetails extends DefaultOperationDescriptor implements ProblemContextDetails {
 
-    public DynamicProblemOperationDescriptor(
+    public DynamicProblemOperationContextDetails(
         InternalOperationDescriptor internalDescriptor,
         OperationDescriptor parent
     ) {
@@ -44,22 +40,7 @@ public class DynamicProblemOperationDescriptor extends DefaultOperationDescripto
     }
 
     @Override
-    public ProblemCategory getCategory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Label getLabel() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Details getDetails() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Severity getSeverity() {
         throw new UnsupportedOperationException();
     }
 
@@ -70,11 +51,6 @@ public class DynamicProblemOperationDescriptor extends DefaultOperationDescripto
 
     @Override
     public List<Solution> getSolutions() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public DocumentationLink getDocumentationLink() {
         throw new UnsupportedOperationException();
     }
 

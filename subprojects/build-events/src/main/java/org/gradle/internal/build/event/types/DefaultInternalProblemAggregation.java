@@ -17,24 +17,35 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregation;
-import org.gradle.tooling.internal.protocol.InternalProblemEvent;
+import org.gradle.tooling.internal.protocol.InternalProblemAggregationV2;
+import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
+import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
+import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultInternalProblemAggregation implements InternalProblemAggregation, Serializable {
+public class DefaultInternalProblemAggregation implements InternalProblemAggregationV2, Serializable {
 
     private final InternalProblemCategory category;
     private final InternalLabel label;
-    private final List<InternalProblemEvent> problemEvents;
+    private final InternalSeverity severity;
+    private final InternalDocumentationLink documentationLink;
+    private final List<InternalProblemContextDetails> problemEvents;
 
-    public DefaultInternalProblemAggregation(InternalProblemCategory category, InternalLabel label, List<InternalProblemEvent> problemEvents) {
+    public DefaultInternalProblemAggregation(InternalProblemCategory category,
+                                             InternalLabel label,
+                                             InternalSeverity severity,
+                                             @Nullable InternalDocumentationLink documentationLink,
+                                             List<InternalProblemContextDetails> problemEvents) {
         this.category = category;
         this.label = label;
+        this.severity = severity;
+        this.documentationLink = documentationLink;
         this.problemEvents = problemEvents;
     }
 
@@ -48,8 +59,19 @@ public class DefaultInternalProblemAggregation implements InternalProblemAggrega
         return label;
     }
 
+    @Nullable
     @Override
-    public List<InternalProblemEvent> getProblems() {
+    public InternalDocumentationLink getDocumentationLink() {
+        return documentationLink;
+    }
+
+    @Override
+    public InternalSeverity getSeverity() {
+        return severity;
+    }
+
+    @Override
+    public List<InternalProblemContextDetails> getProblemContextDetails() {
         return problemEvents;
     }
 }

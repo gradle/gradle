@@ -18,8 +18,6 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 
-import java.util.List;
-
 
 /**
  * Represents a list of aggregated problems. These are sent at the end of the build.
@@ -32,10 +30,10 @@ import java.util.List;
 public interface ProblemAggregationEvent extends ProblemEvent {
 
     /**
-     * Returns the list of aggregated problems.
-     * @return The list of aggregated problems.
+     * Returns the problem category that is common for all aggregated problems.
      *
+     * @return the problem category
      * @since 8.8
      */
-    List<ProblemAggregation> getAggregations();
+    ProblemAggregation getProblemAggregation();
 }

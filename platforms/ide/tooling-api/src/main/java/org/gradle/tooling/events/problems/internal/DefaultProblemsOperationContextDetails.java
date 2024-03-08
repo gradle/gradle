@@ -19,60 +19,34 @@ package org.gradle.tooling.events.problems.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
-import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.FailureContainer;
-import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
-import org.gradle.tooling.events.problems.ProblemCategory;
-import org.gradle.tooling.events.problems.ProblemDescriptor;
-import org.gradle.tooling.events.problems.Severity;
+import org.gradle.tooling.events.problems.ProblemContextDetails;
 import org.gradle.tooling.events.problems.Solution;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultProblemsOperationDescriptor implements ProblemDescriptor {
-    private final ProblemCategory category;
-    private final Label label;
+public class DefaultProblemsOperationContextDetails implements ProblemContextDetails {
     private final Details details;
-    private final Severity severity;
     private final List<Location> locations;
-    private final DocumentationLink documentationLink;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
-    private final FailureContainer exception;
+    private final FailureContainer failure;
 
-    public DefaultProblemsOperationDescriptor(
-        ProblemCategory category,
-        Label label,
+    public DefaultProblemsOperationContextDetails(
         @Nullable Details details,
-        Severity severity,
         List<Location> locations,
-        @Nullable DocumentationLink documentationLink,
         List<Solution> solutions,
         AdditionalData additionalData,
-        @Nullable FailureContainer exception
+        @Nullable FailureContainer failure
     ) {
-        this.category = category;
-        this.label = label;
         this.details = details;
-        this.severity = severity;
         this.locations = locations;
-        this.documentationLink = documentationLink;
         this.solutions = solutions;
         this.additionalData = additionalData;
-        this.exception = exception;
-    }
-
-    @Override
-    public ProblemCategory getCategory() {
-        return category;
-    }
-
-    @Override
-    public Label getLabel() {
-        return label;
+        this.failure = failure;
     }
 
     @Nullable
@@ -81,20 +55,10 @@ public class DefaultProblemsOperationDescriptor implements ProblemDescriptor {
         return details;
     }
 
-    @Override
-    public Severity getSeverity() {
-        return severity;
-    }
 
     @Override
     public List<Location> getLocations() {
         return locations;
-    }
-
-    @Nullable
-    @Override
-    public DocumentationLink getDocumentationLink() {
-        return documentationLink;
     }
 
     @Override
@@ -109,6 +73,6 @@ public class DefaultProblemsOperationDescriptor implements ProblemDescriptor {
     @Nullable
     @Override
     public FailureContainer getFailure() {
-        return exception;
+        return failure;
     }
 }
