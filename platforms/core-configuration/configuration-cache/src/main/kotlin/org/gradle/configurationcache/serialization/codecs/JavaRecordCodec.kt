@@ -34,11 +34,21 @@ object JavaRecordCodec : EncodingProducer, Decoding {
         // need to check by name because it's only present in Java 14+
         JavaRecordEncoding.takeIf { type.superclass?.canonicalName == "java.lang.Record" }
 
-
     override suspend fun ReadContext.decode(): Any? {
         val clazz = readClass()
         val fields = clazz.relevantFields
 
+        val args = readFields(fields)
+        val types = fields.map { it.type }.toTypedArray()
+        try {
+            return clazz.getConstructor(*types).newInstance(*args.toTypedArray())
+        } catch (ex: ReflectiveOperationException) {
+            throw IllegalStateException("Failed to create instance of ${clazz.name} with args $args", ex)
+        }
+    }
+
+    private
+    suspend fun ReadContext.readFields(fields: List<Field>): List<Any?> {
         val args = mutableListOf<Any?>()
         for (field in fields) {
             val fieldName = field.name
@@ -49,12 +59,7 @@ object JavaRecordCodec : EncodingProducer, Decoding {
                 args.add(fieldValue)
             }
         }
-        val types = fields.map { it.type }.toTypedArray()
-        try {
-            return clazz.getConstructor(*types).newInstance(*args.toTypedArray())
-        } catch (ex: ReflectiveOperationException) {
-            throw IllegalStateException("Failed to create instance of ${clazz.name} with args $args", ex)
-        }
+        return args
     }
 }
 
