@@ -16,31 +16,25 @@
 
 package org.gradle.api.publish.internal.mapping
 
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ResolvableDependencies
-import org.gradle.api.artifacts.result.ResolutionResult
-import org.gradle.api.artifacts.result.ResolvedComponentResult
-import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.component.SoftwareComponentVariant
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publish.internal.component.ResolutionBackedVariant
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import javax.annotation.Nullable
 
 /**
  * Tests {@link DefaultDependencyCoordinateResolverFactory}.
  */
-class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
+class DefaultDependencyCoordinateResolverFactoryTest extends AbstractProjectBuilderSpec {
 
     ProjectDependencyPublicationResolver projectDependencyResolver = Mock()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
@@ -88,7 +82,7 @@ class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
 
     def "returns legacy resolver if dependency version mapping is enabled with default configuration and variant is not resolution-backed"() {
         given:
-        def conf = conf()
+        def conf = project.configurations.create("conf")
         def variant = nonResolutionBacked()
         def versionMappingStrategy = versionMappingStrategy(true, conf, null)
 
@@ -101,7 +95,7 @@ class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
 
     def "returns legacy resolver if dependency version mapping is enabled with explicit configuration and variant is not resolution-backed"() {
         given:
-        def conf = conf()
+        def conf = project.configurations.create("conf")
         def variant = nonResolutionBacked()
         def versionMappingStrategy = versionMappingStrategy(true, null, conf)
 
@@ -114,8 +108,8 @@ class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
 
     def "returns legacy resolver if version mapping is enabled with default configuration and dependency mapping is disabled with resolution configuration"() {
         given:
-        def dependencyMappingConf = conf()
-        def versionMappingConf = conf()
+        def dependencyMappingConf = project.configurations.create("conf1")
+        def versionMappingConf = project.configurations.create("conf2")
         def variant = resolutionBacked(false, dependencyMappingConf)
         def versionMappingStrategy = versionMappingStrategy(true, versionMappingConf, null)
 
@@ -128,8 +122,8 @@ class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
 
     def "returns legacy resolver if version mapping is enabled with user configuration and dependency mapping is disabled with resolution configuration"() {
         given:
-        def dependencyMappingConf = conf()
-        def versionMappingConf = conf()
+        def dependencyMappingConf = project.configurations.create("conf1")
+        def versionMappingConf = project.configurations.create("conf2")
         def variant = resolutionBacked(false, dependencyMappingConf)
         def versionMappingStrategy = versionMappingStrategy(true, null, versionMappingConf)
 
@@ -155,7 +149,7 @@ class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
 
     def "returns resolution backed resolver if dependency mapping is enabled with configuration"() {
         given:
-        def conf = conf()
+        def conf = project.configurations.create("conf")
         def variant = resolutionBacked(true, conf)
         def versionMappingStrategy = Mock(VersionMappingStrategyInternal)
 
@@ -163,25 +157,6 @@ class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
         with(factory.createCoordinateResolvers(variant, versionMappingStrategy).get()) {
             variantResolver instanceof ResolutionBackedVariantDependencyResolver
             componentResolver instanceof ResolutionBackedComponentDependencyResolver
-        }
-    }
-
-    Configuration conf() {
-        ResolvedVariantResult rootVariant = Mock(ResolvedVariantResult) {
-            getDisplayName() >> "conf"
-        }
-        ResolvedComponentResult root = Mock(ResolvedComponentResult) {
-            getVariants() >> [rootVariant]
-            getDependenciesForVariant(_) >> []
-            getDependencies() >> []
-        }
-        Stub(Configuration) {
-            getName() >> "conf"
-            getIncoming() >> Mock(ResolvableDependencies) {
-                getResolutionResult() >> Mock(ResolutionResult) {
-                    getRootComponent() >> Providers.of(root)
-                }
-            }
         }
     }
 

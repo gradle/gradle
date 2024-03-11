@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
@@ -39,8 +40,9 @@ public class AttributeDesugaring {
     }
 
     /**
-     * Desugars attributes so that what we're going to serialize consists only of String or Boolean attributes,
-     * and not their original types.
+     * Desugars attributes so that what we're going to serialize consists only of String, Boolean,
+     * or Integer attributes, and not their original types.
+     *
      * @return desugared attributes
      */
     public ImmutableAttributes desugar(ImmutableAttributes attributes) {
@@ -52,12 +54,24 @@ public class AttributeDesugaring {
             Set<Attribute<?>> keySet = key.keySet();
             for (Attribute<?> attribute : keySet) {
                 Object value = key.getAttribute(attribute);
-                Attribute<Object> desugared = Cast.uncheckedCast(attribute);
-                if (attribute.getType() == Boolean.class || attribute.getType() == String.class) {
-                    mutable.attribute(desugared, value);
+                if (attribute.getType() == Boolean.class ||
+                    attribute.getType() == String.class ||
+                    attribute.getType() == Integer.class
+                ) {
+                    Attribute<Object> attr = Cast.uncheckedCast(attribute);
+                    mutable.attribute(attr, value);
                 } else {
-                    desugared = Cast.uncheckedCast(Attribute.of(attribute.getName(), String.class));
-                    mutable.attribute(desugared, value.toString());
+                    Attribute<String> desugared = Attribute.of(attribute.getName(), String.class);
+
+                    String stringValue;
+                    if (Named.class.isAssignableFrom(attribute.getType())) {
+                        stringValue = ((Named) value).getName();
+                    } else {
+                        // TODO: Deprecate this case.
+                        stringValue = value.toString();
+                    }
+
+                    mutable.attribute(desugared, stringValue);
                 }
             }
             return mutable.asImmutable();

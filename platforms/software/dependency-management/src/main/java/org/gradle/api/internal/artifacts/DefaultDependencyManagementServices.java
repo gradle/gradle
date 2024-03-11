@@ -99,6 +99,7 @@ import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -530,7 +531,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             List<ResolverProviderFactory> resolverFactories,
             ExternalModuleComponentResolverFactory moduleDependencyResolverFactory,
             ProjectDependencyResolver projectDependencyResolver,
-            DependencyLockingProvider dependencyLockingProvider
+            DependencyLockingProvider dependencyLockingProvider,
+            AttributeDesugaring attributeDesugaring
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 dependencyGraphResolver,
@@ -566,7 +568,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 defaultResolver,
                 componentIdentifierFactory,
                 moduleIdentifierFactory,
-                currentBuild.getBuildIdentifier()
+                attributeDesugaring
             );
         }
 

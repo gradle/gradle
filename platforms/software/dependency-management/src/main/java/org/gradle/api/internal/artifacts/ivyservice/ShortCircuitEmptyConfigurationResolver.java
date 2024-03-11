@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
@@ -44,6 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -58,13 +58,18 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     private final ConfigurationResolver delegate;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final BuildIdentifier thisBuild;
+    private final AttributeDesugaring attributeDesugaring;
 
-    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
+    public ShortCircuitEmptyConfigurationResolver(
+        ConfigurationResolver delegate,
+        ComponentIdentifierFactory componentIdentifierFactory,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        AttributeDesugaring attributeDesugaring
+    ) {
         this.delegate = delegate;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.thisBuild = thisBuild;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
@@ -117,7 +122,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         Module module = resolveContext.getModule();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        MinimalResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, resolveContext.getAttributes().asImmutable());
+        MinimalResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, resolveContext.getAttributes().asImmutable(), resolveContext.getName(), attributeDesugaring);
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
     }
 
