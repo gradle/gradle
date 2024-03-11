@@ -199,7 +199,7 @@
     "name": "declarative-dsl-core",
     "path": "platforms/core-configuration/declarative-dsl-core",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
