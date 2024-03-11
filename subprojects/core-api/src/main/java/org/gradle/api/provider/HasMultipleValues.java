@@ -164,7 +164,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
      * Adds an element to the property value.
      *
      * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
      *
      * <p>
      * When invoked on a property with no value, this method first sets the value
@@ -215,7 +214,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
      * Adds zero or more elements to the property value.
      *
      * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
      *
      * <p>
      * When invoked on a property with no value, this method first sets the value

@@ -20,13 +20,21 @@ package org.gradle.internal.service.scopes;
  * @see ServiceScope
  */
 public interface Scopes {
+
+    /**
+     * These services are reused across builds in the same process.
+     *
+     * <p>Global services are visible to all other services.</p>
+     */
+    interface Global extends Scope {}
+
     /**
      * These services are reused across builds in the same process while the Gradle user home directory remains unchanged.
      * The services are closed when the Gradle user home directory changes.
      *
-     * <p>{@link Scope.Global} and parent scope services are visible to {@link UserHome} scope services, but not vice versa.</p>
+     * <p>{@link Global} and parent scope services are visible to {@link UserHome} scope services, but not vice versa.</p>
      */
-    interface UserHome extends Scope.Global {}
+    interface UserHome extends Global {}
 
     /**
      * These services are reused across build invocations in a session.

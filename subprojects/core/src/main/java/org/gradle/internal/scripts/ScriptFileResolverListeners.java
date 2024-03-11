@@ -16,10 +16,10 @@
 
 package org.gradle.internal.scripts;
 
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scopes.Global.class)
 public interface ScriptFileResolverListeners {
 
     void addListener(ScriptFileResolvedListener scriptFileResolvedListener);
