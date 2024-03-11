@@ -65,9 +65,9 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
    > Could not resolve project :producer.
      Required by:
          project :consumer
-      > project :producer requires at least a Java 18 JVM. This request asked for a library compatible with a Java 17 JVM.""")
+      > project :producer requires at least a Java $tooHighJava JVM. This request asked for a library compatible with a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
-        failure.assertHasResolution("Update the dependency on project :producer to an earlier version that supports a Java 18 JVM.")
+        failure.assertHasResolution("Update the dependency on project :producer to an earlier version that supports a Java $tooHighJava JVM.")
     }
 
     def 'JVM version too low even if other non-Library category variants available uses standard error message for non-plugin'() {
@@ -119,8 +119,8 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
    > Could not resolve project :producer.
      Required by:
          project :consumer
-      > project :producer requires at least a Java 18 JVM. This request asked for a library compatible with a Java 17 JVM.""")
+      > project :producer requires at least a Java $tooHighJava JVM. This request asked for a library compatible with a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
-        failure.assertHasResolution("Update the dependency on project :producer to an earlier version that supports a Java 18 JVM.")
+        failure.assertHasResolution("Update the dependency on project :producer to an earlier version that supports a Java $tooHighJava JVM.")
     }
 }
