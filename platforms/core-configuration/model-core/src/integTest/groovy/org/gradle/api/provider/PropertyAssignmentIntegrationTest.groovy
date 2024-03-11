@@ -248,19 +248,20 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         runAndAssert("myTask", expectedResult)
 
         where:
-        description                        | operation | inputType                    | inputValue              | expectedResult
-        "FileCollection = FileCollection"  | "="       | "ConfigurableFileCollection" | 'files("a.txt")'        | '[a.txt]'
-        "FileCollection = String"          | "="       | "ConfigurableFileCollection" | '"a.txt"'               | unsupportedWithCause("Failed to cast object")
-        "FileCollection = Object"          | "="       | "ConfigurableFileCollection" | 'new MyObject("a.txt")' | unsupportedWithCause("Failed to cast object")
-        "FileCollection = File"            | "="       | "ConfigurableFileCollection" | 'file("a.txt")'         | unsupportedWithCause("Failed to cast object")
-        "FileCollection = Iterable<File>"  | "="       | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
-        "FileCollection += FileCollection" | "+="      | "ConfigurableFileCollection" | 'files("a.txt")'        | unsupportedWithCause("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.")
-        "FileCollection << FileCollection" | "<<"      | "ConfigurableFileCollection" | 'files("a.txt")'        | unsupportedWithCause("No signature of method")
-        "FileCollection += String"         | "+="      | "ConfigurableFileCollection" | '"a.txt"'               | unsupportedWithCause("Failed to cast object")
-        "FileCollection += Object"         | "+="      | "ConfigurableFileCollection" | 'new MyObject("a.txt")' | unsupportedWithCause("Failed to cast object")
-        "FileCollection += File"           | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'         | unsupportedWithCause("Failed to cast object")
-        "FileCollection += Iterable<?>"    | "+="      | "ConfigurableFileCollection" | '["a.txt"]'             | unsupportedWithCause("Failed to cast object")
-        "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
+        description                              | operation | inputType                    | inputValue               | expectedResult
+        "FileCollection = FileCollection"        | "="       | "ConfigurableFileCollection" | 'files("a.txt")'         | '[a.txt]'
+        "FileCollection = this + FileCollection" | "="       | "ConfigurableFileCollection" | 'input + files("a.txt")' | unsupportedWithCause("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.")
+        "FileCollection = String"                | "="       | "ConfigurableFileCollection" | '"a.txt"'                | unsupportedWithCause("Failed to cast object")
+        "FileCollection = Object"                | "="       | "ConfigurableFileCollection" | 'new MyObject("a.txt")'  | unsupportedWithCause("Failed to cast object")
+        "FileCollection = File"                  | "="       | "ConfigurableFileCollection" | 'file("a.txt")'          | unsupportedWithCause("Failed to cast object")
+        "FileCollection = Iterable<File>"        | "="       | "ConfigurableFileCollection" | '[file("a.txt")]'        | unsupportedWithCause("Failed to cast object")
+        "FileCollection += FileCollection"       | "+="      | "ConfigurableFileCollection" | 'files("a.txt")'         | '[a.txt]'
+        "FileCollection << FileCollection"       | "<<"      | "ConfigurableFileCollection" | 'files("a.txt")'         | unsupportedWithCause("No signature of method")
+        "FileCollection += String"               | "+="      | "ConfigurableFileCollection" | '"a.txt"'                | unsupportedWithCause("Failed to cast object")
+        "FileCollection += Object"               | "+="      | "ConfigurableFileCollection" | 'new MyObject("a.txt")'  | unsupportedWithCause("Failed to cast object")
+        "FileCollection += File"                 | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'          | unsupportedWithCause("Failed to cast object")
+        "FileCollection += Iterable<?>"          | "+="      | "ConfigurableFileCollection" | '["a.txt"]'              | unsupportedWithCause("Failed to cast object")
+        "FileCollection += Iterable<File>"       | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'        | unsupportedWithCause("Failed to cast object")
     }
 
     def "test Kotlin eager FileCollection types assignment for #description"() {
@@ -293,18 +294,19 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         runAndAssert("myTask", expectedResult)
 
         where:
-        description                        | operation | inputType                    | inputValue                         | expectedResult
-        "FileCollection = FileCollection"  | "="       | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | '[a.txt]'
-        "FileCollection = String"          | "="       | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection = Object"          | "="       | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection = File"            | "="       | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection = Iterable<File>"  | "="       | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += FileCollection" | "+="      | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += String"         | "+="      | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += Object"         | "+="      | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += File"           | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += Iterable<?>"    | "+="      | "ConfigurableFileCollection" | 'listOf("a.txt")'                  | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Val cannot be reassigned")
+        description                              | operation | inputType                    | inputValue                         | expectedResult
+        "FileCollection = FileCollection"        | "="       | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | '[a.txt]'
+        "FileCollection = this + FileCollection" | "="       | "ConfigurableFileCollection" | 'input + files("a.txt")'           | '[a.txt]'
+        "FileCollection = String"                | "="       | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Type mismatch")
+        "FileCollection = Object"                | "="       | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Type mismatch")
+        "FileCollection = File"                  | "="       | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Type mismatch")
+        "FileCollection = Iterable<File>"        | "="       | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Type mismatch")
+        "FileCollection += FileCollection"       | "+="      | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | '[a.txt]'
+        "FileCollection += String"               | "+="      | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Type mismatch")
+        "FileCollection += Object"               | "+="      | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Type mismatch")
+        "FileCollection += File"                 | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Type mismatch")
+        "FileCollection += Iterable<?>"          | "+="      | "ConfigurableFileCollection" | 'listOf("a.txt")'                  | unsupportedWithDescription("Type mismatch")
+        "FileCollection += Iterable<File>"       | "+="      | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Type mismatch")
     }
 
     def "test Groovy lazy property assignment with NamedDomainObjectContainer"() {

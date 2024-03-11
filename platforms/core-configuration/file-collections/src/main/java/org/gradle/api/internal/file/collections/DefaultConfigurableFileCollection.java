@@ -33,6 +33,7 @@ import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.ValueState;
 import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
+import org.gradle.api.internal.provider.support.SupportsCompoundAssignment;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -60,7 +61,8 @@ import java.util.function.Supplier;
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
-public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal, LazyGroovySupport {
+public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal, LazyGroovySupport,
+    SupportsCompoundAssignment<FileCollection> {
     private static final EmptyCollector EMPTY_COLLECTOR = new EmptyCollector();
     private final PathSet filesWrapper;
     private final String displayName;
@@ -189,7 +191,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
 
-        // Don't allow a += b or a = (a + b), this is not support
+        // Don't allow a = (a + b), this is not supported.
         fileCollection.visitStructure(new FileCollectionStructureVisitor() {
             @Override
             public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
@@ -223,6 +225,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public FileCollection plus(FileCollection collection) {
         return new UnionFileCollection(taskDependencyFactory, this, (FileCollectionInternal) collection);
+    }
+
+    @Override
+    public FileCollection toCompoundOperand() {
+        return shallowCopy();
     }
 
     @Override
