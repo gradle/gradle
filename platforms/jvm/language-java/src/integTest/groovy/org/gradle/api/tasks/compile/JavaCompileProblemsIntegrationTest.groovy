@@ -227,6 +227,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             // Force the compiler forking
+            // This will fork a compiler daemon, even if the Gradle daemon is running the same JVM version
             tasks.compileJava.options.fork = true
         """
         possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo"), 2)
