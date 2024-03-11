@@ -16,14 +16,14 @@
 
 package org.gradle.problems.internal.rendering;
 
+import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.problems.rendering.ProblemRenderer;
 
 import java.util.List;
 
 public class JavaCompilerProblemRenderer implements ProblemRenderer {
-
-    private static final String JAVA_COMPILER_CATEGORY = "org.gradle:compilation:java";
 
     @Override
     public void render(List<ProblemReport> problems) {
@@ -39,6 +39,13 @@ public class JavaCompilerProblemRenderer implements ProblemRenderer {
     }
 
     private static boolean isJavaCompilerProblem(ProblemReport problem) {
-        return problem.getDefinition().getCategory().getCategory().startsWith(JAVA_COMPILER_CATEGORY);
+        ProblemCategory category = problem.getDefinition().getCategory();
+        if (category.getSubcategories().isEmpty()) {
+            return false;
+        }
+
+        return category.getNamespace().equals(DefaultProblemCategory.GRADLE_CORE_NAMESPACE) &&
+            category.getCategory().equals("compilation") &&
+            category.getSubcategories().get(0).equals("java");
     }
 }
