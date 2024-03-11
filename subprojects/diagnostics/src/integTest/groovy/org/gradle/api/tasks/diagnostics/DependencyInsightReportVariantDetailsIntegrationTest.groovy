@@ -59,7 +59,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
         then:
         outputContains """project :b
 ${variantOf("apiElements", [
-            "org.gradle.api-view": of("public", "public"),
+            "org.gradle.api-type": of("public", "public"),
             "org.gradle.category": of("library", "library"),
             "org.gradle.dependency.bundling": of("external", "external"),
             "org.gradle.jvm.version": of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
@@ -141,7 +141,7 @@ Selected Variant(s)
 -------------------
 
 ${variantOf('apiElements', [
-                "org.gradle.api-view": of('public', 'public'),
+                "org.gradle.api-type": of('public', 'public'),
                 'org.gradle.category': of('library', 'library'),
                 'org.gradle.dependency.bundling': of('external', 'external'),
                 'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
@@ -155,7 +155,7 @@ Unselected Variant(s)
 ---------------------
 
 ${variantOf('apiElements-classes', [
-                'org.gradle.api-view': of('public', 'public'),
+                'org.gradle.api-type': of('public', 'public'),
                 'org.gradle.category': of('library', 'library'),
                 'org.gradle.dependency.bundling': of('external', 'external'),
                 'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
@@ -168,7 +168,7 @@ ${variantOf('mainSourceElements', [
                 'org.gradle.verificationtype': of('main-sources', ''),
                 'org.gradle.category': of('verification', 'library'),
                 'org.gradle.dependency.bundling': of('external', 'external'),
-                'org.gradle.api-view': of('', 'public'),
+                'org.gradle.api-type': of('', 'public'),
                 'org.gradle.jvm.environment': of('', 'standard-jvm'),
                 'org.gradle.jvm.version': of('', JavaVersion.current().majorVersion),
                 'org.gradle.libraryelements': of('', 'classes'),
@@ -177,7 +177,7 @@ ${variantOf('mainSourceElements', [
 
 ${variantOf('privateApiElements', [
                 artifactType: of('jar', ''),
-                'org.gradle.api-view': of('private', 'public'),
+                'org.gradle.api-type': of('private', 'public'),
                 'org.gradle.category': of('library', 'library'),
                 'org.gradle.dependency.bundling': of('external', 'external'),
                 'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
@@ -187,7 +187,7 @@ ${variantOf('privateApiElements', [
             ])}
 
 ${variantOf('privateApiElements-classesAndResources', [
-                'org.gradle.api-view': of('private', 'public'),
+                'org.gradle.api-type': of('private', 'public'),
                 'org.gradle.category': of('library', 'library'),
                 'org.gradle.dependency.bundling': of('external', 'external'),
                 'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
@@ -203,7 +203,7 @@ ${variantOf('runtimeElements', [
                 'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
                 'org.gradle.libraryelements': of('jar', 'classes'),
                 'org.gradle.usage': of('java-runtime', 'java-api'),
-                'org.gradle.api-view': of('', 'public'),
+                'org.gradle.api-type': of('', 'public'),
                 'org.gradle.jvm.environment': of('', 'standard-jvm'),
             ])}
 
@@ -213,7 +213,7 @@ ${variantOf('runtimeElements-classes', [
                 'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
                 'org.gradle.libraryelements': of('classes', 'classes'),
                 'org.gradle.usage': of('java-runtime', 'java-api'),
-                'org.gradle.api-view': of('', 'public'),
+                'org.gradle.api-type': of('', 'public'),
                 'org.gradle.jvm.environment': of('', 'standard-jvm'),
             ])}
 
@@ -223,7 +223,7 @@ ${variantOf('runtimeElements-resources', [
                 'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
                 'org.gradle.libraryelements': of('resources', 'classes'),
                 'org.gradle.usage': of('java-runtime', 'java-api'),
-                'org.gradle.api-view': of('', 'public'),
+                'org.gradle.api-type': of('', 'public'),
                 'org.gradle.jvm.environment': of('', 'standard-jvm'),
             ])}
 
@@ -233,7 +233,7 @@ ${variantOf('testResultsElementsForTest', [
                 'org.gradle.testsuite.type': of('unit-test', ''),
                 'org.gradle.verificationtype': of('test-results', ''),
                 'org.gradle.category': of('verification', 'library'),
-                'org.gradle.api-view': of('', 'public'),
+                'org.gradle.api-type': of('', 'public'),
                 'org.gradle.dependency.bundling': of('', 'external'),
                 'org.gradle.jvm.environment': of('', 'standard-jvm'),
                 'org.gradle.jvm.version': of('', JavaVersion.current().majorVersion),
@@ -296,7 +296,7 @@ Unselected Variant(s)
 
 ${variantOf('apiElements', [
                 artifactType: of('jar', ''),
-                'org.gradle.api-view': of('public', ''),
+                'org.gradle.api-type': of('public', ''),
                 'org.gradle.category': of('library', 'library'),
                 'org.gradle.dependency.bundling': of('external', 'external'),
                 'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
@@ -306,7 +306,7 @@ ${variantOf('apiElements', [
             ])}
 
 ${variantOf("apiElements-classes", [
-                'org.gradle.api-view': of('public', ''),
+                'org.gradle.api-type': of('public', ''),
                 'org.gradle.category': of('library', 'library'),
                 'org.gradle.dependency.bundling': of('external', 'external'),
                 'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
@@ -327,7 +327,7 @@ ${variantOf('mainSourceElements', [
 
 ${variantOf('privateApiElements', [
                 artifactType: of('jar', ''),
-                'org.gradle.api-view': of('private', ''),
+                'org.gradle.api-type': of('private', ''),
                 'org.gradle.category': of('library', 'library'),
                 'org.gradle.dependency.bundling': of('external', 'external'),
                 'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
@@ -337,7 +337,7 @@ ${variantOf('privateApiElements', [
             ])}
 
 ${variantOf('privateApiElements-classesAndResources', [
-                'org.gradle.api-view': of('private', ''),
+                'org.gradle.api-type': of('private', ''),
                 'org.gradle.category': of('library', 'library'),
                 'org.gradle.dependency.bundling': of('external', 'external'),
                 'org.gradle.jvm.version': of(JavaVersion.current().majorVersion, JavaVersion.current().majorVersion),
@@ -449,7 +449,7 @@ project :$expectedProject
     | org.gradle.category            | library             | library      |
     | org.gradle.libraryelements     | jar                 | classes      |
     | org.gradle.usage               | java-api            | java-api     |
-    | org.gradle.api-view            |                     | public       |
+    | org.gradle.api-type            |                     | public       |
     | org.gradle.blah                |                     | something    |
     | org.gradle.dependency.bundling |                     | external     |
     | org.gradle.jvm.environment     |                     | standard-jvm |

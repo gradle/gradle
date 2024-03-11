@@ -29,7 +29,7 @@ public interface Usage extends Named {
 
     /**
      * The API variant of a component. The API dependencies
-     * can be further refined by using the {@link ApiView} attribute.
+     * can be further refined by using the {@link ApiType} attribute.
      *
      * <p>The artifacts are packaged as class path elements, either a JAR or a classes directory.</p>
      *

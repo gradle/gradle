@@ -177,7 +177,7 @@
   {
     "name": "core-jvm",
     "path": "platforms/jvm/core-jvm",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.attributes.ApiView
+import org.gradle.api.attributes.ApiType
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
@@ -179,15 +179,15 @@ class JavaEcosystemSupportTest extends Specification {
 
     }
 
-    def "check API view compatibility rules consumer=#consumer and producer=#producer compatible=#compatible"() {
+    def "check API type compatibility rules consumer=#consumer and producer=#producer compatible=#compatible"() {
         CompatibilityCheckDetails details = Mock(CompatibilityCheckDetails)
 
         when:
-        new JavaEcosystemSupport.ApiViewCompatibilityRules().execute(details)
+        new JavaEcosystemSupport.ApiTypeCompatibilityRules().execute(details)
 
         then:
-        1 * details.getConsumerValue() >> apiView(consumer)
-        1 * details.getProducerValue() >> apiView(producer)
+        1 * details.getConsumerValue() >> apiType(consumer)
+        1 * details.getProducerValue() >> apiType(producer)
         if (compatible) {
             1 * details.compatible()
         } else {
@@ -196,42 +196,42 @@ class JavaEcosystemSupportTest extends Specification {
 
         where:
         consumer        | producer         | compatible
-        null            | ApiView.PUBLIC  | true
-        null            | ApiView.PRIVATE | true
+        null            | ApiType.PUBLIC  | true
+        null            | ApiType.PRIVATE | true
         null            | "other"         | true
-        ApiView.PUBLIC  | ApiView.PRIVATE | true
-        ApiView.PUBLIC  | "other"         | false
-        ApiView.PRIVATE | ApiView.PUBLIC  | false
-        ApiView.PRIVATE | "other"         | false
-        "other"         | ApiView.PUBLIC  | false
-        "other"         | ApiView.PRIVATE | false
+        ApiType.PUBLIC  | ApiType.PRIVATE | true
+        ApiType.PUBLIC  | "other"         | false
+        ApiType.PRIVATE | ApiType.PUBLIC  | false
+        ApiType.PRIVATE | "other"         | false
+        "other"         | ApiType.PUBLIC  | false
+        "other"         | ApiType.PRIVATE | false
         "other"         | "something"     | false
     }
 
-    def "check API view disambiguation rules consumer=#consumer and candidates=#candidates chooses=#expected"() {
+    def "check API type disambiguation rules consumer=#consumer and candidates=#candidates chooses=#expected"() {
         MultipleCandidatesDetails details = Mock(MultipleCandidatesDetails)
 
         when:
-        new JavaEcosystemSupport.ApiViewDisambiguationRules(apiView(ApiView.PUBLIC)).execute(details)
+        new JavaEcosystemSupport.ApiTypeDisambiguationRules(apiType(ApiType.PUBLIC)).execute(details)
 
         then:
-        1 * details.getConsumerValue() >> apiView(consumer)
-        1 * details.getCandidateValues() >> candidates.collect { apiView(it) }
+        1 * details.getConsumerValue() >> apiType(consumer)
+        1 * details.getCandidateValues() >> candidates.collect { apiType(it) }
         if (expected != null) {
             1 * details.closestMatch({ assert it.name == expected })
         }
 
         where:
         consumer        | candidates                        | expected
-        null            | [ApiView.PUBLIC]                  | ApiView.PUBLIC
-        null            | [ApiView.PRIVATE]                 | null
-        null            | [ApiView.PUBLIC, ApiView.PRIVATE] | ApiView.PUBLIC
-        ApiView.PUBLIC  | [ApiView.PUBLIC]                  | ApiView.PUBLIC
-        ApiView.PUBLIC  | [ApiView.PRIVATE]                 | null
-        ApiView.PUBLIC  | [ApiView.PUBLIC, ApiView.PRIVATE] | ApiView.PUBLIC
-        ApiView.PRIVATE | [ApiView.PUBLIC]                  | null
-        ApiView.PRIVATE | [ApiView.PRIVATE]                 | ApiView.PRIVATE
-        ApiView.PRIVATE | [ApiView.PUBLIC, ApiView.PRIVATE] | ApiView.PRIVATE
+        null            | [ApiType.PUBLIC]                  | ApiType.PUBLIC
+        null            | [ApiType.PRIVATE]                 | null
+        null            | [ApiType.PUBLIC, ApiType.PRIVATE] | ApiType.PUBLIC
+        ApiType.PUBLIC  | [ApiType.PUBLIC]                  | ApiType.PUBLIC
+        ApiType.PUBLIC  | [ApiType.PRIVATE]                 | null
+        ApiType.PUBLIC  | [ApiType.PUBLIC, ApiType.PRIVATE] | ApiType.PUBLIC
+        ApiType.PRIVATE | [ApiType.PUBLIC]                  | null
+        ApiType.PRIVATE | [ApiType.PRIVATE]                 | ApiType.PRIVATE
+        ApiType.PRIVATE | [ApiType.PUBLIC, ApiType.PRIVATE] | ApiType.PRIVATE
     }
 
     def "check bundling compatibility rules consumer=#consumer producer=#producer compatible=#compatible"() {
@@ -312,11 +312,11 @@ class JavaEcosystemSupportTest extends Specification {
         }
     }
 
-    private ApiView apiView(String value) {
+    private ApiType apiType(String value) {
         if (value == null) {
             null
         } else {
-            TestUtil.objectFactory().named(ApiView, value)
+            TestUtil.objectFactory().named(ApiType, value)
         }
     }
 

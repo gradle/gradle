@@ -243,7 +243,7 @@ Configuration compileClasspath (i)
 Compile classpath for source set 'main'.
 
 Attributes
-    - org.gradle.api-view            = public
+    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
@@ -288,7 +288,7 @@ Configuration testCompileClasspath (i)
 Compile classpath for source set 'test'.
 
 Attributes
-    - org.gradle.api-view            = public
+    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
@@ -369,7 +369,7 @@ Configuration compileClasspath (i)
 Compile classpath for source set 'main'.
 
 Attributes
-    - org.gradle.api-view            = public
+    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
@@ -414,7 +414,7 @@ Configuration testCompileClasspath (i)
 Compile classpath for source set 'test'.
 
 Attributes
-    - org.gradle.api-view            = public
+    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
@@ -639,7 +639,7 @@ Disambiguation Rules
 The following Attributes have disambiguation rules defined.
 
     - flavor (1)
-    - org.gradle.api-view
+    - org.gradle.api-type
     - org.gradle.category
     - org.gradle.dependency.bundling
     - org.gradle.jvm.environment
@@ -700,7 +700,7 @@ Disambiguation Rules
 The following Attributes have disambiguation rules defined.
 
     - flavor
-    - org.gradle.api-view (3)
+    - org.gradle.api-type (3)
     - org.gradle.category (1)
     - org.gradle.dependency.bundling (6)
     - org.gradle.jvm.environment (7)

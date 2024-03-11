@@ -17,3 +17,11 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.5")
 }
 // end::dependencies[]
+
+if (hasProperty("toolchainJvmVersion")) {
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(property("toolchainJvmVersion") as String)
+        }
+    }
+}

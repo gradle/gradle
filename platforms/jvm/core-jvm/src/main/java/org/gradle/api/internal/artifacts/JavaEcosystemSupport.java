@@ -30,7 +30,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.ApiView;
+import org.gradle.api.attributes.ApiType;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
@@ -90,7 +90,7 @@ public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
-        configureApiView(attributesSchema, objectFactory);
+        configureApiType(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
@@ -98,7 +98,7 @@ public abstract class JavaEcosystemSupport {
         attributesSchema.attributeDisambiguationPrecedence(
                 Category.CATEGORY_ATTRIBUTE,
                 Usage.USAGE_ATTRIBUTE,
-                ApiView.VIEW_ATTRIBUTE,
+                ApiType.TYPE_ATTRIBUTE,
                 TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
                 LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
                 Bundling.BUNDLING_ATTRIBUTE,
@@ -151,20 +151,20 @@ public abstract class JavaEcosystemSupport {
         });
     }
 
-    private static void configureApiView(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
-        AttributeMatchingStrategy<ApiView> viewSchema = attributesSchema.attribute(ApiView.VIEW_ATTRIBUTE);
-        viewSchema.getCompatibilityRules().add(ApiViewCompatibilityRules.class);
-        viewSchema.getDisambiguationRules().add(ApiViewDisambiguationRules.class, actionConfiguration -> {
-            actionConfiguration.params(objectFactory.named(ApiView.class, ApiView.PUBLIC));
+    private static void configureApiType(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
+        AttributeMatchingStrategy<ApiType> typeSchema = attributesSchema.attribute(ApiType.TYPE_ATTRIBUTE);
+        typeSchema.getCompatibilityRules().add(ApiTypeCompatibilityRules.class);
+        typeSchema.getDisambiguationRules().add(ApiTypeDisambiguationRules.class, actionConfiguration -> {
+            actionConfiguration.params(objectFactory.named(ApiType.class, ApiType.PUBLIC));
         });
     }
 
     @VisibleForTesting
-    public static class ApiViewCompatibilityRules implements AttributeCompatibilityRule<ApiView>, ReusableAction {
+    public static class ApiTypeCompatibilityRules implements AttributeCompatibilityRule<ApiType>, ReusableAction {
         @Override
-        public void execute(CompatibilityCheckDetails<ApiView> details) {
-            ApiView consumerValue = details.getConsumerValue();
-            ApiView producerValue = details.getProducerValue();
+        public void execute(CompatibilityCheckDetails<ApiType> details) {
+            ApiType consumerValue = details.getConsumerValue();
+            ApiType producerValue = details.getProducerValue();
 
             if (consumerValue == null) {
                 // The consumer didn't express any preferences, so everything is compatible.
@@ -173,8 +173,8 @@ public abstract class JavaEcosystemSupport {
             }
 
             // The user requested the public API. The private API is a superset of the public API, so it is compatible.
-            if (ApiView.PUBLIC.equals(consumerValue.getName()) &&
-                ApiView.PRIVATE.equals(producerValue.getName())
+            if (ApiType.PUBLIC.equals(consumerValue.getName()) &&
+                ApiType.PRIVATE.equals(producerValue.getName())
             ) {
                 details.compatible();
             }
@@ -182,23 +182,23 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    static class ApiViewDisambiguationRules implements AttributeDisambiguationRule<ApiView>, ReusableAction {
+    static class ApiTypeDisambiguationRules implements AttributeDisambiguationRule<ApiType>, ReusableAction {
 
-        final ApiView publicView;
+        final ApiType publicType;
 
         @Inject
-        public ApiViewDisambiguationRules(ApiView publicView) {
-            this.publicView = publicView;
+        public ApiTypeDisambiguationRules(ApiType publicType) {
+            this.publicType = publicType;
         }
 
         @Override
-        public void execute(MultipleCandidatesDetails<ApiView> details) {
-            Set<ApiView> candidateValues = details.getCandidateValues();
-            ApiView consumerValue = details.getConsumerValue();
+        public void execute(MultipleCandidatesDetails<ApiType> details) {
+            Set<ApiType> candidateValues = details.getCandidateValues();
+            ApiType consumerValue = details.getConsumerValue();
             if (consumerValue == null) {
-                if (candidateValues.contains(publicView)) {
+                if (candidateValues.contains(publicType)) {
                     // Use the public api when nothing has been requested.
-                    details.closestMatch(publicView);
+                    details.closestMatch(publicType);
                 }
             } else if (candidateValues.contains(consumerValue)) {
                 // Use what they requested, if available.

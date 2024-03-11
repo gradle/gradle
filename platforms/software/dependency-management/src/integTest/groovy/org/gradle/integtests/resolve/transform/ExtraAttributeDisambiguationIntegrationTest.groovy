@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 /**
- * A regression test which verifies consistent behavior after the addition of the {@code ApiView} attribute
+ * A regression test which verifies consistent behavior after the addition of the {@code ApiType} attribute
  * and the associated {@code privateApiElements} configuration. Specifically tests behavior of the
  * {@code disambiguateWithExtraAttributes} step with {@code MultipleCandidateMatcher}.
  *
@@ -122,7 +122,7 @@ class ExtraAttributeDisambiguationIntegrationTest extends AbstractIntegrationSpe
 
     //endregion
 
-    def "Disambiguating on attribute defined after ApiView in precedence order succeeds"() {
+    def "Disambiguating on attribute defined after ApiType in precedence order succeeds"() {
         given:
         createConfiguration("another", """
             // Different value than runtimeElements -- not preferred according to jvm-ecosystem disambiguation rule.
@@ -139,7 +139,7 @@ class ExtraAttributeDisambiguationIntegrationTest extends AbstractIntegrationSpe
         assertConfigurationResolved("runtimeElements")
     }
 
-    def "Disambiguating on attribute defined after ApiView in precedence order succeeds -- with non-empty request attributes"() {
+    def "Disambiguating on attribute defined after ApiType in precedence order succeeds -- with non-empty request attributes"() {
         given:
         createConfiguration("another", """
             // We add the default TargetJvmEnvironment so this variant is preferred over runtimeElements and another2
@@ -159,7 +159,7 @@ class ExtraAttributeDisambiguationIntegrationTest extends AbstractIntegrationSpe
             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
             attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
         """)
-        // Whatever we request, we need to make sure two `ApiView` values remain in the `compatible` set.
+        // Whatever we request, we need to make sure two `ApiType` values remain in the `compatible` set.
         withRequestAttributes("""
             attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, Category.LIBRARY))
             attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))

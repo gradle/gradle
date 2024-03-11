@@ -16,8 +16,8 @@
 
 package org.gradle.internal.component.model
 
+import org.gradle.api.attributes.ApiType
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.ApiView
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmVersion
@@ -124,7 +124,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
     }
 
     def "resolve compileClasspath for implementation private API jar classes with java plugin"() {
-        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, ApiView.PRIVATE)
+        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, ApiType.PRIVATE)
 
         def apiElements = createApiElements(8, false)
         def privateApiElements = createPrivateApiElements(8)
@@ -143,7 +143,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
     }
 
     def "resolve compileClasspath for implementation private API jar with java-library plugin"() {
-        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, ApiView.PRIVATE)
+        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, ApiType.PRIVATE)
 
         def apiElements = createApiElements(8, true)
         def privateApiElements = createPrivateApiElements(8)
@@ -162,7 +162,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
     }
 
     def "resolve compileClasspath for implementation private API classes with java plugin"() {
-        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8, ApiView.PRIVATE)
+        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8, ApiType.PRIVATE)
 
         def apiElements = createApiElements(8, false)
         def privateApiElements = createPrivateApiElements(8)
@@ -181,7 +181,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
     }
 
     def "resolve compileClasspath for implementation private API classes with java-library plugin"() {
-        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8, ApiView.PRIVATE)
+        def requested = attributes(Usage.JAVA_API, LibraryElements.CLASSES, 8, ApiType.PRIVATE)
 
         def apiElements = createApiElements(8, true)
         def privateApiElements = createPrivateApiElements(8)
@@ -238,8 +238,8 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
     }
 
     def "resolve runtimeClasspath for implementation private API with java plugin"() {
-        // Even if we request the private API view during compile-time, we still want runtimeElements during runtime
-        def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8, apiView)
+        // Even if we request the private API during compile-time, we still want runtimeElements during runtime
+        def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8, apiType)
 
         def apiElements = createApiElements(8, false)
         def privateApiElements = createPrivateApiElements(8)
@@ -257,12 +257,12 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         matches == runtimeElements[0]
 
         where:
-        apiView << [ApiView.PUBLIC, ApiView.PRIVATE]
+        apiType << [ApiType.PUBLIC, ApiType.PRIVATE]
     }
 
     def "resolve runtimeClasspath for implementation private API with java-library plugin"() {
-        // Even if we request the private API view during compile-time, we still want runtimeElements during runtime
-        def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8, apiView)
+        // Even if we request the private API during compile-time, we still want runtimeElements during runtime
+        def requested = attributes(Usage.JAVA_RUNTIME, LibraryElements.JAR, 8, apiType)
 
         def apiElements = createApiElements(8, true)
         def privateApiElements = createPrivateApiElements(8)
@@ -280,7 +280,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         matches == runtimeElements[0]
 
         where:
-        apiView << [ApiView.PUBLIC, ApiView.PRIVATE]
+        apiType << [ApiType.PUBLIC, ApiType.PRIVATE]
     }
 
     def "resolve compileClasspath with java plugin targetJvm={8,11} requesting 9"() {
@@ -425,7 +425,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
     }
 
     def "resolves private API when public API is requested if public API is not available"() {
-        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, ApiView.PUBLIC)
+        def requested = attributes(Usage.JAVA_API, LibraryElements.JAR, 8, ApiType.PUBLIC)
 
         def privateApiElements = createPrivateApiElements(8)
         def runtimeElements = createRuntimeElements(8)
@@ -479,27 +479,27 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
         return variantMatches[0]
     }
 
-    private static AttributeContainerInternal attributes(String usage, String libraryElements, Integer targetJvm, String apiView = null) {
+    private static AttributeContainerInternal attributes(String usage, String libraryElements, Integer targetJvm, String apiType = null) {
         Map<Attribute<Object>, Object> attrs = [
             (Usage.USAGE_ATTRIBUTE): AttributeTestUtil.named(Usage, usage),
             (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE): targetJvm,
             (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE): AttributeTestUtil.named(LibraryElements, libraryElements)] +
-            (apiView != null ? [(ApiView.VIEW_ATTRIBUTE): AttributeTestUtil.named(ApiView, apiView)] : [:])
+            (apiType != null ? [(ApiType.TYPE_ATTRIBUTE): AttributeTestUtil.named(ApiType, apiType)] : [:])
         return AttributeTestUtil.attributesTyped(attrs)
     }
 
     def createApiElements(int version, boolean javaLibrary) {
-        def jars = [attributes(Usage.JAVA_API, LibraryElements.JAR, version, ApiView.PUBLIC)]
+        def jars = [attributes(Usage.JAVA_API, LibraryElements.JAR, version, ApiType.PUBLIC)]
         if (javaLibrary) {
-            jars << attributes(Usage.JAVA_API, LibraryElements.CLASSES, version, ApiView.PUBLIC)
+            jars << attributes(Usage.JAVA_API, LibraryElements.CLASSES, version, ApiType.PUBLIC)
         }
         return jars
     }
 
     def createPrivateApiElements(int version) {
         return [
-            attributes(Usage.JAVA_API, LibraryElements.JAR, version, ApiView.PRIVATE),
-            attributes(Usage.JAVA_API, LibraryElements.CLASSES_AND_RESOURCES, version, ApiView.PRIVATE)
+            attributes(Usage.JAVA_API, LibraryElements.JAR, version, ApiType.PRIVATE),
+            attributes(Usage.JAVA_API, LibraryElements.CLASSES_AND_RESOURCES, version, ApiType.PRIVATE)
         ]
     }
 

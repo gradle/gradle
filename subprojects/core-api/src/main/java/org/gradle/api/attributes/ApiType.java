@@ -20,21 +20,21 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * Differentiates between the different API views that a library exposes during compilation.
+ * Differentiates between the different APIs that a library exposes during compilation.
  *
  * <p>This attribute is only applicable when paired with the {@link Usage#JAVA_API} attribute.</p>
  *
  * @since 8.8
  */
 @Incubating
-public interface ApiView extends Named {
+public interface ApiType extends Named {
 
     /**
      * The attribute that tracks a variant's compilation API.
      *
      * @since 8.8
      */
-    Attribute<ApiView> VIEW_ATTRIBUTE = Attribute.of("org.gradle.api-view", ApiView.class);
+    Attribute<ApiType> TYPE_ATTRIBUTE = Attribute.of("org.gradle.api-type", ApiType.class);
 
     /**
      * The public API of a library. This is a subset of the private API and is intended to expose

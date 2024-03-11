@@ -236,7 +236,7 @@ Public API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = public
+    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -253,7 +253,7 @@ Secondary Variants (*)
     Directories containing compiled class files for main.
 
     Attributes
-        - org.gradle.api-view            = public
+        - org.gradle.api-type            = public
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -305,7 +305,7 @@ Private API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = private
+    - org.gradle.api-type            = private
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -322,7 +322,7 @@ Secondary Variants (*)
     Directories containing compiled class files and resources for main.
 
     Attributes
-        - org.gradle.api-view            = private
+        - org.gradle.api-type            = private
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -431,7 +431,7 @@ Public API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = public
+    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -448,7 +448,7 @@ Secondary Variants (*)
     Directories containing compiled class files for main.
 
     Attributes
-        - org.gradle.api-view            = public
+        - org.gradle.api-type            = public
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -515,7 +515,7 @@ Private API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = private
+    - org.gradle.api-type            = private
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -532,7 +532,7 @@ Secondary Variants (*)
     Directories containing compiled class files and resources for main.
 
     Attributes
-        - org.gradle.api-view            = private
+        - org.gradle.api-type            = private
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -655,7 +655,7 @@ Public API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = public
+    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -672,7 +672,7 @@ Secondary Variants (*)
     Directories containing compiled class files for main.
 
     Attributes
-        - org.gradle.api-view            = public
+        - org.gradle.api-type            = public
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -739,7 +739,7 @@ Private API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = private
+    - org.gradle.api-type            = private
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -756,7 +756,7 @@ Secondary Variants (*)
     Directories containing compiled class files and resources for main.
 
     Attributes
-        - org.gradle.api-view            = private
+        - org.gradle.api-type            = private
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -942,7 +942,7 @@ Public API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = public
+    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -959,7 +959,7 @@ Secondary Variants (*)
     Directories containing compiled class files for main.
 
     Attributes
-        - org.gradle.api-view            = public
+        - org.gradle.api-type            = public
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -1011,7 +1011,7 @@ Private API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = private
+    - org.gradle.api-type            = private
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -1028,7 +1028,7 @@ Secondary Variants (*)
     Directories containing compiled class files and resources for main.
 
     Attributes
-        - org.gradle.api-view            = private
+        - org.gradle.api-type            = private
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -1131,7 +1131,7 @@ Public API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = public
+    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -1148,7 +1148,7 @@ Secondary Variants (*)
     Directories containing compiled class files for main.
 
     Attributes
-        - org.gradle.api-view            = public
+        - org.gradle.api-type            = public
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -1200,7 +1200,7 @@ Private API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = private
+    - org.gradle.api-type            = private
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -1217,7 +1217,7 @@ Secondary Variants (*)
     Directories containing compiled class files and resources for main.
 
     Attributes
-        - org.gradle.api-view            = private
+        - org.gradle.api-type            = private
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -1430,7 +1430,7 @@ Public API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = public
+    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -1447,7 +1447,7 @@ Secondary Variants (*)
     Directories containing compiled class files for main.
 
     Attributes
-        - org.gradle.api-view            = public
+        - org.gradle.api-type            = public
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -1499,7 +1499,7 @@ Private API elements for the 'main' feature.
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.api-view            = private
+    - org.gradle.api-type            = private
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -1516,7 +1516,7 @@ Secondary Variants (*)
     Directories containing compiled class files and resources for main.
 
     Attributes
-        - org.gradle.api-view            = private
+        - org.gradle.api-type            = private
         - org.gradle.category            = library
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
