@@ -16,6 +16,8 @@
 
 package org.gradle.internal.jvm;
 
+import org.gradle.api.NonNullApi;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +29,7 @@ import java.util.List;
  * a warning they can do nothing about. On Java 16+, strong encapsulation of JDK internals is
  * enforced and not having the explicit permissions for reflective accesses will result in runtime exceptions.
  */
+@NonNullApi
 public class JpmsConfiguration {
 
     public static final List<String> GROOVY_JPMS_ARGS = Collections.unmodifiableList(Arrays.asList(
