@@ -109,8 +109,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         builder.setImplementationModulePath(classpath.getImplementationModulepath());
         builder.applicationClasspath(classpath.getApplicationClasspath());
         builder.applicationModulePath(classpath.getApplicationModulepath());
+        // Disabled for faster startup, see https://github.com/gradle/gradle/pull/1883
+        builder.useNativeServices(false);
         options.copyTo(builder.getJavaCommand());
-        builder.getJavaCommand().jvmArgs("-Dorg.gradle.native=false");
         buildConfigAction.execute(builder);
 
         workerProcess = builder.build();

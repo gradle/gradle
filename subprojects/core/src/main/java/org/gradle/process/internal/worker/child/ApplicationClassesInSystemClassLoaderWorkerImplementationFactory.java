@@ -149,9 +149,10 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
                 }
             }
 
-            boolean useNativeServices = NativeServices.getInstance()
-                .createNativeCapabilities()
-                .useNativeIntegrations();
+            // When not explicitly set, use the value from the daemon process
+            boolean useNativeServices = processBuilder.useNativeServices() != null
+                ? processBuilder.useNativeServices()
+                : NativeServices.getInstance().createNativeCapabilities().useNativeIntegrations();
             WorkerConfig config = new WorkerConfig(
                 logLevel,
                 publishProcessInfo,

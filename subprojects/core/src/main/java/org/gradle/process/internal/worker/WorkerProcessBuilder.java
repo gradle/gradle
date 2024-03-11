@@ -59,6 +59,10 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
 
     void enableJvmMemoryInfoPublishing(boolean shouldPublish);
 
+    void useNativeServices(Boolean useNativeServices);
+
+    Boolean useNativeServices();
+
     /**
      * Creates the worker process. The process is not started until {@link WorkerProcess#start()} is called.
      *

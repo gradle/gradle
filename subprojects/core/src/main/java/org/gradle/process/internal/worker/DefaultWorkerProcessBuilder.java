@@ -71,6 +71,12 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
 
+    /**
+     * Three state flag: null, true, false.
+     * When null, the setting for the daemon will be used, else if explicitly set, the explicit value will be used.
+     */
+    private Boolean useNativeServices;
+
     DefaultWorkerProcessBuilder(
         JavaExecHandleFactory execHandleFactory,
         MessagingServer server,
@@ -198,6 +204,16 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     @Override
     public void enableJvmMemoryInfoPublishing(boolean shouldPublish) {
         this.shouldPublishJvmMemoryInfo = shouldPublish;
+    }
+
+    @Override
+    public void useNativeServices(Boolean useNativeServices) {
+        this.useNativeServices = useNativeServices;
+    }
+
+    @Override
+    public Boolean useNativeServices() {
+        return useNativeServices;
     }
 
     @Override
