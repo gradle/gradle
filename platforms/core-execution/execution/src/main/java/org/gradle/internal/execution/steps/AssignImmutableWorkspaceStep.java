@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Streams;
 import org.apache.commons.io.FileUtils;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
@@ -49,6 +50,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableListMultimap.toImmutableListMultimap;
 import static com.google.common.collect.Maps.immutableEntry;
@@ -108,13 +111,30 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = outputSnapshotter.snapshotOutputs(work, immutableLocation);
 
         // Verify output hashes
-        ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
+        ImmutableListMultimap<String, HashCode> actualOutputHashes = calculateOutputHashes(outputSnapshots);
         ImmutableWorkspaceMetadata metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
-        if (!metadata.getOutputPropertyHashes().equals(outputHashes)) {
+        ImmutableListMultimap<String, HashCode> originalOutputHashes = metadata.getOutputPropertyHashes();
+        if (!originalOutputHashes.equals(actualOutputHashes)) {
+            String differences = Streams.concat(
+                    originalOutputHashes.keySet().stream(),
+                    actualOutputHashes.keySet().stream())
+                .distinct()
+                .flatMap(outputProperty -> {
+                    ImmutableList<HashCode> originalHashes = originalOutputHashes.get(outputProperty);
+                    ImmutableList<HashCode> actualHashes = actualOutputHashes.get(outputProperty);
+                    if (originalHashes.equals(actualHashes)) {
+                        return Stream.empty();
+                    }
+                    return Stream.of(String.format("- Output property '%s' has different hashes: expected %s, actual %s",
+                        outputProperty, originalHashes, actualHashes));
+                })
+                .collect(Collectors.joining("\n"));
+
             throw new IllegalStateException(
-                "Immutable workspace contents have been modified: " + immutableLocation.getAbsolutePath() + ". " +
-                    "These workspace directories are not supposed to be modified once they are created. " +
-                    "Deleting the directory in question can allow the content to be recreated.");
+                "Immutable workspace contents have been modified: " + immutableLocation.getAbsolutePath() + ".\n"
+                    + differences + "\n"
+                    + "These workspace directories are not supposed to be modified once they are created. "
+                    + "Deleting the directory in question can allow the content to be recreated.");
         }
 
         OriginMetadata originMetadata = metadata.getOriginMetadata();

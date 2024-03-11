@@ -269,14 +269,20 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         def outputFile = immutableWorkspace.file("output.txt")
         def originalOutputFileSnapshot = regularFile(outputFile.absolutePath, 1234L)
         def changedOutputFileSnapshot = regularFile(outputFile.absolutePath, 5678L)
+        def unchangedOutputFileSnapshot = regularFile(immutableWorkspace.file("unchanged.txt").absolutePath, 7890L)
         def delegateOriginMetadata = Stub(OriginMetadata)
 
         def existingWorkspaceSnapshot = Stub(DirectorySnapshot) {
             type >> FileType.Directory
         }
 
+        def originalOutputHashess = ImmutableListMultimap.of(
+            "output", originalOutputFileSnapshot.hash,
+            "unchanged", unchangedOutputFileSnapshot.hash
+        )
         def changedOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
-            "output", changedOutputFileSnapshot
+            "output", changedOutputFileSnapshot,
+            "unchanged", unchangedOutputFileSnapshot
         )
 
         when:
@@ -289,12 +295,13 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> changedOutputs
         1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Stub(ImmutableWorkspaceMetadata) {
             getOriginMetadata() >> delegateOriginMetadata
-            getOutputPropertyHashes() >> ImmutableListMultimap.of("output", originalOutputFileSnapshot.hash)
+            getOutputPropertyHashes() >> originalOutputHashess
         }
 
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Immutable workspace contents have been modified: ${immutableWorkspace.absolutePath}. " +
+        ex.message == "Immutable workspace contents have been modified: ${immutableWorkspace.absolutePath}.\n" +
+            "- Output property 'output' has different hashes: expected [d2040000000000000000000000000000], actual [2e160000000000000000000000000000]\n" +
             "These workspace directories are not supposed to be modified once they are created. " +
             "Deleting the directory in question can allow the content to be recreated."
         0 * _
