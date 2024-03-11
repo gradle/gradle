@@ -85,9 +85,6 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
                 )
             );
         }
-//        javaForkOptions.jvmArgs(
-//            "-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5006,suspend=y"
-//        );
 
         FlatClassLoaderStructure classLoaderStructure = new FlatClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
