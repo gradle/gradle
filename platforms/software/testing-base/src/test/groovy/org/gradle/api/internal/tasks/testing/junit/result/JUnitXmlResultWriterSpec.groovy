@@ -274,12 +274,9 @@ class JUnitXmlResultWriterSpec extends Specification {
         result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         _ * provider.writeAllOutput(_, _, _)
 
-        when:
+        expect:
         def doc = new XmlParser().parseText(getXml(result, options))
-
-        then:
-        doc.'system-out'.isEmpty() == true
-        doc.'system-err'.isEmpty() == false
+        assertHasOutputAsConfigured(doc, false, true)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23229")
@@ -292,12 +289,9 @@ class JUnitXmlResultWriterSpec extends Specification {
         result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         _ * provider.writeAllOutput(_, _, _)
 
-        when:
+        expect:
         def doc = new XmlParser().parseText(getXml(result, options))
-
-        then:
-        doc.'system-out'.isEmpty() == false
-        doc.'system-err'.isEmpty() == true
+        assertHasOutputAsConfigured(doc, true, false)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23229")
@@ -310,12 +304,9 @@ class JUnitXmlResultWriterSpec extends Specification {
         result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         _ * provider.writeAllOutput(_, _, _)
 
-        when:
+        expect:
         def doc = new XmlParser().parseText(getXml(result, options))
-
-        then:
-        doc.'system-out'.isEmpty() == false
-        doc.'system-err'.isEmpty() == false
+        assertHasOutputAsConfigured(doc, true, true)
     }
 
     private String getXml(TestClassResult result, JUnitXmlResultOptions options) {
@@ -326,5 +317,16 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     private JUnitXmlResultWriter getGenerator(JUnitXmlResultOptions options) {
         return new JUnitXmlResultWriter("localhost", provider, options)
+    }
+
+    private void assertHasOutputAsConfigured(Node doc, boolean standardOutputIncluded, boolean errorOutputIncluded) {
+        def testSuiteOutput = doc.tap {
+            assert it.name() == 'testsuite'
+            assert it["@name"] == 'com.foo.FooTest'
+        }
+        def suiteStandardOutNodeList = testSuiteOutput.'system-out'
+        def suiteStandardErrNodeList = testSuiteOutput.'system-err'
+        assert suiteStandardOutNodeList.isEmpty() == !standardOutputIncluded
+        assert suiteStandardErrNodeList.isEmpty() == !errorOutputIncluded
     }
 }
