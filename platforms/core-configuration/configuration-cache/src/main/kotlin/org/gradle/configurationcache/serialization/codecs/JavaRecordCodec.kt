@@ -23,6 +23,7 @@ import org.gradle.configurationcache.serialization.beans.readPropertyValue
 import org.gradle.configurationcache.serialization.beans.reportUnsupportedFieldType
 import org.gradle.configurationcache.serialization.beans.unsupportedFieldTypeFor
 import org.gradle.configurationcache.serialization.beans.writeNextProperty
+import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.withDebugFrame
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
@@ -40,10 +41,15 @@ object JavaRecordCodec : EncodingProducer, Decoding {
 
         val args = readFields(fields)
         val types = fields.map { it.type }.toTypedArray()
-        try {
-            return clazz.getConstructor(*types).newInstance(*args.toTypedArray())
+        val constructor = try {
+            clazz.getConstructor(*types)
         } catch (ex: ReflectiveOperationException) {
             throw IllegalStateException("Failed to create instance of ${clazz.name} with args $args", ex)
+        }
+        return try {
+            constructor.newInstance(*args.toTypedArray())
+        } catch (ex: Exception) {
+            createWithNulls(constructor, args)
         }
     }
 
@@ -60,6 +66,29 @@ object JavaRecordCodec : EncodingProducer, Decoding {
             }
         }
         return args
+    }
+
+    private
+    fun ReadContext.createWithNulls(constructor: java.lang.reflect.Constructor<*>, args: List<Any?>): Any {
+        val updatedArgs = args.mapIndexed { index, value ->
+            val type = constructor.parameterTypes[index]
+            if (type.isInstance(value) || value == null) {
+                value
+            } else {
+                logPropertyProblem("deserialize") {
+                    text("value ")
+                    reference(value.toString())
+                    text(" is not assignable to ")
+                    reference(type)
+                }
+                null
+            }
+        }
+        try {
+            return constructor.newInstance(*updatedArgs.toTypedArray())
+        } catch (ex: Exception) {
+            throw IllegalStateException("Failed to create instance of ${constructor.declaringClass.name} with args $args", ex)
+        }
     }
 }
 
