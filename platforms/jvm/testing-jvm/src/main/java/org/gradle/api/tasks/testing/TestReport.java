@@ -55,19 +55,13 @@ public abstract class TestReport extends DefaultTask {
     private final ConfigurableFileCollection resultDirs = getObjectFactory().fileCollection();
 
     @Inject
-    protected BuildOperationRunner getBuildOperationRunner() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildOperationRunner getBuildOperationRunner();
 
     @Inject
-    protected BuildOperationExecutor getBuildOperationExecutor() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildOperationExecutor getBuildOperationExecutor();
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Returns the directory to write the HTML report to.
@@ -121,7 +115,7 @@ public abstract class TestReport extends DefaultTask {
         return resultDirs;
     }
 
-    private void addTo(Object result, ConfigurableFileCollection dirs) {
+    private static void addTo(Object result, ConfigurableFileCollection dirs) {
         if (result instanceof Test) {
             Test test = (Test) result;
             dirs.from(test.getBinaryResultsDirectory());
@@ -186,7 +180,7 @@ public abstract class TestReport extends DefaultTask {
     }
 
     private TestResultsProvider createAggregateProvider() {
-        List<TestResultsProvider> resultsProviders = new LinkedList<TestResultsProvider>();
+        List<TestResultsProvider> resultsProviders = new LinkedList<>();
         try {
             FileCollection resultDirs = getTestResults();
             if (resultDirs.getFiles().size() == 1) {
