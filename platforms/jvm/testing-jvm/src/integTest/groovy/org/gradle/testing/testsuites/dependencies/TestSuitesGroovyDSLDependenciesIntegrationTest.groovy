@@ -521,7 +521,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     }
 
     // region multiple GAV strings
-    def "can add multiple of GAV dependencies to #suiteDesc - at the top level (varargs)"() {
+    def "can add multiple GAV dependencies to #suiteDesc in a single method call - at the top level (varargs)"() {
         given:
         buildFile << """
             plugins {
@@ -560,7 +560,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
     }
 
-    def "can add multiple GAV dependencies to #suiteDesc - at the top level (list)"() {
+    def "can add multiple GAV dependencies to #suiteDesc in a single method call - at the top level (list)"() {
         given:
         buildFile << """
             plugins {

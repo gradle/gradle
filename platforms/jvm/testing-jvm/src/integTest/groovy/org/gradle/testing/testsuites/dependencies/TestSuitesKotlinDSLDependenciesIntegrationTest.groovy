@@ -542,7 +542,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
     }
 
     // region multiple GAV strings
-    def "can NOT add multiple GAV dependencies to #suiteDesc - at the top level (varargs)"() {
+    def "can NOT add multiple GAV dependencies to #suiteDesc in a single method call- at the top level (varargs)"() {
         given:
         buildKotlinFile << """
             plugins {
@@ -617,7 +617,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
     }
 
-    def "can NOT add multiple GAV dependencies to #suiteDesc - at the top level (list)"() {
+    def "can NOT add multiple GAV dependencies to #suiteDesc in a single method call - at the top level (list)"() {
         given:
         buildKotlinFile << """
             plugins {
