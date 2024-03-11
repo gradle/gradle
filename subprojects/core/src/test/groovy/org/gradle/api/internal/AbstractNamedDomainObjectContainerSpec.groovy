@@ -111,4 +111,17 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         ops[0].details.applicationId == id1.longValue()
         ops[1].details.applicationId == id2.longValue()
     }
+
+    def "can configure task based on its provider"() {
+        given:
+        setupContainerDefaults()
+        def p = container.register("r1")
+        def derived = p.map { "value" }
+        p.configure {
+            derived.get()
+        }
+
+        expect:
+        "value" == derived.get()
+    }
 }
