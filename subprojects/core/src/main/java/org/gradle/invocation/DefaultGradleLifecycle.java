@@ -103,6 +103,7 @@ public class DefaultGradleLifecycle implements GradleLifecycleInternal {
 
     @Override
     public void resetState() {
+        rootProject = null;
         projectsLoaded = false;
         rootProjectActions.clear();
         buildListenerBroadcast.removeAll();
