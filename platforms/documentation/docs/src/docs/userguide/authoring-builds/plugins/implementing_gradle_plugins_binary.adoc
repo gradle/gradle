@@ -15,7 +15,7 @@
 [[implemention_plugins]]
 = Implementing Plugins
 
-There are many key aspects of developing Gradle plugins, including a proper ID, a helper plugin, and extension objects.
+There are many key aspects of developing Gradle binary plugins, including a proper ID, a helper plugin, and extension objects.
 
 [[plugin-development-plugin]]
 == Using the Plugin Development plugin
