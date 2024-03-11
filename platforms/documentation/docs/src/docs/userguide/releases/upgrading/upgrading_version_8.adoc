@@ -138,17 +138,8 @@ In implementing this spec, we have introduced the following breaking changes to 
 
 ==== Introduced new variant to Java projects
 
-All plugins that apply the `java` plugin or any of its related plugins will have a new consumable configuration, `implementationCompileElements`.
-In most cases, this should not affect existing builds.
-
-However, Kotlin Multiplatform users using `withJava` will need to update to KMP version `1.9.20` or greater to avoid ambiguous variant selection failures.
-
-Failures will look like this:
-```
-The consumer was configured to find the API compile view of a library for use during compile-time, compatible with Java 21, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally, as well as attribute 'org.jetbrains.kotlin.platform.type' with value 'jvm'. However we cannot choose between the following variants of project :other:
-    - implementationCompileElements
-    - jvmApiElements
-```
+All plugins that apply the `java` plugin or any of its related plugins will have a new consumable configuration, `privateApiElements`.
+This variant has been added to support future changes related to declaring test dependencies.
 
 [[changes_8.7]]
 == Upgrading from 8.6 and earlier
