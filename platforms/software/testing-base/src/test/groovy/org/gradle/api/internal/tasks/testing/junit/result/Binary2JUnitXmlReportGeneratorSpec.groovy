@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
+import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationExecutorSupport
 import org.gradle.internal.operations.BuildOperationRunner
