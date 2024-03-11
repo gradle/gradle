@@ -25,6 +25,7 @@ import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.GradleLifecycleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileResolver
@@ -45,6 +46,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.TestBuildOperationRunner
@@ -66,6 +68,7 @@ class DefaultGradleSpec extends Specification {
     BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     ListenerBuildOperationDecorator listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     CrossProjectConfigurator crossProjectConfigurator = Mock(CrossProjectConfigurator)
+    GradleLifecycleInternal lifecycle = new DefaultGradleLifecycle(Mock(IsolatableFactory), crossProjectConfigurator, listenerManager, listenerBuildOperationDecorator)
 
     GradleInternal gradle
 
@@ -87,6 +90,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)
         _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
         _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
+        _ * serviceRegistry.get(GradleLifecycleInternal) >> lifecycle
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
