@@ -296,6 +296,13 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
         }
     }
 
+    @Test
+    fun `throws proper error when writeReplace returns externalizable`() {
+        verifyRoundtripOf({ SerializableExternalizable(43) }) {
+            assertThat(it.value, equalTo(43))
+        }
+    }
+
     private
     fun <T> pairOf(bean: T) = bean.let { it to it }
 
@@ -503,6 +510,29 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
             transientString = objectInputStream.readUTF()
             transientFloat = objectInputStream.readFloat()
             transientDouble = objectInputStream.readDouble()
+        }
+    }
+
+    class ExternalizableBean2(var value: Int = -1) : Externalizable {
+
+        override fun writeExternal(out: ObjectOutput) {
+            out.writeInt(value)
+        }
+
+        override fun readExternal(`in`: ObjectInput) {
+            value = `in`.readInt()
+        }
+
+        private fun readResolve(): Any {
+            return SerializableExternalizable(value)
+        }
+    }
+
+    private
+    class SerializableExternalizable(val value: Int) : Serializable {
+        private
+        fun writeReplace(): Any {
+            return ExternalizableBean2(value)
         }
     }
 }
