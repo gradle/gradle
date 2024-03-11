@@ -37,7 +37,6 @@ import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.service.scopes.DefaultFileChangeListeners
 import org.gradle.internal.service.scopes.DefaultWorkInputListeners
-import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.session.BuildSessionActionExecutor
 import org.gradle.internal.session.BuildSessionContext
@@ -68,7 +67,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     def action = Stub(BuildAction) {
         getStartParameter() >> startParameter
     }
-    def globalListenerManager = new DefaultListenerManager(Scope.Global)
+    def globalListenerManager = new DefaultListenerManager(Scopes.Global)
     def userHomeListenerManager = globalListenerManager.createChild(Scopes.UserHome)
     def inputListeners = new DefaultWorkInputListeners(globalListenerManager)
     def changeListeners = new DefaultFileChangeListeners(userHomeListenerManager)

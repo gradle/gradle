@@ -42,7 +42,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -70,7 +70,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
     public BuildActionsFactory(ServiceRegistry loggingServices) {
         basicServices = ServiceRegistryBuilder.builder()
-            .scope(Scope.Global.class)
+            .scope(Scopes.Global.class)
             .displayName("Basic global services")
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
@@ -146,7 +146,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
     private Runnable runBuildInProcess(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
         ServiceRegistry globalServices = ServiceRegistryBuilder.builder()
-            .scope(Scope.Global.class)
+            .scope(Scopes.Global.class)
             .displayName("Global services")
             .parent(loggingServices)
             .parent(NativeServices.getInstance())

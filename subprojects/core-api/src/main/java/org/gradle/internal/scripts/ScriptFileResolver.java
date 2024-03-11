@@ -15,20 +15,20 @@
  */
 package org.gradle.internal.scripts;
 
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.scripts.ScriptingLanguage;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  * Resolves script files according to available {@link ScriptingLanguage} providers.
  *
  * @since 4.0
  */
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scopes.Global.class)
 public interface ScriptFileResolver {
 
     /**

@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
+import org.gradle.internal.properties.annotations.NestedValidationUtil;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
@@ -35,9 +36,8 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.internal.service.scopes.Scope.Global;
+import org.gradle.internal.service.scopes.Scopes.Global;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
-import org.gradle.internal.properties.annotations.NestedValidationUtil;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Modifier;

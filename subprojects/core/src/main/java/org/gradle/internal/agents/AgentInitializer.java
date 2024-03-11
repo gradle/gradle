@@ -16,13 +16,13 @@
 
 package org.gradle.internal.agents;
 
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Initializes the instrumenting agent.
  */
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scopes.Global.class)
 public class AgentInitializer {
     private final AgentStatus agentStatus;
 

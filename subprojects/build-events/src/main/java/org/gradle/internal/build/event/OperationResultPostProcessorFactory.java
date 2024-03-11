@@ -17,12 +17,12 @@
 package org.gradle.internal.build.event;
 
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scopes.Global.class)
 public interface OperationResultPostProcessorFactory {
     /**
      * Creates the post processors relevant for the given subscriptions. The processors are also registered as listeners.
