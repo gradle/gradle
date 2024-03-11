@@ -56,30 +56,12 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('''No matching variant of project :producer was found. The consumer was configured to find a library for use during compile-time, compatible with Java 6, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
-  - Variant 'apiElements' declares a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
-      - Other compatible attribute:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'mainSourceElements' declares a component, and its dependencies declared externally:
-      - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
-      - Other compatible attributes:
-          - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-          - Doesn't say anything about its target Java version (required compatibility with Java 6)
-          - Doesn't say anything about its usage (required compile-time)
-  - Variant 'runtimeElements' declares a library for use during runtime, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
-      - Other compatible attribute:
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'testResultsElementsForTest':
-      - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
-      - Other compatible attributes:
-          - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
-          - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-          - Doesn't say anything about its target Java version (required compatibility with Java 6)
-          - Doesn't say anything about its usage (required compile-time)''')
+        failure.assertHasErrorOutput("""> Could not resolve all task dependencies for configuration ':compileClasspath'.
+   > Could not resolve project :producer.
+     Required by:
+         project :
+      > project :producer requires at least a Java 7 JVM. This request asked for a library compatible with a Java 6 JVM.""")
+        failure.assertHasResolution("Update the dependency on project :producer to an earlier version that supports a Java 7 JVM.")
     }
 
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {
@@ -155,7 +137,13 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertThatCause(Matchers.startsWith("No matching variant of project :producer was found."))
+        failure.assertHasErrorOutput("""
+> Could not resolve all task dependencies for configuration ':compileClasspath'.
+   > Could not resolve project :producer.
+     Required by:
+         project :
+      > project :producer requires at least a Java 7 JVM. This request asked for a library compatible with a Java 6 JVM.""")
+        failure.assertHasResolution("Update the dependency on project :producer to an earlier version that supports a Java 7 JVM.")
 
         when:
         buildFile << """
