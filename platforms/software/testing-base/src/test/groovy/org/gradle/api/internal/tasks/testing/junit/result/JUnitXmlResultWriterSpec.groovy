@@ -34,17 +34,15 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 import static org.hamcrest.CoreMatchers.equalTo
 
 class JUnitXmlResultWriterSpec extends Specification {
-
     private provider = Mock(TestResultsProvider)
-    private options = new JUnitXmlResultOptions(false, false, true, true)
-
-    protected JUnitXmlResultWriter getGenerator() {
-        new JUnitXmlResultWriter("localhost", provider, options)
-    }
 
     private startTime = 1353344968049
 
     def "writes xml JUnit result"() {
+        given:
+        def options = new JUnitXmlResultOptions(false, false, true, true)
+
+        and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
         result.add(new TestMethodResult(1, "some test", SUCCESS, 15, startTime + 25))
         result.add(new TestMethodResult(2, "some test two", SUCCESS, 15, startTime + 30))
@@ -55,7 +53,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
 
         when:
-        def xml = getXml(result)
+        def xml = getXml(result, options)
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
@@ -89,12 +87,16 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     def "writes results with empty outputs"() {
+        given:
+        def options = new JUnitXmlResultOptions(false, false, true, true)
+
+        and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
         result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         _ * provider.writeAllOutput(_, _, _)
 
         when:
-        def xml = getXml(result)
+        def xml = getXml(result, options)
 
         then:
         xml == """<?xml version="1.0" encoding="UTF-8"?>
@@ -108,13 +110,17 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     def "encodes xml"() {
+        given:
+        def options = new JUnitXmlResultOptions(false, false, true, true)
+
+        and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
         result.add(new TestMethodResult(1, "some \ud8d3\ude01 test", FAILURE, 200, 300).addFailure("<> encoded!\ud8d3\ude02", "<non ascii:\ud8d3\ude02 \u0302>", "<Exception\ud8d3\ude29>"))
         provider.writeAllOutput(_, StdErr, _) >> { args -> args[2].write("with \ud8d3\ude31CDATA end token: ]]> some ascii: ż") }
         provider.writeAllOutput(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: \ud8d3\udd20ż") }
 
         when:
-        def xml = getXml(result)
+        def xml = getXml(result, options)
 
         then:
         //attribute and text is encoded:
@@ -125,10 +131,14 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     def "writes results with no tests"() {
+        given:
+        def options = new JUnitXmlResultOptions(false, false, true, true)
+
+        and:
         TestClassResult result = new TestClassResult(1, "com.foo.IgnoredTest", startTime)
 
         when:
-        def xml = getXml(result)
+        def xml = getXml(result, options)
 
         then:
         xml == """<?xml version="1.0" encoding="UTF-8"?>
@@ -142,7 +152,9 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "can generate with output per test"() {
         given:
-        options = new JUnitXmlResultOptions(true, false, true, true)
+        def options = new JUnitXmlResultOptions(true, false, true, true)
+
+        and:
         provider = new BuildableTestResultsProvider()
 
         when:
@@ -164,7 +176,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         }
 
         then:
-        getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
+        getXml(testClass, options) == """<?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="com.Foo" tests="2" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Foo" time="1.0">
@@ -183,11 +195,15 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "can generate report with failed tests with no exception"() {
         given:
+        def options = new JUnitXmlResultOptions(false, false, true, true)
+
+        and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
         result.add(new TestMethodResult(3, "some failing test", FAILURE, 10, startTime + 40))
 
         when:
-        def xml = getXml(result)
+        def xml = getXml(result, options)
+
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
             .assertTestCount(1, 0, 1, 0)
@@ -196,6 +212,10 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     @Issue("gradle/gradle#11445")
     def "writes #writtenName as class display name when #displayName is specified"() {
+        given:
+        def options = new JUnitXmlResultOptions(false, false, true, true)
+
+        and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", displayName, startTime)
         result.add(new TestMethodResult(1, "some test", "some test displayName", SUCCESS, 15, startTime + 25))
         result.add(new TestMethodResult(2, "some test two", "some test two displayName", SUCCESS, 15, startTime + 30))
@@ -206,7 +226,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
 
         when:
-        def xml = getXml(result)
+        def xml = getXml(result, options)
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", writtenName, TestResultOutputAssociation.WITH_SUITE)
@@ -244,24 +264,18 @@ class JUnitXmlResultWriterSpec extends Specification {
         'custom display name' | 'custom display name'
     }
 
-    def getXml(TestClassResult result) {
-        def text = new ByteArrayOutputStream()
-        generator.write(result, text)
-        return text.toString("UTF-8").replace(SystemProperties.instance.lineSeparator, "\n")
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/23229")
     def "omit system-out section"() {
         given:
-        options = new JUnitXmlResultOptions(true, false, false, true)
+        def options = new JUnitXmlResultOptions(true, false, false, true)
 
-
+        and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
         result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         _ * provider.writeAllOutput(_, _, _)
 
         when:
-        def doc = new XmlParser().parseText(getXml(result))
+        def doc = new XmlParser().parseText(getXml(result, options))
 
         then:
         doc.'system-out'.isEmpty() == true
@@ -271,15 +285,15 @@ class JUnitXmlResultWriterSpec extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/23229")
     def "omit system-err section"() {
         given:
-        options = new JUnitXmlResultOptions(true, false, true, false)
+        def options = new JUnitXmlResultOptions(true, false, true, false)
 
-
+        and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
         result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         _ * provider.writeAllOutput(_, _, _)
 
         when:
-        def doc = new XmlParser().parseText(getXml(result))
+        def doc = new XmlParser().parseText(getXml(result, options))
 
         then:
         doc.'system-out'.isEmpty() == false
@@ -289,19 +303,28 @@ class JUnitXmlResultWriterSpec extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/23229")
     def "show system-err and system-out sections"() {
         given:
-        options = new JUnitXmlResultOptions(true, false, true, true)
+        def options = new JUnitXmlResultOptions(true, false, true, true)
 
-
+        and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
         result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         _ * provider.writeAllOutput(_, _, _)
 
         when:
-        def doc = new XmlParser().parseText(getXml(result))
+        def doc = new XmlParser().parseText(getXml(result, options))
 
         then:
         doc.'system-out'.isEmpty() == false
         doc.'system-err'.isEmpty() == false
     }
 
+    private String getXml(TestClassResult result, JUnitXmlResultOptions options) {
+        def text = new ByteArrayOutputStream()
+        getGenerator(options).write(result, text)
+        return text.toString("UTF-8").replace(SystemProperties.instance.lineSeparator, "\n")
+    }
+
+    private JUnitXmlResultWriter getGenerator(JUnitXmlResultOptions options) {
+        return new JUnitXmlResultWriter("localhost", provider, options)
+    }
 }

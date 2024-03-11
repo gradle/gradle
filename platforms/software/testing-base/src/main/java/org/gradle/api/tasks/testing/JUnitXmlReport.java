@@ -61,7 +61,7 @@ public interface JUnitXmlReport extends DirectoryReport {
     /**
      * Decide to include or omit the system out log in the XML report. The default behavior is to have it.
      *
-     * @since 8.1
+     * @since 8.8
      */
     @Input
     @Incubating
@@ -70,7 +70,7 @@ public interface JUnitXmlReport extends DirectoryReport {
     /**
      * Decide to include or omit the system err log in the XML report. The default behavior is to have it.
      *
-     * @since 8.1
+     * @since 8.8
      */
     @Input
     @Incubating

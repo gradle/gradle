@@ -275,10 +275,12 @@ include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gra
 include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-content]"]
 ====
 
-===== omitSystemOutLog & omitSystemErrLog
+===== includeSystemOutLog & includeSystemErrLog
 
-When enabled, the `omitSystemErrLog` option allows configuring XML exporter to omit the system error in the result file. 
-While the `omitSystemErrLog` option allows configuring XML exporter to omit the system out logs in the result file.
+The `includeSystemOutLog` option allows configuring whether or not test output is exported to the XML report file.
+The `includeSystemErrLog` option allows configuring whether or not test error output is exported to the XML report file.
+
+The default for each option is `true`.
 
 ===== outputPerTestCase
 
