@@ -120,7 +120,7 @@ This problem occurred while transmitting task information for executed tasks to 
 
 After executing approximately 15,000 tasks, the IDE would encounter a delay of several seconds. 
 The root cause was that much more information than needed was serialized via the Tooling API.
-Additionally to the fix, we added a test that ensures there will be no regression in the future. We could demonstrate a performance improvement of around 12%.
+We added a test to the fix to ensure there will be no future regression, demonstrating a performance improvement of around 12%.
 The environments that benefit from this fix are Android Studio, IntelliJ IDEA, Eclipse, and other Tooling API clients.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
