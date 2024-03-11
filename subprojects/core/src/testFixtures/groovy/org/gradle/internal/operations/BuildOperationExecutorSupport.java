@@ -99,25 +99,23 @@ public class BuildOperationExecutorSupport {
         }
 
         private BuildOperationRunner buildRunner() {
-            BuildOperationRunner runner;
-            if (this.runner == null) {
-                BuildOperationTimeSupplier timeSupplier = this.timeSupplier != null
-                    ? this.timeSupplier
-                    : System::currentTimeMillis;
-                DefaultBuildOperationRunner.BuildOperationExecutionListenerFactory executionListenerFactory = this.executionListenerFactory != null
-                    ? this.executionListenerFactory
-                    : () -> DefaultBuildOperationRunner.BuildOperationExecutionListener.NO_OP;
-
-                runner = new DefaultBuildOperationRunner(
-                    CurrentBuildOperationRef.instance(),
-                    timeSupplier,
-                    new DefaultBuildOperationIdFactory(),
-                    executionListenerFactory
-                );
-            } else {
-                runner = this.runner;
+            if (runner != null) {
+                return runner;
             }
-            return runner;
+
+            BuildOperationTimeSupplier timeSupplier = this.timeSupplier != null
+                ? this.timeSupplier
+                : System::currentTimeMillis;
+            DefaultBuildOperationRunner.BuildOperationExecutionListenerFactory executionListenerFactory = this.executionListenerFactory != null
+                ? this.executionListenerFactory
+                : () -> DefaultBuildOperationRunner.BuildOperationExecutionListener.NO_OP;
+
+            return new DefaultBuildOperationRunner(
+                CurrentBuildOperationRef.instance(),
+                timeSupplier,
+                new DefaultBuildOperationIdFactory(),
+                executionListenerFactory
+            );
         }
     }
 }
