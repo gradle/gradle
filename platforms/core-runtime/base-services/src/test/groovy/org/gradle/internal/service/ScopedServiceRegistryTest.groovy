@@ -16,7 +16,7 @@
 
 package org.gradle.internal.service
 
-import org.gradle.internal.service.scopes.Scope
+
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import spock.lang.Specification
@@ -113,14 +113,14 @@ class ScopedServiceRegistryTest extends Specification {
         registry.get(GlobalAndBuildScopedService) === service
 
         where:
-        scope << [Scope.Global, Scopes.Build]
+        scope << [Scopes.Global, Scopes.Build]
         scopeName = scope.simpleName
     }
 
     @ServiceScope(Scopes.BuildTree)
     static class BuildTreeScopedService {}
 
-    @ServiceScope([Scope.Global, Scopes.Build])
+    @ServiceScope([Scopes.Global, Scopes.Build])
     static class GlobalAndBuildScopedService {}
 
     static class UnscopedService {}
