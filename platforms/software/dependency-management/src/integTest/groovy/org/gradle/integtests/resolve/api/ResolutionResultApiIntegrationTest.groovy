@@ -863,4 +863,117 @@ testRuntimeClasspath
         fails("selectArtifacts")
         failure.assertHasCause("Realized artifact task")
     }
+
+    def "exposes root variant"() {
+        mavenRepo.module("org", "foo").publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                ${hasDependencies ? 'implementation("org:foo:1.0")' : "" }
+            }
+
+            task resolve {
+                def rootComponent = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                def rootVariant = configurations.runtimeClasspath.incoming.resolutionResult.rootVariant
+                doLast {
+                    def componentRootVariant = rootComponent.get().variants.find { it.displayName == "runtimeClasspath" }
+                    assert rootVariant.get() == componentRootVariant
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+
+        where:
+        hasDependencies << [true, false]
+    }
+
+    def "handles graphs with cycles"() {
+        settingsFile << """
+            include 'other'
+        """
+        file("other/build.gradle") << """
+            configurations {
+                dependencyScope("implementation")
+                consumable("runtimeElements") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "cat"))
+                    }
+                }
+            }
+
+            dependencies {
+                implementation(project(":"))
+            }
+        """
+
+        buildFile << """
+            configurations {
+                dependencyScope("implementation")
+                consumable("runtimeElements") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "cat"))
+                    }
+                }
+                resolvable("runtimeClasspath") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "cat"))
+                    }
+                }
+            }
+
+            dependencies {
+                implementation(project(":other"))
+            }
+
+            task resolve {
+                def rootVariantProvider = configurations.runtimeClasspath.incoming.resolutionResult.rootVariant
+                def rootComponentProvider = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    def rootVariant = rootVariantProvider.get()
+                    def rootComponent = rootComponentProvider.get()
+
+                    def rootDependencies = rootComponent.getDependenciesForVariant(rootVariant)
+                    assert rootComponent.dependencies.size() == 1
+                    assert rootDependencies.size() == 1
+                    assert rootDependencies[0] == rootComponent.dependencies[0]
+
+                    def rootDependency = rootDependencies[0]
+                    assert rootDependency instanceof ResolvedDependencyResult
+
+                    def otherComponent = rootDependency.selected
+                    def otherVariant = rootDependency.resolvedVariant
+
+                    def otherDependencies = otherComponent.getDependenciesForVariant(otherVariant)
+                    assert otherComponent.dependencies.size() == 1
+                    assert otherDependencies.size() == 1
+                    assert otherDependencies[0] == otherComponent.dependencies[0]
+
+                    def otherDependency = otherDependencies[0]
+                    assert otherDependency instanceof ResolvedDependencyResult
+                    assert otherDependency.selected == rootComponent
+
+                    def runtimeElements = otherDependency.resolvedVariant
+                    def runtimeElementsDependencies = rootComponent.getDependenciesForVariant(runtimeElements)
+
+                    assert runtimeElementsDependencies.size() == 1
+                    assert runtimeElementsDependencies[0].selected == otherComponent
+                    assert runtimeElementsDependencies[0].resolvedVariant == otherVariant
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
 }

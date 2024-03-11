@@ -33,11 +33,15 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
@@ -60,15 +64,30 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
     private ImmutableList<ResolvedVariantResult> allVariants;
     private final Map<Long, ResolvedVariantResult> selectedVariants = new LinkedHashMap<>();
 
-    public static MinimalResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ImmutableAttributes attributes) {
+    public static MinimalResolutionResult empty(
+        ModuleVersionIdentifier id,
+        ComponentIdentifier componentIdentifier,
+        ImmutableAttributes attributes,
+        String rootVariantName,
+        AttributeDesugaring attributeDesugaring
+    ) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
         builder.startVisitComponent(0L, ComponentSelectionReasons.root(), null);
         builder.visitComponentDetails(componentIdentifier, id);
-        // TODO: An empty root component should have a root variant.
+
+        ResolvedVariantResult rootVariant = new DefaultResolvedVariantResult(
+            componentIdentifier,
+            Describables.of(rootVariantName),
+            attributeDesugaring.desugar(attributes),
+            ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(id)),
+            null
+        );
+
+        builder.visitSelectedVariant(1L, rootVariant);
         builder.visitComponentVariants(Collections.emptyList());
         builder.endVisitComponent();
         ResolvedComponentResultInternal root = builder.getRoot(0L);
-        return new DefaultMinimalResolutionResult(-1, () -> root, attributes);
+        return new DefaultMinimalResolutionResult(1L, () -> root, attributes);
     }
 
     public ResolvedComponentResultInternal getRoot(long rootId) {

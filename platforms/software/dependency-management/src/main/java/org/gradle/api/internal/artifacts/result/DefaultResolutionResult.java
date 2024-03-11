@@ -21,9 +21,11 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.util.internal.ConfigureUtil;
@@ -38,31 +40,38 @@ import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentR
 
 public class DefaultResolutionResult implements ResolutionResult {
 
-    private final Supplier<MinimalResolutionResult> minimal;
+    private final ResolutionOutputsInternal resolutionOutputs;
+    private final Supplier<ImmutableAttributes> attributesSupplier;
     private final AttributeDesugaring attributeDesugaring;
 
-    public DefaultResolutionResult(MinimalResolutionResult minimal, AttributeDesugaring attributeDesugaring) {
-        this(() -> minimal, attributeDesugaring);
-    }
-
-    public DefaultResolutionResult(Supplier<MinimalResolutionResult> minimal, AttributeDesugaring attributeDesugaring) {
-        this.minimal = minimal;
+    public DefaultResolutionResult(
+        ResolutionOutputsInternal resolutionOutputs,
+        Supplier<ImmutableAttributes> attributesSupplier,
+        AttributeDesugaring attributeDesugaring
+    ) {
+        this.resolutionOutputs = resolutionOutputs;
+        this.attributesSupplier = attributesSupplier;
         this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
     public ResolvedComponentResult getRoot() {
-        return minimal.get().getRootSource().get();
+        return resolutionOutputs.getRootComponent().get();
     }
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        return new DefaultProvider<>(() -> minimal.get().getRootSource().get());
+        return resolutionOutputs.getRootComponent();
+    }
+
+    @Override
+    public Provider<ResolvedVariantResult> getRootVariant() {
+        return resolutionOutputs.getRootVariant();
     }
 
     @Override
     public AttributeContainer getRequestedAttributes() {
-        return attributeDesugaring.desugar(minimal.get().getRequestedAttributes());
+        return attributeDesugaring.desugar(attributesSupplier.get());
     }
 
     @Override
@@ -110,11 +119,11 @@ public class DefaultResolutionResult implements ResolutionResult {
             return false;
         }
         DefaultResolutionResult that = (DefaultResolutionResult) o;
-        return Objects.equals(minimal.get(), that.minimal.get());
+        return Objects.equals(resolutionOutputs, that.resolutionOutputs);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(minimal.get());
+        return resolutionOutputs.hashCode();
     }
 }

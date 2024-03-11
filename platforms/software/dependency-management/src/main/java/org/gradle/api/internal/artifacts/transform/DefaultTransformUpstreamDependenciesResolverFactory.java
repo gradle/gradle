@@ -17,11 +17,13 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+
+import java.util.function.Supplier;
 
 public class DefaultTransformUpstreamDependenciesResolverFactory implements TransformUpstreamDependenciesResolverFactory {
     public static final TransformUpstreamDependenciesResolver NO_DEPENDENCIES_RESOLVER = transformStep -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
@@ -30,10 +32,11 @@ public class DefaultTransformUpstreamDependenciesResolverFactory implements Tran
     private final FilteredResultFactory filteredResultFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final ConfigurationIdentity configurationIdentity;
-    private final ResolutionResultProvider<ResolutionResult> resolutionResultProvider;
+    private final ResolutionResultProvider<Supplier<ResolvedComponentResultInternal>> resolutionResultProvider;
 
     public DefaultTransformUpstreamDependenciesResolverFactory(
-        ConfigurationIdentity configurationIdentity, ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
+        ConfigurationIdentity configurationIdentity,
+        ResolutionResultProvider<Supplier<ResolvedComponentResultInternal>> resolutionResultProvider,
         DomainObjectContext owner,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         FilteredResultFactory filteredResultFactory

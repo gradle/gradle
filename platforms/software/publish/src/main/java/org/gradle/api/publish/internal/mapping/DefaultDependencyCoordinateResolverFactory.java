@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.component.SoftwareComponentVariant;
@@ -87,9 +88,8 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
             if (useResolvedCoordinates && configuration == null) {
                 throw new InvalidUserDataException("Cannot enable dependency mapping without configuring a resolution configuration.");
             } else if (useResolvedCoordinates) {
-                String rootVariantName = configuration.getName();
-                return configuration.getIncoming().getResolutionResult().getRootComponent()
-                    .map(root -> getVariantMappingResolvers(root, rootVariantName));
+                ResolutionResult resolutionResult = configuration.getIncoming().getResolutionResult();
+                return resolutionResult.getRootComponent().zip(resolutionResult.getRootVariant(), this::getVariantMappingResolvers);
             }
         }
 
@@ -135,28 +135,18 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
         }
     }
 
-    private DependencyResolvers getVariantMappingResolvers(ResolvedComponentResult root, String rootVariantName) {
+    private DependencyResolvers getVariantMappingResolvers(ResolvedComponentResult rootComponent, ResolvedVariantResult rootVariant) {
         ComponentDependencyResolver componentResolver =
-            new ResolutionBackedComponentDependencyResolver(root, moduleIdentifierFactory, projectDependencyResolver);
+            new ResolutionBackedComponentDependencyResolver(rootComponent, moduleIdentifierFactory, projectDependencyResolver);
 
-        ResolvedVariantResult rootVariant = root.getVariants().stream()
-            .filter(x -> x.getDisplayName().equals(rootVariantName))
-            .findFirst().orElse(null);
-
-        VariantDependencyResolver variantResolver;
-        if (rootVariant == null) {
-            // Happens when the resolved configuration has no dependencies.
-            variantResolver = new VariantResolverAdapter(componentResolver);
-        } else {
-            variantResolver = new ResolutionBackedVariantDependencyResolver(
-                projectDependencyResolver,
-                moduleIdentifierFactory,
-                root,
-                rootVariant,
-                attributeDesugaring,
-                componentResolver
-            );
-        }
+        VariantDependencyResolver variantResolver = new ResolutionBackedVariantDependencyResolver(
+            projectDependencyResolver,
+            moduleIdentifierFactory,
+            rootComponent,
+            rootVariant,
+            attributeDesugaring,
+            componentResolver
+        );
 
         return new DependencyResolvers(variantResolver, componentResolver);
     }

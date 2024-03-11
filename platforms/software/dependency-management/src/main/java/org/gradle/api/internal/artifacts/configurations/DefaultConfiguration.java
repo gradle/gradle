@@ -76,10 +76,11 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -141,6 +142,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -777,8 +779,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // because:
                 // 1. the `failed` method will have been called with the user facing error
                 // 2. such an error may still lead to a valid dependency graph
-                ResolutionResult resolutionResult = new DefaultResolutionResult(results.getVisitedGraph().getResolutionResult(), attributeDesugaring);
-                context.setResult(ResolveConfigurationResolutionBuildOperationResult.create(resolutionResult, attributesFactory));
+                MinimalResolutionResult resolutionResult = results.getVisitedGraph().getResolutionResult();
+                context.setResult(new ResolveConfigurationResolutionBuildOperationResult(
+                    resolutionResult.getRootSource(),
+                    resolutionResult.getRequestedAttributes(),
+                    attributeDesugaring
+                ));
             }
 
             @Override
@@ -873,9 +879,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     public TransformUpstreamDependenciesResolverFactory getDependenciesResolverFactory() {
         warnOnInvalidInternalAPIUsage("getDependenciesResolverFactory()", ProperMethodUsage.RESOLVABLE);
         if (dependenciesResolverFactory == null) {
-            ResolutionResultProvider<ResolutionResult> resolutionResultProvider =
+            ResolutionResultProvider<Supplier<ResolvedComponentResultInternal>> resolutionResultProvider =
                 new ResolverResultsResolutionResultProvider(true)
-                    .map(results -> new DefaultResolutionResult(results.getVisitedGraph().getResolutionResult(), attributeDesugaring));
+                    .map(results -> results.getVisitedGraph().getResolutionResult().getRootSource());
 
             dependenciesResolverFactory = new DefaultTransformUpstreamDependenciesResolverFactory(
                 getIdentity(),
@@ -1870,13 +1876,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public ResolutionResult getResolutionResult() {
             assertIsResolvable();
-            return new DefaultResolutionResult(() -> {
-                VisitedGraphResults graph = resolutionOutputs.getRawResults().getValue().getVisitedGraph();
-                graph.getResolutionFailure().ifPresent(ex -> {
-                    throw ex;
-                });
-                return graph.getResolutionResult();
-            }, attributeDesugaring);
+            return new DefaultResolutionResult(
+                resolutionOutputs,
+                () -> {
+                    configurationAttributes.freeze();
+                    return configurationAttributes.asImmutable();
+                },
+                attributeDesugaring
+            );
         }
 
         @Override
