@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.provider.HasMultipleValues
@@ -102,4 +103,166 @@ fun <K, V> MapProperty<K, V>.assign(entries: Map<out K?, V?>?) {
  */
 fun <K, V> MapProperty<K, V>.assign(provider: Provider<out Map<out K?, V?>?>) {
     this.set(provider)
+}
+
+
+/**
+ * Adds an element to the property value.
+ *
+ * When invoked on a property with no value, this method first sets the value
+ * of the property to its current convention value, if set, or an empty collection.
+ *
+ * @see HasMultipleValues.append
+ * @since 8.9
+ */
+@Incubating
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(element: T) {
+    this.append(element)
+}
+
+
+/**
+ * Adds an element to the property value.
+ *
+ * The given provider will be queried when the value of this property is queried.
+ *
+ * When invoked on a property with no value, this method first sets the value
+ * of the property to its current convention value, if set, or an empty collection.
+
+ * Even if the given provider has no value, after this method is invoked,
+ * the actual value of this property is guaranteed to be present.
+ *
+ * @see HasMultipleValues.append
+ * @since 8.9
+ */
+@Incubating
+@JvmName("plusAssignElementProvider")
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(provider: Provider<out T>) {
+    this.append(provider)
+}
+
+
+/**
+ * Adds zero or more elements to the property value.
+ *
+ * The given iterable will be queried when the value of this property is queried.
+ *
+ * When invoked on a property with no value, this method first sets the value
+ * of the property to its current convention value, if set, or an empty collection.
+ *
+ * @see HasMultipleValues.appendAll
+ * @since 8.9
+ */
+@Incubating
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(elements: Iterable<T>) {
+    this.appendAll(elements)
+}
+
+
+/**
+ * Adds zero or more elements to the property value.
+ *
+ * When invoked on a property with no value, this method first sets the value
+ * of the property to its current convention value, if set, or an empty collection.
+ *
+ * @see HasMultipleValues.append
+ * @since 8.9
+ */
+@Incubating
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(elements: Array<T>) {
+    this.appendAll(*elements)
+}
+
+
+/**
+ * Adds zero or more elements to the property value.
+ *
+ * The given provider will be queried when the value of this property is queried.
+ *
+ * When invoked on a property with no value, this method first sets the value
+ * of the property to its current convention value, if set, or an empty collection.
+ *
+ * Even if the given provider has no value, after this method is invoked,
+ * the actual value of this property is guaranteed to be present.
+ *
+ * @see HasMultipleValues.appendAll
+ * @since 8.9
+ */
+@Incubating
+@JvmName("plusAssignElementsProvider")
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(provider: Provider<out Iterable<T>>) {
+    this.appendAll(provider)
+}
+
+
+/**
+ * Adds a map entry to the property value.
+ *
+ * When invoked on a property with no value, this method first sets the value
+ * of the property to its current convention value, if set, or an empty map.
+ *
+ * @see MapProperty.insert
+ * @since 8.9
+ */
+@Incubating
+operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Pair<K, V>) {
+    this.insert(value.first, value.second)
+}
+
+
+/**
+ * Adds a map entry to the property value.
+ *
+ * The given provider will be queried when the value of this property is queried.
+ *
+ * When invoked on a property with no value, this method first sets the value
+ * of the property to its current convention value, if set, or an empty map.
+ *
+ * Even if the given provider has no value, after this method is invoked,
+ * the actual value of this property is guaranteed to be present.
+ *
+ * @see MapProperty.insert
+ * @since 8.9
+ */
+@Incubating
+@JvmName("plusAssignItem")
+operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Provider<out Pair<K, V>>) {
+    this.insertAll(value.map { pair -> mapOf(pair) })
+}
+
+
+/**
+ * Adds all entries from another [Map] to the property value.
+ *
+ * When invoked on a property with no value, this method first sets the value
+ * of the property to its current convention value, if set, or an empty map.
+ *
+ * @see MapProperty.insertAll
+ * @since 8.9
+ */
+@Incubating
+operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Map<out K, V>) {
+    this.insertAll(value)
+}
+
+
+/**
+ * Adds all entries from another [Map] to the property value.
+ *
+ * The given provider will be queried when the value of this property is queried.
+ *
+ * When invoked on a property with no value, this method first sets the value
+ * of the property to its current convention value, if set, or an empty map.
+ *
+ * Even if the given provider has no value, after this method is invoked,
+ * the actual value of this property is guaranteed to be present.
+ *
+ * @see MapProperty.insertAll
+ *
+ * @since 8.9
+ */
+@Incubating
+@JvmName("plusAssignElements")
+operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Provider<out Map<out K, V>>) {
+    this.insertAll(value)
 }

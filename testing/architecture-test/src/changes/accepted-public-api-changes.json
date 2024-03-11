@@ -1,3 +1,52 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssign(org.gradle.api.provider.HasMultipleValues,java.lang.Object)",
+            "acceptation": "Compatibility check has issues with generic methods and JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssign(org.gradle.api.provider.HasMultipleValues,java.lang.Object[])",
+            "acceptation": "Compatibility check has issues with generic methods and JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssignElementProvider(org.gradle.api.provider.HasMultipleValues,org.gradle.api.provider.Provider)",
+            "acceptation": "Compatibility check has issues with generic methods and JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssignElements(org.gradle.api.provider.MapProperty,org.gradle.api.provider.Provider)",
+            "acceptation": "Compatibility check has issues with generic methods and JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssignElementsProvider(org.gradle.api.provider.HasMultipleValues,org.gradle.api.provider.Provider)",
+            "acceptation": "Compatibility check has issues with generic methods and JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssignItem(org.gradle.api.provider.MapProperty,org.gradle.api.provider.Provider)",
+            "acceptation": "Compatibility check has issues with generic methods and JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
 }
