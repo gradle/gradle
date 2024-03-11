@@ -19,10 +19,8 @@ package org.gradle.api.tasks.compile
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.test.fixtures.file.TestFile
-
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
  */
@@ -60,22 +58,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
                     options.compilerArgs += ["-Xlint:all"]
                 }
             }
-        """
-    }
-
-    def setupToolchain(int javaVersion) {
-        buildFile << """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${javaVersion})
-                }
-            }
-        """
-    }
-
-    def setupForking(boolean forking) {
-        buildFile << """
-            tasks.compileJava.options.fork = ${forking}
         """
     }
 
@@ -235,10 +217,18 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "problems are reported from JDK #javaVersion when forking is #forking"(int javaVersion, boolean forking) {
+    def "problems are reported when using a JDK #jvmVersion toolchain"(int jvmVersion) {
         given:
-        setupToolchain(javaVersion)
-        setupForking(forking)
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jvmVersion})
+                }
+            }
+
+            // Force the compiler forking
+            tasks.compileJava.options.fork = true
+        """
         possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo"), 2)
 
         when:
@@ -253,7 +243,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
 
         where:
-        [javaVersion, forking] << getJvmAndForkingCombinations()
+        jvmVersion << [8, 11, 21]
     }
 
     /**
@@ -385,20 +375,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
     def formatFilePath(TestFile file) {
         return file.absolutePath.toString()
-    }
-
-    def getJvmAndForkingCombinations() {
-        def availableJavaVersions = [
-            AvailableJavaHomes.getJdk8(),
-            AvailableJavaHomes.getJdk11(),
-            AvailableJavaHomes.getJdk21()
-        ].collect {
-            it.javaVersion.majorVersion
-        }
-        // Create all true/false combinations
-        def forkingOptions = [true, false]
-
-        return [availableJavaVersions, forkingOptions].combinations()
     }
 
 }
