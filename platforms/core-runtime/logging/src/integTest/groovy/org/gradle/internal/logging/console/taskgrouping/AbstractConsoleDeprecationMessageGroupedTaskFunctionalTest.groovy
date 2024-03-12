@@ -52,6 +52,9 @@ abstract class AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest extend
         """
 
         when:
+        // We expect the compiler output one in the stderr (keeping backward compatibility) ...
+        executer.expectDeprecationWarning(expectedOutput)
+        // ... and the other in the stdout (new behavior, done by JavaCompilerProblemRenderer)
         executer.expectDeprecationWarning(expectedOutput)
         succeeds('compileJava')
 
