@@ -32,7 +32,7 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
-abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
+abstract class AbstractMavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -57,6 +57,90 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
     }
+
+    static void assertContainsEncodingConfig(TestFile buildScript, BuildInitDsl dsl, String encoding) {
+        def text = buildScript.text
+        if (dsl == BuildInitDsl.GROOVY) {
+            assert text.contains(TextUtil.toPlatformLineSeparators("""
+tasks.withType(JavaCompile) {
+    options.encoding = '$encoding'
+}
+
+tasks.withType(Javadoc) {
+    options.encoding = '$encoding'
+}"""))
+        } else {
+            assert text.contains(TextUtil.toPlatformLineSeparators("""
+tasks.withType<JavaCompile>() {
+    options.encoding = "$encoding"
+}
+
+tasks.withType<Javadoc>() {
+    options.encoding = "$encoding"
+}"""))
+        }
+    }
+
+    static void assertContainsPublishingConfig(TestFile buildScript, BuildInitDsl dsl, String indent = "", List<String> additionalArchiveTasks = []) {
+        def text = buildScript.text
+        if (dsl == BuildInitDsl.GROOVY) {
+            assert text.contains("id 'maven-publish'")
+            def configLines = ["from(components.java)"]
+            configLines += additionalArchiveTasks.collect { "artifact($it)" }
+            def publishingBlock = TextUtil.toPlatformLineSeparators(TextUtil.indent("""
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+${TextUtil.indent(configLines.join("\n"), "                        ")}
+                    }
+                }
+            }
+            """.stripIndent().trim(), indent))
+            assert text.contains(publishingBlock)
+        } else {
+            assert text.contains("`maven-publish`")
+            def configLines = ['from(components["java"])']
+            configLines += additionalArchiveTasks.collect { "artifact($it)" }
+            def publishingBlock = TextUtil.toPlatformLineSeparators(TextUtil.indent("""
+            publishing {
+                publications.create<MavenPublication>("maven") {
+${TextUtil.indent(configLines.join("\n"), "                    ")}
+                }
+            }
+            """.stripIndent().trim(), indent))
+            assert text.contains(publishingBlock)
+        }
+
+    }
+
+    protected insecureProtocolsLinks(String topic = "information on how to do this") {
+        new DocumentationRegistry().getDocumentationRecommendationFor(topic, "build_init_plugin", "sec:allow_insecure")
+    }
+
+    static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
+        MavenHttpModule module = repo.module(group, name, version as String)
+        module.allowAll()
+    }
+
+    def withSharedResources() {
+        resources.maybeCopy('MavenConversionIntegrationTest/sharedResources')
+    }
+
+    static PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {
+        MavenHttpModule module = repo.module('util.util.parent', 'util-parent', '3')
+        module.pom.expectGet()
+        module.pom.sha1.expectGet()
+        module.pom
+    }
+
+    MavenHttpRepository mavenHttpServer() {
+        server.start()
+        new MavenHttpRepository(server, '/maven', maven(file("maven_repo")))
+    }
+
+}
+
+abstract class MavenConversionPart1IntegrationTest extends AbstractMavenConversionIntegrationTest {
 
     def "multiModule init with incubating"() {
         def dsl = dslFixtureFor(scriptDsl)
@@ -299,61 +383,6 @@ Root project 'webinar-parent'
         failure.assertHasCause("There were failing tests.")
     }
 
-    private static void assertContainsEncodingConfig(TestFile buildScript, BuildInitDsl dsl, String encoding) {
-        def text = buildScript.text
-        if (dsl == BuildInitDsl.GROOVY) {
-            assert text.contains(TextUtil.toPlatformLineSeparators("""
-tasks.withType(JavaCompile) {
-    options.encoding = '$encoding'
-}
-
-tasks.withType(Javadoc) {
-    options.encoding = '$encoding'
-}"""))
-        } else {
-            assert text.contains(TextUtil.toPlatformLineSeparators("""
-tasks.withType<JavaCompile>() {
-    options.encoding = "$encoding"
-}
-
-tasks.withType<Javadoc>() {
-    options.encoding = "$encoding"
-}"""))
-        }
-    }
-
-    static void assertContainsPublishingConfig(TestFile buildScript, BuildInitDsl dsl, String indent = "", List<String> additionalArchiveTasks = []) {
-        def text = buildScript.text
-        if (dsl == BuildInitDsl.GROOVY) {
-            assert text.contains("id 'maven-publish'")
-            def configLines = ["from(components.java)"]
-            configLines += additionalArchiveTasks.collect { "artifact($it)" }
-            def publishingBlock = TextUtil.toPlatformLineSeparators(TextUtil.indent("""
-            publishing {
-                publications {
-                    maven(MavenPublication) {
-${TextUtil.indent(configLines.join("\n"), "                        ")}
-                    }
-                }
-            }
-            """.stripIndent().trim(), indent))
-            assert text.contains(publishingBlock)
-        } else {
-            assert text.contains("`maven-publish`")
-            def configLines = ['from(components["java"])']
-            configLines += additionalArchiveTasks.collect { "artifact($it)" }
-            def publishingBlock = TextUtil.toPlatformLineSeparators(TextUtil.indent("""
-            publishing {
-                publications.create<MavenPublication>("maven") {
-${TextUtil.indent(configLines.join("\n"), "                    ")}
-                }
-            }
-            """.stripIndent().trim(), indent))
-            assert text.contains(publishingBlock)
-        }
-
-    }
-
     def "singleModule with explicit project dir"() {
         given:
         resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
@@ -434,7 +463,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
                 archiveClassifier = 'tests'
                 from(sourceSets.test.output)
             }
-            '''.stripIndent().trim())) || rootBuildFile.text.contains(TextUtil.toPlatformLineSeparators('''
+            '''.stripIndent().trim()))                            || rootBuildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             val testsJar by tasks.registering(Jar::class) {
                 archiveClassifier = "tests"
                 from(sourceSets["test"].output)
@@ -487,7 +516,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
     exclude(group: 'org.apache.maven', module: 'badArtifact')
     exclude(group: '*', module: 'badArtifact')
     exclude(group: 'broken')
-}""")) || dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators("""configurations.all {
+}"""))                                                                                     || dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators("""configurations.all {
     exclude(mapOf("group" to "org.apache.maven"))
     exclude(mapOf("group" to "org.apache.maven", "module" to "badArtifact"))
     exclude(mapOf("group" to "*", "module" to "badArtifact"))
@@ -548,6 +577,9 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         then:
         targetDir.file("build/libs/testApp-1.0.jar").exists()
     }
+}
+
+abstract class MavenConversionPart2IntegrationTest extends AbstractMavenConversionIntegrationTest {
 
     @Issue("GRADLE-2820")
     def "remoteparent"() {
@@ -676,10 +708,6 @@ Root project 'webinar-parent'
         dsl.assertGradleFilesGenerated()
         outputContains("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. " +
             insecureProtocolsLinks())
-    }
-
-    private insecureProtocolsLinks(String topic = "information on how to do this") {
-        new DocumentationRegistry().getDocumentationRecommendationFor(topic, "build_init_plugin", "sec:allow_insecure")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17328")
@@ -820,32 +848,20 @@ Root project 'webinar-parent'
         succeeds 'clean', 'build'
     }
 
-    static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
-        MavenHttpModule module = repo.module(group, name, version as String)
-        module.allowAll()
-    }
-
-    def withSharedResources() {
-        resources.maybeCopy('MavenConversionIntegrationTest/sharedResources')
-    }
-
-    static PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {
-        MavenHttpModule module = repo.module('util.util.parent', 'util-parent', '3')
-        module.pom.expectGet()
-        module.pom.sha1.expectGet()
-        module.pom
-    }
-
-    MavenHttpRepository mavenHttpServer() {
-        server.start()
-        new MavenHttpRepository(server, '/maven', maven(file("maven_repo")))
-    }
 }
 
-class KotlinDslMavenConversionIntegrationTest extends MavenConversionIntegrationTest {
+class KotlinDslMavenConversionPart1IntegrationTest extends MavenConversionPart1IntegrationTest {
     BuildInitDsl scriptDsl = BuildInitDsl.KOTLIN
 }
 
-class GroovyDslMavenConversionIntegrationTest extends MavenConversionIntegrationTest {
+class KotlinDslMavenConversionPart2IntegrationTest extends MavenConversionPart2IntegrationTest {
+    BuildInitDsl scriptDsl = BuildInitDsl.KOTLIN
+}
+
+class GroovyDslMavenConversionPart1IntegrationTest extends MavenConversionPart1IntegrationTest {
+    BuildInitDsl scriptDsl = BuildInitDsl.GROOVY
+}
+
+class GroovyDslMavenConversionPart2IntegrationTest extends MavenConversionPart2IntegrationTest {
     BuildInitDsl scriptDsl = BuildInitDsl.GROOVY
 }
