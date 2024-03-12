@@ -147,7 +147,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         writer.println("} catch(Exception e) {");
         writer.println("  System.out.println(\"[G] error response received for \" + " + urlVar + ");");
         writer.println("  throw new RuntimeException(\"Received error response from \" + " + urlVar + ", e);");
-        writer.println("};");
+        writer.println("}");
         writer.println("System.out.println(\"[G] response received for \" + " + urlVar + ");");
         return result.toString();
     }
