@@ -282,19 +282,6 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    @Deprecated
-    public Integer getFileMode() {
-        return delegate.getFileMode();
-    }
-
-    @Override
-    @Deprecated
-    public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
-        delegate.setFileMode(mode);
-        return this;
-    }
-
-    @Override
     public Property<ConfigurableFilePermissions> getFilePermissions() {
         return delegate.getFilePermissions();
     }
@@ -302,19 +289,6 @@ public class CopySpecWrapper implements SyncSpec {
     @Override
     public CopyProcessingSpec filePermissions(Action<? super ConfigurableFilePermissions> configureAction) {
         return delegate.filePermissions(configureAction);
-    }
-
-    @Override
-    @Deprecated
-    public Integer getDirMode() {
-        return delegate.getDirMode();
-    }
-
-    @Override
-    @Deprecated
-    public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
-        delegate.setDirMode(mode);
-        return this;
     }
 
     @Override

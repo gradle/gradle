@@ -63,16 +63,6 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
     void setRelativePath(RelativePath path);
 
     /**
-     * Sets the Unix permissions of this file.
-     *
-     * @param mode the Unix permissions, e.g. {@code 0644}.
-     *
-     * @deprecated Use {@link #permissions(Action)} instead. This method is scheduled for removal in Gradle 9.0.
-     */
-    @Deprecated
-    void setMode(int mode);
-
-    /**
      * Configuration action for specifying file and directory access permissions.
      * For details see {@link ConfigurableFilePermissions}.
      *
