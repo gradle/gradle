@@ -136,7 +136,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         NOT_SET {
             @Override
             public boolean isEnabled() {
-                throw new UnsupportedOperationException("Cannot determine if native integration is enabled or not for " + this + " mode.");
+                throw new UnsupportedOperationException("Cannot determine if native services are enabled or not for " + this + " mode.");
             }
         };
 
