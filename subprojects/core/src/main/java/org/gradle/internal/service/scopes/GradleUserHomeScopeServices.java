@@ -138,7 +138,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
-        return parent.createChild(Scopes.UserHome.class);
+        return parent.createChild(Scope.UserHome.class);
     }
 
     ScriptSourceHasher createScriptSourceHasher() {

@@ -21,11 +21,11 @@ import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.provider.AbstractMinimalProvider
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.provider.Provider
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-@ServiceScope(Scopes.Build::class)
+@ServiceScope(Scope.Build::class)
 class DefaultFlowProviders : FlowProviders {
 
     private

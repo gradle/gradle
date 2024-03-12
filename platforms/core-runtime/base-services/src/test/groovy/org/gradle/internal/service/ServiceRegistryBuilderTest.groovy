@@ -16,7 +16,7 @@
 
 package org.gradle.internal.service
 
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import spock.lang.Specification
 
@@ -24,7 +24,7 @@ class ServiceRegistryBuilderTest extends Specification {
 
     def "creates a scope-validating service registry when setting a scope"() {
         def scopedBuilder = ServiceRegistryBuilder.builder()
-            .scope(Scopes.Build)
+            .scope(Scope.Build)
 
         when:
         scopedBuilder
@@ -36,7 +36,7 @@ class ServiceRegistryBuilderTest extends Specification {
         exception.message.contains("The service '${BuildTreeScopedService.name}' declares service scope 'BuildTree' but is registered in the 'Build' scope. Either update the '@ServiceScope()' annotation on '${BuildTreeScopedService.simpleName}' to include the 'Build' scope or move the service registration to one of the declared scopes.")
     }
 
-    @ServiceScope(Scopes.BuildTree)
+    @ServiceScope(Scope.BuildTree)
     static class BuildTreeScopedService {}
 
     static class ScopedServiceProvider {

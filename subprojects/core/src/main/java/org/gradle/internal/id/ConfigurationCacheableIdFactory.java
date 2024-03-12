@@ -17,7 +17,7 @@
 package org.gradle.internal.id;
 
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Usage of this factory in object factories ensures that ids are reused consistently when loading from the configuration cache.
  */
 @ThreadSafe
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class ConfigurationCacheableIdFactory {
 
     private static final long USED_ASSIGNED_ID_MARKER = -1;

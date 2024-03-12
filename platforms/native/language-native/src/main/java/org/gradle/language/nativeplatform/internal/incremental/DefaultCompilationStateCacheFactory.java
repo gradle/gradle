@@ -23,12 +23,12 @@ import org.gradle.cache.ObjectHolder;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.Closeable;
 
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scope.Gradle.class)
 public class DefaultCompilationStateCacheFactory implements CompilationStateCacheFactory, Closeable {
 
     private final IndexedCache<String, CompilationState> compilationStateIndexedCache;

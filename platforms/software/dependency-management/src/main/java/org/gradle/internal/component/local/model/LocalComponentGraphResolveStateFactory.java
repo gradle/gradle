@@ -18,10 +18,10 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.model.ComponentIdGenerator;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class LocalComponentGraphResolveStateFactory {
     private final AttributeDesugaring attributeDesugaring;
     private final ComponentIdGenerator idGenerator;

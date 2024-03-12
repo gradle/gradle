@@ -16,12 +16,12 @@
 
 package org.gradle.internal.session;
 
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.buildtree.BuildActionRunner;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface BuildSessionActionExecutor {
     BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context);
 }

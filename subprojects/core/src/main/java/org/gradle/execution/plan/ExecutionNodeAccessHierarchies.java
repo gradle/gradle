@@ -18,11 +18,11 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.internal.file.Stat;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.CaseSensitivity;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class ExecutionNodeAccessHierarchies implements HoldsProjectState {
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;

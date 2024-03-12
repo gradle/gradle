@@ -20,14 +20,14 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.DeprecatedInGradleScope;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 /**
  * <p>A {@code BuildListener} is notified of the major lifecycle events as a build is executed.</p>
  *
  * @see org.gradle.api.invocation.Gradle#addListener(Object)
  */
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 @DeprecatedInGradleScope
 public interface BuildListener {
 

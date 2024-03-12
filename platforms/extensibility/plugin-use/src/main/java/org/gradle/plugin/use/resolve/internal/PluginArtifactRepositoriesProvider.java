@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.plugin.use.resolve.internal;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Provides access to the shared artifact repositories to use for plugin resolution for this build.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface PluginArtifactRepositoriesProvider {
     PluginArtifactRepositories createPluginResolveRepositories();
 }

@@ -29,13 +29,13 @@ import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.SupportedEncryptionAlgorithm
 import java.io.File
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 class ConfigurationCacheStartParameter(
     private val buildLayout: BuildLayout,
     private val startParameter: StartParameterInternal,

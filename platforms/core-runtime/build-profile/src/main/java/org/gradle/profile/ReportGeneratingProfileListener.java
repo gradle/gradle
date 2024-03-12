@@ -20,7 +20,7 @@ import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
@@ -29,7 +29,7 @@ import java.util.Date;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class ReportGeneratingProfileListener {
     private static final SimpleDateFormat FILE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private final StyledTextOutputFactory textOutputFactory;

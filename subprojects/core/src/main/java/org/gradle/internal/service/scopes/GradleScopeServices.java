@@ -78,7 +78,7 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class GradleScopeServices extends ScopedServiceRegistry {
     public GradleScopeServices(final ServiceRegistry parent) {
-        super(Scopes.Gradle.class, "Gradle-scope services", parent);
+        super(Scope.Gradle.class, "Gradle-scope services", parent);
         register(registration -> {
             registration.add(DefaultBuildOutputCleanupRegistry.class);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {

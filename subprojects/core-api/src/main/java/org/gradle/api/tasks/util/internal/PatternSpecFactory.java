@@ -26,7 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ import java.util.Set;
  * used, no matter which other includes and excludes a {@link PatternSet} has. For an
  * implementation that caches all other patterns as well, see {@link CachingPatternSpecFactory}.
  */
-@ServiceScope(Scopes.Global.class)
+@ServiceScope(Scope.Global.class)
 public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
     private Set<String> previousDefaultExcludes = new HashSet<String>();

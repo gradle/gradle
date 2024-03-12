@@ -27,7 +27,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
@@ -45,7 +45,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class JavaInstallationRegistry {
     private final BuildOperationExecutor executor;
     private final Installations installations;

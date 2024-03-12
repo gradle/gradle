@@ -18,7 +18,7 @@ package org.gradle.internal.operations;
 
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -35,7 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * </ul>
  */
 @ThreadSafe
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface BuildOperationExecutor {
     /**
      * Runs the given build operation synchronously. Invokes the given operation from the current thread.

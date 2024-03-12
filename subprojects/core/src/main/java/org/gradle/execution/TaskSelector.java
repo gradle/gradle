@@ -19,11 +19,11 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface TaskSelector {
     Spec<Task> getFilter(SelectionContext context, ProjectState project, String taskName, boolean selectAllMatching);
 

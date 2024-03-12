@@ -17,7 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs.jos
 
 import org.gradle.configurationcache.serialization.codecs.Encoding
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.ObjectOutputStream
 import java.lang.reflect.Method
@@ -25,7 +25,7 @@ import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class JavaSerializationEncodingLookup {
     private

@@ -18,9 +18,9 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 public interface BuildModelLifecycleListener {
     /**
      * Called immediately prior to discarding the build model.

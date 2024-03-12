@@ -28,14 +28,14 @@ import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheProblems(
 

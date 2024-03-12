@@ -30,7 +30,7 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * This resolver can determine the coordinates of a project's root component
  * or can resolve the coordinates of a specific variant of that component.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class DefaultProjectDependencyPublicationResolver implements ProjectDependencyPublicationResolver {
     private final ProjectPublicationRegistry publicationRegistry;
     private final ProjectConfigurer projectConfigurer;

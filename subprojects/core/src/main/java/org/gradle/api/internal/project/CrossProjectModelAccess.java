@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
-import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
@@ -29,7 +29,7 @@ import java.util.Set;
 /**
  * Mediates access across project boundaries.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface CrossProjectModelAccess {
     /**
      * Locates the given project relative to some project.

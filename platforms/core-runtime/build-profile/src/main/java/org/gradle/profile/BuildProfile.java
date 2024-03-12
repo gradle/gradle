@@ -17,7 +17,7 @@ package org.gradle.profile;
 
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -44,7 +44,7 @@ import java.util.Map;
  * <li>setBuildFinished</li>
  * </ul>
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class BuildProfile {
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");

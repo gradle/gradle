@@ -19,12 +19,12 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerInternal;
 import org.gradle.internal.Factory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositoriesProvider;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class PluginDependencyResolutionServices implements PluginRepositoryHandlerProvider, PluginArtifactRepositoriesProvider {
     private final Factory<DependencyResolutionServices> factory;
     private DependencyResolutionServices dependencyResolutionServices;
