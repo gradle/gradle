@@ -120,7 +120,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         public abstract boolean initialize(File nativeBaseDir, boolean canUseNativeIntegrations);
     }
 
-    public enum NativeIntegrationMode {
+    public enum NativeServicesMode {
         ENABLED {
             @Override
             public boolean isEnabled() {
@@ -142,19 +142,19 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
         public abstract boolean isEnabled();
 
-        public static NativeIntegrationMode from(boolean isEnabled) {
+        public static NativeServicesMode from(boolean isEnabled) {
             return isEnabled ? ENABLED : DISABLED;
         }
 
-        public static NativeIntegrationMode fromSystemProperties() {
+        public static NativeServicesMode fromSystemProperties() {
             return fromString(System.getProperty(NATIVE_SERVICES_OPTION));
         }
 
-        public static NativeIntegrationMode fromProperties(Map<String, String> properties) {
+        public static NativeServicesMode fromProperties(Map<String, String> properties) {
             return fromString(properties.get(NATIVE_SERVICES_OPTION));
         }
 
-        public static NativeIntegrationMode fromString(@Nullable String value) {
+        public static NativeServicesMode fromString(@Nullable String value) {
             // Default to enabled, make it disabled only if explicitly set to "false"
             value = (value == null ? "true" : value).trim();
             return from(!"false".equalsIgnoreCase(value));
@@ -166,7 +166,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      *
      * Initializes all the services needed for the Gradle daemon.
      */
-    public static void initializeOnDaemon(File userHomeDir, NativeIntegrationMode mode) {
+    public static void initializeOnDaemon(File userHomeDir, NativeServicesMode mode) {
         INSTANCE.initialize(userHomeDir, EnumSet.allOf(NativeFeatures.class), mode);
     }
 
@@ -175,7 +175,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      *
      * Initializes all the services needed for the CLI or the Tooling API.
      */
-    public static void initializeOnClient(File userHomeDir, NativeIntegrationMode mode) {
+    public static void initializeOnClient(File userHomeDir, NativeServicesMode mode) {
         INSTANCE.initialize(userHomeDir, EnumSet.of(NativeFeatures.JANSI), mode);
     }
 
@@ -184,7 +184,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      *
      * Initializes all the services needed for the CLI or the Tooling API.
      */
-    public static void initializeOnWorker(File userHomeDir, NativeIntegrationMode mode) {
+    public static void initializeOnWorker(File userHomeDir, NativeServicesMode mode) {
         INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class), mode);
     }
 
@@ -201,8 +201,8 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      *
      * @param requestedFeatures Whether to initialize additional native libraries like jansi and file-events.
      */
-    private void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeIntegrationMode mode) {
-        checkNativeIntegrationMode(mode);
+    private void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
+        checkNativeServicesMode(mode);
         if (!initialized) {
             try {
                 initializeNativeIntegrations(userHomeDir, mode);
@@ -214,15 +214,15 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
     }
 
-    private static void checkNativeIntegrationMode(NativeIntegrationMode mode) {
-        if (mode != NativeIntegrationMode.ENABLED && mode != NativeIntegrationMode.DISABLED) {
+    private static void checkNativeServicesMode(NativeServicesMode mode) {
+        if (mode != NativeServicesMode.ENABLED && mode != NativeServicesMode.DISABLED) {
             throw new IllegalArgumentException("Only explicit ENABLED or DISABLED mode is allowed for the NativeServices initialization, but was: " + mode);
         }
     }
 
-    private void initializeNativeIntegrations(File userHomeDir, NativeIntegrationMode nativeIntegrationMode) {
+    private void initializeNativeIntegrations(File userHomeDir, NativeServicesMode nativeServicesMode) {
         this.userHomeDir = userHomeDir;
-        useNativeIntegrations = shouldUseNativeIntegration(nativeIntegrationMode);
+        useNativeIntegrations = shouldUseNativeIntegration(nativeServicesMode);
         nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
         if (useNativeIntegrations) {
             try {
@@ -247,8 +247,8 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
     }
 
-    private static boolean shouldUseNativeIntegration(NativeIntegrationMode nativeIntegrationMode) {
-        if (!nativeIntegrationMode.isEnabled()) {
+    private static boolean shouldUseNativeIntegration(NativeServicesMode nativeServicesMode) {
+        if (!nativeServicesMode.isEnabled()) {
             return false;
         }
         if (isLinuxWithMusl()) {

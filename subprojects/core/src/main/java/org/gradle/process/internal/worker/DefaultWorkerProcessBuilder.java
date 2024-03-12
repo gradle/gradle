@@ -22,7 +22,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationMode;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.MessagingServer;
@@ -71,7 +71,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationClassPath;
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
-    private NativeIntegrationMode nativeIntegrationMode;
+    private NativeServicesMode nativeServicesMode;
 
     DefaultWorkerProcessBuilder(
         JavaExecHandleFactory execHandleFactory,
@@ -90,7 +90,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.outputEventListener = outputEventListener;
         this.memoryManager = memoryManager;
         this.jvmVersionDetector = jvmVersionDetector;
-        this.nativeIntegrationMode = NativeIntegrationMode.NOT_SET;
+        this.nativeServicesMode = NativeServicesMode.NOT_SET;
     }
 
     public int getConnectTimeoutSeconds() {
@@ -204,13 +204,13 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     }
 
     @Override
-    public void setNativeIntegrationMode(NativeIntegrationMode nativeIntegrationMode) {
-        this.nativeIntegrationMode = nativeIntegrationMode;
+    public void setNativeServicesMode(NativeServicesMode nativeServicesMode) {
+        this.nativeServicesMode = nativeServicesMode;
     }
 
     @Override
-    public NativeIntegrationMode getNativeIntegrationMode() {
-        return nativeIntegrationMode;
+    public NativeServicesMode getNativeServicesMode() {
+        return nativeServicesMode;
     }
 
     @Override

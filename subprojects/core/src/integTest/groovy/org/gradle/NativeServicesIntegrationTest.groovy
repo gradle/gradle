@@ -122,7 +122,6 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
             }
         """)
 
-
         when:
         succeeds("doWork")
 

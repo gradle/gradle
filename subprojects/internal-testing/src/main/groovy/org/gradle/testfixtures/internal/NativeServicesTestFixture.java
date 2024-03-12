@@ -17,7 +17,7 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationMode;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
@@ -32,7 +32,7 @@ public class NativeServicesTestFixture {
         if (!initialized) {
             System.setProperty("org.gradle.native", "true");
             File nativeDir = getNativeServicesDir();
-            NativeServices.initializeOnDaemon(nativeDir, NativeIntegrationMode.fromSystemProperties());
+            NativeServices.initializeOnDaemon(nativeDir, NativeServicesMode.fromSystemProperties());
             initialized = true;
         }
     }
