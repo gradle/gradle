@@ -71,7 +71,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationClassPath;
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
-    private NativeServicesMode nativeServicesMode;
+    private NativeServicesMode nativeServicesMode = NativeServicesMode.NOT_SET;
 
     DefaultWorkerProcessBuilder(
         JavaExecHandleFactory execHandleFactory,
@@ -90,7 +90,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.outputEventListener = outputEventListener;
         this.memoryManager = memoryManager;
         this.jvmVersionDetector = jvmVersionDetector;
-        this.nativeServicesMode = NativeServicesMode.NOT_SET;
     }
 
     public int getConnectTimeoutSeconds() {
