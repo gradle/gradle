@@ -29,8 +29,6 @@ public abstract class Documentation implements DocLink {
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
-    public static final Documentation NO_DOCUMENTATION = new NullDocumentation();
-
     public static Documentation userManual(String id, String section) {
         return new UserGuide(id, section);
     }
@@ -58,7 +56,7 @@ public abstract class Documentation implements DocLink {
     }
 
     public static abstract class AbstractBuilder<T> {
-        public abstract T withDocumentation(DocLink documentation);
+        public abstract T withDocumentation(@Nullable DocLink documentation);
 
         /**
          * Allows proceeding without including any documentation reference.
@@ -66,7 +64,7 @@ public abstract class Documentation implements DocLink {
          */
         @CheckReturnValue
         public T undocumented() {
-            return withDocumentation(Documentation.NO_DOCUMENTATION);
+            return withDocumentation(null);
         }
 
         /**
@@ -99,27 +97,6 @@ public abstract class Documentation implements DocLink {
         @CheckReturnValue
         public T withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
             return withDocumentation(Documentation.upgradeGuide(majorVersion, upgradeGuideSection));
-        }
-    }
-
-    private static class NullDocumentation extends SerializableDocumentation {
-
-        private NullDocumentation() {
-        }
-
-        @Override
-        public String getUrl() {
-            return "";
-        }
-
-        @Override
-        public String getConsultDocumentationMessage() {
-            return "";
-        }
-
-        @Override
-        Map<String, String> getProperties() {
-            return ImmutableMap.of();
         }
     }
 

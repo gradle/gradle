@@ -33,7 +33,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     private DeprecationTimeline deprecationTimeline;
     private String context;
     private String advice;
-    private DocLink documentation = Documentation.NO_DOCUMENTATION;
+    private DocLink documentation = null;
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
     DeprecationMessageBuilder() {

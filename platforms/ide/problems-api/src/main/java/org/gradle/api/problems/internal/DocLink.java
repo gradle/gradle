@@ -17,7 +17,6 @@
 package org.gradle.api.problems.internal;
 
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
 /**
