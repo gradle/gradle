@@ -24,14 +24,11 @@ abstract class AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest extend
 
     private static final String JAVA_SRC_DIR_PATH = 'src/main/java'
 
-    def setup() {
-        executer.expectDeprecationWarning()
-    }
-
     def "compiler warnings emitted from compilation task are grouped"() {
         given:
         def javaSourceFile = file("$JAVA_SRC_DIR_PATH/MyClass.java")
         def normalizedJavaSourceFilePath = normaliseFileSeparators(javaSourceFile.absolutePath)
+        def expectedOutput = "${normalizedJavaSourceFilePath}:4: warning: [deprecation] Legacy in unnamed package has been deprecated"
 
         buildFile << """
             apply plugin: 'java'
@@ -55,11 +52,12 @@ abstract class AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest extend
         """
 
         when:
+        executer.expectDeprecationWarning(expectedOutput)
         succeeds('compileJava')
 
         then:
-        def expectedOutput = "${normalizedJavaSourceFilePath}:4: warning: [deprecation] Legacy in unnamed package has been deprecated"
         def actualOutput = errorsShouldAppearOnStdout() ? result.groupedOutput.task(':compileJava').output : result.getError()
-        normaliseFileSeparators(actualOutput).contains(expectedOutput)
+        def normalizedOutput = normaliseFileSeparators(actualOutput)
+        normalizedOutput.contains(expectedOutput)
     }
 }
