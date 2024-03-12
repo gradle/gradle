@@ -75,8 +75,8 @@ class JUnit4LoggingOutputCaptureIntegrationTest extends AbstractJUnit4LoggingOut
         testStandardErr.isEmpty() == !standardErrIncluded
 
         and: "all output appeared in the console when running tests"
-        result.assertOutputContains("before class output")
-        result.assertOutputContains("test method output")
+        outputContains("before class output")
+        outputContains("test method output")
         result.assertHasErrorOutput("before class error")
         result.assertHasErrorOutput("test method error")
 

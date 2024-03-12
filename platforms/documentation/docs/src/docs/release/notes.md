@@ -2,7 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
@@ -20,7 +20,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
@@ -60,10 +60,10 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 Plugin-provided tasks often expose file collections that are meant to be customizable by build engineers (for instance, the classpath for the JavaCompile task).
 Up until now, for plugin authors to define default values for file collections, they have had to resort to configuring those defaults as initial values.
-Conventions provide a better model for that: plugin authors recommend default values via conventions, and users choose to accept, add on top, or completely 
+Conventions provide a better model for that: plugin authors recommend default values via conventions, and users choose to accept, add on top, or completely
 replace them when defining their actual value.
 
-This release introduces a  pair of [`convention(...)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#convention-java.lang.Object...-) methods 
+This release introduces a  pair of [`convention(...)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#convention-java.lang.Object...-) methods
 on `ConfigurableFileCollection` that define the default value of a file collection if no explicit value is previously set via `setFrom(...)` or `from(...)`.
 
 ```kotlin
@@ -73,7 +73,7 @@ files.from("dir2")
 println(files.elements.get()) // [.../dir1, .../dir2]
 ```
 
-`#from(...)` will honor the convention if one is configured when invoked, so the order of operations will matter. 
+`#from(...)` will honor the convention if one is configured when invoked, so the order of operations will matter.
 
 To forcefully override or prevent a convention (i.e., regardless of the order of those operations), one should use `#setFrom()` instead:
 
@@ -122,7 +122,7 @@ Refer to the Javadoc for [`Property.replace(Transformer<>)`](javadoc/org/gradle/
 
 When attempting to download Java toolchains from the configured resolvers, errors will be better handled now, and all resolvers will be tried.
 
-While mapping toolchain specs to download URLs, resolvers aren't supposed to throw exceptions. 
+While mapping toolchain specs to download URLs, resolvers aren't supposed to throw exceptions.
 But it is possible for them to do that, and when it happens, Gradle should try to use other configured resolvers in their stead.
 However, it wasn't the case before this fix.
 
@@ -156,6 +156,24 @@ After executing approximately 15,000 tasks, the IDE would encounter a delay of s
 The root cause was that much more information than needed was serialized via the Tooling API.
 We added a test to the fix to ensure there will be no future regression, demonstrating a performance improvement of around 12%.
 The environments that benefit from this fix are Android Studio, IntelliJ IDEA, Eclipse, and other Tooling API clients.
+
+#### Filter output in JUnit XML test reports
+
+The new [`includeSystemOutLog` and `includeSystemErrLog` options](userguide/java_testing.html#junit_xml_configuration_output_filtering) allow for controlling whether or not output written to standard output and standard error output during testing is included in JUnit's XML test reports.
+Disabling these options can be useful when running a test task results in a large amount of standard output or standard error data that is not relevant for testing, or to preserve disk space when running jobs on CI.
+
+Set these options by configuring the
+link:{javadocPath}/org/gradle/api/tasks/testing/JUnitXmlReport.html[JUnitXmlReport] options block.
+
+```kotlin
+tasks.test {
+    useJUnit()
+    reports.junitXml {
+        includeSystemOutLog = false
+        includeSystemErrLog = true
+    }
+}
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
