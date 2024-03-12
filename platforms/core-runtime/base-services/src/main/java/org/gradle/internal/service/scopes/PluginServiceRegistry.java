@@ -30,7 +30,7 @@ public interface PluginServiceRegistry {
      *
      * <p>Global services are visible to all other services.</p>
      *
-     * @see Scope.Global
+     * @see Scopes.Global
      */
     void registerGlobalServices(ServiceRegistration registration);
 

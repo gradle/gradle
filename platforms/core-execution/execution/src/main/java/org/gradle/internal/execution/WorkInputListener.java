@@ -18,7 +18,7 @@ package org.gradle.internal.execution;
 
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scope.Global;
+import org.gradle.internal.service.scopes.Scopes.Global;
 
 import java.util.EnumSet;
 

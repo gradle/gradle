@@ -52,6 +52,10 @@ dependencies {
         because("need to access JavaPluginExtension")
     }
 
+    testRuntimeOnly(project(":distributions-core")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+
     testImplementation(testFixtures(project(":core")))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))

@@ -23,7 +23,7 @@ errorprone {
 
 dependencies {
     api(project(":base-annotations"))
-    api(project(":enterprise-logging"))
+    api(project(":build-operations"))
     api(project(":base-services"))
     api(project(":messaging"))
     api(project(":native"))
@@ -32,8 +32,6 @@ dependencies {
 
     api(libs.jsr305)
     api(libs.guava)
-
-    implementation(project(":build-operations"))
 
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)

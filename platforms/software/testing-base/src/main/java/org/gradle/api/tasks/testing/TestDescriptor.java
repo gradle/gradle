@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -50,6 +51,16 @@ public interface TestDescriptor {
     @Nullable
     @UsedByScanPlugin("test-retry")
     String getClassName();
+
+    /**
+     * Returns the method name for this test, if any.
+     *
+     * @return The method name. May return null.
+     * @since 8.8
+     */
+    @Incubating
+    @Nullable
+    String getMethodName();
 
     /**
      * Is this test a composite test?

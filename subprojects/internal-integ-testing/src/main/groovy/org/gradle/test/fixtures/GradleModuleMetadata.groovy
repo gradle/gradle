@@ -510,7 +510,7 @@ class GradleModuleMetadata {
             this.excludes = excludes*.toString()
             this.requestedCapabilities = requestedCapabilities.collect { new Capability(it.group, it.name, it.version) }
             this.endorseStrictVersions = endorseStrictVersions
-            this.artifactSelector = artifactSelector != null ? new ArtifactSelectorSpec(artifactSelector.name, artifactSelector.type, artifactSelector.extesion, artifactSelector.classifier) : null
+            this.artifactSelector = artifactSelector != null ? new ArtifactSelectorSpec(artifactSelector.name, artifactSelector.type, artifactSelector.extension, artifactSelector.classifier) : null
         }
 
         String toString() {

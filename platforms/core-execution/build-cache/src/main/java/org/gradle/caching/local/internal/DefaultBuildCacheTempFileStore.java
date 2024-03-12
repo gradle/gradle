@@ -32,10 +32,8 @@ public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
 
     @Override
     public void withTempFile(HashCode key, Consumer<? super File> action) {
-        String hashCode = key.toString();
-        File tempFile = null;
+        File tempFile = temporaryFileFactory.createTemporaryFile(key + "-", PARTIAL_FILE_SUFFIX);
         try {
-            tempFile = temporaryFileFactory.createTemporaryFile(hashCode + "-", PARTIAL_FILE_SUFFIX);
             action.accept(tempFile);
         } finally {
             FileUtils.deleteQuietly(tempFile);

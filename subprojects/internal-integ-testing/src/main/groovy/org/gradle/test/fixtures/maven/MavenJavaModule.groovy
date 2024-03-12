@@ -106,6 +106,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
                                        "org.gradle.jvm.version": currentJavaVersion,
                                        "org.gradle.libraryelements": "jar",
                                        "org.gradle.usage": "java-api",
+                                       "org.gradle.api-type": "public"
                                       ])
         assertAttributes(runtimeElements, ["org.gradle.category": "library",
                                            "org.gradle.dependency.bundling": "external",

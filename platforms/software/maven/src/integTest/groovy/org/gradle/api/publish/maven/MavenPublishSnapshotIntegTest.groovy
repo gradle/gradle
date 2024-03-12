@@ -195,4 +195,44 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
             snapshotVersions == ["1.0-SNAPSHOT"]
         }
     }
+
+    def "published metadata after artifacts"() {
+        settingsFile << 'rootProject.name = "snapshotPublish"'
+        buildFile << """
+    plugins {
+        id 'java'
+        id 'maven-publish'
+    }
+
+    group = 'org.gradle'
+    version = '1.0-SNAPSHOT'
+
+    publishing {
+        repositories {
+            maven { url "${mavenRepo.uri}" }
+        }
+        publications {
+            pub(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+"""
+        def module = mavenRepo.module('org.gradle', 'snapshotPublish', '1.0-SNAPSHOT')
+
+        when:
+        succeeds 'publish', '-i'
+
+        then:
+        def initialVersion = module.publishArtifactVersion
+        def publishTaskOutputLines = result.getGroupedOutput().task(':publishPubPublicationToMavenRepository').getOutput().split("\\R")
+
+        publishTaskOutputLines.collect { it =~ ~/Uploading (\S*).*/ }.findAll().collect { it.group(1) } == [
+            "snapshotPublish-${initialVersion}.jar",
+            "snapshotPublish-${initialVersion}.pom",
+            "snapshotPublish-${initialVersion}.module",
+            'maven-metadata.xml',
+            'maven-metadata.xml'
+        ]
+    }
 }

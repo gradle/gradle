@@ -1462,7 +1462,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def a1 = Attribute.of('a1', String)
 
         when:
-        conf.preventFromFurtherMutation()
+        conf.markAsObserved()
         conf.getAttributes().attribute(a1, "a1")
 
         then:
@@ -1480,7 +1480,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def containerImmutable = conf.getAttributes().asImmutable()
 
         when:
-        conf.preventFromFurtherMutation()
+        conf.markAsObserved()
         def containerWrapped = conf.getAttributes()
 
         then:
@@ -1672,10 +1672,10 @@ All Artifacts:
         'declarable'            | { it.setCanBeDeclared(!it.isCanBeDeclared()) }
     }
 
-    def "locking all changes prevents #usageName usage changes"() {
+    def "observation changes prevents #usageName usage changes"() {
         given:
         def conf = conf()
-        conf.preventFromFurtherMutation()
+        conf.markAsObserved()
 
         when:
         changeUsage(conf)
@@ -1695,8 +1695,8 @@ All Artifacts:
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
         resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf") >> new DefaultDependencyLockingState(true, [constraint] as Set, { entry -> false })
-        dependencyLockingProvider.loadLockState("child") >> DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT
+        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(true, [constraint] as Set, { entry -> false })
+        dependencyLockingProvider.loadLockState("child", _) >> DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT
 
         when:
         def child = conf("child")
@@ -1712,7 +1712,7 @@ All Artifacts:
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
         resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf") >> new DefaultDependencyLockingState(true, [constraint] as Set, {entry -> false })
+        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(true, [constraint] as Set, {entry -> false })
 
         when:
         def conf = conf()
@@ -1728,7 +1728,7 @@ All Artifacts:
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
         resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf") >> new DefaultDependencyLockingState(strict, [constraint] as Set, {entry -> false })
+        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(strict, [constraint] as Set, {entry -> false })
 
         when:
         def conf = conf()

@@ -46,7 +46,6 @@ import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
 import org.gradle.internal.declarativedsl.objectGraph.reflect
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
-import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
 
 
 interface DeclarativeKotlinScriptEvaluator {
@@ -73,18 +72,7 @@ interface DeclarativeKotlinScriptEvaluator {
         class ScriptPluginEvaluationContext(
             val targetScope: ClassLoaderScope
         ) : EvaluationContext
-
-        object PluginsDslEvaluationContext : EvaluationContext
     }
-}
-
-
-/**
- * A default implementation of a declarative DSL script evaluator, for use when no additional information needs to be provided at the use site.
- * TODO: The consumers should get an instance properly injected instead.
- */
-val defaultDeclarativeKotlinScriptEvaluator: DeclarativeKotlinScriptEvaluator by lazy {
-    DefaultDeclarativeKotlinScriptEvaluator(DefaultInterpretationSchemaBuilder())
 }
 
 
@@ -180,13 +168,15 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         target: Any,
         scriptSource: ScriptSource,
         evaluationContext: DeclarativeKotlinScriptEvaluator.EvaluationContext
-    ) = when (target) {
-        is Settings -> RestrictedScriptContext.SettingsScript
-        is Project -> {
-            require(evaluationContext is ScriptPluginEvaluationContext) { "declarative DSL for projects is only supported in script plugins" }
-            RestrictedScriptContext.ProjectScript(evaluationContext.targetScope, scriptSource)
-        }
-        is PluginsTopLevelReceiver -> RestrictedScriptContext.PluginsBlock
+    ): RestrictedScriptContext = when (target) {
+        is Settings -> RestrictedScriptContext.SettingsScript(requirePluginContext(evaluationContext).targetScope, scriptSource)
+        is Project -> RestrictedScriptContext.ProjectScript(requirePluginContext(evaluationContext).targetScope, scriptSource)
         else -> RestrictedScriptContext.UnknownScript
+    }
+
+    private
+    fun requirePluginContext(evaluationContext: DeclarativeKotlinScriptEvaluator.EvaluationContext): ScriptPluginEvaluationContext {
+        require(evaluationContext is ScriptPluginEvaluationContext) { "this target is not supported outside script plugins" }
+        return evaluationContext
     }
 }

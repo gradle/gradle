@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 
 import java.util.function.Consumer
 
@@ -53,7 +54,7 @@ abstract class StepSpec<C extends Context> extends StepSpecBase<C> {
 
     protected <D, R, T extends BuildOperationType<D, R>> void withOnlyOperation(
         Class<T> operationType,
-        Consumer<TestBuildOperationExecutor.Log.TypedRecord<D, R>> verifier
+        Consumer<TestBuildOperationRunner.Log.TypedRecord<D, R>> verifier
     ) {
         assert buildOperationExecutor.log.records.size() == 1
         interaction {

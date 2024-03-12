@@ -16,7 +16,7 @@
 
 package org.gradle.configuration.project;
 
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
@@ -27,7 +27,7 @@ import java.util.List;
  *
  * A built-in command can be invoked from any directory, and does not require a Gradle build definition to be present.
  */
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scopes.Global.class)
 public interface BuiltInCommand {
     /**
      * Returns the list of task paths that should be used when none are specified by the user. Returns an empty list if this command should not be used as a default.

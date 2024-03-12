@@ -25,6 +25,7 @@ org.slf4j:slf4j-log4j12:1.6.1
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.api-type            |          | public       |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | 11           |

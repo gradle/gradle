@@ -21,9 +21,9 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -35,7 +35,7 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
     }
 
     @Override
-    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
         return new TestInMemoryCacheFactory();
     }
 

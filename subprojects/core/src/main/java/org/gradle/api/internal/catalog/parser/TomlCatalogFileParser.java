@@ -29,6 +29,7 @@ import org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -155,11 +156,11 @@ public class TomlCatalogFileParser {
 
     private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String label, VersionCatalogProblemId catalogProblemId, Function<InternalProblemSpec, InternalProblemSpec> locationDefiner) {
         InternalProblemSpec definingLocation = builder
-            .label(label)
+            .id(screamingSnakeToKebabCase(catalogProblemId.name()), "Dependency version catalog problem", GradleCoreProblemGroup.versionCatalog())
+            .contextualLabel(label)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
         InternalProblemSpec definingCategory = locationDefiner.apply(definingLocation);
         return definingCategory
-            .category("dependency-version-catalog", screamingSnakeToKebabCase(catalogProblemId.name()))
             .severity(ERROR);
     }
 
@@ -322,10 +323,14 @@ public class TomlCatalogFileParser {
         if (gav instanceof String) {
             List<String> split = SPLITTER.splitToList((String) gav);
             if (split.size() != 3) {
-                throw throwVersionCatalogProblemException(builder ->
+                throw throwVersionCatalogProblemException(builder -> {
                     configureVersionCatalogError(builder, getInVersionCatalog(versionCatalogBuilder.getName()) + ", on alias '" + alias + "' notation '" + gav + "' is not a valid dependency notation.", INVALID_DEPENDENCY_NOTATION)
                         .details("When using a string to declare library coordinates, you must use a valid dependency notation")
-                        .solution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2"));
+                        .solution("Make sure that the coordinates consist of 3 parts separated by colons, e.g.: my.group:artifact:1.2");
+                    if (split.size() == 2) {
+                        builder.solution("To declare without a version, use '" + alias + ".module' instead, i.e.: " + alias + ".module = \"" + gav + "\"");
+                    }
+                });
             }
             String group = notEmpty(split.get(0), "group", alias);
             String name = notEmpty(split.get(1), "name", alias);

@@ -25,6 +25,7 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
+import spock.lang.IgnoreRest
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.assertProblemDetailsForTAPIProblemEvent
@@ -81,10 +82,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
             getProblems().forNamespace("org.example.plugin").reporting {
-                it.label("shortProblemMessage")
+                it.id("id", "shortProblemMessage")
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
-                .category("main", "sub", "id")
                 $detailsConfig
                 .additionalData("aKey", "aValue")
                 .severity(Severity.WARNING)
@@ -151,6 +151,33 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = listener.problems
         org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.validateCompilationProblem(problems, buildFile)
         problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
+    }
+
+    @IgnoreRest
+    @ToolingApiVersion("current")
+    @TargetGradleVersion("current")
+    def "sample problem"() {
+        given:
+        withReportProblemTask """
+            problems.forNamespace("org.example.plugin").reporting {
+                it.id("deprecation", "plugin")
+                    .severity(Severity.WARNING)
+                    .solution("Please use 'standard-plugin-2' instead of this plugin")
+                }
+        """
+
+        when:
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .addJvmArguments('-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y')
+                .run()
+        }
+
+        then:
+        def problems = listener.problems
+        problems.size() == 1
     }
 
     @TargetGradleVersion(">=8.6")

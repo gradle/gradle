@@ -28,8 +28,7 @@ import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assume.assumeNotNull
 
-class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
-
+class AbstractValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
     def setup() {
         enableProblemsApiCheck()
         buildFile """
@@ -76,10 +75,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assert problems.size() == messages.size()
         problems.any { problem ->
             messages.any { message ->
-                if(message.config) {
+                if (message.config) {
                     TextUtil.endLineWithDot(problem.getProperty("label").toString()) == message.config.label().toString()
-                }
-                else {
+                } else {
                     message.message.contains(TextUtil.endLineWithDot(problem.getProperty("label").toString()))
                 }
             }
@@ -91,6 +89,62 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         return file(path)
     }
 
+    protected createMyTransformAction() {
+        file("src/main/java/MyTransformAction.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+            import org.gradle.work.*;
+            import java.io.*;
+
+            @DisableCachingByDefault(because = "test transform action")
+            public abstract class MyTransformAction implements TransformAction {
+                // Should be ignored because it's not a getter
+                public void getVoid() {
+                }
+
+                // Should be ignored because it's not a getter
+                public int getWithParameter(int count) {
+                    return count;
+                }
+
+                // Ignored because static
+                public static int getStatic() {
+                    return 0;
+                }
+
+                // Ignored because injected
+                @javax.inject.Inject
+                public abstract org.gradle.api.internal.file.FileResolver getInjected();
+
+                // Valid because it is annotated
+                @InputArtifact
+                @PathSensitive(PathSensitivity.NONE)
+                public abstract Provider<FileSystemLocation> getGoodInput();
+
+                // Invalid because it has no annotation
+                public long getBadTime() {
+                    return System.currentTimeMillis();
+                }
+
+                // Invalid because it has some other annotation
+                @Deprecated
+                public String getOldThing() {
+                    return null;
+                }
+
+                // Unsupported annotation
+                @InputFile
+                public abstract File getInputFile();
+            }
+        """
+    }
+
+}
+
+class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegrationTest {
     def "supports recursive types"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -157,6 +211,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     def "can enable stricter validation"() {
+        enableProblemsApiCheck()
         buildFile << """
             dependencies {
                 implementation localGroovy()
@@ -300,60 +355,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             error(missingAnnotationConfig { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
-
-    private createMyTransformAction() {
-        file("src/main/java/MyTransformAction.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.provider.*;
-            import org.gradle.api.file.*;
-            import org.gradle.api.tasks.*;
-            import org.gradle.api.artifacts.transform.*;
-            import org.gradle.work.*;
-            import java.io.*;
-
-            @DisableCachingByDefault(because = "test transform action")
-            public abstract class MyTransformAction implements TransformAction {
-                // Should be ignored because it's not a getter
-                public void getVoid() {
-                }
-
-                // Should be ignored because it's not a getter
-                public int getWithParameter(int count) {
-                    return count;
-                }
-
-                // Ignored because static
-                public static int getStatic() {
-                    return 0;
-                }
-
-                // Ignored because injected
-                @javax.inject.Inject
-                public abstract org.gradle.api.internal.file.FileResolver getInjected();
-
-                // Valid because it is annotated
-                @InputArtifact
-                @PathSensitive(PathSensitivity.NONE)
-                public abstract Provider<FileSystemLocation> getGoodInput();
-
-                // Invalid because it has no annotation
-                public long getBadTime() {
-                    return System.currentTimeMillis();
-                }
-
-                // Invalid because it has some other annotation
-                @Deprecated
-                public String getOldThing() {
-                    return null;
-                }
-
-                // Unsupported annotation
-                @InputFile
-                public abstract File getInputFile();
-            }
-        """
-    }
-
 
     def "can validate properties of an artifact transform parameters object"() {
         file("src/main/java/MyTransformParameters.java") << """
@@ -598,7 +599,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         "InputFile"  | _
         "InputFiles" | _
     }
+}
 
+class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegrationTest {
     @Issue("https://github.com/gradle/gradle/issues/24979")
     def "cannot annotate type 'java.net.URL' with @Input"() {
         given:
