@@ -19,7 +19,7 @@ package org.gradle.internal.service.scopes;
 /**
  * @see ServiceScope
  */
-public interface Scopes {
+public interface Scope {
 
     /**
      * These services are reused across builds in the same process.
