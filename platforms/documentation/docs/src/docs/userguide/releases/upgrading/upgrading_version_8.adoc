@@ -130,11 +130,16 @@ The superinterface, link:{javadocPath}/org/gradle/api/Namer.html[`Namer`], is *n
 
 ==== Changes in the Problems API
 
-We have implemented several refactorings of the Problems API, including a significant change in the way problem definitions and contextual information are handled. 
+We have implemented several refactorings of the Problems API, including a significant change in the way problem definitions and contextual information are handled.
 The complete design specification can be found [here](https://docs.google.com/document/d/1T_vM-Upa23aA21sanFTTLZa3j9xV6R32djJk6-muWzI/edit#heading=h.610fausqnpu6).
 
 In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
+
+==== Introduced new variant to Java projects
+
+All plugins that apply the `java` plugin or any of its related plugins will have a new consumable configuration, `privateApiElements`.
+This variant has been added to support future changes related to declaring test dependencies.
 
 [[changes_8.7]]
 == Upgrading from 8.6 and earlier
