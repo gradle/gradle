@@ -126,6 +126,33 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
+This Gradle release promotes the following features to stable:
+
+The new API for defining file permissions (added in Gradle 8.3) is now stable, see:
+
+- link:{javadocPath}/org/gradle/api/file/FilePermissions.html[FilePermissions].
+- link:{javadocPath}/org/gradle/api/file/ConfigurableFilePermissions.html[ConfigurableFilePermissions].
+
+
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getFilePermissions--[CopyProcessingSpec.getFilePermissions()]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#filePermissions-org.gradle.api.Action-[CopyProcessingSpec.filePermissions(Action)]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getDirPermissions--[CopyProcessingSpec.getDirPermissions()]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#dirPermissions-org.gradle.api.Action-[CopyProcessingSpec.dirPermissions(Action)]
+
+
+- link:{javadocPath}/org/gradle/api/file/FileCopyDetails.html#permissions-org.gradle.api.Action-[FileCopyDetails.permissions(Action)]
+- link:{javadocPath}/org/gradle/api/file/FileCopyDetails.html#setPermissions-org.gradle.api.file.FilePermissions-[FileCopyDetails.setPermissions(FilePermissions)]
+
+
+- link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#filePermissions-org.gradle.api.Action-[FileSystemOperations.filePermissions(Action)]
+- link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#directoryPermissions-org.gradle.api.Action-[FileSystemOperations.directoryPermissions(Action)]
+- link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#permissions-int-[FileSystemOperations.permissions(int)]
+- link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#permissions-java.lang.String-[FileSystemOperations.permissions(String)]
+- link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#permissions-org.gradle.api.provider.Provider-[FileSystemOperations.permissions(Provider)]
+
+
+- link:{javadocPath}/org/gradle/api/file/FileTreeElement.html#getPermissions--[FileTreeElement.getPermissions()]
+
 <!--
 ### Example promoted
 -->
