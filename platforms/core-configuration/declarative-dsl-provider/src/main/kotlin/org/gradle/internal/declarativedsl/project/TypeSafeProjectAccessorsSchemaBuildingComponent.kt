@@ -22,7 +22,7 @@ import org.gradle.internal.declarativedsl.analysis.DataProperty
 import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
-import org.gradle.internal.declarativedsl.mappingToJvm.RestrictedRuntimeProperty
+import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeProperty
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
@@ -89,7 +89,7 @@ private
 class ProjectPropertyAccessorRuntimeResolver : RuntimePropertyResolver {
     override fun resolvePropertyRead(receiverClass: KClass<*>, name: String): RuntimePropertyResolver.Resolution {
         if (receiverClass.isSubclassOf(Project::class) && name == "projects") {
-            return RuntimePropertyResolver.Resolution.Resolved(object : RestrictedRuntimeProperty {
+            return RuntimePropertyResolver.Resolution.Resolved(object : DeclarativeRuntimeProperty {
                 override fun getValue(receiver: Any) = (receiver as Project).extensions.getByName("projects")
                 override fun setValue(receiver: Any, value: Any?): Unit = throw UnsupportedOperationException()
             })
