@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
-import groovy.xml.XmlParser
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
@@ -27,8 +27,8 @@ class JUnit4LoggingOutputCaptureIntegrationTest extends AbstractJUnit4LoggingOut
         given:
         buildFile.text = buildFile.text.replace("reports.junitXml.outputPerTestCase = true", """reports.junitXml {
             outputPerTestCase = true
-            $includeSystemOut
-            $includeSystemErr
+            $includeSystemOutConf
+            $includeSystemErrConf
         }""".stripIndent())
 
         file("src/test/java/OkTest.java") << """
@@ -53,26 +53,22 @@ class JUnit4LoggingOutputCaptureIntegrationTest extends AbstractJUnit4LoggingOut
         executer.withTestConsoleAttached()
         succeeds("test")
 
-        and:
-        def xmlResult = file("build/test-results/test/TEST-OkTest.xml")
-        def doc = new XmlParser().parseText(xmlResult.text)
-
-        and: "suite level output (before/after class) is included/excluded in the xml report as configured"
-        def testSuiteOutput = doc.tap {
-            assert it.name() == 'testsuite'
-            assert it["@name"] == 'OkTest'
+        and: "all output is included/excluded in the xml report as configured"
+        def junitResult = new JUnitXmlTestExecutionResult(testDirectory)
+        if (standardOutIncluded) {
+            assert junitResult.getSuiteStandardOutput("OkTest").isPresent()
+            assert junitResult.getTestCaseStandardOutput("OkTest", "isOk").isPresent()
+        } else {
+            assert junitResult.getSuiteStandardOutput("OkTest").isEmpty()
+            assert junitResult.getTestCaseStandardOutput("OkTest", "isOk").isEmpty()
         }
-        def suiteStandardOut = testSuiteOutput.'system-out'.text()
-        def suiteStandardErr = testSuiteOutput.'system-err'.text()
-        suiteStandardOut.isEmpty() == !standardOutIncluded
-        suiteStandardErr.isEmpty() == !standardErrIncluded
-
-        and: "test method output (includes setup/teardown) is included/excluded in the xml report as configured"
-        def testMethodOutput = testSuiteOutput.'testcase'.find { it.@classname = 'OkTest' && it.@name == 'isOk' }
-        def testStandardOut = testMethodOutput.'system-out'.text()
-        def testStandardErr = testMethodOutput.'system-err'.text()
-        testStandardOut.isEmpty() == !standardOutIncluded
-        testStandardErr.isEmpty() == !standardErrIncluded
+        if (standardErrIncluded) {
+            assert junitResult.getSuiteStandardError("OkTest").isPresent()
+            assert junitResult.getTestCaseStandardError("OkTest", "isOk").isPresent()
+        } else {
+            assert junitResult.getSuiteStandardError("OkTest").isEmpty()
+            assert junitResult.getTestCaseStandardError("OkTest", "isOk").isEmpty()
+        }
 
         and: "all output appeared in the console when running tests"
         outputContains("before class output")
@@ -81,7 +77,7 @@ class JUnit4LoggingOutputCaptureIntegrationTest extends AbstractJUnit4LoggingOut
         result.assertHasErrorOutput("test method error")
 
         where:
-        includeSystemOut                    | includeSystemErr                  || standardOutIncluded || standardErrIncluded
+        includeSystemOutConf                | includeSystemErrConf              || standardOutIncluded || standardErrIncluded
         "// default includeSystemOutLog"    | "// default includeSystemErrLog"  || true                || true
         "includeSystemOutLog = true"        | "includeSystemErrLog = true"      || true                || true
         "includeSystemOutLog = false"       | "includeSystemErrLog = true"      || false               || true

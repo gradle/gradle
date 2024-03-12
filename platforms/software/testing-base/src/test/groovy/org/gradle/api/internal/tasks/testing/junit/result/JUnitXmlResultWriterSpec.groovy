@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import groovy.xml.XmlParser
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
@@ -268,45 +267,87 @@ class JUnitXmlResultWriterSpec extends Specification {
     def "omit system-out section"() {
         given:
         def options = new JUnitXmlResultOptions(true, false, false, true)
+        provider = new BuildableTestResultsProvider()
 
-        and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
-        _ * provider.writeAllOutput(_, _, _)
+        when:
+        def testClass = generateTestClassWithOutput(provider)
 
-        expect:
-        def doc = new XmlParser().parseText(getXml(result, options))
-        assertHasOutputAsConfigured(doc, false, true)
+        then:
+        def xml = getXml(testClass, options)
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+  <properties/>
+  <testcase name="test-case" classname="com.foo.FooTest" time="1.0">
+    <system-err><![CDATA[test-err]]></system-err>
+  </testcase>
+  <system-err><![CDATA[suite-err]]></system-err>
+</testsuite>
+"""
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23229")
     def "omit system-err section"() {
         given:
         def options = new JUnitXmlResultOptions(true, false, true, false)
+        provider = new BuildableTestResultsProvider()
 
-        and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
-        _ * provider.writeAllOutput(_, _, _)
+        when:
+        def testClass = generateTestClassWithOutput(provider)
 
-        expect:
-        def doc = new XmlParser().parseText(getXml(result, options))
-        assertHasOutputAsConfigured(doc, true, false)
+        then:
+        def xml = getXml(testClass, options)
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+  <properties/>
+  <testcase name="test-case" classname="com.foo.FooTest" time="1.0">
+    <system-out><![CDATA[test-out]]></system-out>
+  </testcase>
+  <system-out><![CDATA[suite-out]]></system-out>
+</testsuite>
+"""
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23229")
     def "show system-err and system-out sections"() {
         given:
         def options = new JUnitXmlResultOptions(true, false, true, true)
+        provider = new BuildableTestResultsProvider()
 
-        and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
-        _ * provider.writeAllOutput(_, _, _)
+        when:
+        def testClass = generateTestClassWithOutput(provider)
 
-        expect:
-        def doc = new XmlParser().parseText(getXml(result, options))
-        assertHasOutputAsConfigured(doc, true, true)
+        then:
+        def xml = getXml(testClass, options)
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+  <properties/>
+  <testcase name="test-case" classname="com.foo.FooTest" time="1.0">
+    <system-out><![CDATA[test-out]]></system-out>
+    <system-err><![CDATA[test-err]]></system-err>
+  </testcase>
+  <system-out><![CDATA[suite-out]]></system-out>
+  <system-err><![CDATA[suite-err]]></system-err>
+</testsuite>
+"""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23229")
+    def "omit system-err and system-out sections"() {
+        given:
+        def options = new JUnitXmlResultOptions(true, false, false, false)
+        provider = new BuildableTestResultsProvider()
+
+        when:
+        def testClass = generateTestClassWithOutput(provider)
+
+        then:
+        def xml = getXml(testClass, options)
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+  <properties/>
+  <testcase name="test-case" classname="com.foo.FooTest" time="1.0"/>
+</testsuite>
+"""
     }
 
     private String getXml(TestClassResult result, JUnitXmlResultOptions options) {
@@ -319,14 +360,14 @@ class JUnitXmlResultWriterSpec extends Specification {
         return new JUnitXmlResultWriter("localhost", provider, options)
     }
 
-    private void assertHasOutputAsConfigured(Node doc, boolean standardOutputIncluded, boolean errorOutputIncluded) {
-        def testSuiteOutput = doc.tap {
-            assert it.name() == 'testsuite'
-            assert it["@name"] == 'com.foo.FooTest'
+    private BuildableTestResultsProvider.BuildableTestClassResult generateTestClassWithOutput(BuildableTestResultsProvider provider) {
+        provider.testClassResult("com.foo.FooTest") {
+            stdout "suite-out"
+            stderr "suite-err"
+            testcase("test-case") {
+                stderr "test-err"
+                stdout "test-out"
+            }
         }
-        def suiteStandardOutNodeList = testSuiteOutput.'system-out'
-        def suiteStandardErrNodeList = testSuiteOutput.'system-err'
-        assert suiteStandardOutNodeList.isEmpty() == !standardOutputIncluded
-        assert suiteStandardErrNodeList.isEmpty() == !errorOutputIncluded
     }
 }

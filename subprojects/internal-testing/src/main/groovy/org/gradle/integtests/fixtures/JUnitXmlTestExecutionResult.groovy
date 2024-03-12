@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import groovy.xml.XmlParser
 import groovy.xml.XmlSlurper
 import org.gradle.test.fixtures.file.TestFile
 
@@ -116,5 +117,50 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         }
         return classes
     }
-}
 
+    Optional<String> getSuiteStandardOutput(String testClass) {
+        def xmlRoot = getTestClassXmlDoc(testClass)
+        def suiteStandardOut = xmlRoot.'system-out'
+        return getNodeText(suiteStandardOut)
+    }
+
+    Optional<String> getSuiteStandardError(String testClass) {
+        def xmlRoot = getTestClassXmlDoc(testClass)
+        def suiteStandardErr = xmlRoot.'system-err'
+        return getNodeText(suiteStandardErr)
+    }
+
+    Optional<String> getTestCaseStandardOutput(String testClass, String testCase) {
+        def xmlRoot = getTestClassXmlDoc(testClass)
+        def testCaseNode = xmlRoot.'testcase'.find { it.@classname = 'OkTest' && it.@name == testCase }
+        def testCaseStandardOut = testCaseNode.'system-out'
+        return getNodeText(testCaseStandardOut)
+    }
+
+    Optional<String> getTestCaseStandardError(String testClass, String testCase) {
+        def xmlRoot = getTestClassXmlDoc(testClass)
+        def testCaseNode = xmlRoot.'testcase'.find { it.@classname = 'OkTest' && it.@name == testCase }
+        def testCaseStandardOut = testCaseNode.'system-err'
+        return getNodeText(testCaseStandardOut)
+    }
+
+    private Node getTestClassXmlDoc(String testClass) {
+        Map<String, File> classes = findClasses()
+        def xmlTest = classes[testClass].text
+        def doc = new XmlParser().parseText(xmlTest)
+
+        return doc.tap {
+            assert it.name() == 'testsuite'
+            assert it["@name"] == testClass
+        }
+    }
+
+    private Optional<String> getNodeText(NodeList nodeList) {
+        assert nodeList.size() <= 1
+        if (nodeList.isEmpty()) {
+            return Optional.empty()
+        } else {
+            return Optional.of(nodeList.text())
+        }
+    }
+}
