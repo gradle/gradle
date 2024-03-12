@@ -27,7 +27,7 @@ class InvalidInstallationWarningReporterTest extends Specification {
     def 'reporter logs only invalid installations'() {
         given:
         def reporter = new InvalidInstallationWarningReporter(mockLogger)
-        def location = new InstallationLocation(new File("_"), "_", false)
+        def location = InstallationLocation.userControlled(new File("_"), "_")
         def metadata = Mock(JvmInstallationMetadata) {
             isValidInstallation() >> isValid
         }
@@ -46,7 +46,7 @@ class InvalidInstallationWarningReporterTest extends Specification {
     def 'reporter logs meaningful message'() {
         given:
         def reporter = new InvalidInstallationWarningReporter(mockLogger)
-        def location = new InstallationLocation(new File("testHome"), "test", false)
+        def location = InstallationLocation.userControlled(new File("testHome"), "test")
         def metadata = Mock(JvmInstallationMetadata) {
             isValidInstallation() >> false
         }

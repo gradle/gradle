@@ -169,7 +169,7 @@ public class JavaInstallationRegistry {
         try {
             final File canonicalFile = file.getCanonicalFile();
             final File javaHome = findJavaHome(canonicalFile);
-            return new InstallationLocation(javaHome, location.getSource(), location.isAutoDetected(), location.isAutoProvisioned());
+            return location.withLocation(javaHome);
         } catch (IOException e) {
             throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
         }
@@ -180,7 +180,7 @@ public class JavaInstallationRegistry {
         final File parentPath = home.getParentFile();
         final boolean isEmbeddedJre = home.getName().equalsIgnoreCase("jre");
         if (isEmbeddedJre && hasJavaExecutable(parentPath)) {
-            return new InstallationLocation(parentPath, location.getSource(), location.isAutoDetected());
+            return location.withLocation(parentPath);
         }
         return location;
     }

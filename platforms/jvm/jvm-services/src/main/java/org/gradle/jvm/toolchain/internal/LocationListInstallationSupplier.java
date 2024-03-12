@@ -47,13 +47,13 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
     @Override
     public Set<InstallationLocation> get() {
         final Provider<String> property = factory.gradleProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY);
-        return property.map(paths -> asInstallations(paths)).orElse(Collections.emptySet()).get();
+        return property.map(this::asInstallations).getOrElse(Collections.emptySet());
     }
 
     private Set<InstallationLocation> asInstallations(String listOfDirectories) {
         return Arrays.stream(listOfDirectories.split(","))
             .filter(path -> !path.trim().isEmpty())
-            .map(path -> new InstallationLocation(fileResolver.resolve(path), getSourceName(), false))
+            .map(path -> InstallationLocation.userControlled(fileResolver.resolve(path), getSourceName()))
             .collect(Collectors.toSet());
     }
 

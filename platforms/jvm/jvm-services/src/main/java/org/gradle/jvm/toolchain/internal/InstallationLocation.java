@@ -21,6 +21,17 @@ import org.gradle.api.Describable;
 import java.io.File;
 
 public class InstallationLocation implements Describable {
+    public static InstallationLocation userControlled(File location, String source) {
+        return new InstallationLocation(location, source, false, false);
+    }
+
+    public static InstallationLocation autoDetected(File location, String source) {
+        return new InstallationLocation(location, source, true, false);
+    }
+
+    public static InstallationLocation autoProvisioned(File location, String source) {
+        return new InstallationLocation(location, source, true, true);
+    }
 
     private final File location;
 
@@ -30,11 +41,7 @@ public class InstallationLocation implements Describable {
 
     private final boolean autoProvisioned;
 
-    public InstallationLocation(File location, String source, boolean autoDetected) {
-        this(location, source, autoDetected, false);
-    }
-
-    public InstallationLocation(File location, String source, boolean autoDetected, boolean autoProvisioned) {
+    private InstallationLocation(File location, String source, boolean autoDetected, boolean autoProvisioned) {
         this.location = location;
         this.source = source;
         this.autoDetected = autoDetected;
@@ -65,5 +72,9 @@ public class InstallationLocation implements Describable {
 
     public boolean isAutoProvisioned() {
         return autoProvisioned;
+    }
+
+    public InstallationLocation withLocation(File location) {
+        return new InstallationLocation(location, source, autoDetected, autoProvisioned);
     }
 }

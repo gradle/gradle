@@ -218,7 +218,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
     }
 
     private InstallationLocation testLocation(File javaHome) {
-        new InstallationLocation(javaHome, "test", false)
+        InstallationLocation.userControlled(javaHome, "test")
     }
 
     private static Map<String, String> currentGradle() {

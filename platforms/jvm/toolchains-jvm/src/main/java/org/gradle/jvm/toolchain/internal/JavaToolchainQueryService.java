@@ -136,11 +136,11 @@ public class JavaToolchainQueryService {
 
     private JavaToolchain query(JavaToolchainSpec spec, boolean isFallback) {
         if (spec instanceof CurrentJvmToolchainSpec) {
-            return asToolchainOrThrow(new InstallationLocation(currentJavaHome, "current JVM", true), spec, isFallback);
+            return asToolchainOrThrow(InstallationLocation.autoDetected(currentJavaHome, "current JVM"), spec, isFallback);
         }
 
         if (spec instanceof SpecificInstallationToolchainSpec) {
-            return asToolchainOrThrow(new InstallationLocation(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation", false), spec, false);
+            return asToolchainOrThrow(InstallationLocation.userControlled(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec, false);
         }
 
         return findInstalledToolchain(spec).orElseGet(() -> downloadToolchain(spec));
@@ -180,7 +180,7 @@ public class JavaToolchainQueryService {
             throw new NoToolchainAvailableException(spec, buildPlatform, e);
         }
 
-        InstallationLocation downloadedInstallation = new InstallationLocation(installation, "provisioned toolchain", true, true);
+        InstallationLocation downloadedInstallation = InstallationLocation.autoProvisioned(installation, "provisioned toolchain");
         JavaToolchain downloadedToolchain = asToolchainOrThrow(downloadedInstallation, spec, false);
         registry.addInstallation(downloadedInstallation);
         return downloadedToolchain;

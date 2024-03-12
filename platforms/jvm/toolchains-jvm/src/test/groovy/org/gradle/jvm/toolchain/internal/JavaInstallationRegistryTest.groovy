@@ -259,7 +259,7 @@ class JavaInstallationRegistryTest extends Specification {
 
             @Override
             Set<InstallationLocation> get() {
-                return Collections.singleton(new InstallationLocation(directory, getSourceName(), autoDetected))
+                return Collections.singleton(autoDetected ? InstallationLocation.autoDetected(directory, getSourceName()) : InstallationLocation.userControlled(directory, getSourceName()))
             }
         }
     }

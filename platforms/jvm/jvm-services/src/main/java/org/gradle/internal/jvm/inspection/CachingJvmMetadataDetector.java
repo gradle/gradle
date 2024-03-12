@@ -33,7 +33,7 @@ public class CachingJvmMetadataDetector implements JvmMetadataDetector, Conditio
 
     public CachingJvmMetadataDetector(JvmMetadataDetector delegate) {
         this.delegate = delegate;
-        getMetadata(new InstallationLocation(Jvm.current().getJavaHome(), "current Java home", true));
+        getMetadata(InstallationLocation.autoDetected(Jvm.current().getJavaHome(), "current Java home"));
     }
 
     @Override

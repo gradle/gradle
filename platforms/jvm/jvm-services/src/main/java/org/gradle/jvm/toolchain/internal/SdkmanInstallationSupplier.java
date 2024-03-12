@@ -52,7 +52,7 @@ public class SdkmanInstallationSupplier extends AutoDetectingInstallationSupplie
     private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
         return candidatesDir -> {
             final File root = new File(candidatesDir, "java");
-            return FileBasedInstallationFactory.fromDirectory(root, getSourceName(), true);
+            return FileBasedInstallationFactory.fromDirectory(root, getSourceName(), InstallationLocation::autoDetected);
         };
     }
 
