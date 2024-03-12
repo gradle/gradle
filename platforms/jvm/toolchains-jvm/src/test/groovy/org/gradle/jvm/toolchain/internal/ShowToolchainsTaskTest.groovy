@@ -288,7 +288,7 @@ $errorLines
     }
 
     private static InstallationLocation testLocation(String javaHomePath) {
-        return InstallationLocation.userControlled(new File(javaHomePath), "TestSource")
+        return InstallationLocation.userDefined(new File(javaHomePath), "TestSource")
     }
 
     static class TestShowToolchainsTask extends ShowToolchainsTask {

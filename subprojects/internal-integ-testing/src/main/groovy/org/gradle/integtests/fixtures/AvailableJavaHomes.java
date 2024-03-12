@@ -332,7 +332,7 @@ public abstract class AvailableJavaHomes {
             return System.getenv().entrySet()
                 .stream()
                 .filter(it -> JDK_PATTERN.matcher(it.getKey()).matches())
-                .map(entry -> InstallationLocation.userControlled(new File(entry.getValue()), "env var " + entry.getKey()))
+                .map(entry -> InstallationLocation.userDefined(new File(entry.getValue()), "env var " + entry.getKey()))
                 .collect(Collectors.toSet());
         }
     }

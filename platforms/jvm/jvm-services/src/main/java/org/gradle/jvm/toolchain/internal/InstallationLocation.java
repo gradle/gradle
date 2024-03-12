@@ -21,7 +21,7 @@ import org.gradle.api.Describable;
 import java.io.File;
 
 public class InstallationLocation implements Describable {
-    public static InstallationLocation userControlled(File location, String source) {
+    public static InstallationLocation userDefined(File location, String source) {
         return new InstallationLocation(location, source, false, false);
     }
 
@@ -62,7 +62,7 @@ public class InstallationLocation implements Describable {
     }
 
     /**
-     * Flag for if this location was auto-detected, i.e. not explicitly configured by the user.
+     * Flag for if this location was auto-detected, i.e. not explicitly defined by the user.
      *
      * This is used to lower the severity of issues related to this location.
      */

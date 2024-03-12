@@ -112,6 +112,6 @@ class CachingJvmMetadataDetectorTest extends Specification {
     }
 
     private InstallationLocation testLocation(String filePath) {
-        return InstallationLocation.userControlled(new File(filePath), "test")
+        return InstallationLocation.userDefined(new File(filePath), "test")
     }
 }

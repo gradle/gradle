@@ -38,7 +38,7 @@ class DefaultJvmMetadataDetectorIntegrationTest extends AbstractIntegrationSpec 
                 TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()))
         )
         Jvm jvm = AvailableJavaHomes.differentJdk //the detector has special handling for the current JVM
-        def javaHome = InstallationLocation.userControlled(jvm.getJavaHome(), "test")
+        def javaHome = InstallationLocation.userDefined(jvm.getJavaHome(), "test")
         def metadata = detector.getMetadata(javaHome)
 
         then:

@@ -501,7 +501,7 @@ class JavaToolchainQueryServiceTest extends Specification {
     }
 
     private InstallationLocation locationFor(String version) {
-        return InstallationLocation.userControlled(new File("/path/${version}").absoluteFile, "test")
+        return InstallationLocation.userDefined(new File("/path/${version}").absoluteFile, "test")
     }
 
     private JavaToolchainQueryService createQueryService(

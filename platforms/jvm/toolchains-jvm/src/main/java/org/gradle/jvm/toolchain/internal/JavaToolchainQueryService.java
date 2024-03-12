@@ -140,7 +140,7 @@ public class JavaToolchainQueryService {
         }
 
         if (spec instanceof SpecificInstallationToolchainSpec) {
-            return asToolchainOrThrow(InstallationLocation.userControlled(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec, false);
+            return asToolchainOrThrow(InstallationLocation.userDefined(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec, false);
         }
 
         return findInstalledToolchain(spec).orElseGet(() -> downloadToolchain(spec));
