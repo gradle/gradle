@@ -59,15 +59,15 @@ class JUnit4LoggingOutputCaptureIntegrationTest extends AbstractJUnit4LoggingOut
             assert junitResult.getSuiteStandardOutput("OkTest").isPresent()
             assert junitResult.getTestCaseStandardOutput("OkTest", "isOk").isPresent()
         } else {
-            assert junitResult.getSuiteStandardOutput("OkTest").isEmpty()
-            assert junitResult.getTestCaseStandardOutput("OkTest", "isOk").isEmpty()
+            assert !junitResult.getSuiteStandardOutput("OkTest").isPresent() // isEmpty not available in Java 8
+            assert !junitResult.getTestCaseStandardOutput("OkTest", "isOk").isPresent()
         }
         if (standardErrIncluded) {
             assert junitResult.getSuiteStandardError("OkTest").isPresent()
             assert junitResult.getTestCaseStandardError("OkTest", "isOk").isPresent()
         } else {
-            assert junitResult.getSuiteStandardError("OkTest").isEmpty()
-            assert junitResult.getTestCaseStandardError("OkTest", "isOk").isEmpty()
+            assert !junitResult.getSuiteStandardError("OkTest").isPresent()
+            assert !junitResult.getTestCaseStandardError("OkTest", "isOk").isPresent()
         }
 
         and: "all output appeared in the console when running tests"
