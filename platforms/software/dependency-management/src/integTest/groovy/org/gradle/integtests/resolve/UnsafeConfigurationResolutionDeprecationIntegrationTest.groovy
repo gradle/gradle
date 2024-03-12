@@ -18,13 +18,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
-    @Ignore("https://github.com/gradle/gradle/issues/22088")
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
-    def "configuration in another project can not be resolved"() {
+    def "configuration in another project produces deprecation warning when resolved"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         createDirs("bar")
@@ -57,8 +54,8 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         executer.withArgument("--parallel")
 
         expect:
-        fails(":resolve")
-        result.assertHasErrorOutput("Resolution of the configuration :bar:bar was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
+        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :bar:bar was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        succeeds(":resolve")
     }
 
     @ToBeFixedForConfigurationCache(because = "uses Configuration API at runtime")
@@ -238,8 +235,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":resolve")
     }
 
-    @Ignore("https://github.com/gradle/gradle/issues/22088")
-    def "fails when configuration is resolved while evaluating a different project"() {
+    def "deprecation warning when configuration is resolved while evaluating a different project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         createDirs("bar", "baz")
@@ -270,8 +266,8 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         executer.withArgument("--parallel")
 
         expect:
-        fails(":bar:help")
-        result.assertHasErrorOutput("Resolution of the configuration :baz:baz was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
+        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :baz:baz was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        succeeds(":bar:help")
     }
 
     def "no deprecation warning when configuration is resolved while evaluating same project"() {

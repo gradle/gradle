@@ -17,11 +17,47 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.internal.declarativedsl.language.DataStatement
+import org.gradle.internal.declarativedsl.language.FunctionArgument
+import org.gradle.internal.declarativedsl.language.FunctionCall
 
 
 fun interface AnalysisStatementFilter {
     fun shouldAnalyzeStatement(statement: DataStatement, scopes: List<AnalysisScopeView>): Boolean
+
+    companion object {
+        val isConfiguringCall: AnalysisStatementFilter = AnalysisStatementFilter { statement, _ ->
+            statement is FunctionCall && statement.args.singleOrNull() is FunctionArgument.Lambda
+        }
+
+
+        val isTopLevelElement: AnalysisStatementFilter = AnalysisStatementFilter { _, scopes ->
+            scopes.last().receiver is ObjectOrigin.TopLevelReceiver
+        }
+
+
+        fun isCallNamed(name: String): AnalysisStatementFilter = AnalysisStatementFilter { statement, _ ->
+            statement is FunctionCall && statement.name == name
+        }
+    }
 }
 
 
-val analyzeEverything = AnalysisStatementFilter { _, _ -> true }
+val analyzeEverything: AnalysisStatementFilter = AnalysisStatementFilter { _, _ -> true }
+
+
+fun AnalysisStatementFilter.and(other: AnalysisStatementFilter): AnalysisStatementFilter = AnalysisStatementFilter { statement, scopes ->
+    shouldAnalyzeStatement(statement, scopes) && other.shouldAnalyzeStatement(statement, scopes)
+}
+
+
+fun AnalysisStatementFilter.or(other: AnalysisStatementFilter): AnalysisStatementFilter = AnalysisStatementFilter { statement, scopes ->
+    shouldAnalyzeStatement(statement, scopes) || other.shouldAnalyzeStatement(statement, scopes)
+}
+
+
+fun AnalysisStatementFilter.implies(other: AnalysisStatementFilter) = this.not().or(other)
+
+
+fun AnalysisStatementFilter.not(): AnalysisStatementFilter = AnalysisStatementFilter { statement, scopes ->
+    !shouldAnalyzeStatement(statement, scopes)
+}

@@ -350,6 +350,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "execution-e2e-tests",
+    "path": "platforms/core-execution/execution-e2e-tests",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "file-collections",
     "path": "platforms/core-configuration/file-collections",
     "unitTests": true,

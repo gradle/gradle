@@ -207,6 +207,7 @@ class MyCustomTask extends DefaultTask {
 
 The `MyCustomTask` task is used in the build script of the `api` and `shared` projects.
 The task is automatically available because it's part of `buildSrc`.
+
 The `shared.build(.kts)` file is also applied:
 
 [.multi-language-sample]
@@ -217,7 +218,7 @@ The `shared.build(.kts)` file is also applied:
 // Apply any other configurations specific to your project
 
 // Use the build script defined in buildSrc
-apply(from = project(":buildSrc").file("shared.gradle.kts"))
+apply(from = rootProject.file("buildSrc/shared.gradle"))
 
 // Use the custom task defined in buildSrc
 tasks.register<MyCustomTask>("myCustomTask")
@@ -231,7 +232,7 @@ tasks.register<MyCustomTask>("myCustomTask")
 // Apply any other configurations specific to your project
 
 // Use the build script defined in buildSrc
-apply from: project(':buildSrc').file('shared.gradle')
+apply from: rootProject.file('buildSrc/shared.gradle')
 
 // Use the custom task defined in buildSrc
 tasks.register('myCustomTask', MyCustomTask)

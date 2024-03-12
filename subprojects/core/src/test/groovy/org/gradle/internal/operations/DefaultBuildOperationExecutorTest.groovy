@@ -16,9 +16,6 @@
 
 package org.gradle.internal.operations
 
-
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.time.Clock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -29,7 +26,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def listener = Mock(BuildOperationListener)
     def timeProvider = Mock(Clock)
     def progressLoggerFactory = Spy(NoOpProgressLoggerFactory)
-    def operationExecutor = new DefaultBuildOperationExecutor(listener, timeProvider, progressLoggerFactory, Mock(BuildOperationQueueFactory), Mock(ExecutorFactory), new DefaultParallelismConfiguration(true, 1), new DefaultBuildOperationIdFactory())
+    def operationExecutor = BuildOperationExecutorSupport.builder(true, 1)
+        .withTimeSupplier(() -> timeProvider.currentTime)
+        .withExecutionListenerFactory { new BuildOperationProgressEventListenerAdapter(listener, progressLoggerFactory, timeProvider) }
+        .build()
 
     def setup() {
         CurrentBuildOperationRef.instance().clear()

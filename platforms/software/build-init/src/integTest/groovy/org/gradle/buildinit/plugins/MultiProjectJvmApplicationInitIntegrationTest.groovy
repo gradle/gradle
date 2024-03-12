@@ -30,151 +30,20 @@ import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.core.AllOf.allOf
 
+
 abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
+    protected BuildInitDsl buildDsl
 
-    abstract BuildInitDsl getBuildDsl()
+    protected Language jvmLanguage
 
-    abstract Language getJvmLanguage()
+    void setupDslAndLanguage(BuildInitDsl buildDsl, Language jvmLanguage) {
+        this.buildDsl = buildDsl
+        this.jvmLanguage = jvmLanguage
+    }
 
     @Override
     String subprojectName() {
         return null
-    }
-
-    def "creates multi-project application sample when incubating flag = #incubating"() {
-        given:
-        def dsl = buildDsl
-        def language = jvmLanguage.name
-        def ext = jvmLanguage.extension
-        def settingsFile = dsl.fileNameFor('settings')
-        def buildFile = dsl.fileNameFor('build')
-
-        when:
-        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + (incubating ? ['--incubating'] : [])
-        run(tasks)
-
-        then:
-        targetDir.file(settingsFile).exists()
-        !targetDir.file(buildFile).exists()
-
-        def buildLogicDir = targetDir.file(incubating ? "build-logic" : "buildSrc")
-        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
-
-        assertApplicationProjectsSources(buildFile, language, "org.example.", ext)
-
-        when:
-        succeeds "build"
-
-        then:
-        assertTestPassed("app", "org.example.app.MessageUtilsTest", "testGetMessage")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testConstructor")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testAdd")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemove")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemoveMissing")
-
-        when:
-        succeeds "run"
-
-        then:
-        outputContains("Hello World!")
-
-        where:
-        incubating << [true, false]
-    }
-
-    def "creates multi-project application with source package #description"() {
-        def expectedPackagePrefix = expectedPackage.isEmpty() ? "" : "$expectedPackage."
-
-        given:
-        def dsl = buildDsl
-        def language = jvmLanguage.name
-        def ext = jvmLanguage.extension
-        def settingsFile = dsl.fileNameFor('settings')
-        def buildFile = dsl.fileNameFor('build')
-
-        def sourcePackageOption = optionPackage == null ? [] : ['--package', optionPackage]
-        def sourcePackageProperty = propertyPackage == null ? [] : ['-Porg.gradle.buildinit.source.package=' + propertyPackage]
-
-        when:
-        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + sourcePackageProperty + sourcePackageOption
-        run(tasks)
-
-        then:
-        targetDir.file(settingsFile).exists()
-        !targetDir.file(buildFile).exists()
-
-        def buildLogicDir = targetDir.file("buildSrc")
-        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
-
-        assertApplicationProjectsSources(buildFile, language, expectedPackagePrefix, ext)
-
-        expect:
-        succeeds "build"
-
-        when:
-        succeeds "run"
-
-        then:
-        outputContains("Hello World!")
-
-        where:
-        description                             | optionPackage      | propertyPackage    | expectedPackage
-        "default value"                         | null               | null               | "org.example"
-        "from option"                           | "my.sourcepackage" | null               | "my.sourcepackage"
-        "from property"                         | null               | "my.sourcepackage" | "my.sourcepackage"
-        "from option when property is also set" | "my.sourcepackage" | "my.overridden"    | "my.sourcepackage"
-        "from property with empty value"        | null               | ""                 | ""
-    }
-
-    def "creates multi-project application sample without comments configured via #description"() {
-        given:
-        def dsl = buildDsl
-        def language = jvmLanguage.name
-        def settingsFile = dsl.fileNameFor('settings')
-        def buildFile = dsl.fileNameFor('build')
-
-        def commentsOption = option == null ? [] : [option ? '--comments' : '--no-comments']
-        def commentsProperty = property == null ? [] : ['-Porg.gradle.buildinit.comments=' + property]
-
-        when:
-        run([
-            'init', '--use-defaults', '--dsl', dsl.id,
-            '--type', language + '-application',
-            '--split-project'
-        ] + commentsOption + commentsProperty)
-
-        then:
-        targetDir.file(settingsFile).exists()
-        !targetDir.file(buildFile).exists()
-
-        def allFiles = getAllFiles(targetDir)
-            .findAll { it.name !in ["gradle-wrapper.jar", "gradlew", "gradlew.bat"] }
-
-        allFiles.each {
-            assert !it.text.containsIgnoreCase("generated by")
-        }
-
-        when:
-        succeeds "build"
-
-        then:
-        assertTestPassed("app", "org.example.app.MessageUtilsTest", "testGetMessage")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testConstructor")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testAdd")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemove")
-        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemoveMissing")
-
-        when:
-        succeeds "run"
-
-        then:
-        outputContains("Hello World!")
-
-        where:
-        description            | option | property
-        "option"               | false  | null
-        "property"             | null   | false
-        "option over property" | false  | true
     }
 
     def getAllFiles(File dir) {
@@ -247,99 +116,288 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
     }
 }
 
-class GroovyDslMultiProjectJavaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
-    @Override
-    BuildInitDsl getBuildDsl() {
-        return BuildInitDsl.GROOVY
-    }
+abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    def "creates multi-project application sample when incubating flag = #incubating"() {
+        given:
+        def dsl = buildDsl
+        def language = jvmLanguage.name
+        def ext = jvmLanguage.extension
+        def settingsFile = dsl.fileNameFor('settings')
+        def buildFile = dsl.fileNameFor('build')
 
-    @Override
-    Language getJvmLanguage() {
-        return JAVA
-    }
-}
+        when:
+        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + (incubating ? ['--incubating'] : [])
+        run(tasks)
 
-class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
-    @Override
-    BuildInitDsl getBuildDsl() {
-        return BuildInitDsl.GROOVY
-    }
+        then:
+        targetDir.file(settingsFile).exists()
+        !targetDir.file(buildFile).exists()
 
-    @Override
-    Language getJvmLanguage() {
-        return GROOVY
-    }
-}
+        def buildLogicDir = targetDir.file(incubating ? "build-logic" : "buildSrc")
+        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
 
-class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
-    @Override
-    BuildInitDsl getBuildDsl() {
-        return BuildInitDsl.GROOVY
-    }
+        assertApplicationProjectsSources(buildFile, language, "org.example.", ext)
 
-    @Override
-    Language getJvmLanguage() {
-        return KOTLIN
-    }
-}
+        when:
+        succeeds "build"
 
-class GroovyDslMultiProjectScalaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
-    @Override
-    BuildInitDsl getBuildDsl() {
-        return BuildInitDsl.GROOVY
-    }
+        then:
+        assertTestPassed("app", "org.example.app.MessageUtilsTest", "testGetMessage")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testConstructor")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testAdd")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemove")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemoveMissing")
 
-    @Override
-    Language getJvmLanguage() {
-        return SCALA
+        when:
+        succeeds "run"
+
+        then:
+        outputContains("Hello World!")
+
+        where:
+        incubating << [true, false]
     }
 }
 
+abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    def "creates multi-project application with source package #description"() {
+        def expectedPackagePrefix = expectedPackage.isEmpty() ? "" : "$expectedPackage."
 
-class KotlinDslMultiProjectJavaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
-    @Override
-    BuildInitDsl getBuildDsl() {
-        return BuildInitDsl.KOTLIN
-    }
+        given:
+        def dsl = buildDsl
+        def language = jvmLanguage.name
+        def ext = jvmLanguage.extension
+        def settingsFile = dsl.fileNameFor('settings')
+        def buildFile = dsl.fileNameFor('build')
 
-    @Override
-    Language getJvmLanguage() {
-        return JAVA
+        def sourcePackageOption = optionPackage == null ? [] : ['--package', optionPackage]
+        def sourcePackageProperty = propertyPackage == null ? [] : ['-Porg.gradle.buildinit.source.package=' + propertyPackage]
+
+        when:
+        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + sourcePackageProperty + sourcePackageOption
+        run(tasks)
+
+        then:
+        targetDir.file(settingsFile).exists()
+        !targetDir.file(buildFile).exists()
+
+        def buildLogicDir = targetDir.file("buildSrc")
+        assertBuildLogicSources(dsl, language, buildLogicDir, settingsFile, buildFile)
+
+        assertApplicationProjectsSources(buildFile, language, expectedPackagePrefix, ext)
+
+        expect:
+        succeeds "build"
+
+        when:
+        succeeds "run"
+
+        then:
+        outputContains("Hello World!")
+
+        where:
+        description                             | optionPackage      | propertyPackage    | expectedPackage
+        "default value"                         | null               | null               | "org.example"
+        "from option"                           | "my.sourcepackage" | null               | "my.sourcepackage"
+        "from property"                         | null               | "my.sourcepackage" | "my.sourcepackage"
+        "from option when property is also set" | "my.sourcepackage" | "my.overridden"    | "my.sourcepackage"
+        "from property with empty value"        | null               | ""                 | ""
     }
 }
 
-class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
-    @Override
-    BuildInitDsl getBuildDsl() {
-        return BuildInitDsl.KOTLIN
-    }
+abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    def "creates multi-project application sample without comments configured via #description"() {
+        given:
+        def dsl = buildDsl
+        def language = jvmLanguage.name
+        def settingsFile = dsl.fileNameFor('settings')
+        def buildFile = dsl.fileNameFor('build')
 
-    @Override
-    Language getJvmLanguage() {
-        return GROOVY
+        def commentsOption = option == null ? [] : [option ? '--comments' : '--no-comments']
+        def commentsProperty = property == null ? [] : ['-Porg.gradle.buildinit.comments=' + property]
+
+        when:
+        run([
+            'init', '--use-defaults', '--dsl', dsl.id,
+            '--type', language + '-application',
+            '--split-project'
+        ] + commentsOption + commentsProperty)
+
+        then:
+        targetDir.file(settingsFile).exists()
+        !targetDir.file(buildFile).exists()
+
+        def allFiles = getAllFiles(targetDir)
+            .findAll { it.name !in ["gradle-wrapper.jar", "gradlew", "gradlew.bat"] }
+
+        allFiles.each {
+            assert !it.text.containsIgnoreCase("generated by")
+        }
+
+        when:
+        succeeds "build"
+
+        then:
+        assertTestPassed("app", "org.example.app.MessageUtilsTest", "testGetMessage")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testConstructor")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testAdd")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemove")
+        assertTestPassed("list", "org.example.list.LinkedListTest", "testRemoveMissing")
+
+        when:
+        succeeds "run"
+
+        then:
+        outputContains("Hello World!")
+
+        where:
+        description            | option | property
+        "option"               | false  | null
+        "property"             | null   | false
+        "option over property" | false  | true
     }
 }
 
-class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
-    @Override
-    BuildInitDsl getBuildDsl() {
-        return BuildInitDsl.KOTLIN
-    }
-
-    @Override
-    Language getJvmLanguage() {
-        return KOTLIN
+class GroovyDslMultiProjectJavaApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, JAVA)
     }
 }
 
-class KotlinDslMultiProjectScalaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
-    @Override
-    BuildInitDsl getBuildDsl() {
-        return BuildInitDsl.KOTLIN
+class GroovyDslMultiProjectJavaApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, JAVA)
     }
+}
 
-    @Override
-    Language getJvmLanguage() {
-        return SCALA
+class GroovyDslMultiProjectJavaApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, JAVA)
+    }
+}
+
+class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, GROOVY)
+    }
+}
+
+class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, GROOVY)
+    }
+}
+
+class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, GROOVY)
+    }
+}
+
+class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
+    }
+}
+
+class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
+    }
+}
+
+class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, KOTLIN)
+    }
+}
+
+class GroovyDslMultiProjectScalaApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, SCALA)
+    }
+}
+
+class GroovyDslMultiProjectScalaApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, SCALA)
+    }
+}
+
+class GroovyDslMultiProjectScalaApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.GROOVY, SCALA)
+    }
+}
+
+class KotlinDslMultiProjectJavaApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, JAVA)
+    }
+}
+
+class KotlinDslMultiProjectJavaApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, JAVA)
+    }
+}
+
+class KotlinDslMultiProjectJavaApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, JAVA)
+    }
+}
+
+class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, GROOVY)
+    }
+}
+
+class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, GROOVY)
+    }
+}
+
+class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, GROOVY)
+    }
+}
+
+class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
+    }
+}
+
+class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
+    }
+}
+
+class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, KOTLIN)
+    }
+}
+
+class KotlinDslMultiProjectScalaApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)
+    }
+}
+
+class KotlinDslMultiProjectScalaApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)
+    }
+}
+
+class KotlinDslMultiProjectScalaApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
+    def setup() {
+        setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)
     }
 }

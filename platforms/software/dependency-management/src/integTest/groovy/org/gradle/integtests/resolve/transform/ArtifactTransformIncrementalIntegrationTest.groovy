@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
-import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED
+import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.NOT_INSTRUMENTED_ATTRIBUTE_VALUE
 
 class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
@@ -42,8 +42,8 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                 dependencies {
                     classpath "com.test:lib:1.0"
                     registerTransform(MakeColor) {
-                        from.attribute(artifactType, 'jar').attribute(instrumented, '${NOT_INSTRUMENTED.value}')
-                        to.attribute(artifactType, 'green').attribute(instrumented, '${NOT_INSTRUMENTED.value}')
+                        from.attribute(artifactType, 'jar').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
+                        to.attribute(artifactType, 'green').attribute(instrumented, '${NOT_INSTRUMENTED_ATTRIBUTE_VALUE}')
                         parameters.targetColor.set('green')
                     }
                 }

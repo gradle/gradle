@@ -25,9 +25,7 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import org.gradle.api.problems.internal.DefaultProblemContext;
 import org.gradle.api.problems.internal.DefaultProblemDefinition;
-import org.gradle.api.problems.internal.ProblemContext;
 import org.gradle.api.problems.internal.ProblemDefinition;
 
 import javax.annotation.Nullable;
@@ -35,7 +33,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * Defines the Gson serialization and deserialization for {@link ProblemDefinition} and for {@link ProblemContext} based on the assumption that they have exactly one implementation.
+ * Defines the Gson serialization and deserialization for {@link ProblemDefinition} based on the assumption that they have exactly one implementation.
  */
 public final class ProblemReportAdapterFactory implements TypeAdapterFactory {
 
@@ -53,12 +51,6 @@ public final class ProblemReportAdapterFactory implements TypeAdapterFactory {
                 DefaultProblemDefinition.class,
                 gson.getAdapter(JsonElement.class),
                 gson.getDelegateAdapter(this, TypeToken.get(DefaultProblemDefinition.class))).nullSafe();
-        } else if (ProblemContext.class.equals(rawType)) {
-            return (TypeAdapter<T>) new SingleImplTypeAdapter<>(
-                ProblemContext.class,
-                DefaultProblemContext.class,
-                gson.getAdapter(JsonElement.class),
-                gson.getDelegateAdapter(this, TypeToken.get(DefaultProblemContext.class))).nullSafe();
         } else {
             return null;
         }

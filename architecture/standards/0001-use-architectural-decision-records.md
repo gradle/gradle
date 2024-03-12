@@ -12,8 +12,8 @@ We use *Specification* and *Discovery* documents stored in Google Drive, but the
 
 * They are rarely updated after creation and initial review, and then become hard to follow, especially after important decisions are made
 * They are not synced with the code to reflect the eventual solution that is committed
-* Google Docs is not a "code oriented" tool, like asciidoc can be
-* Review in Google Doc is not as simple as a PR code review in GitHub
+* Google Docs is not a "code-oriented" tool, like asciidoc can be
+* Review in Google Docs is not as simple as a PR code review in GitHub
 
 ## Decision
 
@@ -21,9 +21,9 @@ The *Build Tool Team* has decided to use Architectural Decision Records (aka ADR
 
 The main logic with ADRs is to describe (architectural) decisions made:
 
-* To provide best practices and solutions we (as *build tool* team) want to promote.
+* To provide best practices and solutions we (as the *build tool* team) want to promote.
 * To avoid asking the same thing multiple times during code review.
-* To explain *rejected solutions*, for now and future development, in case they are proposed again.
+* To explain *rejected solutions*, for now, and future development, in case they are proposed again.
 
 ADRs can be written by any team.
 Like code, they should be reviewed by any other relevant teams.

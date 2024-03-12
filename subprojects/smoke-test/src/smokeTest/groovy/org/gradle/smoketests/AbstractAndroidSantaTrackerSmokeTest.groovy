@@ -72,7 +72,9 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
                 expectClientModuleDeprecationWarning(agpVersion)
+                expectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
             }
+            maybeexpectConfigurationMutationDeprecationWarnings(agpVersion, [":santa-tracker:debugCompileClasspath"])
         }.build()
     }
 
@@ -86,6 +88,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
                 expectClientModuleDeprecationWarning(agpVersion)
+                expectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
             } else {
                 def agpVersionNumber = VersionNumber.parse(agpVersion)
 
@@ -99,7 +102,9 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                     expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 }
                 maybeExpectClientModuleDeprecationWarning(agpVersion)
+                maybeexpectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
             }
+            maybeexpectConfigurationMutationDeprecationWarnings(agpVersion, [":santa-tracker:debugCompileClasspath"])
         }.build()
     }
 
@@ -114,6 +119,11 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectBuildIdentifierNameDeprecation(agpVersion)
                 expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
                 expectClientModuleDeprecationWarning(agpVersion)
+                expectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
+                maybeexpectConfigurationMutationDeprecationWarnings(agpVersion, [
+                    ":santa-tracker:debugCompileClasspath",
+                    ":common:debugCompileClasspath",
+                ])
             }.build()
     }
 
@@ -141,6 +151,11 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                     expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 }
                 maybeExpectClientModuleDeprecationWarning(agpVersion)
+                maybeexpectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
+                maybeexpectConfigurationMutationDeprecationWarnings(agpVersion, [
+                    ":santa-tracker:debugCompileClasspath",
+                    ":common:debugCompileClasspath",
+                ])
             }.build()
     }
 
@@ -223,5 +238,24 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             }
         }
         return hasMatchingTasks && allOutcomesMatched
+    }
+
+    private static ArrayList<String> getMutatedConfigurations() {
+        [
+            ":common:debugCompileClasspath",
+            ":doodles-lib:debugCompileClasspath",
+            ":playgames:debugCompileClasspath",
+            ":tracker:debugCompileClasspath",
+            ":wearable:debugCompileClasspath",
+            ":jetpack:debugCompileClasspath",
+            ":cityquiz:debugCompileClasspath",
+            ":gumball:debugCompileClasspath",
+            ":memory:debugCompileClasspath",
+            ":dasherdancer:debugCompileClasspath",
+            ":penguinswim:debugCompileClasspath",
+            ":snowballrun:debugCompileClasspath",
+            ":presenttoss:debugCompileClasspath",
+            ":rocketsleigh:debugCompileClasspath"
+        ]
     }
 }

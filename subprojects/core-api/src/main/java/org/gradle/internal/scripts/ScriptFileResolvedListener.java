@@ -17,11 +17,11 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 
 import java.io.File;
 
-@EventScope(Scope.Global.class)
+@EventScope(Scopes.Global.class)
 public interface ScriptFileResolvedListener {
 
     void onScriptFileResolved(File scriptFile);

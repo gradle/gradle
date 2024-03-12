@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -34,13 +35,14 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -68,7 +70,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
     public BuildActionsFactory(ServiceRegistry loggingServices) {
         basicServices = ServiceRegistryBuilder.builder()
-            .scope(Scope.Global.class)
+            .scope(Scopes.Global.class)
             .displayName("Basic global services")
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
@@ -144,7 +146,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
     private Runnable runBuildInProcess(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
         ServiceRegistry globalServices = ServiceRegistryBuilder.builder()
-            .scope(Scope.Global.class)
+            .scope(Scopes.Global.class)
             .displayName("Global services")
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
@@ -153,8 +155,13 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
         globalServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
 
+        BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer = new InProcessUserInputHandlingExecutor(
+            globalServices.get(GlobalUserInputReceiver.class),
+            globalServices.get(UserInputReader.class),
+            globalServices.get(BuildExecuter.class));
+
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
-        return runBuildAndCloseServices(startParameter, daemonParameters, globalServices.get(BuildExecuter.class), globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));
+        return runBuildAndCloseServices(startParameter, daemonParameters, executer, globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));
     }
 
     private Runnable runBuildInSingleUseDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters) {

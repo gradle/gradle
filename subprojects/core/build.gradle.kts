@@ -204,6 +204,9 @@ dependencies {
     testFixturesApi(project(":resources")) {
         because("test fixtures expose file resource types")
     }
+    testFixturesApi(testFixtures(project(":build-operations"))) {
+        because("test fixtures expose test build operations runner")
+    }
     testFixturesApi(testFixtures(project(":persistent-cache"))) {
         because("test fixtures expose cross-build cache factory")
     }

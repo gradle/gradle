@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.asm;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
 import org.gradle.api.internal.cache.StringInterner;
@@ -99,10 +98,17 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     // performs a fast analysis of classes referenced in bytecode (method bodies)
     // avoiding us to implement a costly visitor and potentially missing edge cases
     private void collectRemainingClassDependencies(ClassReader reader) {
-        ClassAnalysisUtils.getClassDependencies(reader, classDescriptor -> {
-            Type type = Type.getObjectType(classDescriptor);
-            maybeAddDependentType(privateTypes, type);
-        });
+        char[] charBuffer = new char[reader.getMaxStringLength()];
+        for (int i = 1; i < reader.getItemCount(); i++) {
+            int itemOffset = reader.getItem(i);
+            // see https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.4
+            if (itemOffset > 0 && reader.readByte(itemOffset - 1) == 7) {
+                // A CONSTANT_Class entry, read the class descriptor
+                String classDescriptor = reader.readUTF8(itemOffset, charBuffer);
+                Type type = Type.getObjectType(classDescriptor);
+                maybeAddDependentType(privateTypes, type);
+            }
+        }
     }
 
     private void maybeAddClassTypesFromSignature(String signature, Set<String> types) {
