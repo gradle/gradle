@@ -34,6 +34,7 @@ import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
+import org.gradle.kotlin.dsl.support.bytecode.inlineGetterFlagsWithAnnotations
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.kotlinDeprecation
@@ -50,6 +51,7 @@ import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
+import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyFlagsWithAnnotations
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 
@@ -691,6 +693,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             ),
             bytecode = {
                 publicStaticMethod(signature) {
+                    withLowPriorityInOverloadResolution()
                     ALOAD(0)
                     LDC(name.original)
                     invokeRuntime(
@@ -704,10 +707,12 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.properties += newPropertyOf(
+                    flags = readOnlyPropertyFlagsWithAnnotations,
                     name = propertyName,
                     receiverType = receiverType,
                     returnType = kotlinExtensionType,
-                    getterSignature = signature
+                    getterSignature = signature,
+                    getterFlags = inlineGetterFlagsWithAnnotations
                 )
             }
         ),
@@ -720,6 +725,8 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             ),
             bytecode = {
                 publicStaticMethod(signature) {
+                    // let custom accessors shipped with the plugin win
+                    withLowPriorityInOverloadResolution()
                     ALOAD(0)
                     CHECKCAST(GradleTypeName.extensionAware)
                     INVOKEINTERFACE(
@@ -739,6 +746,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
+                    flags = publicFunctionWithAnnotationsFlags,
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -750,6 +758,12 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             }
         )
     )
+}
+
+
+private
+fun MethodVisitor.withLowPriorityInOverloadResolution() {
+    visitAnnotation("Lkotlin/internal/LowPriorityInOverloadResolution;", true).visitEnd()
 }
 
 
