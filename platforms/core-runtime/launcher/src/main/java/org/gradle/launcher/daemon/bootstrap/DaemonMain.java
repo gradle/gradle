@@ -27,7 +27,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationEnabled;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationMode;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -108,7 +108,7 @@ public class DaemonMain extends EntryPoint {
             throw new UncheckedIOException(e);
         }
 
-        NativeServices.initializeOnDaemon(gradleHomeDir, NativeIntegrationEnabled.from(useNativeServices));
+        NativeServices.initializeOnDaemon(gradleHomeDir, NativeIntegrationMode.from(useNativeServices));
         DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupOpts, useNativeServices);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);

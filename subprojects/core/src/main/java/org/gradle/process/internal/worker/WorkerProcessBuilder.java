@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationMode;
 
 import java.io.File;
 import java.net.URL;
@@ -59,9 +60,9 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
 
     void enableJvmMemoryInfoPublishing(boolean shouldPublish);
 
-    void useNativeServices(Boolean useNativeServices);
+    void setNativeIntegrationMode(NativeIntegrationMode mode);
 
-    Boolean useNativeServices();
+    NativeIntegrationMode getNativeIntegrationMode();
 
     /**
      * Creates the worker process. The process is not started until {@link WorkerProcess#start()} is called.

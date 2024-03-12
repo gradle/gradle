@@ -29,7 +29,7 @@ import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationEnabled;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationMode;
 import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;
@@ -252,7 +252,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
         @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
-            settings.setUseNativeServices(NativeIntegrationEnabled.fromString(value).isEnabled());
+            settings.setUseNativeServices(NativeIntegrationMode.fromString(value).isEnabled());
         }
     }
 

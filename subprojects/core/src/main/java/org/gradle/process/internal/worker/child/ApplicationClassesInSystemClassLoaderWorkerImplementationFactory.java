@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationMode;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
@@ -150,9 +151,9 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
             }
 
             // When not explicitly set, use the value from the daemon process
-            boolean useNativeServices = processBuilder.useNativeServices() != null
-                ? processBuilder.useNativeServices()
-                : NativeServices.getInstance().createNativeCapabilities().useNativeIntegrations();
+            boolean useNativeServices = processBuilder.getNativeIntegrationMode() == NativeIntegrationMode.NOT_SET
+                ? NativeServices.getInstance().createNativeCapabilities().useNativeIntegrations()
+                : processBuilder.getNativeIntegrationMode().isEnabled();
             WorkerConfig config = new WorkerConfig(
                 logLevel,
                 publishProcessInfo,

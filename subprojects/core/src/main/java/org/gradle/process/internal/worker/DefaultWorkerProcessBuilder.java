@@ -22,6 +22,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationMode;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.MessagingServer;
@@ -70,12 +71,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationClassPath;
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
-
-    /**
-     * Three state flag: null, true, false.
-     * When null, the setting for the daemon will be used, else if explicitly set, the explicit value will be used.
-     */
-    private Boolean useNativeServices;
+    private NativeIntegrationMode nativeIntegrationMode;
 
     DefaultWorkerProcessBuilder(
         JavaExecHandleFactory execHandleFactory,
@@ -94,6 +90,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.outputEventListener = outputEventListener;
         this.memoryManager = memoryManager;
         this.jvmVersionDetector = jvmVersionDetector;
+        this.nativeIntegrationMode = NativeIntegrationMode.NOT_SET;
     }
 
     public int getConnectTimeoutSeconds() {
@@ -207,13 +204,13 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     }
 
     @Override
-    public void useNativeServices(Boolean useNativeServices) {
-        this.useNativeServices = useNativeServices;
+    public void setNativeIntegrationMode(NativeIntegrationMode nativeIntegrationMode) {
+        this.nativeIntegrationMode = nativeIntegrationMode;
     }
 
     @Override
-    public Boolean useNativeServices() {
-        return useNativeServices;
+    public NativeIntegrationMode getNativeIntegrationMode() {
+        return nativeIntegrationMode;
     }
 
     @Override

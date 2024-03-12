@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationEnabled;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationMode;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 
@@ -50,7 +50,7 @@ public class NativeServicesInitializingAction implements Action<ExecutionListene
 
     @Override
     public void execute(ExecutionListener executionListener) {
-        NativeServices.initializeOnClient(buildLayout.getGradleUserHomeDir(), NativeIntegrationEnabled.fromProperties(allProperties));
+        NativeServices.initializeOnClient(buildLayout.getGradleUserHomeDir(), NativeIntegrationMode.fromProperties(allProperties));
         loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
         action.execute(executionListener);
     }
