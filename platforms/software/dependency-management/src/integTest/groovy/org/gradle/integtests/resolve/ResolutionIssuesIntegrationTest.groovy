@@ -33,6 +33,56 @@ import spock.lang.Issue
 class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
     @NotYetImplemented
+    def "resolution hits isConstraint assertion"() {
+        mavenRepo.module("jaxen", "jaxen", "1.1.6").publish()
+        mavenRepo.module("dom4j", "dom4j", "1.6.1").publish()
+
+        mavenRepo.module("org.hibernate", "hibernate-core", "5.4.18.Final")
+            .dependsOn("org.dom4j", "dom4j", "2.1.3", null, null, null, [[group: "*", module: "*"]])
+            .publish()
+        mavenRepo.module("jaxen", "jaxen", "1.1.1")
+            .dependsOn("dom4j", "dom4j", "1.6.1")
+            .publish()
+        mavenRepo.module("org.dom4j", "dom4j", "2.1.3").publish()
+            .dependsOn("jaxen", "jaxen", "1.1.6")
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            configurations.runtimeClasspath {
+                resolutionStrategy {
+                    capabilitiesResolution {
+                        withCapability("org.dom4j:dom4j") {
+                            selectHighestVersion()
+                        }
+                    }
+                }
+            }
+
+            dependencies.components.withModule('dom4j:dom4j') {
+                allVariants {
+                    withCapabilities {
+                        addCapability('org.dom4j', 'dom4j', id.version)
+                    }
+                }
+            }
+
+            dependencies {
+                implementation 'org.hibernate:hibernate-core:5.4.18.Final'
+                implementation 'jaxen:jaxen:1.1.1'
+            }
+        """
+
+        expect:
+        succeeds("dependencies", "--configuration", "runtimeClasspath", "--stacktrace")
+    }
+
+    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-1283947029")
     def "resolution result represents failure to resolve dynamic selected module version when platform has constraint on that module"() {
         mavenRepo.module("test", "module1", "11.1.0.1").publish()
@@ -424,27 +474,6 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
                 implementation 'jaxen:jaxen:1.1.1'
                 implementation 'dom4j:dom4j:1.6'
                 implementation 'org.unitils:unitils-database:3.3'
-            }
-        """
-
-        expect:
-        succeeds("resolve", "--stacktrace")
-    }
-
-    @NotYetImplemented
-    def "capability conflict hits assertions in resolution engine 1"() {
-        buildFile << """
-            ${header}
-            ${mavenCentralRepository()}
-
-            ${selectHighest("org.dom4j:dom4j")}
-            ${withModules("dom4j:dom4j").addCapability("org.dom4j", "dom4j")}
-            ${withModules("org.hibernate:hibernate").addCapability("org.hibernate", "hibernate-core")}
-
-            dependencies {
-                implementation 'org.hibernate:hibernate-core:5.4.18.Final'
-                implementation 'org.hibernate:hibernate-entitymanager:5.4.18.Final'
-                implementation 'jaxen:jaxen:1.1.1'
             }
         """
 
