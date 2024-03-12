@@ -53,6 +53,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
         Locale locale = JavacMessages.instance(context).getCurrentLocale();
         String formatted = formatter.format((JCDiagnostic) diagnostic, locale);
+        System.err.println(formatted);
 
         String message = diagnostic.getMessage(Locale.getDefault());
         String label = mapKindToLabel(diagnostic.getKind());
