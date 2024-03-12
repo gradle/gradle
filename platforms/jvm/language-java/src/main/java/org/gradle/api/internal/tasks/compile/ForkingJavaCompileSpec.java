@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
-
 import java.io.File;
-import java.util.Optional;
 
 public interface ForkingJavaCompileSpec {
 

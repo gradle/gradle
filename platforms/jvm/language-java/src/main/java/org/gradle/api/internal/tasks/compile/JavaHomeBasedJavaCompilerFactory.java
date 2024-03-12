@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.Jvm;
 
-import javax.tools.JavaCompiler;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
