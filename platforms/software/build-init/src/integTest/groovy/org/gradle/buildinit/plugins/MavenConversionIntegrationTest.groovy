@@ -32,7 +32,7 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
-abstract class AbstractMavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
+abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -140,7 +140,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
 }
 
-abstract class MavenConversionPart1IntegrationTest extends AbstractMavenConversionIntegrationTest {
+abstract class MavenConversionPart1IntegrationTest extends MavenConversionIntegrationTest {
 
     def "multiModule init with incubating"() {
         def dsl = dslFixtureFor(scriptDsl)
@@ -579,7 +579,7 @@ Root project 'webinar-parent'
     }
 }
 
-abstract class MavenConversionPart2IntegrationTest extends AbstractMavenConversionIntegrationTest {
+abstract class MavenConversionPart2IntegrationTest extends MavenConversionIntegrationTest {
 
     @Issue("GRADLE-2820")
     def "remoteparent"() {

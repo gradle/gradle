@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import static MavenConversionIntegrationTest.assertContainsPublishingConfig
 
 /**
  * MavenConversionIntegrationTest tests that use a dynamically-generated POM to ensure cross-version compatibility.
@@ -74,7 +75,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         then:
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
-        MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+        assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
         dsl.getBuildFile(targetDir).text.contains("java.sourceCompatibility = JavaVersion.${source.name()}")
         !dsl.getBuildFile(targetDir).text.contains("java.targetCompatibility = ")
 
@@ -100,7 +101,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         then:
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
-        MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+        assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
         dsl.getBuildFile(targetDir).text.contains("java.sourceCompatibility = JavaVersion.${source.name()}")
         dsl.getBuildFile(targetDir).text.contains("java.targetCompatibility = JavaVersion.${target.name()}")
 
@@ -126,7 +127,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         then:
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
-        MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+        assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
         dsl.getBuildFile(targetDir).text.contains("java.sourceCompatibility = JavaVersion.${source.name()}")
         // target defaults to 1.8
         dsl.getBuildFile(targetDir).text.contains("java.targetCompatibility = JavaVersion.VERSION_1_8")
@@ -154,7 +155,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         then:
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
-        MavenConversionIntegrationTest.assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+        assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
         // source defaults to 1.8
         dsl.getBuildFile(targetDir).text.contains("java.sourceCompatibility = JavaVersion.VERSION_1_8")
         dsl.getBuildFile(targetDir).text.contains("java.targetCompatibility = JavaVersion.${target.name()}")
