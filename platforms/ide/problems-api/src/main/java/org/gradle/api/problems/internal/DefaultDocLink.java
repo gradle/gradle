@@ -16,12 +16,14 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Preconditions;
+
 public class DefaultDocLink implements DocLink {
 
     private final String url;
 
     public DefaultDocLink(String url) {
-        this.url = url;
+        this.url = Preconditions.checkNotNull(url);
     }
 
     @Override
