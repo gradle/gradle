@@ -17,6 +17,7 @@ package org.gradle.security.internal;
 
 import org.bouncycastle.bcpg.ArmoredInputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openpgp.PGPCompressedData;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPObjectFactory;
 import org.bouncycastle.openpgp.PGPPublicKey;
@@ -97,6 +98,8 @@ public class SecuritySupport {
         Object nextObject = objectFactory.nextObject();
         if (nextObject instanceof PGPSignatureList) {
             return (PGPSignatureList) nextObject;
+        } else if (nextObject instanceof PGPCompressedData) {
+            return readSignatureList(((PGPCompressedData) nextObject).getDataStream(), locationHint);
         } else {
             LOGGER.warn("Expected a signature list in {}, but got {}. Skipping this signature.", locationHint, nextObject == null ? "invalid file" : nextObject.getClass());
             return null;
