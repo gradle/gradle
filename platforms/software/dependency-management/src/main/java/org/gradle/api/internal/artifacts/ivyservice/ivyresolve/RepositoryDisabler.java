@@ -16,18 +16,40 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import java.util.Optional;
+
 public interface RepositoryDisabler {
 
     boolean isDisabled(String repositoryId);
 
+    /**
+     * Gets the reason why the repository was disabled, if it was disabled.
+     *
+     * @param repositoryId The id of the repository to check
+     * @return the reason why the repository was disabled, if it was disabled; otherwise, an empty {@link Optional}
+     */
+    Optional<Throwable> getDisabledReason(String repositoryId);
+
+    /**
+     * Disables the repository with the given id, recording the exception causing it to be disabled.
+     *
+     * @param repositoryId The id of the repository to disable
+     * @param throwable    The reason why the repository is being disabled
+     * @return {@code true} if the repository was disabled, {@code false} if it was already disabled
+     */
     boolean disableRepository(String repositoryId, Throwable throwable);
 
-    enum NoOpBlacklister implements RepositoryDisabler {
+    enum NoOpDisabler implements RepositoryDisabler {
         INSTANCE;
 
         @Override
         public boolean isDisabled(String repositoryId) {
             return false;
+        }
+
+        @Override
+        public Optional<Throwable> getDisabledReason(String repositoryId) {
+            return Optional.empty();
         }
 
         @Override

@@ -17,13 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Sets;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
 
@@ -31,24 +33,29 @@ import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFai
 public class ConnectionFailureRepositoryDisabler implements RepositoryDisabler {
     private static final Logger LOGGER = Logging.getLogger(ConnectionFailureRepositoryDisabler.class);
 
-    private final Set<String> disabledRepositories = Sets.newConcurrentHashSet();
+    private final Map<String, Throwable> disabledRepositories = new ConcurrentHashMap<>();
 
     @Override
     public boolean isDisabled(String repositoryId) {
-        return disabledRepositories.contains(repositoryId);
+        return disabledRepositories.containsKey(repositoryId);
     }
 
     @Override
-    public boolean disableRepository(String repositoryId, Throwable throwable) {
+    public Optional<Throwable> getDisabledReason(String repositoryId) {
+        return Optional.ofNullable(disabledRepositories.get(repositoryId));
+    }
+
+    @Override
+    public boolean disableRepository(String repositoryId, Throwable reason) {
         boolean disabled = isDisabled(repositoryId);
 
         if (disabled) {
             return true;
         }
 
-        if (isCriticalFailure(throwable)) {
+        if (isCriticalFailure(reason)) {
             LOGGER.debug("Repository {} has been disabled for this build due to connectivity issues", repositoryId);
-            disabledRepositories.add(repositoryId);
+            disabledRepositories.put(repositoryId, reason);
             return true;
         }
 
@@ -57,6 +64,6 @@ public class ConnectionFailureRepositoryDisabler implements RepositoryDisabler {
 
     @VisibleForTesting
     public Set<String> getDisabledRepositories() {
-        return disabledRepositories;
+        return disabledRepositories.keySet();
     }
 }

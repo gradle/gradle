@@ -41,7 +41,11 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.GUtil;
 
+import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.google.common.collect.ImmutableList.builder;
@@ -64,6 +68,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  */
 public class BuildExceptionReporter implements Action<Throwable> {
     private static final String NO_ERROR_MESSAGE_INDICATOR = "(no error message)";
+    public static final String SKIPPABLE_ERROR_MESSAGE_SUFFIX = "due to earlier error below:";
 
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
@@ -98,7 +103,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     @Override
-    public void execute(Throwable failure) {
+    public void execute(@Nullable Throwable failure) {
         if (failure instanceof MultipleBuildFailures) {
             renderMultipleBuildExceptions((MultipleBuildFailures) failure);
         } else {
@@ -186,6 +191,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
         private final FailureDetails failureDetails;
 
+        private final Set<Throwable> printedNodes = new HashSet<>();
         private int depth;
 
         private ExceptionFormattingVisitor(FailureDetails failureDetails) {
@@ -205,11 +211,50 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         public void node(Throwable node) {
-            String message = getMessage(node);
-            if (null == node.getCause() || (StringUtils.isNotBlank(message) && !message.endsWith(NO_ERROR_MESSAGE_INDICATOR))) {
-                LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
-                renderStyledError(node, output);
+            if (shouldBePrinted(node)) {
+                printedNodes.add(node);
+                if (null == node.getCause() || isUsefulMessage(getMessage(node))) {
+                    LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
+                    renderStyledError(node, output);
+                }
             }
+        }
+
+        /**
+         * Determines if the given node should be printed.
+         *
+         * A node should be printed iff it is not in the {@link #printedNodes} set, and it is not a
+         * transitive cause of a node that is in the set.  Direct causes will be checked, as well
+         * as each branch of {@link ContextAwareException#getReportableCauses()}s for nodes of that type.
+         *
+         * @param node the node to check
+         * @return {@code true} if the node should be printed; {@code false} otherwise
+         */
+        private boolean shouldBePrinted(Throwable node) {
+            Queue<Throwable> next = new java.util.LinkedList<>();
+            next.add(node);
+
+            while (!next.isEmpty()) {
+                Throwable curr = next.poll();
+                if (printedNodes.isEmpty()) {
+                    return true;
+                } else if (printedNodes.contains(curr)) {
+                    return false;
+                } else {
+                    if (curr.getCause() != null) {
+                        next.add(curr.getCause());
+                    }
+                    if (curr instanceof ContextAwareException) {
+                        next.addAll(((ContextAwareException) curr).getReportableCauses());
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private boolean isUsefulMessage(String message) {
+            return StringUtils.isNotBlank(message) && !message.endsWith(NO_ERROR_MESSAGE_INDICATOR);
         }
 
         @Override
@@ -309,9 +354,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void addBuildScanMessage(ContextImpl context) {
-        context.appendResolution(output -> {
-            runWithOption(output, LONG_OPTION, " to get full insights.");
-        });
+        context.appendResolution(output -> runtWithOption(output, LONG_OPTION, " to get full insights."));
     }
 
     private boolean isGradleEnterprisePluginApplied() {
