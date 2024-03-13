@@ -71,8 +71,6 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("JAVA-COMPILER");
 
         JavaLanguageVersion javaLanguageVersion = JavaLanguageVersion.of(forkingSpec.getJavaLanguageVersion());
-
-        javaForkOptions.jvmArgs("-XX:+HeapDumpOnOutOfMemoryError");
         if (javaLanguageVersion.canCompileOrRun(9)) {
             // In JDK 9 and above the compiler internal classes are bundled with the rest of the JDK, but we need to export it to gain access.
             javaForkOptions.jvmArgs(
