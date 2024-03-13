@@ -11,10 +11,20 @@ val configurationCacheReportPath by configurations.creating {
     attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
 }
 
+repositories {
+    mavenLocal {
+        content {
+            includeModule("org.gradle.buildtool.internal", "configuration-cache-report")
+        }
+    }
+}
+
 // You can have a faster feedback loop by running `configuration-cache-report` as an included build
 // See https://github.com/gradle/configuration-cache-report#development-with-gradlegradle-and-composite-build
 dependencies {
-    configurationCacheReportPath(libs.configurationCacheReport)
+    configurationCacheReportPath("org.gradle.buildtool.internal:configuration-cache-report:1.5-SNAPSHOT") {
+        isChanging = true
+    }
 }
 
 tasks.processResources {
