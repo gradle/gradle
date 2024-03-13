@@ -2,7 +2,7 @@
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for the 'main' feature.
+Public API elements for the 'main' feature.
 
 Attributes
     - org.gradle.category            = library

@@ -18,7 +18,6 @@ package org.gradle.api.internal.file;
 import org.gradle.api.PathValidation;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.RelativeFilePathResolver;
-import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -26,7 +25,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import java.io.File;
 import java.net.URI;
 
-@ServiceScope({Scope.Global.class, Scopes.BuildSession.class, Scopes.Project.class})
+@ServiceScope({Scopes.Global.class, Scopes.BuildSession.class, Scopes.Project.class})
 public interface FileResolver extends RelativeFilePathResolver, PathToFileResolver {
     File resolve(Object path, PathValidation validation);
 

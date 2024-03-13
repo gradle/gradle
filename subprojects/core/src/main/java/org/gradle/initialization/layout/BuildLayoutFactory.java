@@ -20,14 +20,14 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scopes.Global.class)
 public class BuildLayoutFactory {
 
     private static final String DEFAULT_SETTINGS_FILE_BASENAME = "settings";

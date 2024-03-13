@@ -16,12 +16,12 @@
 
 package org.gradle.internal.concurrent;
 
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.concurrent.TimeUnit;
 
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scopes.Global.class)
 public interface ExecutorFactory {
     /**
      * Creates an executor which can run multiple actions concurrently. It is the caller's responsibility to stop the executor.

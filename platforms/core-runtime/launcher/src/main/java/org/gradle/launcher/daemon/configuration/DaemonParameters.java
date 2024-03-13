@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.util.internal.GUtil;
 
@@ -49,7 +50,7 @@ public class DaemonParameters {
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
     private final DaemonJvmOptions jvmOptions;
     private boolean applyInstrumentationAgent = true;
-    private boolean useNativeServices = true;
+    private NativeServicesMode nativeServicesMode = NativeServicesMode.ENABLED;
     private Map<String, String> envVariables;
     private boolean enabled = true;
     private boolean hasJvmArgs;
@@ -219,12 +220,12 @@ public class DaemonParameters {
         return this;
     }
 
-    public boolean useNativeServices() {
-        return useNativeServices;
+    public NativeServicesMode getNativeServicesMode() {
+        return nativeServicesMode;
     }
 
-    public DaemonParameters setUseNativeServices(boolean useNativeServices) {
-        this.useNativeServices = useNativeServices;
+    public DaemonParameters setNativeServicesMode(NativeServicesMode nativeServicesMode) {
+        this.nativeServicesMode = nativeServicesMode;
         return this;
     }
 

@@ -4,7 +4,6 @@ plugins {
 
 errorprone {
     disabledChecks.addAll(
-        "InlineMeSuggester", // 7 occurrences
         "UnusedMethod", // 7 occurrences
         "UnusedVariable", // 1 occurrences
     )
@@ -13,19 +12,15 @@ errorprone {
 dependencies {
     api(project(":base-services"))
     api(project(":core"))
-    api(project(":core-api"))
-    api(project(":logging"))
-    api(project(":platform-jvm"))
-
-    api(libs.groovy)
-    api(libs.inject)
-    api(libs.jsr305)
 
     implementation(project(":base-annotations"))
+    implementation(project(":core-api"))
     implementation(project(":hashing"))
     implementation(project(":language-java"))
+    implementation(project(":logging"))
     implementation(project(":model-core"))
     implementation(project(":persistent-cache"))
+    implementation(project(":platform-jvm"))
     implementation(project(":plugins-groovy"))
     implementation(project(":plugins-java-base"))
     implementation(project(":plugins-java-library"))

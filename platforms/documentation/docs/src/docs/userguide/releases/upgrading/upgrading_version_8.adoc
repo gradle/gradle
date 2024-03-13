@@ -154,6 +154,11 @@ The complete design specification can be found [here](https://docs.google.com/do
 In implementing this spec, we have introduced the following breaking changes to the `ProblemSpec` interface:
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
 
+==== Introduced new variant to Java projects
+
+All plugins that apply the `java` plugin or any of its related plugins will have a new consumable configuration, `privateApiElements`.
+This variant has been added to support future changes related to declaring test dependencies.
+
 [[changes_8.7]]
 == Upgrading from 8.6 and earlier
 

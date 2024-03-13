@@ -30,7 +30,7 @@ interface RuntimePropertyResolver {
     fun resolvePropertyWrite(receiverClass: KClass<*>, name: String): Resolution
 
     sealed interface Resolution {
-        data class Resolved(val property: RestrictedRuntimeProperty) : Resolution
+        data class Resolved(val property: DeclarativeRuntimeProperty) : Resolution
         data object Unresolved : Resolution
     }
 }
@@ -43,7 +43,7 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
 
         return when (callable) {
             null -> Unresolved
-            else -> Resolved(object : RestrictedRuntimeProperty {
+            else -> Resolved(object : DeclarativeRuntimeProperty {
                 override fun getValue(receiver: Any): Any? = callable.call(receiver)
                 override fun setValue(receiver: Any, value: Any?) = throw UnsupportedOperationException()
             })
@@ -56,7 +56,7 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
 
         return when (setter) {
             null -> Unresolved
-            else -> Resolved(object : RestrictedRuntimeProperty {
+            else -> Resolved(object : DeclarativeRuntimeProperty {
                 override fun getValue(receiver: Any): Any = throw UnsupportedOperationException()
                 override fun setValue(receiver: Any, value: Any?) {
                     setter.call(receiver, value)

@@ -25,6 +25,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.function.Supplier;
 
+/**
+ * Factory for {@link CalculatedValueContainer}.
+ */
 @ServiceScope(Scopes.BuildSession.class)
 public class CalculatedValueContainerFactory {
     private final ProjectLeaseRegistry projectLeaseRegistry;
@@ -49,6 +52,11 @@ public class CalculatedValueContainerFactory {
         return new CalculatedValueContainer<>(displayName, new SupplierBackedCalculator<>(supplier), projectLeaseRegistry, globalContext);
     }
 
+    /**
+     * A convenience to create a calculated value that has already been produced.
+     * <p>
+     * For example, the value might have been restored from the configuration cache.
+     */
     public <T, S extends ValueCalculator<? extends T>> CalculatedValueContainer<T, S> create(DisplayName displayName, T value) {
         return new CalculatedValueContainer<>(displayName, value);
     }

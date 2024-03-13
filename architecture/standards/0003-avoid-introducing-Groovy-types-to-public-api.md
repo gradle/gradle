@@ -7,14 +7,14 @@
 ## Context
 
 Gradle's public API requires equal access from all JVM-based languages.
-Kotlin, Groovy, Java and other JVM-based languages should be able to use the Gradle API without relying on another language's standard library.
+Kotlin, Groovy, Java, and other JVM-based languages should be able to use the Gradle API without relying on another language's standard library.
 
 Historically, Gradle has shipped with some Groovy types in very prominent APIs.
 This required the Kotlin DSL to add special integration to work with Groovy closures.
 This has also forced plugins written in languages other than Groovy to use Groovy types for some APIs.
 
 When the Kotlin DSL was introduced, we made an effort to add non-Groovy equivalents for all APIs.
-This has been mostly done, but there remain a few hold outs (fixing these are out of scope).
+This has been mostly done, but there remain a few holdouts (fixing these is out of scope).
 
 To keep the Groovy DSL ergonomic, we generate methods as necessary from the non-Groovy equivalents.
 
