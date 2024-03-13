@@ -160,8 +160,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
                 deps(project(":producer"))
                 constraints {
                     deps(project(":producer")) {
-                        attributes { attrs ->
-                            attrs.attribute(Attribute.of('attr', String), "correct")
+                        attributes {
+                            attribute(Attribute.of('attr', String), "correct")
                         }
                     }
                 }
@@ -244,9 +244,9 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
                 deps(project(":producer"))
                 constraints {
                     deps(project(":producer")) {
-                        attributes { attrs ->
-                            attrs.attribute(Attribute.of("another", String), "value")
-                            attrs.attribute(Attribute.of('attr', String), "correct")
+                        attributes {
+                            attribute(Attribute.of("another", String), "value")
+                            attribute(Attribute.of('attr', String), "correct")
                         }
                     }
                 }
