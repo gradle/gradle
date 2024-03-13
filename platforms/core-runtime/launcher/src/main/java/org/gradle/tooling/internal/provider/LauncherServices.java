@@ -261,15 +261,15 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                 new BuildOutcomeReportingBuildActionRunner(
                                     styledTextOutputFactory,
                                     listenerManager,
-                                    new ProblemRenderingBuildActionRunner(
-                                        buildOperationListenerManager,
-                                        new ProblemReportingBuildActionRunner(
-                                            new ChainingBuildActionRunner(buildActionRunners),
-                                            exceptionAnalyser,
-                                            buildLayout,
-                                            problemReporters
-                                        )
+//                                    new ProblemRenderingBuildActionRunner(
+//                                        buildOperationListenerManager,
+                                    new ProblemReportingBuildActionRunner(
+                                        new ChainingBuildActionRunner(buildActionRunners),
+                                        exceptionAnalyser,
+                                        buildLayout,
+                                        problemReporters
                                     ),
+//                                    ),
                                     buildStartedTime,
                                     buildRequestMetaData,
                                     buildLoggerFactory),
