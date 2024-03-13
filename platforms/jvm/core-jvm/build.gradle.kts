@@ -30,13 +30,4 @@ dependencies {
 
     implementation(libs.jsr305)
     implementation(libs.guava)
-
-    testImplementation(project(":core"))
-    testImplementation(project(":dependency-management"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":snapshots")))
-
-    testRuntimeOnly(project(":distributions-core")) {
-        because("Uses ProjectBuilder.")
-    }
 }

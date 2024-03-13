@@ -92,7 +92,6 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
                         'compileOnly':'Configuration',
                         'default':'Configuration',
                         'implementation':'Configuration',
-                        'privateApiElements': 'Configuration',
                         'runtimeClasspath':'Configuration',
                         'mainSourceElements':'Configuration',
                         'runtimeElements':'Configuration',

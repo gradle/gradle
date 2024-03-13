@@ -18,9 +18,9 @@ package org.gradle.smoketests
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.smoketests.WithKotlinDeprecations.ProjectTypes
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
+import org.gradle.smoketests.WithKotlinDeprecations.ProjectTypes
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 

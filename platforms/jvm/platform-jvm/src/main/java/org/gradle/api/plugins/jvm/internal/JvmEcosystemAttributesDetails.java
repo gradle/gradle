@@ -54,18 +54,6 @@ public interface JvmEcosystemAttributesDetails {
     JvmEcosystemAttributesDetails runtimeUsage();
 
     /**
-     * Provides the public API of a component during compile time. Only applicable
-     * when combined with {@link #apiUsage()}.
-     */
-    JvmEcosystemAttributesDetails publicApiType();
-
-    /**
-     * Provides the private API of a component during compile time. Only applicable
-     * when combined with {@link #apiUsage()}.
-     */
-    JvmEcosystemAttributesDetails privateApiType();
-
-    /**
      * Provides or requires a component which dependencies are found
      * as independent components (typically through external dependencies)
      */
