@@ -33,7 +33,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
@@ -252,7 +251,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         }
         scalaCompile.getAnalysisFiles().from(incrementalAnalysis.getIncoming().artifactView(viewConfiguration -> {
             viewConfiguration.lenient(true);
-            viewConfiguration.componentFilter(SerializableLambdas.spec(element -> element instanceof ProjectComponentIdentifier));
+            viewConfiguration.componentFilter(spec(element -> element instanceof ProjectComponentIdentifier));
         }).getFiles());
 
         // See https://github.com/gradle/gradle/issues/14434.  We do this so that the incrementalScalaAnalysisForXXX configuration
