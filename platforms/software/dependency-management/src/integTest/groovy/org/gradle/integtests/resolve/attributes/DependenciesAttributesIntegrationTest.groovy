@@ -107,6 +107,163 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         outputDoesNotContain("Cannot set attributes for constraint \"org:test:1.0\": it was probably created by a plugin using internal APIs")
     }
 
+    def "attributes declared on constraints contribute to graph selection"() {
+        given:
+        settingsFile << """
+            include 'producer'
+        """
+        file("producer/build.gradle") << """
+            plugins {
+                id("base")
+            }
+
+            task wrongZip(type: Zip) {
+                archiveBaseName = "wrong"
+            }
+            task firstZip(type: Zip) {
+                archiveBaseName = "first"
+            }
+
+            configurations {
+                consumable("blah") {
+                    attributes {
+                        attribute(Attribute.of('custom', String), "foo")
+                        attribute(Attribute.of('attr', String), "incorrect")
+                    }
+                    outgoing {
+                        artifact(wrongZip)
+                    }
+                }
+                consumable("foo") {
+                    attributes {
+                        attribute(Attribute.of('custom', String), "foo")
+                        attribute(Attribute.of('attr', String), "correct")
+                    }
+                    outgoing {
+                        artifact(firstZip)
+                    }
+                }
+            }
+        """
+        buildFile << """
+            configurations {
+                dependencyScope("deps")
+                resolvable("res") {
+                    extendsFrom(deps)
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "foo")
+                    }
+                }
+            }
+
+            dependencies {
+                deps(project(":producer"))
+                constraints {
+                    deps(project(":producer")) {
+                        attributes { attrs ->
+                            attrs.attribute(Attribute.of('attr', String), "correct")
+                        }
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.res
+                dependsOn(files)
+                doLast {
+                    assert files*.name == ["first.zip"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    def "attributes declared on constraints contribute to artifact selection"() {
+        given:
+        settingsFile << """
+            include 'producer'
+        """
+        file("producer/build.gradle") << """
+            plugins {
+                id("base")
+            }
+
+            task wrongZip(type: Zip) {
+                archiveBaseName = "wrong"
+            }
+            task firstZip(type: Zip) {
+                archiveBaseName = "first"
+            }
+            task secondZip(type: Zip) {
+                archiveBaseName = "second"
+            }
+
+            configurations {
+                consumable("blah") {
+                    attributes {
+                        attribute(Attribute.of('custom', String), "foo")
+                        attribute(Attribute.of('attr', String), "incorrect")
+                    }
+                    outgoing {
+                        artifact(wrongZip)
+                    }
+                }
+                consumable("foo") {
+                    attributes {
+                        attribute(Attribute.of('custom', String), "foo")
+                        attribute(Attribute.of('attr', String), "correct")
+                    }
+                    outgoing {
+                        artifact(firstZip)
+                        variants {
+                            secondary {
+                                artifact(secondZip)
+                                attributes {
+                                    attribute(Attribute.of("another", String), "value")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        buildFile << """
+            configurations {
+                dependencyScope("deps")
+                resolvable("res") {
+                    extendsFrom(deps)
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, "foo")
+                    }
+                }
+            }
+
+            dependencies {
+                deps(project(":producer"))
+                constraints {
+                    deps(project(":producer")) {
+                        attributes { attrs ->
+                            attrs.attribute(Attribute.of("another", String), "value")
+                            attrs.attribute(Attribute.of('attr', String), "correct")
+                        }
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.res
+                dependsOn(files)
+                doLast {
+                    assert files*.name == ["second.zip"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Unroll("Selects variant #expectedVariant using custom attribute value #attributeValue")
