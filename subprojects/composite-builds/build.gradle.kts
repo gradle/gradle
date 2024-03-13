@@ -36,6 +36,7 @@ dependencies {
 
     testImplementation(project(":file-watching"))
     testImplementation(project(":build-option"))
+    testImplementation(testFixtures(project(":build-operations")))
     testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":core")))
 

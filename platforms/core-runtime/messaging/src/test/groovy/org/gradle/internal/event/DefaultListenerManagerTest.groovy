@@ -18,7 +18,6 @@ package org.gradle.internal.event
 
 import com.google.common.reflect.ClassPath
 import org.gradle.internal.service.scopes.EventScope
-import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.StatefulListener
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -1052,7 +1051,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         void baz()
     }
 
-    @EventScope(Scope.Global)
+    @EventScope(Scopes.Global)
     interface TestListenerWithWrongScope {
         void foo(String param)
     }

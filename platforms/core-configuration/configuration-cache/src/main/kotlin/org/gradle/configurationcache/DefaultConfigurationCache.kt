@@ -44,6 +44,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
@@ -72,7 +73,8 @@ class DefaultConfigurationCache internal constructor(
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
      */
     @Suppress("unused")
-    private val fileSystemAccess: FileSystemAccess
+    private val fileSystemAccess: FileSystemAccess,
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : BuildTreeConfigurationCache, Stoppable {
 
     interface Host {
@@ -102,10 +104,18 @@ class DefaultConfigurationCache internal constructor(
     val store by lazy { cacheRepository.forKey(cacheKey.string) }
 
     private
-    val intermediateModels = lazy { IntermediateModelController(host, cacheIO, store, cacheFingerprintController) }
+    val lazyIntermediateModels = lazy { IntermediateModelController(host, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
 
     private
-    val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store) }
+    val lazyProjectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
+
+    private
+    val intermediateModels
+        get() = lazyIntermediateModels.value
+
+    private
+    val projectMetadata
+        get() = lazyProjectMetadata.value
 
     private
     val cacheIO by lazy { host.service<ConfigurationCacheIO>() }
@@ -176,11 +186,16 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
-        return intermediateModels.value.loadOrCreateIntermediateModel(identityPath, modelName, parameter, creator)
+        return intermediateModels.loadOrCreateIntermediateModel(identityPath, modelName, parameter, creator)
     }
 
+    // TODO:configuration - split the component state, such that information for dependency resolution does not have to go through the store
     override fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentGraphResolveState): LocalComponentGraphResolveState {
-        return projectMetadata.value.loadOrCreateValue(identityPath, creator)
+        // We are preserving the original value if it had to be created,
+        // because it carries information required by dependency resolution
+        // to ensure project artifacts are actually created the first time around.
+        // When the value is loaded from the store, the dependency information is lost.
+        return projectMetadata.loadOrCreateOriginalValue(identityPath, creator)
     }
 
     override fun finalizeCacheEntry() {
@@ -190,20 +205,36 @@ class DefaultConfigurationCache internal constructor(
             }
             cacheEntryRequiresCommit = false
         } else if (cacheEntryRequiresCommit) {
-            val reusedProjects = mutableSetOf<Path>()
-            val updatedProjects = mutableSetOf<Path>()
-            intermediateModels.value.visitProjects(reusedProjects::add, updatedProjects::add)
-            projectMetadata.value.visitProjects(reusedProjects::add) { }
-            store.useForStore { layout ->
-                writeConfigurationCacheFingerprint(layout, reusedProjects)
-                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.values, projectMetadata.value.values, layout.fileFor(StateType.Entry))
-            }
-            problems.projectStateStats(reusedProjects.size, updatedProjects.size)
+            val projectUsage = collectProjectUsage()
+            commitCacheEntry(projectUsage.reused)
+            problems.projectStateStats(projectUsage.reused.size, projectUsage.updated.size)
             cacheEntryRequiresCommit = false
             // Can reuse the cache entry for the rest of this build invocation
             cacheAction = ConfigurationCacheAction.LOAD
         }
         scopeRegistryListener.dispose()
+    }
+
+    private
+    fun collectProjectUsage(): ProjectUsage {
+        val reusedProjects = mutableSetOf<Path>()
+        val updatedProjects = mutableSetOf<Path>()
+        intermediateModels.visitProjects(reusedProjects::add, updatedProjects::add)
+        projectMetadata.visitProjects(reusedProjects::add) { }
+        return ProjectUsage(reusedProjects, updatedProjects)
+    }
+
+    private
+    data class ProjectUsage(val reused: Set<Path>, val updated: Set<Path>)
+
+    private
+    fun commitCacheEntry(reusedProjects: Set<Path>) {
+        store.useForStore { layout ->
+            writeConfigurationCacheFingerprint(layout, reusedProjects)
+            val usedModels = intermediateModels.collectAccessedValues()
+            val usedMetadata = projectMetadata.collectAccessedValues()
+            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, layout.fileFor(StateType.Entry))
+        }
     }
 
     private
@@ -279,14 +310,17 @@ class DefaultConfigurationCache internal constructor(
 
     override fun stop() {
         val stoppable = CompositeStoppable.stoppable()
-        if (intermediateModels.isInitialized()) {
-            stoppable.add(intermediateModels.value)
-        }
-        if (projectMetadata.isInitialized()) {
-            stoppable.add(projectMetadata.value)
-        }
+        stoppable.addIfInitialized(lazyIntermediateModels)
+        stoppable.addIfInitialized(lazyProjectMetadata)
         stoppable.add(store)
         stoppable.stop()
+    }
+
+    private
+    fun CompositeStoppable.addIfInitialized(closeable: Lazy<*>) {
+        if (closeable.isInitialized()) {
+            add(closeable.value)
+        }
     }
 
     private
@@ -489,8 +523,8 @@ class DefaultConfigurationCache internal constructor(
 
         val projectResult = checkProjectScopedFingerprint(layout.fileFor(StateType.ProjectFingerprint))
         if (projectResult is CheckedFingerprint.ProjectsInvalid) {
-            intermediateModels.value.restoreFromCacheEntry(entryDetails.intermediateModels, projectResult)
-            projectMetadata.value.restoreFromCacheEntry(entryDetails.projectMetadata, projectResult)
+            intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, projectResult)
+            projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, projectResult)
         }
 
         return projectResult

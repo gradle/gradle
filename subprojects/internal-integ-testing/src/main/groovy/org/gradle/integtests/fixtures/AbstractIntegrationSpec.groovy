@@ -33,7 +33,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.integtests.fixtures.problems.KnownCategories
+import org.gradle.integtests.fixtures.problems.KnownProblemIds
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -128,7 +128,7 @@ abstract class AbstractIntegrationSpec extends Specification {
     def cleanup() {
         if (enableProblemsApiCheck) {
             collectedProblems.each {
-                KnownCategories.assertHasKnownCategory(it)
+                KnownProblemIds.assertHasKnownId(it)
             }
         }
 

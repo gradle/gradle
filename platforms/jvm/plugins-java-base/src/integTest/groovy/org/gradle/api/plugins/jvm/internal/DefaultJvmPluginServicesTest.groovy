@@ -27,6 +27,7 @@ import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.HasConfigurableAttributes
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.ApiType
 import org.gradle.api.attributes.java.TargetJvmEnvironment
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal
@@ -50,6 +51,7 @@ import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBU
 import static org.gradle.api.attributes.Usage.JAVA_API
 import static org.gradle.api.attributes.Usage.JAVA_RUNTIME
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
+import static org.gradle.api.attributes.ApiType.TYPE_ATTRIBUTE
 import static org.gradle.api.attributes.java.TargetJvmEnvironment.STANDARD_JVM
 import static org.gradle.api.attributes.java.TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE
 import static org.gradle.api.attributes.java.TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE
@@ -79,6 +81,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
+            (TYPE_ATTRIBUTE): named(ApiType, ApiType.PUBLIC)
         ]
 
         when:
@@ -90,6 +93,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
+            (TYPE_ATTRIBUTE): named(ApiType, ApiType.PUBLIC),
             (TARGET_JVM_VERSION_ATTRIBUTE): 8
         ]
     }
@@ -127,7 +131,28 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
             (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
-            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR)
+            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR),
+            (TYPE_ATTRIBUTE): named(ApiType, ApiType.PUBLIC)
+        ]
+
+    }
+
+    def "configures privateApiElements"() {
+        def mutable = AttributeTestUtil.attributesFactory().mutable()
+        def attrs = Mock(Configuration)
+
+        when:
+        services.configureAsPrivateApiElements(attrs)
+
+        then:
+        1 * attrs.getAttributes() >> mutable
+        0 * _
+        mutable.asMap() == [
+            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
+            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
+            (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR),
+            (TYPE_ATTRIBUTE): named(ApiType, ApiType.PRIVATE)
         ]
 
     }

@@ -23,8 +23,9 @@ import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.api.problems.internal.ProblemReport
+import org.gradle.api.problems.internal.Problem
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
@@ -55,11 +56,11 @@ class FlowParametersInstantiator(
 
     private
     fun <P : FlowParameters> validate(type: Class<P>, parameters: P) {
-        val problems = ImmutableList.builder<ProblemReport>()
+        val problems = ImmutableList.builder<Problem>()
         inspection.propertyWalker.visitProperties(
             parameters,
             object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }) {
-                override fun recordProblem(problem: ProblemReport) {
+                override fun recordProblem(problem: Problem) {
                     problems.add(problem)
                 }
             },
@@ -76,9 +77,9 @@ class FlowParametersInstantiator(
                             override fun add(dependency: Any) {
                                 problems.add(
                                     (problemsService as InternalProblems).internalReporter.create {
-                                        label("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
-                                            .category("validation", "property", "invalid-dependency")
-                                            .severity(Severity.ERROR)
+                                        id("invalid-dependency", "Property cannot carry dependency", GradleCoreProblemGroup.validation().property())
+                                        contextualLabel("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
+                                        severity(Severity.ERROR)
                                     })
                             }
 

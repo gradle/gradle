@@ -16,28 +16,32 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 
 public interface InternalProblemBuilder extends InternalProblemSpec {
 
     /**
-     * Creates the new problem. Calling this method won't report the problem via build operations, it can be done separately by calling {@link org.gradle.api.problems.internal.InternalProblemReporter#report(ProblemReport)}.
+     * Creates the new problem. Calling this method won't report the problem via build operations, it can be done separately by calling {@link org.gradle.api.problems.internal.InternalProblemReporter#report(Problem)}.
      *
      * @return the new problem
      */
-    ProblemReport build();
+    Problem build();
+
+    @Override
+    InternalProblemBuilder id(String name, String displayName);
+
+    @Override
+    InternalProblemBuilder id(String name, String displayName, ProblemGroup parent);
 
     @Override
     InternalProblemBuilder taskPathLocation(String buildTreePath);
 
     @Override
-    InternalProblemBuilder label(String label);
-
-    @Override
-    InternalProblemBuilder category(String category, String... details);
-
-    @Override
     InternalProblemBuilder documentedAt(DocLink doc);
+
+    @Override
+    InternalProblemBuilder contextualLabel(String contextualLabel);
 
     @Override
     InternalProblemBuilder documentedAt(String url);

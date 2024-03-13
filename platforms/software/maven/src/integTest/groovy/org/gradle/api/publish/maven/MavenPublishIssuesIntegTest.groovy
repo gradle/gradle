@@ -374,69 +374,20 @@ subprojects {
     @Issue("https://github.com/gradle/gradle/issues/20581")
     void "warn deprecated behavior when GMM is modified after a Maven publication is populated"() {
         given:
-        buildKotlinFile << """
-             plugins {
-                java
-                `maven-publish`
-                kotlin("jvm") version "1.9.22"
-            }
-            repositories {
-                mavenCentral()
-            }
-            dependencies {
-                implementation(kotlin("stdlib"))
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
             }
             publishing {
                 publications {
-                    create<MavenPublication>("maven") {
-                        from(components["java"])
+                    maven(MavenPublication) {
+                        from(components.java)
                     }
                 }
             }
-            (publishing.publications["maven"] as MavenPublication).artifacts
-            (components["java"] as AdhocComponentWithVariants).apply {
-                withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning(
-            "Gradle Module Metadata is modified after an eagerly populated publication. " +
-                "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#gmm_modification_after_publication_populated"
-        )
-
-        then:
-        succeeds "help"
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/20581")
-    void "warn deprecated behavior when GMM is modified after an Ivy publication is populated"() {
-        given:
-        buildKotlinFile << """
-             plugins {
-                java
-                `ivy-publish`
-                kotlin("jvm") version "1.9.22"
-            }
-            repositories {
-                mavenCentral()
-            }
-            dependencies {
-                implementation(kotlin("stdlib"))
-            }
-            publishing {
-                publications {
-                    create<IvyPublication>("ivy") {
-                        from(components["java"])
-                    }
-                }
-            }
-            (publishing.publications["ivy"] as IvyPublication).artifacts
-            (components["java"] as AdhocComponentWithVariants).apply {
-                withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
-            }
+            publishing.publications.maven.artifacts // Realize publication component
+            components.java.withVariantsFromConfiguration(configurations.apiElements) { skip() }
         """
 
         when:

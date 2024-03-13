@@ -21,7 +21,9 @@ import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 
+import javax.annotation.Nullable;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
@@ -47,28 +49,16 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     @VisibleForTesting
     static void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        spec.label(mapKindToLabel(diagnostic.getKind()));
-        spec.details(diagnostic.getMessage(Locale.getDefault()));
-
-        addCategory(spec, diagnostic);
+        spec.id(mapKindToId(diagnostic.getKind()), mapKindToLabel(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
+        spec.severity(mapKindToSeverity(diagnostic.getKind()));
+        addDetails(spec, diagnostic.getMessage(Locale.getDefault()));
         addLocations(spec, diagnostic);
     }
 
-    private static void addCategory(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
-        Severity severity = mapKindToSeverity(diagnostic.getKind());
-        switch (severity) {
-            case ADVICE:
-                spec.category("compilation", "java", "compilation-advice");
-                break;
-            case WARNING:
-                spec.category("compilation", "java", "compilation-warning");
-                break;
-            case ERROR:
-                spec.category("compilation", "java", "compilation-failed");
-                break;
+    private static void addDetails(ProblemSpec spec, @Nullable String diagnosticMessage) {
+        if (diagnosticMessage != null) {
+            spec.details(diagnosticMessage);
         }
-
-        spec.severity(severity);
     }
 
     private static void addLocations(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
@@ -127,6 +117,22 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private static String getPath(JavaFileObject fileObject) {
         return fileObject.getName();
+    }
+
+    private static String mapKindToId(Diagnostic.Kind kind) {
+        switch (kind) {
+            case ERROR:
+                return "java-compilation-error";
+            case WARNING:
+            case MANDATORY_WARNING:
+                return "java-compilation-warning";
+            case NOTE:
+                return "java-compilation-note";
+            case OTHER:
+                return "java-compilation-problem";
+            default:
+                return"unknown-java-compilation-problem";
+        }
     }
 
     private static String mapKindToLabel(Diagnostic.Kind kind) {

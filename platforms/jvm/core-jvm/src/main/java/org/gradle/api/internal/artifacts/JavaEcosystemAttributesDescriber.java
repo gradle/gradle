@@ -23,6 +23,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.ApiType;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeDescriber;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 
     private final ImmutableSet<Attribute<?>> describableAttributes = ImmutableSet.of(
         Usage.USAGE_ATTRIBUTE,
+        ApiType.TYPE_ATTRIBUTE,
         Category.CATEGORY_ATTRIBUTE,
         LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
         Bundling.BUNDLING_ATTRIBUTE,
@@ -76,6 +78,7 @@ import java.util.stream.Collectors;
     public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
         Object category = extractAttributeValue(attributes, Category.CATEGORY_ATTRIBUTE);
         Object usage = extractAttributeValue(attributes, Usage.USAGE_ATTRIBUTE);
+        Object apitype = extractAttributeValue(attributes, ApiType.TYPE_ATTRIBUTE);
         Object le = extractAttributeValue(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
         Object bundling = extractAttributeValue(attributes, Bundling.BUNDLING_ATTRIBUTE);
         Object targetJvmEnvironment = extractAttributeValue(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
@@ -84,7 +87,10 @@ import java.util.stream.Collectors;
         Object status = extractAttributeValue(attributes, STATUS_ATTRIBUTE);
 
         StringBuilder sb = new StringBuilder();
-
+        if (apitype != null) {
+            describeApiType(apitype, sb);
+            sb.append(" of ");
+        }
         if (category != null) {
             if (docsType != null && toName(category).equals(Category.DOCUMENTATION)) {
                 describeDocsType(docsType, sb);
@@ -166,6 +172,10 @@ import java.util.stream.Collectors;
             sb.append("its usage (required ");
             describeUsage(consumerValue, sb);
             sb.append(")");
+        } else if (ApiType.TYPE_ATTRIBUTE.equals(attribute)) {
+            sb.append("its API type (required ");
+            describeApiType(consumerValue, sb);
+            sb.append(")");
         } else if (haveSameName(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, attribute)) {
             sb.append("its target Java environment (preferred optimized for ");
             describeTargetJvmEnvironment(consumerValue, sb);
@@ -209,6 +219,8 @@ import java.util.stream.Collectors;
         StringBuilder sb = new StringBuilder();
         if (haveSameName(Usage.USAGE_ATTRIBUTE, attribute)) {
             describeUsage(producerValue, sb);
+        } else if (haveSameName(ApiType.TYPE_ATTRIBUTE, attribute)) {
+            describeApiType(producerValue, sb);
         } else if (haveSameName(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
             sb.append("compatibility with ");
             describeTargetJvm(producerValue, sb);
@@ -283,6 +295,21 @@ import java.util.stream.Collectors;
             default:
                 sb.append("'").append(str).append("'");
         }
+    }
+
+    private static void describeApiType(Object apiType, StringBuilder sb) {
+        String str = toName(apiType);
+        switch (str) {
+            case ApiType.PUBLIC:
+                sb.append("the public");
+                break;
+            case ApiType.PRIVATE:
+                sb.append("the private");
+                break;
+            default:
+                sb.append("the '").append(str).append("'");
+        }
+        sb.append(" API");
     }
 
     private static void describeTargetJvm(Object targetJvm, StringBuilder sb) {

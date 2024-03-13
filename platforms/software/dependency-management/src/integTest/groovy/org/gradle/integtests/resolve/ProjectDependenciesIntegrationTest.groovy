@@ -98,4 +98,45 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         then:
         failureHasCause("Required keys [path] are missing from map")
     }
+
+    def "can add constraint on root project"() {
+        given:
+        mavenRepo.module("org", "foo").publish()
+        buildFile << """
+            configurations {
+                dependencyScope("deps")
+                resolvable("res")  {
+                    extendsFrom(deps)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
+                    }
+                }
+                consumable("cons") {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
+                    }
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                deps "org:foo:1.0"
+                deps project(":")
+                constraints {
+                    deps project(":")
+                }
+            }
+
+            task resolve {
+                def files = configurations.res
+                doLast {
+                    assert files*.name == ["foo-1.0.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
 }

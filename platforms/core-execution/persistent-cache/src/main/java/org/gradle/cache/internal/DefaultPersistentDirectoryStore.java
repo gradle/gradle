@@ -23,8 +23,10 @@ import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.logging.progress.ProgressLogger;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -56,7 +58,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     protected final File propertiesFile;
     private final File gcFile;
-    private final ProgressLoggerFactory progressLoggerFactory;
+    private final BuildOperationRunner buildOperationRunner;
     private DefaultCacheCoordinator cacheAccess;
 
     public DefaultPersistentDirectoryStore(
@@ -66,7 +68,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         @Nullable CacheCleanupStrategy cacheCleanupStrategy,
         FileLockManager fileLockManager,
         ExecutorFactory executorFactory,
-        ProgressLoggerFactory progressLoggerFactory
+        BuildOperationRunner buildOperationRunner
     ) {
         this.dir = dir;
         this.lockOptions = lockOptions;
@@ -75,7 +77,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         this.executorFactory = executorFactory;
         this.propertiesFile = new File(dir, "cache.properties");
         this.gcFile = new File(dir, "gc.properties");
-        this.progressLoggerFactory = progressLoggerFactory;
+        this.buildOperationRunner = buildOperationRunner;
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
     }
 
@@ -202,17 +204,24 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         public void cleanup() {
             if (cacheCleanupStrategy != null && requiresCleanup()) {
                 String description = "Cleaning " + getDisplayName();
-                ProgressLogger progressLogger = progressLoggerFactory.newOperation(CacheCleanupExecutor.class).start(description, description);
-                Timer timer = Time.startTimer();
-                try {
-                    cacheCleanupStrategy.getCleanupAction().clean(DefaultPersistentDirectoryStore.this, new DefaultCleanupProgressMonitor(progressLogger));
-                    GFileUtils.touch(gcFile);
-                } finally {
-                    LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryStore.this, timer.getElapsed());
-                    progressLogger.completed();
-                }
+                buildOperationRunner.run(new RunnableBuildOperation() {
+                    @Override
+                    public void run(BuildOperationContext context) {
+                        Timer timer = Time.startTimer();
+                        try {
+                            cacheCleanupStrategy.getCleanupAction().clean(DefaultPersistentDirectoryStore.this, new DefaultCleanupProgressMonitor(context));
+                            GFileUtils.touch(gcFile);
+                        } finally {
+                            LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryStore.this, timer.getElapsed());
+                        }
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName(displayName);
+                    }
+                });
             }
         }
     }
-
 }

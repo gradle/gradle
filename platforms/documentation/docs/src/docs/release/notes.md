@@ -18,7 +18,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
+See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
@@ -113,6 +113,15 @@ Previously, the display name could be obtained only by parsing the operation dis
 Additionally, for JUnit5 and Spock, we updated the test descriptor for dynamic and parameterized tests to include information about the class name and method name containing the test.
 These enhancements enable IDEs to offer improved navigation and reporting capabilities for dynamic and parameterized tests.
 
+#### Fix IDE performance issues with large projects
+
+A performance issue in the Tooling API causing delays at the end of task execution in large projects has been identified and fixed by a community member.
+This problem occurred while transmitting task information for executed tasks to the IDE. 
+
+After executing approximately 15,000 tasks, the IDE would encounter a delay of several seconds. 
+The root cause was that much more information than needed was serialized via the Tooling API.
+We added a test to the fix to ensure there will be no future regression, demonstrating a performance improvement of around 12%.
+The environments that benefit from this fix are Android Studio, IntelliJ IDEA, Eclipse, and other Tooling API clients.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -121,7 +130,7 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
@@ -138,7 +147,7 @@ This section will be populated automatically
 
 ## Known issues
 
-Known issues are problems that were discovered post release that are directly related to changes made in this release.
+Known issues are problems that were discovered post-release that are directly related to changes made in this release.
 
 <!--
 This section will be populated automatically
