@@ -128,17 +128,13 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             testingCollector(${expression})
         }
 
-        tasks.register("printDependencies") {
-            doLast {
-                testingCollectorConf.dependencies.forEach {
-                    println("\${it.group}:\${it.name}:\${it.version}")
-                }
-            }
+        testingCollectorConf.dependencies.forEach {
+            println("\${it.group}:\${it.name}:\${it.version}")
         }
         """
 
         when:
-        succeeds("printDependencies")
+        succeeds("help")
 
         then:
         outputContains("${FOO_GROUP}:${FOO_NAME}:${FOO_VERSION}")
@@ -172,17 +168,13 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             testingCollector(${expression})
         }
 
-        tasks.register("printDependencies") {
-            doLast {
-                testingCollectorConf.dependencies.forEach {
-                    println("\${it.group}:\${it.name}:\${it.version}")
-                }
-            }
+        testingCollectorConf.dependencies.forEach {
+            println("\${it.group}:\${it.name}:\${it.version}")
         }
         """
 
         when:
-        succeeds("printDependencies")
+        succeeds("help")
 
         then:
         outputContains("${PVC_GROUP}:${PVC_NAME}:${PVC_VERSION}")
@@ -208,14 +200,10 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             testingCollector(${expression})
         }
 
-        tasks.register("checkDependency") {
-            doLast {
-                assert(testingCollectorConf.dependencies.iterator().next() == project.dependencies.${expression})
-            }
-        }
+        assert(testingCollectorConf.dependencies.iterator().next() == project.dependencies.${expression})
         """
         expect:
-        succeeds("checkDependency")
+        succeeds("help")
 
         where:
         expression << [
@@ -234,15 +222,11 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             testingCollector($expression)
         }
 
-        tasks.register("checkDependency") {
-            doLast {
-                println("\${${cast("testingCollectorConf.dependencies.iterator().next()", "FileCollectionDependency", dsl)}.files.singleFile}")
-            }
-        }
+        println("\${${cast("testingCollectorConf.dependencies.iterator().next()", "FileCollectionDependency", dsl)}.files.singleFile}")
         """
 
         when:
-        succeeds("checkDependency")
+        succeeds("help")
 
         then:
         outputContains(BAR_TXT)
@@ -263,16 +247,13 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             testingCollector(${expression})
         }
 
-        tasks.register("checkDependency") {
-            doLast {
-                var dep = testingCollectorConf.dependencies.iterator().next()
-                assert(dep ${instanceOf(dsl)} ProjectDependency)
-                assert(${cast("dep", "ProjectDependency", dsl)}.dependencyProject == ${expectedProjectExpression})
-            }
-        }
+        var dep = testingCollectorConf.dependencies.iterator().next()
+        assert(dep ${instanceOf(dsl)} ProjectDependency)
+        assert(${cast("dep", "ProjectDependency", dsl)}.dependencyProject == ${expectedProjectExpression})
         """
+
         expect:
-        succeeds("checkDependency")
+        succeeds("help")
 
         where:
         expression              | expectedProjectExpression
@@ -290,17 +271,13 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             testingCollector.bundle(${versionCatalogBundle(MYDEPS_BUNDLE)})
         }
 
-        tasks.register("printDependencies") {
-            doLast {
-                testingCollectorConf.dependencies.forEach {
-                    println("\${it.group}:\${it.name}:\${it.version}")
-                }
-            }
+        testingCollectorConf.dependencies.forEach {
+            println("\${it.group}:\${it.name}:\${it.version}")
         }
         """
 
         when:
-        succeeds("printDependencies")
+        succeeds("help")
 
         then:
         outputContains("${FOO_GROUP}:${FOO_NAME}:${FOO_VERSION}")
@@ -319,22 +296,18 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             }
         }
 
-        tasks.register("printDependencyReasons") {
-            doLast {
-                testingCollectorConf.dependencies.forEach {
-                    println("\${it.reason}")
-                    if (${testExcludes}) {
-                        ${cast("it", "ModuleDependency", dsl)}.excludeRules.forEach {
-                            println("\${it.group}:\${it.module}")
-                        }
-                    }
+        testingCollectorConf.dependencies.forEach {
+            println("\${it.reason}")
+            if (${testExcludes}) {
+                ${cast("it", "ModuleDependency", dsl)}.excludeRules.forEach {
+                    println("\${it.group}:\${it.module}")
                 }
             }
         }
         """
 
         when:
-        succeeds("printDependencyReasons")
+        succeeds("help")
 
         then:
         outputContains("the action must be tested")
@@ -370,20 +343,16 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             }
         }
 
-        tasks.register("printDependencyReasons") {
-            doLast {
-                testingCollectorConf.dependencies.forEach {
-                    println("\${it.reason}")
-                    ${cast("it", "ModuleDependency", dsl)}.excludeRules.forEach {
-                        println("\${it.group}:\${it.module}")
-                    }
-                }
+        testingCollectorConf.dependencies.forEach {
+            println("\${it.reason}")
+            ${cast("it", "ModuleDependency", dsl)}.excludeRules.forEach {
+                println("\${it.group}:\${it.module}")
             }
         }
         """
 
         when:
-        succeeds("printDependencyReasons")
+        succeeds("help")
 
         then:
         outputContains("""the action must be tested
@@ -402,17 +371,13 @@ ${BAZ_GROUP}:${BAZ_NAME}
             testingCollector(constraint(${expression}))
         }
 
-        tasks.register("printDependencyConstraints") {
-            doLast {
-                testingCollectorConf.dependencyConstraints.forEach {
-                    println("\${it.group}:\${it.name}:\${it.version}")
-                }
-            }
+        testingCollectorConf.dependencyConstraints.forEach {
+            println("\${it.group}:\${it.name}:\${it.version}")
         }
         """
 
         when:
-        succeeds("printDependencyConstraints")
+        succeeds("help")
 
         then:
         outputContains(expectedDependencyCoordinates)
