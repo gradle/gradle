@@ -18,12 +18,12 @@ package org.gradle.api.internal.cache;
 
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
-import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
-@ServiceScope(Scope.Global.class)
+@ServiceScope(Scopes.Global.class)
 public class StringInterner implements Interner<String> {
     private final Interner<String> interner;
 
