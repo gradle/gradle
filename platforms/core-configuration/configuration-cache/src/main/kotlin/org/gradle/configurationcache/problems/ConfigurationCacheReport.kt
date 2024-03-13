@@ -122,7 +122,10 @@ class ConfigurationCacheReport(
 
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
                 executor.submit {
-                    writer.writeDiagnostic(kind, decorate(problem))
+                    val p = decorate(problem)
+                    if (!p.isIntellijInitScriptProblem()) {
+                        writer.writeDiagnostic(kind, p)
+                    }
                 }
                 return this
             }
@@ -306,4 +309,13 @@ class ConfigurationCacheReport(
     private
     fun stackTraceStringFor(error: Throwable): String =
         stackTraceExtractor.stackTraceStringFor(error)
+}
+
+
+private
+fun DecoratedPropertyProblem.isIntellijInitScriptProblem(): Boolean {
+    val e = exception ?: return false
+    return e.original.stackTrace.any {
+        it.className.startsWith("ijIdeaPluginConfigurator")
+    }
 }
