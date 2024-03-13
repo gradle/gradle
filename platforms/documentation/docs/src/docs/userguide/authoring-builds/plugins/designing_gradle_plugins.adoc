@@ -16,18 +16,6 @@
 
 It is important to design Gradle plugins based on established practices.
 
-If you suspect issues with your plugin code, try creating a link:https://scans.gradle.com/[Build Scan] to identify bottlenecks.
-The link:https://github.com/gradle/gradle-profiler[Gradle profiler] can help automate Build Scan generation and gather more low-level information.
-
-== Use binary plugins
-
-Gradle distinguishes between two types of plugins: <<plugins.adoc#sec:types_of_plugins,script plugins>> and <<plugins.adoc#sec:types_of_plugins,binary plugins>>.
-
-<<plugins.adoc#sec:script_plugins,Script plugins>> are hard to maintain, test, and do not support defining new reusable types.
-
-<<plugins.adoc#sec:binary_plugins,Binary plugins>> should be used when logic needs to be shared across independent projects.
-They allow for structuring code into classes and packages, are cacheable, support versioning, and are easily testable.
-
 == Consider the impact on performance
 
 When designing Gradle plugins, be mindful of the impact on end users.
@@ -87,13 +75,6 @@ For inspiration, here are two open-source plugins that apply the concept:
 
 - link:https://bmuschko.github.io/gradle-docker-plugin/#provided_plugins[Docker plugin]
 - link:https://github.com/bmuschko/gradle-cargo-plugin#provided-plugins[Cargo plugin]
-
-== Use a statically-typed language
-
-It is recommended to use a statically-typed language like Java or Kotlin for implementing plugins to reduce the likelihood of binary incompatibilities.
-If using Groovy, consider using `@groovy.transform.CompileStatic`.
-
-The recommendation to use a statically-typed language is independent from the language choice for writing tests for your plugin code.
 
 [[restricting_the_plugin_implementation_to_gradle_s_public_api]]
 == Use Gradle’s public API

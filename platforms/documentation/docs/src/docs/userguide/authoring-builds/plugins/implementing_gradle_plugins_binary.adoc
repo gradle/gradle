@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[implemention_plugins]]
-= Implementing Plugins
+[[implemention_binary_plugins]]
+= Implementing Binary Plugins
 
-There are many key aspects of developing Gradle binary plugins, including a proper ID, a helper plugin, and extension objects.
+*Binary plugins* refer to plugins that are compiled and distributed as JAR files.
+These plugins are usually written in Java or Kotlin and provide custom functionality or tasks to a Gradle build.
 
 [[plugin-development-plugin]]
 == Using the Plugin Development plugin
@@ -76,8 +77,6 @@ For this, the `java-gradle-plugin` needs to be applied:
 include::sample[dir="snippets/developingPlugins/pluginIdentifier/kotlin",files="buildSrc/build.gradle.kts[]"]
 include::sample[dir="snippets/developingPlugins/pluginIdentifier/groovy",files="buildSrc/build.gradle[]"]
 ====
-
-Note that identifiers for <<custom_plugins.adoc#sec:precompiled_plugins,precompiled script plugins>> are automatically registered based on the file name of the script plugin.
 
 [[sec:working_with_files_in_custom_tasks_and_plugins]]
 == Working with files
@@ -172,64 +171,12 @@ Convention properties are properties that are initialized with default values an
 For example:
 
 ====
-[.multi-language-sample]
-=====
-.my-plugin.gradle.kts
-[source,kotlin]
-----
-class MyPluginExtension {
-    var message: String = "Hello, World!"
-}
-
-class MyPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        // Define a convention property with a default value
-        project.extensions.create("myPluginExtension", MyPluginExtension::class.java)
-
-        // Set default values for the convention property
-        project.extensions.getByType(MyPluginExtension::class.java).message = "Hello, World!"
-
-        // Add a task that uses the convention property
-        project.task("myTask") {
-            doLast {
-                println(project.extensions.getByType(MyPluginExtension::class.java).message)
-            }
-        }
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.my-plugin.gradle
-[source,groovy]
-----
-class MyPluginExtension {
-    String message
-}
-
-class MyPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        // Define a convention property with a default value
-        project.extensions.create('myPluginExtension', MyPluginExtension)
-
-        // Set default values for the convention property
-        project.myPluginExtension.message = 'Hello, World!'
-
-        // Add a task that uses the convention property
-        project.task('myTask') {
-            doLast {
-                println project.myPluginExtension.message
-            }
-        }
-    }
-}
-----
-=====
+include::sample[dir="snippets/customPlugins/customPluginWithConvention/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
 ====
 
-In this example, `MyPluginExtension` is a class that represents the convention.
-The message property is the convention property with a default value of 'Hello, World!'.
+In this example, `GreetingPluginExtension` is a class that represents the convention.
+The message property is the convention property with a default value of Hello from GreetingPlugin'.
 
 Users can override this value in their build script:
 
@@ -239,7 +186,7 @@ Users can override this value in their build script:
 .build.gradle.kts
 [source,kotlin]
 ----
-myPluginExtension {
+GreetingPluginExtension {
     message = "Custom message"
 }
 ----
@@ -249,69 +196,8 @@ myPluginExtension {
 .build.gradle
 [source,groovy]
 ----
-myPluginExtension {
+GreetingPluginExtension {
     message = 'Custom message'
-}
-----
-=====
-====
-
-The <<java_plugin.adoc#java_plugin,Java plugin>> provides convention properties like `sourceCompatibility` and `targetCompatibility` with default values.
-Users can customize these properties in their build scripts to specify the Java version compatibility for their project:
-
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-----
-=====
-====
-
-The link:https://developer.android.com/build[Android Gradle Plugin] provides convention properties like `compileSdkVersion` and `minSdkVersion` with default values.
-Users can customize these properties in their build scripts to specify the Android SDK versions for their app:
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-android {
-    compileSdkVersion(31)
-    defaultConfig {
-        minSdkVersion(21)
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-android {
-    compileSdkVersion 31
-    defaultConfig {
-        minSdkVersion 21
-    }
 }
 ----
 =====

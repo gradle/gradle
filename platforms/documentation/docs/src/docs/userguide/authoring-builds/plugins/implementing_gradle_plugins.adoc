@@ -15,670 +15,135 @@
 [[implemention_plugins]]
 = Implementing Plugins
 
-There are many key aspects of developing Gradle plugins, including a proper ID, a helper plugin, and extension objects.
-
-[[plugin-development-plugin]]
-== Using the Plugin Development plugin
-
-The <<java_gradle_plugin.adoc#java_gradle_plugin,Gradle Plugin Development plugin>> can be used to assist in the development of Gradle plugins.
-
-This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the `api` configuration, generate the required plugin descriptors in the resulting JAR file, and configure the <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> to be used when publishing.
-
-To apply and configure the plugin, add the following code to your build file:
-
-====
-include::sample[dir="snippets/plugins/customPlugin/kotlin/java-gradle-plugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
-include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",files="build.gradle[tags=use-and-configure-plugin]"]
-====
-
-Every plugin project should apply this plugin.
-
-[[sec:creating_a_plugin_id]]
-== Creating a plugin ID
-
-Plugin IDs are fully qualified, similar to Java packages (i.e., a reverse domain name).
-This format helps prevent naming collisions and allows for grouping plugins with similar ownership.
-
-A clear plugin identifier simplifies the process of applying the plugin to a project.
-To create a plugin ID:
-
-1. *Choose a Name:* Select a descriptive name that reflects the purpose of your plugin. Use a single term if possible.
-2. *Add a Domain Name:* Append a domain name to the plugin name to create a unique identifier. This helps avoid conflicts with other plugins that may have similar functionality.
-3. *Format:* Combine the name and domain name using dot notation. For example, if your plugin is named `myplugin` and your domain is `org.example`, the plugin ID would be `org.example.myplugin`.
-
-Your plugin ID should combine components that reflect the namespace (a reasonable pointer to you or your organization) and the name of the plugin it provides.
-For example, if your Github account is named `foo` and your plugin is named `bar`, a suitable plugin ID might be `com.github.foo.bar`.
-Similarly, if the plugin was developed at the `baz` organization, the plugin ID might be `org.baz.bar`.
-
-Plugin IDs should adhere to the following guidelines:
-
-- May contain any alphanumeric character, '.', and '-'.
-- Must contain at least one '.' character separating the namespace from the plugin's name.
-- Conventionally use a lowercase reverse domain name convention for the namespace.
-- Conventionally use only lowercase characters in the name.
-- `org.gradle` and `com.gradleware` namespaces may not be used.
-- Cannot start or end with a '.' character.
-- Cannot contain consecutive '.' characters (i.e., '..').
-
-While there are similarities between plugin IDs and package names, package names are generally more detailed than necessary for a plugin ID.
-For instance, adding "gradle" as a component of your plugin ID might seem reasonable, but since plugin IDs are only used for Gradle plugins, this would be superfluous.
-Typically, a namespace that identifies ownership and a name are sufficient for a plugin ID.
-
-When bundling multiple plugins in a single JAR artifact, it is recommended to adhere to the same naming conventions.
-This practice helps logically group related plugins.
-
-There is no limit to the number of plugins that can be registered by identifier.
-
-The identifiers for plugins written as a class should be defined in the build script of the project containing the plugin classes.
-For this, the `java-gradle-plugin` needs to be applied:
-
-====
-include::sample[dir="snippets/developingPlugins/pluginIdentifier/kotlin",files="buildSrc/build.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/pluginIdentifier/groovy",files="buildSrc/build.gradle[]"]
-====
-
-Note that identifiers for <<custom_plugins.adoc#sec:precompiled_plugins,precompiled script plugins>> are automatically registered based on the file name of the script plugin.
-
-[[sec:working_with_files_in_custom_tasks_and_plugins]]
-== Working with files
-
-When developing plugins, it's a good idea to be very flexible when accepting input configuration for file locations.
-
-You should use Gradle's <<custom_gradle_types.adoc#managed_properties,managed properties>> and `project.layout` to select file or directory locations.
-This will enable lazy configuration so that the actual location will only be resolved when the file is needed and can be reconfigured at any time during build configuration.
-
-This Gradle build file defines a task `GreetingToFileTask` that writes a greeting to a file.
-It also registers two tasks: `greet`, which creates the file with the greeting, and `sayGreeting`, which prints the contents of the file.
-The `greetingFile` property is used to specify the file path for the greeting:
-
-====
-include::sample[dir="snippets/tasks/customTaskWithFileProperty/kotlin",files="build.gradle.kts[tags=all]"]
-include::sample[dir="snippets/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
-====
-
-----
-$ gradle -q sayGreeting
-include::{snippetsPath}/tasks/customTaskWithFileProperty/tests/lazyFileProperties.out[]
-----
-
-In this example, we configure the `greet` task `destination` property as a closure/provider, which is evaluated with
-the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to turn the return value of the closure/provider into a `File` object at the last minute.
-Note that we specify the `greetingFile` property value _after_ the task configuration.
-This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then resolving that value when reading the property.
-
-You can find out more about working with files lazily in <<working_with_files.adoc#working_with_files,Working with Files>>.
-
-[[sec:getting_input_from_the_build]]
-== Making a plugin configurable
-
-Most plugins offer configuration options for build scripts and other plugins to customize how the plugin works.
-Plugins do this using *extension objects*.
-
-A link:{groovyDslPath}/org.gradle.api.Project.html[Project] has an associated link:{javadocPath}/org/gradle/api/plugins/ExtensionContainer.html[ExtensionContainer] object that contains all the settings and properties for the plugins that have been applied to the project.
-You can provide configuration for your plugin by adding an extension object to this container.
-
-An extension object is simply an object with Java Bean properties representing the configuration.
-
-Let's add a `greeting` extension object to the project, which allows you to configure the greeting:
-
-====
-include::sample[dir="snippets/customPlugins/customPluginWithConvention/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
-====
-
-----
-$ gradle -q hello
-include::{snippetsPath}/customPlugins/customPluginWithConvention/tests/customPluginWithConvention.out[]
-----
-
-In this example, `GreetingPluginExtension` is an object with a property called `message`.
-The extension object is added to the project with the name `greeting`.
-This object becomes available as a project property with the same name as the extension object.
-
-Often, you have several related properties you need to specify on a single plugin.
-Gradle adds a configuration block for each extension object so you can group settings:
-
-====
-include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
-====
-
-----
-$ gradle -q hello
-include::{snippetsPath}/customPlugins/customPluginWithAdvancedConvention/tests/customPluginWithAdvancedConvention.out[]
-----
-
-[.multi-language-text.lang-kotlin]
-In this example, several settings can be grouped within the `configure<GreetingPluginExtension>` block.
-The type used in the build script's `configure` function (`GreetingPluginExtension`) must match the extension type.
-Then, when the block is executed, the receiver of the block is the extension.
-
-[.multi-language-text.lang-groovy]
-In this example, several settings can be grouped within the `greeting` closure. The name of the closure block in the build script (`greeting`) must match the extension object name.
-Then, when the closure is executed, the fields on the extension object will be mapped to the variables within the closure based on the standard Groovy closure delegate feature.
-
-Using an extension object _extends_ the Gradle DSL to add a project property and DSL block for the plugin.
-Because an extension object is a regular object, you can provide your own DSL nested inside the plugin block by adding properties and methods to the extension object.
-
-You can find out more about implementing project extensions in <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>>.
-
-[[sec:plugin_conventions]]
-== Adding default configuration
-
-In plugins, you can define default values, also known as *conventions*, using the `project` object.
-
-=== Conventions
-Convention properties are properties that are initialized with default values and can be overridden by the user in their build script.
-For example:
-
-====
-[.multi-language-sample]
-=====
-.my-plugin.gradle.kts
-[source,kotlin]
-----
-class MyPluginExtension {
-    var message: String = "Hello, World!"
-}
-
-class MyPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        // Define a convention property with a default value
-        project.extensions.create("myPluginExtension", MyPluginExtension::class.java)
-
-        // Set default values for the convention property
-        project.extensions.getByType(MyPluginExtension::class.java).message = "Hello, World!"
-
-        // Add a task that uses the convention property
-        project.task("myTask") {
-            doLast {
-                println(project.extensions.getByType(MyPluginExtension::class.java).message)
-            }
-        }
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.my-plugin.gradle
-[source,groovy]
-----
-class MyPluginExtension {
-    String message
-}
-
-class MyPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        // Define a convention property with a default value
-        project.extensions.create('myPluginExtension', MyPluginExtension)
-
-        // Set default values for the convention property
-        project.myPluginExtension.message = 'Hello, World!'
-
-        // Add a task that uses the convention property
-        project.task('myTask') {
-            doLast {
-                println project.myPluginExtension.message
-            }
-        }
-    }
-}
-----
-=====
-====
-
-In this example, `MyPluginExtension` is a class that represents the convention.
-The message property is the convention property with a default value of 'Hello, World!'.
-
-Users can override this value in their build script:
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-myPluginExtension {
-    message = "Custom message"
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-myPluginExtension {
-    message = 'Custom message'
-}
-----
-=====
-====
-
-The <<java_plugin.adoc#java_plugin,Java plugin>> provides convention properties like `sourceCompatibility` and `targetCompatibility` with default values.
-Users can customize these properties in their build scripts to specify the Java version compatibility for their project:
-
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-----
-=====
-====
-
-The link:https://developer.android.com/build[Android Gradle Plugin] provides convention properties like `compileSdkVersion` and `minSdkVersion` with default values.
-Users can customize these properties in their build scripts to specify the Android SDK versions for their app:
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-android {
-    compileSdkVersion(31)
-    defaultConfig {
-        minSdkVersion(21)
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-android {
-    compileSdkVersion 31
-    defaultConfig {
-        minSdkVersion 21
-    }
-}
-----
-=====
-====
-
-[[sec:mapping_extension_properties_to_task_properties]]
-== Mapping extension properties to task properties
-
-Using an extension to capture user input from the build script and mapping it to a custom task's input/output properties is common in plugins.
-The build script author interacts with the extension's DSL, while the plugin implementation handles the underlying logic.
-
-[source,kotlin]
-----
-// Extension class to capture user input
-class MyExtension {
-    @Input
-    var inputParameter: String? = null
-}
-
-// Custom task that uses the input from the extension
-class MyCustomTask : org.gradle.api.DefaultTask() {
-    @Input
-    var inputParameter: String? = null
-
-    @TaskAction
-    fun executeTask() {
-        println("Input parameter: $inputParameter")
-    }
-}
-
-// Plugin class that configures the extension and task
-class MyPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        // Create and configure the extension
-        val extension = project.extensions.create("myExtension", MyExtension::class.java)
-        // Create and configure the custom task
-        project.tasks.register("myTask", MyCustomTask::class.java) {
-            it.group = "custom"
-            it.inputParameter = extension.inputParameter
-        }
-    }
-}
-----
-
-In this example, the `MyExtension` class defines an `inputParameter` property that can be set in the build script.
-The `MyPlugin` class configures this extension and uses its `inputParameter` value to configure the `MyCustomTask` task.
-The `MyCustomTask` task then uses this input parameter in its logic.
-
-You can find out more about types that you can use in task implementations and extensions in <<lazy_configuration.adoc#lazy_configuration,Lazy Configuration>>.
-
-[[capturing_user_input_to_configure_plugin_runtime_behavior]]
-== Capturing user input to configure runtime behavior
-
-Plugins often times come with default <<sec:plugin_conventions,conventions>> that make sensible assumptions about the consuming project.
-The Java plugin, for example, searches for Java source files in the directory `src/main/java`.
-
-Default conventions are helpful to streamline project layouts but fall short when dealing with custom project structures, legacy project requirements, or a different user preference.
-
-Plugins expose a way to reconfigure the default runtime behavior by exposing an extension.
-An extension captures user input through a custom DSL that fully blends into the DSL exposed by Gradle core.
-
-The following example applies a plugin that exposes an extension with the name `binaryRepo` to capture a server URL:
-
-====
-include::sample[dir="snippets/developingPlugins/customTask/kotlin",files="build.gradle.kts[tags=plugin-extension]"]
-include::sample[dir="snippets/developingPlugins/customTask/groovy",files="build.gradle[tags=plugin-extension]"]
-====
-
-Let's assume that you want to do something with the value of `serverUrl` once captured.
-In many cases, the exposed extension property is directly mapped to a task property that actually uses the value when performing work.
-
-Let's have a look at the internals of the plugin `BinaryRepositoryVersionPlugin` to give you a better idea.
-The plugin creates the extension of type `BinaryRepositoryExtension` and maps the extension property `serverUrl` to the task property `serverUrl`:
-
-.BinaryRepositoryVersionPlugin.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/BinaryRepositoryVersionPlugin.java[tags=snippet]
-----
-
-Instead of using a plain `String` type, the extension defines the properties `coordinates` and `serverUrl` with type `Property<String>`:
-
-.BinaryRepositoryExtension.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/BinaryRepositoryExtension.java[tags=snippet]
-----
-
-The abstract getters for the properties are automatically initialized by Gradle.
-The values of a property can then be changed on the property object obtained through the corresponding getter method.
-
-NOTE: The Gradle classloader automatically injects setter methods alongside all getter methods with the return type `Property`.
-It allows developers to simplify code like `obj.prop.set 'foo'` to `obj.prop = 'foo'`.
-
-The task property also defines the `serverUrl` with type `Property`.
-It allows for mapping the state of the property without actually accessing its value until needed for processing - in the task action:
-
-.LatestArtifactVersion.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/LatestArtifactVersion.java[tags=snippet]
-----
-
-== Declaring a DSL configuration container
-
-Sometimes you might want to expose a way for users to define multiple, named data objects of the same type.
-
-Let's consider the following build script for illustration purposes.
-
-====
-include::sample[dir="snippets/developingPlugins/namedDomainObjectContainer/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/namedDomainObjectContainer/groovy",files="build.gradle[]"]
-====
-
-The DSL exposed by the plugin exposes a container for defining a set of environments.
-Each environment configured by the user has an arbitrary but declarative name and is represented with its own DSL configuration block.
-The example above instantiates a development, staging and production environment including its respective URL.
-
-Obviously, each of these environments needs to have a data representation in code to capture the values.
-The name of an environment is immutable and can be passed in as constructor parameter.
-At the moment the only other parameter stored by the data object is a URL.
-
-The following `ServerEnvironment` object fulfills those requirements:
-
-.ServerEnvironment.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[tags=snippet]
-----
-
-Gradle exposes the factory method
-link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectContainer-java.lang.Class-org.gradle.api.NamedDomainObjectFactory-[ObjectFactory.domainObjectContainer(Class, NamedDomainObjectFactory)]
-to create a container of data objects.
-The parameter the method takes is the class representing the data.
-The created instance of type link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer] can be exposed to the end user by adding it to the extension container with a specific name.
-
-It's very common for a plugin to post-process the captured values within the plugin implementation, e.g. to configure tasks:
-
-.ServerEnvironmentPlugin.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[tags=snippet]
-----
-
-In the example above, a deployment task is created dynamically for every environment that was configured by the user.
-
-== Reacting to plugins
-
-Configuring the runtime behavior of existing plugins and tasks in a build is a common pattern in Gradle plugin implementations.
-
-For example a plugin could assume that it is applied to a Java-based project and automatically reconfigure the standard source directory:
-
-[[convention-api-usage-example]]
-.InhouseStrongOpinionConventionJavaPlugin.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseStrongOpinionConventionJavaPlugin.java[tags=snippet]
-----
-
-The drawback to this approach is that it automatically forces the project to apply the Java plugin and therefore imposes a strong opinion on it.
-In practice, the project applying the plugin might not even deal with Java code.
-
-Instead of automatically applying the Java plugin, the plugin could just react to the fact that the consuming project applies the Java plugin.
-Only if that is the case then certain configuration is applied:
-
-.InhouseConventionJavaPlugin.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionJavaPlugin.java[tags=snippet]
-----
-
-Reacting to plugins should be preferred over blindly applying other plugins if there is not a good reason for assuming that the consuming project has the expected setup.
-
-The same concept applies to task types:
-
-.InhouseConventionWarPlugin.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionWarPlugin.java[tags=snippet]
-----
-
-== Reacting to build features
-
-Plugins can access the status of build features in the build.
-The link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[Build Features API] allows checking whether the user requested a particular Gradle feature and if it is active in the current build.
-An example of a build feature is the <<configuration_cache.adoc#config_cache,configuration cache>>.
-
-There are two main use cases:
-
-- Using the status of build features in reports or statistics.
-- Incrementally adopting experimental Gradle features by disabling incompatible plugin functionality.
-
-Below is an example of a plugin that utilizes both of the cases.
-
-.Reacting to build features
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/reactingToBuildFeatures/groovy/buildSrc/src/main/java/MyPlugin.java[tags=my-plugin]
-----
-<1> The `BuildFeatures` service can be injected into plugins, tasks, and other managed types.
-<2> Accessing the `requested` status of a feature for reporting.
-<3> Using the `active` status of a feature to disable incompatible functionality.
-
-=== Build feature properties
-
-The status properties of a `BuildFeature` are represented with `Provider<Boolean>` types.
-
-The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getRequested--[`BuildFeature.getRequested()`] status of a build feature determines if the user requested to enable or disable the feature.
-
-When the `requested` provider value is:
-
-- `true` -- the user opted in for using the feature
-- `false` -- the user opted out from using the feature
-- `undefined` -- the user neither opted in nor opted out from using the feature
-
-The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[`BuildFeature.getActive()`] status of a build feature is always defined.
-It represents the effective state of the feature in the build.
-
-When the `active` provider value is:
-
-- `true` -- the feature _may_ affect the build behavior in a way specific to the feature
-- `false` -- the feature will not affect the build behavior
-
-Note that the `active` status does not depend on the `requested` status.
-Even if the user requested a feature, it may still not be active due to other build options used in the build.
-Gradle can also activate a feature by default, even if the user did not specify a preference.
-
-== Providing default dependencies
-
-The implementation of a plugin sometimes requires the use of an external dependency.
-
-You might want to automatically download an artifact using Gradle’s dependency management mechanism and later use it in the action of a task type declared in the plugin.
-Ideally, the plugin implementation does not need to ask the user for the coordinates of that dependency - it can simply predefine a sensible default version.
-
-Let’s have a look at an example of a plugin that downloads files containing data for further processing.
-The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#declaring-dependencies,assigning those external dependencies with dependency coordinates>>:
-
-.DataProcessingPlugin.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[tags=snippet]
-----
-
-.DataProcessing.java
-[source,java]
-----
-include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessing.java[tags=snippet]
-----
-
-This approach is convenient for the end user as there is no need to actively declare a dependency.
-The plugin already provides all the knowledge about this implementation detail.
-
-But what if the user wants to redefine the default dependency?
-
-No problem.
-The plugin also exposes the custom configuration that can be used to assign a different dependency.
-Effectively, the default dependency is overwritten:
-
-====
-include::sample[dir="snippets/developingPlugins/defaultDependency/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/defaultDependency/groovy",files="build.gradle[]"]
-====
-
-You will find that this pattern works well for tasks that require an external dependency when the action of the task is actually executed.
-You can go further and abstract the version to be used for the external dependency by exposing an extension property (e.g.
-`toolVersion` in link:{groovyDslPath}/org.gradle.testing.jacoco.plugins.JacocoPluginExtension.html[the JaCoCo plugin]).
-
-[[plugin-with-variants]]
-== Providing multiple variants of a plugin for different Gradle versions
-
-The most convenient way to configure additional plugin variants is to use <<feature_variants.adoc#feature_variants,feature variants>>, a concept available in all Gradle projects that apply one of the Java plugins:
-
-[source,kotlin]
-----
-dependencies {
-    implementation 'com.google.guava:guava:30.1-jre'        // Regular dependency
-    featureVariant 'com.google.guava:guava-gwt:30.1-jre'    // Feature variant dependency
-}
-----
-
-In the following example, each plugin variant is developed in isolation.
-There is a separate source set that is compiled separately and packaged in a separate Jar for each variant.
-
-The following sample demonstrates how to add a variant that is compatible with Gradle 7.0+ while the "main" variant is compatible with older versions:
-
-====
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=add-plugin-variant]"]
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=add-plugin-variant]"]
-====
-
-NOTE: Only Gradle versions 7 or higher can be explicitly targeted by a variant, as support for this was only added in Gradle 7.
-
-First, we declare a separate _source set_ and a _feature variant_ for our Gradle7 plugin variant.
-Then, we do some specific wiring to turn the feature into a proper Gradle plugin variant:
-
-<1> Assign the <<component_capabilities.adoc#declaring-component-capabilities,implicit capability that corresponds to the components GAV>> to the variant.
-<2> Assign the <<variant_attributes.adoc#sub:gradle_plugins_default_attributes,Gradle API version attribute>> to all <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>> of our Gradle7 variant. This information is used by Gradle to determine which variant to select during plugin resolution.
-<3> Configure the `processGradle7Resources` task to make sure the plugin descriptor file is added to the Gradle7 variant Jar.
-<4> Add a dependency to the `gradleApi()` for our new variant so that the API is visible during compilation time.
-
-Note that there is currently no convenient way to access the API of other Gradle versions as the one you are building the plugin with.
-Ideally, every variant should be able to declare a dependency to the API of the minimal Gradle version it supports.
-This will be improved in the future.
-
-The above snippet assumes that all variants of your plugin have the plugin class at the same location.
-That is, if your plugin class is `org.example.GreetingPlugin`, you need to create a second variant of that class in `src/gradle7/java/org/example`.
-
-== Using version-specific variants of multi-variant plugins
-
-Given a dependency on a multi-variant plugin, Gradle will automatically choose its variant that best matches the current Gradle version when it resolves any of:
-
-* plugins specified in the <<plugins.adoc#sec:plugins_block,`plugins {}` block>>;
-* `buildscript` classpath dependencies;
-* dependencies in the root project of the <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,build source (`buildSrc`)>> that appear on the compile or runtime classpath;
-* dependencies in a project that applies the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> or the <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL plugin>>, appearing on the compile or runtime classpath.
-
-The best matching variant is the variant that targets the highest Gradle API version not exceeding the current build's Gradle version.
-
-In all other cases, a plugin variant that does not specify the supported Gradle API version is preferred, if such a variant is present.
-
-In projects that use plugins as dependencies, it is possible to request the variants of plugin dependencies that support a different Gradle version.
-This allows a multi-variant plugin that depends on other plugins to access their APIs which are exclusively provided in their version-specific variants.
-
-This snippet makes the <<#plugin-with-variants,plugin variant `gradle7` defined above>> consume the matching variants of its dependencies on other multi-variant plugins:
-
-====
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=consume-plugin-variant]"]
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
-====
-
-== Reporting problems
-
-Plugins can report problems through Gradle's problem-reporting APIs.
-The APIs report rich, structured information about problems happening during the build.
-This information can be used by different user interfaces such as Gradle's console output, Build Scans, or IDEs to communicate problems to the user in the most appropriate way.
-
-The following example shows an issue reported from a plugin:
-
-====
-include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc/src/main/java/org/myorg",files="ProblemReportingPlugin.java[tags=snippet]"]
-====
-
-<1> The `Problem` service is injected into the plugin.
-<2> A problem reporter, is created for the plugin. While the namespace is up to the plugin author, it is recommended to use the plugin ID.
-<3> A problem is reported. This problem is recoverable so that the build will continue.
-
-For a full example, see our link:../samples/sample_problems_api_usage.html[end-to-end sample].
-
-=== Problem building
-
-When reporting a problem, a wide variety of information can be provided.
-The link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[ProblemSpec] describes all the information that can be provided.
-
-=== Reporting problems
-
-When it comes to reporting problems, we support three different modes:
-
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#reporting-org.gradle.api.Action-[Reporting] a problem is used for reporting problems that are recoverable, and the build should continue.
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing-org.gradle.api.Action-[Throwing] a problem is used for reporting problems that are not recoverable, and the build should fail.
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#rethrowing-java.lang.RuntimeException-org.gradle.api.Action-[Rethrowing] a problem is used to wrap an already thrown exception. Otherwise, the behavior is the same as `Throwing`.
-
-See the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[ProblemReporter] documentation for more details.
-
-=== Problem aggregation
-
-When reporting problems, Gradle will aggregate similar problems when it sends them through the Tooling API based on the problem's category label.
-
- - When a problem is reported, the _first_ occurrence is going to be reported as a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemDescriptor.html[ProblemDescriptor], containing the complete information about the problem.
- - Any subsequent occurrences of the same problem will be reported as a link:{javaDocPath}org/gradle/tooling/events/problems/ProblemAggregationDescriptor.html[ProblemAggregationDescriptor]. This descriptor will arrive at the _end_ of the build and contain the number of occurrences of the problem.
- - If for any bucket (i.e., category and label pairing), the number of collected occurrences is greater than 10.000, then it will be sent immediately instead of at the end of the build.
+While there are many types of plugins -- script, pre-compiled script, or binary plugins -- there are also many choices for implementing each type of plugin:
+
+[cols="~,~,~,~,~,~"]
+|===
+|*#* |*Using:* |*Type:* |*The Plugin is:* |*Created by applying:* |*Use?*
+
+|1
+|Kotlin DSL
+|Script
+|in a `.gradle.kts` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
+|
+|No
+
+|2
+|Kotlin DSL
+|Pre-compiled script
+|a `.gradle.kts` file
+|`id("kotlin-dsl")`
+|Yes
+
+|3
+|Kotlin DSL
+|Binary
+|a `.gradle.kts` file
+|`id("kotlin-dsl")` +
+`id("com.gradle.plugin-publish")`
+|No
+
+|4
+|Groovy DSL
+|Script
+|in a `.gradle` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
+|
+|No
+
+|5
+|Groovy DSL
+|Pre-compiled script
+|a `.gradle` file
+|`id("groovy-gradle-plugin")`
+|No
+
+|6
+|Groovy DSL
+|Binary
+|a `.gradle` file
+|`id("groovy-gradle-plugin")` +
+`id("com.gradle.plugin-publish")`
+|No
+
+|7
+|Java
+|Pre-compiled script
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
+|`id("java-gradle-plugin")`
+|Yes
+
+|8
+|Java
+|Binary
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
+|`id("java-gradle-plugin")` +
+`id("com.gradle.plugin-publish")`
+|Yes
+
+|9
+|Kotlin
+|Pre-compiled script
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
+|`id("java-gradle-plugin")`
+`id("org.jetbrains.kotlin.jvm")`
+|No
+
+|10
+|Kotlin
+|Binary
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
+|`id("java-gradle-plugin")` +
+`id("org.jetbrains.kotlin.jvm")` +
+`id("com.gradle.plugin-publish")`
+|Yes
+
+|11
+|Groovy
+|Pre-compiled script
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
+|`id("java-gradle-plugin")`
+`id("groovy")`
+|No
+
+|12
+|Groovy
+|Binary
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
+|`id("java-gradle-plugin")` +
+`id("groovy")` +
+`id("com.gradle.plugin-publish")`
+|No
+
+|13
+|Scala
+|Pre-compiled script
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
+|`id("java-gradle-plugin")`
+`id("scala")`
+|No
+
+|14
+|Scala
+|Binary
+|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
+|`id("java-gradle-plugin")` +
+`id("scala")` +
+`id("com.gradle.plugin-publish")`
+|No
+|===
+
+<<custom_plugins#sec:build_script_plugins,*Script plugins*>> are hard to maintain, test, and do not support defining new reusable types.
+They are not recommended.
+
+<<custom_plugins#sec:precompile_script_plugin,*Pre-compiled script*>> plugins are best used as <<custom_plugins#sec:convention_plugins,*convention plugins*>>.
+
+<<custom_plugins#sec:custom_plugins_standalone_project,*Binary plugins*>> should be used when logic needs to be shared across independent projects.
+They allow for structuring code into classes and packages, are cacheable, support versioning, and are easily testable.
+
+It is recommended to use a statically-typed language like *Java* or *Kotlin* for implementing plugins to reduce the likelihood of binary incompatibilities.
+If using Groovy, consider using `@groovy.transform.CompileStatic`.
+
+The recommendation to use a statically-typed language is independent of the language choice for writing tests for your plugin code.
+
+If you suspect issues with your plugin code, try creating a link:https://scans.gradle.com/[Build Scan] to identify bottlenecks.
+The link:https://github.com/gradle/gradle-profiler[Gradle profiler] can help automate Build Scan generation and gather more low-level information.
