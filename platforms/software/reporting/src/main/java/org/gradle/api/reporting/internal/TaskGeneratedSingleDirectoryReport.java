@@ -22,14 +22,16 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.reporting.DirectoryReport;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
 public abstract class TaskGeneratedSingleDirectoryReport extends TaskGeneratedReport implements DirectoryReport {
+    @Nullable
     private final String relativeEntryPath;
 
     @Inject
-    public TaskGeneratedSingleDirectoryReport(String name, Task task, String relativeEntryPath) {
+    public TaskGeneratedSingleDirectoryReport(String name, Task task, @Nullable String relativeEntryPath) {
         super(name, OutputType.DIRECTORY, task);
         this.relativeEntryPath = relativeEntryPath;
         getOutputLocation().convention(getProjectLayout().dir(new DefaultProvider<>(() -> {
