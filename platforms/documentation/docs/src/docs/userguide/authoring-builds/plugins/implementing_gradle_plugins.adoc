@@ -26,14 +26,14 @@ While there are many types of plugins -- script, pre-compiled script, or binary 
 |Script
 |in a `.gradle.kts` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |
-|No
+|Nofootnote:1[<<custom_plugins#sec:build_script_plugins,*Script plugins*>> are hard to maintain, test, and do not support defining new reusable types. They are not recommended.]
 
 |2
 |Kotlin DSL
 |Pre-compiled script
 |a `.gradle.kts` file
 |`id("kotlin-dsl")`
-|Yes
+|Yesfootnote:3[It is recommended to use a statically-typed language like *Java* or *Kotlin* for implementing plugins to reduce the likelihood of binary incompatibilities. If using Groovy, consider using `@groovy.transform.CompileStatic`.]
 
 |3
 |Kotlin DSL
@@ -41,21 +41,21 @@ While there are many types of plugins -- script, pre-compiled script, or binary 
 |a `.gradle.kts` file
 |`id("kotlin-dsl")` +
 `id("com.gradle.plugin-publish")`
-|No
+|Yesfootnote:3[]
 
 |4
 |Groovy DSL
 |Script
 |in a `.gradle` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |
-|No
+|Nofootnote:1[]
 
 |5
 |Groovy DSL
 |Pre-compiled script
 |a `.gradle` file
 |`id("groovy-gradle-plugin")`
-|No
+|Nofootnote:2[<<custom_plugins#sec:precompile_script_plugin,*Pre-compiled script*>> plugins are best used as <<custom_plugins#sec:convention_plugins,*convention plugins*>>.]
 
 |6
 |Groovy DSL
@@ -63,14 +63,14 @@ While there are many types of plugins -- script, pre-compiled script, or binary 
 |a `.gradle` file
 |`id("groovy-gradle-plugin")` +
 `id("com.gradle.plugin-publish")`
-|No
+|Nofootnote:3[]
 
 |7
 |Java
 |Pre-compiled script
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |`id("java-gradle-plugin")`
-|Yes
+|Yesfootnote:2[]
 
 |8
 |Java
@@ -78,7 +78,7 @@ While there are many types of plugins -- script, pre-compiled script, or binary 
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |`id("java-gradle-plugin")` +
 `id("com.gradle.plugin-publish")`
-|Yes
+|Yesfootnote:3[<<custom_plugins#sec:custom_plugins_standalone_project,*Binary plugins*>> should be used when logic needs to be shared across independent projects. They allow for structuring code into classes and packages, are cacheable, support versioning, and are easily testable.]
 
 |9
 |Kotlin
@@ -86,7 +86,7 @@ While there are many types of plugins -- script, pre-compiled script, or binary 
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |`id("java-gradle-plugin")`
 `id("org.jetbrains.kotlin.jvm")`
-|No
+|Nofootnote:2[]
 
 |10
 |Kotlin
@@ -95,7 +95,7 @@ While there are many types of plugins -- script, pre-compiled script, or binary 
 |`id("java-gradle-plugin")` +
 `id("org.jetbrains.kotlin.jvm")` +
 `id("com.gradle.plugin-publish")`
-|Yes
+|Yesfootnote:3[]
 
 |11
 |Groovy
@@ -103,7 +103,7 @@ While there are many types of plugins -- script, pre-compiled script, or binary 
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |`id("java-gradle-plugin")`
 `id("groovy")`
-|No
+|Nofootnote:2[]
 
 |12
 |Groovy
@@ -112,7 +112,7 @@ While there are many types of plugins -- script, pre-compiled script, or binary 
 |`id("java-gradle-plugin")` +
 `id("groovy")` +
 `id("com.gradle.plugin-publish")`
-|No
+|Nofootnote:3[]
 
 |13
 |Scala
@@ -120,7 +120,7 @@ While there are many types of plugins -- script, pre-compiled script, or binary 
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |`id("java-gradle-plugin")`
 `id("scala")`
-|No
+|Nofootnote:2[]
 
 |14
 |Scala
@@ -129,21 +129,8 @@ While there are many types of plugins -- script, pre-compiled script, or binary 
 |`id("java-gradle-plugin")` +
 `id("scala")` +
 `id("com.gradle.plugin-publish")`
-|No
+|Nofootnote:3[]
 |===
-
-<<custom_plugins#sec:build_script_plugins,*Script plugins*>> are hard to maintain, test, and do not support defining new reusable types.
-They are not recommended.
-
-<<custom_plugins#sec:precompile_script_plugin,*Pre-compiled script*>> plugins are best used as <<custom_plugins#sec:convention_plugins,*convention plugins*>>.
-
-<<custom_plugins#sec:custom_plugins_standalone_project,*Binary plugins*>> should be used when logic needs to be shared across independent projects.
-They allow for structuring code into classes and packages, are cacheable, support versioning, and are easily testable.
-
-It is recommended to use a statically-typed language like *Java* or *Kotlin* for implementing plugins to reduce the likelihood of binary incompatibilities.
-If using Groovy, consider using `@groovy.transform.CompileStatic`.
-
-The recommendation to use a statically-typed language is independent of the language choice for writing tests for your plugin code.
 
 If you suspect issues with your plugin code, try creating a link:https://scans.gradle.com/[Build Scan] to identify bottlenecks.
 The link:https://github.com/gradle/gradle-profiler[Gradle profiler] can help automate Build Scan generation and gather more low-level information.

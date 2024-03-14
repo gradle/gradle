@@ -218,7 +218,7 @@ Having each developer execute the plugin build as part of their development proc
 
 There are two ways to update the convention plugin in the example above into a binary plugin.
 
-1. Use <<composite_builds.adoc#composite-builds,composite builds>>:
+1. Use <<composite_builds.adoc#composite_builds,composite builds>>:
 +
 .settings.gradle.kts
 [source,kotlin]
