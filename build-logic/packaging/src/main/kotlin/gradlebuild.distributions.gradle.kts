@@ -16,6 +16,7 @@
 
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
+import gradlebuild.basics.buildVersionQualifier
 import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.tasks.PackageListGenerator
@@ -263,7 +264,11 @@ fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLif
         moduleIdentity.version.map { "gradle-${it.baseVersion.version}" }
     } else {
         moduleIdentity.version.map { "gradle-${it.version}" }
+            .zip(buildVersionQualifier) { version: String, branchQualifier: String ->
+                version.replace("-$branchQualifier", "")
+            }
     }
+
     val installation = tasks.register<Sync>("${name}Installation") {
         group = "distribution"
         into(layout.buildDirectory.dir("$name distribution"))
