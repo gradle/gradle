@@ -163,7 +163,7 @@ The new [`includeSystemOutLog` and `includeSystemErrLog` options](userguide/java
 Disabling these options can be useful when running a test task results in a large amount of standard output or standard error data that is not relevant for testing, or to preserve disk space when running jobs on CI.
 
 Set these options by configuring the
-link:{javadocPath}/org/gradle/api/tasks/testing/JUnitXmlReport.html[JUnitXmlReport] options block.
+[JUnitXmlReport](javadoc/org/gradle/api/tasks/testing/JUnitXmlReport.html) options block.
 
 ```kotlin
 tasks.test {
@@ -174,7 +174,6 @@ tasks.test {
     }
 }
 ```
-
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
