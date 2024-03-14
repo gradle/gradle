@@ -30,7 +30,6 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.ApiType;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
@@ -90,7 +89,6 @@ public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
-        configureApiType(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
@@ -98,7 +96,6 @@ public abstract class JavaEcosystemSupport {
         attributesSchema.attributeDisambiguationPrecedence(
                 Category.CATEGORY_ATTRIBUTE,
                 Usage.USAGE_ATTRIBUTE,
-                ApiType.TYPE_ATTRIBUTE,
                 TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
                 LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
                 Bundling.BUNDLING_ATTRIBUTE,
@@ -147,66 +144,8 @@ public abstract class JavaEcosystemSupport {
         libraryElementsSchema.getCompatibilityRules().add(LibraryElementsCompatibilityRules.class);
         libraryElementsSchema.getDisambiguationRules().add(LibraryElementsDisambiguationRules.class, actionConfiguration -> {
             actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.JAR));
-            actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES));
         });
     }
-
-    private static void configureApiType(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
-        AttributeMatchingStrategy<ApiType> typeSchema = attributesSchema.attribute(ApiType.TYPE_ATTRIBUTE);
-        typeSchema.getCompatibilityRules().add(ApiTypeCompatibilityRules.class);
-        typeSchema.getDisambiguationRules().add(ApiTypeDisambiguationRules.class, actionConfiguration -> {
-            actionConfiguration.params(objectFactory.named(ApiType.class, ApiType.PUBLIC));
-        });
-    }
-
-    @VisibleForTesting
-    public static class ApiTypeCompatibilityRules implements AttributeCompatibilityRule<ApiType>, ReusableAction {
-        @Override
-        public void execute(CompatibilityCheckDetails<ApiType> details) {
-            ApiType consumerValue = details.getConsumerValue();
-            ApiType producerValue = details.getProducerValue();
-
-            if (consumerValue == null) {
-                // The consumer didn't express any preferences, so everything is compatible.
-                details.compatible();
-                return;
-            }
-
-            // The user requested the public API. The private API is a superset of the public API, so it is compatible.
-            if (ApiType.PUBLIC.equals(consumerValue.getName()) &&
-                ApiType.PRIVATE.equals(producerValue.getName())
-            ) {
-                details.compatible();
-            }
-        }
-    }
-
-    @VisibleForTesting
-    static class ApiTypeDisambiguationRules implements AttributeDisambiguationRule<ApiType>, ReusableAction {
-
-        final ApiType publicType;
-
-        @Inject
-        public ApiTypeDisambiguationRules(ApiType publicType) {
-            this.publicType = publicType;
-        }
-
-        @Override
-        public void execute(MultipleCandidatesDetails<ApiType> details) {
-            Set<ApiType> candidateValues = details.getCandidateValues();
-            ApiType consumerValue = details.getConsumerValue();
-            if (consumerValue == null) {
-                if (candidateValues.contains(publicType)) {
-                    // Use the public api when nothing has been requested.
-                    details.closestMatch(publicType);
-                }
-            } else if (candidateValues.contains(consumerValue)) {
-                // Use what they requested, if available.
-                details.closestMatch(consumerValue);
-            }
-        }
-    }
-
     @VisibleForTesting
     public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
         final Usage javaApi;
@@ -300,12 +239,10 @@ public abstract class JavaEcosystemSupport {
     @VisibleForTesting
     static class LibraryElementsDisambiguationRules implements AttributeDisambiguationRule<LibraryElements>, ReusableAction {
         final LibraryElements jar;
-        final LibraryElements classesAndResources;
 
         @Inject
-        LibraryElementsDisambiguationRules(LibraryElements jar, LibraryElements classesAndResources) {
+        LibraryElementsDisambiguationRules(LibraryElements jar) {
             this.jar = jar;
-            this.classesAndResources = classesAndResources;
         }
 
         @Override
@@ -320,25 +257,6 @@ public abstract class JavaEcosystemSupport {
             } else if (candidateValues.contains(consumerValue)) {
                 // Use what they requested, if available
                 details.closestMatch(consumerValue);
-            } else {
-                // The requested library elements are not available. Try to find a superset.
-                if (consumerValue.getName().equals(LibraryElements.CLASSES)) {
-                    if (candidateValues.contains(classesAndResources)) {
-                        details.closestMatch(classesAndResources);
-                    } else if (candidateValues.contains(jar)) {
-                        details.closestMatch(jar);
-                    }
-                } else if (consumerValue.getName().equals(LibraryElements.RESOURCES)) {
-                    if (candidateValues.contains(classesAndResources)) {
-                        details.closestMatch(classesAndResources);
-                    } else if (candidateValues.contains(jar)) {
-                        details.closestMatch(jar);
-                    }
-                } else if (consumerValue.getName().equals(LibraryElements.CLASSES_AND_RESOURCES)) {
-                    if (candidateValues.contains(jar)) {
-                        details.closestMatch(jar);
-                    }
-                }
             }
         }
     }
@@ -357,16 +275,9 @@ public abstract class JavaEcosystemSupport {
             }
             String consumerValueName = consumerValue.getName();
             String producerValueName = producerValue.getName();
-
-            if (LibraryElements.CLASSES_AND_RESOURCES.equals(producerValueName)) {
-                // If we want just classes or just resources, classes and resources works.
-                if (LibraryElements.CLASSES.equals(consumerValueName) || LibraryElements.RESOURCES.equals(consumerValueName)) {
-                    details.compatible();
-                    return;
-                }
-            } else if (LibraryElements.JAR.equals(producerValueName)) {
-                // If we want just classes, just resources, or both, a JAR works.
-                if (LibraryElements.CLASSES.equals(consumerValueName) || LibraryElements.RESOURCES.equals(consumerValueName) || LibraryElements.CLASSES_AND_RESOURCES.equals(consumerValueName)) {
+            if (LibraryElements.CLASSES.equals(consumerValueName) || LibraryElements.RESOURCES.equals(consumerValueName) || LibraryElements.CLASSES_AND_RESOURCES.equals(consumerValueName)) {
+                // JAR is compatible with classes or resources
+                if (LibraryElements.JAR.equals(producerValueName)) {
                     details.compatible();
                     return;
                 }

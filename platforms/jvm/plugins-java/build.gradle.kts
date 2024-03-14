@@ -18,7 +18,6 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":language-jvm"))
     implementation(project(":ivy"))
-    implementation(project(":logging"))
     implementation(project(":maven"))
     implementation(project(":model-core"))
     implementation(project(":platform-base"))

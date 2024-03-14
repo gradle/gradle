@@ -82,7 +82,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage': 'java-api', 'org.gradle.api-type': 'public', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', 'org.gradle.dependency.bundling': 'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    variant "apiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', 'org.gradle.dependency.bundling': 'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
                     artifact name: 'main', extension: '', type: 'java-classes-directory'
                 }
                 project(":lib", "test:lib:") {
@@ -132,7 +132,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage': 'java-api', 'org.gradle.api-type': 'public', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', 'org.gradle.dependency.bundling': 'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    variant "apiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', 'org.gradle.dependency.bundling': 'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
                     artifact name: 'main', extension: '', type: 'java-classes-directory'
                 }
             }

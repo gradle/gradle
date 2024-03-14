@@ -238,12 +238,11 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration compileClasspath (i)
+Configuration compileClasspath
 --------------------------------------------------
 Compile classpath for source set 'main'.
 
 Attributes
-    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
@@ -283,12 +282,11 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration testCompileClasspath (i)
+Configuration testCompileClasspath
 --------------------------------------------------
 Compile classpath for source set 'test'.
 
 Attributes
-    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
@@ -364,12 +362,11 @@ Configuration archiveLegacy (l)
 Example legacy configuration.
 
 --------------------------------------------------
-Configuration compileClasspath (i)
+Configuration compileClasspath
 --------------------------------------------------
 Compile classpath for source set 'main'.
 
 Attributes
-    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
@@ -409,12 +406,11 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration testCompileClasspath (i)
+Configuration testCompileClasspath
 --------------------------------------------------
 Compile classpath for source set 'test'.
 
 Attributes
-    - org.gradle.api-type            = public
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
@@ -639,7 +635,6 @@ Disambiguation Rules
 The following Attributes have disambiguation rules defined.
 
     - flavor (1)
-    - org.gradle.api-type
     - org.gradle.category
     - org.gradle.dependency.bundling
     - org.gradle.jvm.environment
@@ -700,12 +695,11 @@ Disambiguation Rules
 The following Attributes have disambiguation rules defined.
 
     - flavor
-    - org.gradle.api-type (3)
     - org.gradle.category (1)
-    - org.gradle.dependency.bundling (6)
-    - org.gradle.jvm.environment (7)
-    - org.gradle.jvm.version (4)
-    - org.gradle.libraryelements (5)
+    - org.gradle.dependency.bundling (5)
+    - org.gradle.jvm.environment (6)
+    - org.gradle.jvm.version (3)
+    - org.gradle.libraryelements (4)
     - org.gradle.plugin.api-version
     - org.gradle.usage (2)
 
