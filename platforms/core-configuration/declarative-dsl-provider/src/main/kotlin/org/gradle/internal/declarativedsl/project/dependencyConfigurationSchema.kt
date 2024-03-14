@@ -104,13 +104,22 @@ class ImplicitDependencyCollectorFunctionExtractor(val configurations: Dependenc
         .filter { function -> hasDependencyCollectorGetterSignature(function) }
         .map { function -> function.name.removePrefix("get").replaceFirstChar { it.lowercase(Locale.getDefault()) } }
         .filter { confName -> confName in configurations.configurationNames }
-        .map { confName ->
-            DataMemberFunction(
-                kClass.toDataTypeRef(),
-                confName,
-                listOf(DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
-                false,
-                FunctionSemantics.AddAndConfigure(kClass.toDataTypeRef(), NOT_ALLOWED)
+        .flatMap { confName ->
+            listOf(
+                DataMemberFunction(
+                    kClass.toDataTypeRef(),
+                    confName,
+                    listOf(DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
+                    false,
+                    FunctionSemantics.AddAndConfigure(kClass.toDataTypeRef(), NOT_ALLOWED)
+                ),
+                DataMemberFunction(
+                    kClass.toDataTypeRef(),
+                    confName,
+                    listOf(DataParameter("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
+                    false,
+                    FunctionSemantics.AddAndConfigure(kClass.toDataTypeRef(), NOT_ALLOWED)
+                )
             )
         }
 
@@ -148,14 +157,29 @@ class ImplicitDependencyCollectorFunctionResolver(configurations: DependencyConf
         if (name in configurationNames) {
             val getterFunction = getDependencyCollectorGetter(receiverClass, name)
             if (getterFunction != null) {
-                return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
-                    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
-                        val dependencyNotation = binding.values.single().toString()
-                        val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
-                        collector.add(dependencyNotation)
-                        return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
-                    }
-                })
+                val gavParam = DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
+                val projectParam = DataParameter("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
+                if (parameterValueBinding.bindingMap.containsKey(gavParam)) {
+                    return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
+                        override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
+                            val dependencyNotation = binding.values.single().toString()
+                            val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
+                            collector.add(dependencyNotation)
+                            return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
+                        }
+                    })
+                } else if (parameterValueBinding.bindingMap.containsKey(projectParam)) {
+                    return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
+                        override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
+                            val dependencyNotation = binding.values.single() as ProjectDependency
+                            val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
+                            collector.add(dependencyNotation)
+                            return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
+                        }
+                    })
+                } else {
+                    throw IllegalStateException()
+                }
             }
         }
         return RuntimeFunctionResolver.Resolution.Unresolved
