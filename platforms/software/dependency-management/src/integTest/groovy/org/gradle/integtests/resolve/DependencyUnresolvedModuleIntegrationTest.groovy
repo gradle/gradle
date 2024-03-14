@@ -229,6 +229,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         !downloadedLibsDir.isDirectory()
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "when repository timeout resolving a configuration is swallowed, trying to re-resolve that configuration still prints the original cause"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
@@ -268,6 +269,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         assertDependencyMetaDataReadTimeout(moduleA)
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "when repository timeout resolving a configuration is swallowed, trying to resolve another configuration using the same repository still prints original cause"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
