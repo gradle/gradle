@@ -133,7 +133,12 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     }
 
     private static String getOutputPath(File input, Function<String, String> instrumentedEntryNameMapper) {
-        return INSTRUMENTED_JAR_DIR_NAME + "/" + instrumentedEntryNameMapper.apply(input.getName());
+        // Currently every artifact is instrumented in to a jar. Even if it's originally a directory.
+        // So let's append .jar if original name doesn't have it: this can happen in case we instrument a directory.
+        String entryName = input.getName().endsWith(".jar")
+            ? input.getName()
+            : input.getName() + ".jar";
+        return INSTRUMENTED_JAR_DIR_NAME + "/" + instrumentedEntryNameMapper.apply(entryName);
     }
 
     private boolean isAgentSupported() {

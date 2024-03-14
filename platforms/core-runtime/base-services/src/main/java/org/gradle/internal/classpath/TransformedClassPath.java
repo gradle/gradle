@@ -330,10 +330,13 @@ public class TransformedClassPath implements ClassPath {
     }
 
     private static boolean areInstrumentedAndOriginalJarValid(File instrumentedJar, File originalJar) {
+        String expectedInstrumentedJarName = originalJar.getName().endsWith(".jar")
+            ? originalJar.getName()
+            : originalJar.getName() + ".jar";
         return instrumentedJar.getParentFile() != null
             && instrumentedJar.getParentFile().getName().equals(INSTRUMENTED_JAR_DIR_NAME)
             && !originalJar.equals(instrumentedJar)
-            && instrumentedJar.getName().equals(INSTRUMENTED_ENTRY_PREFIX + originalJar.getName());
+            && instrumentedJar.getName().equals(INSTRUMENTED_ENTRY_PREFIX + expectedInstrumentedJarName);
     }
 
     private static boolean isInstrumentedMarkerFile(File classPathEntry) {
