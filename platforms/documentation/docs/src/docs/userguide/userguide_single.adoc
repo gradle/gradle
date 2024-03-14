@@ -96,7 +96,6 @@ include::custom_tasks.adoc[leveloffset=+2]
 == DEVELOPING PLUGINS
 
 include::custom_plugins.adoc[leveloffset=+2]
-include::designing_gradle_plugins.adoc[leveloffset=+2]
 include::implementing_gradle_plugins.adoc[leveloffset=+2]
 include::testing_gradle_plugins.adoc[leveloffset=+2]
 include::publishing_gradle_plugins.adoc[leveloffset=+2]
