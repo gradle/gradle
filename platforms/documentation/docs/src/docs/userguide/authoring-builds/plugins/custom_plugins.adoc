@@ -34,7 +34,7 @@ But when users want to organize their build logic or need specific build capabil
 As such, we distinguish between three different kinds of plugins:
 
 1. *Core Plugins* - plugins that come from Gradle.
-2. *Community Plugins* - plugins that come from the public link:https://plugins.gradle.org/[Gradle Plugin Portal].
+2. *Community Plugins* - plugins that come from link:https://plugins.gradle.org/[Gradle Plugin Portal] or a public repository.
 3. *Local or Custom Plugins* - plugins that you develop yourself.
 
 === Core Plugins
@@ -42,7 +42,7 @@ The term *core plugin* refers to a plugin that is part of the Gradle distributio
 It is always available.
 
 === Community Plugins
-The term *community plugin* refers to a plugin published to the Gradle Plugin Portal or another repository such as `id("com.diffplug.spotless") version "6.25.0"`.
+The term *community plugin* refers to a plugin published to the Gradle Plugin Portal (or another public repository) such as `id("com.diffplug.spotless") version "6.25.0"`.
 In order for Gradle to find the plugin, you must declare the repository that provides the plugin.
 For example, `gradlePluginPortal()`.
 
@@ -105,6 +105,7 @@ include::{snippetsPath}/customPlugins/customPlugin/tests/customPlugin.out[]
 == Precompiled script plugins
 
 *Precompiled script plugins* are compiled into class files and packaged into a JAR before they are executed.
+They are best used as *convention plugins* that share build logic across projects or as a way to neatly organize build logic.
 
 To create a precompiled script plugin, you can:
 
@@ -129,7 +130,7 @@ When the plugin is applied to a project, Gradle creates an instance of the plugi
 
 NOTE: A new instance of a `Plugin` is created for each project it is applied to.
 
-The `GreetingPlugin` script plugin is upgraded from a build script plugin to a precompiled script plugin:
+Let's update the `GreetingPlugin` script plugin to a precompiled script plugin:
 
 ====
 [.multi-language-sample]
@@ -176,12 +177,12 @@ class GreetingPlugin implements Plugin<Project> {
 =====
 ====
 
-And it is applied accordingly:
+The `GreetingPlugin` can now be applied in other build files using its `com.example.GreetingPlugin` ID:
 
 ====
 [.multi-language-sample]
 =====
-.build.gradle.kts
+./subproject/build.gradle.kts
 [source,kotlin]
 ----
 plugins {
@@ -191,7 +192,7 @@ plugins {
 =====
 [.multi-language-sample]
 =====
-.build.gradle
+./subproject/build.gradle
 [source,groovy]
 ----
 plugins {
@@ -204,8 +205,7 @@ plugins {
 [[sec:convention_plugins]]
 == Convention Plugins
 
-A *convention plugin* is a plugin that configures existing core and community plugins with your own conventions (i.e. default values).
-For example, you can set the Java version by using `java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))`.
+A *convention plugin* is a plugin that configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))`.
 This term is used to distinguish plugins that configure existing functionality from those that add new functionality.
 
 Let's take an example build with three subprojects: one for `data-model`, one for `business-logic` and one for `app` code.
@@ -259,7 +259,7 @@ kotlin {
 We apply the `java-library` plugin and add the `org.jetbrains.kotlin.jvm` plugin for Kotlin support.
 We also configure Kotlin, Java, tests and more.
 
-Our build file is beginning to grow.
+Our build file is beginning to grow...
 
 The more plugins we apply and the more plugins we configure, the larger it gets.
 There's also repetition in the build files of the `app` and `data-model` subprojects, especially for common configurations like the Java version and Kotlin support.

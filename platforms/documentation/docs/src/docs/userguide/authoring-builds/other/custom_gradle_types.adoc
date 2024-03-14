@@ -16,7 +16,7 @@
 = Developing Custom Gradle Types
 
 There are several different kinds of "add-ons" to Gradle that you can develop, such as <<custom_plugins.adoc#custom_plugins,plugins>>, <<custom_tasks.adoc#custom_tasks,tasks>>,
-<<implementing_gradle_plugins_binary.adoc#sec:getting_input_from_the_build,project extensions>> or <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transforms>>,
+<<implementing_gradle_plugins_binary.adoc#capturing_user_input_to_configure_plugin_runtime_behavior,project extensions>> or <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transforms>>,
 that are all implemented as classes and other types that can run on the JVM.
 This chapter discusses some of the features and concepts that are common to these types.
 You can use these features to help implement custom Gradle types and provide a consistent DSL for your users.

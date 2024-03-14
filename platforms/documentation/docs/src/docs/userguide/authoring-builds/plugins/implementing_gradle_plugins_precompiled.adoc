@@ -16,12 +16,12 @@
 = Implementing Pre-compiled Script Plugins
 
 A *precompiled script plugin* is typically a Kotlin script that has been compiled and distributed as Java class files packaged in a library.
-These scripts are intended to be consumed as binary Gradle plugins or as convention plugins.
+These scripts are intended to be consumed as binary Gradle plugins and recommended to be used as convention plugins.
 
 [[sec:the_plugin_id]]
 == The plugin ID
 
-The plugin ID for a precompiled script is derived from its name and optional package declaration.
+The plugin ID for a precompiled script is derived from its file name and optional package declaration.
 
 For example, a script named `code-quality.gradle(.kts)` located in `src/main/groovy` (or `src/main/kotlin`) without a package declaration would be exposed as the `code-quality` plugin:
 
@@ -46,7 +46,8 @@ plugins {
 
 You should use Gradle's <<custom_gradle_types.adoc#managed_properties,managed properties>> and `project.layout` to select file or directory locations.
 This will enable <<lazy_configuration.adoc#lazy_configuration,lazy configuration>> so that the actual location will only be resolved when the file is needed and can be reconfigured at any time during build configuration.
-For example:
+
+Let's start by creating a convention plugin called `greetings`:
 
 .buildSrc/packaging/src/main/kotlin/greetings.gradle.kts
 [source,kotlin]
@@ -70,18 +71,19 @@ When you apply a plugin that defines an extension, you can access the extension 
 A link:{groovyDslPath}/org.gradle.api.Project.html[Project] has an associated link:{javadocPath}/org/gradle/api/plugins/ExtensionContainer.html[ExtensionContainer] object that contains all the settings and properties for the plugins that have been applied to the project.
 You can provide configuration for your plugin by adding an extension object to this container.
 
-Let's update our example:
+Let's update our  `greetings` example:
 
 .buildSrc/packaging/src/main/kotlin/greetings.gradle.kts
 [source,kotlin]
 ----
+// Update to an extension object
 interface GreetingPluginExtension {
     val message: Property<String>
 }
 
 println("Hello, ${file(project.layout.buildDirectory.file("defaultGreeting.txt")).readText()}")
 
-// Add the 'greeting' extension object
+// Add the 'greeting' extension object to project
 val extension = project.extensions.create<GreetingPluginExtension>("greeting")
 ----
 
@@ -92,7 +94,8 @@ You can now access `message` like so:
 
 [source,kotlin]
 ----
-the<GreetingPluginExtension>().message.set("Hi from Gradle") // Where the<GreetingPluginExtension>() is equivalent to project.extensions.getByType(GreetingPluginExtension::class.java)
+// Where the<GreetingPluginExtension>() is equivalent to project.extensions.getByType(GreetingPluginExtension::class.java)
+the<GreetingPluginExtension>().message.set("Hi from Gradle")
 ----
 
 You can find out more about implementing project extensions in <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>>.

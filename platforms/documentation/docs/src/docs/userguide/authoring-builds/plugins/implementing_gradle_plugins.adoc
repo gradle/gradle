@@ -15,7 +15,8 @@
 [[implemention_plugins]]
 = Implementing Plugins
 
-While there are many types of plugins -- script, pre-compiled script, or binary plugins -- there are also many choices for implementing each type of plugin:
+While there are three types of plugins -- script, pre-compiled script, or binary plugins -- there are also many languages available for implementing each type of plugin.
+Only a few options are recommended:
 
 [cols="~,~,~,~,~,~"]
 |===
@@ -55,7 +56,7 @@ While there are many types of plugins -- script, pre-compiled script, or binary 
 |Pre-compiled script
 |a `.gradle` file
 |`id("groovy-gradle-plugin")`
-|Nofootnote:2[<<custom_plugins#sec:precompile_script_plugin,*Pre-compiled script*>> plugins are best used as <<custom_plugins#sec:convention_plugins,*convention plugins*>>.]
+|Nofootnote:2[<<custom_plugins#sec:precompile_script_plugin,*Pre-compiled script*>> plugins are best used as <<custom_plugins#sec:convention_plugins,*convention plugins*>> written in Kotlin DSL or Java.]
 
 |6
 |Groovy DSL
