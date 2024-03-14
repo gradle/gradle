@@ -125,7 +125,7 @@ It may also be helpful to read <<lazy_configuration.adoc#lazy_configuration,the 
 
 Don't use `org.gradle.api.internal.ConventionMapping`.
 Use link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] and/or link:{javadocPath}/org/gradle/api/provider/Property.html[Property].
-You can find an example for capturing user input to configure runtime behavior in the <<implementing_gradle_plugins_binary.adoc#sec:plugin_conventions,implementing plugins section>>.
+You can find an example for capturing user input to configure runtime behavior in the <<implementing_gradle_plugins_binary.adoc#capturing_user_input_to_configure_plugin_runtime_behavior,implementing plugins section>>.
 
 Instead of `org.gradle.internal.os.OperatingSystem`, use another method to detect operating system, such as link:https://commons.apache.org/proper/commons-lang/apidocs/org/apache/commons/lang3/SystemUtils.html[Apache commons-lang SystemUtils] or `System.getProperty("os.name")`.
 
