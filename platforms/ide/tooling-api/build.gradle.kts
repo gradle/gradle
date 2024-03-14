@@ -56,13 +56,15 @@ dependencies {
 
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
-    testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":model-core"))
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":base-services-groovy"))
     testFixturesImplementation(project(":internal-testing"))
     testFixturesImplementation(project(":internal-integ-testing"))
+
+    testFixturesImplementation(testFixtures(project(":core")))
+
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
@@ -70,7 +72,9 @@ dependencies {
     integTestImplementation(project(":persistent-cache"))
 
     crossVersionTestImplementation(project(":jvm-services"))
+
     crossVersionTestImplementation(testFixtures(project(":problems-api")))
+
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
     crossVersionTestRuntimeOnly(libs.cglib) {

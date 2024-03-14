@@ -82,7 +82,9 @@ dependencies {
     }
     testImplementation(project(":platform-jvm"))
     testImplementation(project(":version-control"))
+
     testImplementation(testFixtures(project(":core")))
+
     testImplementation(libs.ant)
     testImplementation(libs.mockitoKotlin)
     testImplementation(libs.jacksonKotlin)
@@ -106,7 +108,6 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
-    testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":file-temp"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(project(":kotlin-dsl-tooling-builders"))
@@ -114,6 +115,7 @@ dependencies {
     testFixturesImplementation(project(":internal-testing"))
     testFixturesImplementation(project(":internal-integ-testing"))
 
+    testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(testFixtures(project(":hashing")))
 
     testFixturesImplementation(libs.futureKotlin("compiler-embeddable"))
