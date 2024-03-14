@@ -21,7 +21,7 @@ import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
-import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
+import org.gradle.integtests.fixtures.build.TestProjectFilesFixture
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -66,7 +66,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @ToolingApiVersion('>=7.0')
 @TargetGradleVersion('>=3.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
-abstract class ToolingApiSpecification extends Specification implements KotlinDslTestProjectInitiation {
+abstract class ToolingApiSpecification extends Specification implements TestProjectFilesFixture {
     /**
      * See https://github.com/gradle/gradle-private/issues/3216
      * To avoid flakiness when reusing daemons between CLI and TAPI
@@ -128,20 +128,8 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     @Override
-    TestFile getBuildFileKts() {
-        validateKotlinCompatibility()
-        KotlinDslTestProjectInitiation.super.getBuildFileKts()
-    }
-
-    @Override
-    TestFile getSettingsFileKts() {
-        validateKotlinCompatibility()
-        KotlinDslTestProjectInitiation.super.getSettingsFileKts()
-    }
-
-
-    private validateKotlinCompatibility() {
-        if (targetGradleDistribution && !targetGradleDistribution.supportsKotlinScript) {
+    void ensureSupportsKotlinDsl() {
+        if (!targetDist.supportsKotlinScript) {
             throw new RuntimeException("The current Gradle target version ($targetGradleDistribution.version) does not support execution of Kotlin build scripts.")
         }
     }

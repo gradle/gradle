@@ -25,10 +25,11 @@ import java.util.zip.ZipOutputStream
 
 import static org.gradle.util.internal.TextUtil.escapeString
 
+/**
+ * Kotlin DSL specific helper methods to setup integration tests.
+ */
 @CompileStatic
-trait KotlinDslTestProjectInitiation {
-
-    abstract TestFile file(Object... path)
+trait KotlinDslTestProjectInitiation extends TestProjectFilesFixture {
 
     String defaultSettingsScript = ""
 
@@ -110,17 +111,12 @@ trait KotlinDslTestProjectInitiation {
         )
     }
 
-    /**
-     * Initializes a new project with <i>Kotlin-based</i> build scripts.
-     */
     BuildSpec withMultipleSubprojects() {
         def settings = withSettings("""
             include("a", "b")
         """)
-        def a = withBuildScriptIn("a", """
-        """)
-        def b = withBuildScriptIn("b", """
-        """)
+        def a = withBuildScriptIn("a")
+        def b = withBuildScriptIn("b")
         return new BuildSpec(
             scripts: [
                 settings: settings,
@@ -153,19 +149,7 @@ trait KotlinDslTestProjectInitiation {
     }
 
     TestFile withSettingsIn(String baseDir, String script) {
-        return withFile("$baseDir/$settingsKotlinFileName", script)
-    }
-
-    TestFile withSettingsGroovy(String script) {
-        return withSettingsGroovyIn(".", script)
-    }
-
-    TestFile withDefaultSettingsGroovyIn(String baseDir) {
-        return withSettingsGroovyIn(baseDir, defaultSettingsScript)
-    }
-
-    TestFile withSettingsGroovyIn(String baseDir, String script) {
-        return withFile("$baseDir/$settingsFileName", script)
+        return withFile("$baseDir/$settingsFileKtsName", script)
     }
 
     TestFile withBuildScript(String script = "") {
@@ -173,7 +157,7 @@ trait KotlinDslTestProjectInitiation {
     }
 
     TestFile withBuildScriptIn(String baseDir, String script = "") {
-        return withFile("$baseDir/$defaultBuildKotlinFileName", script)
+        return withFile("$baseDir/$buildFileKtsName", script)
     }
 
     TestFile withFile(String path, String content = "") {
@@ -209,7 +193,8 @@ trait KotlinDslTestProjectInitiation {
         withDefaultSettingsIn("buildSrc").append("""
             include(":a", ":b", ":c")
         """)
-        withFile("buildSrc/$defaultBuildKotlinFileName", """
+
+        withBuildScriptIn("buildSrc", """
             plugins {
                 java
                 `kotlin-dsl` apply false
@@ -221,20 +206,21 @@ trait KotlinDslTestProjectInitiation {
             }
         """)
 
-        withFile("buildSrc/a/$defaultBuildKotlinFileName", """
+        // Duplication in build scripts to avoid Isolated Projects violations without introducing shared build logic
+        withBuildScriptIn("buildSrc/a", """
             plugins {
                 id("org.gradle.kotlin.kotlin-dsl")
             }
             $repositoriesBlock
         """)
-        withFile("buildSrc/b/$defaultBuildKotlinFileName", """
+        withBuildScriptIn("buildSrc/b", """
             plugins {
                 id("org.gradle.kotlin.kotlin-dsl")
             }
             $repositoriesBlock
             dependencies { implementation(project(":c")) }
         """)
-        withFile("buildSrc/c/$defaultBuildKotlinFileName", """
+        withBuildScriptIn("buildSrc/c", """
             plugins { java }
             $repositoriesBlock
         """)
@@ -255,55 +241,4 @@ trait KotlinDslTestProjectInitiation {
         return new ProjectSourceRoots(file(projectDir), ["main"], ["java", "kotlin"])
     }
 
-    TestFile getBuildFile() {
-        file(defaultBuildFileName)
-    }
-
-    TestFile getPropertiesFile() {
-        file("gradle.properties")
-    }
-
-    TestFile getBuildFileKts() {
-        file(defaultBuildKotlinFileName)
-    }
-
-    TestFile getBuildKotlinFile() {
-        getBuildFileKts()
-    }
-
-    TestFile getSettingsKotlinFile() {
-        getSettingsFileKts()
-    }
-
-    TestFile getSettingsFile() {
-        file(settingsFileName)
-    }
-
-    TestFile getSettingsFileKts() {
-        file(settingsKotlinFileName)
-    }
-
-    String getSettingsFileName() {
-        'settings.gradle'
-    }
-
-    String getSettingsKotlinFileName() {
-        'settings.gradle.kts'
-    }
-
-    String getDefaultBuildFileName() {
-        'build.gradle'
-    }
-
-    String getDefaultBuildKotlinFileName() {
-        "build.gradle.kts"
-    }
-
-    List<TestFile> createDirs(String... dirs) {
-        dirs.collect({ name ->
-            TestFile tf = file(name)
-            tf.mkdirs()
-            return tf
-        })
-    }
 }
