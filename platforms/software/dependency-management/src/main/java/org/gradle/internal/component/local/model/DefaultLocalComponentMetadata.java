@@ -321,6 +321,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
 
         @Override
         public Set<String> getConfigurationNames() {
+            assert model.hasMutableState();
             ImmutableSet.Builder<String> builder = ImmutableSet.builder();
             configurationsProvider.visitAll(configuration -> builder.add(configuration.getName()));
             return builder.build();
@@ -328,6 +329,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
 
         @Override
         public void visitConfigurations(Consumer<Candidate> visitor) {
+            assert model.hasMutableState();
             VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
 
             configurationsProvider.visitAll(configuration -> {
@@ -360,6 +362,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
             String name,
             DefaultLocalComponentMetadata parent
         ) {
+            assert model.hasMutableState();
             ConfigurationInternal configuration = configurationsProvider.findByName(name);
             if (configuration == null) {
                 return null;
