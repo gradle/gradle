@@ -730,7 +730,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         copy.canBeConsumed
         copy.declarationAlternatives == ["declaration"]
         copy.resolutionAlternatives == ["resolution"]
-        copy.deprecatedForConsumption
+        copy.deprecated
         copy.deprecatedForResolution
         copy.deprecatedForDeclarationAgainst
 
