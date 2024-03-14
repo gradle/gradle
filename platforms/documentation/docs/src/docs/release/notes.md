@@ -147,27 +147,16 @@ Previously, the display name could be obtained only by parsing the operation dis
 Additionally, for JUnit5 and Spock, we updated the test descriptor for dynamic and parameterized tests to include information about the class name and method name containing the test.
 These enhancements enable IDEs to offer improved navigation and reporting capabilities for dynamic and parameterized tests.
 
-#### Fix IDE performance issues with large projects
+#### Filter standard output and error output in XML test reports
 
-A performance issue in the Tooling API causing delays at the end of task execution in large projects has been identified and fixed by a community member.
-This problem occurred while transmitting task information for executed tasks to the IDE. 
-
-After executing approximately 15,000 tasks, the IDE would encounter a delay of several seconds. 
-The root cause was that much more information than needed was serialized via the Tooling API.
-We added a test to the fix to ensure there will be no future regression, demonstrating a performance improvement of around 12%.
-The environments that benefit from this fix are Android Studio, IntelliJ IDEA, Eclipse, and other Tooling API clients.
-
-#### Filter output in JUnit XML test reports
-
-The new [`includeSystemOutLog` and `includeSystemErrLog` options](userguide/java_testing.html#junit_xml_configuration_output_filtering) allow for controlling whether or not output written to standard output and standard error output during testing is included in JUnit's XML test reports.
+The new [`includeSystemOutLog` and `includeSystemErrLog` options](userguide/java_testing.html#junit_xml_configuration_output_filtering) control whether or not output written to standard output and standard error output during testing is included in XML test reports.
+This report format is used by the JUnit 4, JUnit Jupiter, and TestNG, despite the name of the report format, and can be configured when using any of these test frameworks.
 Disabling these options can be useful when running a test task results in a large amount of standard output or standard error data that is not relevant for testing, or to preserve disk space when running jobs on CI.
 
-Set these options by configuring the
-[JUnitXmlReport](javadoc/org/gradle/api/tasks/testing/JUnitXmlReport.html) options block.
+Set these options by configuring the [JUnitXmlReport](javadoc/org/gradle/api/tasks/testing/JUnitXmlReport.html) options block.
 
 ```kotlin
 tasks.test {
-    useJUnit()
     reports.junitXml {
         includeSystemOutLog = false
         includeSystemErrLog = true
