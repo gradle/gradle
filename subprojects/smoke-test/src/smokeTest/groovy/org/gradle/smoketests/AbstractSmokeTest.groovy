@@ -75,7 +75,10 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaResolutionRules = "11.2.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("8.1.1")
+        static shadow = "8.1.1"
+
+        // https://plugins.gradle.org/plugin/io.github.goooler.shadow
+        static shadowFork = "8.1.7"
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
         static asciidoctor = Versions.of("3.3.2", "4.0.2")
@@ -90,7 +93,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = "1.1.4"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "3.2.1"
+        static springBoot = "3.2.2"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "34.0.0"

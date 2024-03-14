@@ -126,6 +126,24 @@ Use link:{javadocPath}/org/gradle/api/Named.Namer.html#INSTANCE[`Named.Namer.INS
 
 The superinterface, link:{javadocPath}/org/gradle/api/Namer.html[`Namer`], is *not* being deprecated.
 
+[[unix_file_permissions_deprecated]]
+==== Unix mode based file permissions deprecated ====
+
+A new API for defining file permissions has been added in Gradle 8.3, see:
+
+- link:{javadocPath}/org/gradle/api/file/FilePermissions.html[FilePermissions].
+- link:{javadocPath}/org/gradle/api/file/ConfigurableFilePermissions.html[ConfigurableFilePermissions].
+
+The new API has now been promoted to stable and the old methods have been deprecated:
+
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getFileMode--[CopyProcessingSpec.getFileMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setFileMode-java.lang.Integer-[CopyProcessingSpec.setFileMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getDirMode--[CopyProcessingSpec.getDirMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setDirMode-java.lang.Integer-[CopyProcessingSpec.setDirMode]
+- link:{javadocPath}/org/gradle/api/file/FileTreeElement.html#getMode--[FileTreeElement.getMode]
+- link:{javadocPath}/org/gradle/api/file/FileCopyDetails.html#setMode-int-[FileCopyDetails.setMode]
+
+
 === Potential breaking changes
 
 ==== Changes in the Problems API
