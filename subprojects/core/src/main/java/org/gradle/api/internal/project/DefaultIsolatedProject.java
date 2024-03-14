@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.IsolatedProject;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.Serializable;
@@ -36,25 +35,21 @@ public final class DefaultIsolatedProject implements IsolatedProject, Serializab
         this.rootDirectory = rootDirectory;
     }
 
-    @NotNull
     @Override
     public String getName() {
         return name;
     }
 
-    @NotNull
     @Override
     public String getPath() {
         return path;
     }
 
-    @NotNull
     @Override
     public File getProjectDirectory() {
         return projectDirectory;
     }
 
-    @NotNull
     @Override
     public File getRootDirectory() {
         return rootDirectory;

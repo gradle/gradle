@@ -132,7 +132,6 @@ import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -782,7 +781,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return this;
     }
 
-    @NotNull
     @Override
     public IsolatedProject getIsolated() {
         return new DefaultIsolatedProject(name, getPath(), projectDir, getRootDir());

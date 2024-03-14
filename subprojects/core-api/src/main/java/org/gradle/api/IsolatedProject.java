@@ -16,14 +16,13 @@
 
 package org.gradle.api;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 
 /**
  * An isolated view of {@link Project} that exposes only those properties that are safe to access from outside of
  * <code>this</code> project, from the perspective of isolated projects.
- * @since 8.7
+ *
+ * @since 8.8
  */
 @Incubating
 public interface IsolatedProject {
@@ -35,27 +34,24 @@ public interface IsolatedProject {
      * </p>
      *
      * @return The name of this project. Never return null.
-     * @since 8.7
+     * @since 8.8
      */
-    @NotNull
     String getName();
 
     /**
      * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
      *
      * @return The path. Never returns null.
-     * @since 8.7
+     * @since 8.8
      */
-    @NotNull
     String getPath();
 
     /**
      * <p>The directory containing the project build file.</p>
      *
      * @return The project directory. Never returns null.
-     * @since 8.7
+     * @since 8.8
      */
-    @NotNull
     File getProjectDirectory();
 
     /**
@@ -63,8 +59,7 @@ public interface IsolatedProject {
      * project.</p>
      *
      * @return The root directory. Never returns null.
-     * @since 8.7
+     * @since 8.8
      */
-    @NotNull
     File getRootDirectory();
 }

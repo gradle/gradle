@@ -430,7 +430,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Returns an immutable view of this project, safe for use with isolated projects.</p>
      *
      * @return This project as an {@link IsolatedProject}. Never returns null.
-     * @since 8.7
+     * @since 8.8
      */
     @Incubating
     IsolatedProject getIsolated();
