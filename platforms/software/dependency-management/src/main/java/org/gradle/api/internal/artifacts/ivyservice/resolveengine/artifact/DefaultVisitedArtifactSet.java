@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
@@ -29,24 +30,32 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
     private final VisitedArtifactResults artifactsResults;
     private final ResolvedArtifactSetResolver artifactSetResolver;
     private final ArtifactVariantSelector artifactVariantSelector;
+    private final ResolutionStrategy.SortOrder defaultSortOrder;
 
     public DefaultVisitedArtifactSet(
         VisitedGraphResults graphResults,
         ResolutionHost resolutionHost,
         VisitedArtifactResults artifactsResults,
         ResolvedArtifactSetResolver artifactSetResolver,
-        ArtifactVariantSelector artifactVariantSelector
+        ArtifactVariantSelector artifactVariantSelector,
+        ResolutionStrategy.SortOrder defaultSortOrder
     ) {
         this.graphResults = graphResults;
         this.resolutionHost = resolutionHost;
         this.artifactsResults = artifactsResults;
         this.artifactSetResolver = artifactSetResolver;
         this.artifactVariantSelector = artifactVariantSelector;
+        this.defaultSortOrder = defaultSortOrder;
     }
 
     @Override
     public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
         SelectedArtifactResults artifacts = artifactsResults.select(artifactVariantSelector, spec, false);
         return new DefaultSelectedArtifactSet(artifactSetResolver, graphResults, artifacts.getArtifacts(), resolutionHost);
+    }
+
+    @Override
+    public ResolutionStrategy.SortOrder getDefaultSortOrder() {
+        return defaultSortOrder;
     }
 }

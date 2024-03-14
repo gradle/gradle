@@ -274,7 +274,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     class DummyModuleVersionSelection implements ResolvedGraphComponent {
-        Long resultId
+        long resultId
         ModuleVersionIdentifier moduleVersion
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId

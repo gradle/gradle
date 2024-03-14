@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -63,6 +64,7 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
         ImmutableAttributesFactory attributesFactory,
         RootComponentMetadataBuilder rootComponentMetadataBuilder,
         ResolveExceptionContextualizer exceptionContextualizer,
+        AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
@@ -89,6 +91,7 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             attributesFactory,
             rootComponentMetadataBuilder,
             exceptionContextualizer,
+            attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
             workerThreadRegistry,

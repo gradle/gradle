@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -64,6 +65,7 @@ public class DefaultConfigurationFactory {
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
     private final ResolveExceptionContextualizer exceptionContextualizer;
+    private final AttributeDesugaring attributeDesugaring;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final ProjectStateRegistry projectStateRegistry;
     private final WorkerThreadRegistry workerThreadRegistry;
@@ -85,6 +87,7 @@ public class DefaultConfigurationFactory {
         PublishArtifactNotationParserFactory artifactNotationParserFactory,
         ImmutableAttributesFactory attributesFactory,
         ResolveExceptionContextualizer exceptionContextualizer,
+        AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
@@ -105,6 +108,7 @@ public class DefaultConfigurationFactory {
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
         this.attributesFactory = attributesFactory;
         this.exceptionContextualizer = exceptionContextualizer;
+        this.attributeDesugaring = attributeDesugaring;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
         this.workerThreadRegistry = workerThreadRegistry;
@@ -144,6 +148,7 @@ public class DefaultConfigurationFactory {
                 attributesFactory,
                 rootComponentMetadataBuilder,
                 exceptionContextualizer,
+                attributeDesugaring,
                 userCodeApplicationContext,
                 projectStateRegistry,
                 workerThreadRegistry,
@@ -187,6 +192,7 @@ public class DefaultConfigurationFactory {
             attributesFactory,
             rootComponentMetadataBuilder,
             exceptionContextualizer,
+            attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
             workerThreadRegistry,
@@ -229,6 +235,7 @@ public class DefaultConfigurationFactory {
             attributesFactory,
             rootComponentMetadataBuilder,
             exceptionContextualizer,
+            attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
             workerThreadRegistry,
@@ -271,6 +278,7 @@ public class DefaultConfigurationFactory {
             attributesFactory,
             rootComponentMetadataBuilder,
             exceptionContextualizer,
+            attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
             workerThreadRegistry,

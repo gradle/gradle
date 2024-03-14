@@ -77,7 +77,7 @@ import java.util.stream.Collectors;
  */
 public class NodeState implements DependencyGraphNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeState.class);
-    private final Long nodeId;
+    private final long nodeId;
     private final ComponentState component;
     private final List<EdgeState> incomingEdges = new ArrayList<>();
     private final List<EdgeState> outgoingEdges = new ArrayList<>();
@@ -168,7 +168,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     @Override
-    public Long getNodeId() {
+    public long getNodeId() {
         return nodeId;
     }
 

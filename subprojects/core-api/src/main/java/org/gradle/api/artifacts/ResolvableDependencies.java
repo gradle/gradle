@@ -19,6 +19,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -34,7 +36,7 @@ import org.gradle.internal.HasInternalProtocol;
  * <p>The dependencies are resolved once only, when the result is first requested. The result is reused and returned for subsequent calls. Once resolved, any mutation to the dependencies will result in an error.</p>
  */
 @HasInternalProtocol
-public interface ResolvableDependencies extends ArtifactView {
+public interface ResolvableDependencies extends ArtifactView, HasAttributes {
     /**
      * Returns the name of this set.
      *
@@ -133,4 +135,11 @@ public interface ResolvableDependencies extends ArtifactView {
      * @since 3.4
      */
     ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction);
+
+    /**
+     * The request attributes.
+     */
+    @Override
+    @SuppressWarnings("deprecation")
+    AttributeContainer getAttributes();
 }

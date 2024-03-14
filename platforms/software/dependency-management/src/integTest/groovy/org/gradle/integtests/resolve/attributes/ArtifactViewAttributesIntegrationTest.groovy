@@ -60,6 +60,8 @@ class ArtifactViewAttributesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ArtifactView.getAttributes() method has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_artifact_view_get_attributes")
+        executer.expectDocumentedDeprecationWarning("The ArtifactView.getAttributes() method has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_artifact_view_get_attributes")
         succeeds 'help'
     }
 }

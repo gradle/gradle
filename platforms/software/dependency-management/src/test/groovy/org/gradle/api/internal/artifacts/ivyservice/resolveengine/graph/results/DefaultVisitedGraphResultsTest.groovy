@@ -31,7 +31,7 @@ import java.util.function.Supplier
  */
 class DefaultVisitedGraphResultsTest extends Specification {
 
-    MinimalResolutionResult resolutionResult = new DefaultMinimalResolutionResult(Mock(Supplier), ImmutableAttributes.EMPTY)
+    MinimalResolutionResult resolutionResult = new DefaultMinimalResolutionResult(0, Mock(Supplier), ImmutableAttributes.EMPTY)
 
     def "hasResolutionFailure returns true if there is a failure"() {
         given:

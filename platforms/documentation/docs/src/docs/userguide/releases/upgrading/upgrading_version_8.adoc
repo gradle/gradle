@@ -126,6 +126,12 @@ Use link:{javadocPath}/org/gradle/api/Named.Namer.html#INSTANCE[`Named.Namer.INS
 
 The superinterface, link:{javadocPath}/org/gradle/api/Namer.html[`Namer`], is *not* being deprecated.
 
+[[deprecate_artifact_view_get_attributes]]
+==== Deprecated `ArtifactView.getAttributes()`
+
+Starting in Gradle 9.0, link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[ArtifactView] will no longer extend link:{javadocPath}/org/gradle/api/attributes/HasAttributes.html[HasAttributes].
+The `getAttributes` method has been deprecated and will be removed in Gradle 9.0.
+
 === Potential breaking changes
 
 ==== Changes in the Problems API

@@ -33,7 +33,6 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -50,6 +49,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
@@ -57,6 +57,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal
+import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
@@ -533,7 +535,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
         and:
-        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Mock(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
+        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Stub(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
 
         expect:
         configuration.buildDependencies.getDependencies(targetTask) == requiredTasks
@@ -1042,9 +1044,9 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def "provides resolution result"() {
         def config = conf("conf")
-        def resolvedComponentResult = Mock(ResolvedComponentResult)
-        Supplier<ResolvedComponentResult> rootSource = () -> resolvedComponentResult
-        def result = new DefaultMinimalResolutionResult(rootSource, ImmutableAttributes.EMPTY)
+        def resolvedComponentResult = Mock(ResolvedComponentResultInternal)
+        Supplier<ResolvedComponentResultInternal> rootSource = () -> resolvedComponentResult
+        def result = new DefaultMinimalResolutionResult(0, rootSource, ImmutableAttributes.EMPTY)
         def graphResults = new DefaultVisitedGraphResults(result, [] as Set, null)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
@@ -1513,24 +1515,34 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def a1 = Attribute.of('a1', Integer)
         def a2 = Attribute.of('a2', String)
 
+        def result = graphResolved()
+        resolver.resolveGraph(_) >> result
+
         when:
-        def artifactView = conf.incoming.artifactView {
+        conf.incoming.artifactView {
             it.attributes.attribute(a1, 1)
             it.attributes { it.attribute(a2, "A") }
             it.attributes.attribute(a1, 10)
-        }
+        }.files.files
 
         then:
-        artifactView.attributes.keySet() == [a1, a2] as Set
-        artifactView.attributes.getAttribute(a1) == 10
-        artifactView.attributes.getAttribute(a2) == "A"
+        1 * result.visitedArtifacts.select(_) >> { args ->
+            def spec = args[0] as ArtifactSelectionSpec
+            def attributes = spec.requestAttributes
+            assert attributes.keySet() == [a1, a2] as Set
+            assert attributes.getAttribute(a1) == 10
+            assert attributes.getAttribute(a2) == "A"
+            selectedArtifacts()
+        }
     }
 
+    @SuppressWarnings("deprecation")
     def "attributes of view are immutable"() {
         given:
         def conf = conf()
         def a1 = Attribute.of('a1', String)
         def artifactView = conf.incoming.artifactView {}
+        resolver.resolveGraph(_) >> graphResolved()
 
         when:
         artifactView.attributes.attribute(a1, "A")
@@ -1746,13 +1758,13 @@ All Artifacts:
     }
 
     private ResolverResults buildDependenciesResolved() {
-        def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
+        def resolutionResult = new DefaultMinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
-        def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
+        def resolutionResult = new DefaultMinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
@@ -1770,7 +1782,7 @@ All Artifacts:
     }
 
     private ResolverResults graphResolved(Set<File> files = []) {
-        def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
+        def resolutionResult = new DefaultMinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
@@ -1782,7 +1794,7 @@ All Artifacts:
     }
 
     private visitedArtifacts(Set<File> files = []) {
-        Stub(VisitedArtifactSet) {
+        Mock(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(files)
         }
     }
@@ -1842,6 +1854,7 @@ All Artifacts:
             publishArtifactNotationParser,
             immutableAttributesFactory,
             new ResolveExceptionContextualizer(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
+            new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
             userCodeApplicationContext,
             projectStateRegistry,
             Stub(WorkerThreadRegistry),

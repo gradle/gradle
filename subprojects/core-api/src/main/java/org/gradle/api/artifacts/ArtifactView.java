@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
@@ -41,6 +42,15 @@ public interface ArtifactView extends HasAttributes {
      * Returns the collection of artifact files matching the requested attributes that are sourced from Components matching the specified filter.
      */
     FileCollection getFiles();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated This method will be removed in Gradle 9.0
+     */
+    @Deprecated
+    @Override
+    AttributeContainer getAttributes();
 
     /**
      * Configuration for a defined artifact view.

@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
+import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
@@ -89,6 +90,7 @@ class DefaultConfigurationContainerTest extends Specification {
         ),
         immutableAttributesFactory,
         Stub(ResolveExceptionContextualizer),
+        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
         projectStateRegistry,
         Mock(WorkerThreadRegistry),

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.artifacts.ResolutionStrategy;
+
 /**
  * A container of the artifacts visited during graph traversal.
  */
@@ -27,4 +29,9 @@ public interface VisitedArtifactSet {
      * @param spec Parameters controlling the artifact selection process
      */
     SelectedArtifactSet select(ArtifactSelectionSpec spec);
+
+    /**
+     * Get the order that artifacts should be sorted in by default.
+     */
+    ResolutionStrategy.SortOrder getDefaultSortOrder();
 }
