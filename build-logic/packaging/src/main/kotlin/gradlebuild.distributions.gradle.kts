@@ -263,10 +263,10 @@ fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLif
     val zipRootFolder = if (normalized) {
         moduleIdentity.version.map { "gradle-${it.baseVersion.version}" }
     } else {
-        moduleIdentity.version.map { "gradle-${it.version}" }
-            .zip(buildVersionQualifier) { version: String, branchQualifier: String ->
-                version.replace("-$branchQualifier", "")
-            }
+        moduleIdentity.version.map { "gradle-${it.version}" }.map {
+            if (buildVersionQualifier.isPresent) it.replace("-${buildVersionQualifier.get()}", "")
+            else it
+        }
     }
 
     val installation = tasks.register<Sync>("${name}Installation") {
