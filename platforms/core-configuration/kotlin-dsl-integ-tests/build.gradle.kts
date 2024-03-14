@@ -16,6 +16,9 @@ dependencies {
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":language-jvm"))
     integTestImplementation(project(":platform-jvm"))
+
+    integTestImplementation(testFixtures(project(":core")))
+
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
     integTestImplementation(libs.futureKotlin("compiler-embeddable"))
     integTestImplementation(libs.mockitoKotlin)

@@ -62,6 +62,9 @@ dependencies {
     docsTestImplementation project(":internal-integ-testing")
     docsTestImplementation project(":base-services")
     docsTestImplementation project(":logging")
+
+    docsTestImplementation testFixtures(project(":logging"))
+
     docsTestImplementation libs.junit5Vintage
     docsTestImplementation libs.junit
 

@@ -98,6 +98,9 @@ dependencies {
     testFixturesImplementation(project(":plugins-jvm-test-suite"))
 
     integTestImplementation(project(":native"))
+
+    integTestImplementation(testFixtures(project(":core")))
+
     integTestImplementation(libs.jetty)
 
     testRuntimeOnly(project(":distributions-jvm")) {

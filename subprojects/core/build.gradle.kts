@@ -269,6 +269,9 @@ dependencies {
     integTestImplementation(testFixtures(project(":native")))
     integTestImplementation(testFixtures(project(":file-temp")))
 
+    integTestImplementation(testFixtures(project(":core")))
+    crossVersionTestImplementation(testFixtures(project(":core")))
+
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
