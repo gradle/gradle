@@ -101,12 +101,22 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
     }
 
-    def 'JVM version too low uses custom error message for plugin when using composite build'() {
+    def 'JVM version too low uses custom error message for plugin when using composite build and JVM toolchains'() {
         given:
         def producer = file('producer')
         def consumer = file('consumer')
 
-        producer.file('settings.gradle').createFile()
+        producer.file('settings.gradle') << """
+            pluginManagement {
+                repositories {
+                    gradlePluginPortal()
+                }
+            }
+
+            plugins {
+                id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
+            }
+        """
         producer.file('build.gradle') << """
             plugins {
                 id('java-gradle-plugin')
@@ -116,11 +126,9 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             group = "com.example"
             version = "1.0"
 
-            configurations.configureEach {
-                if (canBeConsumed)  {
-                    attributes {
-                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $tooHighJava)
-                    }
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
 
@@ -143,18 +151,29 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
                 includeBuild '../producer'
                 repositories {
                     maven { url = '${mavenRepo.uri}' }
+                    gradlePluginPortal()
                 }
+            }
+
+            plugins {
+                id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
             }
         """
         consumer.file('build.gradle') << """
             plugins {
                 id('com.example.greeting') version '1.0'
             }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
         """
 
         when:
         projectDir(consumer)
-        fails 'greet', "--stacktrace"
+        fails 'greet', "--stacktrace", "-Dorg.gradle.java.installations.auto-detect=true"
 
         then:
         failure.assertHasErrorOutput("""> Could not determine the dependencies of null.
@@ -164,7 +183,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             project :
          > Dependency 'project :producer' requires at least a Java $tooHighJava JVM. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
-        failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
+        failure.assertHasResolution("Run this build using a Java 17 or newer JVM.")
     }
 
     @Requires(UnitTestPreconditions.Jdk11OrEarlier)
