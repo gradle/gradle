@@ -152,6 +152,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         consumer.file('build.gradle') << """
             plugins {
                 id('com.example.greeting') version '1.0'
+                id('java-library')
             }
 
             ${javaPluginToolchainVersion(lowerVersion)}
