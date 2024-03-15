@@ -20,7 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 
@@ -36,7 +36,7 @@ import java.util.Set;
  * </p>
  */
 @NonNullApi
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public final class JvmInstallationProblemReporter {
     @NonNullApi
     private static final class ProblemReport {

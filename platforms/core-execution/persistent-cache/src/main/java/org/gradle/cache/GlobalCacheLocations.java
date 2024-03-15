@@ -17,7 +17,7 @@
 package org.gradle.cache;
 
 import org.gradle.internal.file.FileHierarchySet;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -27,7 +27,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * The quasi-immutability of global caches allows for some optimizations by retaining file system state in-memory.
  */
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public interface GlobalCacheLocations {
 
     /**

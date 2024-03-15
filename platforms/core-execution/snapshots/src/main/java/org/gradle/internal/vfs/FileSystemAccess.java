@@ -18,7 +18,7 @@ package org.gradle.internal.vfs;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.io.IoRunnable;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
@@ -33,7 +33,7 @@ import java.util.Optional;
  *
  * The file system access needs to be informed when some state on disk changes, so it does not become out of sync with the actual file system.
  */
-@ServiceScope({Scopes.UserHome.class, Scopes.BuildSession.class})
+@ServiceScope({Scope.UserHome.class, Scope.BuildSession.class})
 public interface FileSystemAccess {
 
     /**
