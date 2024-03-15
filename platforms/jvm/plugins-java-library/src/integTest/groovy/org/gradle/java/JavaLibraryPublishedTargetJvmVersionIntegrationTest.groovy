@@ -103,7 +103,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
      Required by:
          project :
       > Dependency 'org:producer:1.0' requires at least a Java 6 JVM. This request asked for a library compatible with a Java 5 JVM.''')
-        failure.assertHasResolution("Change the dependency on "org:producer:1.0'' to an earlier version that supports a Java 6 JVM.")
+        failure.assertHasResolution("Change the dependency on 'org:producer:1.0' to an earlier version that supports a Java 6 JVM.")
     }
 
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {

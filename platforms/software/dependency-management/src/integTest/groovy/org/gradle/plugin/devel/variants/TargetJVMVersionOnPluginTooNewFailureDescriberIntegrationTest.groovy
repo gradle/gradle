@@ -18,11 +18,14 @@ package org.gradle.plugin.devel.variants
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends AbstractIntegrationSpec {
+class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
     Integer currentJava = Integer.valueOf(JavaVersion.current().majorVersion)
     Integer tooHighJava = currentJava + 1
 
@@ -103,20 +106,11 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
 
     def 'JVM version too low uses custom error message for plugin when using composite build and JVM toolchains'() {
         given:
+        def currentJdk = Jvm.current()
+        def otherJdk = AvailableJavaHomes.differentVersion
+
+        and:
         def producer = file('producer')
-        def consumer = file('consumer')
-
-        producer.file('settings.gradle') << """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                }
-            }
-
-            plugins {
-                id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
-            }
-        """
         producer.file('build.gradle') << """
             plugins {
                 id('java-gradle-plugin')
@@ -126,11 +120,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             group = "com.example"
             version = "1.0"
 
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(17)
-                }
-            }
+            ${javaPluginToolchainVersion(tooHighJava)}
 
             gradlePlugin {
                 plugins.create('greeting') {
@@ -146,17 +136,14 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         """
         producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation()
 
+        and:
+        def consumer = file('consumer')
         consumer.file('settings.gradle') << """
             pluginManagement {
                 includeBuild '../producer'
                 repositories {
                     maven { url = '${mavenRepo.uri}' }
-                    gradlePluginPortal()
                 }
-            }
-
-            plugins {
-                id("org.gradle.toolchains.foojay-resolver-convention") version("0.8.0")
             }
         """
         consumer.file('build.gradle') << """
@@ -164,16 +151,13 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
                 id('com.example.greeting') version '1.0'
             }
 
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
-                }
-            }
+            ${javaPluginToolchainVersion(currentJava)}
         """
 
         when:
         projectDir(consumer)
-        fails 'greet', "--stacktrace", "-Dorg.gradle.java.installations.auto-detect=true"
+        withInstallations(currentJdk, otherJdk)
+        fails 'greet', "--stacktrace"
 
         then:
         failure.assertHasErrorOutput("""> Could not determine the dependencies of null.
@@ -183,7 +167,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             project :
          > Dependency 'project :producer' requires at least a Java $tooHighJava JVM. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
-        failure.assertHasResolution("Run this build using a Java 17 or newer JVM.")
+        failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
     }
 
     @Requires(UnitTestPreconditions.Jdk11OrEarlier)
