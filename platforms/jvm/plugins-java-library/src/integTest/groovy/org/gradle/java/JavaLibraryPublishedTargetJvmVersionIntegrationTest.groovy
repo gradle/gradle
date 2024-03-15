@@ -102,7 +102,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
    > Could not resolve org:producer:1.0.
      Required by:
          project :
-      > Dependency 'org:producer:1.0' requires at least a Java 6 JVM. This request asked for a library compatible with a Java 5 JVM.''')
+      > Dependency resolution is looking for a library compatible with JVM runtime version 5, but 'org:producer:1.0' is only compatible with JVM runtime version 6 or newer.''')
         failure.assertHasResolution("Change the dependency on 'org:producer:1.0' to an earlier version that supports a Java 6 JVM.")
     }
 

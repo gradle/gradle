@@ -109,6 +109,9 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion
 
+        def lowerVersion = currentJdk.javaVersion.compareTo(otherJdk.javaVersion) < 0 ? currentJdk : otherJdk
+        def higherVersion = currentJdk.javaVersion.compareTo(otherJdk.javaVersion) < 0 ? otherJdk : currentJdk
+
         and:
         def producer = file('producer')
         producer.file('build.gradle') << """
@@ -120,7 +123,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             group = "com.example"
             version = "1.0"
 
-            ${javaPluginToolchainVersion(tooHighJava)}
+            ${javaPluginToolchainVersion(higherVersion)}
 
             gradlePlugin {
                 plugins.create('greeting') {
@@ -151,7 +154,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
                 id('com.example.greeting') version '1.0'
             }
 
-            ${javaPluginToolchainVersion(currentJava)}
+            ${javaPluginToolchainVersion(lowerVersion)}
         """
 
         when:
@@ -165,7 +168,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
       > Could not resolve project :producer.
         Required by:
             project :
-         > Dependency 'project :producer' requires at least JVM runtime version $tooHighJava. This build uses a Java $currentJava JVM.""")
+         > Dependency 'project :producer' requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
         failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
     }
