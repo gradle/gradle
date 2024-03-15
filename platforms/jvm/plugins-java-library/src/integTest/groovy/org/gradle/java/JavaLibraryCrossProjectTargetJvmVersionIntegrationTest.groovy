@@ -59,7 +59,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
    > Could not resolve project :producer.
      Required by:
          project :
-      > Dependency 'project :producer' requires at least a Java 7 JVM. This request asked for a library compatible with a Java 6 JVM.""")
+      > Dependency resolution is looking for a library compatible with JVM runtime version 6, but 'project :producer' is only compatible with JVM runtime version 7 or newer.""")
         failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports a Java 7 JVM.")
     }
 
@@ -141,7 +141,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
    > Could not resolve project :producer.
      Required by:
          project :
-      > Dependency 'project :producer' requires at least a Java 7 JVM. This request asked for a library compatible with a Java 6 JVM.""")
+      > Dependency resolution is looking for a library compatible with JVM runtime version 6, but 'project :producer' is only compatible with JVM runtime version 7 or newer.""")
         failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports a Java 7 JVM.")
 
         when:
