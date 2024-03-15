@@ -147,6 +147,26 @@ enum JavaTestProjectGenerator {
         .withCompilerMemory("64m")
         .assembleChangeFile()
         .create()),
+    SMALL_JAVA_MULTI_PROJECT_MANY_EXTERNAL_DEPENDENCIES(new TestProjectGeneratorConfigurationBuilder("smallJavaMultiProjectManyExternalDependencies")
+        .withSourceFiles(50)
+        .withSubProjects(10)
+        .withDaemonMemory('2g')
+        .withCompilerMemory('512m')
+        .assembleChangeFile()
+        .withExternalApiDependencies([
+            "spring": "org.springframework.boot:spring-boot:2.7.9",
+            "aws": "com.amazonaws:aws-java-sdk-bundle:1.12.680",
+            "jooq": "org.jooq:jooq:3.19.6",
+            "grpc": "io.grpc:grpc-netty:1.62.2",
+            "otel" : "io.opentelemetry:opentelemetry-sdk:1.33.0",
+            "jackson" : "com.fasterxml.jackson.core:jackson-databind:2.10.0",
+            "junit5" : "org.junit.jupiter:junit-jupiter-engine:5.10.0",
+            "kotlin": "org.jetbrains.kotlin:kotlin-stdlib:1.9.23",
+            "testcontainers": "org.testcontainers:mysql:1.15.3",
+            "vertx": "io.vertx:vertx-web:4.4.2",
+            "keycloak": "org.keycloak:keycloak-core:24.0.1"
+        ])
+        .create()),
     SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC(new TestProjectGeneratorConfigurationBuilder('smallJavaMultiProjectNoBuildSrc')
         .withSourceFiles(50)
         .withSubProjects(10)
