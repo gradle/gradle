@@ -41,7 +41,8 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.GUtil;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
@@ -103,7 +104,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     @Override
-    public void execute(@Nullable Throwable failure) {
+    public void execute(@Nonnull Throwable failure) {
         if (failure instanceof MultipleBuildFailures) {
             renderMultipleBuildExceptions((MultipleBuildFailures) failure);
         } else {
@@ -231,14 +232,16 @@ public class BuildExceptionReporter implements Action<Throwable> {
          * @return {@code true} if the node should be printed; {@code false} otherwise
          */
         private boolean shouldBePrinted(Throwable node) {
-            Queue<Throwable> next = new java.util.LinkedList<>();
+            if (printedNodes.isEmpty()) {
+                return true;
+            }
+
+            Queue<Throwable> next = new ArrayDeque<>();
             next.add(node);
 
             while (!next.isEmpty()) {
                 Throwable curr = next.poll();
-                if (printedNodes.isEmpty()) {
-                    return true;
-                } else if (printedNodes.contains(curr)) {
+                if (printedNodes.contains(curr)) {
                     return false;
                 } else {
                     if (curr.getCause() != null) {
