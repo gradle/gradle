@@ -250,7 +250,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         String os = OperatingSystem.current().getFamilyName();
         return String.format("%s-%s-%s-%s", vendor, version, architecture, os)
                 .replaceAll("[^a-zA-Z0-9\\-]", "_")
-                .toLowerCase(Locale.ROOT);
+                .toLowerCase(Locale.ROOT) + ".2";
     }
 
     private File unpack(File jdkArchive) {
