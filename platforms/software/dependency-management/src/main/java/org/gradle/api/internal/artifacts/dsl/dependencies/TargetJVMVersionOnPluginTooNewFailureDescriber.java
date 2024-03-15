@@ -65,8 +65,8 @@ public abstract class TargetJVMVersionOnPluginTooNewFailureDescriber extends Abs
         return new VariantSelectionException(message, failure, resolutions);
     }
 
-    private String buildNeedsNewerJDKFailureMsg(String pluginId, JavaVersion minRequiredJVMVersion) {
-        return String.format(JVM_VERSION_TOO_HIGH_TEMPLATE, pluginId, minRequiredJVMVersion.getMajorVersion(), currentJVMVersion.getMajorVersion());
+    private String buildNeedsNewerJDKFailureMsg(String dependencyName, JavaVersion minRequiredJVMVersion) {
+        return String.format(JVM_VERSION_TOO_HIGH_TEMPLATE, dependencyName, minRequiredJVMVersion.getMajorVersion(), currentJVMVersion.getMajorVersion());
     }
 
     private String suggestUpdateJVM(JavaVersion minRequiredJVMVersion) {

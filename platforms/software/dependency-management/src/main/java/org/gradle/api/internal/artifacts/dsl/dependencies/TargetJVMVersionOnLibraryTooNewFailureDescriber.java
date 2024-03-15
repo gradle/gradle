@@ -64,8 +64,8 @@ public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends Ab
         return new VariantSelectionException(message, failure, resolutions);
     }
 
-    private String buildNeedsNewerJDKFailureMsg(String pluginId, JavaVersion minRequiredJVMVersion, IncompatibleGraphVariantFailure failure) {
-        return String.format(JVM_VERSION_TOO_HIGH_TEMPLATE, pluginId, minRequiredJVMVersion.getMajorVersion(), getJVMVersion(failure).getMajorVersion());
+    private String buildNeedsNewerJDKFailureMsg(String dependencyName, JavaVersion minRequiredJVMVersion, IncompatibleGraphVariantFailure failure) {
+        return String.format(JVM_VERSION_TOO_HIGH_TEMPLATE, dependencyName, minRequiredJVMVersion.getMajorVersion(), getJVMVersion(failure).getMajorVersion());
     }
 
     private String suggestChangeLibraryVersion(String requestName, JavaVersion minRequiredJVMVersion) {
