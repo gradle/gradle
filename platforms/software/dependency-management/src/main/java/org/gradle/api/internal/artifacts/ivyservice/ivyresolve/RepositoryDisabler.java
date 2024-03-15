@@ -35,7 +35,7 @@ public interface RepositoryDisabler {
      *
      * @param repositoryId The id of the repository to disable
      * @param throwable    The reason why the repository is being disabled
-     * @return {@code true} if the repository was disabled, {@code false} if it was already disabled
+     * @return {@code true} if the repository is now disabled, {@code false} if it was already disabled
      */
     boolean disableRepository(String repositoryId, Throwable throwable);
 
