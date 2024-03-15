@@ -132,6 +132,7 @@ include::{snippetsPath}/customPlugins/customPluginNoConvention/tests/customPlugi
 In this example, `GreetingPluginExtension` is an object with a property called `message`.
 The extension object is added to the project with the name `greeting`.
 This object becomes available as a project property with the same name as the extension object.
+`the<GreetingPluginExtension>()` is equivalent to `project.extensions.getByType(GreetingPluginExtension::class.java)`.
 
 Often, you have several related properties you need to specify on a single plugin.
 Gradle adds a configuration block for each extension object, so you can group settings:
@@ -148,6 +149,8 @@ include::{snippetsPath}/customPlugins/customPluginWithAdvancedConvention/tests/c
 
 [.multi-language-text.lang-kotlin]
 In this example, several settings can be grouped within the `configure<GreetingPluginExtension>` block.
+The link:{javadocPath}/org/gradle/api/Project.html#configure-java.lang.Object-groovy.lang.Closure-[`configure`] function is used to configure an extension object.
+It provides a convenient way to set properties or apply configurations to these objects.
 The type used in the build script's `configure` function (`GreetingPluginExtension`) must match the extension type.
 Then, when the block is executed, the receiver of the block is the extension.
 
