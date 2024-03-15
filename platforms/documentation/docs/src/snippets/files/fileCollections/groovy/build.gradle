@@ -35,6 +35,7 @@ tasks.register('list') {
 // end::closure[]
 
 tasks.register('conventions') {
+    def objects = objects
     doLast {
         // tag::conventions[]
         def files = objects.fileCollection().convention("src")

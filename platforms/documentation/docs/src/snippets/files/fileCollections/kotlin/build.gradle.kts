@@ -38,6 +38,7 @@ tasks.register("list") {
 // end::closure[]
 
 tasks.register("conventions") {
+    val objects = objects
     doLast {
         // tag::conventions[]
         val sourceDirs = objects.fileCollection().convention("src")
