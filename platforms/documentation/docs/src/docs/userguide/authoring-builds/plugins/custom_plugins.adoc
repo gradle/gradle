@@ -280,22 +280,10 @@ dependencyResolutionManagement {
 }
 ----
 
-We also define one subproject that we will use to define our convention plugin called `java-plugin`:
+We create a build file and apply the link:https://plugins.gradle.org/plugin/org.gradle.kotlin.kotlin-dsl[`kotlin-dsl`] plugin:
 
 [source,kotlin]
-.buildSrc/settings.gradle.kts
-----
-dependencyResolutionManagement {
-    repositories.gradlePluginPortal()
-}
-
-include("java-plugin")
-----
-
-In the subproject, we create a build file and apply the link:https://plugins.gradle.org/plugin/org.gradle.kotlin.kotlin-dsl[`kotlin-dsl`] plugin:
-
-[source,kotlin]
-.buildSrc/java-plugin/build.gradle.kts
+.buildSrc/build.gradle.kts
 ----
 plugins {
     `kotlin-dsl`
@@ -305,7 +293,7 @@ plugins {
 Because we want to use the Kotlin plugin, an external plugin, we need to <<sec:applying_external_plugins,define a dependency in the build file>>:
 
 [source,kotlin]
-.buildSrc/java-plugin/build.gradle.kts
+.buildSrc/build.gradle.kts
 ----
 plugins {
     `kotlin-dsl`
@@ -316,10 +304,10 @@ dependencies {
 }
 ----
 
-We add a script called `my-java-library.gradle.kts` inside the `java-plugin/src/main/kotlin` and we put all the plugin application and configuration that we defined in our `business-logic` into it:
+We add a script called `my-java-library.gradle.kts` inside the `/src/main/kotlin` and we put all the plugin application and configuration that we defined in our `business-logic` into it:
 
 [source,kotlin]
-.buildSrc/java-plugin/src/main/kotlin/my-java-library.gradle.kts
+.buildSrc/src/main/kotlin/my-java-library.gradle.kts
 ----
 plugins {
     id("java-library")

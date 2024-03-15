@@ -49,7 +49,7 @@ This will enable <<lazy_configuration.adoc#lazy_configuration,lazy configuration
 
 Let's start by creating a convention plugin called `greetings`:
 
-.buildSrc/packaging/src/main/kotlin/greetings.gradle.kts
+.buildSrc/src/main/kotlin/greetings.gradle.kts
 [source,kotlin]
 ----
 // Create a variable for the greeting using Gradle managed properties
@@ -73,7 +73,7 @@ You can provide configuration for your plugin by adding an extension object to t
 
 Let's update our  `greetings` example:
 
-.buildSrc/packaging/src/main/kotlin/greetings.gradle.kts
+.buildSrc/src/main/kotlin/greetings.gradle.kts
 [source,kotlin]
 ----
 // Update to an extension object
@@ -81,7 +81,7 @@ interface GreetingPluginExtension {
     val message: Property<String>
 }
 
-println("Hello, ${file(project.layout.buildDirectory.file("defaultGreeting.txt")).readText()}")
+println("Hello, ${project.layout.buildDirectory.file("defaultGreeting.txt").map { it.asFile.readText() }}")
 
 // Add the 'greeting' extension object to project
 val extension = project.extensions.create<GreetingPluginExtension>("greeting")
@@ -107,7 +107,7 @@ In plugins, you can define default values, also known as *conventions*, using th
 
 Convention properties are properties that are initialized with default values but can be overridden:
 
-.buildSrc/packaging/src/main/kotlin/greetings.gradle.kts
+.buildSrc/src/main/kotlin/greetings.gradle.kts
 [source,kotlin]
 ----
 interface GreetingPluginExtension {
@@ -117,7 +117,7 @@ interface GreetingPluginExtension {
 val extension = project.extensions.create<GreetingPluginExtension>("greeting")
 
 // Set a default value for 'message'
-extension.message.convention(project.layout.buildDirectory.file("defaultGreeting.txt").get().asFile.readText())
+extension.message.convention(project.layout.buildDirectory.file("defaultGreeting.txt").map { it.asFile.readText() })
 ----
 
 `extension.message.convention(...)` sets a convention for the `message` property of the extension.
@@ -132,7 +132,7 @@ Using an extension and mapping it to a custom task's input/output properties is 
 
 In this example, the message property of the `GreetingPluginExtension` is mapped to the message property of the `GreetingTask` as an input:
 
-.buildSrc/packaging/src/main/kotlin/greetings.gradle.kts
+.buildSrc/src/main/kotlin/greetings.gradle.kts
 [source,kotlin]
 ----
 interface GreetingPluginExtension {
