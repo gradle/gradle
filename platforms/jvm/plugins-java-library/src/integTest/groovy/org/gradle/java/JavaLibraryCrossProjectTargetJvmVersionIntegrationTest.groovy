@@ -60,7 +60,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
      Required by:
          project :
       > Dependency 'project :producer' requires at least a Java 7 JVM. This request asked for a library compatible with a Java 6 JVM.""")
-        failure.assertHasResolution("Update the dependency on project :producer to an earlier version that supports a Java 7 JVM.")
+        failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports a Java 7 JVM.")
     }
 
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {
@@ -142,7 +142,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
      Required by:
          project :
       > Dependency 'project :producer' requires at least a Java 7 JVM. This request asked for a library compatible with a Java 6 JVM.""")
-        failure.assertHasResolution("Update the dependency on project :producer to an earlier version that supports a Java 7 JVM.")
+        failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports a Java 7 JVM.")
 
         when:
         buildFile << """
