@@ -496,6 +496,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return withGradleUserHomeDir(testDirectoryProvider.getTestDirectory().file("user-home"));
     }
 
+    @Override
+    public GradleExecuter requireOwnGradleUserHomeDir(String because) {
+        return requireOwnGradleUserHomeDir();
+    }
+
     public File getUserHomeDir() {
         return userHomeDir;
     }

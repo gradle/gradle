@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  */
 
 /**
- * Classes related to JVM dependencies and components
+ * A package that contains registration logic for build script classpath instrumentation.
  */
-@NonNullApi
-package org.gradle.api.plugins.jvm;
-
-import org.gradle.api.NonNullApi;
-
+@org.gradle.api.NonNullApi
+package org.gradle.api.internal.initialization.transform.registration;

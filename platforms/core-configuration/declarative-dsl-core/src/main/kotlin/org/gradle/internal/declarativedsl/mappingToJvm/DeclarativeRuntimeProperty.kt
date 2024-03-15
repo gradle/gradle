@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.mappingToJvm
 
 
-interface RestrictedRuntimeProperty {
+interface DeclarativeRuntimeProperty {
     fun getValue(receiver: Any): Any?
     fun setValue(receiver: Any, value: Any?)
 }

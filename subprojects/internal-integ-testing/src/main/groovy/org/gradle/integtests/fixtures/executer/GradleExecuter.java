@@ -431,6 +431,12 @@ public interface GradleExecuter extends Stoppable {
     boolean usesSharedDaemons();
 
     /**
+     * Use {@link #requireOwnGradleUserHomeDir(String because)} instead.
+     */
+    @Deprecated
+    GradleExecuter requireOwnGradleUserHomeDir();
+
+    /**
      * Configures a unique gradle user home dir for the test.
      *
      * The gradle user home dir used will be underneath the {@link #getTestDirectoryProvider()} directory.
@@ -439,7 +445,7 @@ public interface GradleExecuter extends Stoppable {
      *
      * <p>Note: does not affect the daemon base dir.</p>
      */
-    GradleExecuter requireOwnGradleUserHomeDir();
+    GradleExecuter requireOwnGradleUserHomeDir(String because);
 
     /**
      * The Gradle user home dir that will be used for executions.

@@ -42,6 +42,20 @@ class ConfigurationCacheStartParameter(
     options: InternalOptions,
     private val modelParameters: BuildModelParameters
 ) {
+
+    /**
+     * On a CC miss, should we load the newly stored state in the same invocation?
+     *
+     * This provides a benefit of discarding a lot of state (e.g. project state) earlier in the build,
+     * potentially reducing the memory consumption.
+     * Another key benefit is that this eliminates discrepancies in behavior between cache hits and misses.
+     *
+     * We disable load-after-store when tooling model builders are involved.
+     * This is because the builders are executed after the tasks (if any) in a build action,
+     * and these builders may access project state as well as the task state.
+     * Doing load-after-store would have discarded the project state and isolated the task state,
+     * providing the builders with an incomplete view of the build.
+     */
     val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getInternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)
 
     val taskExecutionAccessPreStable: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")

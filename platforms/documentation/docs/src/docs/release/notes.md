@@ -113,6 +113,15 @@ Previously, the display name could be obtained only by parsing the operation dis
 Additionally, for JUnit5 and Spock, we updated the test descriptor for dynamic and parameterized tests to include information about the class name and method name containing the test.
 These enhancements enable IDEs to offer improved navigation and reporting capabilities for dynamic and parameterized tests.
 
+#### Fix IDE performance issues with large projects
+
+A performance issue in the Tooling API causing delays at the end of task execution in large projects has been identified and fixed by a community member.
+This problem occurred while transmitting task information for executed tasks to the IDE. 
+
+After executing approximately 15,000 tasks, the IDE would encounter a delay of several seconds. 
+The root cause was that much more information than needed was serialized via the Tooling API.
+We added a test to the fix to ensure there will be no future regression, demonstrating a performance improvement of around 12%.
+The environments that benefit from this fix are Android Studio, IntelliJ IDEA, Eclipse, and other Tooling API clients.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -125,6 +134,27 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
+
+This Gradle release promotes the following features to stable:
+
+### File permissions API
+
+The new API for defining file permissions (added in Gradle 8.3) is now stable, see:
+
+* [FilePermissions](javadoc/org/gradle/api/file/FilePermissions.html)
+* [ConfigurableFilePermissions](javadoc/org/gradle/api/file/ConfigurableFilePermissions.html)
+* [CopyProcessingSpec.getFilePermissions()](javadoc/org/gradle/api/file/CopyProcessingSpec.html#getFilePermissions--)
+* [CopyProcessingSpec.filePermissions(Action)](javadoc/org/gradle/api/file/CopyProcessingSpec.html#filePermissions-org.gradle.api.Action-)
+* [CopyProcessingSpec.getDirPermissions()](javadoc/org/gradle/api/file/CopyProcessingSpec.html#getDirPermissions--)
+* [CopyProcessingSpec.dirPermissions(Action)](javadoc/org/gradle/api/file/CopyProcessingSpec.html#dirPermissions-org.gradle.api.Action-)
+* [FileCopyDetails.permissions(Action)](javadoc/org/gradle/api/file/FileCopyDetails.html#permissions-org.gradle.api.Action-)
+* [FileCopyDetails.setPermissions(FilePermissions)](javadoc/org/gradle/api/file/FileCopyDetails.html#setPermissions-org.gradle.api.file.FilePermissions-)
+* [FileSystemOperations.filePermissions(Action)](javadoc/org/gradle/api/file/FileSystemOperations.html#filePermissions-org.gradle.api.Action-)
+* [FileSystemOperations.directoryPermissions(Action)](javadoc/org/gradle/api/file/FileSystemOperations.html#directoryPermissions-org.gradle.api.Action-)
+* [FileSystemOperations.permissions(int)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-int-)
+* [FileSystemOperations.permissions(String)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-java.lang.String-)
+* [FileSystemOperations.permissions(Provider)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-org.gradle.api.provider.Provider-)
+* [FileTreeElement.getPermissions()](javadoc/org/gradle/api/file/FileTreeElement.html#getPermissions--)
 
 <!--
 ### Example promoted
