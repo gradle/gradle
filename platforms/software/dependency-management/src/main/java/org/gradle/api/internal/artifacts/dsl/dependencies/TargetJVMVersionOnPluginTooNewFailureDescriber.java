@@ -70,6 +70,6 @@ public abstract class TargetJVMVersionOnPluginTooNewFailureDescriber extends Abs
     }
 
     private String suggestUpdateJVM(JavaVersion minRequiredJVMVersion) {
-        return "Run this build using a Java " + minRequiredJVMVersion.getMajorVersion() + " JVM (or newer).";
+        return "Run this build using a Java " + minRequiredJVMVersion.getMajorVersion() + " or newer JVM.";
     }
 }

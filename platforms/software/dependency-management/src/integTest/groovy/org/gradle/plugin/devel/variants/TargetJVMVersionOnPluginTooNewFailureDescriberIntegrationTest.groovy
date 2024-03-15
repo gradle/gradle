@@ -98,7 +98,74 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
          project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
       > Plugin com.example:producer:1.0 requires at least a Java $tooHighJava JVM. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
-        failure.assertHasResolution("Run this build using a Java $tooHighJava JVM (or newer).")
+        failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
+    }
+
+    def 'JVM version too low uses custom error message for plugin when using composite build'() {
+        given:
+        def producer = file('producer')
+        def consumer = file('consumer')
+
+        producer.file('settings.gradle').createFile()
+        producer.file('build.gradle') << """
+            plugins {
+                id('java-gradle-plugin')
+                id('maven-publish')
+            }
+
+            group = "com.example"
+            version = "1.0"
+
+            configurations.configureEach {
+                if (canBeConsumed)  {
+                    attributes {
+                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $tooHighJava)
+                    }
+                }
+            }
+
+            gradlePlugin {
+                plugins.create('greeting') {
+                    id = 'com.example.greeting'
+                    implementationClass = 'example.plugin.GreetingPlugin'
+                }
+            }
+            publishing {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+            }
+        """
+        producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation()
+
+        consumer.file('settings.gradle') << """
+            pluginManagement {
+                includeBuild '../producer'
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+            }
+        """
+        consumer.file('build.gradle') << """
+            plugins {
+                id('com.example.greeting') version '1.0'
+            }
+        """
+
+        when:
+        projectDir(consumer)
+        fails 'greet', "--stacktrace"
+
+        then:
+        failure.assertHasErrorOutput("""> Could not resolve the dependencies of null.
+   > Could not determine the dependencies of null.
+      > Could not resolve all task dependencies for configuration ':classpath'.
+         > Could not resolve project :producer.
+           Required by:
+               project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
+            > Plugin com.example:producer:1.0 requires at least a Java $tooHighJava JVM. This build uses a Java $currentJava JVM.""")
+        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
+        failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
     }
 
     @Requires(UnitTestPreconditions.Jdk11OrEarlier)
@@ -168,7 +235,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
          project : > org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.1
       > Plugin org.springframework.boot:spring-boot-gradle-plugin:3.2.1 requires at least a Java 17 JVM. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
-        failure.assertHasResolution("Run this build using a Java 17 JVM (or newer).")
+        failure.assertHasResolution("Run this build using a Java 17 or newer JVM.")
     }
 
     private String pluginImplementation() {
