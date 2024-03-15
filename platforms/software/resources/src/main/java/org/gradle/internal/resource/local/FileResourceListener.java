@@ -17,11 +17,11 @@
 package org.gradle.internal.resource.local;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 import java.io.File;
 
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 public interface FileResourceListener {
     /**
      * Called when a file system resource is accessed as a regular file.

@@ -49,7 +49,7 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.GradleVersion
@@ -468,7 +468,7 @@ class DefaultGradleSpec extends Specification {
 
     static class TestListenerManager extends DefaultListenerManager {
         TestListenerManager() {
-            super(Scopes.Build)
+            super(Scope.Build)
         }
     }
 }

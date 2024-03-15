@@ -110,7 +110,7 @@ public class ProjectScopeServices extends ScopedServiceRegistry {
     private final Factory<LoggingManagerInternal> loggingManagerInternalFactory;
 
     public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
-        super(Scopes.Project.class, "Project services", parent);
+        super(Scope.Project.class, "Project services", parent);
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
         register(registration -> {

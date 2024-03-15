@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 
@@ -31,7 +31,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 6.0
  */
-@ServiceScope({Scopes.Build.class, Scopes.Project.class})
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface FileSystemOperations {
 
     /**

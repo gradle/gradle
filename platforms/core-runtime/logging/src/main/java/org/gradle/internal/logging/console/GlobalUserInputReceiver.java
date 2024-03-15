@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * The global {@link UserInputReceiver} instance.
  */
-@ServiceScope(Scopes.Global.class)
+@ServiceScope(Scope.Global.class)
 @ThreadSafe
 public interface GlobalUserInputReceiver extends UserInputReceiver {
     /**

@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * when creating new instances and/or loading from the configuration cache.
  */
 @ThreadSafe
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class TransformStepNodeFactory {
 
     private final ConfigurationCacheableIdFactory idFactory;

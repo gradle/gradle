@@ -23,7 +23,7 @@ import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.EncryptionAlgorithm
 import org.gradle.util.internal.EncryptionAlgorithm.EncryptionException
@@ -63,7 +63,7 @@ interface EncryptionService : EncryptionConfiguration {
 }
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class DefaultEncryptionService(
     private val startParameter: ConfigurationCacheStartParameter,

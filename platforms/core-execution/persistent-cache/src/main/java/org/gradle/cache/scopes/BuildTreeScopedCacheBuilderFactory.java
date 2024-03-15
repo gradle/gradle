@@ -16,13 +16,13 @@
 
 package org.gradle.cache.scopes;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Factory for creating build tree scoped {@link org.gradle.cache.CacheBuilder}s. These typically live under the ~/.gradle directory of the root build
  * in the build tree.
  */
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface BuildTreeScopedCacheBuilderFactory extends ScopedCacheBuilderFactory {
 }

@@ -25,13 +25,13 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.TimestampSuppliers;
 
 import java.io.File;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class ProjectCacheDir implements Stoppable {
     private static final int MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS = 7;
 

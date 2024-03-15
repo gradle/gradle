@@ -20,15 +20,16 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.function.Supplier;
 
+
 /**
  * Factory for {@link CalculatedValueContainer}.
  */
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class CalculatedValueContainerFactory {
     private final ProjectLeaseRegistry projectLeaseRegistry;
     private final NodeExecutionContext globalContext;
