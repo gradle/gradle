@@ -42,7 +42,7 @@ import java.util.Optional;
  * attribute.
  */
 public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends AbstractJVMVersionTooNewFailureDescriber {
-    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "%s requires at least a Java %s JVM. This request asked for a library compatible with a Java %s JVM.";
+    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency '%s' requires at least a Java %s JVM. This request asked for a library compatible with a Java %s JVM.";
 
     @Override
     protected JavaVersion getJVMVersion(IncompatibleGraphVariantFailure failure) {

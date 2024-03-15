@@ -42,7 +42,7 @@ import java.util.Optional;
  * attribute.
  */
 public abstract class TargetJVMVersionOnPluginTooNewFailureDescriber extends AbstractJVMVersionTooNewFailureDescriber {
-    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Plugin %s requires at least a Java %s JVM. This build uses a Java %s JVM.";
+    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency '%s' requires at least a Java %s JVM. This build uses a Java %s JVM.";
 
     private final JavaVersion currentJVMVersion = JavaVersion.current();
 
