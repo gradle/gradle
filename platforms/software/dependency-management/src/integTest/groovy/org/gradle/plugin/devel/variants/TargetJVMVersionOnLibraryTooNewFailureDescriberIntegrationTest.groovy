@@ -62,7 +62,7 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
    > Could not resolve project :producer.
      Required by:
          project :consumer
-      > Dependency 'project :producer' requires at least a Java $tooHighJava JVM. This request asked for a library compatible with a Java $currentJava JVM.""")
+      > Dependency resolution is looking for a library compatible with JVM runtime version $currentJava, but 'project :producer' is only compatible with JVM runtime version $tooHighJava or newer.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
         failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports a Java $tooHighJava JVM.")
     }
@@ -113,7 +113,7 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
    > Could not resolve project :producer.
      Required by:
          project :consumer
-      > Dependency 'project :producer' requires at least a Java $tooHighJava JVM. This request asked for a library compatible with a Java $currentJava JVM.""")
+      > Dependency resolution is looking for a library compatible with JVM runtime version $currentJava, but 'project :producer' is only compatible with JVM runtime version $tooHighJava or newer.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
         failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports a Java $tooHighJava JVM.")
     }

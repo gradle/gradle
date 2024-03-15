@@ -42,7 +42,7 @@ import java.util.Optional;
  * attribute.
  */
 public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends AbstractJVMVersionTooNewFailureDescriber {
-    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency '%s' requires at least a Java %s JVM. This request asked for a library compatible with a Java %s JVM.";
+    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency resolution is looking for a library compatible with JVM runtime version %s, but '%s' is only compatible with JVM runtime version %s or newer.";
 
     @Override
     protected JavaVersion getJVMVersion(IncompatibleGraphVariantFailure failure) {
@@ -64,11 +64,11 @@ public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends Ab
         return new VariantSelectionException(message, failure, resolutions);
     }
 
-    private String buildNeedsNewerJDKFailureMsg(String dependencyName, JavaVersion minRequiredJVMVersion, IncompatibleGraphVariantFailure failure) {
-        return String.format(JVM_VERSION_TOO_HIGH_TEMPLATE, dependencyName, minRequiredJVMVersion.getMajorVersion(), getJVMVersion(failure).getMajorVersion());
+    private String buildNeedsNewerJDKFailureMsg(String requestedName, JavaVersion minRequiredJVMVersion, IncompatibleGraphVariantFailure failure) {
+        return String.format(JVM_VERSION_TOO_HIGH_TEMPLATE, getJVMVersion(failure).getMajorVersion(), requestedName, minRequiredJVMVersion.getMajorVersion());
     }
 
-    private String suggestChangeLibraryVersion(String requestName, JavaVersion minRequiredJVMVersion) {
-        return "Change the dependency on '" + requestName + "' to an earlier version that supports a Java " + minRequiredJVMVersion.getMajorVersion() + " JVM.";
+    private String suggestChangeLibraryVersion(String requestedName, JavaVersion minRequiredJVMVersion) {
+        return "Change the dependency on '" + requestedName + "' to an earlier version that supports a Java " + minRequiredJVMVersion.getMajorVersion() + " JVM.";
     }
 }

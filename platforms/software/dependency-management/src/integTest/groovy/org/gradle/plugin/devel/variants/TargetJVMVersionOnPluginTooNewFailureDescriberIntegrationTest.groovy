@@ -99,7 +99,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
    > Could not resolve com.example:producer:1.0.
      Required by:
          project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
-      > Dependency 'com.example:producer:1.0' requires at least a Java $tooHighJava JVM. This build uses a Java $currentJava JVM.""")
+      > Dependency 'com.example:producer:1.0' requires at least JVM runtime version $tooHighJava. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
         failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
     }
@@ -165,7 +165,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
       > Could not resolve project :producer.
         Required by:
             project :
-         > Dependency 'project :producer' requires at least a Java $tooHighJava JVM. This build uses a Java $currentJava JVM.""")
+         > Dependency 'project :producer' requires at least JVM runtime version $tooHighJava. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
         failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
     }
@@ -235,7 +235,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
    > Could not resolve org.springframework.boot:spring-boot-gradle-plugin:3.2.1.
      Required by:
          project : > org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.1
-      > Dependency 'org.springframework.boot:spring-boot-gradle-plugin:3.2.1' requires at least a Java 17 JVM. This build uses a Java $currentJava JVM.""")
+      > Dependency 'org.springframework.boot:spring-boot-gradle-plugin:3.2.1' requires at least JVM runtime version 17. This build uses a Java $currentJava JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
         failure.assertHasResolution("Run this build using a Java 17 or newer JVM.")
     }

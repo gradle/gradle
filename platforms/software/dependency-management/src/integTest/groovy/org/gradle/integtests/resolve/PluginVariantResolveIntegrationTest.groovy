@@ -47,7 +47,7 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
         fails ':help'
 
         then:
-        failure.assertHasErrorOutput("Dependency 'com.acme:my-plugin:1.0' requires at least a Java ${JavaVersion.VERSION_HIGHER.majorVersion} JVM. This build uses a Java ${JavaVersion.current().majorVersion} JVM.")
+        failure.assertHasErrorOutput("Dependency 'com.acme:my-plugin:1.0' requires at least JVM runtime version ${JavaVersion.VERSION_HIGHER.majorVersion}. This build uses a Java ${JavaVersion.current().majorVersion} JVM.")
 
         where:
         id                  | pluginsBlock
@@ -90,7 +90,7 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
         fails ':help'
 
         then:
-        failure.assertHasErrorOutput("Dependency 'project :my-plugin' requires at least a Java ${JavaVersion.VERSION_HIGHER.majorVersion} JVM. This build uses a Java ${JavaVersion.current().majorVersion} JVM.")
+        failure.assertHasErrorOutput("Dependency 'project :my-plugin' requires at least JVM runtime version ${JavaVersion.VERSION_HIGHER.majorVersion}. This build uses a Java ${JavaVersion.current().majorVersion} JVM.")
 
         where:
         id                  | pluginsBlock       | substitution

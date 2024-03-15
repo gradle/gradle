@@ -42,7 +42,7 @@ import java.util.Optional;
  * attribute.
  */
 public abstract class TargetJVMVersionOnPluginTooNewFailureDescriber extends AbstractJVMVersionTooNewFailureDescriber {
-    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency '%s' requires at least a Java %s JVM. This build uses a Java %s JVM.";
+    private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency '%s' requires at least JVM runtime version %s. This build uses a Java %s JVM.";
 
     private final JavaVersion currentJVMVersion = JavaVersion.current();
 
@@ -65,8 +65,8 @@ public abstract class TargetJVMVersionOnPluginTooNewFailureDescriber extends Abs
         return new VariantSelectionException(message, failure, resolutions);
     }
 
-    private String buildNeedsNewerJDKFailureMsg(String dependencyName, JavaVersion minRequiredJVMVersion) {
-        return String.format(JVM_VERSION_TOO_HIGH_TEMPLATE, dependencyName, minRequiredJVMVersion.getMajorVersion(), currentJVMVersion.getMajorVersion());
+    private String buildNeedsNewerJDKFailureMsg(String requestedName, JavaVersion minRequiredJVMVersion) {
+        return String.format(JVM_VERSION_TOO_HIGH_TEMPLATE, requestedName, minRequiredJVMVersion.getMajorVersion(), currentJVMVersion.getMajorVersion());
     }
 
     private String suggestUpdateJVM(JavaVersion minRequiredJVMVersion) {
