@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import spock.lang.Issue
 
-class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
+class ExtraGradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
     @Override
     protected String getDefaultBuildFileName() {
