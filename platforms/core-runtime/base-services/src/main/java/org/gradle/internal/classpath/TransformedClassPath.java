@@ -264,7 +264,6 @@ public class TransformedClassPath implements ClassPath {
         return builder.toString();
     }
 
-
     /**
      * Constructs a TransformedClassPath out of the ordinary JAR/directory list, strict produced by the instrumenting ArtifactTransform.
      *
