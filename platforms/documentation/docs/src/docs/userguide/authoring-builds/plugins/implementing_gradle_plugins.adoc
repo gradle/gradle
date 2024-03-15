@@ -20,7 +20,7 @@ Only a few options are recommended:
 
 [cols="~,~,~,~,~,~"]
 |===
-|*#* |*Using:* |*Type:* |*The Plugin is:* |*Created by applying:* |*Use?*
+|*#* |*Using:* |*Type:* |*The Plugin is:* |*Created by applying:* |*Recommended?*
 
 |1
 |Kotlin DSL
@@ -28,6 +28,13 @@ Only a few options are recommended:
 |in a `.gradle.kts` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |
 |Nofootnote:1[<<custom_plugins#sec:build_script_plugins,*Script plugins*>> are hard to maintain, test, and do not support defining new reusable types. They are not recommended.]
+
+|4
+|Groovy DSL
+|Script
+|in a `.gradle` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
+|
+|Nofootnote:1[]
 
 |2
 |Kotlin DSL
@@ -37,6 +44,13 @@ Only a few options are recommended:
 |Yesfootnote:3[It is recommended to use a statically-typed language like *Java* or *Kotlin* for implementing plugins to reduce the likelihood of binary incompatibilities. If using Groovy, consider using `@groovy.transform.CompileStatic`.]
 
 |3
+|Groovy DSL
+|Pre-compiled script
+|a `.gradle` file
+|`id("groovy-gradle-plugin")`
+|Nofootnote:2[<<custom_plugins#sec:precompile_script_plugin,*Pre-compiled script*>> plugins are best used as <<custom_plugins#sec:convention_plugins,*convention plugins*>> written in Kotlin DSL or Java.]
+
+|4
 |Kotlin DSL
 |Binary
 |a `.gradle.kts` file
@@ -44,21 +58,7 @@ Only a few options are recommended:
 `id("com.gradle.plugin-publish")`
 |Yesfootnote:3[]
 
-|4
-|Groovy DSL
-|Script
-|in a `.gradle` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|
-|Nofootnote:1[]
-
 |5
-|Groovy DSL
-|Pre-compiled script
-|a `.gradle` file
-|`id("groovy-gradle-plugin")`
-|Nofootnote:2[<<custom_plugins#sec:precompile_script_plugin,*Pre-compiled script*>> plugins are best used as <<custom_plugins#sec:convention_plugins,*convention plugins*>> written in Kotlin DSL or Java.]
-
-|6
 |Groovy DSL
 |Binary
 |a `.gradle` file
@@ -66,14 +66,7 @@ Only a few options are recommended:
 `id("com.gradle.plugin-publish")`
 |Nofootnote:3[]
 
-|7
-|Java
-|Pre-compiled script
-|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|`id("java-gradle-plugin")`
-|Yesfootnote:2[]
-
-|8
+|6
 |Java
 |Binary
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
@@ -81,15 +74,7 @@ Only a few options are recommended:
 `id("com.gradle.plugin-publish")`
 |Yesfootnote:3[<<custom_plugins#sec:custom_plugins_standalone_project,*Binary plugins*>> should be used when logic needs to be shared across independent projects. They allow for structuring code into classes and packages, are cacheable, support versioning, and are easily testable.]
 
-|9
-|Kotlin
-|Pre-compiled script
-|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|`id("java-gradle-plugin")`
-`id("org.jetbrains.kotlin.jvm")`
-|Nofootnote:2[]
-
-|10
+|7
 |Kotlin
 |Binary
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
@@ -98,15 +83,7 @@ Only a few options are recommended:
 `id("com.gradle.plugin-publish")`
 |Yesfootnote:3[]
 
-|11
-|Groovy
-|Pre-compiled script
-|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|`id("java-gradle-plugin")`
-`id("groovy")`
-|Nofootnote:2[]
-
-|12
+|8
 |Groovy
 |Binary
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
@@ -115,15 +92,7 @@ Only a few options are recommended:
 `id("com.gradle.plugin-publish")`
 |Nofootnote:3[]
 
-|13
-|Scala
-|Pre-compiled script
-|an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|`id("java-gradle-plugin")`
-`id("scala")`
-|Nofootnote:2[]
-
-|14
+|9
 |Scala
 |Binary
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
