@@ -252,8 +252,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
-        problems.assertResultHasProblems(failure) {
-        }
+        problems.assertResultHasProblems(failure)
 
         when:
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'broken'
@@ -269,8 +268,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
-        problems.assertResultHasProblems(failure) {
-        }
+        problems.assertResultHasProblems(failure)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13862")
@@ -305,8 +303,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Could not load the value of field `prop` of task `:broken` of type `BrokenTaskType`.")
         failure.assertHasCause("BOOM")
-        problems.assertResultHasProblems(failure) {
-        }
+        problems.assertResultHasProblems(failure)
 
         when:
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'broken'
@@ -321,8 +318,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Could not load the value of field `prop` of task `:broken` of type `BrokenTaskType`.")
         failure.assertHasCause("BOOM")
-        problems.assertResultHasProblems(failure) {
-        }
+        problems.assertResultHasProblems(failure)
     }
 
     def "state serialization errors always halts the build and earlier problems reported"() {
