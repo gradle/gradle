@@ -38,12 +38,9 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
                 id('java-library')
             }
 
-            configurations.configureEach {
-                if (canBeConsumed)  {
-                    attributes {
-                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $tooHighJava)
-                    }
-                }
+            java {
+                sourceCompatibility = $tooHighJava
+                targetCompatibility = $tooHighJava
             }
         """
 
