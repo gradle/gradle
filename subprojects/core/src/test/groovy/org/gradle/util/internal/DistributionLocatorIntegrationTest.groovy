@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.util.internal
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.DistributionLocator
 import spock.lang.Specification
 
 @Requires(UnitTestPreconditions.Online)
@@ -48,7 +47,7 @@ class DistributionLocatorIntegrationTest extends Specification {
     }
 
     void urlExist(URI url) {
-        HttpURLConnection connection = url.toURL().openConnection()
+        def connection = url.toURL().openConnection() as HttpURLConnection
         connection.setConnectTimeout(CONNECTION_TIMEOUT_SECONDS)
         connection.setReadTimeout(READ_TIMEOUT_SECONDS)
         connection.requestMethod = "HEAD"

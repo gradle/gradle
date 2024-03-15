@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.execution.commandline
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
@@ -26,34 +25,57 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.internal.GFileUtils
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import spock.lang.Issue
 
 @SuppressWarnings('IntegrationTestFixtures')
-class CommandLineIntegrationTest extends AbstractIntegrationTest {
+class CommandLineIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule
-    public final TestResources resources = new TestResources(testDirectoryProvider)
-
-    @Before
-    void setup() {
+    def setup() {
         NativeServicesTestFixture.initialize()
     }
 
-    @Test
-    void hasNonZeroExitCodeOnBuildFailure() {
+    def "has non zero exit code on build failure"() {
         ExecutionFailure failure = executer.withTasks('unknown').runWithFailure()
         failure.assertHasDescription("Task 'unknown' not found in root project 'commandLine'.")
     }
 
-    @Test
+    def createProject() {
+        buildFile """
+            import org.gradle.internal.jvm.Jvm
+
+            def providers = project.providers
+
+            task checkJavaHome {
+                doFirst {
+                    assert Jvm.current().javaHome == new File(providers.gradleProperty('expectedJavaHome').get())
+                }
+            }
+
+            task checkSystemProperty {
+                def custom1 = project.providers.systemProperty('customProp1')
+                def custom2 = project.providers.systemProperty('customProp2')
+                doLast {
+                    assert custom1.orNull == 'custom-value'
+                    assert custom2.orNull == 'custom value'
+                }
+            }
+        """
+
+        settingsFile """
+            rootProject.name = 'commandLine'
+        """
+    }
+
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-    void canDefineJavaHomeUsingEnvironmentVariable() {
+    def "can define java home using environment variable"() {
+        setup:
+        createProject()
+
+        when:
         String javaHome = Jvm.current().javaHome
         String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
 
+        then:
         // Handle JAVA_HOME specified
         executer.withJavaHome(javaHome).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
 
@@ -71,44 +93,52 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
         executer.withJavaHome(javaHome.replace(File.separator, '/')).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
     }
 
-    @Test
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-    void usesJavaCommandFromPathWhenJavaHomeNotSpecified() {
+    def "uses java command from path when java home not specified"() {
+        setup:
+        createProject()
+
+        when:
         String javaHome = Jvm.current().javaHome
         String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
 
         String path = String.format('%s%s%s', Jvm.current().javaExecutable.parentFile, File.pathSeparator, System.getenv('PATH'))
+
+        then:
         executer.withEnvironmentVars('PATH': path).withJavaHome('').withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
     }
 
-    @Test
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-    void failsWhenJavaHomeDoesNotPointToAJavaInstallation() {
+    def "fails when java home does not point to a java installation"() {
+        when:
         def failure = executer.withJavaHome(testDirectory).withTasks('checkJavaHome').runWithFailure()
-        assert failure.error.contains('ERROR: JAVA_HOME is set to an invalid directory')
+
+        then:
+        failure.error.contains('ERROR: JAVA_HOME is set to an invalid directory')
     }
 
-    @Test
     @Requires([UnitTestPreconditions.Symlinks, IntegTestPreconditions.NotEmbeddedExecutor])
-    void failsWhenJavaHomeNotSetAndPathDoesNotContainJava() {
+    def "fails when java home not set and path does not contain java"() {
+        when:
         def links = ['basename', 'dirname', 'uname', 'which', 'sed', 'sh', 'bash']
         def binDir = file('fake-bin')
-        try {
-            def path
-            if (OperatingSystem.current().windows) {
-                path = ''
-            } else {
-                // Set up a fake bin directory, containing the things that the script needs, minus any java that might be in /usr/bin
-                links.each { linkToBinary(it, binDir) }
-                path = binDir.absolutePath
-            }
 
-            def failure = executer.withEnvironmentVars('PATH': path).withJavaHome('').withTasks('checkJavaHome').runWithFailure()
-            assert failure.error.contains("ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.")
-        } finally {
-            links.each {
-                new File(getTestDirectory(), "fake-bin/$it").delete()
-            }
+        then:
+        def path
+        if (OperatingSystem.current().windows) {
+            path = ''
+        } else {
+            // Set up a fake bin directory, containing the things that the script needs, minus any java that might be in /usr/bin
+            links.each { linkToBinary(it, binDir) }
+            path = binDir.absolutePath
+        }
+
+        def failure = executer.withEnvironmentVars('PATH': path).withJavaHome('').withTasks('checkJavaHome').runWithFailure()
+        failure.error.contains("ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.")
+
+        cleanup:
+        links.each {
+            new File(getTestDirectory(), "fake-bin/$it").delete()
         }
     }
 
@@ -122,10 +152,20 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
         binDir.file(command).createLink(binary)
     }
 
-    @Test
-    void canDefineGradleUserHomeViaEnvironmentVariable() {
+    def "can define gradle user home via environment variable"() {
         // the actual testing is done in the build script.
+        when:
+        buildFile """
+            task checkGradleUserHomeViaSystemEnv {
+                doLast {
+                    assert gradle.gradleUserHomeDir == file('customUserHome')
+                }
+            }
+        """
+
         File gradleUserHomeDir = file('customUserHome')
+
+        then:
         executer
             .withOwnUserHomeServices()
             .withGradleUserHomeDir(null)
@@ -134,10 +174,19 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
             .run()
     }
 
-    @Test
     @Requires([UnitTestPreconditions.NotEC2Agent, IntegTestPreconditions.NotEmbeddedExecutor])
     @Issue('https://github.com/gradle/gradle-private/issues/2876')
-    void checkDefaultGradleUserHome() {
+    def "check default gradle user home"() {
+        given:
+        buildFile """
+            task checkDefaultGradleUserHome {
+                doLast {
+                    assert gradle.gradleUserHomeDir == new File(System.properties['user.home'], ".gradle")
+                }
+            }
+        """
+
+        when:
         // the actual testing is done in the build script.
         File userHome = file('customUserHome')
         executer
@@ -146,25 +195,35 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
             .withGradleUserHomeDir(null)
             .withTasks("checkDefaultGradleUserHome")
             .run()
-        assert userHome.file(".gradle").exists()
+
+        then:
+        userHome.file(".gradle").exists()
     }
 
-    @Test
-    void canSpecifySystemPropertiesFromCommandLine() {
+    void "can specify system properties from command line"() {
+        when:
+        createProject()
         // the actual testing is done in the build script.
+        then:
         executer.withTasks("checkSystemProperty").withArguments('-DcustomProp1=custom-value', '-DcustomProp2=custom value').run();
     }
 
-    @Test
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-    void canSpecifySystemPropertiesUsingGradleOptsEnvironmentVariable() {
+    def "can specify system properties using GRADLE_OPTS environment variable"() {
+        when:
+        createProject()
+
+        then:
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": '-DcustomProp1=custom-value "-DcustomProp2=custom value"').run();
     }
 
-    @Test
     @Requires([UnitTestPreconditions.UnixDerivative, IntegTestPreconditions.NotEmbeddedExecutor])
-    void canSpecifySystemPropertiesUsingGradleOptsEnvironmentVariableWithLinebreaks() {
+    def "can specify system properties using gradle opts environment variable with line breaks"() {
+        when:
+        createProject()
+
+        then:
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": """
             -DcustomProp1=custom-value
@@ -172,44 +231,56 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
         """).run();
     }
 
-    @Test
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-    void canSpecifySystemPropertiesUsingJavaOptsEnvironmentVariable() {
+    def "can specify system properties using JAVA_OPTS environment variable"() {
+        when:
+        createProject()
+
+        then:
         // the actual testing is done in the build script.
         executer.withTasks("checkSystemProperty").withEnvironmentVars("JAVA_OPTS": '-DcustomProp1=custom-value "-DcustomProp2=custom value"').run();
     }
 
-    @Test
-    void allowsReconfiguringProjectCacheDirWithRelativeDir() {
-        //given
-        file("build.gradle").write "task foo { outputs.file file('out'); doLast { } }"
+    def "allows reconfiguring project cache dir with relative directory"() {
+        given:
+        buildFile "task foo { outputs.file file('out'); doLast { } }"
 
-        //when
+        when:
         executer.withTasks("foo").withArguments("--project-cache-dir", ".foo").run()
 
-        //then
+        then:
         assert file(".foo").exists()
     }
 
-    @Test
-    void allowsReconfiguringProjectCacheDirWithAbsoluteDir() {
-        //given
+    def "allows reconfiguring project cache directory with absolute directory"() {
+        given:
         file("build.gradle").write "task foo { outputs.file file('out'); doLast { } }"
         File someAbsoluteDir = file("foo/bar/baz").absoluteFile
         assert someAbsoluteDir.absolute
 
-        //when
+        when:
         executer.withTasks("foo").withArguments("--project-cache-dir", someAbsoluteDir.toString()).run()
 
-        //then
-        assert someAbsoluteDir.exists()
+        then:
+        someAbsoluteDir.exists()
     }
 
-    @Test
-    void systemPropGradleUserHomeHasPrecedenceOverEnvVariable() {
+    def "system property GRADLE_USER_HOME has precedence over environment variable"() {
+        given:
+        buildFile """
+            task checkSystemPropertyGradleUserHomeHasPrecedence {
+                doLast {
+                    assert gradle.gradleUserHomeDir == file('systemPropCustomUserHome')
+                }
+            }
+        """
+
+        when:
         // the actual testing is done in the build script.
         File gradleUserHomeDir = file("customUserHome")
         File systemPropGradleUserHomeDir = file("systemPropCustomUserHome")
+
+        then:
         executer
             .withOwnUserHomeServices()
             .withGradleUserHomeDir(null)
@@ -219,33 +290,36 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
             .run()
     }
 
-    @Test
     @Requires([UnitTestPreconditions.Symlinks, IntegTestPreconditions.NotEmbeddedExecutor])
-    void resolvesLinksWhenDeterminingHomeDirectory() {
+    def "resolves links when determining home directory"() {
+        when:
         def script = file('bin/my app')
         script.parentFile.createDir()
         script.createLink(distribution.gradleHomeDir.file('bin/gradle'))
 
         def result = executer.usingExecutable(script.absolutePath).withTasks("help").run()
-        assert result.output.contains("my app")
+
+        then:
+        result.output.contains("my app")
 
         // Don't follow links when cleaning up test files
         testDirectory.usingNativeTools().deleteDir()
     }
 
-    @Test
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-    void usesScriptBaseNameAsApplicationNameForUseInLogMessages() {
+    def "uses script basename as application name for use in log messages"() {
+        when:
         def binDir = distribution.gradleHomeDir.file('bin')
         def newScript = binDir.file(OperatingSystem.current().getScriptName('my app'))
-        try {
-            binDir.file(OperatingSystem.current().getScriptName('gradle')).copyTo(newScript)
-            newScript.permissions = 'rwx------'
 
-            def result = executer.usingExecutable(newScript.absolutePath).withTasks("help").run()
-            assert result.output.contains("my app")
-        } finally {
-            GFileUtils.forceDelete(newScript)
-        }
+        binDir.file(OperatingSystem.current().getScriptName('gradle')).copyTo(newScript)
+        newScript.permissions = 'rwx------'
+
+        then:
+        def result = executer.usingExecutable(newScript.absolutePath).withTasks("help").run()
+        result.output.contains("my app")
+
+        cleanup:
+        GFileUtils.forceDelete(newScript)
     }
 }
