@@ -1186,29 +1186,26 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     fun `can use Kotlin lambda as path notation`() {
 
         withBuildScript(
             """
             task("listFiles") {
+                // via FileResolver
+                val f = file { "cathedral" }
+                // on FileCollection
+                val collection = layout.files(
+                    // single lambda
+                    { "foo" },
+                    // nested deferred
+                    { { "bar" } },
+                    // nested unpacking
+                    { file({ "baz" }) },
+                    // nested both
+                    { { file({ { "bazaar" } }) } }
+                )
                 doLast {
-
-                    // via FileResolver
-                    val f = file { "cathedral" }
                     println(f.name)
-
-                    // on FileCollection
-                    val collection = layout.files(
-                        // single lambda
-                        { "foo" },
-                        // nested deferred
-                        { { "bar" } },
-                        // nested unpacking
-                        { file({ "baz" }) },
-                        // nested both
-                        { { file({ { "bazaar" } }) } }
-                    )
                     println(collection.files.map { it.name })
                 }
             }
@@ -1225,7 +1222,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     fun `can use Kotlin lambda as input property`() {
 
         withBuildScript(
@@ -1233,11 +1229,13 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             import org.gradle.api.*
             import org.gradle.api.tasks.*
 
-            open class PrintInputToFile @Inject constructor(objects: ObjectFactory): DefaultTask() {
+            abstract class PrintInputToFile : DefaultTask() {
+                @get:Internal
+                abstract val inputSource: Property<String>
                 @get:Input
-                val input = { project.property("inputString") }
+                val input = { inputSource.get() }
                 @get:OutputFile
-                val outputFile: RegularFileProperty = objects.fileProperty()
+                abstract val outputFile: RegularFileProperty
 
                 @TaskAction fun run() {
                     outputFile.get().asFile.writeText(input() as String)
@@ -1245,7 +1243,8 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             task<PrintInputToFile>("writeInputToFile") {
-                outputFile.set(project.layout.buildDirectory.file("output.txt"))
+                inputSource = providers.gradleProperty("inputString")
+                outputFile = project.layout.buildDirectory.file("output.txt")
             }
             """
         )
