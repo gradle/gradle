@@ -8,17 +8,17 @@ Gradle publishes Gradle Module Metadata along with traditional metadata. Gradle 
 
 This document describes version 1.1 of the Gradle module metadata file format. A module metadata file describes the contents of a _module_, which is the unit of publication for a particular repository format, such as a module in a Maven repository. This is often called a "package" in many repository formats.
 
-The module metadata file is a JSON file published alongside the existing repository specific metadata files, such as a Maven POM or Ivy descriptor. It adds additional metadata that can be used by Gradle versions and other tooling that understand the format. This allows the rich Gradle model to be mapped to and "tunnelled" through existing repository formats, while continuing to support existing Gradle versions and tooling that does not understand the format. 
+The module metadata file is a JSON file published alongside the existing repository-specific metadata files, such as a Maven POM or Ivy descriptor. It adds additional metadata that can be used by Gradle versions and other tooling that understand the format. This allows the rich Gradle model to be mapped to and "tunneled" through existing repository formats while continuing to support existing Gradle versions and tooling that do not understand the format. 
 
-The module metadata file is intended to be machine generated rather than written by a human, but is intended to be human readable.
+The module metadata file is intended to be machine-generated rather than written by a human but is intended to be humanly readable.
 
 The module metadata file is also intended to fully describe the binaries in the module where it is present so that it can replace the existing metadata files. This would allow a Gradle repository format to be added, for example.
 
-In version 1.0, the module metadata file can describe only those modules that contain a single _component_, which is some piece of software such as a library or application. Support for more sophisticated mappings may be added by later versions.
+In version 1.0, the module metadata file can describe only those modules that contain a single _component_, which is some piece of software such as a library or application. Support for more sophisticated mappings may be added in later versions.
 
 ## Usage in a Maven repository
 
-When present in a Maven module, the file must have extension `module`. For example, in version 1.2 of 'mylib', the file should be called `mylib-1.2.module`.
+When present in a Maven module, the file must have the extension `module`. For example, in version 1.2 of 'mylib', the file should be called `mylib-1.2.module`.
 
 Gradle ignores the contents of the Maven POM when the module metadata file is present.
 
@@ -65,7 +65,7 @@ This value must contain an array with zero or more elements. Each element must b
 - `dependencies`: optional. When missing the variant is assumed to have no dependencies. Must not be present when `available-at` is present.
 - `dependencyConstraints`: optional. When missing the variant is assumed to have no dependency constraints. Must not be present when `available-at` is present.
 - `files`: optional. When missing the variant is assumed to have no files. Must not be present when `available-at` is present.
-- `capabilities`: optional. When missing the variant is assumed to declared no specific capability.
+- `capabilities`: optional. When missing, the variant is assumed to declare no specific capability.
 
 The following statements must hold for the variants:
 
