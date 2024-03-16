@@ -35,14 +35,15 @@ class ClassGraph(
             ?: ""
 
     operator fun get(className: String) =
-        classes.computeIfAbsent(className) {
-            val outputClassName = if (unshadedPackages.matches(className)) className else shadowPackagePrefix + className
-            ClassDetails(outputClassName).also { classDetails ->
-                if (keepPackages.matches(className) && !ignorePackages.matches(className)) {
-                    entryPoints.add(classDetails)
-                }
+    classes.computeIfAbsent(className) {
+        val outputClassName = if (unshadedPackages.matches(className)) className else shadowPackagePrefix + className
+        ClassDetails(outputClassName).also { classDetails ->
+            if (keepPackages.matches(className) && !ignorePackages.matches(className)) {
+                entryPoints.add(classDetails)
             }
         }
+    }
+
 
     fun getDependencies() = classes.map { it.value.outputClassFilename to it.value.dependencies.map { it.outputClassFilename } }.toMap()
 }
