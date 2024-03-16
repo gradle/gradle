@@ -26,6 +26,8 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
+import org.gradle.api.internal.provider.support.CompoundAssignmentResult;
+import org.gradle.api.internal.provider.support.SupportsCompoundAssignment;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SupportsConvention;
@@ -35,6 +37,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -77,7 +80,7 @@ import java.util.function.Supplier;
  * @param <C> the type of {@link Collection} (as returned by {@link ProviderInternal#getType()}) that corresponds to this collection property's realized value, for instance, when {@link Provider#get()} is invoked.
  */
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C, CollectionSupplier<T, C>>
-    implements CollectionPropertyInternal<T, C> {
+    implements CollectionPropertyInternal<T, C>, SupportsCompoundAssignment<AbstractCollectionProperty<T, C>.CompoundAssignmentStandIn> {
 
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
@@ -228,7 +231,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void setFromAnyValue(Object object) {
-        if (object instanceof Provider) {
+        if (object instanceof CompoundAssignmentResult && ((CompoundAssignmentResult) object).isOwnedBy(this)) {
+            ((CompoundAssignmentResult) object).assignToOwner();
+        } else if (object instanceof Provider) {
             set(Cast.<Provider<C>>uncheckedCast(object));
         } else {
             if (object != null && !(object instanceof Iterable)) {
@@ -253,7 +258,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
         ProviderInternal<? extends Iterable<? extends T>> p = Providers.internal(provider);
-        if (p.getType() != null && !Iterable.class.isAssignableFrom(p.getType())) {
+        if (!canBeProviderOfIterable(p)) {
             throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", collectionType.getName(), p.getType().getName()));
         }
         if (p instanceof CollectionPropertyInternal) {
@@ -746,6 +751,64 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         } else {
             set((Iterable<? extends T>) null);
         }
+    }
+
+    @Override
+    public CompoundAssignmentStandIn toCompoundOperand() {
+        return new CompoundAssignmentStandIn();
+    }
+
+    public class CompoundAssignmentStandIn {
+        // property += Provider<Iterable<T>>
+        // property += Provider<T>
+        public Object plus(Provider<?> provider) {
+            // Because of type erasure, we cannot have two overloads of this method.
+            return new CompoundAssignmentResult(AbstractCollectionProperty.this, () -> AbstractCollectionProperty.this.appendAll(toSafeProvider(provider)));
+        }
+
+        // property += Iterable<T>
+        public Object plus(Iterable<? extends T> items) {
+            return new CompoundAssignmentResult(AbstractCollectionProperty.this, () -> AbstractCollectionProperty.this.appendAll(items));
+        }
+
+        // property += T
+        public Object plus(Object item) {
+            Preconditions.checkNotNull(item, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
+            Preconditions.checkArgument(
+                elementType.isInstance(item),
+                "Cannot add an element of type %s to a property of type %s<%s>.",
+                item.getClass().getSimpleName(),
+                collectionType.getSimpleName(),
+                elementType.getSimpleName());
+            T safeItem = Cast.uncheckedCast(item);
+            return new CompoundAssignmentResult(AbstractCollectionProperty.this, () -> AbstractCollectionProperty.this.append(safeItem));
+        }
+
+        private ProviderInternal<? extends Iterable<T>> toSafeProvider(Provider<?> provider) {
+            ProviderInternal<?> internal = Providers.internal(provider);
+            if (isProviderOfIterable(internal)) {
+                // This is definitely a provider of iterable, it can be used as is.
+                return Cast.uncheckedCast(internal);
+            }
+            // May still be provider of iterable, but we'll only know after it is computed.
+            return internal.map(value -> {
+                if (value instanceof Iterable) {
+                    return Cast.<Iterable<T>>uncheckedCast(value);
+                }
+                // Technically, the value can be null here.
+                return Collections.singleton(Cast.uncheckedCast(value));
+            });
+        }
+    }
+
+    private static boolean isProviderOfIterable(ProviderInternal<?> internal) {
+        Class<?> type = internal.getType();
+        return type != null && Iterable.class.isAssignableFrom(type);
+    }
+
+    private static boolean canBeProviderOfIterable(ProviderInternal<?> internal) {
+        Class<?> type = internal.getType();
+        return type == null || Iterable.class.isAssignableFrom(type);
     }
 
     private class Configurer {

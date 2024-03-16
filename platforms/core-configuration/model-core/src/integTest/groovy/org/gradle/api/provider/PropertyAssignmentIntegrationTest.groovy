@@ -149,21 +149,22 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("Cannot set the value of a property of type java.util.List using an instance of type [LMyObject;")
         "Collection<T> = Iterable<T>"            | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'
         "Collection<T> = Provider<Iterable<T>>"  | "="       | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[a]'
-        "Collection<T> += T"                     | "+="      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | unsupportedWithCause("No signature of method")
+        "Collection<T> += T"                     | "+="      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | '[a]'
+        "Collection<T> += !T"                    | "+="      | "ListProperty<MyObject>"        | '"a"'                                                    | unsupportedWithCause("Cannot add an element of type String to a property of type List<MyObject>")
         "Collection<T> << T"                     | "<<"      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | unsupportedWithCause("No signature of method")
-        "Collection<T> += Provider<T>"           | "+="      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | unsupportedWithCause("No signature of method")
+        "Collection<T> += Provider<T>"           | "+="      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | '[a]'
         "Collection<T> << Provider<T>"           | "<<"      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | unsupportedWithCause("No signature of method")
-        "Collection<T> += T[]"                   | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("No signature of method")
+        "Collection<T> += T[]"                   | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("Cannot add an element of type MyObject[] to a property of type List<MyObject>")
         "Collection<T> << T[]"                   | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("No signature of method")
-        "Collection<T> += Iterable<T>"           | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | unsupportedWithCause("No signature of method")
+        "Collection<T> += Iterable<T>"           | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'
         "Collection<T> << Iterable<T>"           | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | unsupportedWithCause("No signature of method")
-        "Collection<T> += Provider<Iterable<T>>" | "+="      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | unsupportedWithCause("No signature of method")
+        "Collection<T> += Provider<Iterable<T>>" | "+="      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[a]'
         "Collection<T> << Provider<Iterable<T>>" | "<<"      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | unsupportedWithCause("No signature of method")
         "Map<K, V> = Map<K, V>"                  | "="       | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | '[a:b]'
         "Map<K, V> = Provider<Map<K, V>>"        | "="       | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | '[a:b]'
-        "Map<K, V> += Map<K, V>"                 | "+="      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | unsupportedWithCause("No signature of method")
+        "Map<K, V> += Map<K, V>"                 | "+="      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | '[a:b]'
         "Map<K, V> << Map<K, V>"                 | "<<"      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | unsupportedWithCause("No signature of method")
-        "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
+        "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | '[a:b]'
         "Map<K, V> << Provider<Map<K, V>>"       | "<<"      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
     }
 
@@ -205,17 +206,17 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | 'arrayOf(MyObject("a"))'                                   | unsupportedWithDescription("No applicable 'assign' function found for '=' overload")
         "Collection<T> = Iterable<T>"            | "="       | "ListProperty<MyObject>"        | 'listOf(MyObject("a")) as Iterable<MyObject>'              | '[a]'
         "Collection<T> = Provider<Iterable<T>>"  | "="       | "ListProperty<MyObject>"        | 'provider { listOf(MyObject("a")) as Iterable<MyObject> }' | '[a]'
-        "Collection<T> += T"                     | "+="      | "ListProperty<MyObject>"        | 'MyObject("a")'                                            | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
-        "Collection<T> += Provider<T>"           | "+="      | "ListProperty<MyObject>"        | 'provider { MyObject("a") }'                               | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
-        "Collection<T> += T[]"                   | "+="      | "ListProperty<MyObject>"        | 'arrayOf(MyObject("a"))'                                   | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
-        "Collection<T> += Iterable<T>"           | "+="      | "ListProperty<MyObject>"        | 'listOf(MyObject("a")) as Iterable<MyObject>'              | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
-        "Collection<T> += Provider<Iterable<T>>" | "+="      | "ListProperty<MyObject>"        | 'provider { listOf(MyObject("a")) as Iterable<MyObject> }' | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += T"                     | "+="      | "ListProperty<MyObject>"        | 'MyObject("a")'                                            | '[a]'
+        "Collection<T> += Provider<T>"           | "+="      | "ListProperty<MyObject>"        | 'provider { MyObject("a") }'                               | '[a]'
+        "Collection<T> += T[]"                   | "+="      | "ListProperty<MyObject>"        | 'arrayOf(MyObject("a"))'                                   | '[a]'
+        "Collection<T> += Iterable<T>"           | "+="      | "ListProperty<MyObject>"        | 'listOf(MyObject("a")) as Iterable<MyObject>'              | '[a]'
+        "Collection<T> += Provider<Iterable<T>>" | "+="      | "ListProperty<MyObject>"        | 'provider { listOf(MyObject("a")) as Iterable<MyObject> }' | '[a]'
         "Map<K, V> = Map<K, V>"                  | "="       | "MapProperty<String, MyObject>" | 'mapOf("a" to MyObject("b"))'                              | '{a=b}'
         "Map<K, V> = Provider<Map<K, V>>"        | "="       | "MapProperty<String, MyObject>" | 'provider { mapOf("a" to MyObject("b")) }'                 | '{a=b}'
-        "Map<K, V> += Pair<K, V>"                | "+="      | "MapProperty<String, MyObject>" | '"a" to MyObject("b")'                                     | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
-        "Map<K, V> += Provider<Pair<K, V>>"      | "+="      | "MapProperty<String, MyObject>" | 'provider { "a" to MyObject("b") }'                        | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
-        "Map<K, V> += Map<K, V>"                 | "+="      | "MapProperty<String, MyObject>" | 'mapOf("a" to MyObject("b"))'                              | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
-        "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "MapProperty<String, MyObject>" | 'provider { mapOf("a" to MyObject("b")) }'                 | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> += Pair<K, V>"                | "+="      | "MapProperty<String, MyObject>" | '"a" to MyObject("b")'                                     | '{a=b}'
+        "Map<K, V> += Provider<Pair<K, V>>"      | "+="      | "MapProperty<String, MyObject>" | 'provider { "a" to MyObject("b") }'                        | '{a=b}'
+        "Map<K, V> += Map<K, V>"                 | "+="      | "MapProperty<String, MyObject>" | 'mapOf("a" to MyObject("b"))'                              | '{a=b}'
+        "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "MapProperty<String, MyObject>" | 'provider { mapOf("a" to MyObject("b")) }'                 | '{a=b}'
     }
 
     def "test Groovy eager FileCollection types assignment for #description"() {
@@ -247,19 +248,20 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         runAndAssert("myTask", expectedResult)
 
         where:
-        description                        | operation | inputType                    | inputValue              | expectedResult
-        "FileCollection = FileCollection"  | "="       | "ConfigurableFileCollection" | 'files("a.txt")'        | '[a.txt]'
-        "FileCollection = String"          | "="       | "ConfigurableFileCollection" | '"a.txt"'               | unsupportedWithCause("Failed to cast object")
-        "FileCollection = Object"          | "="       | "ConfigurableFileCollection" | 'new MyObject("a.txt")' | unsupportedWithCause("Failed to cast object")
-        "FileCollection = File"            | "="       | "ConfigurableFileCollection" | 'file("a.txt")'         | unsupportedWithCause("Failed to cast object")
-        "FileCollection = Iterable<File>"  | "="       | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
-        "FileCollection += FileCollection" | "+="      | "ConfigurableFileCollection" | 'files("a.txt")'        | unsupportedWithCause("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.")
-        "FileCollection << FileCollection" | "<<"      | "ConfigurableFileCollection" | 'files("a.txt")'        | unsupportedWithCause("No signature of method")
-        "FileCollection += String"         | "+="      | "ConfigurableFileCollection" | '"a.txt"'               | unsupportedWithCause("Failed to cast object")
-        "FileCollection += Object"         | "+="      | "ConfigurableFileCollection" | 'new MyObject("a.txt")' | unsupportedWithCause("Failed to cast object")
-        "FileCollection += File"           | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'         | unsupportedWithCause("Failed to cast object")
-        "FileCollection += Iterable<?>"    | "+="      | "ConfigurableFileCollection" | '["a.txt"]'             | unsupportedWithCause("Failed to cast object")
-        "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
+        description                              | operation | inputType                    | inputValue               | expectedResult
+        "FileCollection = FileCollection"        | "="       | "ConfigurableFileCollection" | 'files("a.txt")'         | '[a.txt]'
+        "FileCollection = this + FileCollection" | "="       | "ConfigurableFileCollection" | 'input + files("a.txt")' | unsupportedWithCause("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.")
+        "FileCollection = String"                | "="       | "ConfigurableFileCollection" | '"a.txt"'                | unsupportedWithCause("Failed to cast object")
+        "FileCollection = Object"                | "="       | "ConfigurableFileCollection" | 'new MyObject("a.txt")'  | unsupportedWithCause("Failed to cast object")
+        "FileCollection = File"                  | "="       | "ConfigurableFileCollection" | 'file("a.txt")'          | unsupportedWithCause("Failed to cast object")
+        "FileCollection = Iterable<File>"        | "="       | "ConfigurableFileCollection" | '[file("a.txt")]'        | unsupportedWithCause("Failed to cast object")
+        "FileCollection += FileCollection"       | "+="      | "ConfigurableFileCollection" | 'files("a.txt")'         | '[a.txt]'
+        "FileCollection << FileCollection"       | "<<"      | "ConfigurableFileCollection" | 'files("a.txt")'         | unsupportedWithCause("No signature of method")
+        "FileCollection += String"               | "+="      | "ConfigurableFileCollection" | '"a.txt"'                | unsupportedWithCause("Failed to cast object")
+        "FileCollection += Object"               | "+="      | "ConfigurableFileCollection" | 'new MyObject("a.txt")'  | unsupportedWithCause("Failed to cast object")
+        "FileCollection += File"                 | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'          | unsupportedWithCause("Failed to cast object")
+        "FileCollection += Iterable<?>"          | "+="      | "ConfigurableFileCollection" | '["a.txt"]'              | unsupportedWithCause("Failed to cast object")
+        "FileCollection += Iterable<File>"       | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'        | unsupportedWithCause("Failed to cast object")
     }
 
     def "test Kotlin eager FileCollection types assignment for #description"() {
@@ -292,18 +294,19 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         runAndAssert("myTask", expectedResult)
 
         where:
-        description                        | operation | inputType                    | inputValue                         | expectedResult
-        "FileCollection = FileCollection"  | "="       | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | '[a.txt]'
-        "FileCollection = String"          | "="       | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection = Object"          | "="       | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection = File"            | "="       | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection = Iterable<File>"  | "="       | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += FileCollection" | "+="      | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += String"         | "+="      | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += Object"         | "+="      | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += File"           | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += Iterable<?>"    | "+="      | "ConfigurableFileCollection" | 'listOf("a.txt")'                  | unsupportedWithDescription("Val cannot be reassigned")
-        "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Val cannot be reassigned")
+        description                              | operation | inputType                    | inputValue                         | expectedResult
+        "FileCollection = FileCollection"        | "="       | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | '[a.txt]'
+        "FileCollection = this + FileCollection" | "="       | "ConfigurableFileCollection" | 'input + files("a.txt")'           | '[a.txt]'
+        "FileCollection = String"                | "="       | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Type mismatch")
+        "FileCollection = Object"                | "="       | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Type mismatch")
+        "FileCollection = File"                  | "="       | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Type mismatch")
+        "FileCollection = Iterable<File>"        | "="       | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Type mismatch")
+        "FileCollection += FileCollection"       | "+="      | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | '[a.txt]'
+        "FileCollection += String"               | "+="      | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Type mismatch")
+        "FileCollection += Object"               | "+="      | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Type mismatch")
+        "FileCollection += File"                 | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Type mismatch")
+        "FileCollection += Iterable<?>"          | "+="      | "ConfigurableFileCollection" | 'listOf("a.txt")'                  | unsupportedWithDescription("Type mismatch")
+        "FileCollection += Iterable<File>"       | "+="      | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Type mismatch")
     }
 
     def "test Groovy lazy property assignment with NamedDomainObjectContainer"() {
