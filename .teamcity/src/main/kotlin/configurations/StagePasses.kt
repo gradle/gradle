@@ -68,6 +68,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
             triggerBuild = always()
             branchFilter = model.branch.branchFilter()
             withPendingChangesOnly = false
+            // https://github.com/gradle/gradle-private/issues/4105
+            // force not reuse the previous builds
+            enforceCleanCheckout = true
         }
     }
 
