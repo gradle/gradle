@@ -345,7 +345,7 @@ Custom message
 
 Separating capabilities from conventions in plugins allows users to choose which tasks and conventions to apply.
 
-For example, the Java Base plugin provides un-opinionated functionality like `SourceSets`, while the Java plugin adds tasks and conventions familiar to Java developers like `classes`, `jar` or `javadoc`.
+For example, the Java Base plugin provides un-opinionated (i.e., generic) functionality like `SourceSets`, while the Java plugin adds tasks and conventions familiar to Java developers like `classes`, `jar` or `javadoc`.
 
 When designing your own plugins, consider developing two plugins — one for capabilities and another for conventions — to offer flexibility to users.
 
@@ -378,7 +378,7 @@ For example, a plugin could assume that it is applied to a Java-based project an
 include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseStrongOpinionConventionJavaPlugin.java[tags=snippet]
 ----
 
-The drawback to this approach is that it automatically forces the project to apply the Java plugin, imposing a strong opinion on it.
+The drawback to this approach is that it automatically forces the project to apply the Java plugin, imposing a strong opinion on it (i.e., reducing flexibility and generality).
 In practice, the project applying the plugin might not even deal with Java code.
 
 Instead of automatically applying the Java plugin, the plugin could react to the fact that the consuming project applies the Java plugin.

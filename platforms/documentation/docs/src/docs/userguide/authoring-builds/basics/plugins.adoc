@@ -135,7 +135,7 @@ There are additional considerations for resolving and applying plugins:
 
 |<<#sec:plugins_block,1>>
 |Apply a *core*, *community* or *local* plugin to a specific project.
-|<<#sec:plugins_block,The `plugins` block>>
+|<<#sec:plugins_block,The `plugins` block in the build file>>
 a|
 [source,kotlin]
 ----
@@ -145,8 +145,8 @@ plugins {
 ----
 
 |<<#sec:buildsrc_plugins_dsl,2>>
-|Apply a *core*, *community* or *local* plugin to multiple subprojects.
-|<<#sec:buildsrc_plugins_dsl,The `buildSrc` directory>>
+|Apply common *core*, *community* or *local* plugin to multiple subprojects.
+|<<#sec:buildsrc_plugins_dsl,A build script in the `buildSrc` directory>>
 a|
 [source,kotlin]
 ----
@@ -163,7 +163,7 @@ dependencies {
 
 |<<#sec:applying_plugins_buildscript,3>>
 |Apply a *core*, *community* or *local* plugin needed _for the build script itself_.
-|<<#sec:applying_plugins_buildscript,The `buildscript` block>>
+|<<#sec:applying_plugins_buildscript,The `buildscript` block in the build file>>
 a|
 [source,kotlin]
 ----
@@ -185,7 +185,7 @@ plugins {
 
 |<<sec:script_plugins,4>>
 |Apply a *local* script plugins.
-|<<sec:script_plugins,The legacy `apply()` method>>
+|<<sec:script_plugins,The legacy `apply()` method in the build file>>
 a|
 [source,kotlin]
 ----

@@ -247,6 +247,15 @@ IMPORTANT: When writing unit tests, it's important to test boundary conditions a
 Try to extract as much logic as possible from classes that use the Gradle API to make it testable as unit tests.
 It will result in maintainable code and faster test execution.
 
+[[sec:writing_tests_for_your_plugin]]
+You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder] class to create link:{groovyDslPath}/org.gradle.api.Project.html[Project] instances to use when you test your plugin implementation.
+
+[source.multi-language-sample,java]
+.src/test/java/org/example/GreetingPluginTest.java
+----
+include::{snippetsPath}/plugins/customPlugin/groovy/java-gradle-plugin/src/test/java/org/example/GreetingPluginTest.java[tag=test-plugin]
+----
+
 [[integration-tests]]
 === Implementing integration tests
 
@@ -310,52 +319,3 @@ Some IDEs provide a convenience option to delegate the "test classpath generatio
 In IntelliJ, you can find this option under Preferences... > Build, Execution, Deployment > Build Tools > Gradle > Runner > Delegate IDE build/run actions to Gradle.
 
 image::intellij-delegate-to-build.png[]
-
-[[sec:writing_tests_for_your_plugin]]
-== Writing tests for your plugin
-
-You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder] class to create link:{groovyDslPath}/org.gradle.api.Project.html[Project] instances to use when you test your plugin implementation.
-
-=== Example: Testing a custom plugin
-
-[source.multi-language-sample,java]
-.src/test/java/org/example/GreetingPluginTest.java
-----
-include::{snippetsPath}/plugins/customPlugin/groovy/java-gradle-plugin/src/test/java/org/example/GreetingPluginTest.java[tag=test-plugin]
-----
-
-Plugins often also provide custom task types.
-Please see <<custom_tasks.adoc#custom_tasks,Developing Custom Gradle Task Types>> for more details.
-
-Gradle provides a number of features that are helpful when developing Gradle types, including plugins.
-Please see <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>> for more details.
-
-CAUTION: When developing Gradle Plugins, it is important to be cautious when logging information to the build log.
-Logging sensitive information (e.g. credentials, tokens, certain environment variables) is <<logging.adoc#sec:debug_security,considered a security vulnerability>>.
-Build logs for public Continuous Integration services are world-viewable and can expose this sensitive information.
-
-So how does Gradle find the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation?
-The answer is - you need to provide a properties file in the JAR's `META-INF/gradle-plugins` directory that matches the id of your plugin, which is handled by <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>.
-
-=== Example: Wiring for a custom plugin
-
-Given a plugin with ID `org.example.greeting` and implementation class `org.example.GreetingPlugin`:
-
-[source,properties]
-.src/main/resources/META-INF/gradle-plugins/org.example.greeting.properties
-----
-implementation-class=org.example.GreetingPlugin
-----
-
-Notice that the properties filename matches the plugin id and is placed in the resources folder, and that the `implementation-class` property identifies the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation class.
-
-Writing plugin code is a routine activity for advanced build authors.
-The activity usually involves writing the plugin implementation, creating custom task type for executing desired functionality and making the runtime behavior configurable for the end user by exposing a declarative and expressive DSL.
-In this section you will learn established practices to make you a better plugin developer and how to make a plugin as accessible and useful for consumers as possible.
-
-This section assumes you have:
-
-- Basic understanding of software engineering practices
-- Knowledge of Gradle fundamentals like project organization, task creation and configuration as well as the Gradle build lifecycle
-- Working knowledge in writing Java code
-

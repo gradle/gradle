@@ -95,7 +95,7 @@ $ gradle -q hello
 include::{snippetsPath}/customPlugins/customPlugin/tests/customPlugin.out[]
 ----
 
-The `Project` object is passed as a parameter, which the plugin can use to configure the project however it needs to.
+The `Project` object is passed as a parameter in `apply()`, which the plugin can use to configure the project however it needs to (such as adding tasks, configuring dependencies, etc.)
 
 [[sec:precompile_script_plugin]]
 == Precompiled script plugins
@@ -201,10 +201,11 @@ plugins {
 [[sec:convention_plugins]]
 == Convention Plugins
 
-A *convention plugin* is a plugin that configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))`.
-This term is used to distinguish plugins that configure existing functionality from those that add new functionality.
+A *convention plugin* is typically a plugin that configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))`.
+Convention plugins are also used to enforce project standards and help streamline the build process.
+They can apply and configure plugins, create new tasks and extensions, set dependencies, and much more.
 
-Let's take an example build with three subprojects: one for `data-model`, one for `business-logic` and one for `app` code.
+Let's take an example build with three subprojects: one for `data-model`, one for `database-logic` and one for `app` code.
 The project has the following structure:
 
 [source, text]
@@ -218,7 +219,7 @@ The project has the following structure:
 │   ├── src
 │   │   └──...
 │   └── build.gradle.kts
-├── business-logic
+├── database-logic
 │   ├── src
 │   │   └──...
 │   └── build.gradle.kts
@@ -229,10 +230,10 @@ The project has the following structure:
 └── settings.gradle.kts
 ----
 
-The build file of the `business-logic` subproject is as follows:
+The build file of the `database-logic` subproject is as follows:
 
 [source,kotlin]
-.business-logic/build.gradle.kts
+.database-logic/build.gradle.kts
 ----
 plugins {
     id("java-library")
@@ -266,7 +267,7 @@ In convention plugins, we can encapsulate arbitrary build configuration or custo
 
 To develop a convention plugin, we recommend using <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`>> – which represents a completely separate Gradle build.
 `buildSrc` has its own settings file to define where dependencies of this build are located.
-In our case, we want to have access to community plugins, so we add the Gradle Plugin Portal as a repository:
+In our case, we want to have access to community plugins in the convention plugin, so we add the Gradle Plugin Portal as a repository:
 
 [source,kotlin]
 .buildSrc/settings.gradle.kts
@@ -276,16 +277,7 @@ dependencyResolutionManagement {
 }
 ----
 
-We create a build file and apply the link:https://plugins.gradle.org/plugin/org.gradle.kotlin.kotlin-dsl[`kotlin-dsl`] plugin:
-
-[source,kotlin]
-.buildSrc/build.gradle.kts
-----
-plugins {
-    `kotlin-dsl`
-}
-----
-
+We create a build file and apply the link:https://plugins.gradle.org/plugin/org.gradle.kotlin.kotlin-dsl[`kotlin-dsl`] plugin, so we can write the convention plugin in Kotlin DSL.
 Because we want to use the Kotlin plugin, an external plugin, we need to <<sec:applying_external_plugins,define a dependency in the build file>>:
 
 [source,kotlin]
@@ -300,7 +292,8 @@ dependencies {
 }
 ----
 
-We add a script called `my-java-library.gradle.kts` inside the `/src/main/kotlin` and we put all the plugin application and configuration that we defined in our `business-logic` into it:
+We add a Kotlin script called `my-java-library.gradle.kts` inside the `/src/main/kotlin` directory.
+We put all the plugin application and configuration from the `database-logic` build file into it:
 
 [source,kotlin]
 .buildSrc/src/main/kotlin/my-java-library.gradle.kts
@@ -325,10 +318,10 @@ kotlin {
 
 The name of the file `my-java-library` is the ID of our brand-new plugin, which we can now use in all of our subprojects.
 
-The `business-logic` build file becomes much simpler by removing all the redundant build logic and applying our convention `my-java-library` plugin instead:
+The `database-logic` build file becomes much simpler by removing all the redundant build logic and applying our convention `my-java-library` plugin instead:
 
 [source,kotlin]
-.business-logic/build.gradle.kts
+.database-logic/build.gradle.kts
 ----
 plugins {
     id("my-java-library")

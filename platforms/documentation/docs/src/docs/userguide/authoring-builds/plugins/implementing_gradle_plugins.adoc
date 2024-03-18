@@ -13,10 +13,26 @@
 // limitations under the License.
 
 [[implemention_plugins]]
-= Implementing Plugins
+= Understanding Implementation Options for Plugins
 
-While there are three types of plugins -- script, pre-compiled script, or binary plugins -- there are also many languages available for implementing each type of plugin.
-Only a few options are recommended:
+The choice between script, precompiled script, or binary plugins depends on your specific requirements and preferences.
+
+*Script Plugins* are simple and easy to write as they are written directly in the build script.
+They are written in Kotlin DSL or Groovy DSL.
+They are suitable for small, one-off tasks or for quick experimentation.
+However, they can become hard to maintain as the build script grows in size and complexity.
+
+*Precompiled Script Plugins* are Kotlin DSL scripts compiled into Java class files packaged in a library.
+They offer better performance and maintainability compared to script plugins, and they can be reused across different projects.
+You can also write them in Groovy DSL but that is not recommended.
+
+*Binary Plugins* are full-fledged plugins written in Java or Kotlin, compiled into JAR files, and published to a repository.
+They offer the best performance, maintainability, and reusability.
+They are suitable for complex build logic that needs to be shared across projects, builds, and teams.
+You can also write them in Scala or Groovy but that is not recommended.
+
+
+Here is a breakdown of all options for implementing Gradle plugins:
 
 [cols="~,~,~,~,~,~"]
 |===
