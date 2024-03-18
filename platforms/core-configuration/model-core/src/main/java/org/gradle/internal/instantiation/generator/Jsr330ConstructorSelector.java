@@ -16,13 +16,17 @@
 
 package org.gradle.internal.instantiation.generator;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instantiation.TaskConstructionException;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.lang.reflect.Modifier;
 
 class Jsr330ConstructorSelector implements ConstructorSelector {
+    static final String Custom_Gradle_Task_DOC_LINK = "Rewrite the class with a constructor injection. " + new DocumentationRegistry().getDocumentationRecommendationFor("information on developing custom gradle task types", "custom_tasks");
+
     private final CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache;
     private final ClassGenerator classGenerator;
 
@@ -68,7 +72,7 @@ class Jsr330ConstructorSelector implements ConstructorSelector {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(type);
             formatter.append(" is a non-static inner class, it probably captures a variable from the outer scope.");
-            throw new IllegalArgumentException(formatter.toString());
+            throw new TaskConstructionException(formatter.toString(), Custom_Gradle_Task_DOC_LINK);
         }
     }
 
