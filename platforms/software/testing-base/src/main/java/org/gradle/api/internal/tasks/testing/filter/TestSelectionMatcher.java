@@ -148,9 +148,15 @@ public class TestSelectionMatcher {
             this.classNameSelector = patternStartsWithUpperCase(pattern) ?
                 new SimpleClassNameSelector() : new FullQualifiedClassNameSelector();
             int firstWildcardIndex = pattern.indexOf('*');
+            int firstParametrizeIndex = pattern.indexOf('[');
             if (firstWildcardIndex == -1) {
                 segments = splitPreserveAllTokens(pattern, '.');
-                lastElementMatcher = new NoWildcardMatcher();
+                if(firstParametrizeIndex == -1){
+                    lastElementMatcher = new NoWildcardMatcher();
+                }else{
+                    segments = splitPreserveAllTokens(pattern.substring(0, firstParametrizeIndex), '.');
+                    segments[segments.length-1] += pattern.substring(firstParametrizeIndex);
+                }
             } else {
                 segments = splitPreserveAllTokens(pattern.substring(0, firstWildcardIndex), '.');
                 lastElementMatcher = new WildcardMatcher();
