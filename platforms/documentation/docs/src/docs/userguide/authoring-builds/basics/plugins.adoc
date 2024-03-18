@@ -15,7 +15,7 @@
 [[using_plugins]]
 = Using Plugins
 
-Gradle's functionality primarily comes from plugins, including core plugins distributed with Gradle, third-party plugins, and script plugins in a specific build.
+Much of Gradle's functionality is delivered via plugins, including core plugins distributed with Gradle, third-party plugins, and script plugins defined within builds.
 
 [[sec:what_plugins_do]]
 Plugins introduce new tasks (e.g., `JavaCompile`), domain objects (e.g., `SourceSet`), conventions (e.g., locating Java source at `src/main/java`), and extend core or other plugin objects.
@@ -23,7 +23,7 @@ Plugins introduce new tasks (e.g., `JavaCompile`), domain objects (e.g., `Source
 Plugins in Gradle are essential for automating common build tasks, integrating with external tools or services, and tailoring the build process to meet specific project needs.
 They also serve as the primary mechanism for organizing build logic.
 
-== Why should you use plugins?
+== Benefits of plugins
 
 Writing many tasks and duplicating configuration blocks in build scripts can get messy.
 Plugins offer several advantages over adding logic directly to the build script:
@@ -34,7 +34,6 @@ Plugins offer several advantages over adding logic directly to the build script:
 
 == Plugin distribution
 
-When you are working with plugins, you have options.
 You can leverage plugins from Gradle and the Gradle community or create your own.
 
 Plugins are available in three ways:
@@ -46,21 +45,19 @@ Plugins are available in three ways:
 [[sec:types_of_plugins]]
 == Types of plugins
 
-There are three types of plugins based on the context of the application:
+Plugins can be implemented as *binary plugins*, *precompiled script plugins*, or *script plugins*:
 
-1. *Project Plugins*: Implement `Plugin<Project>` and are applied in build scripts.
-2. *Settings Plugins*: Implement `Plugin<Settings>` and are applied in settings scripts.
-3. *Init Plugins*: Implement `Plugin<Gradle>` and are applied in init scripts.
+Binary Plugins :: Binary plugins are compiled plugins typically written in Java or Kotlin DSL that are packaged as JAR files.
+They are applied to a project using the `plugins {}` block.
+They offer better performance and maintainability compared to script plugins or precompiled script plugins.
 
-Plugins can be implemented as *binary plugins* or as *precompiled script plugins*:
+Precompiled Script Plugins :: Precompiled script plugins are Groovy DSL or Kotlin DSL scripts compiled and distributed as Java class files packaged in a library.
+They are applied to a project using the `plugins {}` block.
+They provide a way to reuse complex logic across projects and allow for better organization of build logic.
 
-*Binary plugins* :: Plugins written either programmatically by implementing the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface or through declarations in either Groovy or Kotlin DSL.
-+
-They can reside within a build script, the project hierarchy, or externally in a plugin jar.
-
-*Script plugins* :: Plugins written as additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build.
-+
-They are typically used within a build but can be externalized and accessed remotely.
+Script Plugins :: Script plugins are Groovy DSL or Kotlin DSL scripts that are applied directly to a Gradle build script using the `apply from:` syntax.
+They are applied inline within a build script to add functionality or customize the build process.
+They are simple to use.
 
 A plugin often starts as a script plugin (because they are easy to write).
 Then, as the code becomes more valuable, it's migrated to a binary plugin that can be easily tested and shared between multiple projects or organizations.
@@ -448,7 +445,7 @@ Multiple script plugins (of either form) can be applied to a given target.
 
 The `pluginManagement{}` block is used to configure repositories for plugin resolution and to define version constraints for plugins that are applied in the build scripts.
 
-The `pluginManagement{}` block may only appear in the `settings.gradle(.kts)` file, where it must be the first block in the file:
+The `pluginManagement{}` block can be used in a `settings.gradle(.kts)` file, where it must be the first block in the file:
 
 ====
 include::sample[dir="snippets/plugins/pluginManagement/kotlin", files="settings.gradle.kts[]"]

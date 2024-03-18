@@ -29,28 +29,28 @@ Only a few options are recommended:
 |
 |Nofootnote:1[<<custom_plugins#sec:build_script_plugins,*Script plugins*>> are hard to maintain, test, and do not support defining new reusable types. They are not recommended.]
 
-|4
+|2
 |Groovy DSL
 |Script
 |in a `.gradle` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
 |
 |Nofootnote:1[]
 
-|2
+|3
 |Kotlin DSL
 |Pre-compiled script
 |a `.gradle.kts` file
 |`id("kotlin-dsl")`
 |Yesfootnote:3[It is recommended to use a statically-typed language like *Java* or *Kotlin* for implementing plugins to reduce the likelihood of binary incompatibilities. If using Groovy, consider using `@groovy.transform.CompileStatic`.]
 
-|3
+|4
 |Groovy DSL
 |Pre-compiled script
 |a `.gradle` file
 |`id("groovy-gradle-plugin")`
 |Nofootnote:2[<<custom_plugins#sec:precompile_script_plugin,*Pre-compiled script*>> plugins are best used as <<custom_plugins#sec:convention_plugins,*convention plugins*>> written in Kotlin DSL or Java.]
 
-|4
+|5
 |Kotlin DSL
 |Binary
 |a `.gradle.kts` file
@@ -58,7 +58,7 @@ Only a few options are recommended:
 `id("com.gradle.plugin-publish")`
 |Yesfootnote:3[]
 
-|5
+|6
 |Groovy DSL
 |Binary
 |a `.gradle` file
@@ -66,7 +66,7 @@ Only a few options are recommended:
 `id("com.gradle.plugin-publish")`
 |Nofootnote:3[]
 
-|6
+|7
 |Java
 |Binary
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
@@ -74,7 +74,7 @@ Only a few options are recommended:
 `id("com.gradle.plugin-publish")`
 |Yesfootnote:3[<<custom_plugins#sec:custom_plugins_standalone_project,*Binary plugins*>> should be used when logic needs to be shared across independent projects. They allow for structuring code into classes and packages, are cacheable, support versioning, and are easily testable.]
 
-|7
+|8
 |Kotlin
 |Binary
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
@@ -83,7 +83,7 @@ Only a few options are recommended:
 `id("com.gradle.plugin-publish")`
 |Yesfootnote:3[]
 
-|8
+|9
 |Groovy
 |Binary
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
@@ -92,7 +92,7 @@ Only a few options are recommended:
 `id("com.gradle.plugin-publish")`
 |Nofootnote:3[]
 
-|9
+|10
 |Scala
 |Binary
 |an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.

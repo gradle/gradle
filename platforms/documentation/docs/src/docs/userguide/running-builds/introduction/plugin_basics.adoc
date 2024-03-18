@@ -27,7 +27,7 @@ Plugins can be applied to a Gradle build script to *add new tasks, configuration
 
 The Java Library Plugin - `java-library` :: Used to define and build Java libraries. It compiles Java source code with the `compileJava` task, generates Javadoc with the `javadoc` task, and packages the compiled classes into a JAR file with the `jar` task.
 The Google Services Gradle Plugin - `com.google.gms:google-services` :: Enables Google APIs and Firebase services in your Android application with a configuration block called `googleServices{}` and a task called `generateReleaseAssets`.
-The Gradle Shadow Plugin - `com.github.johnrengelman.shadow` :: Generates fat/uber JARs using a task called `shadowJar`.
+The Gradle Bintray Plugin - `com.jfrog.bintray` :: Allows you to publish artifacts to Bintray by configuring the plugin using the `bintray{}` block.
 
 == Plugin distribution
 
@@ -39,9 +39,9 @@ Plugins are distributed in three ways:
 
 == Applying plugins
 
-*Applying* a plugin to a project allows the plugin to extend the project's build capabilities.
+*Applying* a plugin to a project allows the plugin to extend the project's capabilities.
 
-You apply plugins in the build script using a *plugin id* (a globally unique identifier / name) *and a version*:
+You apply plugins in the build script using a *plugin id* (a globally unique identifier / name) and a version:
 
 [source,text]
 ----
@@ -62,6 +62,7 @@ Some examples of core plugins include:
 - *ear*: Adds support for building EAR files for enterprise applications.
 
 Core plugins are unique in that they provide short names, such as `java` for the core link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin], when applied in build scripts.
+They also do not require versions.
 To apply the `java` plugin to a project:
 
 .build.gradle.kts
@@ -72,14 +73,7 @@ plugins {
 }
 ----
 
-The <<java_plugin.adoc#java_plugin,Java plugin>> adds Java compilation along with testing and bundling capabilities to a project by adding the following tasks:
-
-- *compileJava*: Compiles the main source set Java files.
-- *classes*: Assembles the classes from the main source set.
-- *test*: Runs the tests from the test source set.
-- *javadoc*: Generates Javadoc API documentation for the main source set.
-
-There are many more <<plugin_reference#plugin_reference,Gradle Core Plugins>> users can take advantage of.
+There are many <<plugin_reference#plugin_reference,Gradle Core Plugins>> users can take advantage of.
 
 == 2. Community plugins
 
@@ -95,24 +89,6 @@ To apply the `org.springframework.boot` plugin to a project:
 ----
 plugins {
     id("org.springframework.boot") version "3.1.5"
-}
-----
-
-The Spring Boot plugin adds the following tasks to your project:
-
-- *bootJar*: Packages the application as an executable JAR file with all dependencies.
-- *bootRun*: Runs the Spring Boot application.
-- *bootDistTar* and *bootDistZip*: Packages the application as a distribution TAR or ZIP file.
-- *bootWar*: Packages the application as an executable WAR file.
-
-It also adds a configuration block called `springBoot {}`:
-
-.build.gradle
-[source, groovy]
-----
-springBoot {
-    // Configure the bootJar task to change the main class of the executable JAR
-    mainClass = 'com.example.MyApplication'
 }
 ----
 

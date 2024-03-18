@@ -38,16 +38,10 @@ As an added benefit of applying the plugin to your project, the task `validatePl
 [[sec:creating_a_plugin_id]]
 == Creating a plugin ID
 
-Plugin IDs are fully qualified, similar to Java packages (i.e., a reverse domain name).
+Plugin IDs are meant to be globally unique, similar to Java package names (i.e., a reverse domain name).
 This format helps prevent naming collisions and allows grouping plugins with similar ownership.
 
 An explicit plugin identifier simplifies applying the plugin to a project.
-To create a plugin ID:
-
-1. *Choose a Name:* Select a descriptive name that reflects the purpose of your plugin. Use a single term if possible.
-2. *Add a Domain Name:* Append a domain name to the plugin name to create a unique identifier. This helps avoid conflicts with other plugins that may have similar functionality.
-3. *Format:* Combine the name and domain name using dot notation. For example, if your plugin is named `myplugin` and your domain is `org.example`, the plugin ID would be `org.example.myplugin`.
-
 Your plugin ID should combine components that reflect the namespace (a reasonable pointer to you or your organization) and the name of the plugin it provides.
 For example, if your Github account is named `foo` and your plugin is named `bar`, a suitable plugin ID might be `com.github.foo.bar`.
 Similarly, if the plugin was developed at the `baz` organization, the plugin ID might be `org.baz.bar`.
@@ -58,7 +52,7 @@ Plugin IDs should adhere to the following guidelines:
 - Must contain at least one '.' character separating the namespace from the plugin's name.
 - Conventionally use a lowercase reverse domain name convention for the namespace.
 - Conventionally use only lowercase characters in the name.
-- `org.gradle` and `com.gradleware` namespaces may not be used.
+- `org.gradle`, `com.gradle`, and `com.gradleware` namespaces may not be used.
 - Cannot start or end with a '.' character.
 - Cannot contain consecutive '.' characters (i.e., '..').
 
@@ -67,7 +61,7 @@ A namespace that identifies ownership and a name is sufficient for a plugin ID.
 When bundling multiple plugins in a single JAR artifact, adhering to the same naming conventions is recommended.
 This practice helps logically group related plugins.
 
-There is no limit to the number of plugins that can be registered by identifier.
+There is no limit to the number of plugins that can be defined and registered (by different identifiers) within a single project.
 
 The identifiers for plugins written as a class should be defined in the project's build script containing the plugin classes.
 For this, the `java-gradle-plugin` needs to be applied:

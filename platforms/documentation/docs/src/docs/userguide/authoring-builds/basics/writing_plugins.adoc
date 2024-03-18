@@ -15,7 +15,7 @@
 [[writing_plugins]]
 = Writing Plugins
 
-If Gradle or the Gradle community does not offer the specific building capabilities your project needs, creating your own plugin could be a solution.
+If Gradle or the Gradle community does not offer the specific capabilities your project needs, creating your own plugin could be a solution.
 
 Additionally, if you find yourself duplicating build logic across subprojects and need a better way to organize it, custom plugins can help.
 
@@ -41,7 +41,8 @@ abstract class SamplePlugin : Plugin<Project> {
 
 == Script plugin
 
-Most plugins start as a script plugin coded in a build script.
+Many plugins start as a script plugin coded in a build script.
+This offers an easy way to rapidly prototype and experiment when building a plugin.
 Let's take a look at an example:
 
 .build.gradle.kts
@@ -65,7 +66,7 @@ abstract class CreateFileTask : DefaultTask() {                                 
     }
 }
 
-// Define a plugin with an apply method
+// Define a plugin
 abstract class MyPlugin : Plugin<Project> {                                         // <3>
     override fun apply(project: Project) {
         tasks {
@@ -132,7 +133,7 @@ When `MyPlugin` is applied in the build script, Gradle calls the `fun apply() {}
 
 This makes the plugin available to the application.
 
-NOTE: Script plugins are NOT recommended. The best practice for developing plugins is to create *convention plugins* or *binary plugins*.
+NOTE: Script plugins are NOT recommended. Script plugins offer an easy way to rapidly prototype build logic, before migrating it to a more permanent solution such as *convention plugins* or *binary plugins*.
 
 == Convention Plugins
 

@@ -154,7 +154,10 @@ Consequently, source code directories for other test types should follow a simil
 NOTE: The directories `src/integrationTest/groovy` and `src/functionalTest/groovy` are not based on an existing standard convention for Gradle projects.
 You are free to choose any project layout that works best for you.
 
-You can configure the source directories for compilation and test execution. You can also rely on third-party plugins for convenience, such as the link:https://github.com/nebula-plugins/nebula-project-plugin#nebula-facet-plugin[Nebula Facet plugin] or the link:https://github.com/unbroken-dome/gradle-testsets-plugin[TestSets plugin].
+You can configure the source directories for compilation and test execution.
+
+The link:{userManualPath}/jvm_test_suite_plugin.html[Test Suite plugin] provides a DSL and API to model multiple groups of automated tests into test suites in JVM-based projects.
+You can also rely on third-party plugins for convenience, such as the link:https://github.com/nebula-plugins/nebula-project-plugin#nebula-facet-plugin[Nebula Facet plugin] or the link:https://github.com/unbroken-dome/gradle-testsets-plugin[TestSets plugin].
 
 === Modeling test types
 
@@ -240,7 +243,9 @@ It does not reach out to any other classes nor does it use the Gradle API.
 include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/test/groovy/org/myorg/http/HttpResponseTest.groovy[]
 ----
 
-IMPORTANT: When writing unit tests, it's important to test boundary conditions and various forms of invalid input. Try to extract as much logic as possible from classes that use the Gradle API to make it testable as unit tests. It will result in maintainable code and faster test execution.
+IMPORTANT: When writing unit tests, it's important to test boundary conditions and various forms of invalid input.
+Try to extract as much logic as possible from classes that use the Gradle API to make it testable as unit tests.
+It will result in maintainable code and faster test execution.
 
 [[integration-tests]]
 === Implementing integration tests
@@ -319,9 +324,11 @@ You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[P
 include::{snippetsPath}/plugins/customPlugin/groovy/java-gradle-plugin/src/test/java/org/example/GreetingPluginTest.java[tag=test-plugin]
 ----
 
-Plugins often also provide custom task types. Please see <<custom_tasks.adoc#custom_tasks,Developing Custom Gradle Task Types>> for more details.
+Plugins often also provide custom task types.
+Please see <<custom_tasks.adoc#custom_tasks,Developing Custom Gradle Task Types>> for more details.
 
-Gradle provides a number of features that are helpful when developing Gradle types, including plugins. Please see <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>> for more details.
+Gradle provides a number of features that are helpful when developing Gradle types, including plugins.
+Please see <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>> for more details.
 
 CAUTION: When developing Gradle Plugins, it is important to be cautious when logging information to the build log.
 Logging sensitive information (e.g. credentials, tokens, certain environment variables) is <<logging.adoc#sec:debug_security,considered a security vulnerability>>.

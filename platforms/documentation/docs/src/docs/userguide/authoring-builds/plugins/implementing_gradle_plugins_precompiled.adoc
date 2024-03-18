@@ -16,7 +16,7 @@
 = Implementing Pre-compiled Script Plugins
 
 A *precompiled script plugin* is typically a Kotlin script that has been compiled and distributed as Java class files packaged in a library.
-These scripts are intended to be consumed as binary Gradle plugins and recommended to be used as convention plugins.
+These scripts are intended to be consumed as binary Gradle plugins and are recommended for use as convention plugins.
 
 [[sec:the_plugin_id]]
 == The plugin ID
@@ -71,7 +71,7 @@ When you apply a plugin that defines an extension, you can access the extension 
 A link:{groovyDslPath}/org.gradle.api.Project.html[Project] has an associated link:{javadocPath}/org/gradle/api/plugins/ExtensionContainer.html[ExtensionContainer] object that contains all the settings and properties for the plugins that have been applied to the project.
 You can provide configuration for your plugin by adding an extension object to this container.
 
-Let's update our  `greetings` example:
+Let's update our `greetings` example:
 
 .buildSrc/src/main/kotlin/greetings.gradle.kts
 [source,kotlin]
