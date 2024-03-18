@@ -58,6 +58,7 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             .expectLegacyDeprecationWarning(BaseDeprecations.ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION)
             .expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
             .expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
+            .expectLegacyDeprecationWarning(COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION)
             .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 8))
             .build()
 
@@ -70,6 +71,12 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             "This is scheduled to be removed in Gradle 9.0. " +
             "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}","org_gradle_util_reports_deprecations")}"
     }
+
+    public static final String COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION = "The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
+        "This is scheduled to be removed in Gradle 9.0. " +
+        "Please use the filePermissions(Action) method instead. " +
+        "Consult the upgrading guide for further information: " +
+        new DocumentationRegistry().getDocumentationFor("upgrading_version_8","unix_file_permissions_deprecated")
 
 
     @Override

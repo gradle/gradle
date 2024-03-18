@@ -6,6 +6,7 @@ description = "Base plugin for the maven and ivy publish plugins. Defines the pu
 
 errorprone {
     disabledChecks.addAll(
+        "InlineMeSuggester", // 7 occurrences
         "MixedMutabilityReturnType", // 5 occurrences
         "StringCaseLocaleUsage", // 1 occurrences
     )
@@ -22,6 +23,7 @@ dependencies {
     api(project(":logging-api"))
     api(project(":model-core"))
 
+    api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
 

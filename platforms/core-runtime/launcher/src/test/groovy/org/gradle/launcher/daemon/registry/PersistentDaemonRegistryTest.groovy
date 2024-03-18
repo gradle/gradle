@@ -30,6 +30,7 @@ import spock.lang.Specification
 
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
+import static org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
 
@@ -155,6 +156,7 @@ class PersistentDaemonRegistryTest extends Specification {
     DaemonContext daemonContext() {
         new DaemonContextBuilder([maybeGetPid: {null}] as ProcessEnvironment).with {
             daemonRegistryDir = tmp.createDir("daemons")
+            setNativeServicesMode(NativeServicesMode.ENABLED)
             create()
         }
     }

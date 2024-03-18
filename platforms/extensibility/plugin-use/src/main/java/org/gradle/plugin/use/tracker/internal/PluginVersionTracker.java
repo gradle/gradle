@@ -17,7 +17,7 @@
 package org.gradle.plugin.use.tracker.internal;
 
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
@@ -29,7 +29,7 @@ import static java.util.Collections.emptyMap;
 /**
  * Tracks plugin versions available at different {@link org.gradle.api.internal.initialization.ClassLoaderScope scopes}.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class PluginVersionTracker {
 
     final Map<ClassLoaderScope, Map<String, String>> pluginVersionsPerScope = new ConcurrentHashMap<>();

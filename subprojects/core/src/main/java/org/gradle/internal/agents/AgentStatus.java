@@ -16,13 +16,13 @@
 
 package org.gradle.internal.agents;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A build service to query the status of the Gradle's Java agents. Prefer using this service to accessing the {@link AgentControl} directly.
  */
-@ServiceScope(Scopes.Global.class)
+@ServiceScope(Scope.Global.class)
 public interface AgentStatus {
     /**
      * Checks if the agent-based bytecode instrumentation is enabled for the current JVM process.

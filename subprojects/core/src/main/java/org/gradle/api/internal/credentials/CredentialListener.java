@@ -18,12 +18,12 @@ package org.gradle.api.internal.credentials;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 /**
  * Collects issues to be reported to users.
  */
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 public interface CredentialListener {
     /**
      * Signals a safety issue with credentials.

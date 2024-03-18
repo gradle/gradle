@@ -35,7 +35,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport;
 import org.gradle.internal.resource.transport.file.FileTransport;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
@@ -48,7 +48,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class RepositoryTransportFactory {
     private final List<ResourceConnectorFactory> registeredProtocols = new ArrayList<>();
 

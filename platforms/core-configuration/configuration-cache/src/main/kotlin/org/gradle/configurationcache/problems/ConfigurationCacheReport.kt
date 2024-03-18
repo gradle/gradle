@@ -26,7 +26,7 @@ import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
 import java.io.File
@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.contracts.contract
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 class ConfigurationCacheReport(
     executorFactory: ExecutorFactory,
     temporaryFileProvider: TemporaryFileProvider,

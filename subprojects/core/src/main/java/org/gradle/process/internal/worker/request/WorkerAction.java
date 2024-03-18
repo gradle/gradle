@@ -33,7 +33,7 @@ import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.Scopes.Global;
+import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;

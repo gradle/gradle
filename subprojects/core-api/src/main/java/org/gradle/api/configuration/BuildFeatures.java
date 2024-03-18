@@ -17,7 +17,7 @@
 package org.gradle.api.configuration;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -31,7 +31,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 8.5
  */
 @Incubating
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildFeatures {
 
     /**

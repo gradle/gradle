@@ -27,7 +27,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationEnabled;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -79,7 +79,7 @@ public class DaemonMain extends EntryPoint {
         int idleTimeoutMs;
         int periodicCheckIntervalMs;
         boolean singleUse;
-        boolean useNativeServices;
+        NativeServicesMode nativeServicesMode;
         String daemonUid;
         DaemonParameters.Priority priority;
         List<File> additionalClassPath;
@@ -91,7 +91,7 @@ public class DaemonMain extends EntryPoint {
             idleTimeoutMs = decoder.readSmallInt();
             periodicCheckIntervalMs = decoder.readSmallInt();
             singleUse = decoder.readBoolean();
-            useNativeServices = decoder.readBoolean();
+            nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
             daemonUid = decoder.readString();
             priority = DaemonParameters.Priority.values()[decoder.readSmallInt()];
             int argCount = decoder.readSmallInt();
@@ -108,8 +108,8 @@ public class DaemonMain extends EntryPoint {
             throw new UncheckedIOException(e);
         }
 
-        NativeServices.initializeOnDaemon(gradleHomeDir, NativeIntegrationEnabled.from(useNativeServices));
-        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupOpts, useNativeServices);
+        NativeServices.initializeOnDaemon(gradleHomeDir, nativeServicesMode);
+        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupOpts, nativeServicesMode);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
 

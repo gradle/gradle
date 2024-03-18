@@ -19,7 +19,7 @@ package org.gradle.internal.classpath
 import org.gradle.internal.classpath.intercept.GroovyInterceptorsSubstitution
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
 import org.gradle.internal.classpath.intercept.JvmInterceptorsSubstitution
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter
 import spock.lang.Specification
 
@@ -34,8 +34,8 @@ abstract class AbstractCallInterceptionTest extends Specification {
 
     protected abstract GroovyCallInterceptorsProvider groovyCallInterceptors()
 
-    protected InstrumentingTypeRegistry typeRegistry() {
-        InstrumentingTypeRegistry.empty()
+    protected InstrumentationTypeRegistry typeRegistry() {
+        InstrumentationTypeRegistry.empty()
     }
 
     protected InstrumentedClasses instrumentedClasses

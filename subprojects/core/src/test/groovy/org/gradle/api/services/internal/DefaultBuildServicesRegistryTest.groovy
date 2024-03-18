@@ -31,13 +31,13 @@ import org.gradle.api.services.ServiceReference
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultBuildServicesRegistryTest extends Specification {
-    def listenerManager = new DefaultListenerManager(Scopes.Build)
+    def listenerManager = new DefaultListenerManager(Scope.Build)
     def isolatableFactory = new DefaultIsolatableFactory(null, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
     def buildIdentifier = Mock(BuildIdentifier)

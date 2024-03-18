@@ -24,7 +24,7 @@ import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.ParameterSemantics
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
-import org.gradle.internal.declarativedsl.mappingToJvm.RestrictedRuntimeFunction
+import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -126,10 +126,10 @@ class RuntimeDependencyFunctionResolver(configurations: DependencyConfigurations
 
     override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
         if (receiverClass.isSubclassOf(DependencyHandler::class) && name in nameSet && parameterValueBinding.bindingMap.size == 1) {
-            return RuntimeFunctionResolver.Resolution.Resolved(object : RestrictedRuntimeFunction {
-                override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): RestrictedRuntimeFunction.InvocationResult {
+            return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
+                override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
                     (receiver as DependencyHandler).add(name, binding.values.single() ?: error("null value in dependency DSL"))
-                    return RestrictedRuntimeFunction.InvocationResult(Unit, null)
+                    return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
                 }
             })
         }
@@ -148,12 +148,12 @@ class ImplicitDependencyCollectorFunctionResolver(configurations: DependencyConf
         if (name in configurationNames) {
             val getterFunction = getDependencyCollectorGetter(receiverClass, name)
             if (getterFunction != null) {
-                return RuntimeFunctionResolver.Resolution.Resolved(object : RestrictedRuntimeFunction {
-                    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): RestrictedRuntimeFunction.InvocationResult {
+                return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
+                    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
                         val dependencyNotation = binding.values.single().toString()
                         val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
                         collector.add(dependencyNotation)
-                        return RestrictedRuntimeFunction.InvocationResult(Unit, null)
+                        return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
                     }
                 })
             }

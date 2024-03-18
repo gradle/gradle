@@ -33,6 +33,9 @@ dependencies {
     api(project(":jvm-services")) {
         because("Exposing jvm metadata via AvailableJavaHomes")
     }
+    api(testFixtures(project(":core"))) {
+        because("HttpServer leaks PortAllocator to spock AST transformer")
+    }
 
     implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
@@ -103,7 +106,6 @@ dependencies {
         exclude(module = "groovy-all")
         exclude(module = "slf4j-simple")
     }
-    implementation(testFixtures(project(":core")))
 
     implementation(libs.mavenResolverApi) {
         because("For ApiMavenResolver. API we interact with to resolve Maven graphs & artifacts")

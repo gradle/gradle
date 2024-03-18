@@ -17,14 +17,14 @@
 package org.gradle.internal.session;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 /**
  * A listener that is notified when a session is started and completed. No more than one session may be active at any time.
  *
  * One or more builds may be run during a session. For example, when running in continuous mode, multiple builds are run during a single session.
  */
-@EventScope(Scopes.BuildSession.class)
+@EventScope(Scope.BuildSession.class)
 public interface BuildSessionLifecycleListener {
     /**
      * Called at the start of the session, immediately after initializing the session services.

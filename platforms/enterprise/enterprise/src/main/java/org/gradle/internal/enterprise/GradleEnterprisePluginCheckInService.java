@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * It is obtained via the settings object's service registry for the root build only.
  */
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scope.Gradle.class)
 public interface GradleEnterprisePluginCheckInService {
 
     /**

@@ -17,13 +17,13 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Responsible for running the given action against a build tree.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildTreeActionExecutor {
     /**
      * Runs the given action and returns the result. Failures should be packaged in the result.

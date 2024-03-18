@@ -23,7 +23,7 @@ import org.gradle.initialization.Environment
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.service.scopes.EventScope
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.util.internal.GUtil
 import java.io.File
 
@@ -35,7 +35,7 @@ class ConfigurationCacheEnvironment(
     private val listenerManager: ListenerManager
 ) : DefaultEnvironment() {
 
-    @EventScope(Scopes.Build::class)
+    @EventScope(Scope.Build::class)
     interface Listener {
         fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
         fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>)

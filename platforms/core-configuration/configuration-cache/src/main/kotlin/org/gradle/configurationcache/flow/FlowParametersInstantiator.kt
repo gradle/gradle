@@ -35,12 +35,12 @@ import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.util.Optional
 
 
-@ServiceScope(Scopes.Build::class)
+@ServiceScope(Scope.Build::class)
 internal
 class FlowParametersInstantiator(
     inspectionSchemeFactory: InspectionSchemeFactory,

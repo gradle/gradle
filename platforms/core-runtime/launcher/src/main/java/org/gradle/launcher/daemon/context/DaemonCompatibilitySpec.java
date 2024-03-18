@@ -45,8 +45,8 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
             return "Process priority is different.\n" + description(context);
         } else if (!agentStatusMatches(context)) {
             return "Agent status is different.\n" + description(context);
-        } else if (!useNativeServicesMatches(context)) {
-            return "Use native services flag is different.\n" + description(context);
+        } else if (!nativeServicesModeMatches(context)) {
+            return "Native services mode is different.\n" + description(context);
         }
         return null;
     }
@@ -83,8 +83,8 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
         return desiredContext.shouldApplyInstrumentationAgent() == context.shouldApplyInstrumentationAgent();
     }
 
-    private boolean useNativeServicesMatches(DaemonContext context) {
-        return desiredContext.useNativeServices() == context.useNativeServices();
+    private boolean nativeServicesModeMatches(DaemonContext context) {
+        return desiredContext.getNativeServicesMode() == context.getNativeServicesMode();
     }
 
     @Override
