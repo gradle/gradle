@@ -17,7 +17,7 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregationV2;
+import org.gradle.tooling.internal.protocol.InternalProblemAggregationVersion2;
 import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalLabel;
@@ -29,7 +29,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultInternalProblemAggregation implements InternalProblemAggregationV2, Serializable {
+public class DefaultInternalProblemAggregation implements InternalProblemAggregationVersion2, Serializable {
 
     private final InternalProblemCategory category;
     private final InternalLabel label;

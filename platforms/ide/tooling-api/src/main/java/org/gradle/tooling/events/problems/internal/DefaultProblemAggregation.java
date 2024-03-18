@@ -20,7 +20,7 @@ import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.ProblemAggregation;
 import org.gradle.tooling.events.problems.ProblemCategory;
-import org.gradle.tooling.events.problems.ProblemContextDetails;
+import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.Severity;
 
 import javax.annotation.Nullable;
@@ -32,14 +32,14 @@ public class DefaultProblemAggregation implements ProblemAggregation {
     private final Label problemLabel;
     private final Severity severity;
     private final DocumentationLink documentationLink;
-    private final List<ProblemContextDetails> problemContextDetails;
+    private final List<ProblemContext> problemContextDetails;
 
     public DefaultProblemAggregation(
         ProblemCategory problemCategory,
         Label problemLabel,
         Severity severity,
         @Nullable DocumentationLink documentationLink,
-        List<ProblemContextDetails> problemContextDetails
+        List<ProblemContext> problemContextDetails
     ) {
         this.severity = severity;
         this.documentationLink = documentationLink;
@@ -70,7 +70,7 @@ public class DefaultProblemAggregation implements ProblemAggregation {
     }
 
     @Override
-    public List<ProblemContextDetails> getProblemContextDetails() {
+    public List<ProblemContext> getProblemContext() {
         return problemContextDetails;
     }
 }

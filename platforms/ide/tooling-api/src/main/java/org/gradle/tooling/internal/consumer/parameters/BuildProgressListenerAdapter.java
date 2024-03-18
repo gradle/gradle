@@ -72,7 +72,7 @@ import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemCategory;
-import org.gradle.tooling.events.problems.ProblemContextDetails;
+import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.ProblemEvent;
 import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.events.problems.Solution;
@@ -88,7 +88,7 @@ import org.gradle.tooling.events.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultPluginIdLocation;
 import org.gradle.tooling.events.problems.internal.DefaultProblemAggregation;
 import org.gradle.tooling.events.problems.internal.DefaultProblemAggregationEvent;
-import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationContextDetails;
+import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationContext;
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSolution;
@@ -602,8 +602,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     @Nonnull
-    private static DefaultProblemsOperationContextDetails toSingleProblemContextDetail(InternalProblemContextDetails details) {
-        return new DefaultProblemsOperationContextDetails(
+    private static DefaultProblemsOperationContext toSingleProblemContextDetail(InternalProblemContextDetails details) {
+        return new DefaultProblemsOperationContext(
             toProblemDetails(details.getDetails()),
             toLocations(details.getLocations()),
             toSolutions(details.getSolutions()),
@@ -611,8 +611,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toFailureContainer(details.getFailure())
         );
     }
-    private static List<ProblemContextDetails> toProblemContextDetails(List<InternalProblemContextDetails> problems) {
-        Builder<ProblemContextDetails> result = builderWithExpectedSize(problems.size());
+    private static List<ProblemContext> toProblemContextDetails(List<InternalProblemContextDetails> problems) {
+        Builder<ProblemContext> result = builderWithExpectedSize(problems.size());
         for (InternalProblemContextDetails problem : problems) {
             result.add(toSingleProblemContextDetail(problem));
         }

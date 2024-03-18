@@ -21,21 +21,21 @@ import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Location;
-import org.gradle.tooling.events.problems.ProblemContextDetails;
+import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.Solution;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultProblemsOperationContextDetails implements ProblemContextDetails {
+public class DefaultProblemsOperationContext implements ProblemContext {
     private final Details details;
     private final List<Location> locations;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
     private final FailureContainer failure;
 
-    public DefaultProblemsOperationContextDetails(
+    public DefaultProblemsOperationContext(
         @Nullable Details details,
         List<Location> locations,
         List<Solution> solutions,

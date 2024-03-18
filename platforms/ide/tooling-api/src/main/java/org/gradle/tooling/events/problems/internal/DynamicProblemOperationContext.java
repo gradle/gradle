@@ -22,7 +22,7 @@ import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Location;
-import org.gradle.tooling.events.problems.ProblemContextDetails;
+import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.Solution;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
@@ -30,9 +30,9 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 @NonNullApi
-public class DynamicProblemOperationContextDetails extends DefaultOperationDescriptor implements ProblemContextDetails {
+public class DynamicProblemOperationContext extends DefaultOperationDescriptor implements ProblemContext {
 
-    public DynamicProblemOperationContextDetails(
+    public DynamicProblemOperationContext(
         InternalOperationDescriptor internalDescriptor,
         OperationDescriptor parent
     ) {

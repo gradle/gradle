@@ -27,7 +27,7 @@ import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregationV2;
+import org.gradle.tooling.internal.protocol.InternalProblemAggregationVersion2;
 import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
@@ -57,7 +57,7 @@ public class AggregatingProblemConsumer {
     }
 
     void sendProblemSummaries() {
-        List<InternalProblemAggregationV2> problemSummaries = createSummaries();
+        List<InternalProblemAggregationVersion2> problemSummaries = createSummaries();
 
         if (problemSummaries.isEmpty()) {
             seenProblems.clear();
@@ -78,7 +78,7 @@ public class AggregatingProblemConsumer {
         seenProblems.clear();
     }
 
-    private List<InternalProblemAggregationV2> createSummaries() {
+    private List<InternalProblemAggregationVersion2> createSummaries() {
         return seenProblems.asMap().values()
             .stream()
             .map(ImmutableList::copyOf)

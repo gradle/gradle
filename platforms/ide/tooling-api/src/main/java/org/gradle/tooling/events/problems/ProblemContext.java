@@ -30,7 +30,7 @@ import java.util.List;
  * @since 8.8
  */
 @Incubating
-public interface ProblemContextDetails {
+public interface ProblemContext {
 
     /**
      * Returns the details string.

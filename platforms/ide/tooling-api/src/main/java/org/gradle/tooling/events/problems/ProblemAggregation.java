@@ -71,6 +71,6 @@ public interface ProblemAggregation {
      * @return The list of aggregated problems.
      * @since 8.8
      */
-    List<ProblemContextDetails> getProblemContextDetails();
+    List<ProblemContext> getProblemContext();
 
 }

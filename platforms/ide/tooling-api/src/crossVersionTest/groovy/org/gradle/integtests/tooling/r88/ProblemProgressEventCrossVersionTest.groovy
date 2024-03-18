@@ -233,7 +233,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         def aggregation =  aggregatedProblems.problemAggregation
         aggregation.label.label == "The 'standard-plugin' is deprecated"
-        aggregation.problemContextDetails.size() == 9
+        aggregation.problemContext.size() == 9
     }
 
     @TargetGradleVersion(">=8.6 <=8.7")

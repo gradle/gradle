@@ -24,8 +24,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 @NonNullApi
-public interface InternalProblemAggregationV2 extends InternalProblemAggregation {
-
+public interface InternalProblemAggregationVersion2 extends InternalProblemAggregation {
 
     @Nullable
     InternalDocumentationLink getDocumentationLink();

@@ -30,9 +30,9 @@ import org.gradle.api.Incubating;
 public interface ProblemAggregationEvent extends ProblemEvent {
 
     /**
-     * Returns the problem category that is common for all aggregated problems.
+     * Returns a problem aggregation.
      *
-     * @return the problem category
+     * @return a problem aggregation
      * @since 8.8
      */
     ProblemAggregation getProblemAggregation();
