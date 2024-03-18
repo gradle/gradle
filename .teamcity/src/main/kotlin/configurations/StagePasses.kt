@@ -59,6 +59,18 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         }
     }
 
+    if (stage.stageName == StageName.READY_FOR_RELEASE && model.branch.isOldRelease) {
+        triggers.schedule {
+            schedulingPolicy = weekly {
+                dayOfWeek = ScheduleTrigger.DAY.Sunday
+                hour = model.branch.nightlyPromotionTriggerHour
+            }
+            triggerBuild = always()
+            branchFilter = model.branch.branchFilter()
+            withPendingChangesOnly = false
+        }
+    }
+
     dependencies {
         if (!stage.runsIndependent && prevStage != null) {
             dependency(RelativeId(stageTriggerId(model, prevStage))) {
