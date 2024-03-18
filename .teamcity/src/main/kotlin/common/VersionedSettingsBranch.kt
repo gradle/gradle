@@ -78,8 +78,6 @@ data class VersionedSettingsBranch(val branchName: String) {
         get() = branchName == MASTER_BRANCH
     val isRelease: Boolean
         get() = branchName == RELEASE_BRANCH
-    val isOldRelease: Boolean
-        get() = OLD_RELEASE_PATTERN.matches(branchName)
     val isExperimental: Boolean
         get() = branchName == EXPERIMENTAL_BRANCH
 
