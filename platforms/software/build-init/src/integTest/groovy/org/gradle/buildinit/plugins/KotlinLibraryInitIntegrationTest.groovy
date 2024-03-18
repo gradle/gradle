@@ -20,6 +20,7 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+import static org.hamcrest.CoreMatchers.containsString
 
 @LeaksFileHandles
 class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
@@ -153,5 +154,17 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "initializes Kotlin library with JUnit Jupiter test framework"() {
+        when:
+        run('init', '--type', 'kotlin-library', '--test-framework', 'junit-jupiter')
+
+        then:
+        subprojectDir.file("build.gradle.kts").assertExists()
+
+        and:
+        subprojectDir.file("build.gradle.kts").assertContents(containsString("junit.jupiter"))
+
     }
 }

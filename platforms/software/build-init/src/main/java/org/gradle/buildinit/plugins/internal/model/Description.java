@@ -60,7 +60,7 @@ public class Description {
     public final static Description KOTLIN = new Description(
         Language.KOTLIN,
         KOTLINTEST,
-        singletonList(KOTLINTEST),
+        asList(KOTLINTEST,JUNIT_JUPITER),
         "org.jetbrains.kotlin.jvm", "kotlin"
     );
 
