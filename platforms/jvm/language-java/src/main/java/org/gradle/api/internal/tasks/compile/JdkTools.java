@@ -62,6 +62,7 @@ public class JdkTools {
 
     // Copied from ToolProvider.defaultJavaCompilerName
     private static final String DEFAULT_COMPILER_IMPL_NAME = "com.sun.tools.javac.api.JavacTool";
+    private static final String DEFAULT_CONTEXT_IMPL_NAME = "com.sun.tools.javac.util.Context";
 
     private final ClassLoader isolatedToolsLoader;
     private final boolean isJava9Compatible;
@@ -98,6 +99,15 @@ public class JdkTools {
 
     public ContextAwareJavaCompiler getSystemJavaCompiler() {
         return new DefaultIncrementalAwareCompiler(buildJavaCompiler());
+    }
+
+    public Context getCompilerContext() {
+        try {
+            Class<?> contextClass = isolatedToolsLoader.loadClass(DEFAULT_CONTEXT_IMPL_NAME);
+            return DirectInstantiator.instantiate(contextClass.asSubclass(Context.class));
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not load class '" + DEFAULT_CONTEXT_IMPL_NAME);
+        }
     }
 
     private JavacTool buildJavaCompiler() {

@@ -38,7 +38,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final AnnotationProcessorDetector processorDetector;
     private final ClassPathRegistry classPathRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
-    private Factory<ContextAwareJavaCompiler> javaHomeBasedJavaCompilerFactory;
+    private JavaHomeBasedJavaCompilerFactory javaHomeBasedJavaCompilerFactory;
     private final InternalProblems problems;
     private final ProjectCacheDir projectCacheDir;
 
@@ -64,7 +64,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         this.projectCacheDir = projectCacheDir;
     }
 
-    private Factory<ContextAwareJavaCompiler> getJavaHomeBasedJavaCompilerFactory() {
+    private JavaHomeBasedJavaCompilerFactory getJavaHomeBasedJavaCompilerFactory() {
         if (javaHomeBasedJavaCompilerFactory == null) {
             javaHomeBasedJavaCompilerFactory = new JavaHomeBasedJavaCompilerFactory(classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles());
         }
@@ -91,7 +91,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         if (ForkingJavaCompileSpec.class.isAssignableFrom(type)) {
             return (Compiler<T>) new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[]{getJavaHomeBasedJavaCompilerFactory()}, new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir), forkOptionsFactory, classPathRegistry);
         } else {
-            return (Compiler<T>) new JdkJavaCompiler(getJavaHomeBasedJavaCompilerFactory(), problems);
+            return (Compiler<T>) new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory, problems);
         }
     }
 }

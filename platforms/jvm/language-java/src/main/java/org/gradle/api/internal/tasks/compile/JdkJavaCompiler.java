@@ -43,13 +43,16 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
 
     private final Context context;
-    private final Factory<ContextAwareJavaCompiler> javaHomeBasedJavaCompilerFactory;
+    private final JavaHomeBasedJavaCompilerFactory compilerFactory;
     private final DiagnosticToProblemListener diagnosticToProblemListener;
 
     @Inject
-    public JdkJavaCompiler(Factory<ContextAwareJavaCompiler> javaHomeBasedJavaCompilerFactory, InternalProblems problemsService) {
-        this.context = new Context();
-        this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
+    public JdkJavaCompiler(
+        JavaHomeBasedJavaCompilerFactory compilerFactory,
+        InternalProblems problemsService
+    ) {
+        this.context = compilerFactory.createContext();
+        this.compilerFactory = compilerFactory;
         this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter(), context);
     }
 
@@ -69,7 +72,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     @SuppressWarnings("DefaultCharset")
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
-        ContextAwareJavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
+        ContextAwareJavaCompiler compiler = compilerFactory.createCompiler();
 
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         Charset charset = Optional.ofNullable(compileOptions.getEncoding())
