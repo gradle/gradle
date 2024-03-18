@@ -155,7 +155,7 @@ public class GraphVariantSelector {
      * configuration otherwise satisfies variant selection criteria.
      */
     public VariantGraphResolveState selectLegacyConfiguration(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema) {
-        ConfigurationGraphResolveState conf = targetComponentState.getCandidatesForGraphVariantSelection().getLegacyConfiguration();
+        VariantGraphResolveState conf = targetComponentState.getCandidatesForGraphVariantSelection().getLegacyVariant();
         if (conf == null) {
             // TODO: We should have a better failure message here.
             // We wanted to do variant matching, but there were no variants in the target component.
@@ -163,8 +163,10 @@ public class GraphVariantSelector {
             // We should say that instead of failing with `A dependency was declared on configuration 'default' ...`
             throw failureProcessor.configurationNotFoundFailure(targetComponentState.getId(), Dependency.DEFAULT_CONFIGURATION);
         }
-        validateConfiguration(conf, consumerAttributes, targetComponentState, consumerSchema);
-        return conf.asVariant();
+
+        validateVariantAttributes(conf, consumerAttributes, targetComponentState, consumerSchema);
+        maybeEmitConsumptionDeprecation(conf);
+        return conf;
     }
 
     /**
@@ -172,22 +174,25 @@ public class GraphVariantSelector {
      * configuration otherwise satisfies variant selection criteria.
      */
     public VariantGraphResolveState selectConfigurationByName(String name, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema) {
-        ConfigurationGraphResolveState conf = targetComponentState.getConfiguration(name);
+        VariantGraphResolveState conf = targetComponentState.getCandidatesForGraphVariantSelection().getVariantByConfigurationName(name);
         if (conf == null) {
             throw failureProcessor.configurationNotFoundFailure(targetComponentState.getId(), name);
         }
-        validateConfiguration(conf, consumerAttributes, targetComponentState, consumerSchema);
-        return conf.asVariant();
+
+        validateVariantAttributes(conf, consumerAttributes, targetComponentState, consumerSchema);
+        maybeEmitConsumptionDeprecation(conf);
+        return conf;
     }
 
     /**
-     * Ensures the target configuration matches the request attributes and is consumable.
+     * Ensures the target variant matches the request attributes and is consumable. This needs to be called
+     * for variants that are selected by means other than attribute matching.
      *
-     * Note: This does not need to be called for variants, since variants are always consumable
-     * are always selected by attribute matching (thus are guaranteed to have matching variants).
+     * Note: This does not need to be called for variants selected via attribute matching, since
+     * attribute matching ensures selected variants are compatible with the requested attributes.
      */
-    private void validateConfiguration(
-        ConfigurationGraphResolveState conf,
+    private void validateVariantAttributes(
+        VariantGraphResolveState conf,
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
         AttributesSchemaInternal consumerSchema
@@ -200,12 +205,6 @@ public class GraphVariantSelector {
             if (!attributeMatcher.isMatching(conf.getAttributes(), consumerAttributes)) {
                 throw failureProcessor.incompatibleRequestedConfigurationFailure(consumerSchema, attributeMatcher, consumerAttributes, targetComponent, conf);
             }
-        }
-
-        maybeEmitConsumptionDeprecation(conf.asVariant());
-        ConfigurationGraphResolveMetadata metadata = conf.getMetadata();
-        if (!metadata.isCanBeConsumed()) {
-            throw failureProcessor.configurationNotConsumableFailure(targetComponent.getId(), conf.getName());
         }
     }
 
@@ -240,9 +239,7 @@ public class GraphVariantSelector {
     }
 
     private static void maybeEmitConsumptionDeprecation(VariantGraphResolveState targetVariant) {
-        if (targetVariant instanceof ConfigurationGraphResolveState &&
-            ((ConfigurationGraphResolveState) targetVariant).getMetadata().isDeprecatedForConsumption()
-        ) {
+        if (targetVariant.getMetadata().isDeprecated()) {
             DeprecationLogger.deprecateConfiguration(targetVariant.getName())
                 .forConsumption()
                 .willBecomeAnErrorInGradle9()
