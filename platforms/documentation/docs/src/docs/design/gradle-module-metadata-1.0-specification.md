@@ -101,15 +101,15 @@ The values for the Java ecosystem are now limited to `java-api` / `java-runtime`
 
 Values for the native ecosystem remain unaffected.
 
-Existing metadata must remain compatible and thus tools supporting the Gradle Module Metadata format must support both old and new values, while no longer publishing the deprecated ones.
+Existing metadata must remain compatible, and thus, tools supporting the Gradle Module Metadata format must support both old and new values while no longer publishing the deprecated ones.
 
-#### Java Ecosystem specific attributes
+#### Java ecosystem-specific attributes
 
-- `org.gradle.jvm.version` indicated the minimal target JVM version of a library. For example is built for java 8, its minimal target is `8`. If it's a multi-release jar for Java 9, 10 and 11, it's minimal target is `9`. Value must be an integer corresponding to the Java version.
+- `org.gradle.jvm.version` indicated the minimal target JVM version of a library. For example, it is built for Java 8, and its minimal target is `8`. If it's a multi-release jar for Java 9, 10 and 11, it's minimal target is `9`. Value must be an integer corresponding to the Java version.
 
-#### Native ecosystem specific attributes
+#### Native ecosystem-specific attributes
 
-- `org.gradle.native.debuggable` indicates native binaries that are debuggable. Value must be a boolean.
+- `org.gradle.native.debuggable` indicates native binaries that are debuggable. The value must be a boolean.
 
 ### `available-at` value
 
@@ -128,7 +128,7 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 - `module`: The module of the dependency.
 - `version`: optional. The version constraint of the dependency.
 - `excludes`: optional. Defines the exclusions that apply to this dependency. 
-- `reason`: optional. A explanation why the dependency is used. Can typically be used to explain why a specific version is requested.
+- `reason`: optional. An explanation of why the dependency is used. Can typically be used to explain why a specific version is requested.
 - `attributes`: optional. If set, attributes will override the consumer attributes during dependency resolution for this specific dependency.
 - `requestedCapabilities`: optional. If set, declares the capabilities that the dependency must provide in order to be selected. See `capabilities` above for the format.
 
@@ -158,7 +158,7 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 - `group`: The group of the dependency constraint.
 - `module`: The module of the dependency constraint.
 - `version`: optional. The version constraint of the dependency constraint.
-- `reason`: optional. A explanation why the constraint is used. Can typically be used to explain why a specific version is rejected, or from where a platform comes from.
+- `reason`: optional. An explanation of why the constraint is used. Can typically be used to explain why a specific version is rejected, or from where a platform comes from.
 - `attributes`: optional. If set, attributes will override the consumer attributes during dependency resolution for this specific dependency.
 
 ### `files` value
