@@ -86,6 +86,7 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
                 currentException != null;
                 currentException = currentException.getCause()
             ) {
+                // Note: Here it goes through the diagnostics factory
                 Location location = diagnosticsFactory.forException(currentException).getLocation();
                 if (location != null) {
                     source = location.getSourceLongDisplayName().getCapitalizedDisplayName();

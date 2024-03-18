@@ -97,10 +97,10 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                         .documentedAt(usage.getDocumentationUrl());
                     addPossibleLocation(diagnostics, problemSpec);
                     problemSpec.severity(WARNING);
-                    if(usage.getAdvice() != null) {
+                    if (usage.getAdvice() != null) {
                         problemSpec.solution(usage.getAdvice());
                     }
-                    if(usage.getContextualAdvice() != null) {
+                    if (usage.getContextualAdvice() != null) {
                         problemSpec.solution(usage.getContextualAdvice());
                     }
                 }
@@ -184,8 +184,10 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                 appendStackTraceElement(frame, message, lineSeparator);
             }
         } else {
+            // Prints only the deepest build script call
             for (int i = startIndexInclusive; i < endIndex; ++i) {
                 StackTraceElement element = stack.get(i);
+                // TODO: this could be cleaned up as well
                 if (isGradleScriptElement(element)) {
                     // only print first Gradle script stack trace element
                     appendStackTraceElement(element, message, lineSeparator);

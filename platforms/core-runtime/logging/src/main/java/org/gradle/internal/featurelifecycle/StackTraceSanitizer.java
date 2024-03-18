@@ -31,6 +31,8 @@ class StackTraceSanitizer implements ProblemStream.StackTraceTransformer {
     @Override
     public List<StackTraceElement> transform(StackTraceElement[] originalStack) {
         List<StackTraceElement> result = new ArrayList<StackTraceElement>();
+
+        // Ignore all the frames up to `calledFrom`
         final String calledFromName = calledFrom.getName();
         boolean calledFromFound = false;
         int caller;
@@ -46,6 +48,8 @@ class StackTraceSanitizer implements ProblemStream.StackTraceTransformer {
                 }
             }
         }
+
+        // Keep only non-system frames
         for (; caller < originalStack.length; caller++) {
             StackTraceElement stackTraceElement = originalStack[caller];
             if (!isSystemStackFrame(stackTraceElement.getClassName())) {

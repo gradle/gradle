@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache.problems
 
+import org.gradle.internal.failure.StackTraceRelevance
+import org.gradle.internal.failure.StackTracePrinter
+
 
 internal
 data class DecoratedPropertyProblem(
@@ -56,21 +59,16 @@ inline fun String.isStackFrameLine(locationPredicate: (String) -> Boolean): Bool
 
 internal
 class ExceptionDecorator(
-    private val stackTraceExtractor: (Throwable) -> String
+    private val stackTracePrinter: StackTracePrinter,
 ) {
 
     fun decorateException(exception: Throwable): DecoratedException {
-        val fullText = stackTraceExtractor(exception)
-        val parts = fullText.lines().chunkedBy { line ->
-            line.isStackFrameLine { it.isInternalStackFrame() }
-        }
+        val parts = stackTracePrinter.printAsParts(exception)
 
         return DecoratedException(
             exception,
             exceptionSummaryFor(exception),
-            parts.map { (isInternal, lines) ->
-                StackTracePart(isInternal, lines.joinToString("\n"))
-            }
+            parts.map { StackTracePart(isInternal = it.relevance != StackTraceRelevance.PRIMARY, it.text) }
         )
     }
 

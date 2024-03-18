@@ -60,6 +60,7 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
             try {
                 reporter.report(rootProjectBuildDir, collector);
             } catch (Exception e) {
+                // TODO: why is this exception not transformed?
                 failures.add(e);
             }
         }
