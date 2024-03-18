@@ -10,7 +10,7 @@ This document describes version 1.1 of the Gradle module metadata file format. A
 
 The module metadata file is a JSON file published alongside the existing repository-specific metadata files, such as a Maven POM or Ivy descriptor. It adds additional metadata that can be used by Gradle versions and other tooling that understand the format. This allows the rich Gradle model to be mapped to and "tunneled" through existing repository formats while continuing to support existing Gradle versions and tooling that do not understand the format. 
 
-The module metadata file is intended to be machine-generated rather than written by a human but is intended to be humanly readable.
+The module metadata file is intended to be machine-generated rather than written by a human but is intended to be human-readable.
 
 The module metadata file is also intended to fully describe the binaries in the module where it is present so that it can replace the existing metadata files. This would allow a Gradle repository format to be added, for example.
 
