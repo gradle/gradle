@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
@@ -86,31 +85,37 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
         }
         if (problemsService != null) {
-            InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-            Problem problem = reporter.create(new Action<InternalProblemSpec>() {
-                @Override
-                public void execute(InternalProblemSpec builder) {
-                    ProblemSpec problemSpec = builder
-                        // usage.getKind() could be be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
-                        .id("deprecated-feature-used", "Deprecated feature used", GradleCoreProblemGroup.deprecation())
-                        .contextualLabel(usage.getSummary())
-                        .documentedAt(usage.getDocumentationUrl());
-                    addPossibleLocation(diagnostics, problemSpec);
-                    problemSpec.severity(WARNING);
-                    if(usage.getAdvice() != null) {
-                        problemSpec.solution(usage.getAdvice());
-                    }
-                    if(usage.getContextualAdvice() != null) {
-                        problemSpec.solution(usage.getContextualAdvice());
-                    }
-                }
-            });
-            reporter.report(problem);
+            reportDeprecation(usage, diagnostics);
         }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
     }
 
-    private static void addPossibleLocation(ProblemDiagnostics diagnostics, ProblemSpec genericDeprecation) {
+    private void reportDeprecation(final DeprecatedFeatureUsage usage, final ProblemDiagnostics diagnostics) {
+        InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
+        Problem problem = reporter.create(new Action<InternalProblemSpec>() {
+            @Override
+            public void execute(InternalProblemSpec builder) {
+                InternalProblemSpec problemSpec = builder
+                    // usage.getKind() could be be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
+                    .id("deprecated-feature-used", "Deprecated feature used", GradleCoreProblemGroup.deprecation())
+                    .contextualLabel(usage.getSummary())
+                    .details(usage.getRemovalDetails())
+                    .documentedAt(usage.getDocumentationUrl())
+                    .additionalData("type", usage.getType().name());
+                addPossibleLocation(diagnostics, problemSpec);
+                problemSpec.severity(WARNING);
+                if(usage.getAdvice() != null) {
+                    problemSpec.solution(usage.getAdvice());
+                }
+                if(usage.getContextualAdvice() != null) {
+                    problemSpec.solution(usage.getContextualAdvice());
+                }
+            }
+        });
+        reporter.report(problem);
+    }
+
+    private static void addPossibleLocation(ProblemDiagnostics diagnostics, InternalProblemSpec genericDeprecation) {
         Location location = diagnostics.getLocation();
         if (location == null) {
             return;
@@ -213,12 +218,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             return false;
         }
         fileName = fileName.toLowerCase(Locale.US);
-        if (fileName.endsWith(".gradle") // ordinary Groovy Gradle script
-            || fileName.endsWith(".gradle.kts") // Kotlin Gradle script
-        ) {
-            return true;
-        }
-        return false;
+        return fileName.endsWith(".gradle") // ordinary Groovy Gradle script
+            || fileName.endsWith(".gradle.kts"); // Kotlin Gradle script
     }
 
     /**
