@@ -22,19 +22,18 @@ import org.gradle.tooling.events.problems.ProblemAggregation;
 import org.gradle.tooling.events.problems.ProblemAggregationEvent;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class DefaultProblemAggregationEvent extends BaseProgressEvent implements ProblemAggregationEvent {
-    private final List<ProblemAggregation> summaries;
 
-    public DefaultProblemAggregationEvent(long eventTime, @Nullable OperationDescriptor descriptor, List<ProblemAggregation> summaries) {
+    private final ProblemAggregation problemAggregation;
+
+    public DefaultProblemAggregationEvent(long eventTime, @Nullable OperationDescriptor descriptor, ProblemAggregation problemAggregation) {
         super(eventTime, descriptor == null? "<null>" : descriptor.getDisplayName(), descriptor);
-        this.summaries = summaries;
+        this.problemAggregation = problemAggregation;
     }
 
-
     @Override
-    public List<ProblemAggregation> getAggregations() {
-        return summaries;
+    public ProblemAggregation getProblemAggregation() {
+        return problemAggregation;
     }
 }

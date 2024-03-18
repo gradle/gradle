@@ -27,66 +27,33 @@ import java.util.List;
  *
  * Provides all details provided for problem events. The events are generated via the Problems API.
  *
- * @since 8.4
+ * @since 8.8
  */
 @Incubating
-public interface ProblemDescriptor {
-
-    /**
-     * Returns the problem category.
-     *
-     * @return the problem category
-     * @since 8.6
-     */
-    ProblemCategory getCategory();
-
-    /**
-     * Returns the problem label.
-     *
-     * @return the problem label
-     * @since 8.6
-     */
-    Label getLabel();
+public interface ProblemContext {
 
     /**
      * Returns the details string.
      *
      * @return the problem details
-     * @since 8.6
+     * @since 8.8
      */
     @Nullable
     Details getDetails();
 
     /**
-     * Returns the problem severity.
-     *
-     * @return the problem severity
-     * @since 8.6
-     */
-    Severity getSeverity();
-
-    /**
      * Returns the locations associated with this problem.
      *
      * @return the locations
-     * @since 8.6
+     * @since 8.8
      */
     List<Location> getLocations();
-
-    /**
-     * Returns the link to the documentation
-     *
-     * @return the locations
-     * @since 8.6
-     */
-    @Nullable
-    DocumentationLink getDocumentationLink();
 
     /**
      * Returns the list of solutions.
      *
      * @return the solutions
-     * @since 8.6
+     * @since 8.8
      */
     List<Solution> getSolutions();
 
@@ -96,7 +63,7 @@ public interface ProblemDescriptor {
      * <code>null</code> if run against a Gradle version prior to 8.7
      *
      * @return the failure
-     * @since 8.7
+     * @since 8.8
      */
     @Nullable
     FailureContainer getFailure();
