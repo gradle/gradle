@@ -31,7 +31,6 @@ import org.gradle.workers.internal.FlatClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 
 import java.io.File;
-import java.util.Collections;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
     private final Class<? extends Compiler<JavaCompileSpec>> compilerClass;
@@ -76,13 +75,6 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
             javaForkOptions.jvmArgs(
                 "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
                 "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
-            );
-        } else {
-            // In JDK 8 and below the compiler internal classes are bundled into the separate `lib/tools.jar` file under the JDK home.
-            compilerClasspath = compilerClasspath.plus(
-                Collections.singletonList(
-                    new File(forkingSpec.getJavaHome(), "lib/tools.jar")
-                )
             );
         }
 
