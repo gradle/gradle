@@ -146,11 +146,10 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
         ImmutableWorkspaceMetadata metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
         if (!metadata.getOutputPropertyHashes().equals(outputHashes)) {
-            boolean moveSuccessful = workspace.withTemporaryWorkspace(temporaryWorkspace -> moveInconsistentImmutableWorkspaceToTemporaryLocation(immutableLocation, temporaryWorkspace, outputSnapshots));
-            if (moveSuccessful) {
+            return workspace.withTemporaryWorkspace(temporaryWorkspace -> {
+                moveInconsistentImmutableWorkspaceToTemporaryLocation(immutableLocation, temporaryWorkspace, outputSnapshots);
                 return Optional.empty();
-            }
-            // We couldn't move the inconsistent workspace out of the way, falling back to reusing it
+            });
         }
 
         return Optional.of(loadImmutableWorkspace(work, immutableLocation, metadata, outputSnapshots));
@@ -168,38 +167,32 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 originMetadata),
             immutableLocation);
     }
-    private boolean moveInconsistentImmutableWorkspaceToTemporaryLocation(File immutableLocation, File failedWorkspaceLocation, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
-        boolean moveSuccessful;
-        String moveResult;
+
+    private void moveInconsistentImmutableWorkspaceToTemporaryLocation(File immutableLocation, File failedWorkspaceLocation, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
         fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
         String outputHashes = outputSnapshots.entrySet().stream()
             .map(entry -> entry.getKey() + ":\n" + entry.getValue().roots()
                 .map(AssignImmutableWorkspaceStep::describeSnapshot)
                 .collect(Collectors.joining("\n")))
             .collect(Collectors.joining("\n"));
-        try {
-            // We move the inconsistent workspace to a "temporary" location as a way to atomically move it out of the permanent workspace.
-            // Deleting it in-place is not an option, as we can't do that atomically.
-            // By moving the inconsistent workspace we also preserve it for later inspection.
-            Files.move(immutableLocation.toPath(), failedWorkspaceLocation.toPath(), StandardCopyOption.ATOMIC_MOVE);
-            moveResult = String.format("The inconsistent workspace has been moved to '%s', and will be recreated.", failedWorkspaceLocation.getAbsolutePath());
-            moveSuccessful = true;
-        } catch (IOException e) {
-            LOGGER.warn("Could not move inconsistent immutable workspace {} to temporary location {}",
-                immutableLocation.getAbsolutePath(), failedWorkspaceLocation.getAbsolutePath(), e);
-            moveResult = "The inconsistent workspace could not be moved, attempting to reuse.";
-            moveSuccessful = false;
-        }
         DeprecationLogger.deprecateBehaviour(String.format("The contents of the immutable workspace '%s' have been modified.", immutableLocation.getAbsolutePath()))
             .withContext("These workspace directories are not supposed to be modified once they are created. " +
                 "The modification might have been caused by an external process, or could be the result of disk corruption. " +
-                moveResult +
+                String.format("The inconsistent workspace will be moved to '%s', and will be recreated.", failedWorkspaceLocation.getAbsolutePath()) +
                 "\n" +
                 outputHashes)
             .willBecomeAnErrorInGradle9()
             .undocumented()
             .nagUser();
-        return moveSuccessful;
+        try {
+            // We move the inconsistent workspace to a "temporary" location as a way to atomically move it out of the permanent workspace.
+            // Deleting it in-place is not an option, as we can't do that atomically.
+            // By moving the inconsistent workspace we also preserve it for later inspection.
+            Files.move(immutableLocation.toPath(), failedWorkspaceLocation.toPath(), StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Could not move inconsistent immutable workspace (%s) to temporary location (%s)",
+                immutableLocation.getAbsolutePath(), failedWorkspaceLocation.getAbsolutePath()), e);
+        }
     }
 
     private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, ImmutableWorkspace workspace) {
