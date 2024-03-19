@@ -93,7 +93,6 @@ import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.Cli
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
-import static org.gradle.integtests.fixtures.executer.DocumentationUtils.normalizeDocumentationLink;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.internal.CollectionUtils.collect;
 import static org.gradle.util.internal.CollectionUtils.join;
@@ -1334,11 +1333,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     public GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning) {
         expectedDeprecationWarnings.add(warning);
         return this;
-    }
-
-    @Override
-    public GradleExecuter expectDocumentedDeprecationWarning(ExpectedDeprecationWarning warning) {
-        return expectDeprecationWarning(normalizeDocumentationLink(warning.getMessage()));
     }
 
     @Override
