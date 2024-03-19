@@ -1346,7 +1346,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         def outputDir = immutableOutputDir("lib1.jar", "0/lib1-green.jar")
         def workspaceDir = outputDir.parentFile
         outputDir.file("tamper-tamper.txt").text = "Making a mess"
-        executer.expectDeprecationWarningMultilinePattern("""The contents of the immutable workspace '.*' have been modified. This behavior has been deprecated. This will fail with an error in Gradle 9.0. These workspace directories are not supposed to be modified once they are created. The modification might have been caused by an external process, or could be the result of disk corruption. The inconsistent workspace has been moved to '.*', and will be recreated.
+        executer.expectDeprecationWarningWithMultilinePattern("""The contents of the immutable workspace '.*' have been modified. This behavior has been deprecated. This will fail with an error in Gradle 9.0. These workspace directories are not supposed to be modified once they are created. The modification might have been caused by an external process, or could be the result of disk corruption. The inconsistent workspace has been moved to '.*', and will be recreated.
 outputDirectory:
  - transformed \\(Directory, [0-9a-f]+\\)
    - 0 \\(Directory, [0-9a-f]+\\)

@@ -280,7 +280,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
             executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
-            executer.expectDeprecationWarningPattern(/The Task\.\w+\(\) method has been deprecated\. This is scheduled to be removed in Gradle 9\.0\./)
+            executer.expectDeprecationWarningWithPattern(/The Task\.\w+\(\) method has been deprecated\. This is scheduled to be removed in Gradle 9\.0\./)
             run("broken", "buildSrc:broken", "included:broken")
 
             outputContains("Build file '${file("included/build.gradle")}': line 5")
