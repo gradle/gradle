@@ -28,8 +28,9 @@ public class DefaultFailure implements Failure {
     private final List<StackTraceElement> stackTrace;
     private final List<StackTraceRelevance> frameRelevance;
     private final List<Failure> causes;
+    private final List<Failure> suppressed;
 
-    public DefaultFailure(Throwable original, List<StackTraceElement> stackTrace, List<StackTraceRelevance> frameRelevance, List<Failure> causes) {
+    public DefaultFailure(Throwable original, List<StackTraceElement> stackTrace, List<StackTraceRelevance> frameRelevance, List<Failure> causes, List<Failure> suppressed) {
         if (stackTrace.size() != frameRelevance.size()) {
             throw new IllegalArgumentException("stackTrace and frameRelevance must have the same size.");
         }
@@ -38,6 +39,7 @@ public class DefaultFailure implements Failure {
         this.stackTrace = ImmutableList.copyOf(stackTrace);
         this.frameRelevance = ImmutableList.copyOf(frameRelevance);
         this.causes = ImmutableList.copyOf(causes);
+        this.suppressed = ImmutableList.copyOf(suppressed);
     }
 
     @Override
@@ -72,6 +74,6 @@ public class DefaultFailure implements Failure {
 
     @Override
     public List<Failure> getSuppressed() {
-        return ImmutableList.of();
+        return suppressed;
     }
 }

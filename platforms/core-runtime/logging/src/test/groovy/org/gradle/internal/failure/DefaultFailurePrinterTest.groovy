@@ -43,10 +43,21 @@ class DefaultFailurePrinterTest extends Specification {
         printer.print(f) == getTraceString(e)
     }
 
+    def "prints same as JVM for an exception with suppressions"() {
+        def e = new RuntimeException("BOOM")
+        e.addSuppressed(SimulatedJavaException.simulateDeeperException())
+
+        def printer = new DefaultFailurePrinter()
+        def f = toFailure(e)
+
+        expect:
+        printer.print(f) == getTraceString(e)
+    }
+
     private static Failure toFailure(Throwable t) {
         def stack = ImmutableList.of(t.stackTrace)
         def relevances = Collections.nCopies(stack.size(), StackTraceRelevance.USER_CODE)
-        new DefaultFailure(t, stack, relevances, getCauses(t).collect { toFailure(it) })
+        new DefaultFailure(t, stack, relevances, getCauses(t).collect { toFailure(it) }, t.getSuppressed().collect { toFailure(it) })
     }
 
     private static List<Throwable> getCauses(Throwable t) {

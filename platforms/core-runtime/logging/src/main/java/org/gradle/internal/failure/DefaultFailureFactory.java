@@ -18,6 +18,7 @@ package org.gradle.internal.failure;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.problems.failure.Failure;
@@ -43,7 +44,8 @@ public class DefaultFailureFactory implements FailureFactory {
         StackTraceClassifier calledFromClassifier = calledFrom == null ? null : new CalledFromDroppingStackTraceClassifier(calledFrom);
         List<StackTraceRelevance> relevances = classify(stackTrace, calledFromClassifier);
         List<Failure> causes = getCauses(failure);
-        return new DefaultFailure(failure, stackTrace, relevances, causes);
+        List<Failure> suppressed = getSuppressed(failure);
+        return new DefaultFailure(failure, stackTrace, relevances, causes, suppressed);
     }
 
     private List<Failure> getCauses(Throwable parent) {
@@ -55,6 +57,21 @@ public class DefaultFailureFactory implements FailureFactory {
         }
 
         return CollectionUtils.collect(causes.build(), new InternalTransformer<Failure, Throwable>() {
+            @Override
+            public Failure transform(Throwable throwable) {
+                return create(throwable, null);
+            }
+        });
+    }
+
+    @SuppressWarnings("Since15")
+    private List<Failure> getSuppressed(Throwable parent) {
+        // Short-circuit if suppressed exceptions are not supported by the current JVM
+        if (!JavaVersion.current().isJava7Compatible()) {
+            return ImmutableList.of();
+        }
+
+        return CollectionUtils.collect(parent.getSuppressed(), new InternalTransformer<Failure, Throwable>() {
             @Override
             public Failure transform(Throwable throwable) {
                 return create(throwable, null);
@@ -75,5 +92,4 @@ public class DefaultFailureFactory implements FailureFactory {
 
         return relevance;
     }
-
 }
