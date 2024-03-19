@@ -61,6 +61,32 @@ import static com.google.common.collect.Maps.immutableEntry;
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
 import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
 
+/**
+ * Assigns an immutable workspace to the work, and makes sure it contains the correct outputs.
+ *
+ * <ul>
+ * <li>If an immutable workspace already exists, it is checked for consistency, and is returned
+ * if found correct.</li>
+ * <li>If the workspace is inconsistent (the output hashes stored in {code metadata.bin} do not match
+ * the hashes taken by snapshotting the current outputs), the workspace is moved to a temporary
+ * location and we fall back to re-executing the work.</li>
+ * <li>If we end up executing the work (either because there is no existing immutable workspace, or it is
+ * inconsistent), then a unique temporary workspace directory is provided to the work to create its outputs
+ * in, and the work is executed.</li>
+ * <li>When the execution of the work finishes, we snapshot the outputs of the work, and store their hashes
+ * in the {code metadata.bin} file in the temporary workspace directory.</li>
+ * <li>We then attempt to move the temporary workspace directory (including the newly generated
+ * {code metadata.bin} into its permanent immutable location. The move happens atomically, and if
+ * successful, the newly created immutable workspace is returned.</li>
+ * <li>If the move fails because a directory is already present in the immutable location, we assume
+ * that we got into a race condition with another Gradle process, and try to reuse the newly appeared
+ * results after a consistency check.</li>
+ * <li>If the move fails because of file access permissions, we assume that one of the files in the
+ * temporary workspace are still open, preventing the move from happening. In this case we make a
+ * defensive copy of the temporary workspace to yet another temporary workspace, and attempt to move
+ * the copy into the immutable location instead.</li>
+ * </ul>
+ */
 public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements Step<C, WorkspaceResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AssignImmutableWorkspaceStep.class);
 
