@@ -33,8 +33,11 @@ import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +56,7 @@ import java.util.function.Function;
 import static com.google.common.collect.ImmutableListMultimap.toImmutableListMultimap;
 import static com.google.common.collect.Maps.immutableEntry;
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
 
 public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements Step<C, WorkspaceResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AssignImmutableWorkspaceStep.class);
@@ -161,14 +165,19 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     }
 
     private static ImmutableListMultimap<String, HashCode> calculateOutputHashes(ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
-        return outputSnapshots.entrySet().stream()
+        ImmutableListMultimap<String, HashCode> hashes = outputSnapshots.entrySet().stream()
             .flatMap(entry ->
                 entry.getValue().roots()
+                    .peek(locationSnapshot -> System.out.println("Snapshot:\n" + AssignImmutableWorkspaceStep.describeSnapshot(locationSnapshot)))
                     .map(locationSnapshot -> immutableEntry(entry.getKey(), locationSnapshot.getHash())))
             .collect(toImmutableListMultimap(
                 Map.Entry::getKey,
                 Map.Entry::getValue
             ));
+        if (hashes.containsKey("outputDirectory")) {
+            System.out.println("Output hash: " + hashes.get("outputDirectory"));
+        }
+        return hashes;
     }
 
     private WorkspaceResult moveTemporaryWorkspaceToImmutableLocation(WorkspaceMoveHandler move) {
@@ -258,5 +267,39 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             return new UncheckedIOException(String.format("Could not move temporary workspace (%s) to immutable location (%s)",
                 temporaryWorkspace.getAbsolutePath(), immutableLocation.getAbsolutePath()), cause);
         }
+    }
+
+    private static String describeSnapshot(FileSystemLocationSnapshot root) {
+        StringBuilder builder = new StringBuilder();
+        root.accept(new FileSystemSnapshotHierarchyVisitor() {
+            private int indent = 0;
+
+            @Override
+            public void enterDirectory(DirectorySnapshot directorySnapshot) {
+                indent++;
+            }
+
+            @Override
+            public void leaveDirectory(DirectorySnapshot directorySnapshot) {
+                indent--;
+            }
+
+            @Override
+            public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
+                for (int i = 0; i < indent; i++) {
+                    builder.append("  ");
+                }
+                builder.append(" - ");
+                builder.append(snapshot.getName());
+                builder.append(" (");
+                builder.append(snapshot.getType());
+                builder.append(", ");
+                builder.append(snapshot.getHash());
+                builder.append(")");
+                builder.append("\n");
+                return CONTINUE;
+            }
+        });
+        return builder.toString();
     }
 }

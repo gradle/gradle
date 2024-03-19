@@ -29,6 +29,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +51,7 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         return work.getBuildOperationWorkType()
             .map(workType -> operation(
                 operationContext -> {
-                    R result = delegate.execute(work, context);
+                    R result = executeDelegate(work, context);
                     ExecuteWorkBuildOperationType.Result operationResult = new ExecuteWorkResult(
                         result.getExecution(),
                         result.getCachingState(),
@@ -64,7 +65,12 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
                 BuildOperationDescriptor
                     .displayName("Execute unit of work")
                     .details(new ExecuteWorkDetails(workType, context.getIdentity().getUniqueId()))))
-            .orElseGet(() -> delegate.execute(work, context));
+            .orElseGet(() -> executeDelegate(work, context));
+    }
+
+    @Nonnull
+    private R executeDelegate(UnitOfWork work, C context) {
+        return delegate.execute(work, context);
     }
 
     private static class ExecuteWorkDetails implements ExecuteWorkBuildOperationType.Details {
