@@ -163,7 +163,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Class DependencyInjectingInstantiatorTest.NonStatic is a non-static inner class."
+        e.cause.message == "Class DependencyInjectingInstantiatorTest.NonStatic is a non-static inner class, it probably captures a variable from the outer scope."
     }
 
     def "fails when class has multiple constructors and none are annotated"() {
