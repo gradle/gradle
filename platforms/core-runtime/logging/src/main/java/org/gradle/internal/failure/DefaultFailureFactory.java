@@ -18,9 +18,12 @@ package org.gradle.internal.failure;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
+import org.gradle.internal.InternalTransformer;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.problems.failure.StackTraceRelevance;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -39,7 +42,24 @@ public class DefaultFailureFactory implements FailureFactory {
         ImmutableList<StackTraceElement> stackTrace = ImmutableList.copyOf(failure.getStackTrace());
         StackTraceClassifier calledFromClassifier = calledFrom == null ? null : new CalledFromDroppingStackTraceClassifier(calledFrom);
         List<StackTraceRelevance> relevances = classify(stackTrace, calledFromClassifier);
-        return new DefaultFailure(failure,  stackTrace, relevances);
+        List<Failure> causes = getCauses(failure);
+        return new DefaultFailure(failure, stackTrace, relevances, causes);
+    }
+
+    private List<Failure> getCauses(Throwable parent) {
+        ImmutableList.Builder<Throwable> causes = new ImmutableList.Builder<Throwable>();
+        if (parent instanceof MultiCauseException) {
+            causes.addAll(((MultiCauseException) parent).getCauses());
+        } else if (parent.getCause() != null) {
+            causes.add(parent.getCause());
+        }
+
+        return CollectionUtils.collect(causes.build(), new InternalTransformer<Failure, Throwable>() {
+            @Override
+            public Failure transform(Throwable throwable) {
+                return create(throwable, null);
+            }
+        });
     }
 
     private List<StackTraceRelevance> classify(List<StackTraceElement> stackTrace, @Nullable StackTraceClassifier calledFromClassifier) {

@@ -16,17 +16,10 @@
 
 package org.gradle.internal.failure;
 
-import org.gradle.internal.problems.failure.StackTraceRelevance;
+public class SimulatedJavaException {
 
-public interface StackFramePredicate {
-
-    StackFramePredicate TRUE = new StackFramePredicate() {
-        @Override
-        public boolean test(StackTraceElement frame, StackTraceRelevance relevance) {
-            return true;
-        }
-    };
-
-    boolean test(StackTraceElement frame, StackTraceRelevance relevance);
+    public static Throwable simulateDeeperException() {
+        return new RuntimeException("Simulated exception");
+    }
 
 }

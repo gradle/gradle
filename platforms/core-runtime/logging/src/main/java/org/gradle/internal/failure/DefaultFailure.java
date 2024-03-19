@@ -27,11 +27,17 @@ public class DefaultFailure implements Failure {
     private final Throwable original;
     private final List<StackTraceElement> stackTrace;
     private final List<StackTraceRelevance> frameRelevance;
+    private final List<Failure> causes;
 
-    public DefaultFailure(Throwable original, List<StackTraceElement> stackTrace, List<StackTraceRelevance> frameRelevance) {
+    public DefaultFailure(Throwable original, List<StackTraceElement> stackTrace, List<StackTraceRelevance> frameRelevance, List<Failure> causes) {
+        if (stackTrace.size() != frameRelevance.size()) {
+            throw new IllegalArgumentException("stackTrace and frameRelevance must have the same size.");
+        }
+
         this.original = original;
-        this.stackTrace = stackTrace;
-        this.frameRelevance = frameRelevance;
+        this.stackTrace = ImmutableList.copyOf(stackTrace);
+        this.frameRelevance = ImmutableList.copyOf(frameRelevance);
+        this.causes = ImmutableList.copyOf(causes);
     }
 
     @Override
@@ -61,7 +67,7 @@ public class DefaultFailure implements Failure {
 
     @Override
     public List<Failure> getCauses() {
-        return ImmutableList.of();
+        return causes;
     }
 
     @Override
