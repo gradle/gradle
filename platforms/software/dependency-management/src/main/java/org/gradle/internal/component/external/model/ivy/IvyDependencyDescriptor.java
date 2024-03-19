@@ -124,6 +124,16 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
     public GraphVariantSelectionResult selectLegacyConfigurations(ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent, ResolutionFailureHandler resolutionFailureHandler) {
+        // We only want to use ivy's configuration selection mechanism when an ivy component is selecting
+        // configurations from another ivy component. We have already verified that the target component does
+        // not support attribute matching, so if it is not an ivy component, use the standard legacy selection mechanism.
+        if (!(targetComponent instanceof IvyComponentGraphResolveState)) {
+            VariantGraphResolveState variant = targetComponent.getCandidatesForGraphVariantSelection().getLegacyVariant();
+            return new GraphVariantSelectionResult(Collections.singletonList(variant), false);
+        }
+
+        IvyComponentGraphResolveState ivyComponent = (IvyComponentGraphResolveState) targetComponent;
+
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         List<ConfigurationGraphResolveState> targets = new LinkedList<>();
         boolean matched = false;
@@ -135,13 +145,13 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
                     matched = true;
                 }
                 for (String targetPattern : targetPatterns) {
-                    findMatches(targetComponent, fromConfigName, config, targetPattern, targets, resolutionFailureHandler);
+                    findMatches(ivyComponent, fromConfigName, config, targetPattern, targets, resolutionFailureHandler);
                 }
             }
         }
         if (!matched && confs.containsKey("%")) {
             for (String targetPattern : confs.get("%")) {
-                findMatches(targetComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
+                findMatches(ivyComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
             }
         }
 
@@ -157,7 +167,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             }
             if (!excludeWildcards) {
                 for (String targetPattern : wildcardPatterns) {
-                    findMatches(targetComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
+                    findMatches(ivyComponent, fromConfigName, fromConfigName, targetPattern, targets, resolutionFailureHandler);
                 }
             }
         }
@@ -170,7 +180,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return new GraphVariantSelectionResult(builder.build(), false);
     }
 
-    private void findMatches(ComponentGraphResolveState targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveState> targetConfigurations, ResolutionFailureHandler resolutionFailureHandler) {
+    private void findMatches(IvyComponentGraphResolveState targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveState> targetConfigurations, ResolutionFailureHandler resolutionFailureHandler) {
         int startFallback = targetPattern.indexOf('(');
         if (startFallback >= 0) {
             if (targetPattern.endsWith(")")) {
