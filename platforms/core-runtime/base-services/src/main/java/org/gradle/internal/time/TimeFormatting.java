@@ -70,6 +70,14 @@ public class TimeFormatting {
 
         StringBuilder result = new StringBuilder();
 
+        // Whereas it doesn't make sense to pass negative values to this method,
+        // the duration passed on call sited is often a result of some math, what is not guarantees positive-values-only.
+        // So let's make an output more predictable in accidental negative-values scenarios.
+        if (duration < 0) {
+            result.append("-");
+            duration = -duration;
+        }
+
         long days = duration / MILLIS_PER_DAY;
         duration = duration % MILLIS_PER_DAY;
         if (days > 0) {

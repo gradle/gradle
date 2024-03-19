@@ -81,6 +81,7 @@ import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.profile.BuildProfile
 import org.gradle.util.Path
 import org.gradle.vcs.internal.VcsMappingsStore
 import java.io.File
@@ -97,20 +98,24 @@ enum class StateType(val encryptable: Boolean = false) {
      * Contains the state for the entire build.
      */
     Work(true),
+
     /**
      * Contains the model objects sent back to the IDE in response to a TAPI request.
      */
     Model(true),
+
     /**
      * Contains the model objects queried by the IDE provided build action in order to calculate the model to send back.
      */
     IntermediateModels(true),
+
     /**
      * Contains the dependency resolution metadata for each project.
      */
     ProjectMetadata(false),
     BuildFingerprint(true),
     ProjectFingerprint(true),
+
     /**
      * The index file that points to all of these things
      */
@@ -256,7 +261,7 @@ class ConfigurationCacheState(
         val settingsFile = read() as File?
         val rootBuild = host.createBuild(settingsFile)
         val gradle = rootBuild.gradle
-        readBuildTreeState(gradle)
+        readBuildTreeScopedState(gradle)
         return readBuildsInTree(rootBuild)
     }
 
@@ -275,9 +280,7 @@ class ConfigurationCacheState(
         writeCollection(builds.values) { build ->
             writeBuildState(
                 build,
-                StoredBuildTreeState(
-                    requiredBuildServicesPerBuild = requiredBuildServicesPerBuild
-                ),
+                StoredBuildTreeState(requiredBuildServicesPerBuild),
                 rootBuild
             )
         }
@@ -575,11 +578,19 @@ class ConfigurationCacheState(
             withDebugFrame({ "cache configurations" }) {
                 writeCacheConfigurations(gradle)
             }
+            if (gradle.startParameter.isProfile) {
+                writeBoolean(true)
+                withDebugFrame({ "build profile" }) {
+                    writeBuildProfile(gradle)
+                }
+            } else {
+                writeBoolean(false)
+            }
         }
     }
 
     private
-    suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
+    suspend fun DefaultReadContext.readBuildTreeScopedState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             readCachedEnvironmentState(gradle)
             readPreviewFlags(gradle)
@@ -589,6 +600,24 @@ class ConfigurationCacheState(
             readGradleEnterprisePluginManager(gradle)
             readBuildCacheConfiguration(gradle)
             readCacheConfigurations(gradle)
+            if (readBoolean()) {
+                readBuildProfile(gradle)
+            }
+        }
+    }
+
+    private
+    fun DefaultWriteContext.writeBuildProfile(gradle: GradleInternal) {
+        val buildProfile = gradle.serviceOf<BuildProfile>()
+        writeString(buildProfile.buildDir.path)
+    }
+
+    private
+    fun DefaultReadContext.readBuildProfile(gradle: GradleInternal) {
+        val buildProfileDir = File(readString())
+
+        gradle.serviceOf<BuildProfile>().apply {
+            buildDir = buildProfileDir
         }
     }
 
