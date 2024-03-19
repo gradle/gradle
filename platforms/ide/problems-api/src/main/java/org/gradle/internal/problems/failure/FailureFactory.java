@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.problems;
+package org.gradle.internal.problems.failure;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;

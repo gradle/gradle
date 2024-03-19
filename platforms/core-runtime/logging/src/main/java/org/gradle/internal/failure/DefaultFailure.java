@@ -17,8 +17,8 @@
 package org.gradle.internal.failure;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.problems.Failure;
-import org.gradle.internal.problems.StackTraceRelevance;
+import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.StackTraceRelevance;
 
 import java.util.List;
 

@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.problems
 
-import org.gradle.internal.problems.StackTraceRelevance
+import org.gradle.internal.problems.failure.StackTraceRelevance
 import org.gradle.internal.failure.StackTracePrinter
 
 

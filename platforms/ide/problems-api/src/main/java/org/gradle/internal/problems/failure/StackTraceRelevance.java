@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.problems;
+package org.gradle.internal.problems.failure;
 
 public enum StackTraceRelevance {
     USER_CODE,

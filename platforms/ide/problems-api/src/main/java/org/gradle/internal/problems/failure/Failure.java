@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.failure;
+package org.gradle.internal.problems.failure;
 
-import org.gradle.internal.problems.failure.StackTraceRelevance;
+import java.util.List;
 
-import javax.annotation.Nullable;
+public interface Failure {
 
-public interface StackTraceClassifier {
+    Throwable getOriginal();
 
-    @Nullable
-    StackTraceRelevance classify(StackTraceElement frame);
+    String getMessage();
 
-    class UserCode implements StackTraceClassifier {
+    String getHeader();
 
-        @Override
-        public StackTraceRelevance classify(StackTraceElement frame) {
-            return StackTraceRelevance.USER_CODE;
-        }
-    }
+    List<StackTraceElement> getStackTrace();
+
+    StackTraceRelevance getStackTraceRelevance(int frameIndex);
+
+    List<Failure> getCauses();
+
+    List<Failure> getSuppressed();
 
 }
