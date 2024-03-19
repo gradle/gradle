@@ -19,7 +19,7 @@ package org.gradle.internal.instantiation.generator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
-import org.gradle.internal.instantiation.TaskConstructionException;
+import org.gradle.internal.instantiation.IllegalConstructionException;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.lang.reflect.Modifier;
@@ -72,7 +72,7 @@ class Jsr330ConstructorSelector implements ConstructorSelector {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(type);
             formatter.append(" is a non-static inner class, it probably captures a variable from the outer scope.");
-            throw new TaskConstructionException(formatter.toString(), CUSTOM_GRADLE_TASK_DOC_LINK);
+            throw new IllegalConstructionException(formatter.toString(), CUSTOM_GRADLE_TASK_DOC_LINK);
         }
     }
 

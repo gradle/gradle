@@ -21,14 +21,14 @@ import org.gradle.internal.exceptions.ResolutionProvider;
 import java.util.Collections;
 import java.util.List;
 
-public class TaskConstructionException extends RuntimeException implements ResolutionProvider {
+public class IllegalConstructionException extends IllegalArgumentException implements ResolutionProvider {
     private final String resolutionMessage;
 
-    public TaskConstructionException(String displayName, Exception cause, String resolutionMessage) {
+    public IllegalConstructionException(String displayName, Exception cause, String resolutionMessage) {
         super(displayName, cause);
         this.resolutionMessage = resolutionMessage;
     }
-    public TaskConstructionException(String displayName, String resolutionMessage) {
+    public IllegalConstructionException(String displayName, String resolutionMessage) {
         super(displayName);
         this.resolutionMessage = resolutionMessage;
     }
