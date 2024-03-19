@@ -167,8 +167,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 originMetadata),
             immutableLocation);
     }
-
-    private boolean moveInconsistentImmutableWorkspaceToTemporaryLocation(File immutableLocation, File temporaryWorkspace, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
+    private boolean moveInconsistentImmutableWorkspaceToTemporaryLocation(File immutableLocation, File failedWorkspaceLocation, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
         boolean moveSuccessful;
         String moveResult;
         fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
@@ -178,12 +177,15 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 .collect(Collectors.joining("\n")))
             .collect(Collectors.joining("\n"));
         try {
-            Files.move(immutableLocation.toPath(), temporaryWorkspace.toPath(), StandardCopyOption.ATOMIC_MOVE);
-            moveResult = String.format("The inconsistent workspace has been moved to '%s', and will be recreated.", temporaryWorkspace.getAbsolutePath());
+            // We move the inconsistent workspace to a "temporary" location as a way to atomically move it out of the permanent workspace.
+            // Deleting it in-place is not an option, as we can't do that atomically.
+            // By moving the inconsistent workspace we also preserve it for later inspection.
+            Files.move(immutableLocation.toPath(), failedWorkspaceLocation.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            moveResult = String.format("The inconsistent workspace has been moved to '%s', and will be recreated.", failedWorkspaceLocation.getAbsolutePath());
             moveSuccessful = true;
         } catch (IOException e) {
             LOGGER.warn("Could not move inconsistent immutable workspace {} to temporary location {}",
-                immutableLocation.getAbsolutePath(), temporaryWorkspace.getAbsolutePath(), e);
+                immutableLocation.getAbsolutePath(), failedWorkspaceLocation.getAbsolutePath(), e);
             moveResult = "The inconsistent workspace could not be moved, attempting to reuse.";
             moveSuccessful = false;
         }
