@@ -166,5 +166,14 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
         and:
         subprojectDir.file("build.gradle.kts").assertContents(containsString("junit.jupiter"))
 
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+
     }
 }
