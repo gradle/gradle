@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.failure;
+package org.gradle.internal.problems;
 
-public enum StackTraceRelevance {
-    PRIMARY,
-    SECONDARY,
-    HIDDEN
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scope.BuildTree.class)
+public interface FailureFactory {
+
+    Failure create(Throwable failure);
+
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.failure;
 
+import org.gradle.internal.problems.StackTraceRelevance;
+
 public class StackTracePart {
 
     private final String text;

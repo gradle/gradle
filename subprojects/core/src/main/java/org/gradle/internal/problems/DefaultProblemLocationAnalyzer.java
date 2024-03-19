@@ -127,6 +127,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
         return pos;
     }
 
+    // TODO: even more stacktrace filtering
     private static boolean isNonUserCode(StackTraceElement element) {
         String className = element.getClassName();
         return className.startsWith("org.gradle.") ||

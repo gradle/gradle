@@ -18,6 +18,9 @@ package org.gradle.internal.failure;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
+import org.gradle.internal.problems.Failure;
+import org.gradle.internal.problems.FailureFactory;
+import org.gradle.internal.problems.StackTraceRelevance;
 
 import java.util.ArrayList;
 import java.util.List;

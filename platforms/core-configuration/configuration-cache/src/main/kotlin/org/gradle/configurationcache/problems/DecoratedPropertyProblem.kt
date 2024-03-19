@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.problems
 
-import org.gradle.internal.failure.StackTraceRelevance
+import org.gradle.internal.problems.StackTraceRelevance
 import org.gradle.internal.failure.StackTracePrinter
 
 
@@ -68,7 +68,7 @@ class ExceptionDecorator(
         return DecoratedException(
             exception,
             exceptionSummaryFor(exception),
-            parts.map { StackTracePart(isInternal = it.relevance != StackTraceRelevance.PRIMARY, it.text) }
+            parts.map { StackTracePart(isInternal = it.relevance != StackTraceRelevance.USER_CODE, it.text) }
         )
     }
 

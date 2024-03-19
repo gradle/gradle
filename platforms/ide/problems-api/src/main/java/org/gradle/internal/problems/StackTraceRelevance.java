@@ -14,24 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.failure;
+package org.gradle.internal.problems;
 
-import java.util.List;
-
-public interface Failure {
-
-    Throwable getOriginal();
-
-    String getMessage();
-
-    String getHeader();
-
-    List<StackTraceElement> getStackTrace();
-
-    StackTraceRelevance getStackTraceRelevance(int frameIndex);
-
-    List<Failure> getCauses();
-
-    List<Failure> getSuppressed();
-
+public enum StackTraceRelevance {
+    USER_CODE,
+    RUNTIME,
+    // TODO: add Gradle infra
+    SYSTEM
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.failure;
 
+import org.gradle.internal.problems.StackTraceRelevance;
+
 import javax.annotation.Nullable;
 import java.util.List;
 

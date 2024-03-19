@@ -16,6 +16,8 @@
 
 package org.gradle.internal.failure;
 
+import org.gradle.internal.problems.StackTraceRelevance;
+
 import javax.annotation.Nullable;
 
 public class SystemCallStackTraceClassifier implements StackTraceClassifier {
@@ -23,7 +25,7 @@ public class SystemCallStackTraceClassifier implements StackTraceClassifier {
     @Nullable
     @Override
     public StackTraceRelevance classify(StackTraceElement frame) {
-        return isSystemStackFrame(frame.getClassName()) ? StackTraceRelevance.HIDDEN : null;
+        return isSystemStackFrame(frame.getClassName()) ? StackTraceRelevance.SYSTEM : null;
     }
 
     private static boolean isSystemStackFrame(String className) {

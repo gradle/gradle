@@ -16,6 +16,8 @@
 
 package org.gradle.internal.failure;
 
+import org.gradle.internal.problems.StackTraceRelevance;
+
 import javax.annotation.Nullable;
 
 public class CalledFromDroppingStackTraceClassifier implements StackTraceClassifier {
@@ -46,6 +48,6 @@ public class CalledFromDroppingStackTraceClassifier implements StackTraceClassif
             }
         }
 
-        return StackTraceRelevance.HIDDEN;
+        return StackTraceRelevance.SYSTEM;
     }
 }

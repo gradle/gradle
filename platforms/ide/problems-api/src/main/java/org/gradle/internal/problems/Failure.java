@@ -14,10 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.failure;
+package org.gradle.internal.problems;
 
-public interface FailureFactory {
+import java.util.List;
 
-    Failure create(Throwable failure);
+public interface Failure {
+
+    Throwable getOriginal();
+
+    String getMessage();
+
+    String getHeader();
+
+    List<StackTraceElement> getStackTrace();
+
+    StackTraceRelevance getStackTraceRelevance(int frameIndex);
+
+    List<Failure> getCauses();
+
+    List<Failure> getSuppressed();
 
 }

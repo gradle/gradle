@@ -55,7 +55,7 @@ public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory 
 
     public static final ProblemStream EMPTY_STREAM = new ProblemStream() {
         @Override
-        public ProblemDiagnostics forCurrentCaller(ProblemStream.StackTraceTransformer transformer) {
+        public ProblemDiagnostics forCurrentCaller(Class<?> calledFrom) {
             return EMPTY_DIAGNOSTICS;
         }
 
