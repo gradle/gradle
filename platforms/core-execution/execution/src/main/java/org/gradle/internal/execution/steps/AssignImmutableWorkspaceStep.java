@@ -34,8 +34,11 @@ import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,10 +54,12 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableListMultimap.toImmutableListMultimap;
 import static com.google.common.collect.Maps.immutableEntry;
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
+import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
 
 public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements Step<C, WorkspaceResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AssignImmutableWorkspaceStep.class);
@@ -115,7 +120,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
         ImmutableWorkspaceMetadata metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
         if (!metadata.getOutputPropertyHashes().equals(outputHashes)) {
-            boolean moveSuccessful = workspace.withTemporaryWorkspace(temporaryWorkspace -> moveInconsistentImmutableWorkspaceToTemporaryLocation(immutableLocation, temporaryWorkspace));
+            boolean moveSuccessful = workspace.withTemporaryWorkspace(temporaryWorkspace -> moveInconsistentImmutableWorkspaceToTemporaryLocation(immutableLocation, temporaryWorkspace, outputSnapshots));
             if (moveSuccessful) {
                 return Optional.empty();
             }
@@ -137,13 +142,18 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             immutableLocation);
     }
 
-    private boolean moveInconsistentImmutableWorkspaceToTemporaryLocation(File immutableLocation, File temporaryWorkspace) {
+    private boolean moveInconsistentImmutableWorkspaceToTemporaryLocation(File immutableLocation, File temporaryWorkspace, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
         boolean moveSuccessful;
         String moveResult;
         fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
+        String outputHashes = outputSnapshots.entrySet().stream()
+            .map(entry -> entry.getKey() + ":\n" + entry.getValue().roots()
+                .map(AssignImmutableWorkspaceStep::describeSnapshot)
+                .collect(Collectors.joining("\n")))
+            .collect(Collectors.joining("\n"));
         try {
             Files.move(immutableLocation.toPath(), temporaryWorkspace.toPath(), StandardCopyOption.ATOMIC_MOVE);
-            moveResult = "The inconsistent workspace has been moved to " + temporaryWorkspace.getAbsolutePath() + ", and will be recreated.";
+            moveResult = String.format("The inconsistent workspace has been moved to '%s', and will be recreated.", temporaryWorkspace.getAbsolutePath());
             moveSuccessful = true;
         } catch (IOException e) {
             LOGGER.warn("Could not move inconsistent immutable workspace {} to temporary location {}",
@@ -151,10 +161,12 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             moveResult = "The inconsistent workspace could not be moved, attempting to reuse.";
             moveSuccessful = false;
         }
-        DeprecationLogger.deprecateBehaviour("Contents of immutable workspace have been modified: " + immutableLocation.getAbsolutePath())
+        DeprecationLogger.deprecateBehaviour(String.format("The contents of the immutable workspace '%s' have been modified.", immutableLocation.getAbsolutePath()))
             .withContext("These workspace directories are not supposed to be modified once they are created. " +
                 "The modification might have been caused by an external process, or could be the result of disk corruption. " +
-                moveResult)
+                moveResult +
+                "\n" +
+                outputHashes)
             .willBecomeAnErrorInGradle9()
             .undocumented()
             .nagUser();
@@ -295,5 +307,39 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             return new UncheckedIOException(String.format("Could not move temporary workspace (%s) to immutable location (%s)",
                 temporaryWorkspace.getAbsolutePath(), workspace.getImmutableLocation().getAbsolutePath()), cause);
         }
+    }
+
+    private static String describeSnapshot(FileSystemLocationSnapshot root) {
+        StringBuilder builder = new StringBuilder();
+        root.accept(new FileSystemSnapshotHierarchyVisitor() {
+            private int indent = 0;
+
+            @Override
+            public void enterDirectory(DirectorySnapshot directorySnapshot) {
+                indent++;
+            }
+
+            @Override
+            public void leaveDirectory(DirectorySnapshot directorySnapshot) {
+                indent--;
+            }
+
+            @Override
+            public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
+                for (int i = 0; i < indent; i++) {
+                    builder.append("  ");
+                }
+                builder.append(" - ");
+                builder.append(snapshot.getName());
+                builder.append(" (");
+                builder.append(snapshot.getType());
+                builder.append(", ");
+                builder.append(snapshot.getHash());
+                builder.append(")");
+                builder.append("\n");
+                return CONTINUE;
+            }
+        });
+        return builder.toString();
     }
 }
