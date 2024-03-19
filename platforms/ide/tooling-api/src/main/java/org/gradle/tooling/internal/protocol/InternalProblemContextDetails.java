@@ -17,13 +17,24 @@
 package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.problem.InternalLabel;
-import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
+import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalDetails;
+import org.gradle.tooling.internal.protocol.problem.InternalLocation;
+import org.gradle.tooling.internal.protocol.problem.InternalSolution;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 @NonNullApi
-public interface InternalProblemAggregation {
+public interface InternalProblemContextDetails {
+    InternalAdditionalData getAdditionalData();
+    @Nullable
+    InternalDetails getDetails();
 
-    InternalProblemCategory getCategory();
+    List<InternalLocation> getLocations();
 
-    InternalLabel getLabel();
+    List<InternalSolution> getSolutions();
+
+    InternalFailure getFailure();
+
 }
