@@ -79,8 +79,8 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION
  */
 @CacheableTask
 public abstract class GroovyCompile extends AbstractCompile implements HasCompileOptions {
-    private FileCollection groovyClasspath;
-    private final ConfigurableFileCollection astTransformationClasspath;
+    private final ConfigurableFileCollection groovyClasspath = getProject().getObjects().fileCollection();
+    private final ConfigurableFileCollection astTransformationClasspath = getProject().getObjects().fileCollection();
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = getProject().getObjects().newInstance(GroovyCompileOptions.class);
     private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
@@ -97,7 +97,6 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         this.javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));
 
-        this.astTransformationClasspath = objectFactory.fileCollection();
         if (!experimentalCompilationAvoidanceEnabled()) {
             this.astTransformationClasspath.from((Callable<FileCollection>) this::getClasspath);
         }
@@ -332,7 +331,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      * @return The classpath.
      */
     @Classpath
-    public FileCollection getGroovyClasspath() {
+    public ConfigurableFileCollection getGroovyClasspath() {
         return groovyClasspath;
     }
 
@@ -342,7 +341,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      * @param groovyClasspath The classpath. Must not be null.
      */
     public void setGroovyClasspath(FileCollection groovyClasspath) {
-        this.groovyClasspath = groovyClasspath;
+        this.groovyClasspath.setFrom(groovyClasspath);
     }
 
     /**

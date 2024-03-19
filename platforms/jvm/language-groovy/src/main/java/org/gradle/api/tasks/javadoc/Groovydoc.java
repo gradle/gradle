@@ -18,6 +18,8 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
@@ -62,11 +64,11 @@ import java.util.Set;
  */
 @CacheableTask
 public abstract class Groovydoc extends SourceTask {
-    private FileCollection groovyClasspath;
+    private ConfigurableFileCollection groovyClasspath = getProject().getObjects().fileCollection();
 
-    private FileCollection classpath;
+    private ConfigurableFileCollection classpath = getProject().getObjects().fileCollection();
 
-    private File destinationDir;
+    private final DirectoryProperty destinationDir = getProject().getObjects().directoryProperty();;
 
     private AntGroovydoc antGroovydoc;
 
@@ -76,9 +78,9 @@ public abstract class Groovydoc extends SourceTask {
 
     private boolean noVersionStamp = true;
 
-    private String windowTitle;
+    private final Property<String>  windowTitle = getProject().getObjects().property(String.class);
 
-    private String docTitle;
+    private final Property<String> docTitle = getProject().getObjects().property(String.class);
 
     private String header;
 
@@ -147,16 +149,21 @@ public abstract class Groovydoc extends SourceTask {
      *
      * @return The directory to generate the documentation into
      */
-    @OutputDirectory
+    @Internal
     public File getDestinationDir() {
-        return destinationDir;
+        return destinationDir.getAsFile().get();
     }
 
     /**
      * Sets the directory to generate the documentation into.
      */
     public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+        this.destinationDir.set(destinationDir);
+    }
+
+    @OutputDirectory
+    public DirectoryProperty getDestinationDirectory() {
+        return destinationDir;
     }
 
     /**
@@ -165,7 +172,7 @@ public abstract class Groovydoc extends SourceTask {
      * @return The classpath containing the Groovy library to be used
      */
     @Classpath
-    public FileCollection getGroovyClasspath() {
+    public ConfigurableFileCollection getGroovyClasspath() {
         return groovyClasspath;
     }
 
@@ -173,7 +180,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets the classpath containing the Groovy library to be used.
      */
     public void setGroovyClasspath(FileCollection groovyClasspath) {
-        this.groovyClasspath = groovyClasspath;
+        this.groovyClasspath.setFrom(groovyClasspath);
     }
 
     /**
@@ -190,7 +197,7 @@ public abstract class Groovydoc extends SourceTask {
      * Sets the classpath used to locate classes referenced by the documented sources.
      */
     public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
+        this.classpath.setFrom(classpath);
     }
 
     @Internal
@@ -256,9 +263,14 @@ public abstract class Groovydoc extends SourceTask {
      * Returns the browser window title for the documentation. Set to {@code null} when there is no window title.
      */
     @Nullable
+    @Internal
+    public String getWindowTitle() {
+        return windowTitle.get();
+    }
+
     @Optional
     @Input
-    public String getWindowTitle() {
+    public Property<String> getWindowTitleProperty() {
         return windowTitle;
     }
 
@@ -268,16 +280,21 @@ public abstract class Groovydoc extends SourceTask {
      * @param windowTitle A text for the windows title
      */
     public void setWindowTitle(@Nullable String windowTitle) {
-        this.windowTitle = windowTitle;
+        this.windowTitle.set(windowTitle);
     }
 
     /**
      * Returns the title for the package index(first) page. Set to {@code null} when there is no document title.
      */
     @Nullable
-    @Optional
-    @Input
+    @Internal
     public String getDocTitle() {
+        return docTitle.get();
+    }
+
+    @Input
+    @Optional
+    public Property<String> getDocTitleProperty() {
         return docTitle;
     }
 
@@ -287,7 +304,7 @@ public abstract class Groovydoc extends SourceTask {
      * @param docTitle the docTitle as HTML
      */
     public void setDocTitle(@Nullable String docTitle) {
-        this.docTitle = docTitle;
+        this.docTitle.set(docTitle);
     }
 
     /**
