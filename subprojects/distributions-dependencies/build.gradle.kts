@@ -21,7 +21,7 @@ val antVersion = "1.10.13"
 // when upgrading ASM.
 val asmVersion = "9.6"
 val awsS3Version = "1.12.651"
-val bouncycastleVersion = "1.68"
+val bouncycastleVersion = "1.73"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
