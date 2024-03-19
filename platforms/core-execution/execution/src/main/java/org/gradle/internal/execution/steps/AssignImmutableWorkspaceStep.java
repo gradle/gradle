@@ -150,6 +150,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             if (moveSuccessful) {
                 return Optional.empty();
             }
+            // We couldn't move the inconsistent workspace out of the way, falling back to reusing it
         }
 
         return Optional.of(loadImmutableWorkspace(work, immutableLocation, metadata, outputSnapshots));
