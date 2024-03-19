@@ -17,9 +17,11 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.CheckReturnValue;
 import java.util.List;
@@ -35,6 +37,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     private String advice;
     private DocLink documentation = null;
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
+
+    protected String problemId = "type";
 
     DeprecationMessageBuilder() {
     }
@@ -57,6 +61,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     @SuppressWarnings("unchecked")
     public T withAdvice(String advice) {
         this.advice = advice;
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public T withProblemGroup(String problemGroup) {
+        this.problemId = problemGroup;
         return (T) this;
     }
 
@@ -109,7 +119,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     DeprecationMessage build() {
-        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType);
+        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemId);
     }
 
     public static class WithDeprecationTimeline extends Documentation.AbstractBuilder<WithDocumentation> {
@@ -225,6 +235,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(property);
             this.propertyClass = propertyClass;
             this.property = property;
+            this.problemId = createDeprecationGroup("property", propertyClass.getSimpleName(), property);
         }
 
         @Override
@@ -275,6 +286,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.systemProperty = systemProperty;
             // This never happens in user code
             setIndirectUsage();
+            this.problemId = createDeprecationGroup("system-property", systemProperty);
         }
 
         @Override
@@ -327,6 +339,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             if (!deprecationType.inUserCode) {
                 setIndirectUsage();
             }
+            this.problemId = createDeprecationGroup("configuration", deprecationType.name(), configuration);
         }
 
         @Override
@@ -343,12 +356,17 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
+    private static String createDeprecationGroup(String... ids) {
+        return TextUtil.screamingSnakeToKebabCase(StringUtils.join(ids, "-")).replaceAll("\\s", "-").replaceAll("[^a-z-]", "");
+    }
+
     public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> {
         private final Class<?> methodClass;
         private final String methodWithParams;
 
         DeprecateMethod(Class<?> methodClass, String methodWithParams) {
             super(methodWithParams);
+            this.problemId = createDeprecationGroup("method", methodClass.getSimpleName(), methodWithParams);
             this.methodClass = methodClass;
             this.methodWithParams = methodWithParams;
         }
@@ -377,6 +395,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         DeprecateInvocation(String invocation) {
             super(invocation);
+            this.problemId = createDeprecationGroup("invocation", invocation);
         }
 
         @Override
@@ -394,6 +413,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         DeprecateType(String type) {
             super(type);
+            this.problemId = createDeprecationGroup("type", type);
         }
 
         @Override
@@ -410,6 +430,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     public static class DeprecateTask extends WithReplacement<String, DeprecateTask> {
         DeprecateTask(String task) {
             super(task);
+            this.problemId = createDeprecationGroup("task", task);
         }
 
         @Override
@@ -429,6 +450,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         DeprecateTaskType(String task, String path) {
             super(task);
             this.path = path;
+            this.problemId = createDeprecationGroup("task-type", path, task);
         }
 
         @Override
@@ -448,6 +470,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         DeprecatePlugin(String plugin) {
             super(plugin);
+            this.problemId = createDeprecationGroup("plugin", plugin);
         }
 
         @Override
@@ -472,6 +495,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     public static class DeprecateInternalApi extends WithReplacement<String, DeprecateInternalApi> {
         DeprecateInternalApi(String api) {
             super(api);
+            this.problemId = createDeprecationGroup("internal-api", api);
         }
 
         @Override
@@ -491,6 +515,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         public DeprecateBehaviour(String behaviour) {
             this.behaviour = behaviour;
+            this.problemId = createDeprecationGroup("behaviour", behaviour);
         }
 
         /**

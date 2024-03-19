@@ -335,7 +335,6 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         }
     }
 
-
     void includesLinkToUserguide() {
         failure.assertThatCause(containsString("https://docs.gradle.org/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugin_management"))
     }
