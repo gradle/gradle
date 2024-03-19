@@ -1297,6 +1297,70 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/28475")
+    def "non-incremental transform succeeds even when workspace has been tampered with"() {
+        given:
+        buildFile << declareAttributes() << duplicatorTransform() << """
+            project(':lib') {
+                task jar1(type: Jar) {
+                    archiveFileName = 'lib1.jar'
+                    destinationDirectory = buildDir
+                }
+                artifacts {
+                    compile jar1
+                }
+            }
+
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+
+            allprojects {
+                dependencies {
+                    registerTransform(Duplicator) {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "green")
+                        parameters {
+                            suffix = "green"
+                        }
+                    }
+                }
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'green') }
+                    }.artifacts
+                    doLast {
+                        def artifactFiles = artifacts.get().artifactFiles
+                        assert artifactFiles.size() == 1
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds ":util:resolve"
+
+        when:
+        def outputDir = immutableOutputDir("lib1.jar", "0/lib1-green.jar")
+        def workspaceDir = outputDir.parentFile
+        outputDir.file("tamper-tamper.txt").text = "Making a mess"
+        executer.expectDeprecationWarningMultilinePattern("""The contents of the immutable workspace '.*' have been modified. This behavior has been deprecated. This will fail with an error in Gradle 9.0. These workspace directories are not supposed to be modified once they are created. The modification might have been caused by an external process, or could be the result of disk corruption. The inconsistent workspace has been moved to '.*', and will be recreated.
+outputDirectory:
+ - transformed \\(Directory, [0-9a-f]+\\)
+   - 0 \\(Directory, [0-9a-f]+\\)
+     - lib1-green.jar \\(RegularFile, [0-9a-f]+\\)
+   - tamper-tamper.txt \\(RegularFile, [0-9a-f]+\\)
+
+resultsFile:
+ - results.bin \\(RegularFile, [0-9a-f]+\\)""")
+        run "util:resolve"
+
+        then:
+        output.count("Transformed") == 1
+    }
+
     def "long transformation chain works"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4") << duplicatorTransform() << """
