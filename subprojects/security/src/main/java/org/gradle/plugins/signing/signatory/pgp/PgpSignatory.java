@@ -103,6 +103,7 @@ public class PgpSignatory extends SignatorySupport {
 
     public PGPSignatureGenerator createSignatureGenerator() {
         try {
+            @SuppressWarnings("deprecation")
             PGPSignatureGenerator generator = new PGPSignatureGenerator(new BcPGPContentSignerBuilder(secretKey.getPublicKey().getAlgorithm(), PGPUtil.SHA512));
             generator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
             return generator;

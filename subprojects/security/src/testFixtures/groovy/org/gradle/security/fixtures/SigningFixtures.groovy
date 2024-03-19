@@ -135,7 +135,7 @@ class SigningFixtures {
 
     static void writeValidPublicKeyTo(File file) {
         file.newOutputStream().withCloseable { stream ->
-            new ArmoredOutputStream(stream).withCloseable {
+            ArmoredOutputStream.builder().build(stream).withCloseable {
                 Holder.VALID_KEYRING.publicKey.encode(it)
             }
         }

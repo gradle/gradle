@@ -16,9 +16,9 @@ description = "Provides a platform dependency to align all distribution versions
 val antVersion = "1.10.13"
 val archunitVersion = "1.0.0-rc1"
 val asmVersion = "9.6"
-val awsS3Version = "1.12.365"
-val bouncycastleVersion = "1.68"
-val jacksonVersion = "2.15.3"
+val awsS3Version = "1.12.651"
+val bouncycastleVersion = "1.80"
+val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
 val junit5Version = "5.8.2"
@@ -53,6 +53,7 @@ dependencies {
         api(libs.bouncycastlePgp)       { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastlePkix)      { version { strictly(bouncycastleVersion) }}
         api(libs.bouncycastleProvider)  { version { strictly(bouncycastleVersion) }}
+        api(libs.bouncycastleUtil)      { version { strictly(bouncycastleVersion) }}
         api(libs.bsh)                   { version { strictly("2.0b6") }}
         api(libs.capsule)               { version { strictly("0.6.3") }}
         api(libs.commonsCodec)          { version { strictly("1.18.0") } }
@@ -172,6 +173,7 @@ dependencies {
         api(libs.mockitoCore)           { version { strictly("3.7.7") }}
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
         api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
+        api(libs.mockwebserver)         { version { strictly("4.11.0") }}
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}

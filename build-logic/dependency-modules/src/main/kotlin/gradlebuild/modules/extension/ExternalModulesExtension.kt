@@ -39,9 +39,10 @@ abstract class ExternalModulesExtension {
     val awsS3Kms = "com.amazonaws:aws-java-sdk-kms"
     val awsS3S3 = "com.amazonaws:aws-java-sdk-s3"
     val awsS3Sts = "com.amazonaws:aws-java-sdk-sts"
-    val bouncycastlePgp = "org.bouncycastle:bcpg-jdk15on"
-    val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk15on"
-    val bouncycastleProvider = "org.bouncycastle:bcprov-jdk15on"
+    val bouncycastlePgp = "org.bouncycastle:bcpg-jdk18on"
+    val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
+    val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
+    val bouncycastleUtil = "org.bouncycastle:bcutil-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
     val capsule = "io.usethesource:capsule"
     val commonsCodec = "commons-codec:commons-codec"
@@ -162,6 +163,7 @@ abstract class ExternalModulesExtension {
     val mockitoCore = "org.mockito:mockito-core"
     val mockitoKotlin = "com.nhaarman:mockito-kotlin"
     val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
+    val mockwebserver = "com.squareup.okhttp3:mockwebserver"
     val mySqlConnector = "mysql:mysql-connector-java"
     val samplesCheck = "org.gradle.exemplar:samples-check"
     val snappy = "org.iq80.snappy:snappy"
@@ -192,7 +194,9 @@ abstract class ExternalModulesExtension {
         awsS3S3 to License.Apache2,
         awsS3Sts to License.Apache2,
         bouncycastlePgp to License.MIT,
+        bouncycastlePkix to License.MIT,
         bouncycastleProvider to License.MIT,
+        bouncycastleUtil to License.MIT,
         bsh to License.Apache2,
         capsule to License.BSDStyle,
         commonsCodec to License.Apache2,
