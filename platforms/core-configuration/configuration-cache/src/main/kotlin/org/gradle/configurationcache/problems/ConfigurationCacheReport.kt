@@ -23,6 +23,8 @@ import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.failure.StackTracePart
+import org.gradle.internal.failure.StackTracePrinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream
@@ -208,7 +210,15 @@ class ConfigurationCacheReport(
     val stackTraceExtractor = StackTraceExtractor()
 
     private
-    val exceptionDecorator = ExceptionDecorator(stackTraceExtractor::stackTraceStringFor)
+    val exceptionDecorator = ExceptionDecorator(object : StackTracePrinter {
+        override fun print(throwable: Throwable): String {
+            TODO("Not yet implemented")
+        }
+
+        override fun printAsParts(throwable: Throwable): MutableList<StackTracePart> {
+            TODO("Not yet implemented")
+        }
+    })
 
     private
     fun decorateProblem(problem: PropertyProblem): DecoratedPropertyProblem {

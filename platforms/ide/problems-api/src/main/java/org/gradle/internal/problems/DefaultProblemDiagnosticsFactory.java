@@ -18,7 +18,6 @@ package org.gradle.internal.problems;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
@@ -37,17 +36,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @NonNullApi
 public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
-
-    @NonNullApi
-    private static class CopyStackTraceTransFormer implements ProblemStream.StackTraceTransformer {
-        @Override
-        public List<StackTraceElement> transform(StackTraceElement[] original) {
-            return ImmutableList.copyOf(original);
-        }
-
-    }
-
-//    private static final ProblemStream.StackTraceTransformer NO_OP = new CopyStackTraceTransFormer();
 
     private static final Supplier<Throwable> EXCEPTION_FACTORY = new Supplier<Throwable>() {
         @Override
@@ -110,7 +98,8 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         List<StackTraceElement> stackTrace = Collections.emptyList();
         Location location = null;
         if (throwable != null) {
-            final Failure failure = failureFactory.create(throwable);
+            // TODO: use `calledFrom` to do the stacktrace filtering
+            final Failure failure = failureFactory.create(throwable, calledFrom);
             stackTrace = CollectionUtils.filter(failure.getStackTrace(), new IndexedSpec<StackTraceElement>() {
                 @Override
                 public boolean isSatisfiedBy(int index, StackTraceElement element) {

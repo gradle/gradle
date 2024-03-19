@@ -19,9 +19,11 @@ package org.gradle.internal.problems;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
+
 @ServiceScope(Scope.BuildTree.class)
 public interface FailureFactory {
 
-    Failure create(Throwable failure);
+    Failure create(Throwable failure, @Nullable Class<?> calledFrom);
 
 }

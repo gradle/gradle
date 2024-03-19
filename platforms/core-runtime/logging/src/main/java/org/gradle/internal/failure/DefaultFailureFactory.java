@@ -22,6 +22,7 @@ import org.gradle.internal.problems.Failure;
 import org.gradle.internal.problems.FailureFactory;
 import org.gradle.internal.problems.StackTraceRelevance;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,16 +35,18 @@ public class DefaultFailureFactory implements FailureFactory {
     }
 
     @Override
-    public Failure create(Throwable failure) {
+    public Failure create(Throwable failure, @Nullable Class<?> calledFrom) {
         ImmutableList<StackTraceElement> stackTrace = ImmutableList.copyOf(failure.getStackTrace());
-        List<StackTraceRelevance> relevances = classify(stackTrace);
+        StackTraceClassifier calledFromClassifier = calledFrom == null ? null : new CalledFromDroppingStackTraceClassifier(calledFrom);
+        List<StackTraceRelevance> relevances = classify(stackTrace, calledFromClassifier);
         return new DefaultFailure(failure,  stackTrace, relevances);
     }
 
-    private List<StackTraceRelevance> classify(List<StackTraceElement> stackTrace) {
+    private List<StackTraceRelevance> classify(List<StackTraceElement> stackTrace, @Nullable StackTraceClassifier calledFromClassifier) {
         ArrayList<StackTraceRelevance> relevance = new ArrayList<StackTraceRelevance>(stackTrace.size());
+        StackTraceClassifier cts = calledFromClassifier == null ? stackTraceClassifier : new CompositeStackTraceClassifier(ImmutableList.of(calledFromClassifier, stackTraceClassifier));
         for (StackTraceElement stackTraceElement : stackTrace) {
-            StackTraceRelevance r = stackTraceClassifier.classify(stackTraceElement);
+            StackTraceRelevance r = cts.classify(stackTraceElement);
             if (r == null) {
                 throw new GradleException("Unable to classify stack trace element: " + stackTraceElement);
             }
