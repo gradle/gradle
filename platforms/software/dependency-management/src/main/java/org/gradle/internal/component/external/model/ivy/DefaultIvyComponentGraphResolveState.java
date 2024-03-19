@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model.ivy;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.external.model.DefaultModuleComponentGraphResolveState;
-import org.gradle.internal.component.external.model.ExternalComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -29,7 +28,7 @@ import javax.annotation.Nullable;
 /**
  * External component state implementation for ivy components.
  */
-public class DefaultIvyComponentGraphResolveState extends DefaultModuleComponentGraphResolveState<IvyModuleResolveMetadata> implements ExternalComponentGraphResolveState {
+public class DefaultIvyComponentGraphResolveState extends DefaultModuleComponentGraphResolveState<IvyModuleResolveMetadata> implements IvyComponentGraphResolveState {
 
     public DefaultIvyComponentGraphResolveState(long instanceId, IvyModuleResolveMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         super(instanceId, metadata, attributeDesugaring, idGenerator);

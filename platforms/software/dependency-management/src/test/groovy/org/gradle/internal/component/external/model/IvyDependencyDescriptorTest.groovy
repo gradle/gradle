@@ -21,33 +21,36 @@ import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.Multimap
-import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.DefaultExclude
+import org.gradle.internal.component.external.model.ivy.IvyComponentGraphResolveState
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata
 import org.gradle.internal.component.model.ConfigurationGraphResolveState
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.Exclude
+import org.gradle.internal.component.model.GraphSelectionCandidates
 import org.gradle.internal.component.model.ModuleConfigurationMetadata
 import org.gradle.internal.component.model.VariantGraphResolveState
-import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException
+import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
 
 import static com.google.common.collect.ImmutableList.copyOf
 
 class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
     private final static ExcludeSpec NOTHING = new ModuleExclusions().nothing()
+
+    def resolutionFailureHandler = Mock(ResolutionFailureHandler)
 
     @Override
     ExternalDependencyDescriptor create(ModuleComponentSelector selector) {
@@ -160,9 +163,24 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(ImmutableList.of(exclude1, exclude2))
     }
 
+    def "selects the default variant of a component when the target component is not an ivy component"() {
+        def toComponent = Mock(ComponentGraphResolveState) {
+            getCandidatesForGraphVariantSelection() >> Mock(GraphSelectionCandidates)
+        }
+        def legacyVariant = Mock(VariantGraphResolveState)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+
+        when:
+        def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, ImmutableListMultimap.of(), [], [])
+        def result = metadata.selectLegacyConfigurations(fromConfig, toComponent, resolutionFailureHandler).variants
+
+        then:
+        1 * toComponent.candidatesForGraphVariantSelection.getLegacyVariant(_) >> legacyVariant
+        result == [legacyVariant]
+    }
+
     def "selects no configurations when no configuration mappings provided"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
-        def toComponent = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(IvyComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
         fromConfig.name >> "from"
 
@@ -172,8 +190,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "selects configurations from target component that match configuration mappings"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
-        def toComponent = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(IvyComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
         def toConfig1 = configuration(toComponent, "to-1")
         def toConfig2 = configuration(toComponent, "to-2")
@@ -190,14 +207,13 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "selects matching configurations for super-configurations"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
-        def toComponent = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(IvyComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
         def toConfig1 = configuration(toComponent, "to-1")
         def toConfig2 = configuration(toComponent, "to-2")
         fromConfig.hierarchy >> ImmutableSet.of("from", "super")
 
-        Multimap<String, String>  configMapping = LinkedHashMultimap.create()
+        Multimap<String, String> configMapping = LinkedHashMultimap.create()
         configMapping.put("from", "to-1")
         configMapping.put("super", "to-2")
         configMapping.put("other", "unknown")
@@ -208,8 +224,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "configuration mapping can use wildcard on LHS"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
-        def toComponent = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(IvyComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
         def fromConfig2 = Stub(ModuleConfigurationMetadata)
         def toConfig1 = configuration(toComponent, "to-1")
@@ -217,7 +232,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         fromConfig.hierarchy >> ImmutableSet.of("from")
         fromConfig2.hierarchy >> ImmutableSet.of("other")
 
-        Multimap<String, String>  configMapping = LinkedHashMultimap.create()
+        Multimap<String, String> configMapping = LinkedHashMultimap.create()
         configMapping.put("from", "to-1")
         configMapping.put("*", "to-2")
 
@@ -228,17 +243,18 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "configuration mapping can use wildcard on RHS to select all public configurations"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
-        def toComponent = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(IvyComponentGraphResolveState)
+        def toComponentMetadata = Stub(IvyModuleResolveMetadata)
         def fromConfig = Stub(ModuleConfigurationMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         def toConfig1 = configuration(toComponent, "to-1")
         def toConfig2 = configuration(toComponent, "to-2")
         def toConfig3 = config('to-3', false)
+        toComponent.metadata >> toComponentMetadata
         toComponent.getConfigurationNames() >> ["to-1", "to-2", "to-3"]
         toComponent.getConfiguration("to-3") >> toConfig3
 
-        Multimap<String, String>  configMapping = LinkedHashMultimap.create()
+        Multimap<String, String> configMapping = LinkedHashMultimap.create()
         configMapping.put("from", "*")
         configMapping.put("from", "to-2")
         configMapping.put("other", "unknown")
@@ -260,8 +276,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "configuration mapping can use all-except-wildcard on LHS"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
-        def toComponent = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(IvyComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
         def fromConfig2 = Stub(ModuleConfigurationMetadata)
         def fromConfig3 = Stub(ModuleConfigurationMetadata)
@@ -271,7 +286,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         fromConfig2.hierarchy >> ImmutableSet.of("child", "from")
         fromConfig3.hierarchy >> ImmutableSet.of("other")
 
-        Multimap<String, String>  configMapping = LinkedHashMultimap.create()
+        Multimap<String, String> configMapping = LinkedHashMultimap.create()
         configMapping.put("*", "to-2")
         configMapping.put("!from", "to-2")
         configMapping.put("from", "to-1")
@@ -284,8 +299,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "configuration mapping can include fallback on LHS"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
-        def toComponent = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(IvyComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
         def fromConfig2 = Stub(ModuleConfigurationMetadata)
         def fromConfig3 = Stub(ModuleConfigurationMetadata)
@@ -296,7 +310,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         fromConfig2.hierarchy >> ImmutableSet.of("child", "from")
         fromConfig3.hierarchy >> ImmutableSet.of("other")
 
-        Multimap<String, String>  configMapping = LinkedHashMultimap.create()
+        Multimap<String, String> configMapping = LinkedHashMultimap.create()
         configMapping.put("from", "to-1")
         configMapping.put("%", "to-2")
         configMapping.put("*", "to-3")
@@ -309,9 +323,8 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "configuration mapping can include fallback on RHS"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
-        def toComponent = Stub(ComponentGraphResolveState)
-        def toComponentMetadata = Stub(ComponentGraphResolveMetadata)
+        def toComponent = Stub(IvyComponentGraphResolveState)
+        def toComponentMetadata = Stub(IvyModuleResolveMetadata)
         def fromConfig = Stub(ModuleConfigurationMetadata)
         def fromConfig2 = Stub(ModuleConfigurationMetadata)
         def fromConfig3 = Stub(ModuleConfigurationMetadata)
@@ -326,7 +339,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         toComponent.getConfigurationNames() >> ["to-1", "to-2"]
         toComponent.getConfiguration(_) >> null
 
-        Multimap<String, String>  configMapping = LinkedHashMultimap.create()
+        Multimap<String, String> configMapping = LinkedHashMultimap.create()
         configMapping.put("from", "unknown(*)")
         configMapping.put("other", "unknown(to-1)")
         configMapping.put("other2", "to-2(unknown)")
@@ -339,15 +352,14 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "configuration mapping can include self placeholder on RHS"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
-        def toComponent = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(IvyComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
         def fromConfig2 = Stub(ModuleConfigurationMetadata)
         def toConfig1 = configuration(toComponent, "a")
         fromConfig.hierarchy >> ImmutableSet.of("a")
         fromConfig2.hierarchy >> ImmutableSet.of("other", "a")
 
-        Multimap<String, String>  configMapping = LinkedHashMultimap.create()
+        Multimap<String, String> configMapping = LinkedHashMultimap.create()
         configMapping.put("a", "@")
 
         expect:
@@ -357,8 +369,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "configuration mapping can include this placeholder on RHS"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
-        def toComponent = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(IvyComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
         def fromConfig2 = Stub(ModuleConfigurationMetadata)
         def toConfig1 = configuration(toComponent, "a")
@@ -368,7 +379,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         fromConfig.hierarchy >> ImmutableSet.of("a")
         fromConfig2.hierarchy >> ImmutableSet.of("b", "a")
 
-        Multimap<String, String>  configMapping = LinkedHashMultimap.create()
+        Multimap<String, String> configMapping = LinkedHashMultimap.create()
         configMapping.put("a", "#")
 
         expect:
@@ -378,8 +389,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "configuration mapping can include wildcard on LHS and placeholder on RHS"() {
-        def resolutionFailureHandler = Stub(ResolutionFailureHandler)
-        def toComponent = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(IvyComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)
         def fromConfig2 = Stub(ModuleConfigurationMetadata)
         def toConfig1 = configuration(toComponent, "a")
@@ -389,7 +399,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         fromConfig.hierarchy >> ImmutableSet.of("a")
         fromConfig2.hierarchy >> ImmutableSet.of("b", "a")
 
-        Multimap<String, String>  configMapping = LinkedHashMultimap.create()
+        Multimap<String, String> configMapping = LinkedHashMultimap.create()
         configMapping.put(lhs, rhs)
 
         expect:
@@ -407,11 +417,10 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     }
 
     def "fails when target component does not have matching configurations"() {
-        def resolutionFailureHandler = new ResolutionFailureHandler(DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry())
-        def toId = Stub(ComponentIdentifier) {
+        def toId = Stub(ModuleComponentIdentifier) {
             getDisplayName() >> "thing b"
         }
-        def toComponent = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(IvyComponentGraphResolveState)
         toComponent.id >> toId
         def fromConfig = Stub(ModuleConfigurationMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
@@ -421,14 +430,16 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         Multimap<String, String> configMapping = LinkedHashMultimap.create()
         configMapping.put(lhs, rhs)
 
+        def failure = Mock(AbstractResolutionFailureException)
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
 
         when:
         metadata.selectLegacyConfigurations(fromConfig, toComponent, resolutionFailureHandler)
 
         then:
-        ConfigurationSelectionException e = thrown()
-        e.message == "A dependency was declared from configuration 'from' to configuration 'to' which is not declared in the descriptor for thing b."
+        1 * resolutionFailureHandler.externalConfigurationNotFoundFailure(_, _, _) >> failure
+        def e = thrown(AbstractResolutionFailureException)
+        e == failure
 
         where:
         lhs    | rhs
@@ -444,13 +455,15 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         return config
     }
 
-    VariantGraphResolveState configuration(ComponentGraphResolveState component, String name) {
+    VariantGraphResolveState configuration(IvyComponentGraphResolveState component, String name) {
         def metadata = Stub(ConfigurationGraphResolveMetadata)
         metadata.visible >> true
         metadata.hierarchy >> ImmutableSet.of(name)
+
         def variant = Stub(VariantGraphResolveState)
         variant.toString() >> name
         variant.name >> name
+
         def configuration = Stub(ConfigurationGraphResolveState)
         component.getConfiguration(name) >> configuration
         configuration.name >> name
