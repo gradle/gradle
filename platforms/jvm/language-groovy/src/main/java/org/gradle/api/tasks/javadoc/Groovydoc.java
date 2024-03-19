@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.javadoc;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -270,6 +271,7 @@ public abstract class Groovydoc extends SourceTask {
 
     @Optional
     @Input
+    @Incubating
     public Property<String> getWindowTitleProperty() {
         return windowTitle;
     }
