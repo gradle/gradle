@@ -104,7 +104,7 @@ class FailurePrinterTest extends Specification {
         def f = toFailure(e)
 
         when: // Filtering out all frames except the first
-        def actual = FailurePrinter.printToString(f, { frame, _ -> frame === firstFrame })
+        def actual = FailurePrinter.printToString(f, { frame, r -> frame === firstFrame })
 
         then: // Print matches the head of the stack trace: header and the first frame
         actual.trim() == getTraceString(e).readLines().take(2).join(System.lineSeparator())
@@ -120,7 +120,7 @@ class FailurePrinterTest extends Specification {
 
         when: // Filtering out all frames except the first
         def output = new StringBuilder()
-        FailurePrinter.print(output, f, { frame, _ -> frame === firstFrame }, listener)
+        FailurePrinter.print(output, f, { frame, r -> frame === firstFrame }, listener)
 
         then:
         getTraceString(e).startsWith(output.toString())
@@ -132,12 +132,9 @@ class FailurePrinterTest extends Specification {
         0 * _
     }
 
-    private static Failure toFailure(
-        Throwable t,
-        Closure<List<StackTraceRelevance>> classify = { stack -> Collections.nCopies(stack.size(), USER_CODE) }
-    ) {
+    private static Failure toFailure(Throwable t) {
         def stack = ImmutableList.of(t.stackTrace)
-        def relevances = classify(stack)
+        def relevances = Collections.nCopies(stack.size(), USER_CODE)
         def causes = getCauses(t).collect { toFailure(it) }
         def suppressed = t.getSuppressed().collect { toFailure(it) }
         new MockFailure(t, stack, relevances, causes, suppressed)
@@ -152,8 +149,8 @@ class FailurePrinterTest extends Specification {
     }
 
     private static String getTraceString(Throwable t) {
-        StringWriter out = new StringWriter();
-        t.printStackTrace(new PrintWriter(out));
+        StringWriter out = new StringWriter()
+        t.printStackTrace(new PrintWriter(out))
         out.toString()
     }
 
