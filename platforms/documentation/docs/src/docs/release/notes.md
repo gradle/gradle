@@ -84,6 +84,36 @@ println(files.elements.get()) // [.../dir2]
 This feature caters to plugin developers.
 It is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Property.html#convention-T-) methods that have been available on lazy properties since Gradle 5.1.
 
+<a name="replace-method"></a>
+#### Updating lazy property based on its current value with `replace()`
+
+[Lazy configuration](userguide/lazy_configuration.html) delays calculating a property’s value until it is required for the build.
+Sometimes it is necessary to modify the property based on its current value, for example, by appending something to it.
+Previously, the only way to do that was to obtain the current value explicitly by calling `Property.get()`:
+
+```
+val property = objects.property<String>()
+property.set("some value")
+property.set("${property.get()} and more" })
+
+println(property.get()) // "some value and more""
+```
+
+This could lead to performance issues like configuration cache misses.
+Trying to build the value lazily, for example, by using `property.set(property.map { "$it and more" })`, causes build failure because of a circular reference evaluation.
+
+[`Property`](javadoc/org/gradle/api/provider/Property.html#replace-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#replace-org.gradle.api.Transformer-) now provide their respective `replace(Transformer<...>)` methods that allow lazily building the new value based on the current one:
+
+```
+val property = objects.property<String>()
+property.set("some value")
+property.replace { it.map { "$it and more" } }
+
+println(property.get()) // "some value and more"
+```
+
+Refer to the Javadoc for [`Property.replace(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#replace-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.replace(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#replace-org.gradle.api.Transformer-) for more details, including limitations.
+
 #### Improved error handling for toolchain resolvers
 
 When attempting to download Java toolchains from the configured resolvers, errors will be better handled now, and all resolvers will be tried.
