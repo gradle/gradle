@@ -32,9 +32,7 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -50,21 +48,22 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     private final ConcurrentMap<ModuleConfigurationMetadata, DefaultConfigurationGraphResolveState> variants = new ConcurrentHashMap<>();
 
     // The variants to use for variant selection during graph resolution
-    private final Lazy<Optional<List<? extends VariantGraphResolveState>>> allVariantsForGraphResolution;
+    private final Lazy<List<? extends VariantGraphResolveState>> allVariantsForGraphResolution;
 
     // The public view of all selectable variants of this component
     private final List<ResolvedVariantResult> selectableVariantResults;
 
     public DefaultComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         super(instanceId, graphMetadata, artifactMetadata, attributeDesugaring);
-        this.allVariantsForGraphResolution = Lazy.locking().of(() -> graphMetadata.getVariantsForGraphTraversal().map(variants ->
-            variants.stream()
+        this.allVariantsForGraphResolution = Lazy.locking().of(() ->
+            graphMetadata.getVariantsForGraphTraversal()
+                .stream()
                 .map(ModuleConfigurationMetadata.class::cast)
                 .map(variant -> resolveStateFor(variant).asVariant())
                 .collect(Collectors.toList())
-        ));
+        );
         this.idGenerator = idGenerator;
-        this.selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream()
+        this.selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().stream()
             .flatMap(variant -> variant.getVariants().stream())
             .map(variant -> new DefaultResolvedVariantResult(
                 getId(),
@@ -92,7 +91,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     }
 
     @Override
-    protected Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal() {
+    protected List<? extends VariantGraphResolveState> getVariantsForGraphTraversal() {
         return allVariantsForGraphResolution.get();
     }
 

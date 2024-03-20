@@ -48,8 +48,8 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @NonNullApi
@@ -153,8 +153,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
-            return Optional.empty();
+        public List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal() {
+            return Collections.emptyList();
         }
 
         @Override

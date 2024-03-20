@@ -45,9 +45,7 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -66,21 +64,22 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private final ConcurrentMap<String, DefaultLocalConfigurationGraphResolveState> configurations = new ConcurrentHashMap<>();
 
     // The variants to use for variant selection during graph resolution
-    private final Lazy<Optional<List<? extends VariantGraphResolveState>>> allVariantsForGraphResolution;
+    private final Lazy<List<? extends VariantGraphResolveState>> allVariantsForGraphResolution;
 
     // The public view of all selectable variants of this component
     private final Lazy<List<ResolvedVariantResult>> selectableVariantResults;
 
     public DefaultLocalComponentGraphResolveState(long instanceId, LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator, boolean adHoc) {
         super(instanceId, metadata, metadata, attributeDesugaring);
-        this.allVariantsForGraphResolution = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
-            variants.stream()
+        this.allVariantsForGraphResolution = Lazy.locking().of(() ->
+            metadata.getVariantsForGraphTraversal()
+                .stream()
                 .map(variant -> getConfiguration(variant.getName()).asVariant())
                 .collect(Collectors.toList())
-        ));
+        );
         this.idGenerator = idGenerator;
         this.adHoc = adHoc;
-        this.selectableVariantResults = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream()
+        this.selectableVariantResults = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().stream()
             .map(LocalConfigurationGraphResolveMetadata.class::cast)
             .flatMap(variant -> variant.getVariants().stream())
             .map(variant -> new DefaultResolvedVariantResult(
@@ -131,7 +130,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     @Override
-    protected Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal() {
+    protected List<? extends VariantGraphResolveState> getVariantsForGraphTraversal() {
         return allVariantsForGraphResolution.get();
     }
 
