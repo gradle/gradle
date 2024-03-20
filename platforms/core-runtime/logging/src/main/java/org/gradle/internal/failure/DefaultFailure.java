@@ -56,11 +56,6 @@ public class DefaultFailure implements Failure {
     }
 
     @Override
-    public String getMessage() {
-        return message;
-    }
-
-    @Override
     public String getHeader() {
         return exceptionType.getName() + ": " + message;
     }

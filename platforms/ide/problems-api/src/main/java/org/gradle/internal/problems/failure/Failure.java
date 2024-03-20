@@ -22,8 +22,6 @@ public interface Failure {
 
     Class<? extends Throwable> getExceptionType();
 
-    String getMessage();
-
     String getHeader();
 
     List<StackTraceElement> getStackTrace();
