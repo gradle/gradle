@@ -22,6 +22,7 @@ import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.problems.failure.DefaultFailure
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.problems.failure.FailurePrinter
+import org.gradle.internal.problems.failure.FailurePrinterListener
 import org.gradle.internal.problems.failure.StackTraceRelevance
 import spock.lang.Specification
 
@@ -107,6 +108,28 @@ class FailurePrinterTest extends Specification {
 
         then: // Print matches the head of the stack trace: header and the first frame
         actual.trim() == getTraceString(e).readLines().take(2).join(System.lineSeparator())
+    }
+
+    def "notifies the listener only about frames to be printed"() {
+        def e = new RuntimeException("BOOM")
+        def firstFrame = e.stackTrace[0]
+
+        def listener = Mock(FailurePrinterListener)
+
+        def f = toFailure(e)
+
+        when: // Filtering out all frames except the first
+        def output = new StringBuilder()
+        FailurePrinter.print(output, f, { frame, _ -> frame === firstFrame }, listener)
+
+        then:
+        getTraceString(e).startsWith(output.toString())
+
+        and:
+        1 * listener.beforeFrames()
+        1 * listener.beforeFrame(firstFrame, USER_CODE)
+        1 * listener.afterFrames()
+        0 * _
     }
 
     private static Failure toFailure(
