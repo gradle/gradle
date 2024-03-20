@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.problems.failure;
+package org.gradle.internal.problems;
+
+import org.gradle.internal.problems.failure.StackTraceClassifier;
+import org.gradle.internal.problems.failure.StackTraceRelevance;
 
 import javax.annotation.Nullable;
 

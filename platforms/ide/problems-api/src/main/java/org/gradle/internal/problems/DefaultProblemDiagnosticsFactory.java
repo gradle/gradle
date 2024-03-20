@@ -101,12 +101,12 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         List<StackTraceElement> stackTrace = Collections.emptyList();
         Location location = null;
         if (throwable != null) {
-            // TODO: use `calledFrom` to do the stacktrace filtering
-            final Failure failure = failureFactory.create(throwable, calledFrom);
+            final Failure failure = getFailure(throwable, calledFrom);
             stackTrace = CollectionUtils.filter(failure.getStackTrace(), new IndexedSpec<StackTraceElement>() {
                 @Override
                 public boolean isSatisfiedBy(int index, StackTraceElement element) {
-                    return failure.getStackTraceRelevance(index).ordinal() <= StackTraceRelevance.RUNTIME.ordinal();
+                    StackTraceRelevance relevance = failure.getStackTraceRelevance(index);
+                    return relevance.equals(StackTraceRelevance.USER_CODE) || relevance.equals(StackTraceRelevance.RUNTIME);
                 }
             });
             location = locationAnalyzer.locationForUsage(stackTrace, fromException);
@@ -114,6 +114,14 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
         UserCodeSource source = applicationContext != null ? applicationContext.getSource() : null;
         return new DefaultProblemDiagnostics(keepException ? throwable : null, stackTrace, location, source);
+    }
+
+    private Failure getFailure(Throwable throwable, @Nullable Class<?> calledFrom) {
+        if (calledFrom == null) {
+            return failureFactory.create(throwable);
+        }
+
+        return failureFactory.create(throwable, new CalledFromDroppingStackTraceClassifier(calledFrom));
     }
 
     @NonNullApi

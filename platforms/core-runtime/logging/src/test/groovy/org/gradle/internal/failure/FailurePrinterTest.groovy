@@ -169,7 +169,7 @@ class FailurePrinterTest extends Specification {
             List<Failure> causes,
             List<Failure> suppressed
         ) {
-            super(original, stackTrace, frameRelevance, causes, suppressed)
+            super(original, stackTrace, frameRelevance, suppressed, causes)
         }
 
         @Override

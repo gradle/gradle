@@ -23,9 +23,11 @@ import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.util.internal.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultFailureFactory implements FailureFactory {
 
@@ -36,58 +38,84 @@ public class DefaultFailureFactory implements FailureFactory {
     }
 
     @Override
-    public Failure create(Throwable failure, @Nullable Class<?> calledFrom) {
-        // TODO: guard against circular references
-        ImmutableList<StackTraceElement> stackTrace = ImmutableList.copyOf(failure.getStackTrace());
-        StackTraceClassifier calledFromClassifier = calledFrom == null ? null : new CalledFromDroppingStackTraceClassifier(calledFrom);
-        List<StackTraceRelevance> relevances = classify(stackTrace, calledFromClassifier);
-        List<Failure> causes = getCauses(failure);
-        List<Failure> suppressed = getSuppressed(failure);
-        return new DefaultFailure(failure, stackTrace, relevances, causes, suppressed);
+    public Failure create(Throwable failure) {
+        return new Job(stackTraceClassifier)
+            .convert(failure);
     }
 
-    private List<Failure> getCauses(Throwable parent) {
-        ImmutableList.Builder<Throwable> causes = new ImmutableList.Builder<Throwable>();
-        if (parent instanceof MultiCauseException) {
-            causes.addAll(((MultiCauseException) parent).getCauses());
-        } else if (parent.getCause() != null) {
-            causes.add(parent.getCause());
-        }
+    @Override
+    public Failure create(Throwable failure, StackTraceClassifier classifier) {
+        return new Job(new OrElseStackTraceClassifier(classifier, stackTraceClassifier))
+            .convert(failure);
+    }
 
-        return CollectionUtils.collect(causes.build(), new InternalTransformer<Failure, Throwable>() {
+    private static final class Job {
+
+        private final StackTraceClassifier stackTraceClassifier;
+
+        private final Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
+
+        private final InternalTransformer<Failure, Throwable> recursiveConverter = new InternalTransformer<Failure, Throwable>() {
             @Override
             public Failure transform(Throwable throwable) {
-                return create(throwable, null);
+                return convertRecursively(throwable);
             }
-        });
-    }
+        };
 
-    @SuppressWarnings("Since15")
-    private List<Failure> getSuppressed(Throwable parent) {
-        // Short-circuit if suppressed exceptions are not supported by the current JVM
-        if (!JavaVersion.current().isJava7Compatible()) {
-            return ImmutableList.of();
+        private Job(StackTraceClassifier stackTraceClassifier) {
+            this.stackTraceClassifier = stackTraceClassifier;
         }
 
-        return CollectionUtils.collect(parent.getSuppressed(), new InternalTransformer<Failure, Throwable>() {
-            @Override
-            public Failure transform(Throwable throwable) {
-                return create(throwable, null);
-            }
-        });
-    }
-
-    private List<StackTraceRelevance> classify(List<StackTraceElement> stackTrace, @Nullable StackTraceClassifier calledFromClassifier) {
-        ArrayList<StackTraceRelevance> relevance = new ArrayList<StackTraceRelevance>(stackTrace.size());
-        StackTraceClassifier cts = calledFromClassifier == null ? stackTraceClassifier : new CompositeStackTraceClassifier(ImmutableList.of(calledFromClassifier, stackTraceClassifier));
-        for (StackTraceElement stackTraceElement : stackTrace) {
-            StackTraceRelevance r = cts.classify(stackTraceElement);
-            if (r == null) {
-                throw new GradleException("Unable to classify stack trace element: " + stackTraceElement);
-            }
-            relevance.add(r);
+        public Failure convert(Throwable failure) {
+            return convertRecursively(failure);
         }
 
-        return relevance;
+        private Failure convertRecursively(Throwable failure) {
+            if (!seen.add(failure)) {
+                Throwable replacement = new Throwable("[CIRCULAR REFERENCE: " + failure + "]");
+                replacement.setStackTrace(failure.getStackTrace());
+                failure = replacement;
+            }
+
+            ImmutableList<StackTraceElement> stackTrace = ImmutableList.copyOf(failure.getStackTrace());
+            List<StackTraceRelevance> relevances = classify(stackTrace, stackTraceClassifier);
+            List<Failure> suppressed = convertSuppressed(failure);
+            List<Failure> causes = convertCauses(failure);
+            return new DefaultFailure(failure, stackTrace, relevances, suppressed, causes);
+        }
+
+        @SuppressWarnings("Since15")
+        private List<Failure> convertSuppressed(Throwable parent) {
+            // Short-circuit if suppressed exceptions are not supported by the current JVM
+            if (!JavaVersion.current().isJava7Compatible()) {
+                return ImmutableList.of();
+            }
+
+            return CollectionUtils.collect(parent.getSuppressed(), recursiveConverter);
+        }
+
+        private List<Failure> convertCauses(Throwable parent) {
+            ImmutableList.Builder<Throwable> causes = new ImmutableList.Builder<Throwable>();
+            if (parent instanceof MultiCauseException) {
+                causes.addAll(((MultiCauseException) parent).getCauses());
+            } else if (parent.getCause() != null) {
+                causes.add(parent.getCause());
+            }
+
+            return CollectionUtils.collect(causes.build(), recursiveConverter);
+        }
+
+        private static List<StackTraceRelevance> classify(List<StackTraceElement> stackTrace, StackTraceClassifier classifier) {
+            ArrayList<StackTraceRelevance> relevance = new ArrayList<StackTraceRelevance>(stackTrace.size());
+            for (StackTraceElement stackTraceElement : stackTrace) {
+                StackTraceRelevance r = classifier.classify(stackTraceElement);
+                if (r == null) {
+                    throw new GradleException("Unable to classify stack trace element: " + stackTraceElement);
+                }
+                relevance.add(r);
+            }
+
+            return relevance;
+        }
     }
 }

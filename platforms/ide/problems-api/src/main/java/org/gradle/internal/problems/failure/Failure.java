@@ -28,8 +28,8 @@ public interface Failure {
 
     StackTraceRelevance getStackTraceRelevance(int frameIndex);
 
-    List<Failure> getCauses();
-
     List<Failure> getSuppressed();
+
+    List<Failure> getCauses();
 
 }

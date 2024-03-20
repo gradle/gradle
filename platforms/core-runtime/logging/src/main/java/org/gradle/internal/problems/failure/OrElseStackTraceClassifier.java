@@ -16,14 +16,26 @@
 
 package org.gradle.internal.problems.failure;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import javax.annotation.Nullable;
 
-@ServiceScope(Scope.BuildTree.class)
-public interface FailureFactory {
+public class OrElseStackTraceClassifier implements StackTraceClassifier {
 
-    Failure create(Throwable failure);
+    private final StackTraceClassifier left;
+    private final StackTraceClassifier right;
 
-    Failure create(Throwable failure, StackTraceClassifier classifier);
+    public OrElseStackTraceClassifier(StackTraceClassifier left, StackTraceClassifier right) {
+        this.left = left;
+        this.right = right;
+    }
 
+    @Nullable
+    @Override
+    public StackTraceRelevance classify(StackTraceElement frame) {
+        StackTraceRelevance leftRelevance = left.classify(frame);
+        if (leftRelevance != null) {
+            return leftRelevance;
+        }
+
+        return right.classify(frame);
+    }
 }
