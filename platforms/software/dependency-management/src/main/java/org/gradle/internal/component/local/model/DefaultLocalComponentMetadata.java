@@ -40,7 +40,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -66,7 +65,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
     private final Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer;
 
     private final Map<String, LocalConfigurationMetadata> allConfigurations = new LinkedHashMap<>();
-    private Optional<List<? extends VariantGraphResolveMetadata>> consumableConfigurations;
+    private List<? extends VariantGraphResolveMetadata> consumableConfigurations;
 
     public DefaultLocalComponentMetadata(
         ModuleVersionIdentifier moduleVersionId,
@@ -151,7 +150,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
      * For a local project component, the `variantsForGraphTraversal` are any _consumable_ configurations that have attributes defined.
      */
     @Override
-    public synchronized Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
+    public synchronized List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal() {
         if (consumableConfigurations == null) {
             ImmutableList.Builder<VariantGraphResolveMetadata> builder = new ImmutableList.Builder<>();
             configurationFactory.visitConfigurations(candidate -> {
@@ -160,8 +159,7 @@ public final class DefaultLocalComponentMetadata implements LocalComponentMetada
                 }
             });
 
-            ImmutableList<VariantGraphResolveMetadata> variants = builder.build();
-            consumableConfigurations = !variants.isEmpty() ? Optional.of(variants) : Optional.empty();
+            consumableConfigurations = builder.build();
         }
         return consumableConfigurations;
     }
