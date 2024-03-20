@@ -40,7 +40,6 @@ import java.util.Set;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
-
     private final Context context;
     private final JavaHomeBasedJavaCompilerFactory compilerFactory;
     private final DiagnosticToProblemListener diagnosticToProblemListener;

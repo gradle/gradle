@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.sun.tools.javac.api.ClientCodeWrapper;
 import com.sun.tools.javac.api.DiagnosticFormatter;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic;
@@ -41,6 +42,7 @@ import java.util.Locale;
  *
  * @since 8.5
  */
+@ClientCodeWrapper.Trusted
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
 
     private final ProblemReporter problemReporter;
