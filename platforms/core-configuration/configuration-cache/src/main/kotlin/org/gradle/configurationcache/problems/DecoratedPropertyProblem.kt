@@ -63,7 +63,8 @@ inline fun String.isStackFrameLine(locationPredicate: (String) -> Boolean): Bool
 internal
 class ExceptionDecorator {
 
-    private val stringBuilder = StringBuilder()
+    private
+    val stringBuilder = StringBuilder()
 
     fun decorateException(failure: Failure): DecoratedException {
         return DecoratedException(
@@ -98,7 +99,8 @@ class ExceptionDecorator {
         private val buffer: StringBuilder
     ) : FailurePrinterListener {
 
-        private var lastIsInternal: Boolean? = null
+        private
+        var lastIsInternal: Boolean? = null
 
         val parts = mutableListOf<StackTracePart>()
 
