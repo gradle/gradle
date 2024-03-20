@@ -85,10 +85,15 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         checkDirectory(target);
 
         int removeUnusedEntriesAfterDays = configuration.getRemoveUnusedEntriesAfterDays();
-        Supplier<Long> removeUnusedEntriesOlderThan = TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays);
+
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).
             config("removeUnusedEntriesAfter", removeUnusedEntriesAfterDays + " days");
+
+        // Use the days configured for the local build cache, or the global 'createdResources' config if not specified.
+        Supplier<Long> removeUnusedEntriesOlderThan = removeUnusedEntriesAfterDays < 1
+            ? cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThanAsSupplier()
+            : TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays);
 
         PersistentCache persistentCache = unscopedCacheBuilderFactory
             .cache(target)

@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.file.TestFile
 import java.util.concurrent.TimeUnit
 
 abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
-    private final static int MAX_CACHE_AGE_IN_DAYS = 7
+    private final static int DEFAULT_RETENTION_PERIOD_DAYS = 7
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
     def hashStringLength = Hashing.defaultFunction().hexDigits
@@ -40,7 +40,6 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
     abstract AbstractIntegrationSpec withEnabledBuildCache();
 
     def setup() {
-        settingsFile << configureCacheEviction()
         def bytes = new byte[1024 * 1024]
         new Random().nextBytes(bytes)
         file("output.txt").bytes = bytes
@@ -67,11 +66,11 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         """
     }
 
-    static def configureCacheEviction() {
-        """
+    def withLocalBuildCacheRetentionInDays(long period) {
+        settingsFile << """
             buildCache {
                 local {
-                    removeUnusedEntriesAfterDays = ${MAX_CACHE_AGE_IN_DAYS}
+                    removeUnusedEntriesAfterDays = ${period}
                 }
             }
         """
@@ -84,7 +83,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         def newTrashFile = temporaryFolder.file("0" * hashStringLength).createFile()
         def oldTrashFile = temporaryFolder.file("1" * hashStringLength).createFile()
         createBuildCacheEntry("0" * hashStringLength, newTrashFile, System.currentTimeMillis())
-        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(DEFAULT_RETENTION_PERIOD_DAYS + 1))
         run()
 
         then:
@@ -120,7 +119,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         def newTrashFile = temporaryFolder.file("0" * hashStringLength).createFile()
         def oldTrashFile = temporaryFolder.file("1" * hashStringLength).createFile()
         createBuildCacheEntry("0" * hashStringLength, newTrashFile, System.currentTimeMillis())
-        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(DEFAULT_RETENTION_PERIOD_DAYS + 1))
         cleanupMethod.maybeExpectDeprecationWarning(executer)
         run()
 
@@ -143,20 +142,28 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         cleanupMethod << CleanupMethod.values()
     }
 
-    def "cleans up entries even if created resource cache cleanup is configured later than the default"() {
+    def "cleans up entries after #scenario"() {
         def lastCleanupCheck = initializeHome()
-        withCreatedResourcesRetentionInDays(MAX_CACHE_AGE_IN_DAYS + 2)
+
+        if (createdResourcesCleanup != null) {
+            withCreatedResourcesRetentionInDays(createdResourcesCleanup)
+        }
+        if (buildCacheCleanup != null) {
+            withLocalBuildCacheRetentionInDays(buildCacheCleanup)
+        }
 
         when:
         def newTrashFile = temporaryFolder.file("0" * hashStringLength).createFile()
         def oldTrashFile = temporaryFolder.file("1" * hashStringLength).createFile()
         createBuildCacheEntry("0" * hashStringLength, newTrashFile, System.currentTimeMillis())
-        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo((MAX_CACHE_AGE_IN_DAYS + 1)))
+        createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(effectiveCleanup - 1))
+        createBuildCacheEntry("2" * hashStringLength, oldTrashFile, daysAgo(effectiveCleanup + 1))
         run()
 
         then:
         existsBuildCacheEntry("0" * hashStringLength)
         existsBuildCacheEntry("1" * hashStringLength)
+        existsBuildCacheEntry("2" * hashStringLength)
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
         when:
@@ -165,8 +172,16 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
 
         then:
         existsBuildCacheEntry("0" * hashStringLength)
-        !existsBuildCacheEntry("1" * hashStringLength)
+        existsBuildCacheEntry("1" * hashStringLength)
+        !existsBuildCacheEntry("2" * hashStringLength)
         assertCacheWasCleanedUpSince(lastCleanupCheck)
+
+        where:
+        createdResourcesCleanup | buildCacheCleanup | effectiveCleanup | scenario
+        null                    | null              | 7                | "default period when not explicitly configured"
+        2                       | null              | 2                | "configured period for created resources"
+        null                    | 2                 | 2                | "configured period for build cache cleanup"
+        1                       | 10                | 10               | "configured period for build cache cleanup when both are configured"
     }
 
     def "produces reasonable message when cache retention is too short (#days days)"() {

@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
  */
 public abstract class DirectoryBuildCache extends AbstractBuildCache {
     private Object directory;
-    private int removeUnusedEntriesAfterDays = 7;
+    private int removeUnusedEntriesAfterDays = -1;
 
     /**
      * Returns the directory to use to store the build cache.
@@ -48,7 +48,8 @@ public abstract class DirectoryBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * Returns the number of days after unused entries are garbage collected. Defaults to 7 days.
+     * Returns the number of days after unused entries are garbage collected.
+     * If not set, entries will be removed based on the value configured for {@link org.gradle.api.cache.CacheConfigurations#createdResources}.
      *
      * @since 4.6
      */
@@ -57,7 +58,8 @@ public abstract class DirectoryBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * Sets the number of days after unused entries are garbage collected. Defaults to 7 days.
+     * Sets the number of days after unused entries are garbage collected.
+     * When set, this will take precedence over the value configured for {@link org.gradle.api.cache.CacheConfigurations#createdResources}.
      *
      * Must be greater than 1.
      *
