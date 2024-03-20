@@ -20,17 +20,18 @@ import com.sun.tools.javac.util.Context;
 import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class JavaHomeBasedJavaCompilerFactory {
+public class JavaHomeBasedJavaCompilerFactory implements Serializable {
     private final List<File> compilerPluginsClasspath;
     // We use a static cache here because we want to reuse classloaders in compiler workers as
     // it has a huge impact on performance. Previously there was a single, JdkTools.current()
     // instance, but we can have different "compiler plugins" classpath. For this reason we use
     // a map, but in practice it's likely there's only one instance in this map.
-    private final static Map<List<File>, JdkTools> JDK_TOOLS = new ConcurrentHashMap<>();
+    private final static transient Map<List<File>, JdkTools> JDK_TOOLS = new ConcurrentHashMap<>();
 
     public JavaHomeBasedJavaCompilerFactory(List<File> compilerPluginsClasspath) {
         this.compilerPluginsClasspath = compilerPluginsClasspath;
