@@ -21,39 +21,65 @@ import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.StackTraceRelevance;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultFailurePrinter {
+public class FailurePrinter {
 
-    public String print(Failure failure) {
-        return print(failure, StackFramePredicate.TRUE);
+    public String printToString(Failure failure) {
+        return printToStringImpl(failure, StackFramePredicate.TRUE, null);
     }
 
-    public String print(Failure failure, StackFramePredicate predicate) {
-        return new Printing(predicate).print(failure);
+    public String printToString(Failure failure, StackFramePredicate predicate) {
+        return printToStringImpl(failure, predicate, null);
+    }
+
+    public String printToString(Failure failure, StackFramePredicate predicate, FailurePrinterStackFrameListener listener) {
+        return printToStringImpl(failure, predicate, listener);
+    }
+
+    public void printToString(Appendable output, Failure failure, StackFramePredicate predicate, FailurePrinterStackFrameListener listener) {
+        new Printing(output, predicate, listener).print(failure);
+    }
+
+    private String printToStringImpl(Failure failure, StackFramePredicate predicate, @Nullable FailurePrinterStackFrameListener listener) {
+        StringBuilder sb = new StringBuilder();
+        new Printing(sb, predicate, listener).print(failure);
+        return sb.toString();
     }
 
     private static final class Printing {
 
         private final StackFramePredicate predicate;
+        @Nullable
+        private final FailurePrinterStackFrameListener listener;
 
-        private final StringBuilder builder = new StringBuilder();
+        private final Appendable builder;
         private final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
         private final Set<Failure> seen = Collections.newSetFromMap(new IdentityHashMap<Failure, Boolean>());
 
-        private Printing(StackFramePredicate predicate) {
+        private Printing(
+            Appendable builder,
+            StackFramePredicate predicate,
+            @Nullable FailurePrinterStackFrameListener listener
+        ) {
             this.predicate = predicate;
+            this.listener = listener;
+            this.builder = builder;
         }
 
-        public String print(Failure failure) {
-            printRecursively("", "", null, failure);
-            return builder.toString();
+        public void print(Failure failure) {
+            try {
+                printRecursively("", "", null, failure);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
-        private void printRecursively(String caption, String prefix, @Nullable Failure parent, Failure failure) {
+        private void printRecursively(String caption, String prefix, @Nullable Failure parent, Failure failure) throws IOException {
             if (!seen.add(failure)) {
                 builder.append(prefix)
                     .append(caption)
@@ -74,13 +100,13 @@ public class DefaultFailurePrinter {
             appendCauses(prefix, failure);
         }
 
-        private void appendSuppressed(String prefix, Failure failure) {
+        private void appendSuppressed(String prefix, Failure failure) throws IOException {
             for (Failure suppressed : failure.getSuppressed()) {
                 printRecursively("Suppressed: ", prefix + "\t", failure, suppressed);
             }
         }
 
-        private void appendCauses(String prefix, Failure failure) {
+        private void appendCauses(String prefix, Failure failure) throws IOException {
             List<Failure> causes = failure.getCauses();
             if (causes.size() == 1) {
                 printRecursively("Caused by: ", prefix, failure, causes.get(0));
@@ -91,7 +117,7 @@ public class DefaultFailurePrinter {
             }
         }
 
-        private void appendStackTrace(String prefix, @Nullable Failure parent, Failure failure) {
+        private void appendStackTrace(String prefix, @Nullable Failure parent, Failure failure) throws IOException {
             List<StackTraceElement> stackTrace = failure.getStackTrace();
 
             int commonTailSize = parent == null ? 0 : countCommonTailFrames(stackTrace, parent.getStackTrace());
@@ -100,22 +126,31 @@ public class DefaultFailurePrinter {
             for (int i = 0; i < end; i++) {
                 StackTraceElement stackTraceElement = stackTrace.get(i);
                 StackTraceRelevance rel = failure.getStackTraceRelevance(i);
-
-                if (predicate.test(stackTraceElement, rel)) {
-                    builder.append(prefix)
-                        .append("\tat ")
-                        .append(stackTraceElement)
-                        .append(lineSeparator);
-                }
+                appendFrame(prefix, stackTraceElement, rel);
             }
 
             if (commonTailSize > 0) {
                 builder.append(prefix)
                     .append("\t... ")
-                    .append(commonTailSize)
+                    .append(String.valueOf(commonTailSize))
                     .append(" more")
                     .append(lineSeparator);
             }
+        }
+
+        private void appendFrame(String prefix, StackTraceElement frame, StackTraceRelevance relevance) throws IOException {
+            if (!predicate.test(frame, relevance)) {
+                return;
+            }
+
+            if (listener != null) {
+                listener.beforeFrame(frame, relevance);
+            }
+
+            builder.append(prefix)
+                .append("\tat ")
+                .append(frame.toString())
+                .append(lineSeparator);
         }
 
         private static int countCommonTailFrames(List<StackTraceElement> frames1, List<StackTraceElement> frames2) {

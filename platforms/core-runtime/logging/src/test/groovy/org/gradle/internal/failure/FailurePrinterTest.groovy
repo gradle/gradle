@@ -23,44 +23,44 @@ import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.problems.failure.StackTraceRelevance
 import spock.lang.Specification
 
-class DefaultFailurePrinterTest extends Specification {
+class FailurePrinterTest extends Specification {
 
     def "prints same as JVM for simple exception"() {
         def e = new RuntimeException("BOOM")
 
-        def printer = new DefaultFailurePrinter()
+        def printer = new FailurePrinter()
         def f = toFailure(e)
 
         expect:
-        printer.print(f) == getTraceString(e)
+        printer.printToString(f) == getTraceString(e)
     }
 
     def "prints same as JVM for an exception with cause"() {
         def e = new RuntimeException("BOOM", SimulatedJavaException.simulateDeeperException())
 
-        def printer = new DefaultFailurePrinter()
+        def printer = new FailurePrinter()
         def f = toFailure(e)
 
         expect:
-        printer.print(f) == getTraceString(e)
+        printer.printToString(f) == getTraceString(e)
     }
 
     def "prints same as JVM for an exception with suppressions"() {
         def e = new RuntimeException("BOOM")
         e.addSuppressed(SimulatedJavaException.simulateDeeperException())
 
-        def printer = new DefaultFailurePrinter()
+        def printer = new FailurePrinter()
         def f = toFailure(e)
 
         expect:
-        printer.print(f) == getTraceString(e)
+        printer.printToString(f) == getTraceString(e)
     }
 
     def "handles circular references"() {
         def e0 = SimulatedJavaException.simulateDeeperException()
         def e = new RuntimeException("BOOM", e0)
 
-        def printer = new DefaultFailurePrinter()
+        def printer = new FailurePrinter()
         def f = toFailure(e)
 
         // Create circular reference
@@ -76,17 +76,17 @@ class DefaultFailurePrinterTest extends Specification {
         def expected = getTraceString(e)
 
         expect:
-        printer.print(f) == expected
+        printer.printToString(f) == expected
     }
 
     def "supports multi-case exceptions"() {
         def e = new DefaultMultiCauseException("BOOM", new RuntimeException("one"), new RuntimeException("two"))
 
-        def printer = new DefaultFailurePrinter()
+        def printer = new FailurePrinter()
         def f = toFailure(e)
 
         def expected = getTraceString(e)
-        def actual = printer.print(f)
+        def actual = printer.printToString(f)
 
         expect:
         // First, validate the assumptions about the default multi-cause exception printing.
