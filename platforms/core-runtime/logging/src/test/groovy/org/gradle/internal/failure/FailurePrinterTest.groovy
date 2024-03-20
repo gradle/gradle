@@ -133,7 +133,7 @@ class FailurePrinterTest extends Specification {
     }
 
     private static Failure toFailure(Throwable t) {
-        def stack = ImmutableList.of(t.stackTrace)
+        def stack = ImmutableList.copyOf(t.stackTrace)
         def relevances = Collections.nCopies(stack.size(), USER_CODE)
         def causes = getCauses(t).collect { toFailure(it) }
         def suppressed = t.getSuppressed().collect { toFailure(it) }
