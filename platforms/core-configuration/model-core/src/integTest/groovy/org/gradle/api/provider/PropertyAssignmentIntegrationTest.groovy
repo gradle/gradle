@@ -55,7 +55,9 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         description                                     | inputType            | inputValue                               | expectedResult
+        "T = null"                                      | "Property<MyObject>" | 'null'                                   | "undefined"
         "T = T"                                         | "Property<MyObject>" | 'new MyObject("hello")'                  | "hello"
+        "T = provider { null }"                         | "Property<MyObject>" | 'provider { null }'                      | "undefined"
         "T = Provider<T>"                               | "Property<MyObject>" | 'provider { new MyObject("hello") }'     | "hello"
         "String = Object"                               | "Property<String>"   | 'new MyObject("hello")'                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
         "Enum = String"                                 | "Property<MyEnum>"   | '"YES"'                                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
@@ -95,7 +97,9 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         description                                     | inputType            | inputValue                               | expectedResult
+        "T = null"                                      | "Property<MyObject>" | 'null'                                   | "undefined"
         "T = T"                                         | "Property<MyObject>" | 'MyObject("hello")'                      | "hello"
+        "T = provider { null }"                         | "Property<MyObject>" | 'provider { null }'                      | "undefined"
         "T = Provider<T>"                               | "Property<MyObject>" | 'provider { MyObject("hello") }'         | "hello"
         "String = Object"                               | "Property<String>"   | 'MyObject("hello")'                      | unsupportedWithDescription("Type mismatch")
         "Enum = String"                                 | "Property<MyEnum>"   | '"YES"'                                  | unsupportedWithDescription("Type mismatch")
@@ -146,8 +150,10 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         description                              | operation | inputType                       | inputValue                                               | expectedResult
+        "Collection<T> = null"                   | "="       | "ListProperty<MyObject>"        | 'null'                                                   | 'undefined'
         "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("Cannot set the value of a property of type java.util.List using an instance of type [LMyObject;")
         "Collection<T> = Iterable<T>"            | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'
+        "Collection<T> = provider { null }"      | "="       | "ListProperty<MyObject>"        | 'provider { null }'                                      | 'undefined'
         "Collection<T> = Provider<Iterable<T>>"  | "="       | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[a]'
         "Collection<T> += T"                     | "+="      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | unsupportedWithCause("No signature of method")
         "Collection<T> << T"                     | "<<"      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | unsupportedWithCause("No signature of method")
@@ -159,8 +165,10 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "Collection<T> << Iterable<T>"           | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | unsupportedWithCause("No signature of method")
         "Collection<T> += Provider<Iterable<T>>" | "+="      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | unsupportedWithCause("No signature of method")
         "Collection<T> << Provider<Iterable<T>>" | "<<"      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | unsupportedWithCause("No signature of method")
-        "Map<K, V> = Map<K, V>"                  | "="       | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | '[a:b]'
-        "Map<K, V> = Provider<Map<K, V>>"        | "="       | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | '[a:b]'
+        "Map<K, V> = null"                       | "="       | "MapProperty<String, MyObject>" | 'null'                                                   | 'undefined'
+        "Map<K, V> = Map<K, V>"                  | "="       | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | '{a=b}'
+        "Map<K, V> = provider { null }"          | "="       | "MapProperty<String, MyObject>" | 'provider { null }'                                      | 'undefined'
+        "Map<K, V> = Provider<Map<K, V>>"        | "="       | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | '{a=b}'
         "Map<K, V> += Map<K, V>"                 | "+="      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | unsupportedWithCause("No signature of method")
         "Map<K, V> << Map<K, V>"                 | "<<"      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | unsupportedWithCause("No signature of method")
         "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
@@ -202,15 +210,19 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         description                              | operation | inputType                       | inputValue                                                 | expectedResult
+        "Collection<T> = null"                   | "="       | "ListProperty<MyObject>"        | 'null'                                                     | 'undefined'
         "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | 'arrayOf(MyObject("a"))'                                   | unsupportedWithDescription("No applicable 'assign' function found for '=' overload")
         "Collection<T> = Iterable<T>"            | "="       | "ListProperty<MyObject>"        | 'listOf(MyObject("a")) as Iterable<MyObject>'              | '[a]'
+        "Collection<T> = provider { null } "     | "="       | "ListProperty<MyObject>"        | 'provider { null } '                                       | 'undefined'
         "Collection<T> = Provider<Iterable<T>>"  | "="       | "ListProperty<MyObject>"        | 'provider { listOf(MyObject("a")) as Iterable<MyObject> }' | '[a]'
         "Collection<T> += T"                     | "+="      | "ListProperty<MyObject>"        | 'MyObject("a")'                                            | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
         "Collection<T> += Provider<T>"           | "+="      | "ListProperty<MyObject>"        | 'provider { MyObject("a") }'                               | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
         "Collection<T> += T[]"                   | "+="      | "ListProperty<MyObject>"        | 'arrayOf(MyObject("a"))'                                   | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
         "Collection<T> += Iterable<T>"           | "+="      | "ListProperty<MyObject>"        | 'listOf(MyObject("a")) as Iterable<MyObject>'              | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
         "Collection<T> += Provider<Iterable<T>>" | "+="      | "ListProperty<MyObject>"        | 'provider { listOf(MyObject("a")) as Iterable<MyObject> }' | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> = null"                       | "="       | "MapProperty<String, MyObject>" | 'null'                                                     | 'undefined'
         "Map<K, V> = Map<K, V>"                  | "="       | "MapProperty<String, MyObject>" | 'mapOf("a" to MyObject("b"))'                              | '{a=b}'
+        "Map<K, V> = provider { null }"          | "="       | "MapProperty<String, MyObject>" | 'provider { null }'                                        | 'undefined'
         "Map<K, V> = Provider<Map<K, V>>"        | "="       | "MapProperty<String, MyObject>" | 'provider { mapOf("a" to MyObject("b")) }'                 | '{a=b}'
         "Map<K, V> += Pair<K, V>"                | "+="      | "MapProperty<String, MyObject>" | '"a" to MyObject("b")'                                     | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
         "Map<K, V> += Provider<Pair<K, V>>"      | "+="      | "MapProperty<String, MyObject>" | 'provider { "a" to MyObject("b") }'                        | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
@@ -388,15 +400,15 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 void run() {
                     if (input instanceof DirectoryProperty) {
-                        println("$RESULT_PREFIX" + input.get().asFile.name)
+                        println("$RESULT_PREFIX" + input.map { it.asFile.name }.getOrElse("undefined"))
                     } else if (input instanceof File) {
                        println("$RESULT_PREFIX" + input.name)
                     } else if (input instanceof Provider) {
-                        println("$RESULT_PREFIX" + input.get())
+                        println("$RESULT_PREFIX" + input.map { it.toString() }.getOrElse("undefined"))
                     } else if (input instanceof FileCollection) {
                         println("$RESULT_PREFIX" + input.files.collect { it.name })
                     } else {
-                        println("$RESULT_PREFIX" + input)
+                        println("$RESULT_PREFIX" + input.toString())
                     }
                 }
             }
@@ -424,11 +436,11 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 fun run() {
                     when (val anyInput = input as Any?) {
-                       is DirectoryProperty -> println("$RESULT_PREFIX" + anyInput.get().asFile.name)
+                       is DirectoryProperty -> println("$RESULT_PREFIX" + anyInput.map { it.asFile.name }.getOrElse("undefined"))
                        is File -> println("$RESULT_PREFIX" + anyInput.name)
-                       is Provider<*> -> println("$RESULT_PREFIX" + anyInput.get())
+                       is Provider<*> -> println("$RESULT_PREFIX" + anyInput.map { it.toString() }.getOrElse("undefined"))
                        is FileCollection -> println("$RESULT_PREFIX" + anyInput.files.map { it.name })
-                       else -> println("$RESULT_PREFIX" + anyInput)
+                       else -> println("$RESULT_PREFIX" + anyInput.toString())
                     }
                 }
             }
