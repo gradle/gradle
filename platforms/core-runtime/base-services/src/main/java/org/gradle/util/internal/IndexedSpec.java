@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,14 @@
  */
 package org.gradle.util.internal;
 
+import org.gradle.api.NonNullApi;
+
 /**
  * Represents some predicate against objects of type T with a position in an iterable collection.
  *
  * @param <T> The target type for this spec
  */
+@NonNullApi
 public interface IndexedSpec<T> {
     boolean isSatisfiedBy(int index, T element);
 }
