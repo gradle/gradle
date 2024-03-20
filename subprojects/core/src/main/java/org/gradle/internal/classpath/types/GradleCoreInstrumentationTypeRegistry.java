@@ -22,7 +22,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.IOException;
@@ -39,7 +38,7 @@ import java.util.Set;
  *
  * Note: It returns only instrumented types that are instrumented with {@link org.gradle.internal.instrumentation.api.annotations.InterceptInherited}.
  */
-@ServiceScope({Scope.Global.class, Scopes.UserHome.class})
+@ServiceScope({Scope.Global.class, Scope.UserHome.class})
 public class GradleCoreInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
 
     /**

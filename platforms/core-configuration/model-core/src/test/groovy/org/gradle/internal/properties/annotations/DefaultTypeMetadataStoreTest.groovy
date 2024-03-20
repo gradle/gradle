@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
@@ -139,9 +140,8 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             context.visitPropertyProblem {
                 it
                     .forProperty(metadata.propertyName)
-                    .label("is broken")
+                    .id("test-problem", "is broken", GradleCoreProblemGroup.validation())
                     .documentedAt(userManual("id", "section"))
-                    .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
@@ -168,9 +168,8 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             context.visitPropertyProblem {
                 it
                     .forProperty(metadata.propertyName)
-                    .label("is broken")
+                    .id("test-problem", "is broken", GradleCoreProblemGroup.validation())
                     .documentedAt(userManual("id", "section"))
-                    .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
@@ -194,9 +193,8 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             context.visitTypeProblem {
                 it
                     .withAnnotationType(type)
-                    .label("type is broken")
+                    .id("test-problem", "type is broken", GradleCoreProblemGroup.validation())
                     .documentedAt(userManual("id", "section"))
-                    .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }

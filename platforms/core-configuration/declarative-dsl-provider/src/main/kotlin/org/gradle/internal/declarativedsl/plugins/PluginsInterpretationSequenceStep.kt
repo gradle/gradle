@@ -21,12 +21,14 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter
-import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isCallNamed
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isConfiguringCall
+import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilter.Companion.isTopLevelElement
+import org.gradle.internal.declarativedsl.analysis.and
+import org.gradle.internal.declarativedsl.analysis.implies
+import org.gradle.internal.declarativedsl.analysis.not
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSequenceStep
-import org.gradle.internal.declarativedsl.language.DataStatement
-import org.gradle.internal.declarativedsl.language.FunctionArgument
-import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
@@ -37,15 +39,15 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 internal
 class PluginsInterpretationSequenceStep<T>(
+    override val stepIdentifier: String = "plugins",
     private val target: T,
     private val targetScope: ClassLoaderScope,
     private val scriptSource: ScriptSource,
     private val getTargetServices: (T) -> ServiceRegistry,
-    override val stepIdentifier: String = "plugins",
 ) : InterpretationSequenceStep<PluginsTopLevelReceiver> {
     override fun evaluationSchemaForStep(): EvaluationSchema = EvaluationSchema(
         schemaForPluginsBlock,
-        analysisStatementFilter = analyzeTopLevelPluginsBlockOnly
+        analysisStatementFilter = isTopLevelPluginsBlock
     )
 
     override fun topLevelReceiver() = PluginsTopLevelReceiver()
@@ -65,14 +67,13 @@ class PluginsInterpretationSequenceStep<T>(
 }
 
 
-internal
-val analyzeTopLevelPluginsBlockOnly = AnalysisStatementFilter { statement, scopes ->
-    if (scopes.last().receiver is ObjectOrigin.TopLevelReceiver) {
-        isPluginsCall(statement)
-    } else true
-}
+private
+val isPluginConfiguringCall: AnalysisStatementFilter = isConfiguringCall.and(isCallNamed("plugins"))
 
 
 internal
-fun isPluginsCall(statement: DataStatement) =
-    statement is FunctionCall && statement.name == "plugins" && statement.args.size == 1 && statement.args.single() is FunctionArgument.Lambda
+val isTopLevelPluginsBlock: AnalysisStatementFilter = isTopLevelElement.implies(isPluginConfiguringCall)
+
+
+internal
+val ignoreTopLevelPluginsBlock: AnalysisStatementFilter = isTopLevelElement.implies(isPluginConfiguringCall.not())

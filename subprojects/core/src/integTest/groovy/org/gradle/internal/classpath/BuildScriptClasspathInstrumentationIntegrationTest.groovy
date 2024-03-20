@@ -22,9 +22,13 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.junit.Rule
 import spock.lang.Issue
 
 import java.nio.file.Files
@@ -33,22 +37,24 @@ import java.util.regex.Pattern
 import java.util.stream.Collectors
 
 import static org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.GENERATE_CLASS_HIERARCHY_WITHOUT_UPGRADES_PROPERTY
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_SUPER_TYPES_FILE_NAME
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
 
+    @Rule
+    public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
+
     def serializer = new InstrumentationAnalysisSerializer(new StringInterner())
+
+    def setup() {
+        requireOwnGradleUserHomeDir("We test content in the global cache")
+    }
 
     def "buildSrc and included builds should be cached in global cache"() {
         given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
         withBuildSrc()
         withIncludedBuild()
         buildFile << """
@@ -91,8 +97,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "external dependencies should not be copied to the global artifact transform cache"() {
         given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
         buildFile << """
             buildscript {
                 ${mavenCentralRepository()}
@@ -106,14 +110,14 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
+        // InstrumentationAnalysisTransform is duplicated since InstrumentationAnalysisTransform result is also an input to MergeInstrumentationAnalysisTransform
+        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["InstrumentationAnalysisTransform", "InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
         gradleUserHomeOutput("instrumented/instrumented-commons-lang3-3.8.1.jar").exists()
     }
 
     def "directories should be instrumented"() {
         given:
-        requireOwnGradleUserHomeDir()
         withIncludedBuild("first")
         withIncludedBuild("second")
         buildFile << """
@@ -133,9 +137,13 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         allTransformsFor("main") ==~ [
             // Only the folder name is reported, so we cannot distinguish first and second
+            // InstrumentationAnalysisTransform is duplicated since InstrumentationAnalysisTransform
+            // result is also an input to MergeInstrumentationAnalysisTransform
+            "InstrumentationAnalysisTransform",
             "InstrumentationAnalysisTransform",
             "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform",
+            "InstrumentationAnalysisTransform",
             "InstrumentationAnalysisTransform",
             "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform"
@@ -218,7 +226,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "classpath can contain non-existing file"() {
         given:
-        executer.requireOwnGradleUserHomeDir()
         buildFile << """
             buildscript { dependencies { classpath files("does-not-exist.jar") } }
         """
@@ -232,8 +239,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "should analyze plugin artifacts"() {
         given:
-        // We test content in the global cache
-        requireOwnGradleUserHomeDir()
         multiProjectJavaBuild("subproject", "api", "animals") {
             file("$it/api/src/main/java/org/gradle/api/Plugin.java") << "package org.gradle.api; public interface Plugin {}"
             file("$it/api/src/main/java/org/gradle/api/Task.java") << "package org.gradle.api; public interface Task {}"
@@ -277,15 +282,16 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
-        def analyzeDir = analyzeOutput("animals-1.0.jar")
-        analyzeDir.exists()
-        serializer.readTypesMap(analyzeDir.file(SUPER_TYPES_FILE_NAME)) == [
+        // InstrumentationAnalysisTransform is duplicated since InstrumentationAnalysisTransform result is also an input to MergeInstrumentationAnalysisTransform
+        allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
+        def analysis = analyzeOutput("animals-1.0.jar")
+        analysis.exists()
+        serializer.readAnalysis(analysis).typeHierarchy == [
             "test/gradle/test/Dog": ["test/gradle/test/Mammal"] as Set<String>,
             "test/gradle/test/GermanShepherd": ["test/gradle/test/Animal", "test/gradle/test/Dog"] as Set<String>,
             "test/gradle/test/Mammal": ["test/gradle/test/Animal"] as Set<String>
         ]
-        serializer.readTypes(analyzeDir.file(DEPENDENCIES_FILE_NAME)) == [
+        serializer.readAnalysis(analysis).dependencies == [
             "org/gradle/api/DefaultTask",
             "org/gradle/api/GradleException",
             "org/gradle/api/Plugin",
@@ -298,7 +304,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "should output only org.gradle supertypes for class dependencies"() {
         given:
-        requireOwnGradleUserHomeDir()
         multiProjectJavaBuild("subproject") {
             file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
             file("$it/api/src/main/java/B.java") << "public class B extends C {}"
@@ -323,12 +328,12 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         mergeOutput("impl-1.0.jar").exists()
         mergeOutput("api-1.0.jar").exists()
-        def implMergeDir = mergeOutput("impl-1.0.jar")
-        serializer.readTypesMap(implMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME)) == [
+        def implMergeAnalysis = mergeOutput("impl-1.0.jar")
+        serializer.readAnalysis(implMergeAnalysis).typeHierarchy == [
             "B": ["org/gradle/D", "org/gradle/E"] as Set
         ]
-        def apiMergeDir = mergeOutput("api-1.0.jar")
-        serializer.readTypesMap(apiMergeDir.file(DEPENDENCIES_SUPER_TYPES_FILE_NAME)) == [
+        def apiMergeAnalysis = mergeOutput("api-1.0.jar")
+        serializer.readAnalysis(apiMergeAnalysis).typeHierarchy == [
             "C": ["org/gradle/D", "org/gradle/E"] as Set,
             "org/gradle/D": ["org/gradle/D", "org/gradle/E"] as Set,
             "org/gradle/E": ["org/gradle/E"] as Set
@@ -341,7 +346,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     )
     def "should re-instrument jar if classpath changes and class starts extending a Gradle core class transitively"() {
         given:
-        requireOwnGradleUserHomeDir()
         multiProjectJavaBuild("subproject") {
             file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
             file("$it/api/src/main/java/B.java") << "public class B {}"
@@ -381,7 +385,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     )
     def "should not re-instrument jar if classpath changes but class doesn't extend Gradle core class"() {
         given:
-        requireOwnGradleUserHomeDir()
         multiProjectJavaBuild("subproject") {
             file("$it/impl/src/main/java/A.java") << "public class A extends B {}"
             file("$it/api/src/main/java/B.java") << "public class B {}"
@@ -413,6 +416,37 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         gradleUserHomeOutputs("instrumented/instrumented-api-1.0.jar").size() == 2
         gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28301")
+    def "instrumentation and upgrades work when repository is changed from remote to local"() {
+        def mavenRemote = new MavenHttpRepository(server, "/repo", HttpRepository.MetadataType.DEFAULT, mavenRepo)
+        def remoteModule = mavenRemote.module("test.gradle", "test-plugin", "0.2").publish()
+        remoteModule.pom.expectDownload()
+        remoteModule.artifact.expectDownload()
+        def artifactCoordinates = "${remoteModule.groupId}:${remoteModule.artifactId}:${remoteModule.version}"
+
+        when:
+        buildFile.text = """
+            buildscript {
+                repositories { maven { url "${mavenRemote.uri}" } }
+                dependencies { classpath "$artifactCoordinates" }
+            }
+        """
+
+        then:
+        run("help")
+
+        when:
+        buildFile.text = """
+            buildscript {
+                repositories { maven { url "${normaliseFileSeparators(mavenRepo.uri.toString())}" } }
+                dependencies { classpath "$artifactCoordinates" }
+            }
+        """
+
+        then:
+        run("help")
     }
 
     def withBuildSrc() {
@@ -535,31 +569,31 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     }
 
     Set<TestFile> analyzeOutputs(String artifactName, File cacheDir = getCacheDir()) {
-        return findOutputs("$ANALYSIS_OUTPUT_DIR/$METADATA_FILE_NAME", cacheDir).findAll {
-            serializer.readMetadata(it).artifactName == artifactName
-        }.collect { it.parentFile } as Set<TestFile>
+        return findOutputs("$ANALYSIS_OUTPUT_DIR/$ANALYSIS_FILE_NAME", cacheDir).findAll {
+            serializer.readOnlyMetadata(it).artifactName == artifactName
+        }.collect { it } as Set<TestFile>
     }
 
     TestFile analyzeOutput(String artifactName, File cacheDir = getCacheDir()) {
-        def dirs = analyzeOutputs(artifactName, cacheDir)
-        if (dirs.size() == 1) {
-            return dirs.first()
+        def analysis = analyzeOutputs(artifactName, cacheDir)
+        if (analysis.size() == 1) {
+            return analysis.first()
         }
-        throw new AssertionError("Could not find exactly one analyze directory for $artifactName: $dirs")
+        throw new AssertionError("Could not find exactly one analyze directory for $artifactName: $analysis")
     }
 
     Set<TestFile> mergeOutputs(String artifactName, File cacheDir = getCacheDir()) {
-        return findOutputs("$MERGE_OUTPUT_DIR/$METADATA_FILE_NAME", cacheDir).findAll {
-            serializer.readMetadata(it).artifactName == artifactName
-        }.collect { it.parentFile } as Set<TestFile>
+        return findOutputs("$MERGE_OUTPUT_DIR/$ANALYSIS_FILE_NAME", cacheDir).findAll {
+            serializer.readOnlyMetadata(it).artifactName == artifactName
+        }.collect { it } as Set<TestFile>
     }
 
     TestFile mergeOutput(String artifactName, File cacheDir = getCacheDir()) {
-        def dirs = mergeOutputs(artifactName, cacheDir)
-        if (dirs.size() == 1) {
-            return dirs.first()
+        def analysis = mergeOutputs(artifactName, cacheDir)
+        if (analysis.size() == 1) {
+            return analysis.first()
         }
-        throw new AssertionError("Could not find exactly one merge directory for $artifactName: $dirs")
+        throw new AssertionError("Could not find exactly one merge directory for $artifactName: $analysis")
     }
 
     TestFile gradleUserHomeOutput(String outputEndsWith, File cacheDir = getCacheDir()) {

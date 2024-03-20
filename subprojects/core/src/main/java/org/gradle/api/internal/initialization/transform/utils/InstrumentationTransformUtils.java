@@ -21,43 +21,56 @@ import org.gradle.api.artifacts.transform.TransformOutputs;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
 
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
 
 public class InstrumentationTransformUtils {
 
+    public enum InstrumentationInputType {
+        ANALYSIS_DATA,
+        INSTRUMENTATION_MARKER,
+        ORIGINAL_ARTIFACT
+    }
+
     public static final String ANALYSIS_OUTPUT_DIR = "analysis";
     public static final String MERGE_OUTPUT_DIR = "merge";
-    public static final String FILE_MISSING_HASH = "<missing-hash>";
-    public static final String METADATA_FILE_NAME = "metadata.bin";
-    public static final String DEPENDENCIES_FILE_NAME = "dependencies.bin";
-    public static final String SUPER_TYPES_FILE_NAME = "super-types.bin";
-    public static final String DEPENDENCIES_SUPER_TYPES_FILE_NAME = "dependencies-super-types.bin";
+    public static final String ANALYSIS_FILE_NAME = "instrumentation-analysis.bin";
 
-    public static boolean createNewFile(File file) {
-        try {
-            return file.createNewFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+    public static InstrumentationInputType getInputType(File input) {
+        if (isAnalysisFile(input)) {
+            return InstrumentationInputType.ANALYSIS_DATA;
+        } else if (isInstrumentationMarkerFile(input)) {
+            return InstrumentationInputType.INSTRUMENTATION_MARKER;
+        } else {
+            return InstrumentationInputType.ORIGINAL_ARTIFACT;
         }
     }
 
-    public static void copyUnchecked(File from, File to) {
+    public static boolean isAnalysisFile(File input) {
+        return input.getName().equals(ANALYSIS_FILE_NAME);
+    }
+
+    public static boolean isInstrumentationMarkerFile(File input) {
+        return input.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME);
+    }
+
+    public static void outputOriginalArtifact(TransformOutputs outputs, File originalArtifact) {
+        if (originalArtifact.isDirectory()) {
+            outputs.dir(originalArtifact);
+        } else {
+            outputs.file(originalArtifact);
+        }
+    }
+
+    public static void createNewFile(File file) {
         try {
-            Files.copy(from.toPath(), to.toPath());
+            file.createNewFile();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
     public static void createInstrumentationClasspathMarker(TransformOutputs outputs) {
-        try {
-            // Mark the folder, so we know that this is a folder with super types files.
-            // The only use case right now currently is, that we do not delete folders with such file for performance testing.
-            outputs.file(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME).createNewFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        createNewFile(outputs.file(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME));
     }
 }

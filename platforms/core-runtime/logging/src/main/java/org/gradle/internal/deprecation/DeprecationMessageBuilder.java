@@ -18,7 +18,7 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.problems.internal.DocLink;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.CheckReturnValue;
@@ -33,13 +33,13 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     private DeprecationTimeline deprecationTimeline;
     private String context;
     private String advice;
-    private DocLink documentation = Documentation.NO_DOCUMENTATION;
+    private DocLink documentation = null;
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
     DeprecationMessageBuilder() {
     }
 
-    public static WithDocumentation withDocumentation(ProblemReport warning, WithDeprecationTimeline withDeprecationTimeline) {
+    public static WithDocumentation withDocumentation(Problem warning, WithDeprecationTimeline withDeprecationTimeline) {
         DocLink docLink = warning.getDefinition().getDocumentationLink();
         if (docLink != null) {
             return withDeprecationTimeline

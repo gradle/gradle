@@ -24,20 +24,22 @@ import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import org.gradle.process.internal.worker.WorkerProcessContext
 import spock.lang.Specification
 
+import static org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
+
 class WorkerConfigSerializerTest extends Specification {
 
     def "serialized and de-serialized WorkerConfig is equivalent to original"() {
 
         given:
         WorkerConfig original = new WorkerConfig(
-                LogLevel.ERROR,
-                true,
-                "/path/to/user/home",
-                new MultiChoiceAddress(new UUID(123, 456), 789, [InetAddress.getByName("example.com")]),
-                987,
-                "name",
-                new TestAction("value"),
-                true
+            LogLevel.ERROR,
+            true,
+            "/path/to/user/home",
+            new MultiChoiceAddress(new UUID(123, 456), 789, [InetAddress.getByName("example.com")]),
+            987,
+            "name",
+            new TestAction("value"),
+            NativeServicesMode.ENABLED
         )
 
         when:

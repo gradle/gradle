@@ -28,14 +28,14 @@ import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collections;
 
 import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class BuildSrcBuildListenerFactory {
     private final Action<ProjectInternal> buildSrcRootProjectConfiguration;
     private ScriptClassPathResolver resolver;

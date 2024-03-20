@@ -40,7 +40,7 @@ object GradleDistributionSpecs {
 
         into("bin") {
             from(gradleScriptPath)
-            fileMode = Integer.parseInt("0755", 8)
+            filePermissions { unix("0755") }
         }
 
         into("lib") {
@@ -96,7 +96,7 @@ object GradleDistributionSpecs {
      */
     fun Project.srcDistributionSpec() = copySpec {
         from(repoRoot().file("gradlew")) {
-            fileMode = Integer.parseInt("0755", 8)
+            filePermissions { unix("0755") }
         }
         from(repoRoot()) {
             listOf(

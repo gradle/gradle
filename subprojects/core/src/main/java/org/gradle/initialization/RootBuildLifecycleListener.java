@@ -17,7 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.StatefulListener;
 
 /**
@@ -27,7 +27,7 @@ import org.gradle.internal.service.scopes.StatefulListener;
  *
  * This listener type is available to services from build tree up to global services.
  */
-@EventScope(Scopes.BuildTree.class)
+@EventScope(Scope.BuildTree.class)
 @StatefulListener
 public interface RootBuildLifecycleListener {
     /**

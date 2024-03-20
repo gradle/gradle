@@ -25,7 +25,9 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.internal.nativeintegration.services.NativeServices.NATIVE_DIR_OVERRIDE
 import static org.gradle.internal.nativeintegration.services.NativeServices.NATIVE_SERVICES_OPTION
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "needs to run a distribution from scratch to not have native services on the classpath already")
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
@@ -133,6 +135,89 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
         ["-D$NATIVE_SERVICES_OPTION=false"] | false
         ["-D$NATIVE_SERVICES_OPTION=''"]    | true
         []                                  | true
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28401")
+    def "native services are not initialized inside a test executor but should be initialized for a build inside the executor"() {
+        given:
+        def nativeDirOverride = normaliseFileSeparators(new File(tmpDir.testDirectory, 'native-libs-for-test-executor').absolutePath)
+        buildScript("""
+            plugins {
+                id("java-gradle-plugin")
+                id("groovy")
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    functionalTest(JvmTestSuite) {
+                        useSpock("2.2-groovy-3.0")
+                        dependencies {
+                            implementation(project())
+                        }
+                    }
+                }
+            }
+
+            tasks.named("functionalTest", Test) {
+                // Override native libs dir for the test executor
+                systemProperty("$NATIVE_DIR_OVERRIDE", "${nativeDirOverride}")
+            }
+
+            gradlePlugin.testSourceSets.add(sourceSets["functionalTest"])
+        """)
+        file("src/functionalTest/groovy/TestkitTestPluginFunctionalTest.groovy") << """
+            import spock.lang.Specification
+            import spock.lang.TempDir
+            import org.gradle.testkit.runner.GradleRunner
+            import org.gradle.testkit.runner.TaskOutcome
+
+            class TestkitTestPluginFunctionalTest extends Specification {
+                @TempDir
+                private File projectDir
+
+                private getBuildFile() {
+                    new File(projectDir, "build.gradle")
+                }
+
+                private getSettingsFile() {
+                    new File(projectDir, "settings.gradle")
+                }
+
+                def "native services are enabled"() {
+                    given:
+                    // We check if native dir was created before running a build, which would
+                    // mean that native services were initialized by a test executor
+                    println("Test executor initialized Native services: " + new File("${nativeDirOverride}").exists())
+                    settingsFile << ""
+                    buildFile << \"""
+                        println("Build inside a test executor initialized Native services: " + new File("${nativeDirOverride}").exists())
+                        println("Build inside a test executor uses Native services: " +
+                            org.gradle.internal.nativeintegration.services.NativeServices.instance.createNativeCapabilities().useNativeIntegrations())
+                    \"""
+
+                    when:
+                    def result = GradleRunner.create()
+                        .forwardOutput()
+                        .withPluginClasspath()
+                        .withArguments("help")
+                        .withProjectDir(projectDir)
+                        .build()
+
+                    then:
+                    result.task(":help").outcome == TaskOutcome.SUCCESS
+                }
+            }
+        """
+
+        when:
+        succeeds("functionalTest", "--info")
+
+        then:
+        outputContains("Test executor initialized Native services: false")
+        outputContains("Build inside a test executor initialized Native services: true")
+        outputContains("Build inside a test executor uses Native services: true")
     }
 
     def "daemon with different native services flag is not reused"() {

@@ -58,7 +58,7 @@ Beta and RC versions may or may not work.
 
 .Embedded Kotlin version
 |===
-| Gradle version | Embedded Kotlin version | Kotlin Language version
+| Minimum Gradle version | Embedded Kotlin version | Kotlin Language version
 
 | 5.0 | 1.3.10 | 1.3
 | 5.1 | 1.3.11 | 1.3

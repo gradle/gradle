@@ -28,7 +28,7 @@ import org.gradle.work.DisableCachingByDefault;
 import java.io.File;
 
 /**
- * Artifact transform that instruments project based plugins with Gradle instrumentation.
+ * Artifact transform that instruments project based artifacts with Gradle instrumentation.
  */
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache.")
 public abstract class ProjectDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform {
@@ -41,13 +41,10 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
     @Override
     public void transform(TransformOutputs outputs) {
         File input = getInput().get().getAsFile();
-        execute(input, outputs, __ -> {
-            if (input.isDirectory()) {
-                outputs.dir(input);
-            } else {
-                outputs.file(input);
-            }
-        });
+        doTransform(input, outputs);
+        if (getParameters().getAgentSupported().get()) {
+            doOutputOriginalArtifact(input, outputs);
+        }
     }
 
     @Override

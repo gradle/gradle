@@ -99,7 +99,7 @@ public class DaemonServices extends DefaultServiceRegistry {
 
         builder.setDaemonOpts(configuration.getJvmOptions());
         builder.setApplyInstrumentationAgent(agentStatus.isAgentInstrumentationEnabled());
-        builder.setUseNativeServices(configuration.useNativeServices());
+        builder.setNativeServicesMode(configuration.getNativeServicesMode());
 
         return builder.create();
     }

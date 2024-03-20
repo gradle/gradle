@@ -18,7 +18,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
+See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
@@ -84,6 +84,36 @@ println(files.elements.get()) // [.../dir2]
 This feature caters to plugin developers.
 It is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Property.html#convention-T-) methods that have been available on lazy properties since Gradle 5.1.
 
+<a name="replace-method"></a>
+#### Updating lazy property based on its current value with `replace()`
+
+[Lazy configuration](userguide/lazy_configuration.html) delays calculating a property’s value until it is required for the build.
+Sometimes it is necessary to modify the property based on its current value, for example, by appending something to it.
+Previously, the only way to do that was to obtain the current value explicitly by calling `Property.get()`:
+
+```
+val property = objects.property<String>()
+property.set("some value")
+property.set("${property.get()} and more" })
+
+println(property.get()) // "some value and more""
+```
+
+This could lead to performance issues like configuration cache misses.
+Trying to build the value lazily, for example, by using `property.set(property.map { "$it and more" })`, causes build failure because of a circular reference evaluation.
+
+[`Property`](javadoc/org/gradle/api/provider/Property.html#replace-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#replace-org.gradle.api.Transformer-) now provide their respective `replace(Transformer<...>)` methods that allow lazily building the new value based on the current one:
+
+```
+val property = objects.property<String>()
+property.set("some value")
+property.replace { it.map { "$it and more" } }
+
+println(property.get()) // "some value and more"
+```
+
+Refer to the Javadoc for [`Property.replace(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#replace-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.replace(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#replace-org.gradle.api.Transformer-) for more details, including limitations.
+
 #### Improved error handling for toolchain resolvers
 
 When attempting to download Java toolchains from the configured resolvers, errors will be better handled now, and all resolvers will be tried.
@@ -97,6 +127,32 @@ In such a case, Gradle should retry the auto-provisioning process with other con
 This was also not the case before the fix.
 
 
+<a name="other"></a>
+### Other improvements
+
+#### Tests metadata improvements in tooling API
+
+IDEs and other tools leverage the tooling API to access information about tests executed by Gradle.
+Each test event sent via the tooling API includes a test descriptor containing metadata such as a human-readable name, class name, and method name.
+
+We introduced a new method to the `TestOperationDescriptor` interface to provide the test display name – `getTestDisplayName`.
+It returns the display name of the test that can be used by IDEs to present the test in a human-readable format.
+It is transparently passed from the frameworks, enabling IDEs to use them without requiring transformations.
+Previously, the display name could be obtained only by parsing the operation display name, which was not always reliable.
+
+Additionally, for JUnit5 and Spock, we updated the test descriptor for dynamic and parameterized tests to include information about the class name and method name containing the test.
+These enhancements enable IDEs to offer improved navigation and reporting capabilities for dynamic and parameterized tests.
+
+#### Fix IDE performance issues with large projects
+
+A performance issue in the Tooling API causing delays at the end of task execution in large projects has been identified and fixed by a community member.
+This problem occurred while transmitting task information for executed tasks to the IDE. 
+
+After executing approximately 15,000 tasks, the IDE would encounter a delay of several seconds. 
+The root cause was that much more information than needed was serialized via the Tooling API.
+We added a test to the fix to ensure there will be no future regression, demonstrating a performance improvement of around 12%.
+The environments that benefit from this fix are Android Studio, IntelliJ IDEA, Eclipse, and other Tooling API clients.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
@@ -104,10 +160,31 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
+
+This Gradle release promotes the following features to stable:
+
+### File permissions API
+
+The new API for defining file permissions (added in Gradle 8.3) is now stable, see:
+
+* [FilePermissions](javadoc/org/gradle/api/file/FilePermissions.html)
+* [ConfigurableFilePermissions](javadoc/org/gradle/api/file/ConfigurableFilePermissions.html)
+* [CopyProcessingSpec.getFilePermissions()](javadoc/org/gradle/api/file/CopyProcessingSpec.html#getFilePermissions--)
+* [CopyProcessingSpec.filePermissions(Action)](javadoc/org/gradle/api/file/CopyProcessingSpec.html#filePermissions-org.gradle.api.Action-)
+* [CopyProcessingSpec.getDirPermissions()](javadoc/org/gradle/api/file/CopyProcessingSpec.html#getDirPermissions--)
+* [CopyProcessingSpec.dirPermissions(Action)](javadoc/org/gradle/api/file/CopyProcessingSpec.html#dirPermissions-org.gradle.api.Action-)
+* [FileCopyDetails.permissions(Action)](javadoc/org/gradle/api/file/FileCopyDetails.html#permissions-org.gradle.api.Action-)
+* [FileCopyDetails.setPermissions(FilePermissions)](javadoc/org/gradle/api/file/FileCopyDetails.html#setPermissions-org.gradle.api.file.FilePermissions-)
+* [FileSystemOperations.filePermissions(Action)](javadoc/org/gradle/api/file/FileSystemOperations.html#filePermissions-org.gradle.api.Action-)
+* [FileSystemOperations.directoryPermissions(Action)](javadoc/org/gradle/api/file/FileSystemOperations.html#directoryPermissions-org.gradle.api.Action-)
+* [FileSystemOperations.permissions(int)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-int-)
+* [FileSystemOperations.permissions(String)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-java.lang.String-)
+* [FileSystemOperations.permissions(Provider)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-org.gradle.api.provider.Provider-)
+* [FileTreeElement.getPermissions()](javadoc/org/gradle/api/file/FileTreeElement.html#getPermissions--)
 
 <!--
 ### Example promoted
@@ -121,7 +198,7 @@ This section will be populated automatically
 
 ## Known issues
 
-Known issues are problems that were discovered post release that are directly related to changes made in this release.
+Known issues are problems that were discovered post-release that are directly related to changes made in this release.
 
 <!--
 This section will be populated automatically

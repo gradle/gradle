@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.verification.signatures;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.net.URI;
 import java.util.List;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface SignatureVerificationServiceFactory {
     SignatureVerificationService create(BuildTreeDefinedKeys keyrings, List<URI> keyServers, boolean useKeyServers);
 }

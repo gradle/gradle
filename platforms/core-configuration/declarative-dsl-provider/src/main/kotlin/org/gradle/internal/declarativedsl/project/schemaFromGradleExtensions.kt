@@ -26,7 +26,6 @@ import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
-import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
@@ -62,7 +61,7 @@ class ThirdPartyExtensionsComponent(
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
-        projectExtensionConfiguringFunctions(extensions)
+        extensionConfiguringFunctions(schemaTypeToExtend, extensions)
     )
 
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
@@ -107,16 +106,14 @@ class RuntimeExtensionAccessors(info: List<ExtensionInfo>) : RuntimeCustomAccess
     val extensionsByIdentifier = info.associate { it.customAccessorId to it.extensionProvider() }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
-        if (receiverObject is Project)
-            extensionsByIdentifier[accessor.customAccessorIdentifier]
-        else null
+        extensionsByIdentifier[accessor.customAccessorIdentifier]
 }
 
 
 private
-fun projectExtensionConfiguringFunctions(extensionInfo: Iterable<ExtensionInfo>): FunctionExtractor = object : FunctionExtractor {
+fun extensionConfiguringFunctions(typeToExtend: KClass<*>, extensionInfo: Iterable<ExtensionInfo>): FunctionExtractor = object : FunctionExtractor {
     override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        if (kClass == ProjectTopLevelReceiver::class) extensionInfo.map(ExtensionInfo::schemaFunction) else emptyList()
+        if (kClass == typeToExtend) extensionInfo.map(ExtensionInfo::schemaFunction) else emptyList()
 
     override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
 

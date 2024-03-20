@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.function.Function;
@@ -28,7 +28,7 @@ import static org.gradle.internal.component.model.VariantResolveMetadata.Identif
  *
  * This cache contains ResolvedVariants for the entire build.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface ResolvedVariantCache {
     /**
      * Caches resolved variants created by the given function if the identifier is eligible for caching.

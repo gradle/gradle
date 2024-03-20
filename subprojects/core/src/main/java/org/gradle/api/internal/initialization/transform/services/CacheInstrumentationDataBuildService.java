@@ -19,7 +19,9 @@ package org.gradle.api.internal.initialization.transform.services;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.initialization.transform.InstrumentationArtifactMetadata;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
+import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
@@ -42,7 +44,6 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 
 public abstract class CacheInstrumentationDataBuildService implements BuildService<BuildServiceParameters.None> {
 
@@ -68,11 +69,15 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     }
 
     /**
-     * Returns the original file for the given hash. It's possible that multiple files have the same content,
+     * Returns the original file for the given metadata. It's possible that multiple files have the same content,
      * so this method returns just one. For instrumentation is not important which one is returned.
      */
-    public File getOriginalFile(long contextId, String hash) {
-        return checkNotNull(getResolutionData(contextId).getOriginalFile(hash), "Original file for hash '%s' does not exist!", hash);
+    public File getOriginalFile(long contextId, InstrumentationArtifactMetadata metadata) {
+        String hash = metadata.getArtifactHash();
+        String artifactName = metadata.getArtifactName();
+        return checkNotNull(getResolutionData(contextId).getOriginalFile(metadata.getArtifactHash()),
+            "Original file for artifact with name '%s' and hash '%s' does not exist! " +
+                "That indicates that artifact changed during resolution from another process. That is not supported!", artifactName, hash);
     }
 
     @Nullable
@@ -80,8 +85,8 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         return getResolutionData(contextId).getArtifactHash(file);
     }
 
-    public FileCollection getOriginalClasspath(long contextId) {
-        return getResolutionData(contextId).getOriginalClasspath();
+    public FileCollection getAnalysisResult(long contextId) {
+        return getResolutionData(contextId).getAnalysisResult();
     }
 
     private ResolutionData getResolutionData(long contextId) {
@@ -130,8 +135,9 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         public ResolutionData(InjectedInstrumentationServices internalServices) {
             this.hashCache = new ConcurrentHashMap<>();
             this.hashToOriginalFile = Lazy.locking().of(() -> {
-                Map<String, File> originalFiles = new HashMap<>(getOriginalClasspath().getFiles().size());
-                getOriginalClasspath().forEach(file -> {
+                Set<File> originalClasspath = getOriginalClasspath().getFiles();
+                Map<String, File> originalFiles = new HashMap<>(originalClasspath.size());
+                originalClasspath.forEach(file -> {
                     String fileHash = getArtifactHash(file);
                     if (fileHash != null) {
                         originalFiles.put(fileHash, file);
@@ -147,30 +153,28 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             this.internalServices = internalServices;
         }
 
-        public abstract ConfigurableFileCollection getAnalysisResult();
-        public abstract ConfigurableFileCollection getOriginalClasspath();
+        abstract ConfigurableFileCollection getAnalysisResult();
+        abstract ConfigurableFileCollection getOriginalClasspath();
 
         private Map<String, Set<String>> readDirectSuperTypes() {
-            Set<File> directories = getAnalysisResult().getFiles();
             InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(internalServices.getStringInterner());
-            return directories.stream()
-                .filter(File::isDirectory)
-                .map(dir -> new File(dir, SUPER_TYPES_FILE_NAME))
-                .flatMap(file -> serializer.readTypesMap(file).entrySet().stream())
+            return getAnalysisResult().getFiles().stream()
+                .filter(InstrumentationTransformUtils::isAnalysisFile)
+                .flatMap(file -> serializer.readOnlyTypeHierarchy(file).entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Sets::union));
         }
 
-        public InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
+        private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {
             return instrumentationTypeRegistry.get();
         }
 
         @Nullable
-        public File getOriginalFile(String hash) {
+        private File getOriginalFile(String hash) {
             return hashToOriginalFile.get().get(hash);
         }
 
         @Nullable
-        public String getArtifactHash(File file) {
+        private String getArtifactHash(File file) {
             return hashCache.computeIfAbsent(file, __ -> {
                 Hasher hasher = Hashing.newHasher();
                 FileSystemLocationSnapshot snapshot = internalServices.getFileSystemAccess().read(file.getAbsolutePath());
@@ -180,10 +184,8 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
 
                 hasher.putHash(snapshot.getHash());
                 hasher.putString(file.getName());
-                hasher.putBoolean(internalServices.getGlobalCacheLocations().isInsideGlobalCache(file.getAbsolutePath()));
                 return hasher.hash().toString();
             });
         }
-
     }
 }

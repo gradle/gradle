@@ -264,7 +264,6 @@ public class TransformedClassPath implements ClassPath {
         return builder.toString();
     }
 
-
     /**
      * Constructs a TransformedClassPath out of the ordinary JAR/directory list, strict produced by the instrumenting ArtifactTransform.
      *
@@ -284,9 +283,9 @@ public class TransformedClassPath implements ClassPath {
      * @param classPath the classpath to process
      * @return the classpath that carries the instrumentation mappings if needed
      */
-    public static ClassPath handleInstrumentingArtifactTransform(ClassPath classPath) {
-        if (classPath.isEmpty() || classPath instanceof TransformedClassPath) {
-            return classPath;
+    public static ClassPath handleInstrumentingArtifactTransform(List<File> classPath) {
+        if (classPath.isEmpty()) {
+            return DefaultClassPath.of(classPath);
         }
 
         int resultSize = computeResultSizeOfInstrumentingArtifactTransformOutput(classPath);
@@ -296,10 +295,10 @@ public class TransformedClassPath implements ClassPath {
     /**
      * Each instrumented entry has a corresponding original entry, but not necessarily vice versa, so the number of originals is the size of the result.
      */
-    private static int computeResultSizeOfInstrumentingArtifactTransformOutput(ClassPath classPath) {
+    private static int computeResultSizeOfInstrumentingArtifactTransformOutput(List<File> classPath) {
         int resultSize = 0;
-        for (int i = 0; i < classPath.getAsFiles().size(); ++i) {
-            File markerFile = classPath.getAsFiles().get(i);
+        for (int i = 0; i < classPath.size(); ++i) {
+            File markerFile = classPath.get(i);
             if (markerFile.getName().equals(AGENT_INSTRUMENTATION_MARKER_FILE_NAME)) {
                 // Marker file will be followed by instrumented entry and original entry.
                 i += 2;
@@ -313,15 +312,13 @@ public class TransformedClassPath implements ClassPath {
         return resultSize;
     }
 
-    private static TransformedClassPath fromInstrumentingArtifactTransformOutputWithExpectedSize(ClassPath classPath, int resultSize) {
-        List<File> inputFiles = classPath.getAsFiles();
-
+    private static TransformedClassPath fromInstrumentingArtifactTransformOutputWithExpectedSize(List<File> inputFiles, int resultSize) {
         Builder result = builderWithExactSize(resultSize);
         for (int i = 0; i < inputFiles.size();) {
             File markerFile = inputFiles.get(i++);
             if (markerFile.getName().equals(AGENT_INSTRUMENTATION_MARKER_FILE_NAME)) {
                 // Agent instrumentation always contain 3 entries:
-                // [a marker, a transformed file, a copy of original file or placeholder]
+                // [a marker, a transformed file, an original file or a copy of it]
                 checkArgument(i + 1 < inputFiles.size(), "Missing the instrumented or original entry for classpath %s", inputFiles);
                 File instrumentedEntry = inputFiles.get(i++);
                 File originalEntry = inputFiles.get(i++);

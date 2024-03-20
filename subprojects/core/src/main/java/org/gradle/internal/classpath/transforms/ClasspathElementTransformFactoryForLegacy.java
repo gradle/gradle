@@ -25,7 +25,7 @@ import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.JarUtil;
@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public class ClasspathElementTransformFactoryForLegacy implements ClasspathElementTransformFactory {
 
     private final ClasspathBuilder classpathBuilder;

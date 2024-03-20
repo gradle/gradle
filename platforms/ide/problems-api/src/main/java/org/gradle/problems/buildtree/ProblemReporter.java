@@ -16,7 +16,7 @@
 
 package org.gradle.problems.buildtree;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
@@ -26,7 +26,7 @@ import java.io.File;
  * in some form.
  */
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface ProblemReporter {
     interface ProblemConsumer {
         void accept(Throwable throwable);

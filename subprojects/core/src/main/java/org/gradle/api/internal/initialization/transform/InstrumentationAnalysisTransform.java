@@ -50,24 +50,23 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCIES_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.FILE_MISSING_HASH;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.METADATA_FILE_NAME;
-import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.SUPER_TYPES_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.outputOriginalArtifact;
 import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 /**
  * A transform that analyzes an artifact: it discovers all super types for classes in an artifact and all class dependencies.<br><br>
  *
- * Outputs 4 files:<br>
+ * Outputs 5 files:<br>
  * 1. Instrumentation classpath marker file.<br>
  * 2. A properties file with original file hash and original file name.<br>
  * 3. A file with all classes that this artifact depends on.<br>
  * 4. A properties file with all direct super types for every class in an artifact.<br><br>
+ * 5. Original artifact.
  *
  * A file with all direct super types is a properties file like:<br>
  * [class name 1]=[super type 1],[super type 2],...<br>
@@ -83,6 +82,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         @Internal
         Property<Long> getContextId();
     }
+
     private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang/");
 
     private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
@@ -101,7 +101,6 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
             // Files can be passed to the artifact transform even if they don't exist,
             // in the case when user adds a file classpath via files("path/to/jar").
             // Unfortunately we don't filter them out before the artifact transform is run.
-            writeOutput(artifact, outputs, Collections.emptyMap(), Collections.emptySet());
             return;
         }
 
@@ -148,26 +147,19 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     }
 
     private void writeOutput(File artifact, TransformOutputs outputs, Map<String, Set<String>> superTypes, Set<String> dependencies) {
-        createInstrumentationClasspathMarker(outputs);
-
         StringInterner stringInterner = internalServices.get().getStringInterner();
         InstrumentationAnalysisSerializer serializer = new InstrumentationAnalysisSerializer(stringInterner);
-        File outputDir = outputs.dir(ANALYSIS_OUTPUT_DIR);
-
-        File metadataFile = new File(outputDir, METADATA_FILE_NAME);
-        serializer.writeMetadata(metadataFile, getArtifactMetadata(artifact));
-
-        File superTypesFile = new File(outputDir, SUPER_TYPES_FILE_NAME);
-        serializer.writeTypesMap(superTypesFile, superTypes);
-
-        File dependenciesFile = new File(outputDir, DEPENDENCIES_FILE_NAME);
-        serializer.writeTypes(dependenciesFile, dependencies);
+        createInstrumentationClasspathMarker(outputs);
+        File analysisFile = outputs.file(ANALYSIS_OUTPUT_DIR + "/" + ANALYSIS_FILE_NAME);
+        InstrumentationArtifactMetadata metadata = getArtifactMetadata(artifact);
+        serializer.writeAnalysis(analysisFile, metadata, superTypes, dependencies);
+        outputOriginalArtifact(outputs, artifact);
     }
 
     private InstrumentationArtifactMetadata getArtifactMetadata(File artifact) {
         long contextId = getParameters().getContextId().get();
         CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
-        String hash = firstNonNull(buildService.getArtifactHash(contextId, artifact), FILE_MISSING_HASH);
+        String hash = checkNotNull(buildService.getArtifactHash(contextId, artifact), "Hash for artifact '%s' is null, that indicates that artifact doesn't exist!", artifact);
         return new InstrumentationArtifactMetadata(artifact.getName(), hash);
     }
 }

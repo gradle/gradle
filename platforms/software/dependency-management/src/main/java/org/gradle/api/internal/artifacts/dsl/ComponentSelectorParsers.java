@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
@@ -33,6 +34,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
+import java.util.Collections;
 import java.util.Set;
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
@@ -103,7 +105,7 @@ public class ComponentSelectorParsers {
 
         @Override
         public void convert(Project notation, NotationConvertResult<? super ComponentSelector> result) throws TypeConversionException {
-            result.converted(DefaultProjectComponentSelector.newSelector(notation));
+            result.converted(DefaultProjectComponentSelector.newSelector(notation, ImmutableAttributes.EMPTY, Collections.emptyList()));
         }
     }
 }

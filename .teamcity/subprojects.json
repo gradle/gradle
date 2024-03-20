@@ -199,7 +199,7 @@
     "name": "declarative-dsl-core",
     "path": "platforms/core-configuration/declarative-dsl-core",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -346,6 +346,13 @@
     "name": "execution",
     "path": "platforms/core-execution/execution",
     "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "execution-e2e-tests",
+    "path": "platforms/core-execution/execution-e2e-tests",
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },

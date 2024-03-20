@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
@@ -31,7 +31,7 @@ import java.util.function.Consumer;
 /**
  * A registry of all the builds present in a build tree.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildStateRegistry {
     /**
      * Creates the root build.

@@ -27,6 +27,7 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.OffsetInFileLocation
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.TaskPathLocation
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion("=8.6")
 @TargetGradleVersion(">=8.6")
@@ -68,6 +69,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     }
 
     static def assertProblemDetailsForTAPIProblemEvent(List<?> problems, String expectedDetails = null, String expectedDocumentation = null) {
+        assertProblemDetailsForTAPIProblemEventWithoutSolution(problems, expectedDetails, expectedDocumentation)
+        problems[0].solutions[0].solution == 'try this instead'
+    }
+
+    static void assertProblemDetailsForTAPIProblemEventWithoutSolution(List<?> problems, String expectedDetails, String expectedDocumentation) {
         problems.size() == 1
         problems[0].category.namespace == 'org.example.plugin'
         problems[0].category.category == 'main'
@@ -86,7 +92,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[0].locations[1] instanceof TaskPathLocation
         problems[0].documentationLink.url == expectedDocumentation
         problems[0].solutions.size() == 1
-        problems[0].solutions[0].solution == 'try this instead'
     }
 
     @TargetGradleVersion("=8.3")
@@ -122,9 +127,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
             for(int i = 0; i < 10; i++) {
-                problems.forNamespace("org.example.plugin").reporting{
-                    it.label("The 'standard-plugin' is deprecated")
-                        .category("deprecation", "plugin")
+                problems.forNamespace("org.example.plugin").reporting {
+                    it.${targetVersion < GradleVersion.version("8.8") ? 'label("The \'standard-plugin\' is deprecated").category("deprecation", "plugin")' : 'id("adhoc-deprecation", "The \'standard-plugin\' is deprecated")' }
                         .severity(Severity.WARNING)
                         .solution("Please use 'standard-plugin-2' instead of this plugin")
                     }
@@ -147,23 +151,15 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def firstProblem = problems[0].getDescriptor()
         firstProblem.label.label == "The 'standard-plugin' is deprecated"
         firstProblem.details.details == null
-
-        def aggregatedProblems = problems[1].getDescriptor()
-
-        def aggregations = aggregatedProblems.aggregations
-        aggregations.size() == 1
-        aggregations[0].label.label == "The 'standard-plugin' is deprecated"
-        aggregations[0].problemDescriptors.size() == 10
     }
 
     def "Problems expose details via Tooling API events"() {
         given:
         withReportProblemTask """
             getProblems().forNamespace("org.example.plugin").reporting {
-                it.label("shortProblemMessage")
+                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
-                .category("main", "sub", "id")
                 $detailsConfig
                 .additionalData("aKey", "aValue")
                 .severity(Severity.WARNING)
@@ -188,10 +184,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
             getProblems().forNamespace("org.example.plugin").reporting {
-                        it.label("shortProblemMessage")
-                        .category("main", "sub", "id")
-                        .fileLocation("/tmp/foo")
-                    }
+                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                .fileLocation("/tmp/foo")
+            }
         """
 
         when:
@@ -207,8 +202,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
             getProblems().forNamespace("org.example.plugin").reporting {
-                it.label("shortProblemMessage")
-                .category("main", "sub", "id")
+                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
                 .lineInFileLocation("/tmp/foo", 1)
             }
         """
@@ -230,8 +224,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
                 getProblems().forNamespace("org.example.plugin").reporting {
-                    it.label("shortProblemMessage")
-                    .category("main", "sub", "id")
+                    it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
                     .lineInFileLocation("/tmp/foo", 1, 2)
                 }
         """
@@ -252,8 +245,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
             getProblems().forNamespace("org.example.plugin").reporting {
-                it.label("shortProblemMessage")
-                .category("main", "sub", "id")
+                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
             }
         """
@@ -274,8 +266,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
             getProblems().forNamespace("org.example.plugin").reporting {
-                it.label("shortProblemMessage")
-                .category("main", "sub", "id")
+                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
                 .offsetInFileLocation("/tmp/foo", 20, 10)
             }
         """
