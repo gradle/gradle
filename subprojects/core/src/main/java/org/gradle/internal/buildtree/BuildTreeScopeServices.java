@@ -58,6 +58,7 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.failure.CompositeStackTraceClassifier;
 import org.gradle.internal.failure.DefaultFailureFactory;
+import org.gradle.internal.failure.InternalCallStackTraceClassifier;
 import org.gradle.internal.failure.StackTraceClassifier;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -153,6 +154,7 @@ public class BuildTreeScopeServices {
 
     protected FailureFactory createFailureFactory() {
         return new DefaultFailureFactory(new CompositeStackTraceClassifier(ImmutableList.of(
+            new InternalCallStackTraceClassifier(),
             new StackTraceClassifier.UserCode()
         )));
     }

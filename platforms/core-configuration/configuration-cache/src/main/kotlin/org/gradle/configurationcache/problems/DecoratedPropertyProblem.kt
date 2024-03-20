@@ -16,8 +16,11 @@
 
 package org.gradle.configurationcache.problems
 
+import org.gradle.internal.failure.FailurePrinter
+import org.gradle.internal.failure.FailurePrinterListener
+import org.gradle.internal.failure.StackFramePredicate
 import org.gradle.internal.problems.failure.StackTraceRelevance
-import org.gradle.internal.failure.StackTracePrinter
+import org.gradle.internal.problems.failure.Failure
 
 
 internal
@@ -58,18 +61,72 @@ inline fun String.isStackFrameLine(locationPredicate: (String) -> Boolean): Bool
 
 
 internal
-class ExceptionDecorator(
-    private val stackTracePrinter: StackTracePrinter,
-) {
+class ExceptionDecorator {
 
-    fun decorateException(exception: Throwable): DecoratedException {
-        val parts = stackTracePrinter.printAsParts(exception)
+    private val stringBuilder = StringBuilder()
 
+    fun decorateException(failure: Failure): DecoratedException {
         return DecoratedException(
-            exception,
-            exceptionSummaryFor(exception),
-            parts.map { StackTracePart(isInternal = it.relevance != StackTraceRelevance.USER_CODE, it.text) }
+            failure.original,
+            exceptionSummaryFor(failure.original),
+            partitionedTraceFor(failure)
         )
+    }
+
+    private
+    fun partitionedTraceFor(failure: Failure): List<StackTracePart> {
+        val listener = PartitioningFailurePrinterListener(stringBuilder)
+        try {
+            FailurePrinter()
+                .print(stringBuilder, failure, StackFramePredicate.TRUE, listener)
+            return listener.parts
+        } finally {
+            stringBuilder.setLength(0)
+        }
+    }
+
+    private
+    class PartitioningFailurePrinterListener(
+        private val buffer: StringBuilder
+    ) : FailurePrinterListener {
+
+        private var lastIsInternal: Boolean? = null
+
+        val parts = mutableListOf<StackTracePart>()
+
+        override fun beforeFrames() {
+            cutPart(false)
+        }
+
+        override fun beforeFrame(element: StackTraceElement, relevance: StackTraceRelevance) {
+            val lastIsInternal = lastIsInternal
+            val curIsInternal = relevance.isInternalForDisplay()
+            if (lastIsInternal != null && lastIsInternal != curIsInternal) {
+                cutPart(lastIsInternal)
+            }
+            this.lastIsInternal = curIsInternal
+        }
+
+        override fun afterFrames() {
+            val lastIsInternal = lastIsInternal ?: return
+            cutPart(lastIsInternal)
+            this.lastIsInternal = null
+        }
+
+        private
+        fun cutPart(isInternal: Boolean) {
+            val text = drainBuffer()
+            parts += StackTracePart(isInternal, text)
+        }
+
+        private
+        fun drainBuffer(): String = buffer.toString().also { buffer.setLength(0) }
+
+        private
+        fun StackTraceRelevance.isInternalForDisplay() = when (this) {
+            StackTraceRelevance.USER_CODE -> false
+            else -> true
+        }
     }
 
     private
@@ -110,24 +167,3 @@ fun String.isInternalStackFrame(): Boolean =
         startsWith("org.codehaus.groovy.") ||
         // Gradle calls
         startsWith("org.gradle.")
-
-
-/**
- * Splits the list into chunks where each chunk corresponds to the continuous
- * range of list items corresponding to the same [category][categorize].
- *
- * It differs from `groupBy`, because grouping does not take continuity of item ranges
- * with the same category into account.
- */
-private
-fun <T, C> List<T>.chunkedBy(categorize: (T) -> C): List<Pair<C, List<T>>> {
-    return this.fold(mutableListOf<Pair<C, MutableList<T>>>()) { acc, item ->
-        val category = categorize(item)
-        if (acc.isNotEmpty() && acc.last().first == category) {
-            acc.last().second.add(item)
-        } else {
-            acc.add(category to mutableListOf(item))
-        }
-        acc
-    }
-}

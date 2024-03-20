@@ -23,11 +23,11 @@ import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
-import org.gradle.internal.failure.StackTracePart
-import org.gradle.internal.failure.StackTracePrinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream
+import org.gradle.internal.problems.failure.Failure
+import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
@@ -41,7 +41,8 @@ import kotlin.contracts.contract
 class ConfigurationCacheReport(
     executorFactory: ExecutorFactory,
     temporaryFileProvider: TemporaryFileProvider,
-    internalOptions: InternalOptions
+    internalOptions: InternalOptions,
+    private val failureFactory: FailureFactory
 ) : Closeable {
 
     companion object {
@@ -210,15 +211,7 @@ class ConfigurationCacheReport(
     val stackTraceExtractor = StackTraceExtractor()
 
     private
-    val exceptionDecorator = ExceptionDecorator(object : StackTracePrinter {
-        override fun print(throwable: Throwable): String {
-            TODO("Not yet implemented")
-        }
-
-        override fun printAsParts(throwable: Throwable): MutableList<StackTracePart> {
-            TODO("Not yet implemented")
-        }
-    })
+    val exceptionDecorator = ExceptionDecorator()
 
     private
     fun decorateProblem(problem: PropertyProblem): DecoratedPropertyProblem {
@@ -226,9 +219,14 @@ class ConfigurationCacheReport(
         return DecoratedPropertyProblem(
             problem.trace,
             decorateMessage(problem),
-            exception?.let { exceptionDecorator.decorateException(it) },
+            exception?.let { exceptionDecorator.decorateException(it.toFailure()) },
             problem.documentationSection
         )
+    }
+
+    private
+    fun Throwable.toFailure(): Failure {
+        return failureFactory.create(this, null)
     }
 
     private
