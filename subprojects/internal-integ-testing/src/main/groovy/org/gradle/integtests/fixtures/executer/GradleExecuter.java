@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static org.gradle.integtests.fixtures.executer.DocumentationUtils.normalizeDocumentationLink;
+
 public interface GradleExecuter extends Stoppable {
     /**
      * Sets the working directory to use. Defaults to the test's temporary directory.
@@ -358,7 +360,19 @@ public interface GradleExecuter extends Stoppable {
      * link and you don't want to (ironically) see code testing deprecation appearing as if it itself were deprecated.
      */
     default GradleExecuter expectDeprecationWarning(String warning) {
-        return expectDeprecationWarning(new ExpectedDeprecationWarning(warning));
+        return expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(warning));
+    }
+
+    default GradleExecuter expectDeprecationWarningWithPattern(String pattern) {
+        return expectDeprecationWarning(ExpectedDeprecationWarning.withSingleLinePattern(pattern));
+    }
+
+    default GradleExecuter expectDeprecationWarningWithMultilinePattern(String pattern) {
+        return expectDeprecationWarningWithMultilinePattern(pattern, pattern.split("\n").length);
+    }
+
+    default GradleExecuter expectDeprecationWarningWithMultilinePattern(String pattern, int numLines) {
+        return expectDeprecationWarning(ExpectedDeprecationWarning.withMultiLinePattern(pattern, numLines));
     }
 
     GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning);
@@ -367,10 +381,8 @@ public interface GradleExecuter extends Stoppable {
      * Expects the given deprecation warning, allowing to pass documentation url with /current/ version and asserting against the actual current version instead.
      */
     default GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        return expectDocumentedDeprecationWarning(new ExpectedDeprecationWarning(warning));
+        return expectDeprecationWarning(normalizeDocumentationLink(warning));
     }
-
-    GradleExecuter expectDocumentedDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during
