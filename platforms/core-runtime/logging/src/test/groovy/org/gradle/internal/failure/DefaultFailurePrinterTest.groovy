@@ -17,6 +17,8 @@
 package org.gradle.internal.failure
 
 import com.google.common.collect.ImmutableList
+import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.problems.failure.StackTraceRelevance
 import spock.lang.Specification
@@ -77,6 +79,26 @@ class DefaultFailurePrinterTest extends Specification {
         printer.print(f) == expected
     }
 
+    def "supports multi-case exceptions"() {
+        def e = new DefaultMultiCauseException("BOOM", new RuntimeException("one"), new RuntimeException("two"))
+
+        def printer = new DefaultFailurePrinter()
+        def f = toFailure(e)
+
+        def expected = getTraceString(e)
+        def actual = printer.print(f)
+
+        expect:
+        // First, validate the assumptions about the default multi-cause exception printing.
+        // Cannot compare the entire output, because `DefaultMultiCauseException` does not support stack trace tail trimming
+        expected.contains("Cause 1: java.lang.RuntimeException: one")
+        expected.contains("Cause 2: java.lang.RuntimeException: two")
+
+        and:
+        actual.contains("Cause 1: java.lang.RuntimeException: one")
+        actual.contains("Cause 2: java.lang.RuntimeException: two")
+    }
+
     private static Failure toFailure(Throwable t) {
         def stack = ImmutableList.of(t.stackTrace)
         def relevances = Collections.nCopies(stack.size(), StackTraceRelevance.USER_CODE)
@@ -86,6 +108,10 @@ class DefaultFailurePrinterTest extends Specification {
     }
 
     private static List<Throwable> getCauses(Throwable t) {
+        if (t instanceof MultiCauseException) {
+            return t.causes
+        }
+
         t.getCause() == null ? ImmutableList.of() : ImmutableList.of(t.getCause())
     }
 
