@@ -31,6 +31,9 @@ dependencies {
         api("org.jlleitschuh.gradle:ktlint-gradle:10.3.0")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
         api("com.autonomousapps:dependency-analysis-gradle-plugin:0.71.0")
+        api("com.squareup.okio:okio:3.4.0") { // later versions require higher versions of Kotlin
+            because("Bump version brought in by dependency-analysis-gradle-plugin, to resolve CVE-2022-3635")
+        }
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
@@ -56,6 +59,9 @@ dependencies {
         api("org.spockframework:spock-junit4:2.1-groovy-3.0")
         api("org.asciidoctor:asciidoctorj:2.4.3")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.4")
+        api("com.fasterxml.woodstox:woodstox-core:6.4.0") {
+            because("CVE-2022-40152 on lower versions")
+        }
         api("com.beust:jcommander:1.78")
         api("org.codehaus.groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2")
