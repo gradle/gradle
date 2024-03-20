@@ -78,10 +78,18 @@ class ExceptionDecorator {
         val listener = PartitioningFailurePrinterListener(stringBuilder)
         try {
             FailurePrinter()
-                .print(stringBuilder, failure, StackFramePredicate.TRUE, listener)
+                .print(stringBuilder, failure, DisplayStackFramePredicate, listener)
             return listener.parts
         } finally {
             stringBuilder.setLength(0)
+        }
+    }
+
+    private
+    object DisplayStackFramePredicate : StackFramePredicate {
+        override fun test(frame: StackTraceElement, relevance: StackTraceRelevance): Boolean {
+            return relevance == StackTraceRelevance.USER_CODE
+                || relevance == StackTraceRelevance.RUNTIME
         }
     }
 

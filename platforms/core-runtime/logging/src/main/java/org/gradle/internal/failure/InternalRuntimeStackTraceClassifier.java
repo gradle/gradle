@@ -20,7 +20,7 @@ import org.gradle.internal.problems.failure.StackTraceRelevance;
 
 import javax.annotation.Nullable;
 
-public class InternalCallStackTraceClassifier implements StackTraceClassifier {
+public class InternalRuntimeStackTraceClassifier implements StackTraceClassifier {
 
     @Nullable
     @Override

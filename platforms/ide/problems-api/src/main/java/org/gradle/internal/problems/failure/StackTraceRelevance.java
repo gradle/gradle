@@ -19,6 +19,5 @@ package org.gradle.internal.problems.failure;
 public enum StackTraceRelevance {
     USER_CODE,
     RUNTIME,
-    // TODO: add Gradle infra
     SYSTEM
 }
