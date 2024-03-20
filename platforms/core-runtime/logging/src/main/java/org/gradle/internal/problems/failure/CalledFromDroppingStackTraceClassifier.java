@@ -21,7 +21,8 @@ import javax.annotation.Nullable;
 public class CalledFromDroppingStackTraceClassifier implements StackTraceClassifier {
 
     private final Class<?> calledFrom;
-    private Boolean calledFromFound = false;
+    private boolean found;
+    private boolean done;
 
     public CalledFromDroppingStackTraceClassifier(Class<?> calledFrom) {
         this.calledFrom = calledFrom;
@@ -30,20 +31,18 @@ public class CalledFromDroppingStackTraceClassifier implements StackTraceClassif
     @Nullable
     @Override
     public StackTraceRelevance classify(StackTraceElement frame) {
-        if (calledFromFound == null) {
+        if (done) {
             return null;
         }
 
         boolean matches = frame.getClassName().startsWith(calledFrom.getName());
-        if (!calledFromFound) {
-            if (matches) {
-                calledFromFound = true;
-            }
-        } else {
-            if (!matches) {
-                calledFromFound = null;
-                return null;
-            }
+        if (found && !matches) {
+            done = true;
+            return null;
+        }
+
+        if (matches) {
+            found = true;
         }
 
         return StackTraceRelevance.SYSTEM;
