@@ -28,10 +28,17 @@ import java.nio.file.attribute.BasicFileAttributes
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
 import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INSTRUMENTATION_CLASSPATH_MARKER
+
 /**
  * A mutator that cleans up the artifact transform cache directory, but leaves folders with the instrumented jars.
  *
- * This mutator should be moved to the gradle-profiler.
+ * Since buildscript classpath instrumentation also uses artifact transforms, we can avoid
+ * re-instrumenting jars by applying this mutator.
+ *
+ * In other words, this mutator can be applied to a scenario that tests performance of artifact transforms,
+ * but does not want to test impact of re-instrumenting jars.
+ *
+ * This mutator could be also moved to the gradle-profiler.
  */
 class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends ClearArtifactTransformCacheMutator {
 

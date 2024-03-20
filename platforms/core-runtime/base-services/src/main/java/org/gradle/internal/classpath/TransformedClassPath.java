@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.specs.Spec;
 
@@ -27,7 +28,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -319,7 +319,7 @@ public class TransformedClassPath implements ClassPath {
     }
 
     private static ClassPath fromInstrumentingArtifactTransformOutput(List<File> inputFiles) {
-        Map<File, File> transformedEntries = new LinkedHashMap<File, File>(inputFiles.size());
+        Map<File, File> transformedEntries = Maps.newLinkedHashMapWithExpectedSize(inputFiles.size());
         for (int i = 0; i < inputFiles.size();) {
             File markerFile = inputFiles.get(i++);
             FileMarker fileMarker = FileMarker.of(markerFile.getName());
@@ -360,7 +360,6 @@ public class TransformedClassPath implements ClassPath {
         }
         return result.build();
     }
-
 
     /**
      * Base-services still uses Java 6, so we can't use Map#putIfAbsent.
