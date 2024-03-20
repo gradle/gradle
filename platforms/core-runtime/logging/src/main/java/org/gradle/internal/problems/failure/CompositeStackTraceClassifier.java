@@ -14,23 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.failure;
-
-import org.gradle.internal.problems.failure.StackTraceRelevance;
+package org.gradle.internal.problems.failure;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
-public interface StackTraceClassifier {
+public class CompositeStackTraceClassifier implements StackTraceClassifier {
 
-    @Nullable
-    StackTraceRelevance classify(StackTraceElement frame);
+    private final List<StackTraceClassifier> classifiers;
 
-    class UserCode implements StackTraceClassifier {
-
-        @Override
-        public StackTraceRelevance classify(StackTraceElement frame) {
-            return StackTraceRelevance.USER_CODE;
-        }
+    public CompositeStackTraceClassifier(List<StackTraceClassifier> classifiers) {
+        this.classifiers = classifiers;
     }
 
+    @Nullable
+    @Override
+    public StackTraceRelevance classify(StackTraceElement frame) {
+        for (StackTraceClassifier classifier : classifiers) {
+            StackTraceRelevance relevance = classifier.classify(frame);
+            if (relevance != null) {
+                return relevance;
+            }
+        }
+        return null;
+    }
 }

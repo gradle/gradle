@@ -16,9 +16,9 @@
 
 package org.gradle.configurationcache.problems
 
-import org.gradle.internal.failure.FailurePrinter
-import org.gradle.internal.failure.FailurePrinterListener
-import org.gradle.internal.failure.StackFramePredicate
+import org.gradle.internal.problems.failure.FailurePrinter
+import org.gradle.internal.problems.failure.FailurePrinterListener
+import org.gradle.internal.problems.failure.StackFramePredicate
 import org.gradle.internal.problems.failure.StackTraceRelevance
 import org.gradle.internal.problems.failure.Failure
 

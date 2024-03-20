@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.failure;
+package org.gradle.internal.problems.failure;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.problems.failure.Failure;
-import org.gradle.internal.problems.failure.FailureFactory;
-import org.gradle.internal.problems.failure.StackTraceRelevance;
 import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;

@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.failure;
+package org.gradle.internal.problems.failure;
 
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.problems.failure.Failure;
-import org.gradle.internal.problems.failure.StackTraceRelevance;
 
 import javax.annotation.Nullable;
 import java.io.IOException;

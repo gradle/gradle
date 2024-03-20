@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.failure;
+package org.gradle.internal.problems.failure;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.problems.failure.Failure;
-import org.gradle.internal.problems.failure.StackTraceRelevance;
 
 import java.util.List;
 

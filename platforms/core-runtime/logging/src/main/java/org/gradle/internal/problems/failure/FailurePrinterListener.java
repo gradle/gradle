@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.failure;
-
-import org.gradle.internal.problems.failure.StackTraceRelevance;
+package org.gradle.internal.problems.failure;
 
 public interface FailurePrinterListener {
 

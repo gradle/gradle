@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.failure;
-
-import org.gradle.internal.problems.failure.StackTraceRelevance;
+package org.gradle.internal.problems.failure;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
-public class CompositeStackTraceClassifier implements StackTraceClassifier {
-
-    private final List<StackTraceClassifier> classifiers;
-
-    public CompositeStackTraceClassifier(List<StackTraceClassifier> classifiers) {
-        this.classifiers = classifiers;
-    }
+public class SystemCallStackTraceClassifier implements StackTraceClassifier {
 
     @Nullable
     @Override
     public StackTraceRelevance classify(StackTraceElement frame) {
-        for (StackTraceClassifier classifier : classifiers) {
-            StackTraceRelevance relevance = classifier.classify(frame);
-            if (relevance != null) {
-                return relevance;
-            }
-        }
-        return null;
+        return isSystemStackFrame(frame.getClassName()) ? StackTraceRelevance.SYSTEM : null;
+    }
+
+    private static boolean isSystemStackFrame(String className) {
+        return className.startsWith("jdk.internal.") ||
+            className.startsWith("sun.") ||
+            className.startsWith("com.sun.") ||
+            className.startsWith("org.codehaus.groovy.") ||
+            className.startsWith("org.gradle.internal.metaobject.") ||
+            className.startsWith("org.gradle.kotlin.dsl.execution.");
     }
 }

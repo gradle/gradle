@@ -19,7 +19,9 @@ package org.gradle.internal.failure
 import com.google.common.collect.ImmutableList
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
+import org.gradle.internal.problems.failure.DefaultFailure
 import org.gradle.internal.problems.failure.Failure
+import org.gradle.internal.problems.failure.FailurePrinter
 import org.gradle.internal.problems.failure.StackTraceRelevance
 import spock.lang.Specification
 

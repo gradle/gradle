@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.failure;
+package org.gradle.internal.problems.failure;
 
-import org.gradle.internal.problems.failure.StackTraceRelevance;
+import javax.annotation.Nullable;
 
-public interface StackFramePredicate {
+public interface StackTraceClassifier {
 
-    StackFramePredicate TRUE = new StackFramePredicate() {
+    @Nullable
+    StackTraceRelevance classify(StackTraceElement frame);
+
+    class UserCode implements StackTraceClassifier {
+
         @Override
-        public boolean test(StackTraceElement frame, StackTraceRelevance relevance) {
-            return true;
+        public StackTraceRelevance classify(StackTraceElement frame) {
+            return StackTraceRelevance.USER_CODE;
         }
-    };
-
-    boolean test(StackTraceElement frame, StackTraceRelevance relevance);
+    }
 
 }

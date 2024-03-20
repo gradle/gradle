@@ -14,5 +14,17 @@
  * limitations under the License.
  */
 
-@org.gradle.api.NonNullApi
-package org.gradle.internal.failure;
+package org.gradle.internal.problems.failure;
+
+public interface StackFramePredicate {
+
+    StackFramePredicate TRUE = new StackFramePredicate() {
+        @Override
+        public boolean test(StackTraceElement frame, StackTraceRelevance relevance) {
+            return true;
+        }
+    };
+
+    boolean test(StackTraceElement frame, StackTraceRelevance relevance);
+
+}
