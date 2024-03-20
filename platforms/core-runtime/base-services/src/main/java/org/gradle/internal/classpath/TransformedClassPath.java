@@ -350,6 +350,7 @@ public class TransformedClassPath implements ClassPath {
                     // Ignore these markers
                     break;
                 case UNKNOWN_FILE_MARKER:
+                default:
                     throw new IllegalArgumentException("Unexpected marker file: " + markerFile + " in instrumented buildscript classpath. " +
                         "Possible reason: Injecting custom artifact transform in between instrumentation stages is not supported.");
             }
