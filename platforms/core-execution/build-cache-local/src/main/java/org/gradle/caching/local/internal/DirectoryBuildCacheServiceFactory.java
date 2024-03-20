@@ -17,6 +17,7 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.PersistentCache;
@@ -53,6 +54,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final PathToFileResolver resolver;
     private final CleanupActionDecorator cleanupActionDecorator;
     private final FileAccessTimeJournal fileAccessTimeJournal;
+    private final CacheConfigurationsInternal cacheConfigurations;
 
     @Inject
     public DirectoryBuildCacheServiceFactory(
@@ -60,13 +62,15 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         PathToFileResolver resolver,
         CleanupActionDecorator cleanupActionDecorator,
-        FileAccessTimeJournal fileAccessTimeJournal
+        FileAccessTimeJournal fileAccessTimeJournal,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
         this.cacheBuilderFactory = cacheBuilderFactory;
         this.resolver = resolver;
         this.cleanupActionDecorator = cleanupActionDecorator;
         this.fileAccessTimeJournal = fileAccessTimeJournal;
+        this.cacheConfigurations = cacheConfigurations;
     }
 
     @Override
@@ -98,7 +102,10 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     }
 
     private CacheCleanupStrategy createCacheCleanupStrategy(Supplier<Long> removeUnusedEntriesTimestamp) {
-        return DefaultCacheCleanupStrategy.from(cleanupActionDecorator.decorate(createCleanupAction(removeUnusedEntriesTimestamp)));
+        return DefaultCacheCleanupStrategy.from(
+            cleanupActionDecorator.decorate(createCleanupAction(removeUnusedEntriesTimestamp)),
+            cacheConfigurations.getCleanupFrequency()::get
+        );
     }
 
     private LeastRecentlyUsedCacheCleanup createCleanupAction(Supplier<Long> removeUnusedEntriesTimestamp) {

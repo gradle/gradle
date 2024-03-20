@@ -77,7 +77,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         """
     }
 
-    def "cleans up entries"() {
+    def "cleans up entries when #cleanupTrigger"() {
         long lastCleanupCheck = initializeHome()
 
         when:
@@ -93,13 +93,22 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
         when:
-        lastCleanupCheck = markCacheLastCleaned(twoDaysAgo())
+        if (alwaysCleanup) {
+            alwaysCleanupCaches()
+        } else {
+            markCacheLastCleaned(twoDaysAgo())
+        }
         run()
 
         then:
         existsBuildCacheEntry("0" * hashStringLength)
         !existsBuildCacheEntry("1" * hashStringLength)
         assertCacheWasCleanedUpSince(lastCleanupCheck)
+
+        where:
+        cleanupTrigger              | alwaysCleanup
+        "check interval has passed" | false
+        "explicitly enabled"        | true
     }
 
     def "cleans up entries even if gradle user home cache cleanup is disabled via #cleanupMethod"() {
@@ -127,8 +136,8 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
 
         then:
         existsBuildCacheEntry("0" * hashStringLength)
-        !existsBuildCacheEntry("1" * hashStringLength)
-        assertCacheWasCleanedUpSince(lastCleanupCheck)
+        existsBuildCacheEntry("1" * hashStringLength)
+        assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
         where:
         cleanupMethod << CleanupMethod.values()
@@ -177,7 +186,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         days << [-1, 0]
     }
 
-    def "build cache cleanup is triggered after max number of hours expires"() {
+    def "cleanup is triggered after max number of hours expires"() {
         def originalCheckTime = initializeHome()
 
         // One hour isn't enough to trigger
