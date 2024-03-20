@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.executer;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Represents a deprecation warning message that is expected to be emitted by a test.
@@ -26,26 +27,57 @@ import java.util.List;
  * This class exists to support the detection of deprecation warnings that span multiple lines,
  * which may include the keyword "{@code deprecated}" multiple times.
  */
-public final class ExpectedDeprecationWarning {
-    private final String message;
+public abstract class ExpectedDeprecationWarning {
+
     private final int numLines;
 
-    public ExpectedDeprecationWarning(String message) {
-        Preconditions.checkArgument(message != null && !message.isEmpty(), "message must not be null or empty");
-        this.message = message;
-        this.numLines = message.split("\n").length;
+    public ExpectedDeprecationWarning(int numLines) {
+        this.numLines = numLines;
     }
 
-    /**
-     * Get the (possibly multi-line) message that is expected to be emitted by a test.
-     * @return the expected message
-     */
-    public String getMessage() {
-        return message;
+    public static ExpectedDeprecationWarning withMessage(String message) {
+        Preconditions.checkArgument(message != null && !message.isEmpty(), "message must not be null or empty");
+        int numLines = message.split("\n").length;
+        return new ExpectedDeprecationWarning(numLines) {
+            @Override
+            protected boolean matchesNextLines(String nextLines) {
+                return message.equals(nextLines);
+            }
+
+            @Override
+            public String toString() {
+                return message;
+            }
+        };
+    }
+
+    public static ExpectedDeprecationWarning withSingleLinePattern(String pattern) {
+        Preconditions.checkArgument(pattern != null && !pattern.isEmpty(), "pattern must not be null or empty");
+        return withPattern(Pattern.compile(pattern), 1);
+    }
+
+    public static ExpectedDeprecationWarning withMultiLinePattern(String pattern, int numLines) {
+        Preconditions.checkArgument(pattern != null && !pattern.isEmpty(), "pattern must not be null or empty");
+        return withPattern(Pattern.compile("(?m)" + pattern), numLines);
+    }
+
+    private static ExpectedDeprecationWarning withPattern(Pattern pattern, int numLines) {
+        return new ExpectedDeprecationWarning(numLines) {
+            @Override
+            protected boolean matchesNextLines(String nextLines) {
+                return pattern.matcher(nextLines).matches();
+            }
+
+            @Override
+            public String toString() {
+                return pattern.toString();
+            }
+        };
     }
 
     /**
      * Get the number of lines that the expected message spans.
+     *
      * @return the number of lines in this message
      */
     public int getNumLines() {
@@ -54,21 +86,17 @@ public final class ExpectedDeprecationWarning {
 
     /**
      * Check if the given lines, starting at the given index, match the expected message.
+     *
      * @param lines the lines to check
      * @param startIndex the index of the first line to check
      * @return {@code true} if the lines match the expected message, {@code false} otherwise
      */
     public boolean matchesNextLines(List<String> lines, int startIndex) {
-        if (numLines == 1) {
-            return lines.get(startIndex).equals(message); // Quicker match for single-line warnings
-        } else {
-            String actualLines = String.join("\n", lines.subList(startIndex, Math.min(startIndex + numLines, lines.size())));
-            return message.equals(actualLines);
-        }
+        String nextLines = numLines == 1
+            ? lines.get(startIndex)
+            : String.join("\n", lines.subList(startIndex, Math.min(startIndex + numLines, lines.size())));
+        return matchesNextLines(nextLines);
     }
 
-    @Override
-    public String toString() {
-        return message;
-    }
+    protected abstract boolean matchesNextLines(String nextLines);
 }
