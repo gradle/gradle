@@ -37,15 +37,15 @@ public class FailurePrinter {
         return printToStringImpl(failure, predicate, null);
     }
 
-    public String printToString(Failure failure, StackFramePredicate predicate, FailurePrinterStackFrameListener listener) {
+    public String printToString(Failure failure, StackFramePredicate predicate, FailurePrinterListener listener) {
         return printToStringImpl(failure, predicate, listener);
     }
 
-    public void printToString(Appendable output, Failure failure, StackFramePredicate predicate, FailurePrinterStackFrameListener listener) {
+    public void print(Appendable output, Failure failure, StackFramePredicate predicate, FailurePrinterListener listener) {
         new Printing(output, predicate, listener).print(failure);
     }
 
-    private String printToStringImpl(Failure failure, StackFramePredicate predicate, @Nullable FailurePrinterStackFrameListener listener) {
+    private String printToStringImpl(Failure failure, StackFramePredicate predicate, @Nullable FailurePrinterListener listener) {
         StringBuilder sb = new StringBuilder();
         new Printing(sb, predicate, listener).print(failure);
         return sb.toString();
@@ -55,7 +55,7 @@ public class FailurePrinter {
 
         private final StackFramePredicate predicate;
         @Nullable
-        private final FailurePrinterStackFrameListener listener;
+        private final FailurePrinterListener listener;
 
         private final Appendable builder;
         private final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
@@ -64,7 +64,7 @@ public class FailurePrinter {
         private Printing(
             Appendable builder,
             StackFramePredicate predicate,
-            @Nullable FailurePrinterStackFrameListener listener
+            @Nullable FailurePrinterListener listener
         ) {
             this.predicate = predicate;
             this.listener = listener;
@@ -95,7 +95,14 @@ public class FailurePrinter {
                 .append(failure.getHeader())
                 .append(lineSeparator);
 
-            appendStackTrace(prefix, parent, failure);
+            if (listener == null) {
+                appendFrames(prefix, parent, failure);
+            } else {
+                listener.beforeFrames();
+                appendFrames(prefix, parent, failure);
+                listener.afterFrames();
+            }
+
             appendSuppressed(prefix, failure);
             appendCauses(prefix, failure);
         }
@@ -117,7 +124,7 @@ public class FailurePrinter {
             }
         }
 
-        private void appendStackTrace(String prefix, @Nullable Failure parent, Failure failure) throws IOException {
+        private void appendFrames(String prefix, @Nullable Failure parent, Failure failure) throws IOException {
             List<StackTraceElement> stackTrace = failure.getStackTrace();
 
             int commonTailSize = parent == null ? 0 : countCommonTailFrames(stackTrace, parent.getStackTrace());

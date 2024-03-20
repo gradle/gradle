@@ -18,8 +18,12 @@ package org.gradle.internal.failure;
 
 import org.gradle.internal.problems.failure.StackTraceRelevance;
 
-public interface FailurePrinterStackFrameListener {
+public interface FailurePrinterListener {
+
+    void beforeFrames();
 
     void beforeFrame(StackTraceElement element, StackTraceRelevance relevance);
+
+    void afterFrames();
 
 }
