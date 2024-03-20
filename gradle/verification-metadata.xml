@@ -754,8 +754,8 @@
             <pgp value="6DD3B8C64EF75253BEB2C53AD908A43FB7EC07AC"/>
          </artifact>
       </component>
-      <component group="com.swoval" name="file-tree-views" version="2.1.10">
-         <artifact name="file-tree-views-2.1.10.jar">
+      <component group="com.swoval" name="file-tree-views" version="2.1.12">
+         <artifact name="file-tree-views-2.1.12.jar">
             <pgp value="EE2CFEB6A2AECF44C781C5C3DCD5181297A43D24"/>
          </artifact>
       </component>
@@ -1566,8 +1566,8 @@
             <pgp value="DBE61B6BA51DFCAEDED256477090AF43A5E10D0B"/>
          </artifact>
       </component>
-      <component group="org.scala-lang.modules" name="scala-xml_2.13" version="2.1.0">
-         <artifact name="scala-xml_2.13-2.1.0.jar">
+      <component group="org.scala-lang.modules" name="scala-xml_2.13" version="2.2.0">
+         <artifact name="scala-xml_2.13-2.2.0.jar">
             <pgp value="600D21219963F228200A72375365A8A69292AF1A"/>
          </artifact>
       </component>
