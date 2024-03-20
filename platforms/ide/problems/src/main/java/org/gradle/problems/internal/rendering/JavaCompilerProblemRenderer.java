@@ -16,36 +16,42 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.problems.internal.DefaultProblemCategory;
-import org.gradle.api.problems.internal.ProblemCategory;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.problems.rendering.ProblemRenderer;
 
 import java.util.List;
+import java.util.function.Predicate;
 
+@NonNullApi
 public class JavaCompilerProblemRenderer implements ProblemRenderer {
 
     @Override
-    public void render(List<ProblemReport> problems) {
+    public void render(List<Problem> problems) {
         problems
             .stream()
             .filter(JavaCompilerProblemRenderer::isJavaCompilerProblem)
             .forEach(JavaCompilerProblemRenderer::printFormattedMessageToErrorStream);
     }
 
-    private static void printFormattedMessageToErrorStream(ProblemReport problem) {
-        String formatted = (String) problem.getContext().getAdditionalData().get("formatted");
+    private static void printFormattedMessageToErrorStream(Problem problem) {
+        String formatted = (String) problem.getAdditionalData().get("formatted");
         System.err.println(formatted);
     }
 
-    private static boolean isJavaCompilerProblem(ProblemReport problem) {
-        ProblemCategory category = problem.getDefinition().getCategory();
-        if (category.getSubcategories().isEmpty()) {
-            return false;
-        }
+    private static boolean isJavaCompilerProblem(Problem problem) {
+        return hasGroup(problem.getDefinition().getId().getGroup(), problemGroup -> GradleCoreProblemGroup.compilation().java().equals(problemGroup));
+    }
 
-        return category.getNamespace().equals(DefaultProblemCategory.GRADLE_CORE_NAMESPACE) &&
-            category.getCategory().equals("compilation") &&
-            category.getSubcategories().get(0).equals("java");
+    private static boolean hasGroup(ProblemGroup problemGroup, Predicate<ProblemGroup> selector) {
+        if (problemGroup == null) {
+            return false;
+        } else if (selector.test(problemGroup)) {
+            return true;
+        } else {
+            return hasGroup(problemGroup.getParent(), selector);
+        }
     }
 }

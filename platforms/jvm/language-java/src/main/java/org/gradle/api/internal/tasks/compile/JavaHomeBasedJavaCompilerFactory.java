@@ -20,7 +20,6 @@ import com.sun.tools.javac.util.Context;
 import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
