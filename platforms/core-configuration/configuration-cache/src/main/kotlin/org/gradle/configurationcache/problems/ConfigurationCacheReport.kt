@@ -26,6 +26,8 @@ import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream
+import org.gradle.internal.problems.failure.Failure
+import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
@@ -39,7 +41,8 @@ import kotlin.contracts.contract
 class ConfigurationCacheReport(
     executorFactory: ExecutorFactory,
     temporaryFileProvider: TemporaryFileProvider,
-    internalOptions: InternalOptions
+    internalOptions: InternalOptions,
+    private val failureFactory: FailureFactory
 ) : Closeable {
 
     companion object {
@@ -205,31 +208,34 @@ class ConfigurationCacheReport(
     val stateLock = Object()
 
     private
-    val stackTraceExtractor = StackTraceExtractor()
-
-    private
-    val exceptionDecorator = ExceptionDecorator(stackTraceExtractor::stackTraceStringFor)
+    val failureDecorator = FailureDecorator()
 
     private
     fun decorateProblem(problem: PropertyProblem): DecoratedPropertyProblem {
         val exception = problem.exception
+        val failure = exception?.toFailure()
         return DecoratedPropertyProblem(
             problem.trace,
-            decorateMessage(problem),
-            exception?.let { exceptionDecorator.decorateException(it) },
+            decorateMessage(problem, failure),
+            failure?.let { failureDecorator.decorate(it) },
             problem.documentationSection
         )
     }
 
     private
-    fun decorateMessage(problem: PropertyProblem): StructuredMessage {
-        if (!isStacktraceHashes || problem.exception == null) {
+    fun Throwable.toFailure(): Failure {
+        return failureFactory.create(this)
+    }
+
+    private
+    fun decorateMessage(problem: PropertyProblem, failure: Failure?): StructuredMessage {
+        if (!isStacktraceHashes || failure == null) {
             return problem.message
         }
 
-        val exceptionHash = problem.exception.hashWithoutMessages()
+        val failureHash = failure.hashWithoutMessages()
         return StructuredMessage.build {
-            reference("[${exceptionHash.toCompactString()}]")
+            reference("[${failureHash.toCompactString()}]")
             text(" ")
             message(problem.message)
         }
@@ -285,18 +291,22 @@ class ConfigurationCacheReport(
      * occurring at the same location.
      */
     private
-    fun Throwable.hashWithoutMessages(): HashCode {
-        val e = this@hashWithoutMessages
-        return Hashing.newHasher().apply {
-            putString(e.javaClass.name)
-            // Ignore messages and only take stack frames into account
-            stackTraceStringFor(e).lineSequence()
-                .filter { it.isStackFrameLine() }
-                .forEach { putString(it) }
-        }.hash()
+    fun Failure.hashWithoutMessages(): HashCode {
+        val root = this@hashWithoutMessages
+        val hasher = Hashing.newHasher()
+        for (failure in sequence { visitFailures(root) }) {
+            hasher.putString(failure.exceptionType.name)
+            for (element in failure.stackTrace) {
+                hasher.putString(element.toString())
+            }
+        }
+        return hasher.hash()
     }
 
     private
-    fun stackTraceStringFor(error: Throwable): String =
-        stackTraceExtractor.stackTraceStringFor(error)
+    suspend fun SequenceScope<Failure>.visitFailures(failure: Failure) {
+        yield(failure)
+        failure.suppressed.forEach { visitFailures(it) }
+        failure.causes.forEach { visitFailures(it) }
+    }
 }

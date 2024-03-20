@@ -16,19 +16,24 @@
 
 package org.gradle.configurationcache.problems
 
+import org.gradle.internal.problems.failure.FailurePrinter
+import org.gradle.internal.problems.failure.FailurePrinterListener
+import org.gradle.internal.problems.failure.StackFramePredicate
+import org.gradle.internal.problems.failure.StackTraceRelevance
+import org.gradle.internal.problems.failure.Failure
+
 
 internal
 data class DecoratedPropertyProblem(
     val trace: PropertyTrace,
     val message: StructuredMessage,
-    val exception: DecoratedException? = null,
+    val failure: DecoratedFailure? = null,
     val documentationSection: DocumentationSection? = null
 )
 
 
 internal
-data class DecoratedException(
-    val original: Throwable,
+data class DecoratedFailure(
     val summary: StructuredMessage?,
     val parts: List<StackTracePart>
 )
@@ -42,94 +47,96 @@ data class StackTracePart(
 
 
 internal
-fun String.isStackFrameLine(): Boolean =
-    isStackFrameLine { true }
+class FailureDecorator {
 
+    private
+    val stringBuilder = StringBuilder()
 
-internal
-inline fun String.isStackFrameLine(locationPredicate: (String) -> Boolean): Boolean {
-    val at = "at "
-    return startsWith("\t")
-        && trimStart('\t').let { it.startsWith(at) && locationPredicate(it.substring(at.length)) }
-}
-
-
-internal
-class ExceptionDecorator(
-    private val stackTraceExtractor: (Throwable) -> String
-) {
-
-    fun decorateException(exception: Throwable): DecoratedException {
-        val fullText = stackTraceExtractor(exception)
-        val parts = fullText.lines().chunkedBy { line ->
-            line.isStackFrameLine { it.isInternalStackFrame() }
-        }
-
-        return DecoratedException(
-            exception,
-            exceptionSummaryFor(exception),
-            parts.map { (isInternal, lines) ->
-                StackTracePart(isInternal, lines.joinToString("\n"))
-            }
+    fun decorate(failure: Failure): DecoratedFailure {
+        return DecoratedFailure(
+            exceptionSummaryFor(failure),
+            partitionedTraceFor(failure)
         )
     }
 
     private
-    fun exceptionSummaryFor(exception: Throwable): StructuredMessage? {
-        val stackTrace = exception.stackTrace
-        val deepestNonInternalCall = stackTrace.firstOrNull {
-            !it.className.isInternalStackFrame()
-        } ?: return null
+    fun partitionedTraceFor(failure: Failure): List<StackTracePart> {
+        val listener = PartitioningFailurePrinterListener(stringBuilder)
+        try {
+            FailurePrinter.print(stringBuilder, failure, DisplayStackFramePredicate, listener)
+            return listener.parts
+        } finally {
+            stringBuilder.setLength(0)
+        }
+    }
 
-        return exceptionSummaryFrom(deepestNonInternalCall)
+    private
+    fun exceptionSummaryFor(failure: Failure): StructuredMessage? {
+        failure.stackTrace.forEachIndexed { index, element ->
+            if (failure.getStackTraceRelevance(index) == StackTraceRelevance.USER_CODE) {
+                return exceptionSummaryFrom(element)
+            }
+        }
+
+        return null
     }
 
     private
     fun exceptionSummaryFrom(elem: StackTraceElement) = StructuredMessage.build {
         text("at ")
-        reference(buildString {
-            append("${elem.className}.${elem.methodName}(")
-            val fileName = elem.fileName
-            if (fileName != null) {
-                append("$fileName:${elem.lineNumber}")
-            } else {
-                append("Unknown Source")
-            }
-            append(")")
-        })
+        reference(elem.toString())
     }
-}
 
+    private
+    class PartitioningFailurePrinterListener(
+        private val buffer: StringBuilder
+    ) : FailurePrinterListener {
 
-private
-fun String.isInternalStackFrame(): Boolean =
-    // JDK calls
-    startsWith("java.") ||
-        startsWith("jdk.internal.") ||
-        startsWith("com.sun.proxy.") ||
-        // Groovy calls
-        startsWith("groovy.lang.") ||
-        startsWith("org.codehaus.groovy.") ||
-        // Gradle calls
-        startsWith("org.gradle.")
+        private
+        var lastIsInternal: Boolean? = null
 
+        val parts = mutableListOf<StackTracePart>()
 
-/**
- * Splits the list into chunks where each chunk corresponds to the continuous
- * range of list items corresponding to the same [category][categorize].
- *
- * It differs from `groupBy`, because grouping does not take continuity of item ranges
- * with the same category into account.
- */
-private
-fun <T, C> List<T>.chunkedBy(categorize: (T) -> C): List<Pair<C, List<T>>> {
-    return this.fold(mutableListOf<Pair<C, MutableList<T>>>()) { acc, item ->
-        val category = categorize(item)
-        if (acc.isNotEmpty() && acc.last().first == category) {
-            acc.last().second.add(item)
-        } else {
-            acc.add(category to mutableListOf(item))
+        override fun beforeFrames() {
+            cutPart(false)
         }
-        acc
+
+        override fun beforeFrame(element: StackTraceElement, relevance: StackTraceRelevance) {
+            val lastIsInternal = lastIsInternal
+            val curIsInternal = relevance.isInternalForDisplay()
+            if (lastIsInternal != null && lastIsInternal != curIsInternal) {
+                cutPart(lastIsInternal)
+            }
+            this.lastIsInternal = curIsInternal
+        }
+
+        override fun afterFrames() {
+            val lastIsInternal = lastIsInternal ?: return
+            cutPart(lastIsInternal)
+            this.lastIsInternal = null
+        }
+
+        private
+        fun cutPart(isInternal: Boolean) {
+            val text = drainBuffer()
+            parts += StackTracePart(isInternal, text)
+        }
+
+        private
+        fun drainBuffer(): String = buffer.toString().also { buffer.setLength(0) }
+
+        private
+        fun StackTraceRelevance.isInternalForDisplay() = when (this) {
+            StackTraceRelevance.USER_CODE -> false
+            else -> true
+        }
+    }
+
+    private
+    object DisplayStackFramePredicate : StackFramePredicate {
+        override fun test(frame: StackTraceElement, relevance: StackTraceRelevance): Boolean {
+            return relevance == StackTraceRelevance.USER_CODE
+                || relevance == StackTraceRelevance.RUNTIME
+        }
     }
 }
