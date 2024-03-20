@@ -124,7 +124,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         // hierarchy will not change anymore and all configurations in the hierarchy
         // will no longer be mutated.
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
-        CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> dependencies =
+        CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyState> dependencies =
             getConfigurationDependencyState(configurationsProvider, dependencyCache, model, calculatedValueContainerFactory, description, hierarchy, attributes);
 
         List<PublishArtifact> sourceArtifacts = artifactBuilder.build();
@@ -201,7 +201,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     /**
      * Lazily collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
      */
-    private CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> getConfigurationDependencyState(
+    private CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyState> getConfigurationDependencyState(
         ConfigurationsProvider configurationsProvider,
         DependencyCache dependencyCache,
         ModelContainer<?> model,
@@ -225,7 +225,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             });
 
             DependencyState state = new DependencyState(dependencies.build(), files.build(), excludes.build());
-            return new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(
+            return new DefaultLocalConfigurationMetadata.ConfigurationDependencyState(
                 maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
             );
         }));

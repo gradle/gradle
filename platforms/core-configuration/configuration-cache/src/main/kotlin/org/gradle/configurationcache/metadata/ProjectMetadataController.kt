@@ -41,7 +41,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
 import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata
-import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata
+import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata.ConfigurationDependencyState
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
@@ -156,7 +156,7 @@ class ProjectMetadataController(
         val variants = readVariants(factory).toSet()
 
         val dependencyMetadata = factory.create(Describables.of(configurationName, "dependencies"), ValueCalculator {
-            ConfigurationDependencyMetadata(
+            ConfigurationDependencyState(
                 dependencies, emptySet(), emptyList(),
             )
         })

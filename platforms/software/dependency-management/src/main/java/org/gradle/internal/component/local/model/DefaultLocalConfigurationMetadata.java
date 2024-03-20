@@ -36,9 +36,6 @@ import java.util.Set;
 
 /**
  * Default implementation of {@link LocalConfigurationMetadata} used to represent a single Configuration.
- * <p>
- * TODO: This class should be split up into a separate Metadata and State type in order to track
- * artifact resolution state separately.
  */
 public final class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata, LocalConfigurationGraphResolveMetadata {
 
@@ -53,9 +50,9 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
     private final boolean deprecatedForConsumption;
     private final boolean canBeResolved;
     private final ImmutableCapabilities capabilities;
-    private final CalculatedValue<ConfigurationDependencyMetadata> dependencies;
 
-    // TODO: Move all this lazy artifact stuff to a "State" type.
+    // TODO: All this lazy state should be moved to DefaultLocalConfigurationGraphResolveState
+    private final CalculatedValue<ConfigurationDependencyState> dependencies;
     private final Set<LocalVariantMetadata> variants;
     private final CalculatedValueContainerFactory factory;
     private final CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts;
@@ -72,7 +69,7 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
         boolean canBeConsumed,
         boolean deprecatedForConsumption,
         boolean canBeResolved,
-        CalculatedValue<ConfigurationDependencyMetadata> dependencies,
+        CalculatedValue<ConfigurationDependencyState> dependencies,
         Set<LocalVariantMetadata> variants,
         CalculatedValueContainerFactory factory,
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts
@@ -232,12 +229,12 @@ public final class DefaultLocalConfigurationMetadata implements LocalConfigurati
      * The aggregated dependencies, dependency constraints, and excludes for this
      * configuration and all configurations in its hierarchy.
      */
-    public static class ConfigurationDependencyMetadata {
+    public static class ConfigurationDependencyState {
         public final List<LocalOriginDependencyMetadata> dependencies;
         public final Set<LocalFileDependencyMetadata> files;
         public final ImmutableList<ExcludeMetadata> excludes;
 
-        public ConfigurationDependencyMetadata(
+        public ConfigurationDependencyState(
             List<LocalOriginDependencyMetadata> dependencies,
             Set<LocalFileDependencyMetadata> files,
             List<ExcludeMetadata> excludes

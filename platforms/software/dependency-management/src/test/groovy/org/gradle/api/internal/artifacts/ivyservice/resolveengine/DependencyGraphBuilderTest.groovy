@@ -1076,9 +1076,9 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def newConfiguration(String name, ComponentIdentifier componentId, List<String> extendsFrom, List<LocalOriginDependencyMetadata> dependencies, List<LocalComponentArtifactMetadata> artifacts) {
-        CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata> dependencyMetadata =
+        CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyState> dependencyMetadata =
             TestUtil.calculatedValueContainerFactory().create(Describables.of(name, "dependencies"),
-                new DefaultLocalConfigurationMetadata.ConfigurationDependencyMetadata(dependencies, [] as Set, [])
+                new DefaultLocalConfigurationMetadata.ConfigurationDependencyState(dependencies, [] as Set, [])
             )
 
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifactMetadata =
