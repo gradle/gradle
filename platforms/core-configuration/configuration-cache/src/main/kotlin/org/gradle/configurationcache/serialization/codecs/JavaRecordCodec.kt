@@ -41,15 +41,10 @@ object JavaRecordCodec : EncodingProducer, Decoding {
 
         val args = readFields(fields)
         val types = fields.map { it.type }.toTypedArray()
-        val constructor = try {
-            clazz.getConstructor(*types)
-        } catch (ex: ReflectiveOperationException) {
-            throw IllegalStateException("Failed to create instance of ${clazz.name} with args $args", ex)
-        }
         return try {
-            constructor.newInstance(*args.toTypedArray())
+            clazz.getConstructor(*types).newInstance(*args.toTypedArray())
         } catch (ex: Exception) {
-            createWithNulls(constructor, args)
+            throw IllegalStateException("Failed to create instance of ${clazz.name} with args $args", ex)
         }
     }
 
@@ -62,33 +57,20 @@ object JavaRecordCodec : EncodingProducer, Decoding {
                 reportUnsupportedFieldType(it, "deserialize", fieldName)
             }
             readPropertyValue(PropertyKind.Field, fieldName) { fieldValue ->
-                args.add(fieldValue)
+                if (fieldValue == null || field.type.isInstance(fieldValue) || field.type.isPrimitive) {
+                    args.add(fieldValue)
+                } else {
+                    logPropertyProblem("deserialize") {
+                        text("value ")
+                        reference(fieldValue.toString())
+                        text(" is not assignable to ")
+                        reference(field.type)
+                    }
+                    args.add(null)
+                }
             }
         }
         return args
-    }
-
-    private
-    fun ReadContext.createWithNulls(constructor: java.lang.reflect.Constructor<*>, args: List<Any?>): Any {
-        val updatedArgs = args.mapIndexed { index, value ->
-            val type = constructor.parameterTypes[index]
-            if (type.isInstance(value) || value == null) {
-                value
-            } else {
-                logPropertyProblem("deserialize") {
-                    text("value ")
-                    reference(value.toString())
-                    text(" is not assignable to ")
-                    reference(type)
-                }
-                null
-            }
-        }
-        try {
-            return constructor.newInstance(*updatedArgs.toTypedArray())
-        } catch (ex: Exception) {
-            throw IllegalStateException("Failed to create instance of ${constructor.declaringClass.name} with args $args", ex)
-        }
     }
 }
 

@@ -398,9 +398,90 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
     }
 
     @Requires(UnitTestPreconditions.Jdk14OrLater)
+    def "reports when task field references a record containing type #baseType"() {
+        file("buildSrc/src/main/java/JavaRecord.java") << """
+            public record JavaRecord(${baseType.name} value, int filler) {}
+        """
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+        """
+        buildFile << """
+            class SomeBean {
+                JavaRecord value
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+                private final JavaRecord value
+
+                SomeTask() {
+                    value = new JavaRecord(${reference}, 101)
+                    bean.value = new JavaRecord(${reference}, 202)
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.reference = " + value
+                    println "bean.reference = " + bean.value
+                }
+            }
+
+            task broken(type: SomeTask)
+        """
+
+        when:
+        configurationCacheRunLenient "broken"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(4)
+            withUniqueProblems(
+                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
+                "Task `:broken` of type `SomeTask`: cannot serialize object of type '$concreteTypeName', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
+            )
+            withProblemsWithStackTraceCount(0)
+        }
+
+        and:
+        outputContains("this.reference = JavaRecord[value=null, filler=101]")
+        outputContains("bean.reference = JavaRecord[value=null, filler=202]")
+
+        when:
+        configurationCacheRunLenient "broken"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(2)
+            withUniqueProblems(
+                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache."
+            )
+            withProblemsWithStackTraceCount(0)
+        }
+
+        and:
+        outputContains("this.reference = JavaRecord[value=null, filler=101]")
+        outputContains("bean.reference = JavaRecord[value=null, filler=202]")
+
+        where:
+        concreteType                          | baseType                       | reference
+        // Live JVM state
+        Thread                                | Thread                         | "Thread.currentThread()"
+        ByteArrayInputStream                  | InputStream                    | "new java.io.ByteArrayInputStream([] as byte[])"
+        Socket                                | Socket                         | "new java.net.Socket()"
+        // Gradle Build Model
+        DefaultGradle                         | Gradle                         | "project.gradle"
+        // Dependency Resolution Types
+        DefaultConfigurationContainer         | ConfigurationContainer         | "project.configurations"
+
+        concreteTypeName = concreteType instanceof Class ? concreteType.name : concreteType
+    }
+
+    @Requires(UnitTestPreconditions.Jdk14OrLater)
     def "reports when task field is declared with record containing type #baseType"() {
         file("buildSrc/src/main/java/JavaRecord.java") << """
-            public record JavaRecord(${baseType.name} value, String filler) {}
+            public record JavaRecord(${baseType.name} value, int filler) {}
         """
         file("buildSrc/build.gradle.kts") << """
             plugins {
@@ -418,8 +499,8 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
                 SomeTask() {
                     ${creator}
-                    value = new JavaRecord(${reference}, "some data")
-                    bean.value = new JavaRecord(${reference}, "some other data")
+                    value = new JavaRecord(${reference}, 101)
+                    bean.value = new JavaRecord(${reference}, 202)
                 }
 
                 @TaskAction
@@ -450,8 +531,8 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         configurationCacheRunLenient "broken"
 
         and:
-        outputContains("this.reference = JavaRecord[value=null, filler=some data]")
-        outputContains("bean.reference = JavaRecord[value=null, filler=some other data]")
+        outputContains("this.reference = JavaRecord[value=null, filler=101]")
+        outputContains("bean.reference = JavaRecord[value=null, filler=202]")
 
         then:
         problems.assertResultHasProblems(result) {
@@ -464,8 +545,8 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         }
 
         and:
-        outputContains("this.reference = JavaRecord[value=null, filler=some data]")
-        outputContains("bean.reference = JavaRecord[value=null, filler=some other data]")
+        outputContains("this.reference = JavaRecord[value=null, filler=101]")
+        outputContains("bean.reference = JavaRecord[value=null, filler=202]")
 
         where:
         concreteType                     | baseType           | creator                                     | reference                                            | deserializedValue
