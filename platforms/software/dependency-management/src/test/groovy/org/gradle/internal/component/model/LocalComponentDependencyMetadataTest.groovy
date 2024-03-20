@@ -75,7 +75,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def "selects the target configuration from target component"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), "to", [] as List, [], false, false, true, false, false, null)
         def toConfig = consumableConfiguration("to")
-        toComponent.getCandidatesForGraphVariantSelection().configurations.addAll(toConfig)
+        toComponent.getCandidatesForGraphVariantSelection().variants.addAll(toConfig)
 
         expect:
         dep.selectVariants(variantSelector, attributes([:]), toComponent, attributesSchema, [] as Set).variants == [toConfig]
@@ -86,7 +86,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), null, [] as List, [], false, false, true, false, false, null)
         def toFooVariant = variant('foo', attributes(key: 'something'))
         def toBarVariant = variant('bar', attributes(key: 'something else'))
-        toComponent.getCandidatesForGraphVariantSelection().configurations.addAll([toFooVariant, toBarVariant])
+        toComponent.getCandidatesForGraphVariantSelection().variants.addAll([toFooVariant, toBarVariant])
         attributesSchema.attribute(Attribute.of('key', String))
         attributesSchema.attribute(Attribute.of('extra', String))
 
@@ -103,7 +103,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def "revalidates default configuration if it has attributes"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Dependency.DEFAULT_CONFIGURATION, [] as List, [], false, false, true, false, false, null)
         def conf = defaultConfiguration(attributes(key: 'nothing'))
-        toComponent.getCandidatesForGraphVariantSelection().configurations.addAll(conf)
+        toComponent.getCandidatesForGraphVariantSelection().variants.addAll(conf)
         attributesSchema.attribute(Attribute.of('key', String))
         attributesSchema.attribute(Attribute.of('will', String))
 
@@ -120,7 +120,7 @@ Configuration 'default':
     def "revalidates explicit configuration selection if it has attributes"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), 'bar', [] as List, [], false, false, true, false, false, null)
         def conf = consumableConfiguration('bar', attributes(key: 'something else'))
-        toComponent.getCandidatesForGraphVariantSelection().configurations.addAll(conf)
+        toComponent.getCandidatesForGraphVariantSelection().variants.addAll(conf)
 
         attributesSchema.attribute(Attribute.of('key', String))
 
@@ -139,7 +139,7 @@ Configuration 'bar':
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), null, [] as List, [], false, false, true, false, false, null)
         def toFooVariant = variant('foo', attributes(fooAttributes))
         def toBarVariant = variant('bar', attributes(barAttributes))
-        toComponent.getCandidatesForGraphVariantSelection().configurations.addAll([toFooVariant, toBarVariant])
+        toComponent.getCandidatesForGraphVariantSelection().variants.addAll([toFooVariant, toBarVariant])
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }
             it.ordered(true, { a, b -> a <=> b })
@@ -188,7 +188,7 @@ Configuration 'bar':
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), null, [] as List, [], false, false, true, false, false, null)
         def toFooVariant = variant('foo', attributes(fooAttributes))
         def toBarVariant = variant('bar', attributes(barAttributes))
-        toComponent.getCandidatesForGraphVariantSelection().configurations.addAll([toFooVariant, toBarVariant])
+        toComponent.getCandidatesForGraphVariantSelection().variants.addAll([toFooVariant, toBarVariant])
         attributesSchema.attribute(Attribute.of('platform', JavaVersion), {
             it.ordered { a, b -> a <=> b }
             it.ordered(true, { a, b -> a <=> b })
@@ -292,7 +292,7 @@ Configuration 'bar':
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), null, [] as List, [], false, false, true, false, false, null)
         def toFooVariant = variant('foo', attributes(key: 'something'))
         def toBarVariant = variant('bar', attributes(key: 'something else'))
-        toComponent.getCandidatesForGraphVariantSelection().configurations.addAll([toFooVariant, toBarVariant])
+        toComponent.getCandidatesForGraphVariantSelection().variants.addAll([toFooVariant, toBarVariant])
         def attributeSchemaWithCompatibility = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         attributeSchemaWithCompatibility.attribute(Attribute.of('key', String), {
             it.compatibilityRules.add(EqualsValuesCompatibleRule)
@@ -375,21 +375,21 @@ Configuration 'bar':
     interface TestConfigurationState extends ConfigurationGraphResolveState, VariantGraphResolveState {}
 
     class TestGraphCandidates implements GraphSelectionCandidates {
-        List<VariantGraphResolveState> configurations = []
+        List<VariantGraphResolveState> variants = []
 
         @Override
-        boolean isUseVariants() {
-            !variants.isEmpty()
+        boolean supportsAttributeMatching() {
+            !variantsForAttributeMatching.isEmpty()
         }
 
         @Override
-        List<? extends VariantGraphResolveState> getVariants() {
-            configurations.findAll { it -> !it.attributes.isEmpty()}
+        List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
+            variants.findAll { it -> !it.attributes.isEmpty()}
         }
 
         @Override
         VariantGraphResolveState getVariantByConfigurationName(String name) {
-            configurations.find { it -> it.name == name }
+            variants.find { it -> it.name == name }
         }
     }
 }

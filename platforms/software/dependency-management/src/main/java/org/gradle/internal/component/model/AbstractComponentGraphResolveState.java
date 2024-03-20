@@ -155,14 +155,14 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         }
 
         @Override
-        public boolean isUseVariants() {
+        public boolean supportsAttributeMatching() {
             return !variants.isEmpty();
         }
 
         @Override
-        public List<? extends VariantGraphResolveState> getVariants() {
+        public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
             if (variants.isEmpty()) {
-                throw new IllegalStateException("No variants available for selection");
+                throw new IllegalStateException("No variants available for attribute matching.");
             }
             return variants;
         }

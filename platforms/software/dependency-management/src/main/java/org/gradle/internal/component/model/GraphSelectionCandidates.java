@@ -23,15 +23,18 @@ import java.util.List;
 
 public interface GraphSelectionCandidates {
     /**
-     * Should variant selection be used?
-     * @return true when variant selection should be used, false when the legacy variant should be used.
+     * Returns whether attribute matching should be used for variant selection.
+     *
+     * @return true when attribute matching should be used, false when legacy variant selection should be used.
      */
-    boolean isUseVariants();
+    boolean supportsAttributeMatching();
 
     /**
-     * Returns the set of variants to select from. Should only be called when {@link #isUseVariants()} returns true.
+     * Returns the set of variants to select from during attribute matching.
+     *
+     * @throws IllegalStateException if {@link #supportsAttributeMatching()} returns false.
      */
-    List<? extends VariantGraphResolveState> getVariants();
+    List<? extends VariantGraphResolveState> getVariantsForAttributeMatching();
 
     /**
      * Returns the variant to use when attribute-based variant selection is not enabled.
