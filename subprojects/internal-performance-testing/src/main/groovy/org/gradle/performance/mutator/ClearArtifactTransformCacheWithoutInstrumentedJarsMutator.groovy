@@ -27,7 +27,7 @@ import java.nio.file.attribute.BasicFileAttributes
 
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INSTRUMENTATION_CLASSPATH_MARKER
 /**
  * A mutator that cleans up the artifact transform cache directory, but leaves folders with the instrumented jars.
  *
@@ -50,9 +50,9 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends ClearArt
             }
 
             private boolean hasInstrumentationClasspathMarkerFile(Path transformedDir) {
-                return Files.exists(transformedDir.resolve("transformed/$INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME")) ||
-                    Files.exists(transformedDir.resolve("transformed/$ANALYSIS_OUTPUT_DIR/$INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME")) ||
-                    Files.exists(transformedDir.resolve("transformed/$MERGE_OUTPUT_DIR/$INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME"))
+                return Files.exists(transformedDir.resolve("transformed/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}")) ||
+                    Files.exists(transformedDir.resolve("transformed/$ANALYSIS_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}")) ||
+                    Files.exists(transformedDir.resolve("transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
             }
 
             @Override

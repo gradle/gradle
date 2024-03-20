@@ -22,7 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INSTRUMENTATION_CLASSPATH_MARKER;
 
 public class InstrumentationTransformUtils {
 
@@ -51,7 +51,7 @@ public class InstrumentationTransformUtils {
     }
 
     public static boolean isInstrumentationMarkerFile(File input) {
-        return input.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME);
+        return input.getName().equals(INSTRUMENTATION_CLASSPATH_MARKER.getFileName());
     }
 
     public static void outputOriginalArtifact(TransformOutputs outputs, File originalArtifact) {
@@ -71,6 +71,6 @@ public class InstrumentationTransformUtils {
     }
 
     public static void createInstrumentationClasspathMarker(TransformOutputs outputs) {
-        createNewFile(outputs.file(INSTRUMENTATION_CLASSPATH_MARKER_FILE_NAME));
+        createNewFile(outputs.file(INSTRUMENTATION_CLASSPATH_MARKER.getFileName()));
     }
 }
