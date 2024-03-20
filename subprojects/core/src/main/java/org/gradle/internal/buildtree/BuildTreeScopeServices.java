@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildtree;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -56,16 +55,10 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.problems.failure.CompositeStackTraceClassifier;
-import org.gradle.internal.problems.failure.DefaultFailureFactory;
-import org.gradle.internal.problems.failure.InternalRuntimeStackTraceClassifier;
-import org.gradle.internal.problems.failure.StackTraceClassifier;
-import org.gradle.internal.problems.failure.SystemCallStackTraceClassifier;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
-import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -151,13 +144,5 @@ public class BuildTreeScopeServices {
 
     protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
         return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
-    }
-
-    protected FailureFactory createFailureFactory() {
-        return new DefaultFailureFactory(new CompositeStackTraceClassifier(ImmutableList.of(
-            new SystemCallStackTraceClassifier(),
-            new InternalRuntimeStackTraceClassifier(),
-            new StackTraceClassifier.UserCode()
-        )));
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.internal.problems.failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.BuildTree.class)
+@ServiceScope(Scope.Global.class)
 public interface FailureFactory {
 
     Failure create(Throwable failure);

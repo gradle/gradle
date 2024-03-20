@@ -224,7 +224,7 @@ class ConfigurationCacheReport(
 
     private
     fun Throwable.toFailure(): Failure {
-        return failureFactory.create(this, null)
+        return failureFactory.create(this)
     }
 
     private

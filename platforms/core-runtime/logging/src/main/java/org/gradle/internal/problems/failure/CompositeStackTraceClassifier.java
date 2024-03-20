@@ -16,6 +16,8 @@
 
 package org.gradle.internal.problems.failure;
 
+import com.google.common.collect.ImmutableList;
+
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -24,7 +26,7 @@ public class CompositeStackTraceClassifier implements StackTraceClassifier {
     private final List<StackTraceClassifier> classifiers;
 
     public CompositeStackTraceClassifier(List<StackTraceClassifier> classifiers) {
-        this.classifiers = classifiers;
+        this.classifiers = ImmutableList.copyOf(classifiers);
     }
 
     @Nullable
