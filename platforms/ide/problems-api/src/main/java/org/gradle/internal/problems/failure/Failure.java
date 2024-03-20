@@ -20,7 +20,7 @@ import java.util.List;
 
 public interface Failure {
 
-    Throwable getOriginal();
+    Class<? extends Throwable> getExceptionType();
 
     String getMessage();
 

@@ -27,14 +27,13 @@ internal
 data class DecoratedPropertyProblem(
     val trace: PropertyTrace,
     val message: StructuredMessage,
-    val exception: DecoratedException? = null,
+    val error: DecoratedError? = null,
     val documentationSection: DocumentationSection? = null
 )
 
 
 internal
-data class DecoratedException(
-    val original: Throwable,
+data class DecoratedError(
     val summary: StructuredMessage?,
     val parts: List<StackTracePart>
 )
@@ -48,28 +47,14 @@ data class StackTracePart(
 
 
 internal
-fun String.isStackFrameLine(): Boolean =
-    isStackFrameLine { true }
-
-
-internal
-inline fun String.isStackFrameLine(locationPredicate: (String) -> Boolean): Boolean {
-    val at = "at "
-    return startsWith("\t")
-        && trimStart('\t').let { it.startsWith(at) && locationPredicate(it.substring(at.length)) }
-}
-
-
-internal
-class ExceptionDecorator {
+class ErrorDecorator {
 
     private
     val stringBuilder = StringBuilder()
 
-    fun decorateException(failure: Failure): DecoratedException {
-        return DecoratedException(
-            failure.original,
-            exceptionSummaryFor(failure.original),
+    fun decorate(failure: Failure): DecoratedError {
+        return DecoratedError(
+            exceptionSummaryFor(failure),
             partitionedTraceFor(failure)
         )
     }
@@ -140,40 +125,19 @@ class ExceptionDecorator {
     }
 
     private
-    fun exceptionSummaryFor(exception: Throwable): StructuredMessage? {
-        val stackTrace = exception.stackTrace
-        val deepestNonInternalCall = stackTrace.firstOrNull {
-            !it.className.isInternalStackFrame()
-        } ?: return null
+    fun exceptionSummaryFor(failure: Failure): StructuredMessage? {
+        failure.stackTrace.forEachIndexed { index, element ->
+            if (failure.getStackTraceRelevance(index) == StackTraceRelevance.USER_CODE) {
+                return exceptionSummaryFrom(element)
+            }
+        }
 
-        return exceptionSummaryFrom(deepestNonInternalCall)
+        return null
     }
 
     private
     fun exceptionSummaryFrom(elem: StackTraceElement) = StructuredMessage.build {
         text("at ")
-        reference(buildString {
-            append("${elem.className}.${elem.methodName}(")
-            val fileName = elem.fileName
-            if (fileName != null) {
-                append("$fileName:${elem.lineNumber}")
-            } else {
-                append("Unknown Source")
-            }
-            append(")")
-        })
+        reference(elem.toString())
     }
 }
-
-
-private
-fun String.isInternalStackFrame(): Boolean =
-    // JDK calls
-    startsWith("java.") ||
-        startsWith("jdk.internal.") ||
-        startsWith("com.sun.proxy.") ||
-        // Groovy calls
-        startsWith("groovy.lang.") ||
-        startsWith("org.codehaus.groovy.") ||
-        // Gradle calls
-        startsWith("org.gradle.")

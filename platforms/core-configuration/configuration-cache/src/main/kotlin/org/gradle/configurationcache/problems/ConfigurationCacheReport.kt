@@ -208,18 +208,16 @@ class ConfigurationCacheReport(
     val stateLock = Object()
 
     private
-    val stackTraceExtractor = StackTraceExtractor()
-
-    private
-    val exceptionDecorator = ExceptionDecorator()
+    val errorDecorator = ErrorDecorator()
 
     private
     fun decorateProblem(problem: PropertyProblem): DecoratedPropertyProblem {
         val exception = problem.exception
+        val failure = exception?.toFailure()
         return DecoratedPropertyProblem(
             problem.trace,
-            decorateMessage(problem),
-            exception?.let { exceptionDecorator.decorateException(it.toFailure()) },
+            decorateMessage(problem, failure),
+            failure?.let { errorDecorator.decorate(it) },
             problem.documentationSection
         )
     }
@@ -230,14 +228,14 @@ class ConfigurationCacheReport(
     }
 
     private
-    fun decorateMessage(problem: PropertyProblem): StructuredMessage {
-        if (!isStacktraceHashes || problem.exception == null) {
+    fun decorateMessage(problem: PropertyProblem, failure: Failure?): StructuredMessage {
+        if (!isStacktraceHashes || failure == null) {
             return problem.message
         }
 
-        val exceptionHash = problem.exception.hashWithoutMessages()
+        val failureHash = failure.hashWithoutMessages()
         return StructuredMessage.build {
-            reference("[${exceptionHash.toCompactString()}]")
+            reference("[${failureHash.toCompactString()}]")
             text(" ")
             message(problem.message)
         }
@@ -293,18 +291,22 @@ class ConfigurationCacheReport(
      * occurring at the same location.
      */
     private
-    fun Throwable.hashWithoutMessages(): HashCode {
-        val e = this@hashWithoutMessages
-        return Hashing.newHasher().apply {
-            putString(e.javaClass.name)
-            // Ignore messages and only take stack frames into account
-            stackTraceStringFor(e).lineSequence()
-                .filter { it.isStackFrameLine() }
-                .forEach { putString(it) }
-        }.hash()
+    fun Failure.hashWithoutMessages(): HashCode {
+        val root = this@hashWithoutMessages
+        val hasher = Hashing.newHasher()
+        for (failure in sequence { failureSequence(root) }) {
+            hasher.putString(failure.exceptionType.name)
+            for (element in failure.stackTrace) {
+                hasher.putString(element.toString())
+            }
+        }
+        return hasher.hash()
     }
 
     private
-    fun stackTraceStringFor(error: Throwable): String =
-        stackTraceExtractor.stackTraceStringFor(error)
+    suspend fun SequenceScope<Failure>.failureSequence(failure: Failure) {
+        yield(failure)
+        failure.causes.forEach { failureSequence(it) }
+        failure.suppressed.forEach { failureSequence(it) }
+    }
 }
