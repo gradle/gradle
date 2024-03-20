@@ -54,10 +54,35 @@ class DefaultFailurePrinterTest extends Specification {
         printer.print(f) == getTraceString(e)
     }
 
+    def "handles circular references"() {
+        def e0 = SimulatedJavaException.simulateDeeperException()
+        def e = new RuntimeException("BOOM", e0)
+
+        def printer = new DefaultFailurePrinter()
+        def f = toFailure(e)
+
+        // Create circular reference
+        def cause = (MockFailure) f.causes[0]
+        cause.overridenCauses = [f]
+        cause.overridenSuppressed = [f]
+
+        // Simulate the same circular reference with the originals
+        e0.initCause(e)
+        e0.addSuppressed(e)
+
+        // Spock fails with Stack Overflow if the power assert fails, so better keep it here for easier debugging
+        def expected = getTraceString(e)
+
+        expect:
+        printer.print(f) == expected
+    }
+
     private static Failure toFailure(Throwable t) {
         def stack = ImmutableList.of(t.stackTrace)
         def relevances = Collections.nCopies(stack.size(), StackTraceRelevance.USER_CODE)
-        new DefaultFailure(t, stack, relevances, getCauses(t).collect { toFailure(it) }, t.getSuppressed().collect { toFailure(it) })
+        def causes = getCauses(t).collect { toFailure(it) }
+        def suppressed = t.getSuppressed().collect { toFailure(it) }
+        new MockFailure(t, stack, relevances, causes, suppressed)
     }
 
     private static List<Throwable> getCauses(Throwable t) {
@@ -68,6 +93,32 @@ class DefaultFailurePrinterTest extends Specification {
         StringWriter out = new StringWriter();
         t.printStackTrace(new PrintWriter(out));
         out.toString()
+    }
+
+    static class MockFailure extends DefaultFailure {
+
+        List<Failure> overridenCauses
+        List<Failure> overridenSuppressed
+
+        MockFailure(
+            Throwable original,
+            List<StackTraceElement> stackTrace,
+            List<StackTraceRelevance> frameRelevance,
+            List<Failure> causes,
+            List<Failure> suppressed
+        ) {
+            super(original, stackTrace, frameRelevance, causes, suppressed)
+        }
+
+        @Override
+        List<Failure> getCauses() {
+            return overridenCauses == null ? super.getCauses() : overridenCauses
+        }
+
+        @Override
+        List<Failure> getSuppressed() {
+            return overridenSuppressed == null ? super.getSuppressed() : overridenSuppressed
+        }
     }
 
 }

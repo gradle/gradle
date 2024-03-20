@@ -40,6 +40,7 @@ public class DefaultFailureFactory implements FailureFactory {
 
     @Override
     public Failure create(Throwable failure, @Nullable Class<?> calledFrom) {
+        // TODO: guard against circular references
         ImmutableList<StackTraceElement> stackTrace = ImmutableList.copyOf(failure.getStackTrace());
         StackTraceClassifier calledFromClassifier = calledFrom == null ? null : new CalledFromDroppingStackTraceClassifier(calledFrom);
         List<StackTraceRelevance> relevances = classify(stackTrace, calledFromClassifier);

@@ -30,7 +30,13 @@ public class DefaultFailure implements Failure {
     private final List<Failure> causes;
     private final List<Failure> suppressed;
 
-    public DefaultFailure(Throwable original, List<StackTraceElement> stackTrace, List<StackTraceRelevance> frameRelevance, List<Failure> causes, List<Failure> suppressed) {
+    public DefaultFailure(
+        Throwable original,
+        List<StackTraceElement> stackTrace,
+        List<StackTraceRelevance> frameRelevance,
+        List<Failure> causes,
+        List<Failure> suppressed
+    ) {
         if (stackTrace.size() != frameRelevance.size()) {
             throw new IllegalArgumentException("stackTrace and frameRelevance must have the same size.");
         }

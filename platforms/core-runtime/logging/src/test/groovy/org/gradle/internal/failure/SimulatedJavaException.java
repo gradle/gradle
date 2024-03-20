@@ -18,7 +18,7 @@ package org.gradle.internal.failure;
 
 public class SimulatedJavaException {
 
-    public static Throwable simulateDeeperException() {
+    public static RuntimeException simulateDeeperException() {
         return new RuntimeException("Simulated exception");
     }
 
