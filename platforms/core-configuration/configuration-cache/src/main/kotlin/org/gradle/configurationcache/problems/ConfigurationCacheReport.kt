@@ -294,7 +294,7 @@ class ConfigurationCacheReport(
     fun Failure.hashWithoutMessages(): HashCode {
         val root = this@hashWithoutMessages
         val hasher = Hashing.newHasher()
-        for (failure in sequence { failureSequence(root) }) {
+        for (failure in sequence { visitFailures(root) }) {
             hasher.putString(failure.exceptionType.name)
             for (element in failure.stackTrace) {
                 hasher.putString(element.toString())
@@ -304,9 +304,9 @@ class ConfigurationCacheReport(
     }
 
     private
-    suspend fun SequenceScope<Failure>.failureSequence(failure: Failure) {
+    suspend fun SequenceScope<Failure>.visitFailures(failure: Failure) {
         yield(failure)
-        failure.causes.forEach { failureSequence(it) }
-        failure.suppressed.forEach { failureSequence(it) }
+        failure.suppressed.forEach { visitFailures(it) }
+        failure.causes.forEach { visitFailures(it) }
     }
 }

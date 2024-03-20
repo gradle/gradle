@@ -72,11 +72,20 @@ class ErrorDecorator {
     }
 
     private
-    object DisplayStackFramePredicate : StackFramePredicate {
-        override fun test(frame: StackTraceElement, relevance: StackTraceRelevance): Boolean {
-            return relevance == StackTraceRelevance.USER_CODE
-                || relevance == StackTraceRelevance.RUNTIME
+    fun exceptionSummaryFor(failure: Failure): StructuredMessage? {
+        failure.stackTrace.forEachIndexed { index, element ->
+            if (failure.getStackTraceRelevance(index) == StackTraceRelevance.USER_CODE) {
+                return exceptionSummaryFrom(element)
+            }
         }
+
+        return null
+    }
+
+    private
+    fun exceptionSummaryFrom(elem: StackTraceElement) = StructuredMessage.build {
+        text("at ")
+        reference(elem.toString())
     }
 
     private
@@ -125,19 +134,10 @@ class ErrorDecorator {
     }
 
     private
-    fun exceptionSummaryFor(failure: Failure): StructuredMessage? {
-        failure.stackTrace.forEachIndexed { index, element ->
-            if (failure.getStackTraceRelevance(index) == StackTraceRelevance.USER_CODE) {
-                return exceptionSummaryFrom(element)
-            }
+    object DisplayStackFramePredicate : StackFramePredicate {
+        override fun test(frame: StackTraceElement, relevance: StackTraceRelevance): Boolean {
+            return relevance == StackTraceRelevance.USER_CODE
+                || relevance == StackTraceRelevance.RUNTIME
         }
-
-        return null
-    }
-
-    private
-    fun exceptionSummaryFrom(elem: StackTraceElement) = StructuredMessage.build {
-        text("at ")
-        reference(elem.toString())
     }
 }
