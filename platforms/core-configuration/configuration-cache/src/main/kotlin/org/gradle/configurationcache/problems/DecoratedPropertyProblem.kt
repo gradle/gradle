@@ -63,8 +63,7 @@ class ErrorDecorator {
     fun partitionedTraceFor(failure: Failure): List<StackTracePart> {
         val listener = PartitioningFailurePrinterListener(stringBuilder)
         try {
-            FailurePrinter()
-                .print(stringBuilder, failure, DisplayStackFramePredicate, listener)
+            FailurePrinter.print(stringBuilder, failure, DisplayStackFramePredicate, listener)
             return listener.parts
         } finally {
             stringBuilder.setLength(0)

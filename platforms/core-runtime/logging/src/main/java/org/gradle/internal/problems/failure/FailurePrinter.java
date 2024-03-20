@@ -27,29 +27,17 @@ import java.util.Set;
 
 public class FailurePrinter {
 
-    public String printToString(Failure failure) {
-        return printToStringImpl(failure, StackFramePredicate.TRUE, null);
+    public static String printToString(Failure failure) {
+        StringBuilder output = new StringBuilder();
+        print(output, failure, StackFramePredicate.TRUE, null);
+        return output.toString();
     }
 
-    public String printToString(Failure failure, StackFramePredicate predicate) {
-        return printToStringImpl(failure, predicate, null);
+    public static void print(Appendable output, Failure failure, StackFramePredicate predicate, @Nullable FailurePrinterListener listener) {
+        new Job(output, predicate, listener).print(failure);
     }
 
-    public String printToString(Failure failure, StackFramePredicate predicate, FailurePrinterListener listener) {
-        return printToStringImpl(failure, predicate, listener);
-    }
-
-    public void print(Appendable output, Failure failure, StackFramePredicate predicate, FailurePrinterListener listener) {
-        new Printing(output, predicate, listener).print(failure);
-    }
-
-    private String printToStringImpl(Failure failure, StackFramePredicate predicate, @Nullable FailurePrinterListener listener) {
-        StringBuilder sb = new StringBuilder();
-        new Printing(sb, predicate, listener).print(failure);
-        return sb.toString();
-    }
-
-    private static final class Printing {
+    private static final class Job {
 
         private final StackFramePredicate predicate;
         @Nullable
@@ -59,7 +47,7 @@ public class FailurePrinter {
         private final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
         private final Set<Failure> seen = Collections.newSetFromMap(new IdentityHashMap<Failure, Boolean>());
 
-        private Printing(
+        private Job(
             Appendable builder,
             StackFramePredicate predicate,
             @Nullable FailurePrinterListener listener
