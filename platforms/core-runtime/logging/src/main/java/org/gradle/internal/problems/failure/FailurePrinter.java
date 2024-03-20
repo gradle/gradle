@@ -28,8 +28,12 @@ import java.util.Set;
 public class FailurePrinter {
 
     public static String printToString(Failure failure) {
+        return printToString(failure, StackFramePredicate.TRUE);
+    }
+
+    public static String printToString(Failure failure, StackFramePredicate predicate) {
         StringBuilder output = new StringBuilder();
-        print(output, failure, StackFramePredicate.TRUE, null);
+        print(output, failure, predicate, null);
         return output.toString();
     }
 

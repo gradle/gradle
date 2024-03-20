@@ -25,44 +25,40 @@ import org.gradle.internal.problems.failure.FailurePrinter
 import org.gradle.internal.problems.failure.StackTraceRelevance
 import spock.lang.Specification
 
+import static org.gradle.internal.problems.failure.StackTraceRelevance.USER_CODE
+
 class FailurePrinterTest extends Specification {
 
     def "prints same as JVM for simple exception"() {
         def e = new RuntimeException("BOOM")
-
-        def printer = new FailurePrinter()
         def f = toFailure(e)
 
         expect:
-        printer.printToString(f) == getTraceString(e)
+        FailurePrinter.printToString(f) == getTraceString(e)
     }
 
     def "prints same as JVM for an exception with cause"() {
         def e = new RuntimeException("BOOM", SimulatedJavaException.simulateDeeperException())
-
-        def printer = new FailurePrinter()
         def f = toFailure(e)
 
         expect:
-        printer.printToString(f) == getTraceString(e)
+        FailurePrinter.printToString(f) == getTraceString(e)
     }
 
     def "prints same as JVM for an exception with suppressions"() {
         def e = new RuntimeException("BOOM")
         e.addSuppressed(SimulatedJavaException.simulateDeeperException())
 
-        def printer = new FailurePrinter()
         def f = toFailure(e)
 
         expect:
-        printer.printToString(f) == getTraceString(e)
+        FailurePrinter.printToString(f) == getTraceString(e)
     }
 
     def "handles circular references"() {
         def e0 = SimulatedJavaException.simulateDeeperException()
         def e = new RuntimeException("BOOM", e0)
 
-        def printer = new FailurePrinter()
         def f = toFailure(e)
 
         // Create circular reference
@@ -78,17 +74,16 @@ class FailurePrinterTest extends Specification {
         def expected = getTraceString(e)
 
         expect:
-        printer.printToString(f) == expected
+        FailurePrinter.printToString(f) == expected
     }
 
     def "supports multi-case exceptions"() {
         def e = new DefaultMultiCauseException("BOOM", new RuntimeException("one"), new RuntimeException("two"))
 
-        def printer = new FailurePrinter()
         def f = toFailure(e)
 
         def expected = getTraceString(e)
-        def actual = printer.printToString(f)
+        def actual = FailurePrinter.printToString(f)
 
         expect:
         // First, validate the assumptions about the default multi-cause exception printing.
@@ -101,9 +96,25 @@ class FailurePrinterTest extends Specification {
         actual.contains("Cause 2: java.lang.RuntimeException: two")
     }
 
-    private static Failure toFailure(Throwable t) {
+    def "filters frames by predicate"() {
+        def e = new RuntimeException("BOOM")
+        def firstFrame = e.stackTrace[0]
+
+        def f = toFailure(e)
+
+        when: // Filtering out all frames except the first
+        def actual = FailurePrinter.printToString(f, { frame, _ -> frame === firstFrame })
+
+        then: // Print matches the head of the stack trace: header and the first frame
+        actual.trim() == getTraceString(e).readLines().take(2).join(System.lineSeparator())
+    }
+
+    private static Failure toFailure(
+        Throwable t,
+        Closure<List<StackTraceRelevance>> classify = { stack -> Collections.nCopies(stack.size(), USER_CODE) }
+    ) {
         def stack = ImmutableList.of(t.stackTrace)
-        def relevances = Collections.nCopies(stack.size(), StackTraceRelevance.USER_CODE)
+        def relevances = classify(stack)
         def causes = getCauses(t).collect { toFailure(it) }
         def suppressed = t.getSuppressed().collect { toFailure(it) }
         new MockFailure(t, stack, relevances, causes, suppressed)
