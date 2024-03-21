@@ -65,6 +65,10 @@ public class CacheVersionMapping {
             return changedTo(versions.get(versions.lastKey()) + 1, minGradleVersion);
         }
 
+        public Builder retiredIn(String gradleVersion) {
+            return changedTo(Integer.MAX_VALUE, gradleVersion);
+        }
+
         public Builder changedTo(int cacheVersion, String minGradleVersion) {
             GradleVersion parsedGradleVersion = GradleVersion.version(minGradleVersion);
             if (!versions.isEmpty()) {
