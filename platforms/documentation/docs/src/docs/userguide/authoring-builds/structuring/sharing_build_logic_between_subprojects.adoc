@@ -324,6 +324,13 @@ include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="buil
 include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[]"]
 ====
 
+For the convention plugin to compile, basic configuration needs to be applied in the build file of the `buildSrc` directory:
+
+====
+include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="buildSrc/build.gradle[]"]
+====
+
 The convention plugin is applied to the `api`, `shared`, and `person-service` subprojects:
 
 ====
