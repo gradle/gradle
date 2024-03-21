@@ -18,6 +18,7 @@ package org.gradle.api.problems
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 /**
@@ -81,7 +82,6 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
         run("reportProblem")
 
         then:
-        def locations = (collectedProblem["locations"] as Collection)
-        locations[0]["pluginId"] == "test.plugin"
+        receivedProblem.oneLocation(PluginIdLocation).pluginId == "test.plugin"
     }
 }
