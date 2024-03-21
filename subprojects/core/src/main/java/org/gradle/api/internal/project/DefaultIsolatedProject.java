@@ -17,51 +17,42 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.IsolatedProject;
+import org.gradle.api.file.Directory;
 
-import java.io.File;
-import java.io.Serializable;
+public final class DefaultIsolatedProject implements IsolatedProject {
 
-public final class DefaultIsolatedProject implements IsolatedProject, Serializable {
+    private final ProjectInternal project;
+    private final ProjectInternal rootProject;
 
-    private final String name;
-    private final String path;
-    private final File projectDirectory;
-    private final File rootDirectory;
-
-    public DefaultIsolatedProject(String name, String path, File projectDirectory, File rootDirectory) {
-        this.name = name;
-        this.path = path;
-        this.projectDirectory = projectDirectory;
-        this.rootDirectory = rootDirectory;
+    public DefaultIsolatedProject(ProjectInternal project, ProjectInternal rootProject) {
+        this.project = project;
+        this.rootProject = rootProject;
     }
 
     @Override
     public String getName() {
-        return name;
+        return project.getName();
     }
 
     @Override
     public String getPath() {
-        return path;
+        return project.getPath();
     }
 
     @Override
-    public File getProjectDirectory() {
-        return projectDirectory;
+    public Directory getProjectDirectory() {
+        return project.getLayout().getProjectDirectory();
     }
 
     @Override
-    public File getRootDirectory() {
-        return rootDirectory;
+    public IsolatedProject getRootProject() {
+        return project.equals(rootProject)
+            ? this
+            : rootProject.getIsolated();
     }
 
     @Override
     public String toString() {
-        return "DefaultIsolatedProject{" +
-            "name='" + name + '\'' +
-            ", path='" + path + '\'' +
-            ", projectDirectory=" + projectDirectory +
-            ", rootDirectory=" + rootDirectory +
-            '}';
+        return "DefaultIsolatedProject{" + project + '}';
     }
 }

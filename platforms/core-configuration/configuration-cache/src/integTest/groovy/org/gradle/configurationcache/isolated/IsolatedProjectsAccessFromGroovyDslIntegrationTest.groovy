@@ -690,7 +690,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
                 println("project name = " + isolatedProject.name)
                 println("project path = " + isolatedProject.path)
                 println("project projectDir = " + isolatedProject.projectDirectory)
-                println("project rootDir = " + isolatedProject.rootDirectory)
+                println("project rootDir = " + isolatedProject.rootProject.projectDirectory)
             }
         """
 

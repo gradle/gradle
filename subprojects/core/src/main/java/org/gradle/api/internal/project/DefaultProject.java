@@ -21,9 +21,9 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
-import org.gradle.api.IsolatedProject;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.IsolatedProject;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.PathValidation;
@@ -783,7 +783,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public IsolatedProject getIsolated() {
-        return new DefaultIsolatedProject(name, getPath(), projectDir, getRootDir());
+        return new DefaultIsolatedProject(this, rootProject);
     }
 
     @Override

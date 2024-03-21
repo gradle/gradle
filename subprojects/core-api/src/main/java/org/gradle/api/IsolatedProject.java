@@ -16,7 +16,7 @@
 
 package org.gradle.api;
 
-import java.io.File;
+import org.gradle.api.file.Directory;
 
 /**
  * An isolated view of {@link Project} that exposes only those properties that are safe to access from outside of
@@ -52,14 +52,14 @@ public interface IsolatedProject {
      * @return The project directory. Never returns null.
      * @since 8.8
      */
-    File getProjectDirectory();
+    Directory getProjectDirectory();
 
     /**
-     * <p>Returns the root directory of this project. The root directory is the project directory of the root
-     * project.</p>
+     * <p>Returns the root project for the hierarchy that this project belongs to.  In the case of a single-project
+     * build, this method returns this project.</p>
      *
-     * @return The root directory. Never returns null.
+     * @return The root project. Never returns null.
      * @since 8.8
      */
-    File getRootDirectory();
+    IsolatedProject getRootProject();
 }
