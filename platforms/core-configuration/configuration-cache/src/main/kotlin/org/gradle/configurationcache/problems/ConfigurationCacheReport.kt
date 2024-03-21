@@ -162,7 +162,7 @@ class ConfigurationCacheReport(
             private
             fun ManagedExecutor.shutdownAndAwaitTermination() {
                 shutdown()
-                if (!awaitTermination(30, TimeUnit.SECONDS)) {
+                if (!awaitTermination(1, TimeUnit.SECONDS)) {
                     val unfinishedTasks = shutdownNow()
                     logger.warn(
                         "Configuration cache report is taking too long to write... "
