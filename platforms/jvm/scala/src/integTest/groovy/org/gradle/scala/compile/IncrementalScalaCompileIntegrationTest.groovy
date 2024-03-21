@@ -104,6 +104,60 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
 
+    def "recompile test classes when a dependency object in main changes"() {
+        file("build.gradle") << """
+            plugins {
+                id("scala")
+            }
+
+            ${mavenCentralRepository()}
+
+            allprojects {
+                tasks.withType(ScalaCompile) {
+                    scalaCompileOptions.keepAliveMode = KeepAliveMode.DAEMON
+                }
+            }
+
+            dependencies {
+                implementation 'org.scala-lang:scala-library:2.11.12'
+            }
+        """
+
+
+        file("src/main/scala/Main.scala") << """
+        object Main {
+            val X: Int = 1
+        }
+        """
+        file("src/test/scala/MainInTest.scala") << """
+        object MainInTest {
+            val Y: Int = Main.X + 1
+        }
+        """
+
+        when:
+        run ":compileTestScala"
+
+        then:
+        executedAndNotSkipped(":compileTestScala")
+
+        when:
+        // change the class so that the compilation should fail
+        // because X is now a String instead of Int
+        // and is being used as an Int by MainInTest
+        file("src/main/scala/Main.scala").text = """
+        object Main {
+            val X: String = "1"
+        }
+        """
+
+        fails ":compileTestScala"
+
+        then:
+        executedAndNotSkipped(":compileTestScala")
+        failure.assertHasCause("Compilation failed")
+    }
+
     @Issue("gradle/gradle#8421")
     def "incremental compiler detects change in package"() {
         settingsFile << """
