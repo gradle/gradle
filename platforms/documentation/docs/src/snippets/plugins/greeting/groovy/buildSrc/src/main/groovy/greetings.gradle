@@ -36,3 +36,4 @@ tasks.register("hello", GreetingTask) {
 // tag::update[]
 extensions.findByType(GreetingPluginExtension).message.set("Hi from Gradle")
 // end::update[]
+extensions.findByType(GreetingPluginExtension).message.set("Hello from Gradle")

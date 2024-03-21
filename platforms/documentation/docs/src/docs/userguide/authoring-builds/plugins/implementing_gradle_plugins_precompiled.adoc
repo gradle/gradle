@@ -114,6 +114,29 @@ include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main
 include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=task]"]
 ====
 
+----
+$ gradle -q hello
+include::{snippetsPath}/plugins/greeting/tests/greeting.out[]
+----
+
 This means that changes to the extension's `message` property will trigger the task to be considered out-of-date, ensuring that the task is re-executed with the new message.
 
 You can find out more about types that you can use in task implementations and extensions in <<lazy_configuration.adoc#lazy_configuration,Lazy Configuration>>.
+
+[[sec:applying_external_plugins]]
+== Applying external plugins
+
+In order to apply an external plugin in a precompiled script plugin, it has to be added to the plugin project's implementation classpath in the plugin's build file:
+
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/build.gradle[]"]
+====
+
+It can then be applied in the precompiled script plugin:
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
+====
+
+The plugin version in this case is defined in the dependency declaration.

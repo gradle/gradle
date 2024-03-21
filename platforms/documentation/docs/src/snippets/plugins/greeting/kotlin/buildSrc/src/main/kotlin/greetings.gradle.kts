@@ -37,3 +37,4 @@ tasks.register<GreetingTask>("hello") {
 // Where the<GreetingPluginExtension>() is equivalent to project.extensions.getByType(GreetingPluginExtension::class.java)
 the<GreetingPluginExtension>().message.set("Hi from Gradle")
 // end::update[]
+the<GreetingPluginExtension>().message.set("Hello from Gradle")

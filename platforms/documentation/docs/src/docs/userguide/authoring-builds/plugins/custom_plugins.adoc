@@ -133,7 +133,7 @@ include::sample[dir="snippets/plugins/greetingPlugin/kotlin",files="buildSrc/src
 include::sample[dir="snippets/plugins/greetingPlugin/groovy",files="buildSrc/src/main/groovy/com/example/ConventionGreetingPlugin.gradle[]"]
 ====
 
-The `GreetingPlugin` can now be applied in other subprojects' builds by using its `com.example.GreetingPlugin` ID:
+The `GreetingPlugin` can now be applied in other subprojects' builds by using its ID:
 
 ====
 include::sample[dir="snippets/plugins/greetingPlugin/kotlin",files="app/build.gradle.kts[tag=use-plugin]"]
@@ -193,32 +193,9 @@ In convention plugins, we can encapsulate arbitrary build configuration or custo
 
 To develop a convention plugin, we recommend using <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`>> – which represents a completely separate Gradle build.
 `buildSrc` has its own settings file to define where dependencies of this build are located.
-In our case, we want to have access to community plugins in the convention plugin, so we add the Gradle Plugin Portal as a repository:
 
-[source,kotlin]
-.buildSrc/settings.gradle.kts
-----
-dependencyResolutionManagement {
-    repositories.gradlePluginPortal()
-}
-----
-
-We create a build file and apply the link:https://plugins.gradle.org/plugin/org.gradle.kotlin.kotlin-dsl[`kotlin-dsl`] plugin, so we can write the convention plugin in Kotlin DSL.
-Because we want to use the Kotlin plugin, an external plugin, we need to <<sec:applying_external_plugins,define a dependency in the build file>>:
-
-[source,kotlin]
-.buildSrc/build.gradle.kts
-----
-plugins {
-    `kotlin-dsl`
-}
-
-dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20")
-}
-----
-
-We add a Kotlin script called `my-java-library.gradle.kts` inside the `/src/main/kotlin` directory.
+We add a Kotlin script called `my-java-library.gradle.kts` inside the `buildSrc/src/main/kotlin` directory.
+Or conversely, a Groovy script called `my-java-library.gradle` inside the `buildSrc/src/main/groovy` directory.
 We put all the plugin application and configuration from the `database-logic` build file into it:
 
 ====
@@ -255,24 +232,6 @@ plugins {
 
 This convention plugin enables us to easily share common configurations across all our build files.
 Any modifications can be made in one place, simplifying maintenance.
-
-[[sec:applying_external_plugins]]
-=== Applying external plugins in precompiled script plugins
-
-In order to apply an external plugin in a precompiled script plugin, it has to be added to the plugin project's implementation classpath in the plugin's build file:
-
-====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/build.gradle[]"]
-====
-
-It can then be applied in the precompiled script plugin:
-====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
-====
-
-The plugin version in this case is defined in the dependency declaration.
 
 [[sec:custom_plugins_standalone_project]]
 == Binary plugins
