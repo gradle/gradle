@@ -304,16 +304,12 @@ fun jvmGetterSignatureFor(propertyName: String, desc: String): JvmMethodSignatur
     JvmMethodSignature("get${propertyName.uppercaseFirstChar()}", desc)
 
 
-private
+internal
 val readOnlyPropertyFlags = flagsOf(
     Flag.IS_PUBLIC,
     Flag.Property.HAS_GETTER,
     Flag.Property.IS_DECLARATION
 )
-
-
-internal
-val readOnlyPropertyFlagsWithAnnotations = readOnlyPropertyFlags + flagsOf(Flag.HAS_ANNOTATIONS)
 
 
 private
@@ -322,10 +318,6 @@ val inlineGetterFlags = flagsOf(
     Flag.PropertyAccessor.IS_NOT_DEFAULT,
     Flag.PropertyAccessor.IS_INLINE
 )
-
-
-internal
-val inlineGetterFlagsWithAnnotations = inlineGetterFlags + flagsOf(Flag.HAS_ANNOTATIONS)
 
 
 internal

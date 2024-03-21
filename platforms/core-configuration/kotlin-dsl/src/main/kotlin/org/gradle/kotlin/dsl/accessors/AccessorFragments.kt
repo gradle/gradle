@@ -16,8 +16,10 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import kotlinx.metadata.Flag
 import kotlinx.metadata.KmType
 import kotlinx.metadata.KmVariance
+import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
@@ -34,7 +36,6 @@ import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
-import org.gradle.kotlin.dsl.support.bytecode.inlineGetterFlagsWithAnnotations
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.kotlinDeprecation
@@ -51,7 +52,7 @@ import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
-import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyFlagsWithAnnotations
+import org.gradle.kotlin.dsl.support.bytecode.readOnlyPropertyFlags
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 
@@ -683,6 +684,11 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
     val receiverTypeName = accessibleReceiverType.internalName()
     val (kotlinExtensionType, jvmExtensionType) = accessibleTypesFor(extensionType)
 
+    // When building accessors for Settings, preserve semantics for existing custom accessors by
+    // giving the generated accessors lower priority in Kotlin overload resolution.
+    val useLowPriorityInOverloadResolution = receiverTypeName.value == "org/gradle/api/initialization/Settings"
+    val maybeHasAnnotations = if (useLowPriorityInOverloadResolution) flagsOf(Flag.HAS_ANNOTATIONS) else 0
+
     return className to sequenceOf(
 
         AccessorFragment(
@@ -693,7 +699,9 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             ),
             bytecode = {
                 publicStaticMethod(signature) {
-                    withLowPriorityInOverloadResolution()
+                    if (useLowPriorityInOverloadResolution) {
+                        withLowPriorityInOverloadResolution()
+                    }
                     ALOAD(0)
                     LDC(name.original)
                     invokeRuntime(
@@ -707,12 +715,11 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.properties += newPropertyOf(
-                    flags = readOnlyPropertyFlagsWithAnnotations,
+                    flags = readOnlyPropertyFlags + maybeHasAnnotations,
                     name = propertyName,
                     receiverType = receiverType,
                     returnType = kotlinExtensionType,
-                    getterSignature = signature,
-                    getterFlags = inlineGetterFlagsWithAnnotations
+                    getterSignature = signature
                 )
             }
         ),
@@ -725,8 +732,9 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             ),
             bytecode = {
                 publicStaticMethod(signature) {
-                    // let custom accessors shipped with the plugin win
-                    withLowPriorityInOverloadResolution()
+                    if (useLowPriorityInOverloadResolution) {
+                        withLowPriorityInOverloadResolution()
+                    }
                     ALOAD(0)
                     CHECKCAST(GradleTypeName.extensionAware)
                     INVOKEINTERFACE(
@@ -746,7 +754,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = publicFunctionWithAnnotationsFlags,
+                    flags = publicFunctionFlags + maybeHasAnnotations,
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
                     name = propertyName,
