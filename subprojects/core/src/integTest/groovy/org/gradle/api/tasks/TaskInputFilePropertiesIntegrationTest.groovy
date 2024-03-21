@@ -94,6 +94,27 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 ).includeLink()
         })
 
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:unsupported-notation'
+            contextualLabel == 'has unsupported value \'task \':dependencyTask\'\''
+            details == "Type 'DefaultTask' cannot be converted to a $targetType"
+            solutions == [
+                'Use a String or CharSequence path, for example \'src/main/java\' or \'/usr/include\'',
+                'Use a String or CharSequence URI, for example \'file:/usr/include\'',
+                'Use a File instance',
+                'Use a Path instance',
+                'Use a Directory instance',
+                'Use a RegularFile instance',
+                'Use a URI or URL instance',
+                'Use a TextResource instance',
+            ]
+            additionalData == [
+                'typeName' : 'org.gradle.api.DefaultTask',
+                'propertyName' : 'input',
+            ]
+        }
+
         where:
         method | targetType
         "dir"  | "directory"
@@ -140,6 +161,27 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                     "a TextResource instance"
                 ).includeLink()
         })
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:unsupported-notation'
+            contextualLabel == 'has unsupported value \'task \':dependencyTask\'\''
+            details == "Type 'DefaultTask' cannot be converted to a $targetType"
+            solutions == [
+                'Use a String or CharSequence path, for example \'src/main/java\' or \'/usr/include\'',
+                'Use a String or CharSequence URI, for example \'file:/usr/include\'',
+                'Use a File instance',
+                'Use a Path instance',
+                'Use a Directory instance',
+                'Use a RegularFile instance',
+                'Use a URI or URL instance',
+                'Use a TextResource instance',
+            ]
+            additionalData == [
+                'typeName' : 'CustomTask',
+                'propertyName' : 'input',
+            ]
+        }
 
         where:
         annotation     | targetType
@@ -219,5 +261,19 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
 
         then:
         failureDescriptionContains(missingValueMessage { type('FooTask').property('bar') })
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:value-not-set'
+            details == 'This property isn\'t marked as optional and no value has been configured'
+            solutions == [
+                'Assign a value to \'bar\'',
+                'Mark property \'bar\' as optional',
+            ]
+            additionalData == [
+                'typeName' : 'FooTask',
+                'propertyName' : 'bar',
+            ]
+        }
     }
 }

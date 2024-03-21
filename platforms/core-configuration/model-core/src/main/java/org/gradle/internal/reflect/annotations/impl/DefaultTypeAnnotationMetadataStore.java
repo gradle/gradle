@@ -497,7 +497,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD), methodKind.getDisplayName()  + " has wrong annotation", GradleCoreProblemGroup.validation().type())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD), "method has wrong annotation", GradleCoreProblemGroup.validation().type())
                     .contextualLabel(
                         String.format(
                             "%s '%s()' should not be annotated with: %s",
