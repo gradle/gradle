@@ -33,13 +33,13 @@ import static java.util.concurrent.TimeUnit.DAYS
 import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 
-class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
+class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
     public static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES / 2 as int)
 
     def snapshotModule = mavenHttpRepo.module('org.example', 'example', '1.0-SNAPSHOT').publish().allowAll()
 
     def setup() {
-        requireOwnGradleUserHomeDir()
+        requireOwnGradleUserHomeDir("test requires its own journal")
     }
 
     def "does not clean up resources and files that were recently used from caches"() {
@@ -102,7 +102,6 @@ class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends Abstra
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
         succeeds 'resolve'
 
         then:
@@ -141,7 +140,6 @@ class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends Abstra
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
         succeeds 'resolve'
 
         then:
@@ -182,7 +180,6 @@ class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends Abstra
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
         succeeds 'resolve'
 
         then:
@@ -220,13 +217,12 @@ class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends Abstra
         findFiles(cacheDir, 'files-*/*').isEmpty()
     }
 
-    def "does not clean up resources and files when cache cleanup is disabled via #cleanupMethod"() {
+    def "does not clean up resources and files when cache cleanup is disabled via #cleanupMethod"(CleanupMethod cleanupMethod) {
         given:
         buildscriptWithDependency(snapshotModule)
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
 
         and:
         disableCacheCleanup(cleanupMethod)
@@ -271,7 +267,6 @@ class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends Abstra
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
 
         and:
         disableCacheCleanupViaProperty()
@@ -335,7 +330,6 @@ class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends Abstra
         buildscriptWithDependency(snapshotModule)
 
         when:
-        requireOwnGradleUserHomeDir() // needs its own journal
         succeeds 'resolve'
 
         and:
@@ -451,26 +445,6 @@ class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends Abstra
 
         and:
         jarFile.assertExists()
-    }
-
-    def "cleans up unused versions of caches"() {
-        given:
-        requireOwnGradleUserHomeDir() // messes with caches
-        def oldCacheDirs = [
-                userHomeCacheDir.createDir("${CacheLayout.MODULES.name}-1"),
-                userHomeCacheDir.file(CacheLayout.MODULES.key).createDir("${CacheLayout.META_DATA.name}-2.56")
-        ]
-        def currentMetaDataDir = userHomeCacheDir.file(CacheLayout.MODULES.key, CacheLayout.META_DATA.key).createDir()
-        gcFile.createFile().lastModified = daysAgo(2)
-
-        when:
-        succeeds("help")
-
-        then:
-        oldCacheDirs.each {
-            it.assertDoesNotExist()
-        }
-        currentMetaDataDir.assertExists()
     }
 
     private static TestFile findFile(File baseDir, String includePattern) {
