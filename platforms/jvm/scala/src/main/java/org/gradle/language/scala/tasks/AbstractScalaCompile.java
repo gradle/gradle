@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
@@ -236,6 +237,16 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
                 }
             }
         }
+
+        for (Task taskDependency : getTaskDependencies().getDependencies(this)) {
+            if (taskDependency instanceof AbstractScalaCompile) {
+                AbstractScalaCompile scalaCompileTask = (AbstractScalaCompile) taskDependency;
+                File destinationDirectory = scalaCompileTask.getDestinationDirectory().getAsFile().get();
+                File analysisFile = scalaCompileTask.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile().getAsFile().get();
+                analysisMap.put(destinationDirectory, analysisFile);
+            }
+        }
+
         return analysisMap;
     }
 
