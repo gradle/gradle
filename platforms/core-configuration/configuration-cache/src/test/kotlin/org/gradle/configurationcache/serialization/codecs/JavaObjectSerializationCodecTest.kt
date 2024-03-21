@@ -134,7 +134,17 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `Externalizable problems link to the Java serialization section`() {
-        val problems = serializationProblemsOf(ExternalizableBean())
+        val problems = serializationProblemsOf(ExternalizableBean(42))
+        assertThat(problems.size, equalTo(1))
+        assertThat(
+            problems[0].documentationSection,
+            equalTo(NotYetImplementedJavaSerialization)
+        )
+    }
+
+    @Test
+    fun `Externalizable problems via writeReplace link to the Java serialization section`() {
+        val problems = serializationProblemsOf(SerializableExternalizableBean(43))
         assertThat(problems.size, equalTo(1))
         assertThat(
             problems[0].documentationSection,
@@ -144,11 +154,19 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `Externalizable roundtrips to null`() {
-        val (first, second) = configurationCacheRoundtripOf(pairOf(ExternalizableBean()))
+        val (first, second) = configurationCacheRoundtripOf(pairOf(ExternalizableBean(42)))
         assertThat(first, nullValue())
         assertThat(second, nullValue())
     }
 
+    @Test
+    fun `Externalizable via writeReplace roundtrips to null`() {
+        val (first, second) = configurationCacheRoundtripOf(pairOf(SerializableExternalizableBean(42)))
+        assertThat(first, nullValue())
+        assertThat(second, nullValue())
+    }
+
+    // TODO: remove when supported
     @Ignore("wip")
     @Test
     fun `can handle Externalizable beans`() {
@@ -282,7 +300,7 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
     }
 
     @Test
-    fun `can handle circular writeReplace`() {
+    fun `can handle circular writeReplace`() { // TODO: rename circular => returning the same type
         verifyRoundtripOf({ pairOf(TypeToken.of(String::class.java)) }) { (first, second) ->
             assertThat(
                 "it preserves identity",
@@ -330,10 +348,10 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
         }
     }
 
-    class ExternalizableBean(var value: Int? = null) : Externalizable {
+    class ExternalizableBean(var value: Int = -1) : Externalizable {
 
         override fun writeExternal(out: ObjectOutput) {
-            out.writeInt(42)
+            out.writeInt(value)
         }
 
         override fun readExternal(`in`: ObjectInput) {
@@ -503,6 +521,14 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
             transientString = objectInputStream.readUTF()
             transientFloat = objectInputStream.readFloat()
             transientDouble = objectInputStream.readDouble()
+        }
+    }
+
+    private
+    class SerializableExternalizableBean(val value: Int) : Serializable {
+        private
+        fun writeReplace(): Any {
+            return ExternalizableBean(value)
         }
     }
 }

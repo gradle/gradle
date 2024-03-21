@@ -35,6 +35,20 @@ import java.util.logging.Level
 
 class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "can restore kotlin builder"() {
+        buildKotlinFile("""
+            tasks.register("something") {
+                val myList = buildList { add(1); add(2); add(3) }
+                doLast {
+                    println("My list: \$myList")
+                }
+            }
+        """)
+
+        expect:
+        configurationCacheRun("something")
+    }
+
     def "restores task fields whose value is instance of #type"() {
         buildFile << """
             import java.util.concurrent.*

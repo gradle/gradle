@@ -87,7 +87,7 @@ data class Binding(
     val encoding: EncodingProducer,
     val decoding: Decoding
 ) {
-    fun encodingForType(type: Class<*>) = encoding.encodingForType(type)
+    fun encodingForType(type: Class<*>): Encoding? = encoding.encodingForType(type)
 }
 
 
