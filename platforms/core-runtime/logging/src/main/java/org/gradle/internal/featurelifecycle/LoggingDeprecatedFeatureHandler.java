@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static org.gradle.api.problems.Severity.WARNING;
+import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationIdString;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -97,7 +98,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             public void execute(InternalProblemSpec builder) {
                 InternalProblemSpec problemSpec = builder
                     // usage.getKind() could be be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
-                    .id(usage.getProblemId(), usage.getSummary())
+                    .id(createDefaultDeprecationIdString(usage.getProblemIdDisplayName()), usage.getProblemIdDisplayName())
                     .contextualLabel(usage.getSummary())
                     .details(usage.getRemovalDetails())
                     .documentedAt(usage.getDocumentationUrl())
