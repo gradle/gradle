@@ -29,11 +29,11 @@ import java.util.ListIterator;
 
 public abstract class AbstractUserInputRenderer implements OutputEventListener {
     protected final OutputEventListener delegate;
-    private final UserInputReceiver userInput;
+    private final GlobalUserInputReceiver userInput;
     private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
     private boolean paused;
 
-    public AbstractUserInputRenderer(OutputEventListener delegate, UserInputReceiver userInput) {
+    public AbstractUserInputRenderer(OutputEventListener delegate, GlobalUserInputReceiver userInput) {
         this.delegate = delegate;
         this.userInput = userInput;
     }

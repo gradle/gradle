@@ -15,19 +15,14 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import com.google.common.base.CharMatcher;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.Either;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.console.UserInputReceiver;
-import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.InputMessage;
@@ -52,10 +47,9 @@ public class DaemonClientInputForwarder implements Stoppable {
         InputStream inputStream,
         Dispatch<? super InputMessage> dispatch,
         GlobalUserInputReceiver userInput,
-        ExecutorFactory executorFactory,
-        OutputEventListener console
+        ExecutorFactory executorFactory
     ) {
-        this(inputStream, dispatch, userInput, executorFactory, console, DEFAULT_BUFFER_SIZE);
+        this(inputStream, dispatch, userInput, executorFactory, DEFAULT_BUFFER_SIZE);
     }
 
     public DaemonClientInputForwarder(
@@ -63,11 +57,10 @@ public class DaemonClientInputForwarder implements Stoppable {
         Dispatch<? super InputMessage> dispatch,
         GlobalUserInputReceiver userInput,
         ExecutorFactory executorFactory,
-        OutputEventListener console,
         int bufferSize
     ) {
         this.userInput = userInput;
-        ForwardTextStreamToConnection handler = new ForwardTextStreamToConnection(dispatch, console);
+        ForwardTextStreamToConnection handler = new ForwardTextStreamToConnection(dispatch);
         this.forwarder = new InputForwarder(inputStream, handler, executorFactory, bufferSize);
         userInput.dispatchTo(new ForwardingUserInput(handler));
     }
@@ -90,27 +83,25 @@ public class DaemonClientInputForwarder implements Stoppable {
         }
 
         @Override
-        public void readAndForwardText(PromptOutputEvent event) {
-            handler.forwardNextLineAsUserResponse(new UserInputRequest(event));
+        public void readAndForwardText(Normalizer normalizer) {
+            handler.forwardNextLineAsUserResponse(new UserInputRequest(normalizer));
         }
     }
 
     private static class UserInputRequest {
-        private final PromptOutputEvent event;
+        private final UserInputReceiver.Normalizer normalizer;
 
-        public UserInputRequest(PromptOutputEvent event) {
-            this.event = event;
+        public UserInputRequest(UserInputReceiver.Normalizer normalizer) {
+            this.normalizer = normalizer;
         }
     }
 
     private static class ForwardTextStreamToConnection implements TextStream {
         private final Dispatch<? super InputMessage> dispatch;
         private final AtomicReference<UserInputRequest> pending = new AtomicReference<>();
-        private final OutputEventListener console;
 
-        public ForwardTextStreamToConnection(Dispatch<? super InputMessage> dispatch, OutputEventListener console) {
+        public ForwardTextStreamToConnection(Dispatch<? super InputMessage> dispatch) {
             this.dispatch = dispatch;
-            this.console = console;
         }
 
         void forwardNextLineAsUserResponse(UserInputRequest request) {
@@ -126,15 +117,14 @@ public class DaemonClientInputForwarder implements Stoppable {
             }
             UserInputRequest userInputRequest = pending.get();
             if (userInputRequest != null) {
-                Either<?, String> result = userInputRequest.event.convert(CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(input)));
-                if (result.getRight().isPresent()) {
-                    // Need to prompt the user again
-                    console.onOutput(new PromptOutputEvent(userInputRequest.event.getTimestamp(), result.getRight().get(), false));
-                } else {
+                // Expecting some user input
+                String result = userInputRequest.normalizer.normalize(input);
+                if (result != null) {
                     // Send result
                     pending.set(null);
-                    dispatch.dispatch(new UserResponse(result.getLeft().get().toString()));
+                    dispatch.dispatch(new UserResponse(result));
                 }
+                // Else, input was no good, so try again
             } else {
                 dispatch.dispatch(new ForwardInput(input.getBytes()));
             }
