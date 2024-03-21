@@ -32,7 +32,7 @@ See the table below for the Java version supported by a specific Gradle release:
 
 .Java Compatibility
 |===
-|Java version | Support for compiling/testing/... | Support for running Gradle
+|Java version | Support for toolchains | Support for running Gradle
 
 | 8 | N/A | 2.0
 | 9 | N/A | 4.3
