@@ -166,9 +166,9 @@ class ConfigurationCacheReport(
                     val unfinishedTasks = shutdownNow()
                     logger.warn(
                         "Configuration cache report is taking too long to write... "
-                            + "The build might finish before the report has been completely written. Unfinished tasks: "
-                            + unfinishedTasks
+                            + "The build might finish before the report has been completely written."
                     )
+                    logger.info("Unfinished tasks: {}", unfinishedTasks)
                 }
             }
 
