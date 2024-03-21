@@ -86,20 +86,27 @@ public class TimeFormatting {
         }
         long hours = duration / MILLIS_PER_HOUR;
         duration = duration % MILLIS_PER_HOUR;
-        if (hours > 0 || result.length() > 0) {
+        if (hours > 0 || isNotEmptyAndLastCharIsNotMinus(result)) {
             result.append(hours);
             result.append("h");
         }
         long minutes = duration / MILLIS_PER_MINUTE;
         duration = duration % MILLIS_PER_MINUTE;
-        if (minutes > 0 || result.length() > 0) {
+        if (minutes > 0 || isNotEmptyAndLastCharIsNotMinus(result)) {
             result.append(minutes);
             result.append("m");
         }
-        int secondsScale = result.length() > 0 ? 2 : 3;
+        int secondsScale = isNotEmptyAndLastCharIsNotMinus(result) ? 2 : 3;
         result.append(BigDecimal.valueOf(duration).divide(BigDecimal.valueOf(MILLIS_PER_SECOND)).setScale(secondsScale, RoundingMode.HALF_UP));
         result.append("s");
         return result.toString();
     }
 
+    private static boolean isNotEmptyAndLastCharIsNotMinus(StringBuilder sb) {
+        if (sb.length() == 0) {
+            return false;
+        } else {
+            return sb.charAt(sb.length() - 1) != '-';
+        }
+    }
 }

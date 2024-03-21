@@ -26,6 +26,8 @@ class ConfigurationCacheBuildProfileIntegrationTest extends AbstractConfiguratio
     @Issue("https://github.com/gradle/gradle/issues/18386")
     def "can profile a build with cc enabled"() {
         given:
+        def configurationCache = newConfigurationCacheFixture()
+
         file("build.gradle") << """
             plugins {
                id("java")
@@ -35,15 +37,24 @@ class ConfigurationCacheBuildProfileIntegrationTest extends AbstractConfiguratio
 
         when:
         configurationCacheRun(":help", "--profile")
+
+        then:
+        configurationCache.assertStateStored()
+        findReport()
+
+        when:
         configurationCacheRun(":help", "--profile")
 
         then:
+        configurationCache.assertStateLoaded()
         findReport()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18386")
     def "can profile a composite build with cc enabled"() {
         given:
+        def configurationCache = newConfigurationCacheFixture()
+
         settingsFile << """
             pluginManagement {
                 includeBuild 'build-logic'
@@ -79,9 +90,16 @@ class ConfigurationCacheBuildProfileIntegrationTest extends AbstractConfiguratio
 
         when:
         configurationCacheRun(":help", "--profile")
+
+        then:
+        configurationCache.assertStateStored()
+        findReport()
+
+        when:
         configurationCacheRun(":help", "--profile")
 
         then:
+        configurationCache.assertStateLoaded()
         findReport()
     }
 
