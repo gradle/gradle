@@ -31,7 +31,7 @@ class UserInputConsoleRendererTest extends Specification {
     def console = Mock(Console)
     def buildProgressArea = Mock(BuildProgressArea)
     def textArea = Mock(TextArea)
-    def userInput = Mock(UserInputReceiver)
+    def userInput = Mock(GlobalUserInputReceiver)
     @Subject def renderer = new UserInputConsoleRenderer(listener, console, userInput)
 
     def "can handle user input request and resume events"() {

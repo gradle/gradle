@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -26,7 +27,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ServiceScope(Scope.Global.class)
 @ThreadSafe
-public interface GlobalUserInputReceiver extends UserInputReceiver {
+public interface GlobalUserInputReceiver {
+    /**
+     * Requests that a line of text should be received from the user, for example via this process' stdin, and forwarded to the daemon.
+     * Does not block waiting for the input.
+     */
+    void readAndForwardText(PromptOutputEvent event);
+
     /**
      * Defines the {@link UserInputReceiver} instance for this service to delegate to.
      *

@@ -34,7 +34,6 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
     def bufferSize = 1024
 
-    def console = Mock(OutputEventListener)
     def source = new PipedOutputStream()
     def inputStream = new PipedInputStream(source)
 
@@ -67,7 +66,8 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
     def forwarder
 
     def createForwarder() {
-        forwarder = new DaemonClientInputForwarder(inputStream, dispatch, userInputReceiver, executorFactory, console, bufferSize)
+        userInputReceiver.attachConsole(Mock(OutputEventListener))
+        forwarder = new DaemonClientInputForwarder(inputStream, dispatch, userInputReceiver, executorFactory, bufferSize)
         forwarder.start()
     }
 
@@ -120,7 +120,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         receiveClosed()
     }
 
-    def "prompts user when invalid user response received"() {
+    def "collects additional line of text when invalid user response received"() {
         def event = Stub(PromptOutputEvent)
         _ * event.convert("bad") >> Either.right("try again")
         _ * event.convert("ok") >> Either.left(12)

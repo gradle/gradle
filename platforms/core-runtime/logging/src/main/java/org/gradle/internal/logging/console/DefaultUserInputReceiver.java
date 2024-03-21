@@ -16,20 +16,47 @@
 
 package org.gradle.internal.logging.console;
 
+import com.google.common.base.CharMatcher;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.Either;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
     private final AtomicReference<UserInputReceiver> delegate = new AtomicReference<UserInputReceiver>();
+    private OutputEventListener console;
+
+    public DefaultUserInputReceiver() {
+    }
+
+    public void attachConsole(OutputEventListener console) {
+        this.console = console;
+    }
 
     @Override
-    public void readAndForwardText(PromptOutputEvent event) {
+    public void readAndForwardText(final PromptOutputEvent event) {
         UserInputReceiver userInput = delegate.get();
         if (userInput == null) {
             throw new IllegalStateException("User input has not been initialized.");
         }
-        userInput.readAndForwardText(event);
+        userInput.readAndForwardText(new UserInputReceiver.Normalizer() {
+            @Nullable
+            @Override
+            public String normalize(String text) {
+                Either<?, String> result = event.convert(CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(text)));
+                if (result.getRight().isPresent()) {
+                    // Need to prompt the user again
+                    console.onOutput(new PromptOutputEvent(event.getTimestamp(), result.getRight().get(), false));
+                    return null;
+                } else {
+                    // Send result
+                    return result.getLeft().get().toString();
+                }
+            }
+        });
     }
 
     @Override

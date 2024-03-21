@@ -157,7 +157,9 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     // Intentionally not a “create” method as this should not be exposed as a service
     protected OutputEventRenderer makeOutputEventRenderer() {
-        return new OutputEventRenderer(Time.clock(), userInput);
+        OutputEventRenderer eventRenderer = new OutputEventRenderer(Time.clock(), userInput);
+        userInput.attachConsole(eventRenderer);
+        return eventRenderer;
     }
 
     private static class CommandLineLogging extends LoggingServiceRegistry {

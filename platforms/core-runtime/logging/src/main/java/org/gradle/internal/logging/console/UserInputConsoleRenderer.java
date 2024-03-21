@@ -22,7 +22,7 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 public class UserInputConsoleRenderer extends AbstractUserInputRenderer {
     private final Console console;
 
-    public UserInputConsoleRenderer(OutputEventListener delegate, Console console, UserInputReceiver userInput) {
+    public UserInputConsoleRenderer(OutputEventListener delegate, Console console, GlobalUserInputReceiver userInput) {
         super(delegate, userInput);
         this.console = console;
     }
