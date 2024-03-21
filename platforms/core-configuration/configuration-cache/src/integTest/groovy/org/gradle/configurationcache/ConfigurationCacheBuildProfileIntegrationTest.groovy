@@ -40,7 +40,10 @@ class ConfigurationCacheBuildProfileIntegrationTest extends AbstractConfiguratio
 
         then:
         configurationCache.assertStateStored()
-        findReport()
+        def report = findReport()
+
+        and:
+        report.delete()
 
         when:
         configurationCacheRun(":help", "--profile")
@@ -93,7 +96,10 @@ class ConfigurationCacheBuildProfileIntegrationTest extends AbstractConfiguratio
 
         then:
         configurationCache.assertStateStored()
-        findReport()
+        def report = findReport()
+
+        and:
+        report.delete()
 
         when:
         configurationCacheRun(":help", "--profile")

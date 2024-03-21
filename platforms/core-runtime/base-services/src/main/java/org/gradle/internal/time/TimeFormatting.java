@@ -75,7 +75,8 @@ public class TimeFormatting {
         // So let's make an output more predictable in accidental negative-values scenarios.
         if (duration < 0) {
             result.append("-");
-            duration = -duration;
+            result.append(formatDurationVeryTerse(-duration));
+            return result.toString();
         }
 
         long days = duration / MILLIS_PER_DAY;
@@ -86,27 +87,19 @@ public class TimeFormatting {
         }
         long hours = duration / MILLIS_PER_HOUR;
         duration = duration % MILLIS_PER_HOUR;
-        if (hours > 0 || isNotEmptyAndLastCharIsNotMinus(result)) {
+        if (hours > 0 || result.length() > 0) {
             result.append(hours);
             result.append("h");
         }
         long minutes = duration / MILLIS_PER_MINUTE;
         duration = duration % MILLIS_PER_MINUTE;
-        if (minutes > 0 || isNotEmptyAndLastCharIsNotMinus(result)) {
+        if (minutes > 0 || result.length() > 0) {
             result.append(minutes);
             result.append("m");
         }
-        int secondsScale = isNotEmptyAndLastCharIsNotMinus(result) ? 2 : 3;
+        int secondsScale = result.length() > 0 ? 2 : 3;
         result.append(BigDecimal.valueOf(duration).divide(BigDecimal.valueOf(MILLIS_PER_SECOND)).setScale(secondsScale, RoundingMode.HALF_UP));
         result.append("s");
         return result.toString();
-    }
-
-    private static boolean isNotEmptyAndLastCharIsNotMinus(StringBuilder sb) {
-        if (sb.length() == 0) {
-            return false;
-        } else {
-            return sb.charAt(sb.length() - 1) != '-';
-        }
     }
 }
