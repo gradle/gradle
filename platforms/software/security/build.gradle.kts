@@ -15,6 +15,7 @@ dependencies {
     api(project(":resources"))
 
     api(libs.bouncycastlePgp)
+    api(libs.jsr305)
 
     implementation(project(":base-services"))
     implementation(project(":functional"))
@@ -24,7 +25,6 @@ dependencies {
     implementation(libs.bouncycastleProvider)
     implementation(libs.guava)
     implementation(libs.inject)
-    implementation(libs.jsr305)
 
     testImplementation(testFixtures(project(":core")))
 

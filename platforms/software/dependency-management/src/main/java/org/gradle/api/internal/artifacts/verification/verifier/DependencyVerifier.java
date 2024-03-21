@@ -113,30 +113,25 @@ public class DependencyVerifier {
                         if (config.isVerifySignatures()) {
                             builder.failWith(new MissingSignature(file));
                         }
-                        if (verification.getChecksums().isEmpty()) {
-                            builder.failWith(new MissingChecksums(file));
-                            return;
-                        }
                     } else {
                         // There is a signature file and verify-signature=true
                         DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder(file, signature);
                         verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, verification.getTrustedPgpKeys()), allIgnoredKeys(verification.getIgnoredPgpKeys()), result);
-                        if (result.hasOnlyIgnoredKeys()) {
-                            builder.failWith(new OnlyIgnoredKeys(file));
-                            if (verification.getChecksums().isEmpty()) {
-                                builder.failWith(new MissingChecksums(file));
-                                return;
-                            } else {
-                                verifyChecksums(checksumService, file, verification, builder);
+                        if (result.hasError()) {
+                            VerificationFailure error = result.asError(publicKeyService);
+                            builder.failWith(error);
+                            if (error.isFatal()) {
                                 return;
                             }
-                        }
-                        if (result.hasError()) {
-                            builder.failWith(result.asError(publicKeyService));
+                        } else if (verification.getChecksums().isEmpty()) {
                             return;
                         }
                     }
-                    verifyChecksums(checksumService, file, verification, builder);
+                    if (verification.getChecksums().isEmpty()) {
+                        builder.failWith(new MissingChecksums(file));
+                    } else {
+                        verifyChecksums(checksumService, file, verification, builder);
+                    }
                     return;
                 }
             }
@@ -146,10 +141,11 @@ public class DependencyVerifier {
             DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder(file, signature);
             verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, Collections.emptySet()), allIgnoredKeys(Collections.emptySet()), result);
             if (result.hasError()) {
-                builder.failWith(result.asError(publicKeyService));
-                return;
-            } else if (result.hasOnlyIgnoredKeys()) {
-                builder.failWith(new OnlyIgnoredKeys(file));
+                VerificationFailure error = result.asError(publicKeyService);
+                builder.failWith(error);
+                if (error.isFatal()) {
+                    return;
+                }
             } else {
                 return;
             }
@@ -273,6 +269,7 @@ public class DependencyVerifier {
         private List<PGPPublicKey> validNotTrusted = null;
         private List<PGPPublicKey> failedKeys = null;
         private List<String> ignoredKeys = null;
+        private boolean hasValidSignatures = true;
 
         private DefaultSignatureVerificationResultBuilder(File file, File signatureFile) {
             this.file = file;
@@ -318,7 +315,12 @@ public class DependencyVerifier {
             ignoredKeys.add(keyId);
         }
 
-        boolean hasOnlyIgnoredKeys() {
+        @Override
+        public void noSignatures() {
+            hasValidSignatures = false;
+        }
+
+        private boolean hasOnlyIgnoredKeys() {
             return ignoredKeys != null
                 && trustedKeys == null
                 && validNotTrusted == null
@@ -326,7 +328,13 @@ public class DependencyVerifier {
                 && failedKeys == null;
         }
 
-        public SignatureVerificationFailure asError(PublicKeyService publicKeyService) {
+        public VerificationFailure asError(PublicKeyService publicKeyService) {
+            if (!hasValidSignatures) {
+                return new InvalidSignature(file, signatureFile);
+            }
+            if (hasOnlyIgnoredKeys()) {
+                return new OnlyIgnoredKeys(file);
+            }
             Map<String, SignatureVerificationFailure.SignatureError> errors = new HashMap<>();
             if (missingKeys != null) {
                 for (String missingKey : missingKeys) {
@@ -352,7 +360,7 @@ public class DependencyVerifier {
         }
 
         public boolean hasError() {
-            return failedKeys != null || validNotTrusted != null || missingKeys != null;
+            return failedKeys != null || validNotTrusted != null || missingKeys != null || !hasValidSignatures || hasOnlyIgnoredKeys();
         }
     }
 

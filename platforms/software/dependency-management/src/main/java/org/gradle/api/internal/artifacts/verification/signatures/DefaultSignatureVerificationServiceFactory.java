@@ -134,6 +134,10 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         @Override
         public void verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationResultBuilder result) {
             PGPSignatureList pgpSignatures = SecuritySupport.readSignatures(signature);
+            if (pgpSignatures == null) {
+                result.noSignatures();
+                return;
+            }
             for (PGPSignature pgpSignature : pgpSignatures) {
                 String longIdKey = toLongIdHexString(pgpSignature.getKeyID());
                 if (ignoredKeys.contains(longIdKey)) {

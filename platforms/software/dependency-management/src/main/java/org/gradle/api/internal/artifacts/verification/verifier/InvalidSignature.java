@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,32 @@
  */
 package org.gradle.api.internal.artifacts.verification.verifier;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.logging.text.TreeFormatter;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
-public interface VerificationFailure {
+@NonNullApi
+public class InvalidSignature extends AbstractVerificationFailure {
+    private final File signatureFile;
 
-    File getFilePath();
-
-    @Nullable
-    default File getSignatureFile() {
-        return null;
+    public InvalidSignature(File affectedFile, File signatureFile) {
+        super(affectedFile);
+        this.signatureFile = signatureFile;
     }
 
-    default boolean isFatal() {
-        return true;
+    @Override
+    public boolean isFatal() {
+        return false;
     }
 
-    default void explainTo(TreeFormatter formatter) {
-
+    @Override
+    public File getSignatureFile() {
+        return signatureFile;
     }
 
+    @Override
+    public void explainTo(TreeFormatter formatter) {
+        formatter.append("artifact has signature file, but it contains no valid signatures");
+    }
 }
