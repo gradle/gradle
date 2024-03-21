@@ -643,6 +643,6 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     }
 
     TestFile getCacheDir() {
-        return getUserHomeCacheDir().file(CacheLayout.TRANSFORMS.getKey())
+        return getGradleVersionedCacheDir().file(CacheLayout.TRANSFORMS.getName())
     }
 }
