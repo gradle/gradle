@@ -129,73 +129,15 @@ NOTE: A new instance of a `Plugin` is created within each project applying that 
 Let's rewrite the `GreetingPlugin` script plugin as a precompiled script plugin:
 
 ====
-[.multi-language-sample]
-=====
-./buildSrc/src/main/groovy/com/example/GreetingPlugin.gradle.kts
-[source,kotlin]
-----
-package com.example
-
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-
-class GreetingPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        project.task("hello") {
-            doLast {
-                println("Hello from the GreetingPlugin")
-            }
-        }
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-./buildSrc/src/main/groovy/com/example/GreetingPlugin.gradle
-[source,groovy]
-----
-package com.example
-
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-
-class GreetingPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        project.task('hello') {
-            doLast {
-                println 'Hello from the GreetingPlugin'
-            }
-        }
-    }
-}
-----
-=====
+include::sample[dir="snippets/plugins/greetingPlugin/kotlin",files="buildSrc/src/main/kotlin/com/example/ConventionGreetingPlugin.gradle.kts[]"]
+include::sample[dir="snippets/plugins/greetingPlugin/groovy",files="buildSrc/src/main/groovy/com/example/ConventionGreetingPlugin.gradle[]"]
 ====
 
 The `GreetingPlugin` can now be applied in other subprojects' builds by using its `com.example.GreetingPlugin` ID:
 
 ====
-[.multi-language-sample]
-=====
-./subproject/build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("com.example.GreetingPlugin")
-}
-----
-=====
-[.multi-language-sample]
-=====
-./subproject/build.gradle
-[source,groovy]
-----
-plugins {
-    id("com.example.GreetingPlugin")
-}
-----
-=====
+include::sample[dir="snippets/plugins/greetingPlugin/kotlin",files="app/build.gradle.kts[tag=use-plugin]"]
+include::sample[dir="snippets/plugins/greetingPlugin/groovy",files="app/build.gradle[tag=use-plugin]"]
 ====
 
 [[sec:convention_plugins]]
@@ -232,26 +174,10 @@ The project has the following structure:
 
 The build file of the `database-logic` subproject is as follows:
 
-[source,kotlin]
-.database-logic/build.gradle.kts
-----
-plugins {
-    id("java-library")
-    id("org.jetbrains.kotlin.jvm")
-}
-
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-kotlin {
-    jvmToolchain(17)
-}
-----
+====
+include::sample[dir="snippets/plugins/pluginProject/kotlin",files="database-logic/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/pluginProject/groovy",files="database-logic/build.gradle[]"]
+====
 
 We apply the `java-library` plugin and add the `org.jetbrains.kotlin.jvm` plugin for Kotlin support.
 We also configure Kotlin, Java, tests and more.
@@ -295,38 +221,37 @@ dependencies {
 We add a Kotlin script called `my-java-library.gradle.kts` inside the `/src/main/kotlin` directory.
 We put all the plugin application and configuration from the `database-logic` build file into it:
 
-[source,kotlin]
-.buildSrc/src/main/kotlin/my-java-library.gradle.kts
-----
-plugins {
-    id("java-library")
-    id("org.jetbrains.kotlin.jvm")
-}
-
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-kotlin {
-    // ...
-}
-----
+====
+include::sample[dir="snippets/plugins/pluginProject/kotlin",files="buildSrc/src/main/kotlin/my-java-library.gradle.kts[]"]
+include::sample[dir="snippets/plugins/pluginProject/groovy",files="buildSrc/src/main/groovy/my-java-library.gradle[]"]
+====
 
 The name of the file `my-java-library` is the ID of our brand-new plugin, which we can now use in all of our subprojects.
 
 The `database-logic` build file becomes much simpler by removing all the redundant build logic and applying our convention `my-java-library` plugin instead:
 
-[source,kotlin]
+====
+[.multi-language-sample]
+=====
 .database-logic/build.gradle.kts
+[source,kotlin]
 ----
 plugins {
     id("my-java-library")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+..database-logic/build.gradle
+[source,groovy]
+----
+plugins {
+    id('my-java-library')
+}
+----
+=====
+====
 
 This convention plugin enables us to easily share common configurations across all our build files.
 Any modifications can be made in one place, simplifying maintenance.

@@ -247,38 +247,10 @@ include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/ma
 Plugins commonly use an extension to capture user input from the build script and map it to a custom task's input/output properties.
 The build script author interacts with the extension's DSL, while the plugin implementation handles the underlying logic:
 
-[source,kotlin]
-----
-// Extension class to capture user input
-class MyExtension {
-    @Input
-    var inputParameter: String? = null
-}
-
-// Custom task that uses the input from the extension
-class MyCustomTask : org.gradle.api.DefaultTask() {
-    @Input
-    var inputParameter: String? = null
-
-    @TaskAction
-    fun executeTask() {
-        println("Input parameter: $inputParameter")
-    }
-}
-
-// Plugin class that configures the extension and task
-class MyPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        // Create and configure the extension
-        val extension = project.extensions.create("myExtension", MyExtension::class.java)
-        // Create and configure the custom task
-        project.tasks.register("myTask", MyCustomTask::class.java) {
-            it.group = "custom"
-            it.inputParameter = extension.inputParameter
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/mappingExtensions/kotlin",files="app/build.gradle.kts[tags=snippet]"]
+include::sample[dir="snippets/plugins/mappingExtensions/groovy",files="app/build.gradle[tags=snippet]"]
+====
 
 In this example, the `MyExtension` class defines an `inputParameter` property that can be set in the build script.
 The `MyPlugin` class configures this extension and uses its `inputParameter` value to configure the `MyCustomTask` task.
