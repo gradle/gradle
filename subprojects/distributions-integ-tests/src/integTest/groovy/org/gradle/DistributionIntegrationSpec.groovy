@@ -78,7 +78,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         expect:
         def size = getZip().size()
 
-        size <= getMaxDistributionSizeBytes()
+        assert size <= getMaxDistributionSizeBytes() : "Distribution content needs to be verified. If the increase is expected, raise the size by ${Math.ceil((size - getMaxDistributionSizeBytes()) / 1024 / 1024)}"
     }
 
     def "no duplicate jar entries in distribution"() {
