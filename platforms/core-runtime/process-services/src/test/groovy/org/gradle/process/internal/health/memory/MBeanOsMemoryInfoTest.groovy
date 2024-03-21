@@ -62,7 +62,7 @@ class MBeanOsMemoryInfoTest extends Specification {
 
     def "getTotalPhysicalMemory fails when memory MBeans are #availability"() {
         given:
-        def osMemoryInfo = createMemoryInfo(MemoryAvailability.UNAVAILABLE)
+        def osMemoryInfo = createMemoryInfo(availability)
 
         when:
         osMemoryInfo.getOsSnapshot().getPhysicalMemory().getTotal()
@@ -72,17 +72,6 @@ class MBeanOsMemoryInfoTest extends Specification {
 
         where:
         availability << [MemoryAvailability.UNAVAILABLE, MemoryAvailability.INVALID_VALUE]
-    }
-
-    def "getTotalPhysicalMemory fails when memory MBeans return invalid values"() {
-        given:
-        def osMemoryInfo = createMemoryInfo(MemoryAvailability.INVALID_VALUE)
-
-        when:
-        osMemoryInfo.getOsSnapshot().getPhysicalMemory().getTotal()
-
-        then:
-        thrown UnsupportedOperationException
     }
 
     def "getFreePhysicalMemory works when memory MBeans are available"() {
