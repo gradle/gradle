@@ -52,6 +52,10 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+## Configuration cache improvements
+
+[Java Record classes](https://docs.oracle.com/en/java/javase/21/language/records.html) are now supported in the configuration cache.
+
 #### Ability to set conventions on file collections
 
 Plugin-provided tasks often expose file collections that are meant to be customizable by build engineers (for instance, the classpath for the JavaCompile task).

@@ -384,6 +384,7 @@ class Codecs(
         bind(arrayDequeCodec)
 
         bind(EnumCodec)
+        bind(JavaRecordCodec)
         bind(RegexpPatternCodec)
         bind(UrlCodec)
         bind(LevelCodec)

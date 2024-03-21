@@ -28,6 +28,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.internal.GFileUtils
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -419,7 +420,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     }
 
     @Issue("https://github.com/gradle/gradle/issues/28301")
-    def "instrumentation and upgrades work when repository is changed from remote to local"() {
+    def "instrumentation and upgrades don't fail a build when repository is changed from remote to local"() {
         def mavenRemote = new MavenHttpRepository(server, "/repo", HttpRepository.MetadataType.DEFAULT, mavenRepo)
         def remoteModule = mavenRemote.module("test.gradle", "test-plugin", "0.2").publish()
         remoteModule.pom.expectDownload()
@@ -442,6 +443,29 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
             buildscript {
                 repositories { maven { url "${normaliseFileSeparators(mavenRepo.uri.toString())}" } }
                 dependencies { classpath "$artifactCoordinates" }
+            }
+        """
+
+        then:
+        run("help")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28496")
+    def "instrumentation and upgrades don't fail a build when we have two copies of the same artifact on the classpath"() {
+        file("jars/first").mkdirs()
+        file("jars/second").mkdirs()
+        def jar = file("jars/first/test-plugin-0.2.jar").with {
+            it.createFile()
+        }
+        GFileUtils.copyFile(jar, file("jars/second/test-plugin-0.2.jar"))
+
+        when:
+        buildFile.text = """
+            buildscript {
+                dependencies {
+                    classpath(files("./jars/first/test-plugin-0.2.jar"))
+                    classpath(files("./jars/second/test-plugin-0.2.jar"))
+                }
             }
         """
 

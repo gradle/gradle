@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization.transform.services;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -36,7 +37,6 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -136,7 +136,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
             this.hashCache = new ConcurrentHashMap<>();
             this.hashToOriginalFile = Lazy.locking().of(() -> {
                 Set<File> originalClasspath = getOriginalClasspath().getFiles();
-                Map<String, File> originalFiles = new HashMap<>(originalClasspath.size());
+                Map<String, File> originalFiles = Maps.newHashMapWithExpectedSize(originalClasspath.size());
                 originalClasspath.forEach(file -> {
                     String fileHash = getArtifactHash(file);
                     if (fileHash != null) {

@@ -46,12 +46,12 @@ import java.io.File;
 import static org.gradle.api.internal.initialization.transform.BaseInstrumentingArtifactTransform.Parameters;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createInstrumentationClasspathMarker;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.createNewFile;
-import static org.gradle.internal.classpath.TransformedClassPath.AGENT_INSTRUMENTATION_MARKER_FILE_NAME;
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.AGENT_INSTRUMENTATION_MARKER;
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.LEGACY_INSTRUMENTATION_MARKER;
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_ENTRY_PREFIX;
-import static org.gradle.internal.classpath.TransformedClassPath.LEGACY_INSTRUMENTATION_MARKER_FILE_NAME;
 import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NAME;
-import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_FILE_DOES_NOT_EXIST_MARKER;
 
 /**
  * Base artifact transform that instruments plugins with Gradle instrumentation, e.g. for configuration cache detection or property upgrades.
@@ -80,7 +80,7 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
     protected void doTransform(File artifactToTransform, TransformOutputs outputs) {
         createInstrumentationClasspathMarker(outputs);
         if (!artifactToTransform.exists()) {
-            createNewFile(outputs.file(ORIGINAL_FILE_DOES_NOT_EXIST_MARKER));
+            createNewFile(outputs.file(ORIGINAL_FILE_DOES_NOT_EXIST_MARKER.getFileName()));
             return;
         }
 
@@ -88,10 +88,10 @@ public abstract class BaseInstrumentingArtifactTransform implements TransformAct
             // When agent is supported, we output an instrumented jar and an original jar,
             // so we can then later reconstruct instrumented jars classpath and original jars classpath.
             // We add `instrumented-` prefix to the file since names for the same transform needs to be unique when querying results via ArtifactCollection.
-            createNewFile(outputs.file(AGENT_INSTRUMENTATION_MARKER_FILE_NAME));
+            createNewFile(outputs.file(AGENT_INSTRUMENTATION_MARKER.getFileName()));
             doTransform(artifactToTransform, outputs, originalName -> INSTRUMENTED_ENTRY_PREFIX + originalName);
         } else {
-            createNewFile(outputs.file(LEGACY_INSTRUMENTATION_MARKER_FILE_NAME));
+            createNewFile(outputs.file(LEGACY_INSTRUMENTATION_MARKER.getFileName()));
             doTransform(artifactToTransform, outputs, originalName -> originalName);
         }
     }
