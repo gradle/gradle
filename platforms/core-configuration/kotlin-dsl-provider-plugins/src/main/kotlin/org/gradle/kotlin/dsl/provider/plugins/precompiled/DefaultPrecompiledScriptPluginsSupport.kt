@@ -224,9 +224,7 @@ fun Project.enableScriptCompilationOf(
             ) {
                 dependsOn(compilePluginsBlocks)
                 classPathFiles.from(compileClasspath)
-                val runtimeClassPath = configurations["runtimeClasspath"].incoming.artifacts
-                runtimeClassPathFiles.from(runtimeClassPath.artifactFiles)
-                runtimeClassPathArtifactCollection.set(runtimeClassPath)
+                runtimeClassPathArtifactCollection.set(configurations["runtimeClasspath"].incoming.artifacts)
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(accessorsMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)

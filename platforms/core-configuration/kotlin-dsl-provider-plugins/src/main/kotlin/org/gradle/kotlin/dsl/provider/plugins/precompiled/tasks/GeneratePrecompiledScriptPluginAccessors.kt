@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DependencyManagementServices
@@ -119,12 +119,14 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     @get:InputFiles
     @get:Classpath
-    abstract val runtimeClassPathFiles: ConfigurableFileCollection
+    val runtimeClassPathFiles: FileCollection
+        get() = runtimeClassPathArtifactCollection.get().artifactFiles
 
     /**
      * Tracked via [runtimeClassPathFiles].
      */
     @get:Internal
+    internal
     abstract val runtimeClassPathArtifactCollection: Property<ArtifactCollection>
 
     @get:OutputDirectory
@@ -431,7 +433,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun buildLogicClassPath(gradle: Gradle): ClassPath {
         // Ideally we would pass already instrumented classpath to a task and then just export it to the classloader.
-        // But since we do some artifact transform caching via BuildService, that would add some complexity when wiring GeneratePrecompiledScriptPluginAccessors task.
+        // But since we do some artifact transform caching via BuildService,
+        // that would add some complexity when wiring GeneratePrecompiledScriptPluginAccessors task.
         val dependencyManagementServices = gradle.serviceOf<DependencyManagementServices>()
         val fileCollectionFactory = gradle.serviceOf<FileCollectionFactory>()
         val dependencyResolutionServices = dependencyManagementServices.create(
@@ -459,14 +462,14 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         fileCollectionFactory: FileCollectionFactory
     ): Configuration {
         val dependencies = runtimeClassPathArtifactCollection.get().artifacts.map {
-            when (it.id) {
+            when (val componentIdentifier = it.id.componentIdentifier) {
                 is OpaqueComponentIdentifier -> DefaultFileCollectionDependency(
-                    it.id as OpaqueComponentIdentifier,
+                    componentIdentifier,
                     fileCollectionFactory.fixed(it.file)
                 )
                 is ProjectComponentIdentifier -> DefaultFileCollectionDependency(
                     OpaqueComponentIdentifier(ClassPathNotation.LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY),
-                    fileCollectionFactory.fixed(it.id.displayName, it.file)
+                    fileCollectionFactory.fixed(componentIdentifier.displayName, it.file)
                 )
                 else -> {
                     dependencyHandler.create(fileCollectionFactory.fixed(it.file))
