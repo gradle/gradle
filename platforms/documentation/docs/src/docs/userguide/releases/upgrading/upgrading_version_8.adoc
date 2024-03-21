@@ -1158,7 +1158,7 @@ The `getAllDependencies()` method, which retrieves all declared dependencies on 
 [[deprecated_access_to_conventions]]
 ==== Deprecated access to plugin conventions
 
-The concept of conventions is outdated and superseded by <<implementing_gradle_plugins.adoc#modeling_dsl_like_apis, extensions>> to provide custom DSLs.
+The concept of conventions is outdated and superseded by <<implementing_gradle_plugins_binary.adoc#modeling_dsl_like_apis, extensions>> to provide custom DSLs.
 
 To reflect this in the Gradle API, the following elements are deprecated:
 

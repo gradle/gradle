@@ -17,6 +17,3 @@ class GreetingPlugin : Plugin<Project> {
 }
 
 apply<GreetingPlugin>()
-
-// Configure the extension
-the<GreetingPluginExtension>().message = "Hi from Gradle"

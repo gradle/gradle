@@ -1,0 +1,39 @@
+// tag::task[]
+// tag::convention[]
+// tag::create-extension[]
+// tag::extension[]
+// Create extension object
+interface GreetingPluginExtension {
+    Property<String> getMessage()
+}
+// end::extension[]
+
+// Add the 'greeting' extension object to project
+def extension = project.extensions.create("greeting", GreetingPluginExtension)
+// end::create-extension[]
+
+// Set a default value for 'message'
+extension.message.convention("Hello from Gradle")
+// end::convention[]
+
+// Create a greeting task
+abstract class GreetingTask extends DefaultTask {
+    @Input
+    abstract Property<String> getMessage()
+
+    @TaskAction
+    void greet() {
+        println("Message: ${message.get()}")
+    }
+}
+
+// Register the task and set the convention
+tasks.register("hello", GreetingTask) {
+    message.convention(extension.message)
+}
+// end::task[]
+
+// tag::update[]
+extensions.findByType(GreetingPluginExtension).message.set("Hi from Gradle")
+// end::update[]
+extensions.findByType(GreetingPluginExtension).message.set("Hello from Gradle")
