@@ -1,4 +1,4 @@
-abstract class GreetPlugin implements Plugin<Project> {
+abstract class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.task("hello") {
             doLast {
@@ -8,4 +8,4 @@ abstract class GreetPlugin implements Plugin<Project> {
     }
 }
 
-apply plugin: GreetPlugin
+project.plugins.apply(GreetingPlugin)

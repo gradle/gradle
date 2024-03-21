@@ -49,6 +49,7 @@ See the table below for the Java version supported by a specific Gradle release:
 | 20| 8.1 | 8.3
 | 21| 8.4 | 8.5
 | 22| 8.7 | N/A
+| 23| N/A | N/A
 |===
 
 [[kotlin]]
