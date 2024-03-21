@@ -81,7 +81,6 @@ import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.plugin.management.internal.PluginRequests
-import org.gradle.profile.BuildProfile
 import org.gradle.util.Path
 import org.gradle.vcs.internal.VcsMappingsStore
 import java.io.File
@@ -578,14 +577,6 @@ class ConfigurationCacheState(
             withDebugFrame({ "cache configurations" }) {
                 writeCacheConfigurations(gradle)
             }
-            if (gradle.startParameter.isProfile) {
-                writeBoolean(true)
-                withDebugFrame({ "build profile" }) {
-                    writeBuildProfile(gradle)
-                }
-            } else {
-                writeBoolean(false)
-            }
         }
     }
 
@@ -600,24 +591,6 @@ class ConfigurationCacheState(
             readGradleEnterprisePluginManager(gradle)
             readBuildCacheConfiguration(gradle)
             readCacheConfigurations(gradle)
-            if (readBoolean()) {
-                readBuildProfile(gradle)
-            }
-        }
-    }
-
-    private
-    fun DefaultWriteContext.writeBuildProfile(gradle: GradleInternal) {
-        val buildProfile = gradle.serviceOf<BuildProfile>()
-        writeString(buildProfile.buildDir.path)
-    }
-
-    private
-    fun DefaultReadContext.readBuildProfile(gradle: GradleInternal) {
-        val buildProfileDir = File(readString())
-
-        gradle.serviceOf<BuildProfile>().apply {
-            buildDir = buildProfileDir
         }
     }
 

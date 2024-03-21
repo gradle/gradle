@@ -80,7 +80,6 @@ dependencies {
     implementation(project(":publish"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(project(":tooling-api"))
-    implementation(project(":build-profile"))
 
     implementation(libs.asm)
     implementation(libs.capsule)

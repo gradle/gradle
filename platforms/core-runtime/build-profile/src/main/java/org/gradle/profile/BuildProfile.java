@@ -22,7 +22,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -61,7 +60,6 @@ public class BuildProfile {
     private final StartParameter startParameter;
     private final BuildStartedTime buildStartedTime;
     private boolean successful;
-    private File buildDir;
 
     public BuildProfile(StartParameter startParameter, BuildStartedTime buildStartedTime) {
         this.startParameter = startParameter;
@@ -256,18 +254,10 @@ public class BuildProfile {
         return "Started on: " + DATE_FORMAT.format(valueOrBuildStartedTimeIfNotInitialized(buildStarted));
     }
 
-    public File getBuildDir() {
-        return buildDir;
-    }
-
-    public void setBuildDir(File buildDir) {
-        this.buildDir = buildDir;
-    }
-
     /*
-    * When loading from configuration cache, the fields that are set on configuration time ain't initialized.
-    * After configuration cache hit it's fair to use build start time value for them.
-    * */
+     * When loading from configuration cache, the fields that are set on configuration time ain't initialized.
+     * After configuration cache hit it's fair to use build start time value for them.
+     * */
     private long valueOrBuildStartedTimeIfNotInitialized(long time) {
         return time == NOT_INITIALIZED_VALUE ? buildStartedTime.getStartTime() : time;
     }
