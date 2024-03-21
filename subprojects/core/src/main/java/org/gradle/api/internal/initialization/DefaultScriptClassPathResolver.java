@@ -33,7 +33,7 @@ import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation;
 import org.gradle.api.internal.initialization.transform.registration.InstrumentationTransformRegisterer;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.ResolutionScope;
@@ -61,9 +61,9 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
-    private static final Set<DependencyFactoryInternal.ClassPathNotation> GRADLE_API_NOTATIONS = EnumSet.of(
-        DependencyFactoryInternal.ClassPathNotation.GRADLE_API,
-        DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
+    private static final Set<ClassPathNotation> GRADLE_API_NOTATIONS = EnumSet.of(
+        ClassPathNotation.GRADLE_API,
+        ClassPathNotation.LOCAL_GROOVY
     );
 
     public enum InstrumentationPhase {
@@ -177,13 +177,16 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static boolean isGradleApi(ComponentIdentifier componentId) {
         if (componentId instanceof OpaqueComponentIdentifier) {
-            DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+            ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
             return DefaultScriptClassPathResolver.GRADLE_API_NOTATIONS.contains(classPathNotation);
         }
         return false;
     }
 
     private static boolean isProjectDependency(ComponentIdentifier componentId) {
+        if (componentId instanceof OpaqueComponentIdentifier) {
+            return ((OpaqueComponentIdentifier) componentId).getClassPathNotation() == ClassPathNotation.LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY;
+        }
         return componentId instanceof ProjectComponentIdentifier;
     }
 
