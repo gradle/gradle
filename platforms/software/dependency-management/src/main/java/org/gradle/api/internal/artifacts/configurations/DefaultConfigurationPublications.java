@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserCodeException;
@@ -46,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultConfigurationPublications implements ConfigurationPublications, FinalizableValue {
     private final DisplayName displayName;
@@ -94,7 +92,6 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     }
 
     public void collectVariants(ConfigurationInternal.VariantVisitor visitor) {
-        visitor.visitArtifacts(artifacts);
         PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
         if (variants == null || variants.isEmpty() || !allArtifactSet.isEmpty()) {
             visitor.visitOwnVariant(displayName, attributes.asImmutable(), allArtifactSet);
@@ -104,43 +101,6 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
                 visitor.visitChildVariant(variant.getName(), variant.getDisplayName(), variant.getAttributes().asImmutable(), variant.getArtifacts());
             }
         }
-    }
-
-    public OutgoingVariant convertToOutgoingVariant() {
-        return new OutgoingVariant() {
-            @Override
-            public DisplayName asDescribable() {
-                return displayName;
-            }
-
-            @Override
-            public AttributeContainerInternal getAttributes() {
-                return attributes;
-            }
-
-            @Override
-            public Set<? extends PublishArtifact> getArtifacts() {
-                return artifacts;
-            }
-
-            @Override
-            public Set<? extends OutgoingVariant> getChildren() {
-                PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
-                LeafOutgoingVariant leafOutgoingVariant = new LeafOutgoingVariant(displayName, attributes, allArtifactSet);
-                if (variants == null || variants.isEmpty()) {
-                    return Collections.singleton(leafOutgoingVariant);
-                }
-                boolean hasArtifacts = !allArtifactSet.isEmpty();
-                Set<OutgoingVariant> result = Sets.newLinkedHashSetWithExpectedSize(hasArtifacts ? 1 + variants.size() : variants.size());
-                if (hasArtifacts) {
-                    result.add(leafOutgoingVariant);
-                }
-                for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {
-                    result.add(variant.convertToOutgoingVariant());
-                }
-                return result;
-            }
-        };
     }
 
     @Override

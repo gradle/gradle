@@ -140,7 +140,12 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory configurationMetadataFactory =
             new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
-                configurationsProvider, configurationMetadataBuilder, model, calculatedValueContainerFactory);
+                componentIdentifier,
+                configurationsProvider,
+                configurationMetadataBuilder,
+                model,
+                calculatedValueContainerFactory
+            );
 
         LocalComponentMetadata metadata = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
         if (shouldCacheResolutionState()) {

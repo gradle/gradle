@@ -68,7 +68,12 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
 
         DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory configurationMetadataFactory =
             new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
-                (DefaultConfigurationContainer) project.getConfigurations(), metadataBuilder, projectState, calculatedValueContainerFactory);
+                componentIdentifier,
+                (DefaultConfigurationContainer) project.getConfigurations(),
+                metadataBuilder,
+                projectState,
+                calculatedValueContainerFactory
+            );
 
         return new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
     }

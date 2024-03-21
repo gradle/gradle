@@ -81,7 +81,12 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def configurationsFactory = new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
-        configurationsProvider, metadataBuilder, RootScriptDomainObjectContext.INSTANCE, TestUtil.calculatedValueContainerFactory())
+        componentIdentifier,
+        configurationsProvider,
+        metadataBuilder,
+        RootScriptDomainObjectContext.INSTANCE,
+        TestUtil.calculatedValueContainerFactory()
+    )
 
     def metadata = new DefaultLocalComponentMetadata(
         id, componentIdentifier, "status", Mock(AttributesSchemaInternal),
@@ -407,7 +412,6 @@ class DefaultLocalComponentMetadataTest extends Specification {
             getDependencyConstraints() >> dependencyConstraints
             getExcludeRules() >> new LinkedHashSet<ExcludeRule>()
             collectVariants(_ as ConfigurationInternal.VariantVisitor) >> { ConfigurationInternal.VariantVisitor visitor ->
-                visitor.visitArtifacts(artifacts)
                 visitor.visitOwnVariant(Describables.of(name), ImmutableAttributes.EMPTY, artifacts)
                 variants.each {
                     visitor.visitChildVariant(it.name, Describables.of(it.name), it.attributes as ImmutableAttributes, it.artifacts)
