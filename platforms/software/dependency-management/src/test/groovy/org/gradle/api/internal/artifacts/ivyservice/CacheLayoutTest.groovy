@@ -23,7 +23,7 @@ class CacheLayoutTest extends Specification {
 
     def "use root layout"() {
         when:
-        CacheLayout cacheLayout = CacheLayout.ROOT
+        CacheLayout cacheLayout = CacheLayout.MODULES
 
         then:
         cacheLayout.name == 'modules'
