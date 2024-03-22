@@ -52,6 +52,20 @@ public final class DefaultIsolatedProject implements IsolatedProject {
     }
 
     @Override
+    public int hashCode() {
+        return project.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof DefaultIsolatedProject)) {
+            return false;
+        }
+        DefaultIsolatedProject that = (DefaultIsolatedProject) obj;
+        return this.project.equals(that.project);
+    }
+
+    @Override
     public String toString() {
         return "DefaultIsolatedProject{" + project + '}';
     }
