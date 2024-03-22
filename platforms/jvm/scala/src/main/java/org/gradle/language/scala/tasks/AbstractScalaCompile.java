@@ -202,8 +202,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
 
         File analysisFile = incrementalOptions.getAnalysisFile().getAsFile().get();
         File classpathBackupDir = incrementalOptions.getClassfileBackupDir().getAsFile().get();
-        Map<File, File> globalAnalysisMap = resolveAnalysisMappingsForOtherProjects();
-        spec.setAnalysisMap(globalAnalysisMap);
+        Map<File, File> analysisMap = resolveInputAnalysisMap();
+        spec.setAnalysisMap(analysisMap);
         spec.setAnalysisFile(analysisFile);
         spec.setClassfileBackupDir(classpathBackupDir);
 
@@ -220,8 +220,16 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
             GFileUtils.writeFile(publishedCode.getAbsolutePath() + "\n" + analysisFile.getAbsolutePath(), analysisMapping);
         }
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("scala-incremental Analysis map: {}", globalAnalysisMap);
+            LOGGER.debug("scala-incremental Analysis map: {}", analysisMap);
         }
+    }
+
+
+    private Map<File, File> resolveInputAnalysisMap() {
+        Map<File, File> analysisMap = new HashMap<>();
+        analysisMap.putAll(resolveAnalysisMappingsForLocalSourceSets());
+        analysisMap.putAll(resolveAnalysisMappingsForOtherProjects());
+        return analysisMap;
     }
 
     private Map<File, File> resolveAnalysisMappingsForOtherProjects() {
@@ -238,6 +246,11 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
             }
         }
 
+        return analysisMap;
+    }
+
+    private Map<File, File> resolveAnalysisMappingsForLocalSourceSets() {
+        Map<File, File> analysisMap = new HashMap<>();
         for (Task taskDependency : getTaskDependencies().getDependenciesForInternalUse(this)) {
             if (taskDependency instanceof AbstractScalaCompile) {
                 AbstractScalaCompile scalaCompileTask = (AbstractScalaCompile) taskDependency;
