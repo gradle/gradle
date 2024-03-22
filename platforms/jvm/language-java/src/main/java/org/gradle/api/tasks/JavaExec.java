@@ -381,6 +381,16 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
+     * Configures whether Preview Features should be enabled for the process ({@code --enable-preview} Java runtime flag).
+     *
+     * @since 8.9
+     */
+    @Override
+    public Property<Boolean> getEnablePreview() {
+        return javaExecSpec.getEnablePreview();
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

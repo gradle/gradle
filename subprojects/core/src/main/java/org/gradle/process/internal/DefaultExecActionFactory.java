@@ -33,6 +33,7 @@ import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
@@ -150,7 +151,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
-        final DefaultJavaForkOptions forkOptions = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
+        final DefaultJavaForkOptions forkOptions = new DefaultJavaForkOptions(fileResolver, objectFactory, fileCollectionFactory, new DefaultJavaDebugOptions());
         if (forkOptions.getExecutable() == null) {
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
         }
@@ -164,8 +165,9 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         // NOTE: We do not want/need a decorated version of JavaForkOptions or JavaDebugOptions because
         // these immutable instances are held across builds and will retain classloaders/services in the decorated object
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), nonCachingPatternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
-        JavaForkOptionsInternal copy = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
+        JavaForkOptionsInternal copy = new DefaultJavaForkOptions(fileResolver, objectFactory, fileCollectionFactory, new DefaultJavaDebugOptions());
         options.copyTo(copy);
+        copy.getEnablePreview().finalizeValue();
         return new ImmutableJavaForkOptions(copy);
     }
 
@@ -581,6 +583,11 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         @Override
         public void setEnableAssertions(boolean enabled) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Property<Boolean> getEnablePreview() {
+            return delegate.getEnablePreview();
         }
 
         @Override

@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
+// TODO: add some tests
 class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
     TestFile mainJavaFile

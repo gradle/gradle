@@ -272,6 +272,11 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
+    public Property<Boolean> getEnablePreview() {
+        return javaOptions.getEnablePreview();
+    }
+
+    @Override
     public boolean getDebug() {
         return javaOptions.getDebug();
     }

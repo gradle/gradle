@@ -526,6 +526,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     /**
+     * Configures whether Preview Features should be enabled for the process ({@code --enable-preview} Java runtime flag).
+     *
+     * @since 8.9
+     */
+    @Override
+    public Property<Boolean> getEnablePreview() {
+        return forkOptions.getEnablePreview();
+    }
+
+    /**
      * Enables fail fast behavior causing the task to fail on the first failed test.
      */
     @Option(option = "fail-fast", description = "Stops test execution after the first failed test.")

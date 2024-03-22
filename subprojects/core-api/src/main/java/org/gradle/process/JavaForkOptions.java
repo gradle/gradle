@@ -17,7 +17,9 @@
 package org.gradle.process;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -258,6 +260,15 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @since 5.6
      */
     void debugOptions(Action<JavaDebugOptions> action);
+
+    /**
+     * Configures whether Preview Features should be enabled for the compilation ({@code --enable-preview} compiler flag).
+     *
+     * @since 8.10
+     */
+    @Incubating
+    @Input
+    Property<Boolean> getEnablePreview();
 
     /**
      * Returns the full set of arguments to use to launch the JVM for the process. This includes arguments to define

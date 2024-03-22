@@ -22,6 +22,8 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.ArgumentsSplitter;
@@ -64,6 +66,7 @@ public class JvmOptions {
 
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> mutableSystemProperties = new TreeMap<String, Object>();
+    private final ObjectFactory objectFactory;
     private final FileCollectionFactory fileCollectionFactory;
 
     private ConfigurableFileCollection bootstrapClasspath;
@@ -72,20 +75,23 @@ public class JvmOptions {
     private boolean assertionsEnabled;
 
     private final JavaDebugOptions debugOptions;
+    private final Property<Boolean> enablePreview;
 
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<>();
 
-    public JvmOptions(FileCollectionFactory fileCollectionFactory, JavaDebugOptions debugOptions) {
+    public JvmOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory, JavaDebugOptions debugOptions) {
+        this.objectFactory = objectFactory;
         this.debugOptions = debugOptions;
         this.fileCollectionFactory = fileCollectionFactory;
+        enablePreview = objectFactory.property(Boolean.class).convention(false);
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
         immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
         immutableSystemProperties.put(USER_VARIANT_KEY, DEFAULT_LOCALE.getVariant());
     }
 
-    public JvmOptions(FileCollectionFactory fileCollectionFactory) {
-        this(fileCollectionFactory, new DefaultJavaDebugOptions());
+    public JvmOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
+        this(objectFactory, fileCollectionFactory, new DefaultJavaDebugOptions());
     }
 
     /**
@@ -152,6 +158,11 @@ public class JvmOptions {
         if (debugOptions.getEnabled().get()) {
             args.add(getDebugArgument());
         }
+
+        if (enablePreview.get()) {
+            args.add("--enable-preview");
+        }
+
         return args;
     }
 
@@ -245,6 +256,8 @@ public class JvmOptions {
                 assertionsEnabled = true;
             } else if (argStr.equals("-da") || argStr.equals("-disableassertions")) {
                 assertionsEnabled = false;
+            } else if (argStr.equals("--enable-preview")) {
+                enablePreview.set(true);
             } else if (argStr.startsWith(XMS_PREFIX)) {
                 minHeapSize = argStr.substring(XMS_PREFIX.length());
             } else if (argStr.startsWith(XMX_PREFIX)) {
@@ -348,6 +361,10 @@ public class JvmOptions {
         assertionsEnabled = enabled;
     }
 
+    public Property<Boolean> getEnablePreview() {
+        return enablePreview;
+    }
+
     public boolean getDebug() {
         return debugOptions.getEnabled().get();
     }
@@ -372,7 +389,7 @@ public class JvmOptions {
     }
 
     public JvmOptions createCopy() {
-        JvmOptions target = new JvmOptions(fileCollectionFactory);
+        JvmOptions target = new JvmOptions(objectFactory, fileCollectionFactory);
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(mutableSystemProperties);
         target.setMinHeapSize(minHeapSize);
@@ -382,6 +399,7 @@ public class JvmOptions {
         }
         target.setEnableAssertions(assertionsEnabled);
         copyDebugOptionsTo(target.getDebugOptions());
+        target.enablePreview.set(enablePreview);
         target.systemProperties(immutableSystemProperties);
         return target;
     }

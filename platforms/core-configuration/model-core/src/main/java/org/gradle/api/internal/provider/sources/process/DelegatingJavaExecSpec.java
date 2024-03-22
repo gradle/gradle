@@ -233,6 +233,11 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
+    default Property<Boolean> getEnablePreview() {
+        return getDelegate().getEnablePreview();
+    }
+
+    @Override
     default List<String> getAllJvmArgs() {
         return getDelegate().getAllJvmArgs();
     }

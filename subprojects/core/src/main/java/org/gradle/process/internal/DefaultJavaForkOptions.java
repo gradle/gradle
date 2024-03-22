@@ -19,6 +19,8 @@ package org.gradle.process.internal;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -40,9 +42,9 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     private List<CommandLineArgumentProvider> jvmArgumentProviders;
 
     @Inject
-    public DefaultJavaForkOptions(PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, JavaDebugOptions debugOptions) {
+    public DefaultJavaForkOptions(PathToFileResolver resolver, ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory, JavaDebugOptions debugOptions) {
         super(resolver);
-        options = new JvmOptions(fileCollectionFactory, debugOptions);
+        options = new JvmOptions(objectFactory, fileCollectionFactory, debugOptions);
     }
 
     @Override
@@ -205,6 +207,11 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
         action.execute(options.getDebugOptions());
+    }
+
+    @Override
+    public Property<Boolean> getEnablePreview() {
+        return options.getEnablePreview();
     }
 
     @Override
