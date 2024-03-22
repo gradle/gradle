@@ -28,7 +28,7 @@ import org.gradle.internal.snapshot.ValueSnapshot
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
 import static org.gradle.internal.properties.InputBehavior.PRIMARY
 
-abstract class AbstractSkipEmptyWorkStepTest<C extends IdentityContext> extends StepSpec<C> {
+abstract class AbstractSkipEmptyWorkStepTest<C extends WorkspaceContext> extends StepSpec<C> {
     def workInputListeners = Mock(WorkInputListeners)
     def inputFingerprinter = Mock(InputFingerprinter)
     def primaryFileInputs = EnumSet.of(PRIMARY)

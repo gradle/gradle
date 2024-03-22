@@ -18,6 +18,10 @@ package org.gradle.test.preconditions
 
 import org.gradle.test.precondition.TestPrecondition
 
+// These imports are required, IntelliJ incorrectly thinks that they are not used because old versions of Groovy
+// permitted subtypes to use the parent type's methods without importing them
+import static org.gradle.test.precondition.TestPrecondition.satisfied;
+
 class PluginTestPreconditions {
     static File locate(String shellCommand) {
         return [
