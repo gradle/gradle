@@ -210,7 +210,7 @@ include::sample[dir="snippets/plugins/pluginProject/groovy",files="buildSrc/src/
 
 The name of the file `my-java-library` is the ID of our brand-new plugin, which we can now use in all of our subprojects.
 
-TIP: Why is the version of `id 'org.jetbrains.kotlin.jvm'` missing? See <<implemention_precompiled_plugins#sec:applying_external_plugins,Applying External Plugins to Pre-Compiled Script Plugins>>.
+TIP: Why is the version of `id 'org.jetbrains.kotlin.jvm'` missing? See <<implementing_gradle_plugins_precompiled.adoc#sec:applying_external_plugins,Applying External Plugins to Pre-Compiled Script Plugins>>.
 
 The `database-logic` build file becomes much simpler by removing all the redundant build logic and applying our convention `my-java-library` plugin instead:
 
