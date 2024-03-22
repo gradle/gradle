@@ -30,6 +30,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -37,7 +38,6 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadataWrap
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
@@ -110,7 +110,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         return new ModuleDependencyMetadataWrapper(dependencyMetadata);
     }
 
-    private static class ClientModuleComponentResolveMetadata implements ExternalComponentResolveMetadata, ComponentGraphResolveMetadata {
+    private static class ClientModuleComponentResolveMetadata implements ExternalComponentResolveMetadata, ModuleComponentGraphResolveMetadata {
         private final ModuleComponentResolveMetadata delegate;
         private final ModuleComponentArtifactMetadata clientModuleArtifact;
         private final List<ModuleDependencyMetadata> clientModuleDependencies;

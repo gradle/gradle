@@ -27,7 +27,6 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The meta-data for a component instance that is required during dependency resolution.
@@ -67,11 +66,6 @@ public interface ComponentResolveMetadata extends HasAttributes {
      * Returns the schema used by this component.
      */
     AttributesSchemaInternal getAttributesSchema();
-
-    /**
-     * Returns the names of all legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link ComponentGraphResolveMetadata#getVariantsForGraphTraversal()}.
-     */
-    Set<String> getConfigurationNames();
 
     /**
      * Returns true when this metadata represents the default metadata provided for components with missing metadata files.

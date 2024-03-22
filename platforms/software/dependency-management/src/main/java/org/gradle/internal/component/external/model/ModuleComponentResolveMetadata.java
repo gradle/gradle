@@ -35,6 +35,10 @@ public interface ModuleComponentResolveMetadata extends ExternalComponentResolve
     @Override
     ModuleComponentIdentifier getId();
 
+    @Nullable
+    @Override
+    ModuleConfigurationMetadata getConfiguration(String name);
+
     /**
      * Creates a mutable copy of this metadata.
      *
@@ -51,10 +55,6 @@ public interface ModuleComponentResolveMetadata extends ExternalComponentResolve
      * Creates a copy of this meta-data with the given derivation strategy.
      */
     ModuleComponentResolveMetadata withDerivationStrategy(VariantDerivationStrategy derivationStrategy);
-
-    @Nullable
-    @Override
-    ModuleConfigurationMetadata getConfiguration(String name);
 
     /**
      * Creates an artifact for this module. Does not mutate this metadata.

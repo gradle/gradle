@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
@@ -98,7 +99,12 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     @Nullable
     @Override
     public ConfigurationGraphResolveState getConfiguration(String configurationName) {
-        ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) getMetadata().getConfiguration(configurationName);
+        if (!(getMetadata() instanceof ModuleComponentGraphResolveMetadata)) {
+            return null;
+        }
+
+        ModuleComponentGraphResolveMetadata metadata = (ModuleComponentGraphResolveMetadata) getMetadata();
+        ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) metadata.getConfiguration(configurationName);
         if (configuration == null) {
             return null;
         } else {

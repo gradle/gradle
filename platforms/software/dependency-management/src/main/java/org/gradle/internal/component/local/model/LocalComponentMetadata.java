@@ -23,10 +23,21 @@ import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 public interface LocalComponentMetadata extends ComponentResolveMetadata, ComponentGraphResolveMetadata {
+
+    /**
+     * Get all names such that {@link #getConfiguration(String)} is non-null.
+     */
+    Set<String> getConfigurationNames();
+
+    /**
+     * Get the configuration with the given name, or null if no such configuration exists.
+     *
+     * <p>Configurations are a legacy concept. This method should go away.</p>
+     */
     @Nullable
-    @Override
     LocalConfigurationMetadata getConfiguration(String name);
 
     LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer);
