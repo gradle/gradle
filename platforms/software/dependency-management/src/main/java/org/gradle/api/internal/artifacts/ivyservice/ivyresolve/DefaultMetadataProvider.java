@@ -38,10 +38,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.action.InstantiatingAction;
+import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -140,7 +140,7 @@ class DefaultMetadataProvider implements MetadataProvider {
         private final ModuleVersionIdentifier id;
         private boolean mutated; // used internally to determine if a rule effectively did something
 
-        private List<String> statusScheme = ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
+        private List<String> statusScheme = ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
         private final AttributeContainerInternal attributes;
 
         private SimpleComponentMetadataBuilder(ModuleVersionIdentifier id, ImmutableAttributesFactory attributesFactory) {

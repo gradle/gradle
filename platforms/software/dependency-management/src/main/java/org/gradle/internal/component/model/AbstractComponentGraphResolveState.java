@@ -36,16 +36,14 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
+public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
     private final long instanceId;
     private final T graphMetadata;
-    private final S artifactMetadata;
     private final AttributeDesugaring attributeDesugaring;
 
-    public AbstractComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring) {
+    public AbstractComponentGraphResolveState(long instanceId, T graphMetadata, AttributeDesugaring attributeDesugaring) {
         this.instanceId = instanceId;
         this.graphMetadata = graphMetadata;
-        this.artifactMetadata = artifactMetadata;
         this.attributeDesugaring = attributeDesugaring;
     }
 
@@ -67,10 +65,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     @Override
     public T getMetadata() {
         return graphMetadata;
-    }
-
-    public S getArtifactMetadata() {
-        return artifactMetadata;
     }
 
     @Override
@@ -111,9 +105,9 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
     protected abstract static class AbstractVariantGraphResolveState implements VariantGraphResolveState {
         private final Lazy<ResolvedVariantResult> publicView;
-        private final AbstractComponentGraphResolveState<?, ?> component;
+        private final AbstractComponentGraphResolveState<?> component;
 
-        public AbstractVariantGraphResolveState(AbstractComponentGraphResolveState<?, ?> component) {
+        public AbstractVariantGraphResolveState(AbstractComponentGraphResolveState<?> component) {
             this.publicView = Lazy.locking().of(() -> createVariantResult(null));
             this.component = component;
         }
@@ -147,9 +141,9 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
     private static class DefaultGraphSelectionCandidates implements GraphSelectionCandidates {
         private final List<? extends VariantGraphResolveState> variants;
-        private final AbstractComponentGraphResolveState<?, ?> component;
+        private final AbstractComponentGraphResolveState<?> component;
 
-        public DefaultGraphSelectionCandidates(AbstractComponentGraphResolveState<?, ?> component) {
+        public DefaultGraphSelectionCandidates(AbstractComponentGraphResolveState<?> component) {
             this.variants = component.getVariantsForGraphTraversal();
             this.component = component;
         }

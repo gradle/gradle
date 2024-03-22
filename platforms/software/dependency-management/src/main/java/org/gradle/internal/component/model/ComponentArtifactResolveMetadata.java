@@ -37,7 +37,4 @@ public interface ComponentArtifactResolveMetadata {
     ImmutableAttributes getAttributes();
 
     AttributesSchemaInternal getAttributesSchema();
-
-    // Try to avoid using this, it's here to transition away from using ComponentResolveMetadata everywhere
-    ComponentResolveMetadata getMetadata();
 }

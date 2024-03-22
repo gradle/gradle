@@ -41,8 +41,9 @@ import java.util.stream.Collectors;
 /**
  * Holds the resolution state for an external component.
  */
-public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ExternalComponentResolveMetadata> extends AbstractComponentGraphResolveState<T, S> {
+public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ExternalComponentResolveMetadata> extends AbstractComponentGraphResolveState<T> {
     private final ComponentIdGenerator idGenerator;
+    private final S artifactMetadata;
 
     // The resolve state for each configuration of this component
     private final ConcurrentMap<ModuleConfigurationMetadata, DefaultConfigurationGraphResolveState> variants = new ConcurrentHashMap<>();
@@ -54,7 +55,8 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     private final List<ResolvedVariantResult> selectableVariantResults;
 
     public DefaultComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
-        super(instanceId, graphMetadata, artifactMetadata, attributeDesugaring);
+        super(instanceId, graphMetadata, attributeDesugaring);
+        this.artifactMetadata = artifactMetadata;
         this.allVariantsForGraphResolution = Lazy.locking().of(() ->
             graphMetadata.getVariantsForGraphTraversal().stream()
                 .map(ModuleConfigurationMetadata.class::cast)
@@ -72,6 +74,10 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
                 null
             ))
             .collect(Collectors.toList());
+    }
+
+    public S getArtifactMetadata() {
+        return artifactMetadata;
     }
 
     @Override
@@ -122,7 +128,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         private final ModuleConfigurationMetadata configuration;
         private final Lazy<DefaultConfigurationArtifactResolveState> artifactResolveState;
 
-        public DefaultConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?, ?> componentState, ExternalComponentResolveMetadata component, ModuleConfigurationMetadata configuration) {
+        public DefaultConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?> componentState, ExternalComponentResolveMetadata component, ModuleConfigurationMetadata configuration) {
             super(componentState);
             this.instanceId = instanceId;
             this.configuration = configuration;
@@ -196,7 +202,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         }
     }
 
-    private static class ExternalArtifactResolveMetadata implements ComponentArtifactResolveMetadata {
+    protected static class ExternalArtifactResolveMetadata implements ComponentArtifactResolveMetadata {
         private final ExternalComponentResolveMetadata metadata;
 
         public ExternalArtifactResolveMetadata(ExternalComponentResolveMetadata metadata) {
@@ -226,11 +232,6 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         @Override
         public AttributesSchemaInternal getAttributesSchema() {
             return metadata.getAttributesSchema();
-        }
-
-        @Override
-        public ComponentResolveMetadata getMetadata() {
-            return metadata;
         }
     }
 }
