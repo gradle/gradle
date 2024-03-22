@@ -56,14 +56,14 @@ import spock.lang.Specification
 import java.util.function.Consumer
 
 /**
- * Tests {@link DefaultLocalComponentMetadata}.
+ * Tests {@link DefaultLocalComponentGraphResolveMetadata}.
  *
  * TODO: This class currently tests a lot of the functionality of
  * {@link DefaultLocalConfigurationMetadataBuilder}. That class should either be merged
- * with {@link DefaultLocalComponentMetadata}, or the relevant tests should be moved
+ * with {@link DefaultLocalComponentGraphResolveMetadata}, or the relevant tests should be moved
  * to the builder's test class.
  */
-class DefaultLocalComponentMetadataTest extends Specification {
+class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
 
@@ -80,7 +80,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
         findByName(_) >> { String name -> this.configurations.get(name) }
     }
 
-    def configurationsFactory = new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
+    def configurationsFactory = new DefaultLocalComponentGraphResolveMetadata.ConfigurationsProviderMetadataFactory(
         componentIdentifier,
         configurationsProvider,
         metadataBuilder,
@@ -88,7 +88,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
         TestUtil.calculatedValueContainerFactory()
     )
 
-    def metadata = new DefaultLocalComponentMetadata(
+    def metadata = new DefaultLocalComponentGraphResolveMetadata(
         id, componentIdentifier, "status", Mock(AttributesSchemaInternal),
         configurationsFactory, null
     )

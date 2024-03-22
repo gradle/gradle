@@ -20,12 +20,11 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Set;
 
-public interface LocalComponentMetadata extends ComponentResolveMetadata, ComponentGraphResolveMetadata {
+public interface LocalComponentGraphResolveMetadata extends ComponentGraphResolveMetadata {
 
     /**
      * Get all names such that {@link #getConfiguration(String)} is non-null.
@@ -40,7 +39,7 @@ public interface LocalComponentMetadata extends ComponentResolveMetadata, Compon
     @Nullable
     LocalConfigurationMetadata getConfiguration(String name);
 
-    LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer);
+    LocalComponentGraphResolveMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer);
 
     /**
      * We currently allow a configuration that has been partially observed for resolution to be modified

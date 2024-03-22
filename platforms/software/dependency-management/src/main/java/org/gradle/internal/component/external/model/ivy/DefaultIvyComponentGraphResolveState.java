@@ -16,11 +16,17 @@
 
 package org.gradle.internal.component.external.model.ivy;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
+
+import javax.annotation.Nullable;
 
 /**
  * Default implementation of {@link IvyComponentGraphResolveState}.
@@ -39,5 +45,29 @@ public class DefaultIvyComponentGraphResolveState extends DefaultComponentGraphR
     @Override
     public ModuleComponentResolveMetadata getModuleResolveMetadata() {
         return getMetadata();
+    }
+
+    @Override
+    public ComponentArtifactResolveMetadata getResolveMetadata() {
+        return new DefaultIvyComponentArtifactResolveMetadata(getArtifactMetadata());
+    }
+
+    private static class DefaultIvyComponentArtifactResolveMetadata extends ExternalArtifactResolveMetadata implements IvyComponentArtifactResolveMetadata {
+        private final IvyModuleResolveMetadata metadata;
+
+        public DefaultIvyComponentArtifactResolveMetadata(IvyModuleResolveMetadata metadata) {
+            super(metadata);
+            this.metadata = metadata;
+        }
+
+        @Override
+        @Nullable
+        public ImmutableList<? extends ComponentArtifactMetadata> getConfigurationArtifacts(String configurationName) {
+            ConfigurationMetadata configuration = metadata.getConfiguration(configurationName);
+            if (configuration != null) {
+                return configuration.getArtifacts();
+            }
+            return null;
+        }
     }
 }

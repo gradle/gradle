@@ -30,6 +30,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactFileResolveResult;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -51,9 +52,9 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         ModuleComponentRepository<?> sourceRepository = findSourceRepository(component.getSources());
         // First try to determine the artifacts locally before going remote
-        sourceRepository.getLocalAccess().resolveArtifactsWithType(component.getMetadata(), artifactType, result);
+        sourceRepository.getLocalAccess().resolveArtifactsWithType(component, artifactType, result);
         if (!result.hasResult()) {
-            sourceRepository.getRemoteAccess().resolveArtifactsWithType(component.getMetadata(), artifactType, result);
+            sourceRepository.getRemoteAccess().resolveArtifactsWithType(component, artifactType, result);
         }
     }
 
@@ -78,8 +79,16 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         return artifactFile.getResult();
     }
 
-    private ModuleComponentRepository<?> findSourceRepository(ModuleSources sources) {
-        RepositoryChainModuleSource repositoryChainModuleSource = sources.getSource(RepositoryChainModuleSource.class).get();
+    private ModuleComponentRepository<?> findSourceRepository(@Nullable ModuleSources sources) {
+        RepositoryChainModuleSource repositoryChainModuleSource = null;
+        if (sources != null) {
+             repositoryChainModuleSource = sources.getSource(RepositoryChainModuleSource.class).orElse(null);
+        }
+
+        if (repositoryChainModuleSource == null) {
+            throw new IllegalArgumentException("No sources provided for artifact resolution");
+        }
+
         ModuleComponentRepository<?> moduleVersionRepository = repositories.get(repositoryChainModuleSource.getRepositoryId());
         if (moduleVersionRepository == null) {
             throw new IllegalStateException("Attempting to resolve artifacts from invalid repository");

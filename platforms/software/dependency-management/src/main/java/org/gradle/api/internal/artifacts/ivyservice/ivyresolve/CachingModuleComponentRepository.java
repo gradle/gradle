@@ -43,8 +43,8 @@ import org.gradle.internal.component.external.model.ModuleComponentGraphResolveS
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
@@ -60,6 +60,7 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.Map;
@@ -253,7 +254,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
             delegate.getLocalAccess().resolveArtifactsWithType(component, artifactType, result);
             if (result.hasResult()) {
@@ -263,7 +264,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             resolveModuleArtifactsFromCache(cacheKey(artifactType), component, result);
         }
 
-        private void resolveModuleArtifactsFromCache(String contextId, ComponentResolveMetadata component, BuildableArtifactSetResolveResult result) {
+        private void resolveModuleArtifactsFromCache(String contextId, ComponentArtifactResolveMetadata component, BuildableArtifactSetResolveResult result) {
             CachedArtifacts cachedModuleArtifacts = moduleArtifactsCache.getCachedArtifacts(delegate, component.getId(), contextId);
             ModuleSources sources = component.getSources();
             ModuleDescriptorHashModuleSource cachingModuleSource = findCachingModuleSource(sources);
@@ -349,9 +350,17 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
     }
 
-    private ModuleDescriptorHashModuleSource findCachingModuleSource(ModuleSources sources) {
-        return sources.getSource(ModuleDescriptorHashModuleSource.class)
-            .orElseThrow(() -> new RuntimeException("Cannot find expected module source " + ModuleDescriptorHashModuleSource.class.getSimpleName() + " in " + sources));
+    private static ModuleDescriptorHashModuleSource findCachingModuleSource(@Nullable ModuleSources sources) {
+        ModuleDescriptorHashModuleSource moduleSource = null;
+        if (sources != null) {
+            moduleSource = sources.getSource(ModuleDescriptorHashModuleSource.class).orElse(null);
+        }
+
+        if (moduleSource == null) {
+            throw new RuntimeException("Cannot find expected module source " + ModuleDescriptorHashModuleSource.class.getSimpleName() + " in " + sources);
+        }
+
+        return moduleSource;
     }
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {
@@ -448,7 +457,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             delegate.getRemoteAccess().resolveArtifactsWithType(component, artifactType, result);
 
             if (result.getFailure() == null) {

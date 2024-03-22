@@ -30,7 +30,7 @@ import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.util.Path;
@@ -109,7 +109,7 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
 
         // Get the local component, then transform it to have a foreign identifier
         // This accesses project state.
-        LocalComponentMetadata metadata = projectState.fromMutableState(p -> {
+        LocalComponentGraphResolveMetadata metadata = projectState.fromMutableState(p -> {
             LocalComponentGraphResolveState originalComponent = getLocalComponent(projectIdentifier, projectState);
             ProjectComponentIdentifier foreignIdentifier = buildState.idToReferenceProjectFromAnotherBuild(projectIdentifier);
             return originalComponent.copy(foreignIdentifier, originalArtifact -> {

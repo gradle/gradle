@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
+import static org.gradle.internal.component.external.model.ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
 public abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
     private static final String DEFAULT_STATUS = "integration";
