@@ -120,6 +120,7 @@ public class JavaCompilerArgumentsBuilder {
             if ("--release".equals(arg) && spec.getRelease() != null) {
                 throw new InvalidUserDataException("Cannot specify --release via `CompileOptions.compilerArgs` when using `JavaCompile.release`.");
             }
+            // TODO: is double definition of --enable-preview is allowed?
         }
     }
 
@@ -140,6 +141,7 @@ public class JavaCompilerArgumentsBuilder {
         }
     }
 
+    // Main options
     private void addMainOptions(List<String> compilerArgs) {
         if (!includeMainOptions) {
             return;
@@ -147,6 +149,9 @@ public class JavaCompilerArgumentsBuilder {
         Integer release = spec.getRelease();
         final MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
 
+        if (spec.getEnablePreview()) {
+            args.add("--enable-preview");
+        }
         if (release != null) {
             args.add("--release");
             args.add(release.toString());

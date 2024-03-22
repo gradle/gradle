@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.jvm.ModularitySpec;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -289,4 +290,12 @@ public interface JavaPluginExtension {
      * @since 7.1
      */
     boolean getAutoTargetJvmDisabled();
+
+    /**
+     * Configures whether Preview Features should be enabled ({@code --enable-preview} flag).
+     *
+     * @since 8.8
+     */
+    @Incubating
+    Property<Boolean> getEnablePreview();
 }

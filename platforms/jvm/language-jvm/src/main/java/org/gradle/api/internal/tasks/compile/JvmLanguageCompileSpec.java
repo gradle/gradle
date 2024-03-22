@@ -61,4 +61,9 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
     List<File> getSourceRoots();
 
     void setSourcesRoots(List<File> sourcesRoots);
+
+    boolean getEnablePreview();
+
+    void setEnablePreview(boolean enablePreview);
+
 }
