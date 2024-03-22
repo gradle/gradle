@@ -186,7 +186,6 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         serviceType << disallowedServiceTypesAtExecution
     }
 
-
     def "reports when task field references an object of type #baseType"() {
         buildFile << """
             plugins { id "java" }
@@ -394,10 +393,10 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         outputContains("beanWithSameType.reference = null")
 
         where:
-        concreteType                     | baseType           | creator                                     | reference                                            | deserializedValue
-        DefaultUnlockedConfiguration     | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
-        DefaultResolvableConfiguration   | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
-        DefaultSourceDirectorySet        | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
+        concreteType                   | baseType           | creator                                     | reference                                            | deserializedValue
+        DefaultUnlockedConfiguration   | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultResolvableConfiguration | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }
 
     @Requires(UnitTestPreconditions.Jdk14OrLater)
@@ -468,15 +467,15 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         outputContains("bean.reference = JavaRecord[value=null, filler=202]")
 
         where:
-        concreteType                          | baseType                       | reference
+        concreteType                  | baseType               | reference
         // Live JVM state
-        Thread                                | Thread                         | "Thread.currentThread()"
-        ByteArrayInputStream                  | InputStream                    | "new java.io.ByteArrayInputStream([] as byte[])"
-        Socket                                | Socket                         | "new java.net.Socket()"
+        Thread                        | Thread                 | "Thread.currentThread()"
+        ByteArrayInputStream          | InputStream            | "new java.io.ByteArrayInputStream([] as byte[])"
+        Socket                        | Socket                 | "new java.net.Socket()"
         // Gradle Build Model
-        DefaultGradle                         | Gradle                         | "project.gradle"
+        DefaultGradle                 | Gradle                 | "project.gradle"
         // Dependency Resolution Types
-        DefaultConfigurationContainer         | ConfigurationContainer         | "project.configurations"
+        DefaultConfigurationContainer | ConfigurationContainer | "project.configurations"
 
         concreteTypeName = concreteType instanceof Class ? concreteType.name : concreteType
     }
@@ -552,9 +551,9 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         outputContains("bean.reference = JavaRecord[value=null, filler=202]")
 
         where:
-        concreteType                     | baseType           | creator                                     | reference                                            | deserializedValue
-        DefaultUnlockedConfiguration     | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
-        DefaultResolvableConfiguration   | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
-        DefaultSourceDirectorySet        | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
+        concreteType                   | baseType           | creator                                     | reference                                            | deserializedValue
+        DefaultUnlockedConfiguration   | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultResolvableConfiguration | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }
 }
