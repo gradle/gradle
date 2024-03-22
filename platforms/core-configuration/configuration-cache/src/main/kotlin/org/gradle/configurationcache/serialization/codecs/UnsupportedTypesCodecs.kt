@@ -152,8 +152,10 @@ fun BindingsBuilder.unsupportedTypes() {
 internal
 object UnsupportedFingerprintBuildServiceProviderCodec : Codec<BuildServiceProvider<*, *>> {
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
-        logUnsupported("serialize",
-            documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint) {
+        logUnsupported(
+            "serialize",
+            documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint
+        ) {
             text(" BuildServiceProvider of service ")
             reference(value.serviceDetails.implementationType)
             text(" with name ")
