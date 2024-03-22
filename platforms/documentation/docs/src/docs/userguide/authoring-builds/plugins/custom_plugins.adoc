@@ -124,11 +124,13 @@ When the plugin is applied to a project, Gradle creates an instance of the plugi
 
 NOTE: A new instance of a `Plugin` is created within each project applying that plugin.
 
-Let's rewrite the `GreetingPlugin` script plugin as a precompiled script plugin:
+Let's rewrite the `GreetingPlugin` script plugin as a precompiled script plugin.
+Since we are using the Groovy or Kotlin DSL, the file essentially becomes the plugin.
+The original script plugin simply created a `hello` task which printed a greeting, this is what we will do in the pre-compiled script plugin:
 
 ====
-include::sample[dir="snippets/plugins/greetingPlugin/kotlin",files="buildSrc/src/main/kotlin/com/example/ConventionGreetingPlugin.gradle.kts[]"]
-include::sample[dir="snippets/plugins/greetingPlugin/groovy",files="buildSrc/src/main/groovy/com/example/ConventionGreetingPlugin.gradle[]"]
+include::sample[dir="snippets/plugins/greetingPlugin/kotlin",files="buildSrc/src/main/kotlin/GreetingPlugin.gradle.kts[]"]
+include::sample[dir="snippets/plugins/greetingPlugin/groovy",files="buildSrc/src/main/groovy/GreetingPlugin.gradle[]"]
 ====
 
 The `GreetingPlugin` can now be applied in other subprojects' builds by using its ID:
@@ -137,6 +139,11 @@ The `GreetingPlugin` can now be applied in other subprojects' builds by using it
 include::sample[dir="snippets/plugins/greetingPlugin/kotlin",files="app/build.gradle.kts[tag=use-plugin]"]
 include::sample[dir="snippets/plugins/greetingPlugin/groovy",files="app/build.gradle[tag=use-plugin]"]
 ====
+
+----
+$ gradle -q hello
+include::{snippetsPath}/plugins/greetingPlugin/tests/greeting.out[]
+----
 
 [[sec:convention_plugins]]
 == Convention Plugins
@@ -203,6 +210,8 @@ include::sample[dir="snippets/plugins/pluginProject/groovy",files="buildSrc/src/
 
 The name of the file `my-java-library` is the ID of our brand-new plugin, which we can now use in all of our subprojects.
 
+TIP: Why is the version of `id 'org.jetbrains.kotlin.jvm'` missing? See <<implemention_precompiled_plugins#sec:applying_external_plugins,Applying External Plugins to Pre-Compiled Script Plugins>>.
+
 The `database-logic` build file becomes much simpler by removing all the redundant build logic and applying our convention `my-java-library` plugin instead:
 
 ====
@@ -218,7 +227,7 @@ plugins {
 =====
 [.multi-language-sample]
 =====
-..database-logic/build.gradle
+.database-logic/build.gradle
 [source,groovy]
 ----
 plugins {
