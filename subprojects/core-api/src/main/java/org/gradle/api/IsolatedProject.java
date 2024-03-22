@@ -62,4 +62,10 @@ public interface IsolatedProject {
      * @since 8.8
      */
     IsolatedProject getRootProject();
+
+    @Override
+    int hashCode();
+
+    @Override
+    boolean equals(Object obj);
 }
