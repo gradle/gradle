@@ -145,7 +145,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     private TestFile findDependencyCacheDir() {
-        def resolverArtifactCache = new TestFile(userHomeDir.file("caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}"))
+        def resolverArtifactCache = new TestFile(userHomeDir.file("caches/${CacheLayout.MODULES.getKey()}/${CacheLayout.FILE_STORE.getKey()}"))
         return resolverArtifactCache.file("commons-io/commons-io/")
     }
 

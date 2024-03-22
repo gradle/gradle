@@ -457,10 +457,10 @@ class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends Abstra
         given:
         requireOwnGradleUserHomeDir() // messes with caches
         def oldCacheDirs = [
-            userHomeCacheDir.createDir("${CacheLayout.ROOT.name}-1"),
-            userHomeCacheDir.file(CacheLayout.ROOT.key).createDir("${CacheLayout.META_DATA.name}-2.56")
+                userHomeCacheDir.createDir("${CacheLayout.MODULES.name}-1"),
+                userHomeCacheDir.file(CacheLayout.MODULES.key).createDir("${CacheLayout.META_DATA.name}-2.56")
         ]
-        def currentMetaDataDir = userHomeCacheDir.file(CacheLayout.ROOT.key, CacheLayout.META_DATA.key).createDir()
+        def currentMetaDataDir = userHomeCacheDir.file(CacheLayout.MODULES.key, CacheLayout.META_DATA.key).createDir()
         gcFile.createFile().lastModified = daysAgo(2)
 
         when:
@@ -519,7 +519,7 @@ class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends Abstra
     }
 
     TestFile getCacheDir() {
-        return getUserHomeCacheDir().file(CacheLayout.ROOT.getKey())
+        return getUserHomeCacheDir().file(CacheLayout.MODULES.getKey())
     }
 
     void forceCleanup(File file) {
