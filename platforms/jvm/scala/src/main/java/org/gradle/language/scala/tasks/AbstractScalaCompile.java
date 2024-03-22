@@ -238,7 +238,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
             }
         }
 
-        for (Task taskDependency : getTaskDependencies().getDependencies(this)) {
+        for (Task taskDependency : getTaskDependencies().getDependenciesForInternalUse(this)) {
             if (taskDependency instanceof AbstractScalaCompile) {
                 AbstractScalaCompile scalaCompileTask = (AbstractScalaCompile) taskDependency;
                 File destinationDirectory = scalaCompileTask.getDestinationDirectory().getAsFile().get();
