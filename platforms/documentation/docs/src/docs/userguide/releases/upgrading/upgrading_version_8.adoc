@@ -161,7 +161,7 @@ In implementing this spec, we have introduced the following breaking changes to 
 
 ==== Upgrade to Kotlin 1.9.22
 
-The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.22[Kotlin 1.9.22].
+The embedded Kotlin has been updated from 1.9.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.22[Kotlin 1.9.22].
 
 ==== Upgrade to Apache SSHD 2.10.0
 
