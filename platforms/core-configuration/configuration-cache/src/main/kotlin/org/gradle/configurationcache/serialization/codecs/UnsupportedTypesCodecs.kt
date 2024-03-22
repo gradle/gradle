@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.IsolatedProject
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -95,6 +96,7 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<Gradle>())
     bind(unsupported<Settings>())
     bind(unsupported<Project>())
+    bind(unsupported<IsolatedProject>())
     bind(unsupported<TaskContainer>())
     bind(unsupported<TaskDependency>())
     bind(unsupported<SourceSetContainer>())
