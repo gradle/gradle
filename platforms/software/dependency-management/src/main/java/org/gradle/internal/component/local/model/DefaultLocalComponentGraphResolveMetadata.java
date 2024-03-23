@@ -213,9 +213,7 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
         @Override
         public void visitConsumableVariants(Consumer<String> visitor) {
             for (LocalVariantGraphResolveMetadata variant : metadata.values()) {
-                if (variant.isCanBeConsumed()) {
-                    visitor.accept(variant.getName());
-                }
+                visitor.accept(variant.getName());
             }
         }
 

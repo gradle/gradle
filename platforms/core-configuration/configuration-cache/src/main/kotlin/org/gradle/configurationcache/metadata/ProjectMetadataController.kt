@@ -165,7 +165,7 @@ class ProjectMetadataController(
 
         return DefaultLocalVariantGraphResolveMetadata(
             variantName, variantName, componentId, true, attributes,
-            ImmutableCapabilities.EMPTY, true, false, true, dependencyMetadata,
+            ImmutableCapabilities.EMPTY, false, false, dependencyMetadata,
             variants, factory, artifactMetadata
         )
     }
