@@ -44,8 +44,9 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     LocalVariantMetadataBuilder configurationMetadataBuilder = Mock(LocalVariantMetadataBuilder) {
         create(_, _, _, _, _, _) >> { args ->
+            ConfigurationInternal configuration = args[0]
             Mock(LocalVariantGraphResolveMetadata) {
-                isCanBeResolved() >> true
+                isCanBeResolved() >> configuration.isCanBeResolved()
             }
         }
     }

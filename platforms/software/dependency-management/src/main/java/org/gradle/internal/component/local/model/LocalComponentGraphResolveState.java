@@ -34,6 +34,16 @@ import java.util.List;
 @ThreadSafe
 public interface LocalComponentGraphResolveState extends ComponentGraphResolveState {
 
+    /**
+     * Get a variant derived from the configuration with the given name, or null if no such
+     * configuration exists.
+     *
+     * TODO: In most cases, this method should only be used to fetch the root variant of a resolution.
+     * The functionality of constructing the root variant should be separated from the component.
+     * We should be able to create root variants without the knowledge of the component. This is
+     * blocked by the behavior where a root variant can be selected by dependencies. This behavior is
+     * deprecated and will be an error in Gradle 9.0.
+     */
     @Nullable
     LocalVariantGraphResolveState getVariantByConfigurationName(String configurationName);
 

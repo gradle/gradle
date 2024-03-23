@@ -195,20 +195,21 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             }
 
             LocalVariantGraphResolveState variantState = new DefaultLocalVariantGraphResolveState(
-                idGenerator.nextVariantId(), component, component.getMetadata(), variant, calculatedValueContainerFactory
+                idGenerator.nextVariantId(), component, variant, calculatedValueContainerFactory
             );
 
             if (!variant.getAttributes().isEmpty()) {
                 variantsWithAttributes.add(variantState);
             }
 
-            variantsByName.put(variant.getName(), variantState);
+            if (variant.getConfigurationName() != null) {
+                variantsByName.put(variant.getConfigurationName(), variantState);
+            }
         });
 
         return new DefaultLocalComponentGraphSelectionCandidates(
             variantsWithAttributes.build(),
-            variantsByName.build(),
-            component
+            variantsByName.build()
         );
     }
 
@@ -245,7 +246,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             if (artifactTransformer != null) {
                 variant = variant.copyWithTransformedArtifacts(artifactTransformer);
             }
-            return new DefaultLocalVariantGraphResolveState(idGenerator.nextVariantId(), this, getMetadata(), variant, calculatedValueContainerFactory);
+            return new DefaultLocalVariantGraphResolveState(idGenerator.nextVariantId(), this, variant, calculatedValueContainerFactory);
         });
     }
 
@@ -257,7 +258,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         public DefaultLocalVariantGraphResolveState(
             long instanceId,
             AbstractComponentGraphResolveState<?> componentState,
-            ComponentGraphResolveMetadata component,
             LocalVariantGraphResolveMetadata variant,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
@@ -266,7 +266,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             this.variant = variant;
             this.artifactResolveState = calculatedValueContainerFactory.create(Describables.of("artifacts of", variant), context -> {
                 Set<? extends VariantResolveMetadata> legacyVariants = variant.prepareToResolveArtifacts().getVariants();
-                return new DefaultLocalVariantArtifactResolveState(component, variant, legacyVariants);
+                return new DefaultLocalVariantArtifactResolveState(componentState.getMetadata(), variant, legacyVariants);
             });
         }
 
@@ -390,16 +390,13 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private static class DefaultLocalComponentGraphSelectionCandidates implements LocalComponentGraphSelectionCandidates {
         private final List<? extends LocalVariantGraphResolveState> variantsWithAttributes;
         private final Map<String, LocalVariantGraphResolveState> variantsByConfigurationName;
-        private final LocalComponentGraphResolveState component;
 
         public DefaultLocalComponentGraphSelectionCandidates(
             List<? extends LocalVariantGraphResolveState> variantsWithAttributes,
-            Map<String, LocalVariantGraphResolveState> variantsByConfigurationName,
-            LocalComponentGraphResolveState component
+            Map<String, LocalVariantGraphResolveState> variantsByConfigurationName
         ) {
             this.variantsWithAttributes = variantsWithAttributes;
             this.variantsByConfigurationName = variantsByConfigurationName;
-            this.component = component;
         }
 
         @Override
@@ -410,32 +407,17 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         @Nullable
         @Override
         public VariantGraphResolveState getVariantByConfigurationName(String name, ResolutionFailureHandler failureHandler) {
-            LocalVariantGraphResolveState variant = variantsByConfigurationName.get(name);
-            if (variant != null) {
-                return variant;
-            }
-
-            // `variantsByConfigurationName` contains only consumable variants.
-            // We can ask the component directly via getVariantByConfigurationName, which
-            // will return variants based off of non-consumable configurations.
-            variant = component.getVariantByConfigurationName(name);
-            if (variant == null) {
-                return null;
-            }
-
-            // If the configuration exists, it must not be consumable, since variantsByConfigurationName contains
-            // all consumable configurations.
-            assert !variant.getMetadata().isCanBeConsumed() : "Expected configuration to be non-consumable";
-
-            throw failureHandler.nonConsumableConfigurationFailure(name, component.getId());
+            return variantsByConfigurationName.get(name);
         }
 
         @Override
         public List<LocalVariantGraphResolveState> getAllSelectableVariants() {
             // Find the names of all selectable variants that are not in the variantsWithAttributes
             Set<String> configurationNames = new HashSet<>(variantsByConfigurationName.keySet());
-            for (VariantGraphResolveState variant : variantsWithAttributes) {
-                configurationNames.remove(variant.getName());
+            for (LocalVariantGraphResolveState variant : variantsWithAttributes) {
+                if (variant.getMetadata().getConfigurationName() != null) {
+                    configurationNames.remove(variant.getMetadata().getConfigurationName());
+                }
             }
 
             // Join the list of variants with attributes with the list of variants by configuration name

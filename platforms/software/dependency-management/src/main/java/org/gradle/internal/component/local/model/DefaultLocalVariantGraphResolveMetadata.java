@@ -124,6 +124,11 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
     }
 
     @Override
+    public String getConfigurationName() {
+        return name;
+    }
+
+    @Override
     public boolean isTransitive() {
         return transitive;
     }

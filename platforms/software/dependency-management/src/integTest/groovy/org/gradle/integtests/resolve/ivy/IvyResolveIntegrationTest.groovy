@@ -442,6 +442,7 @@ dependencies {
 
         expect:
         fails("resolve")
-        failure.assertHasCause("Selected configuration 'default' on 'project :included' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
+        failure.assertHasCause("""No matching variant of project :included was found. The consumer was configured to find a library for use during runtime, compatible with Java 11, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally but:
+  - No variants exist.""")
     }
 }

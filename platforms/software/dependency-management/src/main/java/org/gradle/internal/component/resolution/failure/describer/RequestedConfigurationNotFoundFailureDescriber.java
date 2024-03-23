@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException;
 import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure;
@@ -35,6 +36,16 @@ public abstract class RequestedConfigurationNotFoundFailureDescriber extends Abs
     }
 
     private String buildConfigurationNotFoundFailureMsg(RequestedConfigurationNotFoundFailure failure) {
-        return String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", failure.getRequestedName(), failure.getRequestedComponentDisplayName());
+        String additionalMessage = "";
+        boolean isLocalComponent = failure.getRequestedComponentId() instanceof ProjectComponentIdentifier;
+        if (isLocalComponent) {
+            additionalMessage = " The requested configuration is either not present in the target project or the named configuration is not consumable.";
+        }
+
+        return String.format(
+            "A dependency was declared on configuration '%s' of '%s' but no variant with that configuration name exists." +
+                additionalMessage,
+            failure.getRequestedName(), failure.getRequestedComponentId().getDisplayName()
+        );
     }
 }

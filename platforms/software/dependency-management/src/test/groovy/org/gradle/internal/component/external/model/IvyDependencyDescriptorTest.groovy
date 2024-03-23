@@ -33,13 +33,11 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ivy.IvyComponentGraphResolveState
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
-import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata
 import org.gradle.internal.component.model.ConfigurationGraphResolveState
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.Exclude
-import org.gradle.internal.component.model.GraphSelectionCandidates
 import org.gradle.internal.component.model.ModuleConfigurationMetadata
 import org.gradle.internal.component.model.VariantGraphResolveState
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
@@ -161,22 +159,6 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(ImmutableList.of(exclude1, exclude2))
-    }
-
-    def "selects the default variant of a component when the target component is not an ivy component"() {
-        def toComponent = Mock(ComponentGraphResolveState) {
-            getCandidatesForGraphVariantSelection() >> Mock(GraphSelectionCandidates)
-        }
-        def legacyVariant = Mock(VariantGraphResolveState)
-        def fromConfig = Stub(ModuleConfigurationMetadata)
-
-        when:
-        def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, ImmutableListMultimap.of(), [], [])
-        def result = metadata.selectLegacyConfigurations(fromConfig, toComponent, resolutionFailureHandler).variants
-
-        then:
-        1 * toComponent.candidatesForGraphVariantSelection.getLegacyVariant(_) >> legacyVariant
-        result == [legacyVariant]
     }
 
     def "selects no configurations when no configuration mappings provided"() {

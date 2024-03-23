@@ -19,6 +19,7 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.Transformer;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -35,6 +36,12 @@ public interface LocalVariantGraphResolveMetadata extends VariantGraphResolveMet
      * Returns whether this variant can be used as the root of a dependency graph.
      */
     boolean isCanBeResolved();
+
+    /**
+     * Get the configuration name that this variant is identified by, if any.
+     */
+    @Nullable
+    String getConfigurationName();
 
     /**
      * Returns the files attached to this variant, if any.
