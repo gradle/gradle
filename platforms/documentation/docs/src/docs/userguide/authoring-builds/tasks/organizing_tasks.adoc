@@ -21,7 +21,7 @@ Actionable tasks in Gradle are tasks that perform actual work, such as compiling
 Lifecycle tasks are tasks that do not do work themselves.
 These tasks have no actions, instead, they bundle actionable tasks and serve as _targets_ for the build.
 
-image::writing-tasks-2.png[]
+image::writing-tasks-6.png[]
 
 A well-organized setup of lifecycle tasks enhances the accessibility of your build for new users and simplifies integration with CI.
 
