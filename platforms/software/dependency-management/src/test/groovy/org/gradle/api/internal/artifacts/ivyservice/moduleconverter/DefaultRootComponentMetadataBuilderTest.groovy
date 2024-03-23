@@ -23,12 +23,12 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -40,8 +40,8 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
     ComponentIdentifierFactory componentIdentifierFactory = Mock()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
-    LocalConfigurationMetadataBuilder configurationMetadataBuilder = Mock(LocalConfigurationMetadataBuilder) {
-        create(_, _, _, _, _, _) >> Mock(LocalConfigurationMetadata)
+    LocalVariantMetadataBuilder configurationMetadataBuilder = Mock(LocalVariantMetadataBuilder) {
+        create(_, _, _, _, _, _) >> Mock(LocalVariantGraphResolveMetadata)
     }
 
     def configurationsProvider = Stub(ConfigurationsProvider)
@@ -90,7 +90,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         def metadata = root.rootComponent.metadata
 
         assert !metadata.isConfigurationRealized('conf')
-        metadata.getConfiguration('conf')
+        metadata.getVariantByConfigurationName('conf')
         assert metadata.isConfigurationRealized('conf')
 
         when:
@@ -121,7 +121,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         def metadata = root.rootComponent.metadata
 
         assert !metadata.isConfigurationRealized("conf")
-        metadata.getConfiguration("conf")
+        metadata.getVariantByConfigurationName("conf")
         assert metadata.isConfigurationRealized("conf")
 
         when:

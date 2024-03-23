@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,23 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Transformer;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 
-public interface LocalConfigurationMetadata extends ConfigurationMetadata, LocalConfigurationGraphResolveMetadata {
+import java.util.Set;
+
+/**
+ * Artifact metadata for local graph variants.
+ */
+public interface LocalVariantArtifactGraphResolveMetadata extends VariantArtifactGraphResolveMetadata {
 
     @Override
     ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts();
 
     /**
-     * Returns a copy of this configuration metadata, except with all artifacts transformed by the given transformer.
+     * Returns the "sub variants" of this variant.
      *
-     * @param artifactTransformer A transformer applied to all artifacts and sub-variant artifacts.
-     *
-     * @return A copy of this metadata, with the given transformer applied to all artifacts.
+     * <p>This concept should disappear.</p>
      */
-    LocalConfigurationMetadata copyWithTransformedArtifacts(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer);
-
+    Set<? extends VariantResolveMetadata> getVariants();
 }

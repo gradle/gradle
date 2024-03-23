@@ -27,17 +27,18 @@ import java.util.Set;
 public interface LocalComponentGraphResolveMetadata extends ComponentGraphResolveMetadata {
 
     /**
-     * Get all names such that {@link #getConfiguration(String)} is non-null.
+     * Get all names such that {@link #getVariantByConfigurationName(String)} is non-null.
      */
     Set<String> getConfigurationNames();
 
     /**
-     * Get the configuration with the given name, or null if no such configuration exists.
+     * Get the variant identified by the given configuration, or null if no such variant exists.
      *
-     * <p>Configurations are a legacy concept. This method should go away.</p>
+     * <p>We should split this into one method that only exposes consumable variants and one that only
+     * exposes variants inteded to be used as the root of a dependency graph.</p>
      */
     @Nullable
-    LocalConfigurationMetadata getConfiguration(String name);
+    LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name);
 
     LocalComponentGraphResolveMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer);
 

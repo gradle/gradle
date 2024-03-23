@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
@@ -32,10 +32,10 @@ import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveMetadata;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
@@ -48,7 +48,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private final DependencyMetaDataProvider metadataProvider;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final LocalConfigurationMetadataBuilder configurationMetadataBuilder;
+    private final LocalVariantMetadataBuilder configurationMetadataBuilder;
     private final ConfigurationsProvider configurationsProvider;
     private final MetadataHolder holder;
     private final ProjectStateRegistry projectStateRegistry;
@@ -63,7 +63,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         DependencyMetaDataProvider metadataProvider,
         ComponentIdentifierFactory componentIdentifierFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        LocalConfigurationMetadataBuilder configurationMetadataBuilder,
+        LocalVariantMetadataBuilder configurationMetadataBuilder,
         ConfigurationsProvider configurationsProvider,
         ProjectStateRegistry projectStateRegistry,
         LocalComponentGraphResolveStateFactory localResolveStateFactory,
@@ -87,11 +87,11 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         Module module = metadataProvider.getModule();
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         LocalComponentGraphResolveState state = getComponentState(module, componentIdentifier);
-        ConfigurationGraphResolveState configuration = state.getConfiguration(configurationName);
-        if (configuration == null) {
+        LocalVariantGraphResolveState rootVariant = state.getVariantByConfigurationName(configurationName);
+        if (rootVariant == null) {
             throw new IllegalArgumentException(String.format("Expected configuration '%s' to be present in %s", configurationName, componentIdentifier));
         }
-        VariantGraphResolveState rootVariant = configuration.asVariant();
+        assert rootVariant.getMetadata().isCanBeResolved();
 
         return new RootComponentState() {
             @Override
@@ -239,7 +239,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         private final DependencyMetaDataProvider metaDataProvider;
         private final ComponentIdentifierFactory componentIdentifierFactory;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-        private final LocalConfigurationMetadataBuilder configurationMetadataBuilder;
+        private final LocalVariantMetadataBuilder configurationMetadataBuilder;
         private final ProjectStateRegistry projectStateRegistry;
         private final LocalComponentGraphResolveStateFactory localResolveStateFactory;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
@@ -249,7 +249,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             DependencyMetaDataProvider metaDataProvider,
             ComponentIdentifierFactory componentIdentifierFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-            LocalConfigurationMetadataBuilder configurationMetadataBuilder,
+            LocalVariantMetadataBuilder configurationMetadataBuilder,
             ProjectStateRegistry projectStateRegistry,
             LocalComponentGraphResolveStateFactory localResolveStateFactory,
             CalculatedValueContainerFactory calculatedValueContainerFactory

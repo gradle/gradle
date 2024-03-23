@@ -18,14 +18,20 @@ package org.gradle.internal.component.external.model.ivy;
 
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ConfigurationGraphResolveState;
+
+import javax.annotation.Nullable;
 
 /**
  * The {@link ComponentGraphResolveState} for an Ivy component.
- *
- * Eventually, we should move, {@link ComponentGraphResolveState#getConfiguration(String)} to this class. Only
- * Ivy components should advertise configurations.
  */
 public interface IvyComponentGraphResolveState extends ModuleComponentGraphResolveState {
     @Override
     IvyModuleResolveMetadata getMetadata();
+
+    /**
+     * Returns the configuration with the given name.
+     */
+    @Nullable
+    ConfigurationGraphResolveState getConfiguration(String configurationName);
 }

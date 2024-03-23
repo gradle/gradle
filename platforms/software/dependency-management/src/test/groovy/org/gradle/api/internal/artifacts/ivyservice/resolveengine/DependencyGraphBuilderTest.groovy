@@ -52,13 +52,13 @@ import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveMetadata
-import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState
+import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
@@ -142,7 +142,7 @@ class DependencyGraphBuilderTest extends Specification {
         def rootComponentState = new DefaultLocalComponentGraphResolveState(0, root, desugaring, new ComponentIdGenerator(), false)
 
         _ * rootComponent.getRootComponent() >> rootComponentState
-        _ * rootComponent.getRootVariant() >> rootComponentState.getConfiguration('root').asVariant()
+        _ * rootComponent.getRootVariant() >> rootComponentState.getVariantByConfigurationName('root').asVariant()
     }
 
     private TestGraphVisitor resolve(Spec<? super DependencyMetadata> edgeFilter = { true }) {
@@ -1057,10 +1057,10 @@ class DependencyGraphBuilderTest extends Specification {
         def componentId = DefaultModuleComponentIdentifier.newId(id)
 
         def artifacts = [new PublishArtifactLocalArtifactMetadata(componentId, new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip")))]
-        def defaultConfiguration = newConfiguration("default", componentId, [], [], artifacts)
+        def defaultConfiguration = newConfiguration("default", componentId, [], artifacts)
 
-        def configurations = new DefaultLocalComponentGraphResolveMetadata.ConfigurationsMapMetadataFactory(["default": defaultConfiguration])
-        return new DefaultLocalComponentGraphResolveMetadata(id, componentId, "release", attributesSchema, configurations, null)
+        def variants = new DefaultLocalComponentGraphResolveMetadata.VariantsMapMetadataFactory(["default": defaultConfiguration])
+        return new DefaultLocalComponentGraphResolveMetadata(id, componentId, "release", attributesSchema, variants, null)
     }
 
     def rootProject() {
@@ -1068,18 +1068,18 @@ class DependencyGraphBuilderTest extends Specification {
         def componentId = newProjectId(":root")
 
         def artifacts = [new PublishArtifactLocalArtifactMetadata(componentId, new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip")))]
-        def defaultConfiguration = newConfiguration("default", componentId, [], [], artifacts)
+        def defaultConfiguration = newConfiguration("default", componentId, [], artifacts)
 
-        def rootConfiguration = newConfiguration("root", componentId, ["default"], defaultConfiguration.getDependencies(), [])
+        def rootConfiguration = newConfiguration("root", componentId, defaultConfiguration.getDependencies(), [])
 
-        def configurations = new DefaultLocalComponentGraphResolveMetadata.ConfigurationsMapMetadataFactory(["default": defaultConfiguration, "root": rootConfiguration])
-        return new DefaultLocalComponentGraphResolveMetadata(newId("group", "root", "1.0"), componentId, "release", attributesSchema, configurations, null)
+        def variants = new DefaultLocalComponentGraphResolveMetadata.VariantsMapMetadataFactory(["default": defaultConfiguration, "root": rootConfiguration])
+        return new DefaultLocalComponentGraphResolveMetadata(newId("group", "root", "1.0"), componentId, "release", attributesSchema, variants, null)
     }
 
-    def newConfiguration(String name, ComponentIdentifier componentId, List<String> extendsFrom, List<LocalOriginDependencyMetadata> dependencies, List<LocalComponentArtifactMetadata> artifacts) {
-        CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyState> dependencyMetadata =
+    def newConfiguration(String name, ComponentIdentifier componentId, List<LocalOriginDependencyMetadata> dependencies, List<LocalComponentArtifactMetadata> artifacts) {
+        CalculatedValue<DefaultLocalVariantGraphResolveMetadata.VariantDependencyState> dependencyMetadata =
             TestUtil.calculatedValueContainerFactory().create(Describables.of(name, "dependencies"),
-                new DefaultLocalConfigurationMetadata.ConfigurationDependencyState(dependencies, [] as Set, [])
+                new DefaultLocalVariantGraphResolveMetadata.VariantDependencyState(dependencies, [] as Set, [])
             )
 
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifactMetadata =
@@ -1087,8 +1087,8 @@ class DependencyGraphBuilderTest extends Specification {
                 ImmutableList.copyOf(artifacts)
             )
 
-        return new DefaultLocalConfigurationMetadata(
-            name, name, componentId, true, true, [name] + extendsFrom as Set, attributes, ImmutableCapabilities.EMPTY,
+        return new DefaultLocalVariantGraphResolveMetadata(
+            name, name, componentId, true, attributes, ImmutableCapabilities.EMPTY,
             true, false, true, dependencyMetadata,
             [] as Set, TestUtil.calculatedValueContainerFactory(), artifactMetadata
         )
@@ -1166,7 +1166,7 @@ class DependencyGraphBuilderTest extends Specification {
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency) {
             getAttributes() >> ImmutableAttributes.EMPTY
         })
-        from.getConfiguration("default").getDependencies().add(dependencyMetaData)
+        from.getVariantByConfigurationName("default").getDependencies().add(dependencyMetaData)
         return dependencyMetaData
     }
 

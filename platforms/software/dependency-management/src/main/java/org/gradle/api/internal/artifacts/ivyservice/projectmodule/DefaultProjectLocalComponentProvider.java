@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -36,13 +36,13 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
  * <p>Currently, the metadata for a component is different based on whether it is consumed from the producing build or from another build. This difference should go away.
  */
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
-    private final LocalConfigurationMetadataBuilder metadataBuilder;
+    private final LocalVariantMetadataBuilder metadataBuilder;
     private final LocalComponentGraphResolveStateFactory resolveStateFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public DefaultProjectLocalComponentProvider(
-        LocalConfigurationMetadataBuilder metadataBuilder,
+        LocalVariantMetadataBuilder metadataBuilder,
         LocalComponentGraphResolveStateFactory resolveStateFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory

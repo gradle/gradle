@@ -37,7 +37,7 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -59,7 +59,7 @@ import java.util.function.Consumer
  * Tests {@link DefaultLocalComponentGraphResolveMetadata}.
  *
  * TODO: This class currently tests a lot of the functionality of
- * {@link DefaultLocalConfigurationMetadataBuilder}. That class should either be merged
+ * {@link DefaultLocalVariantMetadataBuilder}. That class should either be merged
  * with {@link DefaultLocalComponentGraphResolveMetadata}, or the relevant tests should be moved
  * to the builder's test class.
  */
@@ -67,7 +67,7 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
 
-    def metadataBuilder = new DefaultLocalConfigurationMetadataBuilder(
+    def metadataBuilder = new DefaultLocalVariantMetadataBuilder(
         new TestDependencyMetadataFactory(),
         new DefaultExcludeRuleConverter(new DefaultImmutableModuleIdentifierFactory())
     )
@@ -101,11 +101,11 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
         then:
         metadata.configurationNames == ['conf', 'parent'] as Set
 
-        def confMd = metadata.getConfiguration('conf')
+        def confMd = metadata.getVariantByConfigurationName('conf')
         confMd != null
         confMd.hierarchy == ['conf', 'parent'] as Set
 
-        def parentMd = metadata.getConfiguration('parent')
+        def parentMd = metadata.getVariantByConfigurationName('parent')
         parentMd != null
         parentMd.hierarchy == ['parent'] as Set
     }
@@ -116,7 +116,7 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
         addConfiguration("conf", [parent])
 
         then:
-        def confMd = metadata.getConfiguration('conf')
+        def confMd = metadata.getVariantByConfigurationName('conf')
         confMd.dependencies.empty
         confMd.excludes.empty
         confMd.files.empty
@@ -137,18 +137,18 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
 
         when:
         addArtifact(conf, artifact, file)
-        metadata.getConfiguration("conf").prepareToResolveArtifacts()
+        metadata.getVariantByConfigurationName("conf").prepareToResolveArtifacts()
 
         then:
-        metadata.getConfiguration("conf").artifacts.size() == 1
+        metadata.getVariantByConfigurationName("conf").artifacts.size() == 1
 
-        def publishArtifact = metadata.getConfiguration("conf").artifacts.first()
+        def publishArtifact = metadata.getVariantByConfigurationName("conf").artifacts.first()
         publishArtifact.id
         publishArtifact.name.name == artifact.name
         publishArtifact.name.type == artifact.type
         publishArtifact.name.extension == artifact.extension
         publishArtifact.file == file
-        publishArtifact == metadata.getConfiguration("conf").artifact(artifact)
+        publishArtifact == metadata.getVariantByConfigurationName("conf").artifact(artifact)
     }
 
     def "artifact is attached to child configurations"() {
@@ -169,14 +169,14 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
         addArtifact(conf1, artifact1, file1)
         addArtifact(conf2, artifact2, file2)
         addArtifact(child1, artifact3, file3)
-        metadata.getConfiguration("conf1").prepareToResolveArtifacts()
-        metadata.getConfiguration("child1").prepareToResolveArtifacts()
-        metadata.getConfiguration("child2").prepareToResolveArtifacts()
+        metadata.getVariantByConfigurationName("conf1").prepareToResolveArtifacts()
+        metadata.getVariantByConfigurationName("child1").prepareToResolveArtifacts()
+        metadata.getVariantByConfigurationName("child2").prepareToResolveArtifacts()
 
         then:
-        metadata.getConfiguration("conf1").artifacts.size() == 1
-        metadata.getConfiguration("child1").artifacts.size() == 3
-        metadata.getConfiguration("child2").artifacts.size() == 1
+        metadata.getVariantByConfigurationName("conf1").artifacts.size() == 1
+        metadata.getVariantByConfigurationName("child1").artifacts.size() == 3
+        metadata.getVariantByConfigurationName("child2").artifacts.size() == 1
     }
 
     def "can add artifact to several configurations"() {
@@ -191,12 +191,12 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
         def publishArtifact = new DefaultPublishArtifact(artifact.name, artifact.extension, artifact.type, artifact.classifier, new Date(), file)
         conf1.artifacts.add(publishArtifact)
         conf2.artifacts.add(publishArtifact)
-        metadata.getConfiguration("conf1").prepareToResolveArtifacts()
-        metadata.getConfiguration("conf2").prepareToResolveArtifacts()
+        metadata.getVariantByConfigurationName("conf1").prepareToResolveArtifacts()
+        metadata.getVariantByConfigurationName("conf2").prepareToResolveArtifacts()
 
         then:
-        metadata.getConfiguration("conf1").artifacts.size() == 1
-        metadata.getConfiguration("conf1").artifacts == metadata.getConfiguration("conf2").artifacts
+        metadata.getVariantByConfigurationName("conf1").artifacts.size() == 1
+        metadata.getVariantByConfigurationName("conf1").artifacts == metadata.getVariantByConfigurationName("conf2").artifacts
     }
 
     def "can lookup an artifact given an Ivy artifact"() {
@@ -208,11 +208,11 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
 
         and:
         addArtifact(conf, artifact, file)
-        metadata.getConfiguration("conf").prepareToResolveArtifacts()
+        metadata.getVariantByConfigurationName("conf").prepareToResolveArtifacts()
 
         expect:
         def ivyArtifact = artifactName()
-        def resolveArtifact = metadata.getConfiguration("conf").artifact(ivyArtifact)
+        def resolveArtifact = metadata.getVariantByConfigurationName("conf").artifact(ivyArtifact)
         resolveArtifact.file == file
     }
 
@@ -223,10 +223,10 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
         addConfiguration("conf")
 
         when:
-        metadata.getConfiguration("conf").prepareToResolveArtifacts()
+        metadata.getVariantByConfigurationName("conf").prepareToResolveArtifacts()
 
         then:
-        def resolveArtifact = metadata.getConfiguration("conf").artifact(artifact)
+        def resolveArtifact = metadata.getVariantByConfigurationName("conf").artifact(artifact)
         resolveArtifact != null
         resolveArtifact.file == null
     }
@@ -244,15 +244,15 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
         addArtifact(conf2, artifact2, file2)
 
         when:
-        metadata.getConfiguration("conf1").prepareToResolveArtifacts()
-        metadata.getConfiguration("conf2").prepareToResolveArtifacts()
+        metadata.getVariantByConfigurationName("conf1").prepareToResolveArtifacts()
+        metadata.getVariantByConfigurationName("conf2").prepareToResolveArtifacts()
 
         then:
-        def conf1Artifacts = metadata.getConfiguration("conf1").artifacts as List
+        def conf1Artifacts = metadata.getVariantByConfigurationName("conf1").artifacts as List
         conf1Artifacts.size() == 1
         def artifactMetadata1 = conf1Artifacts[0]
 
-        def conf2Artifacts = metadata.getConfiguration("conf2").artifacts as List
+        def conf2Artifacts = metadata.getVariantByConfigurationName("conf2").artifacts as List
         conf2Artifacts.size() == 1
         def artifactMetadata2 = conf2Artifacts[0]
 
@@ -260,8 +260,8 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
         artifactMetadata1.id != artifactMetadata2.id
 
         and:
-        metadata.getConfiguration("conf1").artifacts == [artifactMetadata1]
-        metadata.getConfiguration("conf2").artifacts == [artifactMetadata2]
+        metadata.getVariantByConfigurationName("conf1").artifacts == [artifactMetadata1]
+        metadata.getVariantByConfigurationName("conf2").artifacts == [artifactMetadata2]
     }
 
     def "variants are attached to configuration but not its children"() {
@@ -280,8 +280,8 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
         variant2.artifacts.add(Stub(PublishArtifact))
 
         when:
-        def config1 = metadata.getConfiguration("conf1")
-        def config2 = metadata.getConfiguration("conf2")
+        def config1 = metadata.getVariantByConfigurationName("conf1")
+        def config2 = metadata.getVariantByConfigurationName("conf2")
 
         then:
         config1.variants*.name as List == ["conf1", "conf1-variant1"]
@@ -316,10 +316,10 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
         child1.getDependencies().add(files3)
 
         then:
-        metadata.getConfiguration("conf1").files*.source == [files1]
-        metadata.getConfiguration("conf2").files*.source == [files2]
-        metadata.getConfiguration("child1").files*.source == [files1, files2, files3]
-        metadata.getConfiguration("child2").files*.source == [files1]
+        metadata.getVariantByConfigurationName("conf1").files*.source == [files1]
+        metadata.getVariantByConfigurationName("conf2").files*.source == [files2]
+        metadata.getVariantByConfigurationName("child1").files*.source == [files1, files2, files3]
+        metadata.getVariantByConfigurationName("child2").files*.source == [files1]
     }
 
     def "dependency is attached to configuration and its children"() {
@@ -339,11 +339,11 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
         child1.getDependencies().add(dependency3)
 
         then:
-        metadata.getConfiguration("conf1").dependencies*.source == [dependency1]
-        metadata.getConfiguration("conf2").dependencies*.source == [dependency2]
-        metadata.getConfiguration("child1").dependencies*.source == [dependency1, dependency2, dependency3]
-        metadata.getConfiguration("child2").dependencies*.source == [dependency1]
-        metadata.getConfiguration("other").dependencies.isEmpty()
+        metadata.getVariantByConfigurationName("conf1").dependencies*.source == [dependency1]
+        metadata.getVariantByConfigurationName("conf2").dependencies*.source == [dependency2]
+        metadata.getVariantByConfigurationName("child1").dependencies*.source == [dependency1, dependency2, dependency3]
+        metadata.getVariantByConfigurationName("child2").dependencies*.source == [dependency1]
+        metadata.getVariantByConfigurationName("other").dependencies.isEmpty()
     }
 
     def "builds and caches exclude rules for a configuration"() {
@@ -355,7 +355,7 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
         runtime.getExcludeRules().add(new DefaultExcludeRule("group2", "module2"))
 
         expect:
-        def config = metadata.getConfiguration("runtime")
+        def config = metadata.getVariantByConfigurationName("runtime")
         def excludes = config.excludes
         config.excludes*.moduleId.group == ["group1", "group2"]
         config.excludes*.moduleId.name == ["module1", "module2"]
@@ -376,7 +376,7 @@ class DefaultLocalComponentGraphResolveMetadataTest extends Specification {
      * Creates a minimal mocked {@link ConfigurationInternal} instance.
      *
      * TODO: We really should not need such a complex Configuration mock here. However, since some of
-     * the tests here are testing functionality of {@link DefaultLocalConfigurationMetadataBuilder}, this
+     * the tests here are testing functionality of {@link DefaultLocalVariantMetadataBuilder}, this
      * complex Configuration mock is required.
      *
      * TODO: And TBH if we're doing this much mocking, we really should be using real Configurations.

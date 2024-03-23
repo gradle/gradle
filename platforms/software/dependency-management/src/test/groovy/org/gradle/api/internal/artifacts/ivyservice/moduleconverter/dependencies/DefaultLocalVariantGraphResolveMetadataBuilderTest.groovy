@@ -35,18 +35,18 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 /**
- * Tests {@link DefaultLocalConfigurationMetadataBuilder}
+ * Tests {@link DefaultLocalVariantMetadataBuilder}
  */
-class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
+class DefaultLocalVariantGraphResolveMetadataBuilderTest extends Specification {
     def dependencyMetadataFactory = Mock(DependencyMetadataFactory)
     def excludeRuleConverter = Mock(ExcludeRuleConverter)
-    def converter = new DefaultLocalConfigurationMetadataBuilder(dependencyMetadataFactory, excludeRuleConverter)
+    def converter = new DefaultLocalVariantMetadataBuilder(dependencyMetadataFactory, excludeRuleConverter)
 
     def configuration = Mock(ConfigurationInternal)
     def dependencySet = Mock(DependencySet)
     def dependencyConstraintSet = Mock(DependencyConstraintSet)
 
-    def cache = new LocalConfigurationMetadataBuilder.DependencyCache();
+    def cache = new LocalVariantMetadataBuilder.DependencyCache();
     def configurationsProvider = new DetachedConfigurationsProvider()
     def componentId = Mock(ComponentIdentifier)
 

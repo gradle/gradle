@@ -98,12 +98,15 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     }
 
     @Override
-    protected List<? extends VariantGraphResolveState> getVariantsForGraphTraversal() {
+    public GraphSelectionCandidates getCandidatesForGraphVariantSelection() {
+        return new ExternalComponentGraphSelectionCandidates(this);
+    }
+
+    private List<? extends VariantGraphResolveState> getVariantsForGraphTraversal() {
         return allVariantsForGraphResolution.get();
     }
 
     @Nullable
-    @Override
     public ConfigurationGraphResolveState getConfiguration(String configurationName) {
         if (!(getMetadata() instanceof ModuleComponentGraphResolveMetadata)) {
             return null;
@@ -239,6 +242,39 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         @Override
         public AttributesSchemaInternal getAttributesSchema() {
             return metadata.getAttributesSchema();
+        }
+    }
+
+    private static class ExternalComponentGraphSelectionCandidates implements GraphSelectionCandidates {
+        private final List<? extends VariantGraphResolveState> variants;
+        private final DefaultComponentGraphResolveState<?, ?> component;
+
+        public ExternalComponentGraphSelectionCandidates(DefaultComponentGraphResolveState<?, ?> component) {
+            this.variants = component.getVariantsForGraphTraversal();
+            this.component = component;
+        }
+
+        @Override
+        public boolean supportsAttributeMatching() {
+            return !variants.isEmpty();
+        }
+
+        @Override
+        public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
+            if (variants.isEmpty()) {
+                throw new IllegalStateException("No variants available for attribute matching.");
+            }
+            return variants;
+        }
+
+        @Nullable
+        @Override
+        public VariantGraphResolveState getVariantByConfigurationName(String name) {
+            ConfigurationGraphResolveState conf = component.getConfiguration(name);
+            if (conf == null) {
+                return null;
+            }
+            return conf.asVariant();
         }
     }
 }

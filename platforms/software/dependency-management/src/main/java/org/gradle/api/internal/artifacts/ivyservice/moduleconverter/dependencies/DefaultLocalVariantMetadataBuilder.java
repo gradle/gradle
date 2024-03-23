@@ -35,9 +35,9 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata;
+import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.LocalVariantMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
@@ -55,15 +55,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Encapsulates all logic required to build a {@link LocalConfigurationMetadata} from a
+ * Encapsulates all logic required to build a {@link LocalVariantGraphResolveMetadata} from a
  * {@link ConfigurationInternal}. Utilizes caching to prevent unnecessary duplicate conversions
  * between DSL and internal metadata types.
  */
-public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurationMetadataBuilder {
+public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataBuilder {
     private final DependencyMetadataFactory dependencyMetadataFactory;
     private final ExcludeRuleConverter excludeRuleConverter;
 
-    public DefaultLocalConfigurationMetadataBuilder(
+    public DefaultLocalVariantMetadataBuilder(
         DependencyMetadataFactory dependencyMetadataFactory,
         ExcludeRuleConverter excludeRuleConverter
     ) {
@@ -72,7 +72,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     }
 
     @Override
-    public LocalConfigurationMetadata create(
+    public LocalVariantGraphResolveMetadata create(
         ConfigurationInternal configuration,
         ConfigurationsProvider configurationsProvider,
         ComponentIdentifier componentId,
@@ -114,19 +114,17 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         // hierarchy will not change anymore and all configurations in the hierarchy
         // will no longer be mutated.
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
-        CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyState> dependencies =
+        CalculatedValue<DefaultLocalVariantGraphResolveMetadata.VariantDependencyState> dependencies =
             getConfigurationDependencyState(configurationsProvider, dependencyCache, model, calculatedValueContainerFactory, description, hierarchy, attributes);
 
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts =
             getConfigurationArtifacts(model, calculatedValueContainerFactory, configurationName, description, hierarchy, configurationsProvider, componentId);
 
-        return new DefaultLocalConfigurationMetadata(
+        return new DefaultLocalVariantGraphResolveMetadata(
             configurationName,
             description,
             componentId,
-            configuration.isVisible(),
             configuration.isTransitive(),
-            hierarchy,
             attributes,
             capabilities,
             configuration.isCanBeConsumed(),
@@ -188,7 +186,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     /**
      * Lazily collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
      */
-    private CalculatedValue<DefaultLocalConfigurationMetadata.ConfigurationDependencyState> getConfigurationDependencyState(
+    private CalculatedValue<DefaultLocalVariantGraphResolveMetadata.VariantDependencyState> getConfigurationDependencyState(
         ConfigurationsProvider configurationsProvider,
         DependencyCache dependencyCache,
         ModelContainer<?> model,
@@ -212,7 +210,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             });
 
             DependencyState state = new DependencyState(dependencies.build(), files.build(), excludes.build());
-            return new DefaultLocalConfigurationMetadata.ConfigurationDependencyState(
+            return new DefaultLocalVariantGraphResolveMetadata.VariantDependencyState(
                 maybeForceDependencies(state.dependencies, attributes), state.files, state.excludes
             );
         }));

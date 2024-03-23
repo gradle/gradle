@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -30,6 +31,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public interface LocalComponentGraphResolveState extends ComponentGraphResolveState {
+
+    @Nullable
+    LocalVariantGraphResolveState getVariantByConfigurationName(String configurationName);
+
     ModuleVersionIdentifier getModuleVersionId();
 
     @Override

@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenessVerifier;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
@@ -42,10 +42,10 @@ import java.util.function.Consumer;
 
 /**
  * Default implementation of {@link LocalComponentGraphResolveMetadata}. This component is lazy in that it
- * will only initialize {@link LocalConfigurationMetadata} instances on-demand as they are needed.
+ * will only initialize {@link LocalVariantGraphResolveMetadata} instances on-demand as they are needed.
  * <p>
- * TODO: Eventually, this class should be updated to only create metadata instances for consumable configurations.
- * However, we currently need to expose resolvable configuration since the
+ * TODO: Eventually, this class should be updated to only create metadata instances for consumable variants.
+ * However, we currently need to expose resolvable variants since the
  * {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState} implementation
  * sources its root component metadata, for a resolvable configuration, from this component metadata.
  */
@@ -58,24 +58,24 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
     private final AttributesSchemaInternal attributesSchema;
 
     // TODO: All this lazy state should be moved to DefaultLocalComponentGraphResolveState
-    private final ConfigurationMetadataFactory configurationFactory;
+    private final VariantMetadataFactory variantFactory;
     private final Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer;
-    private final Map<String, LocalConfigurationMetadata> allConfigurations = new LinkedHashMap<>();
-    private List<? extends VariantGraphResolveMetadata> consumableConfigurations;
+    private final Map<String, LocalVariantGraphResolveMetadata> allVariants = new LinkedHashMap<>();
+    private List<? extends VariantGraphResolveMetadata> consumableVariants;
 
     public DefaultLocalComponentGraphResolveMetadata(
         ModuleVersionIdentifier moduleVersionId,
         ComponentIdentifier componentId,
         String status,
         AttributesSchemaInternal attributesSchema,
-        ConfigurationMetadataFactory configurationFactory,
+        VariantMetadataFactory variantFactory,
         @Nullable Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer
     ) {
         this.moduleVersionId = moduleVersionId;
         this.componentId = componentId;
         this.status = status;
         this.attributesSchema = attributesSchema;
-        this.configurationFactory = configurationFactory;
+        this.variantFactory = variantFactory;
         this.artifactTransformer = artifactTransformer;
     }
 
@@ -99,7 +99,7 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
         Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> cachedTransformer = oldArtifact ->
             transformedArtifacts.computeIfAbsent(oldArtifact, transformer::transform);
 
-        return new DefaultLocalComponentGraphResolveMetadata(moduleVersionId, componentIdentifier, status, attributesSchema, configurationFactory, cachedTransformer);
+        return new DefaultLocalComponentGraphResolveMetadata(moduleVersionId, componentIdentifier, status, attributesSchema, variantFactory, cachedTransformer);
     }
 
     @Override
@@ -124,39 +124,39 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
 
     @Override
     public Set<String> getConfigurationNames() {
-        return configurationFactory.getConfigurationNames();
+        return variantFactory.getConfigurationNames();
     }
 
     /**
-     * For a local project component, the `variantsForGraphTraversal` are any _consumable_ configurations that have attributes defined.
+     * For a local project component, the `variantsForGraphTraversal` are any _consumable_ variants that have attributes defined.
      */
     @Override
     public synchronized List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal() {
-        if (consumableConfigurations == null) {
+        if (consumableVariants == null) {
             ImmutableList.Builder<VariantGraphResolveMetadata> builder = new ImmutableList.Builder<>();
-            configurationFactory.visitConfigurations(candidate -> {
+            variantFactory.visitVariants(candidate -> {
                 if (candidate.isConsumable() && candidate.hasAttributes()) {
-                    builder.add(getConfiguration(candidate.getName()));
+                    builder.add(getVariantByConfigurationName(candidate.getName()));
                 }
             });
 
-            consumableConfigurations = builder.build();
+            consumableVariants = builder.build();
         }
-        return consumableConfigurations;
+        return consumableVariants;
     }
 
     @Override
-    public LocalConfigurationMetadata getConfiguration(final String name) {
-        LocalConfigurationMetadata md = allConfigurations.get(name);
+    public LocalVariantGraphResolveMetadata getVariantByConfigurationName(final String name) {
+        LocalVariantGraphResolveMetadata md = allVariants.get(name);
         if (md == null) {
-            md = configurationFactory.getConfiguration(name);
+            md = variantFactory.getVariantByConfigurationName(name);
             if (md == null) {
                 return null;
             }
             if (artifactTransformer != null) {
                 md = md.copyWithTransformedArtifacts(artifactTransformer);
             }
-            allConfigurations.put(name, md);
+            allVariants.put(name, md);
         }
         return md;
     }
@@ -168,24 +168,24 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
 
     @Override
     public void reevaluate() {
-        allConfigurations.clear();
-        configurationFactory.invalidate();
+        allVariants.clear();
+        variantFactory.invalidate();
         synchronized (this) {
-            consumableConfigurations = null;
+            consumableVariants = null;
         }
     }
 
     @Override
     public boolean isConfigurationRealized(String configName) {
-        return allConfigurations.get(configName) != null;
+        return allVariants.get(configName) != null;
     }
 
     /**
-     * Constructs {@link LocalConfigurationMetadata} given a configuration's name. This allows
-     * the component metadata to source configuration data from multiple sources, both lazy and eager.
+     * Constructs {@link LocalVariantGraphResolveMetadata} given a configuration's name. This allows
+     * the component metadata to source variant data from multiple sources, both lazy and eager.
      */
-    public interface ConfigurationMetadataFactory {
-        void visitConfigurations(Consumer<Candidate> visitor);
+    public interface VariantMetadataFactory {
+        void visitVariants(Consumer<Candidate> visitor);
 
         /**
          * Get the names of all configurations which this factory can produce.
@@ -193,17 +193,17 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
         Set<String> getConfigurationNames();
 
         /**
-         * Invalidates any caching used for producing configuration metadata.
+         * Invalidates any caching used for producing variant metadata.
          */
         void invalidate();
 
         /**
-         * Produces a configuration metadata instance from the configuration with the given {@code name}.
+         * Produces a variant metadata instance from the configuration with the given {@code name}.
          *
-         * @return Null if the configuration with the given name does not exist.
+         * @return Null if the variant with the given configuration name does not exist.
          */
         @Nullable
-        LocalConfigurationMetadata getConfiguration(String name);
+        LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name);
 
         interface Candidate {
             String getName();
@@ -215,13 +215,13 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
     }
 
     /**
-     * A {@link ConfigurationMetadataFactory} which uses a map of pre-constructed configuration
+     * A {@link VariantMetadataFactory} which uses a map of pre-constructed variant
      * metadata as its data source.
      */
-    public static class ConfigurationsMapMetadataFactory implements ConfigurationMetadataFactory {
-        private final Map<String, LocalConfigurationMetadata> metadata;
+    public static class VariantsMapMetadataFactory implements VariantMetadataFactory {
+        private final Map<String, LocalVariantGraphResolveMetadata> metadata;
 
-        public ConfigurationsMapMetadataFactory(Map<String, LocalConfigurationMetadata> metadata) {
+        public VariantsMapMetadataFactory(Map<String, LocalVariantGraphResolveMetadata> metadata) {
             this.metadata = metadata;
         }
 
@@ -231,22 +231,22 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
         }
 
         @Override
-        public void visitConfigurations(Consumer<Candidate> visitor) {
-            for (LocalConfigurationMetadata configuration : metadata.values()) {
+        public void visitVariants(Consumer<Candidate> visitor) {
+            for (LocalVariantGraphResolveMetadata variant : metadata.values()) {
                 visitor.accept(new Candidate() {
                     @Override
                     public String getName() {
-                        return configuration.getName();
+                        return variant.getName();
                     }
 
                     @Override
                     public boolean isConsumable() {
-                        return configuration.isCanBeConsumed();
+                        return variant.isCanBeConsumed();
                     }
 
                     @Override
                     public boolean hasAttributes() {
-                        return !configuration.getAttributes().isEmpty();
+                        return !variant.getAttributes().isEmpty();
                     }
                 });
             }
@@ -256,27 +256,27 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
         public void invalidate() {}
 
         @Override
-        public LocalConfigurationMetadata getConfiguration(String name) {
+        public LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name) {
             return metadata.get(name);
         }
     }
 
     /**
-     * A {@link ConfigurationMetadataFactory} which uses a {@link ConfigurationsProvider} as its data source.
+     * A {@link VariantMetadataFactory} which uses a {@link ConfigurationsProvider} as its data source.
      */
-    public static class ConfigurationsProviderMetadataFactory implements ConfigurationMetadataFactory {
+    public static class ConfigurationsProviderMetadataFactory implements VariantMetadataFactory {
 
         private final ComponentIdentifier componentId;
         private final ConfigurationsProvider configurationsProvider;
-        private final LocalConfigurationMetadataBuilder metadataBuilder;
+        private final LocalVariantMetadataBuilder metadataBuilder;
         private final ModelContainer<?> model;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-        private final DefaultLocalConfigurationMetadataBuilder.DependencyCache cache;
+        private final DefaultLocalVariantMetadataBuilder.DependencyCache cache;
 
         public ConfigurationsProviderMetadataFactory(
             ComponentIdentifier componentId,
             ConfigurationsProvider configurationsProvider,
-            LocalConfigurationMetadataBuilder metadataBuilder,
+            LocalVariantMetadataBuilder metadataBuilder,
             ModelContainer<?> model,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
@@ -285,7 +285,7 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
             this.metadataBuilder = metadataBuilder;
             this.model = model;
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-            this.cache = new LocalConfigurationMetadataBuilder.DependencyCache();
+            this.cache = new LocalVariantMetadataBuilder.DependencyCache();
         }
 
         @Override
@@ -296,7 +296,7 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
         }
 
         @Override
-        public void visitConfigurations(Consumer<Candidate> visitor) {
+        public void visitVariants(Consumer<Candidate> visitor) {
             VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
 
             configurationsProvider.visitAll(configuration -> {
@@ -325,7 +325,7 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
         }
 
         @Override
-        public LocalConfigurationMetadata getConfiguration(String name) {
+        public LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name) {
             ConfigurationInternal configuration = configurationsProvider.findByName(name);
             if (configuration == null) {
                 return null;
