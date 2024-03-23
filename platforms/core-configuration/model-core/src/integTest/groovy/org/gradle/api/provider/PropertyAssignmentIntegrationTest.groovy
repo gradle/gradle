@@ -343,6 +343,29 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
     }
 
+    def "test Groovy lazy FileCollection variables assignment for #description"() {
+        def inputInitializer = "files()"
+        groovyBuildFileWithVariable(inputInitializer, inputValue, operation, expectedType)
+
+        expect:
+        runAndAssert("myTask", expectedResult)
+
+        where:
+        description                        | operation | inputType                    | inputValue              | expectedType                 | expectedResult
+        "FileCollection = FileCollection"  | "="       | "ConfigurableFileCollection" | 'files("a.txt")'        | "ConfigurableFileCollection" | '[a.txt]'
+        "FileCollection = String"          | "="       | "ConfigurableFileCollection" | '"a.txt"'               | "String"                     | "a.txt"
+        "FileCollection = Object"          | "="       | "ConfigurableFileCollection" | 'new MyObject("a.txt")' | "MyObject"                   | "a.txt"
+        "FileCollection = File"            | "="       | "ConfigurableFileCollection" | 'file("a.txt")'         | "File"                       | "a.txt"
+        "FileCollection = Iterable<File>"  | "="       | "ConfigurableFileCollection" | '[file("a.txt")]'       | "List"                       | "[a.txt]"
+        "FileCollection += FileCollection" | "+="      | "ConfigurableFileCollection" | 'files("a.txt")'        | "FileCollection"             | "[a.txt]"
+        "FileCollection << FileCollection" | "<<"      | "ConfigurableFileCollection" | 'files("a.txt")'        | ""                           | unsupportedWithCause("No signature of method")
+        "FileCollection += String"         | "+="      | "ConfigurableFileCollection" | '"a.txt"'               | "List"                       | "[a.txt]"
+        "FileCollection += Object"         | "+="      | "ConfigurableFileCollection" | 'new MyObject("a.txt")' | "List"                       | "[a.txt]"
+        "FileCollection += File"           | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'         | "List"                       | "[a.txt]"
+        "FileCollection += Iterable<?>"    | "+="      | "ConfigurableFileCollection" | '["a.txt"]'             | "List"                       | "[a.txt]"
+        "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | "List"                       | "[a.txt]"
+    }
+
     def "Groovy assignment for ConfigurableFileCollection doesn't resolve a Configuration"() {
         buildFile """
             configurations {
@@ -396,6 +419,28 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         where:
         description                        | operation | inputType                    | inputValue                         | expectedResult
         "FileCollection = FileCollection"  | "="       | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | '[a.txt]'
+        "FileCollection = String"          | "="       | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Val cannot be reassigned")
+        "FileCollection = Object"          | "="       | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Val cannot be reassigned")
+        "FileCollection = File"            | "="       | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Val cannot be reassigned")
+        "FileCollection = Iterable<File>"  | "="       | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Val cannot be reassigned")
+        "FileCollection += FileCollection" | "+="      | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | unsupportedWithDescription("Val cannot be reassigned")
+        "FileCollection += String"         | "+="      | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Val cannot be reassigned")
+        "FileCollection += Object"         | "+="      | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Val cannot be reassigned")
+        "FileCollection += File"           | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Val cannot be reassigned")
+        "FileCollection += Iterable<?>"    | "+="      | "ConfigurableFileCollection" | 'listOf("a.txt")'                  | unsupportedWithDescription("Val cannot be reassigned")
+        "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Val cannot be reassigned")
+    }
+
+    def "test Kotlin lazy FileCollection variables assignment for #description"() {
+        def inputInitializer = "files()"
+        kotlinBuildFileWithVariable(inputInitializer, inputValue, operation)
+
+        expect:
+        runAndAssert("myTask", expectedResult)
+
+        where:
+        description                        | operation | inputType                    | inputValue                         | expectedResult
+        "FileCollection = FileCollection"  | "="       | "ConfigurableFileCollection" | 'files("a.txt") as FileCollection' | unsupportedWithDescription("Val cannot be reassigned")
         "FileCollection = String"          | "="       | "ConfigurableFileCollection" | '"a.txt"'                          | unsupportedWithDescription("Val cannot be reassigned")
         "FileCollection = Object"          | "="       | "ConfigurableFileCollection" | 'MyObject("a.txt")'                | unsupportedWithDescription("Val cannot be reassigned")
         "FileCollection = File"            | "="       | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Val cannot be reassigned")
@@ -466,13 +511,14 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private void groovyBuildFileWithVariable(String inputInitializer, String inputValue, String operation) {
+    private void groovyBuildFileWithVariable(String inputInitializer, String inputValue, String operation, String expectedType = null) {
         buildFile.text = """
             ${groovyTypesDefinition()}
 
             tasks.register("myTask") {
                 def input = $inputInitializer
                 input $operation $inputValue
+                ${expectedType ? "assert input instanceof $expectedType" : ""}
                 doLast {
                     ${groovyInputPrintRoutine()}
                 }
@@ -508,6 +554,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
                 println("$RESULT_PREFIX" + input.map { it.toString() }.getOrElse("undefined"))
             } else if (input instanceof FileCollection) {
                 println("$RESULT_PREFIX" + input.files.collect { it.name })
+            } else if (input instanceof Iterable) {
+                println("$RESULT_PREFIX" + input.collect { it instanceof File ? it.name : it })
             } else {
                 println("$RESULT_PREFIX" + input.toString())
             }
