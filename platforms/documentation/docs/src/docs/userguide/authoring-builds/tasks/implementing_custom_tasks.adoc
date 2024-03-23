@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[actionable_tasks]]
-= Actionable Tasks
+[[implementing_custom_tasks]]
+= Implementing Custom Tasks
 
 Actionable tasks describe work in Gradle.
 These tasks have actions.
+In Gradle core, the `compileJava` task compiles the Java source code.
+The `Jar` and `Zip` tasks zip files into archives.
 
 image::writing-tasks-3.png[]
 
-In Gradle core, the `compileJava` task compiles the Java source code.
-The `Jar` and `Zip` tasks zip files into archives.
+Custom actionable tasks can be created by extending the `DefaultTask` class and defining inputs, outputs, and actions.
 
 [[sec:task_groups]]
 == Task inputs and outputs

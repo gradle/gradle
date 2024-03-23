@@ -46,7 +46,7 @@ When you're using a JVM language plugin — such as the <<java_plugin.adoc#java_
  * A dedicated `test` source set for unit tests
  * A `test` task of type `Test` that runs those unit tests
 
-The JVM language plugins use the source set to configure the task with the appropriate execution classpath and the directory containing the compiled test classes. In addition, they attach the `test` task to the `check` <<lifecycle_tasks.adoc#sec:lifecycle_tasks,lifecycle task>>.
+The JVM language plugins use the source set to configure the task with the appropriate execution classpath and the directory containing the compiled test classes. In addition, they attach the `test` task to the `check` <<organizing_tasks.adoc#sec:lifecycle_tasks,lifecycle task>>.
 
 It's also worth bearing in mind that the `test` source set automatically creates <<java_plugin.adoc#java_source_set_configurations,corresponding dependency configurations>> — of which the most useful are `testImplementation` and `testRuntimeOnly` — that the plugins tie into the `test` task's classpath.
 
@@ -614,7 +614,7 @@ You will most likely see invalid compilation errors in the IDE.
 [[sec:skipping_java_tests]]
 == Skipping the tests
 
-If you want to skip the tests when running a build, you have a few options. You can either do it via <<command_line_interface.adoc#sec:excluding_tasks_from_the_command_line,command line arguments>> or <<more_about_tasks.adoc#sec:skipping_tasks,in the build script>>. To do it on the command line, you can use the `-x` or `--exclude-task` option like so:
+If you want to skip the tests when running a build, you have a few options. You can either do it via <<command_line_interface.adoc#sec:excluding_tasks_from_the_command_line,command line arguments>> or <<controlling_task_execution.adoc#sec:skipping_tasks,in the build script>>. To do it on the command line, you can use the `-x` or `--exclude-task` option like so:
 
     gradle build -x test
 
@@ -643,7 +643,7 @@ Alternatively, if <<build_cache.adoc#sec:build_cache_enable,build caching>> is n
 
     gradle cleanTest test
 
-`cleanTest` is based on a <<more_about_tasks.adoc#sec:task_rules,task rule>> provided by the <<base_plugin.adoc#sec:base_tasks,Base Plugin>>. You can use it for _any_ task.
+`cleanTest` is based on a task rule provided by the <<base_plugin.adoc#sec:base_tasks,Base Plugin>>. You can use it for _any_ task.
 
 [[sec:debugging_java_tests]]
 == Debugging when running tests

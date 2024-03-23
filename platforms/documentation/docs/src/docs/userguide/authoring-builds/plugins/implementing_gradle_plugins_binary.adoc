@@ -32,7 +32,7 @@ include::sample[dir="snippets/plugins/customPlugin/kotlin/java-gradle-plugin",fi
 include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",files="build.gradle[tags=use-and-configure-plugin]"]
 ====
 
-Writing and using <<actionable_tasks.adoc#sec:task_groups,custom task types>> is recommended when developing plugins as it automatically benefits from <<incremental_build.adoc#incremental_build,incremental builds>>.
+Writing and using <<more_about_tasks.adoc#sec:task_groups,custom task types>> is recommended when developing plugins as it automatically benefits from <<incremental_build.adoc#incremental_build,incremental builds>>.
 As an added benefit of applying the plugin to your project, the task `validatePlugins` automatically checks for an existing input/output annotation for every public property defined in a custom task type implementation.
 
 [[sec:creating_a_plugin_id]]
