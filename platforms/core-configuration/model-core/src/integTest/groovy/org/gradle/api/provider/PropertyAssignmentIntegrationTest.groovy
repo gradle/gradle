@@ -175,6 +175,40 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "Map<K, V> << Provider<Map<K, V>>"       | "<<"      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
     }
 
+    def "test Groovy lazy collection variables assignment for #description"() {
+        def inputInitializer = inputType.startsWith("ListProperty<") ? "objects.listProperty(MyObject)" : "objects.mapProperty(String, MyObject)"
+        groovyBuildFileWithVariable(inputInitializer, inputValue, operation)
+
+        expect:
+        runAndAssert("myTask", expectedResult)
+
+        where:
+        description                              | operation | inputType                       | inputValue                                               | expectedResult
+        "Collection<T> = null"                   | "="       | "ListProperty<MyObject>"        | 'null'                                                   | 'null'
+        "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | '[a]'
+        "Collection<T> = Iterable<T>"            | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'
+        "Collection<T> = provider { null }"      | "="       | "ListProperty<MyObject>"        | 'provider { null }'                                      | 'undefined'
+        "Collection<T> = Provider<Iterable<T>>"  | "="       | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[a]'
+        "Collection<T> += T"                     | "+="      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | unsupportedWithCause("No signature of method")
+        "Collection<T> << T"                     | "<<"      | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | unsupportedWithCause("No signature of method")
+        "Collection<T> += Provider<T>"           | "+="      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | unsupportedWithCause("No signature of method")
+        "Collection<T> << Provider<T>"           | "<<"      | "ListProperty<MyObject>"        | 'provider { new MyObject("a") }'                         | unsupportedWithCause("No signature of method")
+        "Collection<T> += T[]"                   | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("No signature of method")
+        "Collection<T> << T[]"                   | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("No signature of method")
+        "Collection<T> += Iterable<T>"           | "+="      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | unsupportedWithCause("No signature of method")
+        "Collection<T> << Iterable<T>"           | "<<"      | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | unsupportedWithCause("No signature of method")
+        "Collection<T> += Provider<Iterable<T>>" | "+="      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | unsupportedWithCause("No signature of method")
+        "Collection<T> << Provider<Iterable<T>>" | "<<"      | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | unsupportedWithCause("No signature of method")
+        "Map<K, V> = null"                       | "="       | "MapProperty<String, MyObject>" | 'null'                                                   | 'null'
+        "Map<K, V> = Map<K, V>"                  | "="       | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | '[a:b]'
+        "Map<K, V> = provider { null }"          | "="       | "MapProperty<String, MyObject>" | 'provider { null }'                                      | 'undefined'
+        "Map<K, V> = Provider<Map<K, V>>"        | "="       | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | '[a:b]'
+        "Map<K, V> += Map<K, V>"                 | "+="      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | unsupportedWithCause("No signature of method")
+        "Map<K, V> << Map<K, V>"                 | "<<"      | "MapProperty<String, MyObject>" | '["a": new MyObject("b")]'                               | unsupportedWithCause("No signature of method")
+        "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
+        "Map<K, V> << Provider<Map<K, V>>"       | "<<"      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
+    }
+
     def "test Kotlin eager collection types assignment for #description"() {
         def initValue = inputType.contains("Map<") ? "mutableMapOf<String, MyObject>()" : "mutableListOf<MyObject>()"
         def inputDeclaration = "var input: $inputType = $initValue"
@@ -228,6 +262,41 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "Map<K, V> += Provider<Pair<K, V>>"      | "+="      | "MapProperty<String, MyObject>" | 'provider { "a" to MyObject("b") }'                        | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
         "Map<K, V> += Map<K, V>"                 | "+="      | "MapProperty<String, MyObject>" | 'mapOf("a" to MyObject("b"))'                              | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
         "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "MapProperty<String, MyObject>" | 'provider { mapOf("a" to MyObject("b")) }'                 | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+    }
+
+    def "test Kotlin lazy collection variables assignment for #description"() {
+        def inputInitializer = inputType.startsWith("ListProperty<") ? "objects.listProperty<MyObject>()" : "objects.mapProperty<String, MyObject>()"
+        kotlinBuildFileWithVariable(inputInitializer, inputValue, operation)
+
+        expect:
+        runAndAssert("myTask", expectedResult)
+
+        where:
+        description                                       | operation | inputType                       | inputValue                                                 | expectedResult
+        "Collection<T> = null"                            | "="       | "ListProperty<MyObject>"        | 'null'                                                     | unsupportedWithDescription("Val cannot be reassigned")
+        "Collection<T> = T[]"                             | "="       | "ListProperty<MyObject>"        | 'arrayOf(MyObject("a"))'                                   | unsupportedWithDescription("Val cannot be reassigned")
+        "Collection<T> = Iterable<T>"                     | "="       | "ListProperty<MyObject>"        | 'listOf(MyObject("a")) as Iterable<MyObject>'              | unsupportedWithDescription("Val cannot be reassigned")
+        "Collection<T> = provider { null } "              | "="       | "ListProperty<MyObject>"        | 'provider { null } '                                       | unsupportedWithDescription("Val cannot be reassigned")
+        "Collection<T> = Provider<Iterable<T>>"           | "="       | "ListProperty<MyObject>"        | 'provider { listOf(MyObject("a")) as Iterable<MyObject> }' | unsupportedWithDescription("Val cannot be reassigned")
+        "Collection<T> += T"                              | "+="      | "ListProperty<MyObject>"        | 'MyObject("a")'                                            | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += Provider<T>"                    | "+="      | "ListProperty<MyObject>"        | 'provider { MyObject("a") }'                               | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += T[]"                            | "+="      | "ListProperty<MyObject>"        | 'arrayOf(MyObject("a"))'                                   | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += Iterable<T>"                    | "+="      | "ListProperty<MyObject>"        | 'listOf(MyObject("a")) as Iterable<MyObject>'              | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += Provider<Iterable<T>>"          | "+="      | "ListProperty<MyObject>"        | 'provider { listOf(MyObject("a")) as Iterable<MyObject> }' | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += provider { null }"              | "+="      | "ListProperty<MyObject>"        | 'provider { null }'                                        | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += provider<T> { null }"           | "+="      | "ListProperty<MyObject>"        | 'provider<MyObject> { null }'                              | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += provider<Iterable<T>> { null }" | "+="      | "ListProperty<MyObject>"        | 'provider<Iterable<MyObject>> { null }'                    | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> = null"                                | "="       | "MapProperty<String, MyObject>" | 'null'                                                     | unsupportedWithDescription("Val cannot be reassigned")
+        "Map<K, V> = Map<K, V>"                           | "="       | "MapProperty<String, MyObject>" | 'mapOf("a" to MyObject("b"))'                              | unsupportedWithDescription("Val cannot be reassigned")
+        "Map<K, V> = provider { null }"                   | "="       | "MapProperty<String, MyObject>" | 'provider { null }'                                        | unsupportedWithDescription("Val cannot be reassigned")
+        "Map<K, V> = Provider<Map<K, V>>"                 | "="       | "MapProperty<String, MyObject>" | 'provider { mapOf("a" to MyObject("b")) }'                 | unsupportedWithDescription("Val cannot be reassigned")
+        "Map<K, V> += Pair<K, V>"                         | "+="      | "MapProperty<String, MyObject>" | '"a" to MyObject("b")'                                     | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> += Provider<Pair<K, V>>"               | "+="      | "MapProperty<String, MyObject>" | 'provider { "a" to MyObject("b") }'                        | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> += Map<K, V>"                          | "+="      | "MapProperty<String, MyObject>" | 'mapOf("a" to MyObject("b"))'                              | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> += Provider<Map<K, V>>"                | "+="      | "MapProperty<String, MyObject>" | 'provider { mapOf("a" to MyObject("b")) }'                 | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> += provider { null }"                  | "+="      | "MapProperty<String, MyObject>" | 'provider { null }'                                        | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> += provider<Map<K, V>> { null }"       | "+="      | "MapProperty<String, MyObject>" | 'provider<Map<String, MyObject>> { null }'                 | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> += provider<Pair<K, V>> { null }"      | "+="      | "MapProperty<String, MyObject>" | 'provider<Pair<String, MyObject>> { null }'                | unsupportedWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
     }
 
     def "test Groovy eager FileCollection types assignment for #description"() {
@@ -379,6 +448,40 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
     private void groovyBuildFile(String inputDeclaration, String inputValue, String operation) {
         buildFile.text = """
+            ${groovyTypesDefinition()}
+
+            abstract class MyTask extends DefaultTask {
+                @Internal
+                $inputDeclaration
+
+                @TaskAction
+                void run() {
+                    ${groovyInputPrintRoutine()}
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                input $operation $inputValue
+            }
+        """
+    }
+
+    private void groovyBuildFileWithVariable(String inputInitializer, String inputValue, String operation) {
+        buildFile.text = """
+            ${groovyTypesDefinition()}
+
+            tasks.register("myTask") {
+                def input = $inputInitializer
+                input $operation $inputValue
+                doLast {
+                    ${groovyInputPrintRoutine()}
+                }
+            }
+        """
+    }
+
+    private String groovyTypesDefinition() {
+        """
             enum MyEnum {
                 YES, NO
             }
@@ -392,42 +495,28 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
                     return value
                 }
             }
+        """
+    }
 
-            abstract class MyTask extends DefaultTask {
-                @Internal
-                $inputDeclaration
-
-                @TaskAction
-                void run() {
-                    if (input instanceof FileSystemLocationProperty) {
-                        println("$RESULT_PREFIX" + input.map { it.asFile.name }.getOrElse("undefined"))
-                    } else if (input instanceof File) {
-                       println("$RESULT_PREFIX" + input.name)
-                    } else if (input instanceof Provider) {
-                        println("$RESULT_PREFIX" + input.map { it.toString() }.getOrElse("undefined"))
-                    } else if (input instanceof FileCollection) {
-                        println("$RESULT_PREFIX" + input.files.collect { it.name })
-                    } else {
-                        println("$RESULT_PREFIX" + input.toString())
-                    }
-                }
-            }
-
-            tasks.register("myTask", MyTask) {
-                input $operation $inputValue
+    private String groovyInputPrintRoutine() {
+        """
+            if (input instanceof FileSystemLocationProperty) {
+                println("$RESULT_PREFIX" + input.map { it.asFile.name }.getOrElse("undefined"))
+            } else if (input instanceof File) {
+               println("$RESULT_PREFIX" + input.name)
+            } else if (input instanceof Provider) {
+                println("$RESULT_PREFIX" + input.map { it.toString() }.getOrElse("undefined"))
+            } else if (input instanceof FileCollection) {
+                println("$RESULT_PREFIX" + input.files.collect { it.name })
+            } else {
+                println("$RESULT_PREFIX" + input.toString())
             }
         """
     }
 
     private void kotlinBuildFile(String inputDeclaration, String inputValue, String operation) {
         buildKotlinFile.text = """
-            enum class MyEnum {
-                YES, NO
-            }
-
-            class MyObject(val value: String) {
-                override fun toString(): String = value
-            }
+            ${kotlinTypesDefinition()}
 
             abstract class MyTask: DefaultTask() {
                 @get:Internal
@@ -435,18 +524,51 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 fun run() {
-                    when (val anyInput = input as Any?) {
-                       is FileSystemLocationProperty<*> -> println("$RESULT_PREFIX" + anyInput.map { it.asFile.name }.getOrElse("undefined"))
-                       is File -> println("$RESULT_PREFIX" + anyInput.name)
-                       is Provider<*> -> println("$RESULT_PREFIX" + anyInput.map { it.toString() }.getOrElse("undefined"))
-                       is FileCollection -> println("$RESULT_PREFIX" + anyInput.files.map { it.name })
-                       else -> println("$RESULT_PREFIX" + anyInput.toString())
-                    }
+                    ${kotlinInputPrintRoutine()}
                 }
             }
 
             tasks.register<MyTask>("myTask") {
                 input $operation $inputValue
+            }
+        """
+    }
+
+    private void kotlinBuildFileWithVariable(String inputInitializer, String inputValue, String operation) {
+        buildKotlinFile.text = """
+            ${kotlinTypesDefinition()}
+
+            tasks.register("myTask") {
+                val input = $inputInitializer
+                input $operation $inputValue
+
+                doLast {
+                    ${kotlinInputPrintRoutine()}
+                }
+            }
+        """
+    }
+
+    private String kotlinTypesDefinition() {
+        """
+            enum class MyEnum {
+                YES, NO
+            }
+
+            class MyObject(val value: String) {
+                override fun toString(): String = value
+            }
+        """
+    }
+
+    private String kotlinInputPrintRoutine() {
+        """
+            when (val anyInput = input as Any?) {
+               is FileSystemLocationProperty<*> -> println("$RESULT_PREFIX" + anyInput.map { it.asFile.name }.getOrElse("undefined"))
+               is File -> println("$RESULT_PREFIX" + anyInput.name)
+               is Provider<*> -> println("$RESULT_PREFIX" + anyInput.map { it.toString() }.getOrElse("undefined"))
+               is FileCollection -> println("$RESULT_PREFIX" + anyInput.files.map { it.name })
+               else -> println("$RESULT_PREFIX" + anyInput.toString())
             }
         """
     }
