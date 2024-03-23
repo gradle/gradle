@@ -21,24 +21,19 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
-import javax.annotation.Nullable;
-import java.util.Set;
+import java.util.List;
 
 public interface LocalComponentGraphResolveMetadata extends ComponentGraphResolveMetadata {
 
-    /**
-     * Get all names such that {@link #getVariantByConfigurationName(String)} is non-null.
-     */
-    Set<String> getConfigurationNames();
+    @Override
+    List<? extends LocalVariantGraphResolveMetadata> getVariantsForGraphTraversal();
 
     /**
-     * Get the variant identified by the given configuration, or null if no such variant exists.
+     * Get the variant with the given name that may be used as the root of a dependency graph.
      *
-     * <p>We should split this into one method that only exposes consumable variants and one that only
-     * exposes variants inteded to be used as the root of a dependency graph.</p>
+     * @throws IllegalArgumentException If no such variant exists.
      */
-    @Nullable
-    LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name);
+    LocalVariantGraphResolveMetadata getRootVariant(String name);
 
     LocalComponentGraphResolveMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer);
 

@@ -142,7 +142,7 @@ class DependencyGraphBuilderTest extends Specification {
         def rootComponentState = new DefaultLocalComponentGraphResolveState(0, root, desugaring, new ComponentIdGenerator(), false)
 
         _ * rootComponent.getRootComponent() >> rootComponentState
-        _ * rootComponent.getRootVariant() >> rootComponentState.getVariantByConfigurationName('root').asVariant()
+        _ * rootComponent.getRootVariant() >> rootComponentState.getCandidatesForGraphVariantSelection().getVariantByConfigurationName('root')
     }
 
     private TestGraphVisitor resolve(Spec<? super DependencyMetadata> edgeFilter = { true }) {
@@ -1166,7 +1166,7 @@ class DependencyGraphBuilderTest extends Specification {
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency) {
             getAttributes() >> ImmutableAttributes.EMPTY
         })
-        from.getVariantByConfigurationName("default").getDependencies().add(dependencyMetaData)
+        from.getVariantsForGraphTraversal().find { it -> it.configurationName == "default" }.getDependencies().add(dependencyMetaData)
         return dependencyMetaData
     }
 

@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -32,8 +31,17 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public interface LocalComponentGraphResolveState extends ComponentGraphResolveState {
 
-    @Nullable
-    LocalVariantGraphResolveState getVariantByConfigurationName(String configurationName);
+    /**
+     * Get the variant with the given name that may be used as the root of a dependency graph.
+     *
+     * TODO: This functionality should be separate from the component. We should be able to create
+     * root variants without the knowledge of the component. This is blocked by the behavior where
+     * a root variant can be selected by dependencies. This behavior is deprecated and will be an
+     * error in Gradle 9.0.
+     *
+     * @throws IllegalArgumentException If no such variant exists.
+     */
+    LocalVariantGraphResolveState getRootVariant(String name);
 
     ModuleVersionIdentifier getModuleVersionId();
 

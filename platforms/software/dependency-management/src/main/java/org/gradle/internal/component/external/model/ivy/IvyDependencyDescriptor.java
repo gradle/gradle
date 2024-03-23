@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.Exclude;
@@ -123,17 +122,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      *   - '%' is a key that matches a `fromConfiguration` value that is not matched by any of the other keys.
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
-    public GraphVariantSelectionResult selectLegacyConfigurations(ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent, ResolutionFailureHandler resolutionFailureHandler) {
-        // We only want to use ivy's configuration selection mechanism when an ivy component is selecting
-        // configurations from another ivy component. We have already verified that the target component does
-        // not support attribute matching, so if it is not an ivy component, use the standard legacy selection mechanism.
-        if (!(targetComponent instanceof IvyComponentGraphResolveState)) {
-            VariantGraphResolveState variant = targetComponent.getCandidatesForGraphVariantSelection().getLegacyVariant();
-            return new GraphVariantSelectionResult(Collections.singletonList(variant), false);
-        }
-
-        IvyComponentGraphResolveState ivyComponent = (IvyComponentGraphResolveState) targetComponent;
-
+    public GraphVariantSelectionResult selectLegacyConfigurations(ConfigurationMetadata fromConfiguration, IvyComponentGraphResolveState ivyComponent, ResolutionFailureHandler resolutionFailureHandler) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         List<ConfigurationGraphResolveState> targets = new LinkedList<>();
         boolean matched = false;

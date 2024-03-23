@@ -1537,7 +1537,7 @@ org:leaf:[1.5,2.0] FAILED
 project :A FAILED
    Failures:
       - Could not resolve project :A.
-          - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :A.
+          - A dependency was declared on configuration 'default' of 'project :A' but no variant with that configuration name exists. The requested configuration is either not present in the target project or the named configuration is not consumable.
 
 project :A FAILED
 \\--- conf
@@ -1551,7 +1551,7 @@ project :A FAILED
 project :C FAILED
    Failures:
       - Could not resolve project :C.
-          - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :C.
+          - A dependency was declared on configuration 'default' of 'project :C' but no variant with that configuration name exists. The requested configuration is either not present in the target project or the named configuration is not consumable.
 
 project :C FAILED
 \\--- project :B

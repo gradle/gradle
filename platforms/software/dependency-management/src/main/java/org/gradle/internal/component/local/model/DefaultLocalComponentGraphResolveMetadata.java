@@ -17,7 +17,6 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -28,7 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
@@ -37,7 +35,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -60,8 +57,8 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
     // TODO: All this lazy state should be moved to DefaultLocalComponentGraphResolveState
     private final VariantMetadataFactory variantFactory;
     private final Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer;
-    private final Map<String, LocalVariantGraphResolveMetadata> allVariants = new LinkedHashMap<>();
-    private List<? extends VariantGraphResolveMetadata> consumableVariants;
+    private final Map<String, LocalVariantGraphResolveMetadata> rootVariants = new LinkedHashMap<>();
+    private List<? extends LocalVariantGraphResolveMetadata> consumableVariants;
 
     public DefaultLocalComponentGraphResolveMetadata(
         ModuleVersionIdentifier moduleVersionId,
@@ -122,41 +119,39 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
         return ImmutableList.of();
     }
 
-    @Override
-    public Set<String> getConfigurationNames() {
-        return variantFactory.getConfigurationNames();
-    }
-
     /**
      * For a local project component, the `variantsForGraphTraversal` are any _consumable_ variants that have attributes defined.
      */
     @Override
-    public synchronized List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal() {
+    public synchronized List<? extends LocalVariantGraphResolveMetadata> getVariantsForGraphTraversal() {
         if (consumableVariants == null) {
-            ImmutableList.Builder<VariantGraphResolveMetadata> builder = new ImmutableList.Builder<>();
-            variantFactory.visitVariants(candidate -> {
-                if (candidate.isConsumable() && candidate.hasAttributes()) {
-                    builder.add(getVariantByConfigurationName(candidate.getName()));
-                }
-            });
-
+            ImmutableList.Builder<LocalVariantGraphResolveMetadata> builder = new ImmutableList.Builder<>();
+            variantFactory.visitConsumableVariants(candidate -> builder.add(createVariantMetadata(candidate)));
             consumableVariants = builder.build();
         }
         return consumableVariants;
     }
 
     @Override
-    public LocalVariantGraphResolveMetadata getVariantByConfigurationName(final String name) {
-        LocalVariantGraphResolveMetadata md = allVariants.get(name);
+    public LocalVariantGraphResolveMetadata getRootVariant(String name) {
+        return rootVariants.computeIfAbsent(name, n -> {
+            LocalVariantGraphResolveMetadata md = createVariantMetadata(n);
+            if (md == null || !md.isCanBeResolved()) {
+                throw new IllegalArgumentException(String.format("Expected root variant '%s' to be present in %s", n, componentId));
+            }
+            return md;
+        });
+    }
+
+    @Nullable
+    private LocalVariantGraphResolveMetadata createVariantMetadata(String name) {
+        LocalVariantGraphResolveMetadata md;
+        md = variantFactory.getVariantByConfigurationName(name);
         if (md == null) {
-            md = variantFactory.getVariantByConfigurationName(name);
-            if (md == null) {
-                return null;
-            }
-            if (artifactTransformer != null) {
-                md = md.copyWithTransformedArtifacts(artifactTransformer);
-            }
-            allVariants.put(name, md);
+            return null;
+        }
+        if (artifactTransformer != null) {
+            md = md.copyWithTransformedArtifacts(artifactTransformer);
         }
         return md;
     }
@@ -168,7 +163,7 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
 
     @Override
     public void reevaluate() {
-        allVariants.clear();
+        rootVariants.clear();
         variantFactory.invalidate();
         synchronized (this) {
             consumableVariants = null;
@@ -177,7 +172,7 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
 
     @Override
     public boolean isConfigurationRealized(String configName) {
-        return allVariants.get(configName) != null;
+        return rootVariants.get(configName) != null;
     }
 
     /**
@@ -185,12 +180,10 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
      * the component metadata to source variant data from multiple sources, both lazy and eager.
      */
     public interface VariantMetadataFactory {
-        void visitVariants(Consumer<Candidate> visitor);
-
         /**
-         * Get the names of all configurations which this factory can produce.
+         * Visit the names of all variants that can be selected in a dependency graph.
          */
-        Set<String> getConfigurationNames();
+        void visitConsumableVariants(Consumer<String> visitor);
 
         /**
          * Invalidates any caching used for producing variant metadata.
@@ -204,14 +197,6 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
          */
         @Nullable
         LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name);
-
-        interface Candidate {
-            String getName();
-
-            boolean isConsumable();
-
-            boolean hasAttributes();
-        }
     }
 
     /**
@@ -226,29 +211,11 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
         }
 
         @Override
-        public Set<String> getConfigurationNames() {
-            return metadata.keySet();
-        }
-
-        @Override
-        public void visitVariants(Consumer<Candidate> visitor) {
+        public void visitConsumableVariants(Consumer<String> visitor) {
             for (LocalVariantGraphResolveMetadata variant : metadata.values()) {
-                visitor.accept(new Candidate() {
-                    @Override
-                    public String getName() {
-                        return variant.getName();
-                    }
-
-                    @Override
-                    public boolean isConsumable() {
-                        return variant.isCanBeConsumed();
-                    }
-
-                    @Override
-                    public boolean hasAttributes() {
-                        return !variant.getAttributes().isEmpty();
-                    }
-                });
+                if (variant.isCanBeConsumed()) {
+                    visitor.accept(variant.getName());
+                }
             }
         }
 
@@ -289,33 +256,13 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
         }
 
         @Override
-        public Set<String> getConfigurationNames() {
-            ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-            configurationsProvider.visitAll(configuration -> builder.add(configuration.getName()));
-            return builder.build();
-        }
-
-        @Override
-        public void visitVariants(Consumer<Candidate> visitor) {
+        public void visitConsumableVariants(Consumer<String> visitor) {
             VariantIdentityUniquenessVerifier.buildReport(configurationsProvider).assertNoConflicts();
 
             configurationsProvider.visitAll(configuration -> {
-                visitor.accept(new Candidate() {
-                    @Override
-                    public String getName() {
-                        return configuration.getName();
-                    }
-
-                    @Override
-                    public boolean isConsumable() {
-                        return configuration.isCanBeConsumed();
-                    }
-
-                    @Override
-                    public boolean hasAttributes() {
-                        return !configuration.getAttributes().isEmpty();
-                    }
-                });
+                if (configuration.isCanBeConsumed()) {
+                    visitor.accept(configuration.getName());
+                }
             });
         }
 

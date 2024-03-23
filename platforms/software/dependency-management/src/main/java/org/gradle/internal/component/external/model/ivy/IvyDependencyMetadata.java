@@ -27,8 +27,10 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.GraphVariantSelectionResult;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,7 +71,15 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
         ComponentGraphResolveState targetComponentState,
         AttributesSchemaInternal consumerSchema
     ) {
-        return getDependencyDescriptor().selectLegacyConfigurations(configuration, targetComponentState, variantSelector.getFailureProcessor());
+        // We only want to use ivy's configuration selection mechanism when an ivy component is selecting
+        // configurations from another ivy component. We have already verified that the target component does
+        // not support attribute matching, so if it is not an ivy component, use the standard legacy selection mechanism.
+        if (!(targetComponentState instanceof IvyComponentGraphResolveState)) {
+            VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema);
+            return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
+        }
+
+        return getDependencyDescriptor().selectLegacyConfigurations(configuration, (IvyComponentGraphResolveState) targetComponentState, variantSelector.getFailureProcessor());
     }
 
     @Override

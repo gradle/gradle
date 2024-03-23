@@ -489,7 +489,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         and:
         failure.assertHasCause("Could not resolve project :greeter.")
-        failure.assertHasCause("A dependency was declared on configuration 'default' which is not declared in the descriptor for project :greeter.")
+        failure.assertHasCause("A dependency was declared on configuration 'default' of 'project :greeter' but no variant with that configuration name exists. The requested configuration is either not present in the target project or the named configuration is not consumable.")
     }
 
     def "can compile and link against a static library"() {

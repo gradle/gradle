@@ -163,22 +163,6 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         moduleExclusions.excludeAny(copyOf(dep.getConfigurationExcludes(configuration.hierarchy))) == moduleExclusions.excludeAny(ImmutableList.of(exclude1, exclude2))
     }
 
-    def "selects the default variant of a component when the target component is not an ivy component"() {
-        def toComponent = Mock(ComponentGraphResolveState) {
-            getCandidatesForGraphVariantSelection() >> Mock(GraphSelectionCandidates)
-        }
-        def legacyVariant = Mock(VariantGraphResolveState)
-        def fromConfig = Stub(ModuleConfigurationMetadata)
-
-        when:
-        def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, ImmutableListMultimap.of(), [], [])
-        def result = metadata.selectLegacyConfigurations(fromConfig, toComponent, resolutionFailureHandler).variants
-
-        then:
-        1 * toComponent.candidatesForGraphVariantSelection.legacyVariant >> legacyVariant
-        result == [legacyVariant]
-    }
-
     def "selects no configurations when no configuration mappings provided"() {
         def toComponent = Stub(IvyComponentGraphResolveState)
         def fromConfig = Stub(ModuleConfigurationMetadata)

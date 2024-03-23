@@ -20,11 +20,13 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
@@ -41,7 +43,12 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     ComponentIdentifierFactory componentIdentifierFactory = Mock()
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     LocalVariantMetadataBuilder configurationMetadataBuilder = Mock(LocalVariantMetadataBuilder) {
-        create(_, _, _, _, _, _) >> Mock(LocalVariantGraphResolveMetadata)
+        create(_, _, _, _, _, _) >> { args ->
+            ConfigurationInternal configuration = args[0]
+            Mock(LocalVariantGraphResolveMetadata) {
+                isCanBeResolved() >> configuration.isCanBeResolved()
+            }
+        }
     }
 
     def configurationsProvider = Stub(ConfigurationsProvider)
@@ -65,6 +72,9 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
             new DefaultModuleComponentIdentifier(mid, '1.0')
         }
+        configurationsProvider.findByName('conf') >> resolvable()
+        configurationsProvider.findByName('conf-2') >> resolvable()
+
         def root = builder.toRootComponent('conf')
 
         when:
@@ -86,11 +96,14 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
             new DefaultModuleComponentIdentifier(mid, '1.0')
         }
+        configurationsProvider.findByName('root') >> resolvable()
+        configurationsProvider.findByName('conf') >> resolvable()
+
         def root = builder.toRootComponent('root')
         def metadata = root.rootComponent.metadata
 
         assert !metadata.isConfigurationRealized('conf')
-        metadata.getVariantByConfigurationName('conf')
+        metadata.getRootVariant('conf')
         assert metadata.isConfigurationRealized('conf')
 
         when:
@@ -117,11 +130,14 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
             new DefaultModuleComponentIdentifier(mid, '1.0')
         }
+        configurationsProvider.findByName('root') >> resolvable()
+        configurationsProvider.findByName('conf') >> resolvable()
+
         def root = builder.toRootComponent('root')
         def metadata = root.rootComponent.metadata
 
         assert !metadata.isConfigurationRealized("conf")
-        metadata.getVariantByConfigurationName("conf")
+        metadata.getRootVariant("conf")
         assert metadata.isConfigurationRealized("conf")
 
         when:
@@ -135,5 +151,12 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
 
         where:
         mutationType << [MutationValidator.MutationType.STRATEGY]
+    }
+
+    private ConfigurationInternal resolvable() {
+        Mock(ConfigurationInternal) {
+            isCanBeResolved() >> true
+            getAttributes() >> ImmutableAttributes.EMPTY
+        }
     }
 }

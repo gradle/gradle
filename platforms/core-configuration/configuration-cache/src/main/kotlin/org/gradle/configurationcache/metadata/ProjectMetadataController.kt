@@ -43,7 +43,6 @@ import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResol
 import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveMetadata
 import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveMetadata.VariantDependencyState
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
-import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
@@ -76,15 +75,8 @@ class ProjectMetadataController(
         context.runWriteOperation {
             write(value.id)
             write(value.moduleVersionId)
-            val configurations = value.metadata.variantsToPersist()
-            writeVariants(configurations)
+            writeVariants(value.metadata.getVariantsForGraphTraversal())
         }
-    }
-
-    private
-    fun LocalComponentGraphResolveMetadata.variantsToPersist() = configurationNames.mapNotNull {
-        val variant = getVariantByConfigurationName(it)!!
-        if (variant.isCanBeConsumed) variant else null
     }
 
     private

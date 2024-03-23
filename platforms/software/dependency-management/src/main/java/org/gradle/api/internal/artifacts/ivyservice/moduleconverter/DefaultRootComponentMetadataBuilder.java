@@ -87,11 +87,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         Module module = metadataProvider.getModule();
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         LocalComponentGraphResolveState state = getComponentState(module, componentIdentifier);
-        LocalVariantGraphResolveState rootVariant = state.getVariantByConfigurationName(configurationName);
-        if (rootVariant == null) {
-            throw new IllegalArgumentException(String.format("Expected configuration '%s' to be present in %s", configurationName, componentIdentifier));
-        }
-        assert rootVariant.getMetadata().isCanBeResolved();
+        LocalVariantGraphResolveState rootVariant = state.getRootVariant(configurationName);
 
         return new RootComponentState() {
             @Override

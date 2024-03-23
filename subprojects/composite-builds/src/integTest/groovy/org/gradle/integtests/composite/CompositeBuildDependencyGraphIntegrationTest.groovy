@@ -697,7 +697,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("A dependency was declared on configuration 'default' which is not declared in the descriptor for project :buildC.")
+        failure.assertHasCause("A dependency was declared on configuration 'default' of 'project :buildC' but no variant with that configuration name exists. The requested configuration is either not present in the target project or the named configuration is not consumable.")
     }
 
     public static final REPOSITORY_HINT = repositoryHint("Maven POM")
