@@ -41,7 +41,6 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
     private final ComponentIdentifier componentId;
     private final boolean transitive;
     private final ImmutableAttributes attributes;
-    private final boolean canBeConsumed;
     private final boolean deprecatedForConsumption;
     private final boolean canBeResolved;
     private final ImmutableCapabilities capabilities;
@@ -59,7 +58,6 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
         boolean transitive,
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
-        boolean canBeConsumed,
         boolean deprecatedForConsumption,
         boolean canBeResolved,
         CalculatedValue<VariantDependencyMetadata> dependencies,
@@ -73,7 +71,6 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
         this.transitive = transitive;
         this.attributes = attributes;
         this.capabilities = capabilities;
-        this.canBeConsumed = canBeConsumed;
         this.deprecatedForConsumption = deprecatedForConsumption;
         this.canBeResolved = canBeResolved;
         this.dependencies = dependencies;
@@ -108,7 +105,7 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
 
         return new DefaultLocalVariantGraphResolveMetadata(
             name, description, componentId, transitive, attributes, capabilities,
-            canBeConsumed, deprecatedForConsumption, canBeResolved,
+            deprecatedForConsumption, canBeResolved,
             dependencies, copiedVariants.build(), factory, transformedArtifacts
         );
     }
@@ -146,11 +143,6 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
     @Override
     public boolean isCanBeResolved() {
         return canBeResolved;
-    }
-
-    @Override
-    public boolean isCanBeConsumed() {
-        return canBeConsumed;
     }
 
     @Override

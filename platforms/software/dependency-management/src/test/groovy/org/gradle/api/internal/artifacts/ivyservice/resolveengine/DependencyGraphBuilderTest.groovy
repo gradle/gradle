@@ -1092,7 +1092,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         return new DefaultLocalVariantGraphResolveMetadata(
             name, name, componentId, true, attributes, ImmutableCapabilities.EMPTY,
-            true, false, true, dependencyMetadata,
+            false, true, dependencyMetadata,
             [] as Set, TestUtil.calculatedValueContainerFactory(), artifactMetadata
         )
     }

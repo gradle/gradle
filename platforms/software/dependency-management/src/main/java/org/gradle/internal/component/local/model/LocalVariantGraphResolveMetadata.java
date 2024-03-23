@@ -28,11 +28,6 @@ import java.util.Set;
 public interface LocalVariantGraphResolveMetadata extends VariantGraphResolveMetadata {
 
     /**
-     * Returns whether this variant can be selected by a dependency.
-     */
-    boolean isCanBeConsumed();
-
-    /**
      * Returns whether this variant can be used as the root of a dependency graph.
      */
     boolean isCanBeResolved();

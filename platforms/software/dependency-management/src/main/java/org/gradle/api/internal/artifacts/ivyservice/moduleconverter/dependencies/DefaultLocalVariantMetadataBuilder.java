@@ -127,7 +127,6 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
             configuration.isTransitive(),
             attributes,
             capabilities,
-            configuration.isCanBeConsumed(),
             configuration.isDeprecatedForConsumption(),
             configuration.isCanBeResolved(),
             dependencies,
