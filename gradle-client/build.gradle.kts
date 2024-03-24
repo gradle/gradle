@@ -34,16 +34,22 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "org.gradle.client.ui.GradleClientUiMainKt"
+        jvmArgs += "-Xms35m"
+        jvmArgs += "-Xmx64m"
+
         buildTypes.release.proguard {
             optimize = false
             obfuscate = false
             configurationFiles.from(layout.projectDirectory.file("proguard-desktop.pro"))
         }
+
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "org.gradle.client"
             packageVersion = "1.0.0"
             vendor = "Gradle"
+            appResourcesRootDir = layout.projectDirectory.dir("src/assets")
+            jvmArgs += "-splash:${'$'}APPDIR/resources/splash.png"
             modules(
                 "java.naming",
             )
