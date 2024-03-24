@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import kotlin.reflect.KProperty
@@ -47,4 +48,17 @@ operator fun ConfigurableFileCollection.setValue(receiver: Any?, property: KProp
  */
 fun ConfigurableFileCollection.assign(fileCollection: FileCollection) {
     this.setFrom(fileCollection)
+}
+
+
+/**
+ * Appends the given file collection to this file collection.
+ * This is the same as calling [ConfigurableFileCollection.from].
+ *
+ * @see ConfigurableFileCollection.from
+ * @since 8.9
+ */
+@Incubating
+operator fun ConfigurableFileCollection.plusAssign(fileCollection: FileCollection) {
+    this.from(fileCollection)
 }
