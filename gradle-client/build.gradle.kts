@@ -6,21 +6,25 @@ plugins {
 }
 
 kotlin {
-    jvm("desktop")
-    
+    jvm()
     sourceSets {
-        val desktopMain by getting
-        
-        commonMain.dependencies {
+
+        jvmMain.dependencies {
+
+            implementation(projects.gradleClientLogic)
+
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation(compose.material)
+            implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-        }
-        desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
+        }
+
+        jvmTest.dependencies {
+            implementation(libs.junit.jupiter)
         }
     }
 }
@@ -28,12 +32,15 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "MainKt"
-
+        mainClass = "org.gradle.client.ui.GradleClientUiMainKt"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "org.gradle.client"
             packageVersion = "1.0.0"
         }
     }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }

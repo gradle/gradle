@@ -1,16 +1,14 @@
 [versions]
-compose = "1.6.2"
-compose-plugin = "1.6.0"
-junit = "4.13.2"
-kotlin = "1.9.22"
+kotlin = "1.9.23"
+compose-plugin = "1.6.1"
+gradle-tooling = "8.7"
+junit = "5.10.2"
 
 [libraries]
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+gradle-tooling = { module = "org.gradle:gradle-tooling-api", version.ref = "gradle-tooling" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version = "2.0.12" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 
 [plugins]
-jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

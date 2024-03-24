@@ -1,20 +1,31 @@
+@file:Suppress("UnstableApiUsage")
+
 pluginManagement {
     repositories {
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-        google()
-        gradlePluginPortal()
         mavenCentral()
     }
 }
 
 dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
     repositories {
-        google()
+        google {
+            content {
+                includeGroupAndSubgroups("androidx")
+            }
+        }
+        maven(url = "https://repo.gradle.org/gradle/libs-releases") {
+            content {
+                includeGroup("org.gradle")
+            }
+        }
         mavenCentral()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 rootProject.name = "gradle-client-root"
 
+include(":gradle-client-logic")
 include(":gradle-client")
