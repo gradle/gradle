@@ -1,6 +1,3 @@
-rootProject.name = "gradle-client"
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-
 pluginManagement {
     repositories {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
@@ -18,4 +15,6 @@ dependencyResolutionManagement {
     }
 }
 
-include(":composeApp")
+rootProject.name = "gradle-client-root"
+
+include(":gradle-client")
