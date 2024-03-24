@@ -21,29 +21,29 @@ Gradle provides several ways to manage this using *lazy configuration*.
 image::writing-tasks-4.png[]
 
 [[lazy_properties]]
-== Lazy properties
+== Understanding Lazy properties
 
 Gradle provides lazy properties, which delay calculating a property’s value until it’s actually required.
 
 Lazy properties provide three main benefits:
 
-1. Build authors can wire together Gradle models without worrying when a particular property’s value will be known. +
+1. *Deferred Value Resolution:* Allows wiring Gradle models without needing to know when a property's value will be known.
 For example, you may want to set the input source files of a task based on the source directories property of an extension, but the extension property value isn't known until the build script or some other plugin configures them.
-2. Build authors can wire an output property of a task into an input property of some other task, and Gradle automatically determines the task dependencies based on this connection. +
+2. *Automatic Task Dependency Management:* Connects output of one task to input of another, automatically determining task dependencies.
 Property instances carry information about which task, if any, produces their value.
 Build authors do not need to worry about keeping task dependencies in sync with configuration changes.
-3. Build authors can avoid resource-intensive work during the configuration phase, which can greatly impact build performance. +
+3. *Improved Build Performance:* Avoids resource-intensive work during configuration, impacting build performance positively.
 For example, when a configuration value comes from parsing a file but is only used when functional tests are run, using a property instance to capture this means that the file is parsed only when the functional tests are run (and not when `clean` is run, for example).
 
 Gradle represents lazy properties with two interfaces:
 
-1. link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] represents a value that can only be queried and cannot be changed.
+link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] :: Represents a value that can only be queried and cannot be changed.
 ** Properties with these types are read-only.
 ** The method link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] returns the current value of the property.
 ** A `Provider` can be created from another `Provider` using link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
 ** Many other types extend `Provider` and can be used wherever a `Provider` is required.
 
-2. link:{javadocPath}/org/gradle/api/provider/Property.html[Property] represents a value that can be queried and changed.
+link:{javadocPath}/org/gradle/api/provider/Property.html[Property] :: Represents a value that can be queried and changed.
 ** Properties with these types are configurable.
 ** `Property` extends the `Provider` interface.
 ** The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set(T)] specifies a value for the property, overwriting whatever value may have been present.
@@ -327,7 +327,7 @@ This method can be used when the value may be expensive to calculate or may not 
 You also want to ensure that all consumers of the property see the same value when they query the value.
 
 [[lazy_configuration_faqs]]
-== Guidelines
+== Using the Provider API
 
 Guidelines to be successful with the Provider API:
 
@@ -343,7 +343,7 @@ Guidelines to be successful with the Provider API:
 ** If it's a stable property, add a new link:{javadocPath}/org/gradle/api/provider/Property.html[Property] or link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] and deprecate the old one. You should wire the old getter/setters into the new property as appropriate.
 
 [[lazy_configuration_reference]]
-== Provider Files API Reference
+=== Provider Files API Reference
 
 Use these types for _read-only_ values:
 
@@ -370,7 +370,7 @@ Factories;;
 * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(Object)] will produce a link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree], or you can use link:{javadocPath}/org/gradle/api/Project.html#zipTree-java.lang.Object-[Project.zipTree(Object)] and link:{javadocPath}/org/gradle/api/Project.html#tarTree-java.lang.Object-[Project.tarTree(Object)]
 * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#getAsFileTree--[DirectoryProperty.getAsFileTree()]
 
-== Property Files API Reference
+=== Property Files API Reference
 
 Use these types for _mutable_ values:
 
@@ -394,7 +394,7 @@ link:{javadocPath}/org/gradle/api/file/SourceDirectorySet.html[SourceDirectorySe
 Factories;;
 * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#sourceDirectorySet-java.lang.String-java.lang.String-[ObjectFactory.sourceDirectorySet(String, String)]
 
-== Lazy Collections API Reference
+=== Lazy Collections API Reference
 
 Use these types for _mutable_ values:
 
@@ -406,7 +406,7 @@ link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty<T>]:: a 
 Factories;;
 * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(Class)]
 
-== Lazy Objects API Reference
+=== Lazy Objects API Reference
 
 Use these types for _read only_ values:
 

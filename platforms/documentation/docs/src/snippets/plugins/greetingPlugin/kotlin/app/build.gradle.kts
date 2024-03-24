@@ -1,6 +1,6 @@
 // tag::use-plugin[]
 plugins {
     application
-    id("com.example.ConventionGreetingPlugin")
+    id("GreetingPlugin")
 }
 // end::use-plugin[]
