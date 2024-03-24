@@ -19,6 +19,7 @@ import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 public class ClasspathTest extends Specification {
@@ -155,6 +156,29 @@ public class ClasspathTest extends Specification {
         arg << [null, 42]
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/21968')
+    def 'when filtering duplicate project dependencies prefer main sources to test sources'() {
+        when:
+        classpath.configure([createProjectDependency(path1, '/path1.jar', [test: test1]),
+                             createProjectDependency(path2, '/path2.jar', [test: test2])])
+        def xml = new Node(null, 'classpath')
+        classpath.store(xml)
+
+        then:
+        xml.classpathentry.collect { [path: it.@path, test: it.attributes.attribute.find { it.@name == 'test' }.@value] } == expectedEntries
+
+        where:
+        path1    | path2    | test1   | test2   | expectedEntries
+        '/pathA' | '/pathA' | 'false' | 'false' | [[path: '/pathA', test: 'false']]
+        '/pathA' | '/pathA' | 'false' | 'true'  | [[path: '/pathA', test: 'false']]
+        '/pathA' | '/pathA' | 'true'  | 'false' | [[path: '/pathA', test: 'false']]
+        '/pathA' | '/pathA' | 'true'  | 'true'  | [[path: '/pathA', test: 'true' ]]
+        '/pathA' | '/pathB' | 'false' | 'false' | [[path: '/pathA', test: 'false'], [path: '/pathB', test: 'false']]
+        '/pathA' | '/pathB' | 'false' | 'true'  | [[path: '/pathA', test: 'false'], [path: '/pathB', test: 'true' ]]
+        '/pathA' | '/pathB' | 'true'  | 'false' | [[path: '/pathA', test: 'true' ], [path: '/pathB', test: 'false']]
+        '/pathA' | '/pathB' | 'true'  | 'true'  | [[path: '/pathA', test: 'true' ], [path: '/pathB', test: 'true' ]]
+    }
+
     private InputStream getCustomClasspathReader() {
         return getClass().getResourceAsStream('customClasspath.xml')
     }
@@ -163,6 +187,13 @@ public class ClasspathTest extends Specification {
         Library library = new Library(fileReferenceFactory.fromPath("/somepath"))
         library.exported = true
         return library
+    }
+
+    private ProjectDependency createProjectDependency(String path, String publicationPath, Map entryAttributes) {
+        def projectDependency = new ProjectDependency(path)
+        projectDependency.publication = fileReferenceFactory.fromPath(publicationPath)
+        projectDependency.entryAttributes.putAll(entryAttributes)
+        return projectDependency
     }
 
     private InputStream getToXmlReader() {

@@ -29,24 +29,27 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.tooling.model.eclipse.EclipseRuntime
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
+import spock.lang.Issue
 
 class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
     Project child1
     Project child2
     Project child3
     Project child4
+    Project child5
 
     def setup() {
         child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
         child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
         child3 = ProjectBuilder.builder().withName("child3").withParent(project).build()
         child4 = ProjectBuilder.builder().withName("child4").withParent(project).build()
+        child5 = ProjectBuilder.builder().withName("child5").withParent(project).build()
 
         def libsDir = new File(project.projectDir, "libs")
         libsDir.mkdirs()
         new File(libsDir, "test-1.0.jar").createNewFile()
-        [project, child1, child2, child3, child4].each { it.pluginManager.apply(EclipsePlugin) }
-        [child1, child2, child3, child4].each {
+        [project, child1, child2, child3, child4, child5].each { it.pluginManager.apply(EclipsePlugin) }
+        [child1, child2, child3, child4, child5].each {
             it.plugins.apply(JavaPlugin)
             it.repositories.flatDir {
                 dirs libsDir
@@ -81,6 +84,10 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
             implementation "inexistent:dependency:10.0"
             implementation "fakegroup:test:1.0"
             implementation "notreal:depen dency:s p a c e s"
+        }
+        child5.dependencies {
+            testImplementation child5.dependencies.project(path: ":child1")
+            testImplementation child5.dependencies.project(path: ":child1", configuration: "testArtifacts")
         }
     }
 
@@ -172,6 +179,24 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
         eclipseChild3.classpath.collect { it.file.name } == ['customJar.jar']
         eclipseChild3.classpath[0].source.name == 'customJar-sources.jar'
         eclipseChild3.classpath[0].javadoc.name == 'customJar-javadoc.jar'
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/21968')
+    def 'prefer project dependency without test attribute when handling duplicate paths'() {
+        setup:
+        def modelBuilder = createEclipseModelBuilder()
+
+        when:
+        def eclipseModel = modelBuilder.buildAll('org.gradle.tooling.model.eclipse.EclipseProject', project)
+
+        then:
+        def projectDependencies = eclipseModel.children.find { it.name == projectName }.projectDependencies
+        projectDependencies.collect { it.classpathAttributes.find { it.name == 'test' }?.value } == expectedTestAttributes
+
+        where:
+        projectName | expectedTestAttributes
+        'child2'    | [ null ]
+        'child5'    | ['true']
     }
 
     private def createEclipseModelBuilder() {
