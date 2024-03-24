@@ -12,6 +12,7 @@ kotlin {
         jvmMain.dependencies {
 
             implementation(projects.gradleClientLogic)
+            implementation(libs.slf4j.api)
 
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -33,10 +34,19 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "org.gradle.client.ui.GradleClientUiMainKt"
+        buildTypes.release.proguard {
+            optimize = false
+            obfuscate = false
+            configurationFiles.from(layout.projectDirectory.file("proguard-desktop.pro"))
+        }
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "org.gradle.client"
             packageVersion = "1.0.0"
+            vendor = "Gradle"
+            modules(
+                "java.naming",
+            )
         }
     }
 }

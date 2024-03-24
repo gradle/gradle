@@ -23,6 +23,11 @@ dependencyResolutionManagement {
     }
 }
 
+// move this to daemon toolchain once Gradle supports it
+require(JavaVersion.current() == JavaVersion.VERSION_17) {
+    "This build requires Java 17, currently using ${JavaVersion.current()}"
+}
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "gradle-client-root"

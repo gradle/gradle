@@ -9,8 +9,8 @@ kotlin {
         jvmMain.dependencies {
 
             implementation(libs.gradle.tooling)
-
-            runtimeOnly(libs.slf4j.simple)
+            implementation(libs.slf4j.api)
+            implementation(libs.logback.classic)
         }
 
         jvmTest.dependencies {

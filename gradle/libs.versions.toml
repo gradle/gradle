@@ -6,7 +6,8 @@ junit = "5.10.2"
 
 [libraries]
 gradle-tooling = { module = "org.gradle:gradle-tooling-api", version.ref = "gradle-tooling" }
-slf4j-simple = { module = "org.slf4j:slf4j-simple", version = "2.0.12" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.12" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.3" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 
 [plugins]

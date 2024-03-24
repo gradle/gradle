@@ -1,0 +1,24 @@
+<!--
+Logback configuration
+https://logback.qos.ch/manual/
+-->
+<configuration scan="true" scanPeriod="15 seconds">
+
+    <!-- Remove to see logback status logging -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>false</withJansi><!-- Should be set to true for windows only -->
+        <encoder>
+            <pattern>%highlight(%5level) %gray(%logger{0}) %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+    </appender>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>
