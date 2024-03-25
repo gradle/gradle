@@ -26,11 +26,16 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.invocation.GradleLifecycle;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scope.Gradle.class)
 public interface GradleLifecycleInternal extends GradleLifecycle {
+
+    /**
+     * Sets the invocation source to be used with {@link BuildScopeListenerRegistrationListener#onBuildScopeListenerRegistration(Object, String, Object)}.
+     */
+    void setInvocationSource(Object invocationSource);
 
     boolean hasRootProject();
 

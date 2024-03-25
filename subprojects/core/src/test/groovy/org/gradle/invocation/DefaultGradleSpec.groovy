@@ -458,7 +458,7 @@ class DefaultGradleSpec extends Specification {
         })
 
         then:
-        1 * registrationListener.onBuildScopeListenerRegistration(_, _, _)
+        1 * registrationListener.onBuildScopeListenerRegistration(_, _, gradle)
 
         cleanup:
         listenerManager.removeListener(registrationListener)

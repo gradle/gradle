@@ -87,6 +87,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
         this.lifecycle = services.get(GradleLifecycleInternal.class);
+        this.lifecycle.setInvocationSource(this);
         if (parent == null) {
             services.get(GradleEnterprisePluginManager.class).registerMissingPluginWarning(this);
         }

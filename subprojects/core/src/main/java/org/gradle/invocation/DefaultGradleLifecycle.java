@@ -49,8 +49,12 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 
 import java.util.Collection;
 
+/**
+ * Coordinates the registration of listeners to Gradle lifecycle events.
+ */
 public class DefaultGradleLifecycle implements GradleLifecycleInternal {
 
+    private Object invocationSource;
     private boolean projectsLoaded;
     private ProjectInternal rootProject;
     private final IsolatableFactory isolatableFactory;
@@ -86,6 +90,17 @@ public class DefaultGradleLifecycle implements GradleLifecycleInternal {
                 projectsLoaded = true;
             }
         });
+    }
+
+    @Override
+    public void setInvocationSource(Object invocationSource) {
+        assert this.invocationSource == null;
+        this.invocationSource = invocationSource;
+    }
+
+    Object getInvocationSource() {
+        assert invocationSource != null;
+        return invocationSource;
     }
 
     @Override
@@ -214,7 +229,7 @@ public class DefaultGradleLifecycle implements GradleLifecycleInternal {
         if (isListenerSupportedWithConfigurationCache(listener)) {
             return;
         }
-        getBuildScopeListenerRegistrationListener().onBuildScopeListenerRegistration(listener, registrationPoint, this);
+        getBuildScopeListenerRegistrationListener().onBuildScopeListenerRegistration(listener, registrationPoint, getInvocationSource());
     }
 
     @Override
