@@ -357,7 +357,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void addBuildScanMessage(ContextImpl context) {
-        context.appendResolution(output -> runtWithOption(output, LONG_OPTION, " to get full insights."));
+        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to get full insights."));
     }
 
     private boolean isGradleEnterprisePluginApplied() {
