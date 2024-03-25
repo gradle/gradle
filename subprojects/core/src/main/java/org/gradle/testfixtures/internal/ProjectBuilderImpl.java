@@ -109,7 +109,10 @@ public class ProjectBuilderImpl {
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameter.setGradleUserHomeDir(userHomeDir);
-        NativeServices.initializeOnDaemon(userHomeDir, NativeServicesMode.fromSystemProperties());
+        NativeServicesMode nativeServicesMode = System.getProperty(NativeServices.NATIVE_SERVICES_OPTION) != null
+            ? NativeServicesMode.fromSystemProperties()
+            : NativeServicesMode.DISABLED;
+        NativeServices.initializeOnDaemon(userHomeDir, nativeServicesMode);
 
         final ServiceRegistry globalServices = getGlobalServices();
 
