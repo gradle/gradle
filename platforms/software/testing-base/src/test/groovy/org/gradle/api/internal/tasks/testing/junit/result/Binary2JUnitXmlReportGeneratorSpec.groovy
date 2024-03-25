@@ -18,12 +18,10 @@ package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.DefaultBuildOperationExecutor
-import org.gradle.internal.operations.DefaultBuildOperationIdFactory
-import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
+import org.gradle.internal.operations.BuildOperationExecutorSupport
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.MultipleBuildOperationFailures
-import org.gradle.internal.progress.NoOpProgressLoggerFactory
-import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
