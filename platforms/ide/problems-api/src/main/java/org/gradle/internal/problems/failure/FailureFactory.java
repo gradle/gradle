@@ -24,6 +24,4 @@ public interface FailureFactory {
 
     Failure create(Throwable failure);
 
-    Failure create(Throwable failure, StackTraceClassifier classifier);
-
 }

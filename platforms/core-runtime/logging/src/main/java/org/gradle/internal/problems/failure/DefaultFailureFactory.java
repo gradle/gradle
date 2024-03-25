@@ -43,12 +43,6 @@ public class DefaultFailureFactory implements FailureFactory {
             .convert(failure);
     }
 
-    @Override
-    public Failure create(Throwable failure, StackTraceClassifier classifier) {
-        return new Job(new OrElseStackTraceClassifier(classifier, stackTraceClassifier))
-            .convert(failure);
-    }
-
     private static final class Job {
 
         private final StackTraceClassifier stackTraceClassifier;

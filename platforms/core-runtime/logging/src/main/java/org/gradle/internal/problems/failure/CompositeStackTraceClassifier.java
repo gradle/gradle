@@ -25,7 +25,7 @@ public class CompositeStackTraceClassifier implements StackTraceClassifier {
 
     private final List<StackTraceClassifier> classifiers;
 
-    public CompositeStackTraceClassifier(List<StackTraceClassifier> classifiers) {
+    public CompositeStackTraceClassifier(StackTraceClassifier... classifiers) {
         this.classifiers = ImmutableList.copyOf(classifiers);
     }
 

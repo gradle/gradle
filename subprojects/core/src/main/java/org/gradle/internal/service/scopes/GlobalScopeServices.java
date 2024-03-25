@@ -113,7 +113,6 @@ import org.gradle.process.internal.health.memory.JvmMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -314,9 +313,9 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     FailureFactory createFailureFactory() {
-        return new DefaultFailureFactory(new CompositeStackTraceClassifier(Arrays.asList(
+        return new DefaultFailureFactory(new CompositeStackTraceClassifier(
             new InternalStackTraceClassifier(),
             StackTraceClassifier.USER_CODE
-        )));
+        ));
     }
 }
