@@ -169,7 +169,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             .map(v -> (String) v.getValue())
             .orElseThrow(() -> new AnnotationReadFailure("Missing 'methodName' attribute in @UpgradedAccessor"));
         AccessorType accessorType = AnnotationUtils.findAnnotationValue(annotation, "value")
-            .map(v -> (AccessorType) v.getValue())
+            .map(v -> AccessorType.valueOf(v.getValue().toString()))
             .orElseThrow(() -> new AnnotationReadFailure("Missing 'value' attribute in @UpgradedAccessor"));
         Type originalType = extractOriginalType(method, annotation);
         return getAccessorSpec(accessorType, methodName, originalType, annotation);

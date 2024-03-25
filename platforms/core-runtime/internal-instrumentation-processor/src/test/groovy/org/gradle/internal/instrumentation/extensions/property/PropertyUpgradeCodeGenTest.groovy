@@ -284,4 +284,54 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation).failed()
         assertThat(compilation).hadErrorContaining("Method 'org.gradle.test.Task.getMaxErrors(java.lang.String)' annotated with @UpgradedProperty should be a simple getter: name should start with 'get' and method should not have any parameters.")
     }
+
+    def "should generate interceptor for upgraded property with original accessors with different names"() {
+        given:
+        def givenSource = source"""
+            package org.gradle.test;
+
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType;
+            import java.io.File;
+
+            public abstract class Task {
+                @UpgradedProperty(originalAccessors = {
+                    @UpgradedAccessor(value = AccessorType.GETTER, methodName = "getDestinationDir"),
+                    @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setDestinationDir")
+                })
+                public abstract DirectoryProperty getDestinationDirectory();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def generatedClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+            public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
+                @Override
+                public boolean visitMethodInsn(String className, int opcode, String owner, String name,
+                                               String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
+                    if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                        if (name.equals("getDestinationDir") && descriptor.equals("()Ljava/io/File;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_destinationDirectory", "(Lorg/gradle/test/Task;)Ljava/io/File;");
+                            return true;
+                        }
+                        if (name.equals("setDestinationDir") && descriptor.equals("(Ljava/io/File;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_destinationDirectory", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedClass))
+            .containsElementsIn(generatedClass)
+    }
 }
