@@ -18,6 +18,17 @@ package org.gradle.internal.problems.failure;
 
 public interface FailurePrinterListener {
 
+    FailurePrinterListener NO_OP = new FailurePrinterListener() {
+        @Override
+        public void beforeFrames() {}
+
+        @Override
+        public void beforeFrame(StackTraceElement element, StackTraceRelevance relevance) {}
+
+        @Override
+        public void afterFrames() {}
+    };
+
     void beforeFrames();
 
     void beforeFrame(StackTraceElement element, StackTraceRelevance relevance);

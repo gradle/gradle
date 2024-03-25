@@ -18,7 +18,7 @@ package org.gradle.internal.problems.failure;
 
 public interface StackFramePredicate {
 
-    StackFramePredicate TRUE = new StackFramePredicate() {
+    StackFramePredicate ALL = new StackFramePredicate() {
         @Override
         public boolean test(StackTraceElement frame, StackTraceRelevance relevance) {
             return true;

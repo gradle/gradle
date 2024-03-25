@@ -17,6 +17,7 @@
 package org.gradle.internal.problems.failure;
 
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -25,23 +26,22 @@ import java.util.List;
 public class FailurePrinter {
 
     public static String printToString(Failure failure) {
-        return printToString(failure, StackFramePredicate.TRUE);
+        return printToString(failure, StackFramePredicate.ALL);
     }
 
     public static String printToString(Failure failure, StackFramePredicate predicate) {
         StringBuilder output = new StringBuilder();
-        print(output, failure, predicate, null);
+        print(output, failure, predicate, FailurePrinterListener.NO_OP);
         return output.toString();
     }
 
-    public static void print(Appendable output, Failure failure, StackFramePredicate predicate, @Nullable FailurePrinterListener listener) {
+    public static void print(Appendable output, Failure failure, StackFramePredicate predicate, FailurePrinterListener listener) {
         new Job(output, predicate, listener).print(failure);
     }
 
     private static final class Job {
 
         private final StackFramePredicate predicate;
-        @Nullable
         private final FailurePrinterListener listener;
 
         private final Appendable builder;
@@ -50,7 +50,7 @@ public class FailurePrinter {
         private Job(
             Appendable builder,
             StackFramePredicate predicate,
-            @Nullable FailurePrinterListener listener
+            FailurePrinterListener listener
         ) {
             this.predicate = predicate;
             this.listener = listener;
@@ -61,7 +61,7 @@ public class FailurePrinter {
             try {
                 printRecursively("", "", null, failure);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -71,13 +71,9 @@ public class FailurePrinter {
                 .append(failure.getHeader())
                 .append(lineSeparator);
 
-            if (listener == null) {
-                appendFrames(prefix, parent, failure);
-            } else {
-                listener.beforeFrames();
-                appendFrames(prefix, parent, failure);
-                listener.afterFrames();
-            }
+            listener.beforeFrames();
+            appendFrames(prefix, parent, failure);
+            listener.afterFrames();
 
             appendSuppressed(prefix, failure);
             appendCauses(prefix, failure);
@@ -126,9 +122,7 @@ public class FailurePrinter {
                 return;
             }
 
-            if (listener != null) {
-                listener.beforeFrame(frame, relevance);
-            }
+            listener.beforeFrame(frame, relevance);
 
             builder.append(prefix)
                 .append("\tat ")
