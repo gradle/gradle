@@ -23,6 +23,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.UpgradedPropertyType;
@@ -79,6 +80,8 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
     private static final Type DEFAULT_TYPE = Type.getType(UpgradedProperty.DefaultValue.class);
+    public static final Type PROVIDER_TYPE = Type.getType(Provider.class);
+    public static final Type PROPERTY_TYPE = Type.getType(Property.class);
 
     private final String projectName;
     private final Elements elements;
@@ -127,6 +130,10 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             for (AccessorSpec accessorSpec : accessorSpecs) {
                 switch (accessorSpec.accessorType) {
                     case GETTER:
+                        if (isProviderOrProperty(accessorSpec.originalType)) {
+                            // We don't support Provider or Property as original type for a getter accessor
+                            return Collections.singletonList(new InvalidRequest(String.format("`Provider` or `Property` type is not supported as original type for a GETTER accessor. Method: %s.%s", method.getEnclosingElement(), method)));
+                        }
                         CallInterceptionRequest groovyPropertyRequest = createGroovyPropertyInterceptionRequest(accessorSpec, method);
                         CallInterceptionRequest jvmGetterRequest = createJvmGetterInterceptionRequest(accessorSpec, method);
                         requests.add(groovyPropertyRequest);
@@ -146,6 +153,10 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         } catch (AnnotationReadFailure failure) {
             return Collections.singletonList(new InvalidRequest(failure.reason));
         }
+    }
+
+    static boolean isProviderOrProperty(Type type) {
+        return type.equals(PROVIDER_TYPE) || type.equals(PROPERTY_TYPE);
     }
 
     @SuppressWarnings("unchecked")

@@ -32,6 +32,7 @@ import org.gradle.internal.instrumentation.model.ImplementationInfo;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
+import org.objectweb.asm.Type;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collections;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.isProviderOrProperty;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 
 public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
@@ -80,27 +82,34 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addParameter(typeName(callable.getOwner().getType()), SELF_PARAMETER_NAME)
             .addParameters(parameters)
-            .addCode(generateMethodBody(implementation, callable.getReturnType(), implementationExtra))
+            .addCode(generateMethodBody(implementation, callable, implementationExtra))
             .returns(typeName(callable.getReturnType().getType()))
-            .addAnnotations(getAnnotations(implementationExtra))
+            .addAnnotations(getAnnotations(implementationExtra, callable))
             .build();
     }
 
-    private static List<AnnotationSpec> getAnnotations(PropertyUpgradeRequestExtra implementationExtra) {
-        if (!implementationExtra.getUpgradedPropertyType().isMultiValueProperty()) {
-            return Collections.emptyList();
+    private static List<AnnotationSpec> getAnnotations(PropertyUpgradeRequestExtra implementationExtra, CallableInfo callable) {
+        if (implementationExtra.getUpgradedPropertyType().isMultiValueProperty() || hasAParameterWithGenerics(callable)) {
+            return Collections.singletonList(AnnotationSpec.builder(SuppressWarnings.class)
+                .addMember("value", "$L", "{\"unchecked\", \"rawtypes\"}")
+                .build());
         }
-        return Collections.singletonList(AnnotationSpec.builder(SuppressWarnings.class)
-            .addMember("value", "$L", "{\"unchecked\", \"rawtypes\"}")
-            .build());
+        return Collections.emptyList();
     }
 
-    private static CodeBlock generateMethodBody(ImplementationInfo implementation, CallableReturnTypeInfo returnType, PropertyUpgradeRequestExtra implementationExtra) {
+    private static boolean hasAParameterWithGenerics(CallableInfo callable) {
+        // We currently support only Provider<?> and Property<?>
+        return callable.getParameters().stream().anyMatch(p -> isProviderOrProperty(p.getParameterType()));
+    }
+
+    private static CodeBlock generateMethodBody(ImplementationInfo implementation, CallableInfo callableInfo, PropertyUpgradeRequestExtra implementationExtra) {
         String propertyGetterName = implementationExtra.getInterceptedPropertyAccessorName();
         boolean isSetter = implementation.getName().startsWith("access_set_");
         UpgradedPropertyType upgradedPropertyType = implementationExtra.getUpgradedPropertyType();
+        CallableReturnTypeInfo returnType = callableInfo.getReturnType();
         if (isSetter) {
-            String setCall = getSetCall(upgradedPropertyType);
+            Type parameterType = callableInfo.getParameters().get(0).getParameterType();
+            String setCall = getSetCall(upgradedPropertyType, parameterType);
             if (implementationExtra.isFluentSetter()) {
                 return CodeBlock.of("$N.$N()$N;\nreturn $N;", SELF_PARAMETER_NAME, propertyGetterName, setCall, SELF_PARAMETER_NAME);
             } else {
@@ -128,14 +137,24 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         }
     }
 
-    private static String getSetCall(UpgradedPropertyType upgradedPropertyType) {
+    private static String getSetCall(UpgradedPropertyType upgradedPropertyType, Type parameterType) {
         switch (upgradedPropertyType) {
             case FILE_SYSTEM_LOCATION_PROPERTY:
-                return ".fileValue(arg0)";
+                if (isProviderOrProperty(parameterType)) {
+                    // expect `Provider<File> arg0`
+                    return ".fileProvider((Provider) arg0)";
+                } else {
+                    // expect `File arg0`
+                    return ".fileValue(arg0)";
+                }
             case CONFIGURABLE_FILE_COLLECTION:
                 return ".setFrom(arg0)";
             default:
-                return ".set(arg0)";
+                if (isProviderOrProperty(parameterType)) {
+                    return ".set((Provider) arg0)";
+                } else {
+                    return ".set(arg0)";
+                }
         }
     }
 }
