@@ -151,7 +151,8 @@ These enhancements enable IDEs to offer improved navigation and reporting capabi
 
 The new [`includeSystemOutLog` and `includeSystemErrLog` options](userguide/java_testing.html#junit_xml_configuration_output_filtering) control whether or not output written to standard output and standard error output during testing is included in XML test reports.
 This report format is used by the JUnit 4, JUnit Jupiter, and TestNG, despite the name of the report format, and can be configured when using any of these test frameworks.
-Disabling these options can be useful when running a test task results in a large amount of standard output or standard error data that is not relevant for testing, or to preserve disk space when running jobs on CI.
+Disabling these options can be useful when running a test task results in a large amount of standard output or standard error data that is irrelevant for testing.  
+It is also useful for preserving disk space when running jobs on CI.
 
 Set these options by configuring the [JUnitXmlReport](javadoc/org/gradle/api/tasks/testing/JUnitXmlReport.html) options block.
 
