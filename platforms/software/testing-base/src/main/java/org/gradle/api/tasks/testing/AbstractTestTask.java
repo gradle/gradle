@@ -602,7 +602,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             if (junitXml.getRequired().get()) {
                 JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
                     junitXml.isOutputPerTestCase(),
-                    junitXml.getMergeReruns().get()
+                    junitXml.getMergeReruns().get(),
+                    junitXml.getIncludeSystemOutLog().get(),
+                    junitXml.getIncludeSystemErrLog().get()
                 );
                 Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(
                     junitXml.getOutputLocation().getAsFile().get(),

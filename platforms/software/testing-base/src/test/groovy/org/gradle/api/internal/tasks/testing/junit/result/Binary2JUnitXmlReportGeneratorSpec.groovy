@@ -42,7 +42,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(
             temp.testDirectory,
             resultsProvider,
-            new JUnitXmlResultOptions(false, false),
+            new JUnitXmlResultOptions(false, false, true, true),
             buildOperationRunner,
             buildOperationExecutor,
             "localhost")

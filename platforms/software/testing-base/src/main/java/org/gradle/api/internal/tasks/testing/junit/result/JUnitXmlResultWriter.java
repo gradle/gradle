@@ -75,12 +75,17 @@ public class JUnitXmlResultWriter {
                 writeTestCasesWithDiscreteRerunHandling(writer, methodResults, className, classId);
             }
 
-            writer.startElement("system-out");
-            writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdOut);
-            writer.endElement();
-            writer.startElement("system-err");
-            writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdErr);
-            writer.endElement();
+            if (options.includeSystemOutLog) {
+                writer.startElement("system-out");
+                writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdOut);
+                writer.endElement();
+            }
+
+            if (options.includeSystemErrLog) {
+                writer.startElement("system-err");
+                writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdErr);
+                writer.endElement();
+            }
 
             writer.endElement();
         } catch (IOException e) {
@@ -235,17 +240,18 @@ public class JUnitXmlResultWriter {
     }
 
     abstract static class TestCaseExecution {
-
         private final OutputProvider outputProvider;
+        private final JUnitXmlResultOptions options;
 
-        TestCaseExecution(OutputProvider outputProvider) {
+        TestCaseExecution(OutputProvider outputProvider, JUnitXmlResultOptions options) {
             this.outputProvider = outputProvider;
+            this.options = options;
         }
 
         abstract void write(SimpleXmlWriter writer) throws IOException;
 
         protected void writeOutput(SimpleXmlWriter writer) throws IOException {
-            if (outputProvider.has(TestOutputEvent.Destination.StdOut)) {
+            if (options.includeSystemOutLog && outputProvider.has(TestOutputEvent.Destination.StdOut)) {
                 writer.startElement("system-out");
                 writer.startCDATA();
                 outputProvider.write(TestOutputEvent.Destination.StdOut, writer);
@@ -253,7 +259,7 @@ public class JUnitXmlResultWriter {
                 writer.endElement();
             }
 
-            if (outputProvider.has(TestOutputEvent.Destination.StdErr)) {
+            if (options.includeSystemErrLog && outputProvider.has(TestOutputEvent.Destination.StdErr)) {
                 writer.startElement("system-err");
                 writer.startCDATA();
                 outputProvider.write(TestOutputEvent.Destination.StdErr, writer);
@@ -278,8 +284,8 @@ public class JUnitXmlResultWriter {
     }
 
     private static class TestCaseExecutionSuccess extends TestCaseExecution {
-        TestCaseExecutionSuccess(OutputProvider outputProvider) {
-            super(outputProvider);
+        TestCaseExecutionSuccess(OutputProvider outputProvider, JUnitXmlResultOptions options) {
+            super(outputProvider, options);
         }
 
         @Override
@@ -290,8 +296,8 @@ public class JUnitXmlResultWriter {
 
 
     private static class TestCaseExecutionSkipped extends TestCaseExecution {
-        TestCaseExecutionSkipped(OutputProvider outputProvider) {
-            super(outputProvider);
+        TestCaseExecutionSkipped(OutputProvider outputProvider, JUnitXmlResultOptions options) {
+            super(outputProvider, options);
         }
 
         @Override
@@ -319,8 +325,8 @@ public class JUnitXmlResultWriter {
         private final TestFailure failure;
         private final FailureType type;
 
-        TestCaseExecutionFailure(OutputProvider outputProvider, FailureType type, TestFailure failure) {
-            super(outputProvider);
+        TestCaseExecutionFailure(OutputProvider outputProvider, JUnitXmlResultOptions options, FailureType type, TestFailure failure) {
+            super(outputProvider, options);
             this.failure = failure;
             this.type = type;
         }
@@ -346,17 +352,17 @@ public class JUnitXmlResultWriter {
     }
 
     private TestCaseExecution success(long classId, long id) {
-        return new TestCaseExecutionSuccess(outputProvider(classId, id));
+        return new TestCaseExecutionSuccess(outputProvider(classId, id), options);
     }
 
     private TestCaseExecution skipped(long classId, long id) {
-        return new TestCaseExecutionSkipped(outputProvider(classId, id));
+        return new TestCaseExecutionSkipped(outputProvider(classId, id), options);
     }
 
     private Iterable<TestCaseExecution> failures(final long classId, final TestMethodResult methodResult, final FailureType failureType) {
         List<TestFailure> failures = methodResult.getFailures();
         if (failures.isEmpty()) {
-            // This can happen with a failing engine. For now we just ignore this.
+            // This can happen with a failing engine. For now, we just ignore this.
             return Collections.emptyList();
         }
         final TestFailure firstFailure = failures.get(0);
@@ -365,7 +371,7 @@ public class JUnitXmlResultWriter {
             public TestCaseExecution apply(final TestFailure failure) {
                 boolean isFirst = failure == firstFailure;
                 OutputProvider outputProvider = isFirst ? outputProvider(classId, methodResult.getId()) : NullOutputProvider.INSTANCE;
-                return new TestCaseExecutionFailure(outputProvider, failureType, failure);
+                return new TestCaseExecutionFailure(outputProvider, options, failureType, failure);
             }
         });
     }
