@@ -283,7 +283,7 @@ The `includeSystemOutLog` option allows configuring whether or not test output w
 The `includeSystemErrLog` option allows configuring whether or not test error output written to standard error is exported to the XML report file.
 
 These options affect both test-suite level output (such as `@BeforeClass`/`@BeforeAll` output) and test class and method-specific output (`@Before`/`@BeforeEach` and `@Test`).
-If either option is disabled, the element that would normally contain that content will be omitted from the XML report file.
+If either option is disabled, the element that normally contains that content will be excluded from the XML report file.
 
 The default for each option is `true`.
 
