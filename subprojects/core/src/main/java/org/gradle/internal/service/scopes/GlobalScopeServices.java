@@ -318,7 +318,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultFailureFactory(new CompositeStackTraceClassifier(Arrays.asList(
             new SystemCallStackTraceClassifier(),
             new InternalRuntimeStackTraceClassifier(),
-            new StackTraceClassifier.UserCode()
+            StackTraceClassifier.USER_CODE
         )));
     }
 }

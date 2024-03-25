@@ -20,15 +20,14 @@ import javax.annotation.Nullable;
 
 public interface StackTraceClassifier {
 
-    @Nullable
-    StackTraceRelevance classify(StackTraceElement frame);
-
-    class UserCode implements StackTraceClassifier {
-
+    StackTraceClassifier USER_CODE = new StackTraceClassifier() {
         @Override
         public StackTraceRelevance classify(StackTraceElement frame) {
             return StackTraceRelevance.USER_CODE;
         }
-    }
+    };
+
+    @Nullable
+    StackTraceRelevance classify(StackTraceElement frame);
 
 }
