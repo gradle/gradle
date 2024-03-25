@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.internal.buildevents.BuildExceptionReporter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -497,7 +496,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
 
     private void assertDependencySkipped(MavenModule module, String repositoryName) {
         failure.assertHasCause("Could not resolve ${mavenModuleCoordinates(module)}.")
-        failure.assertHasCause("Repository $repositoryName is disabled ${BuildExceptionReporter.SKIPPABLE_ERROR_MESSAGE_SUFFIX}")
+        failure.assertHasCause("Repository $repositoryName is disabled due to earlier error below:")
     }
 
     private String mavenModuleCoordinates(MavenHttpModule module) {

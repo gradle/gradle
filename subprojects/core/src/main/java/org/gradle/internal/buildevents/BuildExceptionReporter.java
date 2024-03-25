@@ -69,7 +69,6 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  */
 public class BuildExceptionReporter implements Action<Throwable> {
     private static final String NO_ERROR_MESSAGE_INDICATOR = "(no error message)";
-    public static final String SKIPPABLE_ERROR_MESSAGE_SUFFIX = "due to earlier error below:";
 
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());

@@ -29,7 +29,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -60,8 +59,6 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     private final ModuleComponentRepository<ModuleComponentGraphResolveState> delegate;
     private final ErrorHandlingModuleComponentRepositoryAccess local;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;
-
-    private final static String DISABLED_REPOSITORY_ERROR_MSG_TEMPLATE = "Repository %s is disabled " + BuildExceptionReporter.SKIPPABLE_ERROR_MESSAGE_SUFFIX;
 
     public ErrorHandlingModuleComponentRepository(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, RepositoryDisabler remoteRepositoryDisabler) {
         this.delegate = delegate;
@@ -140,7 +137,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
             performOperationWithRetries(result,
                 () -> delegate.listModuleVersions(dependency, result),
-                cause -> new ModuleVersionResolveException(dependency.getSelector(), () -> String.format(DISABLED_REPOSITORY_ERROR_MSG_TEMPLATE, repositoryName)),
+                cause -> new ModuleVersionResolveException(dependency.getSelector(), () -> buildDisabledRepositoryErrorMessage(repositoryName)),
                 cause -> {
                     ModuleComponentSelector selector = dependency.getSelector();
                     return new ModuleVersionResolveException(selector, () -> "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".", cause);
@@ -151,7 +148,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
             performOperationWithRetries(result,
                 () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
-                cause -> new ModuleVersionResolveException(moduleComponentIdentifier, () -> String.format(DISABLED_REPOSITORY_ERROR_MSG_TEMPLATE, repositoryName), cause),
+                cause -> new ModuleVersionResolveException(moduleComponentIdentifier, () -> buildDisabledRepositoryErrorMessage(repositoryName), cause),
                 cause -> new ModuleVersionResolveException(moduleComponentIdentifier, cause)
             );
         }
@@ -160,7 +157,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             performOperationWithRetries(result,
                 () -> delegate.resolveArtifactsWithType(component, artifactType, result),
-                cause -> new ArtifactResolveException(component.getId(), String.format(DISABLED_REPOSITORY_ERROR_MSG_TEMPLATE, repositoryName), cause),
+                cause -> new ArtifactResolveException(component.getId(), buildDisabledRepositoryErrorMessage(repositoryName), cause),
                 cause -> new ArtifactResolveException(component.getId(), cause)
             );
         }
@@ -178,8 +175,12 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                     }
                     return null;
                 },
-                cause -> new ArtifactResolveException(artifact.getId(), String.format(DISABLED_REPOSITORY_ERROR_MSG_TEMPLATE, repositoryName), cause),
+                cause -> new ArtifactResolveException(artifact.getId(), buildDisabledRepositoryErrorMessage(repositoryName), cause),
                 cause -> new ArtifactResolveException(artifact.getId(), cause));
+        }
+
+        private static String buildDisabledRepositoryErrorMessage(String repositoryName) {
+            return String.format("Repository %s is disabled due to earlier error below:", repositoryName);
         }
 
         private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
@@ -246,7 +247,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                 boolean doNotRetry = NetworkingIssueVerifier.isLikelyPermanentNetworkIssue(failure) || !NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure);
                 if (doNotRetry || retries == maxTentativesCount) {
                     if (unexpectedFailure != null) {
-                        repositoryDisabler.disableRepository(repositoryId, failure);
+                        repositoryDisabler.tryDisableRepository(repositoryId, failure);
                     }
                     result.failed(failure);
                     break;

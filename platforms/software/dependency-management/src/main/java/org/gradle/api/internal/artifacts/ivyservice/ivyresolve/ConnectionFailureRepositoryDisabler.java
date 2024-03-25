@@ -46,7 +46,7 @@ public class ConnectionFailureRepositoryDisabler implements RepositoryDisabler {
     }
 
     @Override
-    public boolean disableRepository(String repositoryId, Throwable reason) {
+    public boolean tryDisableRepository(String repositoryId, Throwable reason) {
         boolean disabled = isDisabled(repositoryId);
 
         if (disabled) {

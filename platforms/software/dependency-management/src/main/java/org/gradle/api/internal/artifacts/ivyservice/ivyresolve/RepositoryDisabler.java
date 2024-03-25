@@ -31,13 +31,16 @@ public interface RepositoryDisabler {
     Optional<Throwable> getDisabledReason(String repositoryId);
 
     /**
-     * Disables the repository with the given id, recording the exception causing it to be disabled.
+     * Attempts to disable the repository with the given id, recording the exception causing it to be disabled, if
+     * that exception is deemed critical.
      *
-     * @param repositoryId The id of the repository to disable
-     * @param throwable    The reason why the repository is being disabled
-     * @return {@code true} if the repository is now disabled, {@code false} if it was already disabled
+     * @param repositoryId the id of the repository to disable
+     * @param throwable the reason why the repository is being disabled
+     * @return {@code true} if the repository is now disabled, {@code false} if it was already disabled or could not be disabled
+     * (<strong>Be sure to note the ambiguity in this value</strong>)
+     * @implSpec implementations <strong>MUST</strong> return {@code false} if the repository is not disabled by this call
      */
-    boolean disableRepository(String repositoryId, Throwable throwable);
+    boolean tryDisableRepository(String repositoryId, Throwable throwable);
 
     enum NoOpDisabler implements RepositoryDisabler {
         INSTANCE;
@@ -53,7 +56,7 @@ public interface RepositoryDisabler {
         }
 
         @Override
-        public boolean disableRepository(String repositoryId, Throwable throwable) {
+        public boolean tryDisableRepository(String repositoryId, Throwable throwable) {
             return false;
         }
     }

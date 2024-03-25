@@ -105,7 +105,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         access.listModuleVersions(dependency, result)
 
         then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ModuleVersionResolveException)
 
         when: 'repo is already disabled'
@@ -143,7 +143,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
         then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ModuleVersionResolveException)
 
         when: 'repo is already disabled'
@@ -183,7 +183,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         access.resolveArtifactsWithType(component, artifactType, result)
 
         then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ArtifactResolveException)
 
         when: 'repo is already disabled'
@@ -224,7 +224,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         access.resolveArtifact(artifact, moduleSources, result)
 
         then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ArtifactResolveException)
 
         when: 'repo is already disabled'
@@ -258,7 +258,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         access.resolveArtifact(artifact, moduleSources, result)
 
         then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ArtifactResolveException)
 
         when: 'repo is already disabled'
