@@ -16,16 +16,9 @@
 
 package org.gradle.api.provider
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
-import static org.hamcrest.CoreMatchers.containsString
 
-class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
-
-    private static final String RESULT_PREFIX = "Result: "
-
+class PropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrationTest {
     def "test Groovy eager object types assignment for #description"() {
         def inputDeclaration = "$inputType input"
         groovyBuildFile(inputDeclaration, inputValue, "=")
@@ -55,7 +48,7 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         description                                     | inputType            | inputValue                               | expectedResult
-        "T = null"                                      | "Property<MyObject>" | 'null'                                   | "undefined"
+        "T = null" | "Property<MyObject>" | 'null' | "undefined"
         "T = T"                                         | "Property<MyObject>" | 'new MyObject("hello")'                  | "hello"
         "T = provider { null }"                         | "Property<MyObject>" | 'provider { null }'                      | "undefined"
         "T = Provider<T>"                               | "Property<MyObject>" | 'provider { new MyObject("hello") }'     | "hello"
@@ -619,53 +612,5 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
                else -> println("$RESULT_PREFIX" + anyInput.toString())
             }
         """
-    }
-
-    private void runAndAssert(String task, Object expectedResult) {
-        if (expectedResult instanceof Failure) {
-            def failure = runAndFail(task)
-            expectedResult.assertHasExpectedFailure(failure)
-        } else {
-            run(task)
-            outputContains(RESULT_PREFIX + expectedResult)
-        }
-    }
-
-    private static FailureWithCause unsupportedWithCause(String failureCause) {
-        return new FailureWithCause(failureCause)
-    }
-
-    private static FailureWithDescription unsupportedWithDescription(String error) {
-        return new FailureWithDescription(error)
-    }
-
-    private static interface Failure {
-        void assertHasExpectedFailure(ExecutionFailure failure);
-    }
-
-    private static class FailureWithCause implements Failure {
-        final String failureCause
-
-        FailureWithCause(String failureCause) {
-            this.failureCause = failureCause
-        }
-
-        @Override
-        void assertHasExpectedFailure(ExecutionFailure failure) {
-            failure.assertHasCause(failureCause)
-        }
-    }
-
-    private static class FailureWithDescription implements Failure {
-        final String failureDescription
-
-        FailureWithDescription(String failureDescription) {
-            this.failureDescription = failureDescription
-        }
-
-        @Override
-        void assertHasExpectedFailure(ExecutionFailure failure) {
-            failure.assertThatDescription(containsString(failureDescription))
-        }
     }
 }
