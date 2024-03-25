@@ -16,7 +16,19 @@
 
 package org.gradle.internal.problems.failure;
 
+/**
+ * Relevance of a given stack frame or part of the stack trace to the user.
+ * <p>
+ * The relevance is a heuristic that aims at improving the user experience when the failures are displayed.
+ */
 public enum StackTraceRelevance {
+    /**
+     * Anything that cannot be classified as internal is considered user code.
+     */
     USER_CODE,
+
+    /**
+     * Frames originating from JDK, Groovy or Gradle runtime calls.
+     */
     INTERNAL,
 }

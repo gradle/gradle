@@ -16,6 +16,9 @@
 
 package org.gradle.internal.problems.failure;
 
+/**
+ * Listener for steps in the process of printing a failure by {@link FailurePrinter}.
+ */
 public interface FailurePrinterListener {
 
     FailurePrinterListener NO_OP = new FailurePrinterListener() {
@@ -29,10 +32,19 @@ public interface FailurePrinterListener {
         public void afterFrames() {}
     };
 
+    /**
+     * Invoked after a failure header has been printed, and before any stack frames have been printed.
+     */
     void beforeFrames();
 
+    /**
+     * Invoked before a given stack frame is printed.
+     */
     void beforeFrame(StackTraceElement element, StackTraceRelevance relevance);
 
+    /**
+     * Invoked after all stack frames of a failure have been printed.
+     */
     void afterFrames();
 
 }

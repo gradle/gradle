@@ -18,6 +18,9 @@ package org.gradle.internal.problems.failure;
 
 import javax.annotation.Nullable;
 
+/**
+ * Classifies various calls to JDK, Groovy and Gradle runtime as {@link StackTraceRelevance#INTERNAL}.
+ */
 public class InternalStackTraceClassifier implements StackTraceClassifier {
 
     @Nullable

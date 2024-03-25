@@ -23,6 +23,13 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Utility to print {@link Failure}s in the format matching that of {@link Throwable#printStackTrace()}.
+ * <p>
+ * Failures with multiple causes are printed similarly to {@link org.gradle.internal.exceptions.MultiCauseException}.
+ * <p>
+ * The printer additionally allows reacting to each frame to be printed via a {@link FailurePrinterListener}.
+ */
 public class FailurePrinter {
 
     public static String printToString(Failure failure) {

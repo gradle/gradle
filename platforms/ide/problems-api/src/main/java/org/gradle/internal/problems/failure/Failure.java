@@ -18,18 +18,46 @@ package org.gradle.internal.problems.failure;
 
 import java.util.List;
 
+/**
+ * Content of a thrown exception with classified stack frames.
+ * <p>
+ * Failures can have multiple causes via the {@link org.gradle.internal.exceptions.MultiCauseException}.
+ * <p>
+ * Failures are guaranteed to not have circular references.
+ *
+ * @see FailureFactory
+ */
 public interface Failure {
 
     Class<? extends Throwable> getExceptionType();
 
+    /**
+     * A failure summary usually containing the type of the original exception and its message.
+     *
+     * @see Throwable#toString()
+     */
     String getHeader();
 
+    /**
+     * Stack frames from the original exception.
+     */
     List<StackTraceElement> getStackTrace();
 
+    /**
+     * Relevance of a given stack frame in the {@link #getStackTrace() stack trace}.
+     */
     StackTraceRelevance getStackTraceRelevance(int frameIndex);
 
+    /**
+     * Failures suppressed in the original exception.
+     */
     List<Failure> getSuppressed();
 
+    /**
+     * List of causes for this failure.
+     * <p>
+     * There could be more than one cause if the failure was derived from a {@link org.gradle.internal.exceptions.MultiCauseException}.
+     */
     List<Failure> getCauses();
 
 }

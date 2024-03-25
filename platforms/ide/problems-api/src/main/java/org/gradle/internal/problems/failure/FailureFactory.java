@@ -19,6 +19,11 @@ package org.gradle.internal.problems.failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+/**
+ * Converts exceptions to their content-based {@link Failure} representation.
+ *
+ * @see Failure
+ */
 @ServiceScope(Scope.Global.class)
 public interface FailureFactory {
 
