@@ -20,10 +20,7 @@ import org.gradle.internal.SystemProperties;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Set;
 
 public class FailurePrinter {
 
@@ -49,7 +46,6 @@ public class FailurePrinter {
 
         private final Appendable builder;
         private final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
-        private final Set<Failure> seen = Collections.newSetFromMap(new IdentityHashMap<Failure, Boolean>());
 
         private Job(
             Appendable builder,
@@ -70,16 +66,6 @@ public class FailurePrinter {
         }
 
         private void printRecursively(String caption, String prefix, @Nullable Failure parent, Failure failure) throws IOException {
-            if (!seen.add(failure)) {
-                builder.append(prefix)
-                    .append(caption)
-                    .append("[CIRCULAR REFERENCE: ")
-                    .append(failure.getHeader())
-                    .append("]")
-                    .append(lineSeparator);
-                return;
-            }
-
             builder.append(prefix)
                 .append(caption)
                 .append(failure.getHeader())
