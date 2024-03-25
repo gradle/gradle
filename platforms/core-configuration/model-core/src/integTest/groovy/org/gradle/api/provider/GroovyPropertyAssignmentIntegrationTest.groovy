@@ -18,8 +18,8 @@ package org.gradle.api.provider
 
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
 
-class PropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrationTest {
-    def "test Groovy eager object types assignment for #description"() {
+class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrationTest {
+    def "eager object properties assignment for #description"() {
         def inputDeclaration = "$inputType input"
         groovyBuildFile(inputDeclaration, inputValue, "=")
 
@@ -39,7 +39,7 @@ class PropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrat
         "File = Object"                                 | "File"     | 'new MyObject("out")'                    | unsupportedWithCause("Cannot cast object")
     }
 
-    def "test Groovy lazy object types assignment for #description"() {
+    def "lazy object properties assignment for #description"() {
         def inputDeclaration = "abstract $inputType getInput()"
         groovyBuildFile(inputDeclaration, inputValue, "=")
 
@@ -61,7 +61,7 @@ class PropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrat
         "File = Object"                                 | "DirectoryProperty"  | 'new MyObject("out")'                    | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
     }
 
-    def "test Groovy eager collection types assignment for #description"() {
+    def "eager collection properties assignment for #description"() {
         def initValue = inputType.contains("Map<") ? "[:]" : "[]"
         def inputDeclaration = "$inputType input = $initValue"
         groovyBuildFile(inputDeclaration, inputValue, operation)
@@ -92,7 +92,7 @@ class PropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrat
         "Map<K, V> << Provider<Map<K, V>>"       | "<<"      | "Map<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
     }
 
-    def "test Groovy lazy collection types assignment for #description"() {
+    def "lazy collection properties assignment for #description"() {
         def inputDeclaration = "abstract $inputType getInput()"
         groovyBuildFile(inputDeclaration, inputValue, operation)
 
@@ -126,7 +126,7 @@ class PropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrat
         "Map<K, V> << Provider<Map<K, V>>"       | "<<"      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
     }
 
-    def "test Groovy lazy collection variables assignment for #description"() {
+    def "lazy collection variables assignment for #description"() {
         def inputInitializer = inputType.startsWith("ListProperty<") ? "objects.listProperty(MyObject)" : "objects.mapProperty(String, MyObject)"
         groovyBuildFileWithVariable(inputInitializer, inputValue, operation)
 
@@ -160,7 +160,7 @@ class PropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrat
         "Map<K, V> << Provider<Map<K, V>>"       | "<<"      | "MapProperty<String, MyObject>" | 'provider { ["a": new MyObject("b")] }'                  | unsupportedWithCause("No signature of method")
     }
 
-    def "test Groovy eager FileCollection types assignment for #description"() {
+    def "eager FileCollection properties assignment for #description"() {
         def inputDeclaration = "$inputType input = project.files()"
         groovyBuildFile(inputDeclaration, inputValue, operation)
 
@@ -181,7 +181,7 @@ class PropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrat
         "FileCollection += Iterable<File>" | "+="      | "FileCollection" | '[file("a.txt")]' | unsupportedWithCause("Cannot cast object")
     }
 
-    def "test Groovy lazy FileCollection types assignment for #description"() {
+    def "lazy FileCollection properties assignment for #description"() {
         def inputDeclaration = "abstract $inputType getInput()"
         groovyBuildFile(inputDeclaration, inputValue, operation)
 
@@ -204,7 +204,7 @@ class PropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrat
         "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
     }
 
-    def "test Groovy lazy FileCollection variables assignment for #description"() {
+    def "lazy FileCollection variables assignment for #description"() {
         def inputInitializer = "files()"
         groovyBuildFileWithVariable(inputInitializer, inputValue, operation, expectedType)
 
@@ -248,7 +248,7 @@ class PropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrat
         run("myTask")
     }
 
-    def "test Groovy lazy property assignment with NamedDomainObjectContainer"() {
+    def "lazy property assignment with NamedDomainObjectContainer"() {
         buildFile """
             abstract class PluginDeclaration {
                 final String name
