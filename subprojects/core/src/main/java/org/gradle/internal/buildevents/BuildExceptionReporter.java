@@ -247,7 +247,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         boolean hasNonGradleSpecificCauseInAncestry = hasCauseAncestry(details.failure, NonGradleCause.class);
         if (details.exceptionStyle == ExceptionStyle.NONE && !hasNonGradleSpecificCauseInAncestry) {
             context.appendResolution(output ->
-                runtWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
+                runWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
             );
         }
 
@@ -257,7 +257,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         boolean isLessThanInfo = logLevel.ordinal() > INFO.ordinal();
         if (hasCompileError && isLessThanInfo) {
             context.appendResolution(output ->
-                runtWithOption(output, INFO_LONG_OPTION, " option to get more log output.")
+                runWithOption(output, INFO_LONG_OPTION, " option to get more log output.")
             );
         } else if (logLevel != DEBUG && !hasNonGradleSpecificCauseInAncestry) {
             context.appendResolution(output -> {
@@ -280,7 +280,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private static void runtWithOption(StyledTextOutput output, String optionName, String text) {
+    private static void runWithOption(StyledTextOutput output, String optionName, String text) {
         output.text("Run with ");
         output.withStyle(UserInput).format("--%s", optionName);
         output.text(text);
@@ -310,7 +310,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private void addBuildScanMessage(ContextImpl context) {
         context.appendResolution(output -> {
-            runtWithOption(output, LONG_OPTION, " to get full insights.");
+            runWithOption(output, LONG_OPTION, " to get full insights.");
         });
     }
 
