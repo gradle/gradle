@@ -58,6 +58,7 @@ import javax.inject.Inject;
  *         this.execOperations = execOperations;
  *     }
  *
+ *     {@literal @}Override
  *     {@literal @}Nullable
  *     public String obtain() {
  *         // your custom implementation
