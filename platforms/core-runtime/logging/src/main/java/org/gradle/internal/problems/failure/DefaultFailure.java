@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
-public class DefaultFailure implements Failure {
+class DefaultFailure implements Failure {
 
     private final Class<? extends Throwable> exceptionType;
     private final String message;
