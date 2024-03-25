@@ -279,7 +279,7 @@ include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gra
 [[junit_xml_configuration_output_filtering]]
 ===== includeSystemOutLog & includeSystemErrLog
 
-The `includeSystemOutLog` option allows configuring whether or not test output writen to standard out is exported to the XML report file.
+The `includeSystemOutLog` option allows configuring whether or not test output written to standard out is exported to the XML report file.
 The `includeSystemErrLog` option allows configuring whether or not test error output written to standard error is exported to the XML report file.
 
 These options affect both test-suite level output (such as `@BeforeClass`/`@BeforeAll` output), and test class and method specific output (`@Before`/`@BeforeEach` and `@Test`).
