@@ -55,30 +55,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     }
 
     @Override
-    public void run(RunnableBuildOperation buildOperation) {
-        runner.run(buildOperation);
-    }
-
-    @Override
-    public <T> T call(CallableBuildOperation<T> buildOperation) {
-        return runner.call(buildOperation);
-    }
-
-    @Override
-    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
-        return runner.start(descriptor);
-    }
-
-    @Override
-    public BuildOperationRef getCurrentOperation() {
-        BuildOperationRef current = getCurrentBuildOperation();
-        if (current == null) {
-            throw new IllegalStateException("No operation is currently running.");
-        }
-        return current;
-    }
-
-    @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
         runAll(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
     }

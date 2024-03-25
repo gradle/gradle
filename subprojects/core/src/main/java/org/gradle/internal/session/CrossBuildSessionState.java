@@ -127,12 +127,12 @@ public class CrossBuildSessionState implements Closeable {
             return new DefaultUserCodeApplicationContext();
         }
 
-        ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-            return new DefaultListenerBuildOperationDecorator(buildOperationExecutor, userCodeApplicationContext);
+        ListenerBuildOperationDecorator createListenerBuildOperationDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+            return new DefaultListenerBuildOperationDecorator(buildOperationRunner, userCodeApplicationContext);
         }
 
-        CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-            return new DefaultCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext);
+        CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+            return new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext);
         }
 
         LoggingBuildOperationProgressBroadcaster createLoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {

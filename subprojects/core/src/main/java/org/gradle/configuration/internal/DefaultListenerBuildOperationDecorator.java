@@ -29,7 +29,7 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.lang.reflect.InvocationHandler;
@@ -56,11 +56,11 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         "buildFinished"
     );
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public DefaultListenerBuildOperationDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public DefaultListenerBuildOperationDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+        this.buildOperationRunner = buildOperationRunner;
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
@@ -167,7 +167,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
         @Override
         public void execute(final T arg) {
-            buildOperationExecutor.run(new Operation(applicationId, registrationPoint) {
+            buildOperationRunner.run(new Operation(applicationId, registrationPoint) {
                 @Override
                 public void run(final BuildOperationContext context) {
                     delegate.execute(arg);
@@ -192,7 +192,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
 
         @SuppressWarnings("unused")
         public void doCall(final Object... args) {
-            buildOperationExecutor.run(new Operation(application.getId(), registrationPoint) {
+            buildOperationRunner.run(new Operation(application.getId(), registrationPoint) {
                 @Override
                 public void run(final BuildOperationContext context) {
                     application.reapply(() -> {
@@ -249,7 +249,7 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
                     throw UncheckedException.unwrapAndRethrow(e);
                 }
             } else {
-                buildOperationExecutor.run(new Operation(application.getId(), registrationPoint) {
+                buildOperationRunner.run(new Operation(application.getId(), registrationPoint) {
                     @Override
                     public void run(final BuildOperationContext context) {
                         application.reapply(() -> {

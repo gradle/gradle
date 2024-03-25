@@ -49,7 +49,7 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
@@ -89,7 +89,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final TaskIdentityFactory taskIdentityFactory;
     private final ITaskFactory taskFactory;
     private final NamedEntityInstantiator<Task> taskInstantiator;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
@@ -102,7 +102,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         TaskIdentityFactory taskIdentityFactory,
         ITaskFactory taskFactory,
         TaskStatistics statistics,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator callbackDecorator
     ) {
@@ -112,7 +112,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         taskInstantiator = new TaskInstantiator(taskIdentityFactory, taskFactory, project);
         this.statistics = statistics;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
@@ -142,7 +142,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         final Class<? extends TaskInternal> type = Objects.requireNonNull(Cast.uncheckedCast(actualArgs.get(Task.TASK_TYPE)), "Task type must not be null");
 
         final TaskIdentity<? extends TaskInternal> identity = taskIdentityFactory.create(name, type, project);
-        return buildOperationExecutor.call(new CallableBuildOperation<Task>() {
+        return buildOperationRunner.call(new CallableBuildOperation<Task>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return realizeDescriptor(identity, replace, true);
@@ -296,7 +296,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
      * @param constructorArgs null == do not invoke constructor, empty == invoke constructor with no args, non-empty = invoke constructor with args
      */
     private <T extends Task> T doCreate(TaskIdentity<T> identity, @Nullable final Object[] constructorArgs, final Action<? super T> configureAction) throws InvalidUserDataException {
-        return buildOperationExecutor.call(new CallableBuildOperation<T>() {
+        return buildOperationRunner.call(new CallableBuildOperation<T>() {
             @Override
             public T call(BuildOperationContext context) {
                 try {
@@ -407,7 +407,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         final TaskIdentity<T> identity = taskIdentityFactory.create(name, type, project);
 
-        TaskProvider<T> provider = buildOperationExecutor.call(new CallableBuildOperation<TaskProvider<T>>() {
+        TaskProvider<T> provider = buildOperationRunner.call(new CallableBuildOperation<TaskProvider<T>>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return registerDescriptor(identity);
@@ -437,7 +437,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     public <T extends Task> T replace(final String name, final Class<T> type) {
         assertMutable("replace(String, Class)");
         final TaskIdentity<T> identity = taskIdentityFactory.create(name, type, project);
-        return buildOperationExecutor.call(new CallableBuildOperation<T>() {
+        return buildOperationRunner.call(new CallableBuildOperation<T>() {
             @Override
             public T call(BuildOperationContext context) {
                 try {
@@ -675,7 +675,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         protected void tryCreate() {
-            buildOperationExecutor.run(new RunnableBuildOperation() {
+            buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
                     try {

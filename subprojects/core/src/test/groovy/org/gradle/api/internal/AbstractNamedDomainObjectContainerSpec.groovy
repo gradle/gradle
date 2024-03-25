@@ -99,13 +99,13 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         }
 
         then:
-        buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+        buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
 
         when:
         container.getByName("a")
 
         then:
-        def ops = buildOperationExecutor.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
+        def ops = buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
         ops.size() == 2
         ids.size() == 2
         ops[0].details.applicationId == id1.longValue()

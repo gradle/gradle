@@ -16,8 +16,8 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -28,16 +28,16 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class WorkerDaemonFactory implements WorkerFactory {
     private final WorkerDaemonClientsManager clientsManager;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationExecutor buildOperationExecutor) {
+    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationRunner buildOperationRunner) {
         this.clientsManager = clientsManager;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
-        return new AbstractWorker(buildOperationExecutor) {
+        return new AbstractWorker(buildOperationRunner) {
             @Override
             public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
                 // wrap in build operation for logging startup failures

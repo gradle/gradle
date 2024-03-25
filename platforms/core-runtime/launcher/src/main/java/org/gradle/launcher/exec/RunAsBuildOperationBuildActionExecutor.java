@@ -20,7 +20,7 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
@@ -36,16 +36,16 @@ public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActio
     private static final RunBuildBuildOperationType.Result RESULT = new RunBuildBuildOperationType.Result() {
     };
     private final BuildSessionActionExecutor delegate;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
 
     public RunAsBuildOperationBuildActionExecutor(BuildSessionActionExecutor delegate,
-                                                  BuildOperationExecutor buildOperationExecutor,
+                                                  BuildOperationRunner buildOperationRunner,
                                                   LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
                                                   BuildOperationNotificationValve buildOperationNotificationValve) {
         this.delegate = delegate;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.loggingBuildOperationProgressBroadcaster = loggingBuildOperationProgressBroadcaster;
         this.buildOperationNotificationValve = buildOperationNotificationValve;
     }
@@ -54,7 +54,7 @@ public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActio
     public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context) {
         buildOperationNotificationValve.start();
         try {
-            return buildOperationExecutor.call(new CallableBuildOperation<BuildActionRunner.Result>() {
+            return buildOperationRunner.call(new CallableBuildOperation<BuildActionRunner.Result>() {
                 @Override
                 public BuildActionRunner.Result call(BuildOperationContext buildOperationContext) {
                     loggingBuildOperationProgressBroadcaster.rootBuildOperationStarted();

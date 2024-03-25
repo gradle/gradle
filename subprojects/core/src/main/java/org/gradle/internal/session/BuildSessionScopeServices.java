@@ -62,7 +62,6 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
@@ -126,16 +125,16 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return new PendingChangesManager(listenerManager);
     }
 
-    DefaultDeploymentRegistry createDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
-        return new DefaultDeploymentRegistry(pendingChangesManager, buildOperationExecutor, objectFactory);
+    DefaultDeploymentRegistry createDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationRunner buildOperationRunner, ObjectFactory objectFactory) {
+        return new DefaultDeploymentRegistry(pendingChangesManager, buildOperationRunner, objectFactory);
     }
 
     DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
         return parent.createChild(Scope.BuildSession.class);
     }
 
-    CrossProjectConfigurator createCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
-        return new BuildOperationCrossProjectConfigurator(buildOperationExecutor);
+    CrossProjectConfigurator createCrossProjectConfigurator(BuildOperationRunner buildOperationRunner) {
+        return new BuildOperationCrossProjectConfigurator(buildOperationRunner);
     }
 
     BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
@@ -187,8 +186,8 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
     }
 
-    CleanupActionDecorator createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
-        return new BuildOperationCleanupActionDecorator(buildOperationExecutor);
+    CleanupActionDecorator createCleanupActionFactory(BuildOperationRunner buildOperationRunner) {
+        return new BuildOperationCleanupActionDecorator(buildOperationRunner);
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {

@@ -46,8 +46,8 @@ import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -63,7 +63,7 @@ class DefaultGradleSpec extends Specification {
 
     StartParameterInternal parameter = new StartParameterInternal()
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
-    BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor()
+    BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     ListenerBuildOperationDecorator listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     CrossProjectConfigurator crossProjectConfigurator = Mock(CrossProjectConfigurator)
 
@@ -81,7 +81,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(InstantiatorFactory) >> Mock(InstantiatorFactory)
         _ * serviceRegistry.get(ListenerManager) >> listenerManager
         _ * serviceRegistry.get(CurrentGradleInstallation) >> currentGradleInstallation
-        _ * serviceRegistry.get(BuildOperationExecutor) >> buildOperationExecutor
+        _ * serviceRegistry.get(BuildOperationRunner) >> buildOperationRunner
         _ * serviceRegistry.get(ListenerBuildOperationDecorator) >> listenerBuildOperationDecorator
         _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
         _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)

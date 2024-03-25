@@ -39,6 +39,7 @@ public class BuildOperationExecutorSupport {
     public static class Builder {
         private final ParallelismConfiguration parallelismConfiguration;
         private BuildOperationTimeSupplier timeSupplier;
+        private BuildOperationRunner runner;
         private WorkerLeaseService workerLeaseService;
         private BuildOperationQueueFactory queueFactory;
         private DefaultBuildOperationRunner.BuildOperationExecutionListenerFactory executionListenerFactory;
@@ -50,6 +51,11 @@ public class BuildOperationExecutorSupport {
 
         public Builder withTimeSupplier(BuildOperationTimeSupplier timeSupplier) {
             this.timeSupplier = timeSupplier;
+            return this;
+        }
+
+        public Builder withRunner(BuildOperationRunner runner) {
+            this.runner = runner;
             return this;
         }
 
@@ -74,12 +80,6 @@ public class BuildOperationExecutorSupport {
         }
 
         public BuildOperationExecutor build() {
-            BuildOperationTimeSupplier timeSupplier = this.timeSupplier != null
-                ? this.timeSupplier
-                : System::currentTimeMillis;
-            DefaultBuildOperationRunner.BuildOperationExecutionListenerFactory executionListenerFactory = this.executionListenerFactory != null
-                ? this.executionListenerFactory
-                : () -> DefaultBuildOperationRunner.BuildOperationExecutionListener.NO_OP;
             WorkerLeaseService workerLeaseService = this.workerLeaseService != null
                 ? this.workerLeaseService
                 : new TestWorkerLeaseService();
@@ -90,19 +90,32 @@ public class BuildOperationExecutorSupport {
                 ? this.executorFactory
                 : new DefaultExecutorFactory();
 
-            BuildOperationRunner buildOperationRunner = new DefaultBuildOperationRunner(
+            return new DefaultBuildOperationExecutor(
+                buildRunner(),
+                CurrentBuildOperationRef.instance(),
+                queueFactory,
+                executorFactory,
+                parallelismConfiguration);
+        }
+
+        private BuildOperationRunner buildRunner() {
+            if (runner != null) {
+                return runner;
+            }
+
+            BuildOperationTimeSupplier timeSupplier = this.timeSupplier != null
+                ? this.timeSupplier
+                : System::currentTimeMillis;
+            DefaultBuildOperationRunner.BuildOperationExecutionListenerFactory executionListenerFactory = this.executionListenerFactory != null
+                ? this.executionListenerFactory
+                : () -> DefaultBuildOperationRunner.BuildOperationExecutionListener.NO_OP;
+
+            return new DefaultBuildOperationRunner(
                 CurrentBuildOperationRef.instance(),
                 timeSupplier,
                 new DefaultBuildOperationIdFactory(),
                 executionListenerFactory
             );
-
-            return new DefaultBuildOperationExecutor(
-                buildOperationRunner,
-                CurrentBuildOperationRef.instance(),
-                queueFactory,
-                executorFactory,
-                parallelismConfiguration);
         }
     }
 }

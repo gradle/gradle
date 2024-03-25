@@ -114,7 +114,7 @@ import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -176,7 +176,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final Instantiator instantiator;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private ResolutionStrategyInternal resolutionStrategy;
@@ -253,7 +253,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         DependencyLockingProvider dependencyLockingProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         Instantiator instantiator,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
@@ -287,7 +287,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.instantiator = instantiator;
         this.attributesFactory = attributesFactory;
         this.domainObjectContext = domainObjectContext;
@@ -732,7 +732,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * Must be called from {@link #resolveExclusivelyIfRequired} only.
      */
     private ResolverResults resolveGraphInBuildOperation() {
-        return buildOperationExecutor.call(new CallableBuildOperation<ResolverResults>() {
+        return buildOperationRunner.call(new CallableBuildOperation<ResolverResults>() {
             @Override
             public ResolverResults call(BuildOperationContext context) {
                 runDependencyActions();
