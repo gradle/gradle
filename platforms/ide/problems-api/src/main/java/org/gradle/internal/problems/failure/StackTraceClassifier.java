@@ -18,6 +18,11 @@ package org.gradle.internal.problems.failure;
 
 import javax.annotation.Nullable;
 
+/**
+ * Classifies stack frames by their {@link StackTraceRelevance relevance}.
+ * <p>
+ * Classifiers are meant to be heuristic, determining the relevance on the best-effort basis.
+ */
 public interface StackTraceClassifier {
 
     StackTraceClassifier USER_CODE = new StackTraceClassifier() {
@@ -27,6 +32,9 @@ public interface StackTraceClassifier {
         }
     };
 
+    /**
+     * Returns relevance for the given frame, or null if the classifier does not have an opinion.
+     */
     @Nullable
     StackTraceRelevance classify(StackTraceElement frame);
 
