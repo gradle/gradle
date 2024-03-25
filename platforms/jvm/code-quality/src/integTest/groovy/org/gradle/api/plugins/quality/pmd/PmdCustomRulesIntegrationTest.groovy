@@ -32,10 +32,7 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
 
             pmd {
                 $customRuleSetConfig
-            }
-
-            dependencies {
-                implementation "${calculateDefaultDependencyNotation()}"
+                toolVersion = '$version'
             }
         """
 
@@ -59,14 +56,13 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
                 id "pmd"
                 id "java-library"
             }
+            pmd {
+                toolVersion = '$version'
+            }
 
             ${requiredSourceCompatibility()}
 
             ${mavenCentralRepository()}
-
-            dependencies {
-                implementation "${calculateDefaultDependencyNotation()}"
-            }
         """
 
         file("src/main/java/org/gradle/ruleusing/Class1.java") << breakingDefaultRulesCode()
@@ -83,7 +79,7 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://pmd.sf.net/ruleset/2.0.0 http://pmd.sf.net/ruleset_2_0_0.xsd"
                 xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_2_0_0.xsd">
-
+                <description>some description</description>
                 <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
 
             </ruleset>

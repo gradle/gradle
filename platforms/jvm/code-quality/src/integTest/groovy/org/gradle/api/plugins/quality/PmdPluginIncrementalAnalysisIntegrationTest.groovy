@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.plugins.quality.pmd.AbstractPmdPluginVersionIntegrationTest
 import org.gradle.util.Matchers
+import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
 
@@ -101,12 +102,17 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
 
         when:
         buildFile << "\npmd{${code}}"
-        executer.noDeprecationChecks() // PMD complains about outdated rule sets
-        succeeds('pmdMain', '--info')
+        if (versionNumber < VersionNumber.parse("7.0.0")) {
+            succeeds('pmdMain', '--info')
+        } else {
+            // the expected message exposed only in debug mode
+            // however, the debug output also contains a stacktrace from PMD internals
+            executer.withStackTraceChecksDisabled()
+            succeeds('pmdMain', '--debug')
+        }
 
         then:
         outputContains("Analysis cache invalidated, ${reason}")
-
 
         where:
         reason                | code
@@ -137,7 +143,11 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
 
     private goodCode() {
         file("src/main/java/org/gradle/GoodClass.java") <<
-            "package org.gradle; class GoodClass { public boolean isFoo(Object arg) { return true; } }"
+            """package org.gradle;
+               class GoodClass {
+                   public GoodClass() {}
+                   public boolean isFoo(final Object arg) { return true; }
+               }""".stripMargin()
     }
 
     private badCode() {
@@ -148,6 +158,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
     }
 
     private customRuleSet() {
+        String ruleset = versionNumber < VersionNumber.parse("6.0.0") ? "rulesets/java/braces.xml" : "category/java/codestyle.xml"
         file("customRuleSet.xml") << """
             <ruleset name="custom"
                 xmlns="http://pmd.sf.net/ruleset/1.0.0"
@@ -157,7 +168,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
 
                 <description>Custom rule set</description>
 
-                <rule ref="rulesets/java/braces.xml"/>
+                <rule ref="$ruleset"/>
             </ruleset>
         """
     }
