@@ -31,7 +31,7 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
     private final Severity severity;
     private final DocLink documentationLink;
 
-    DefaultProblemDefinition(
+    public DefaultProblemDefinition(
         ProblemId id,
         Severity severity,
         @Nullable DocLink documentationUrl

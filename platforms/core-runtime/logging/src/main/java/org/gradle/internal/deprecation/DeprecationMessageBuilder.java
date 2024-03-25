@@ -54,7 +54,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     protected String createDefaultDeprecationIdString() {
-        return createDefaultDeprecationIdString("type");
+        return createDefaultDeprecationIdString(summary);
     }
 
     @SuppressWarnings("unchecked")
@@ -382,6 +382,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     public static String createDefaultDeprecationIdString(String... ids) {
+        // the replaceAll calls are to ensure that the id is a valid identifier.
+        // it removes all whitespace and non-alphanumeric characters, and replaces multiple dashes with a single dash.
         return screamingSnakeToKebabCase(StringUtils.join(ids, "-"))
             .replaceAll("[^a-z-]", "-")
             .replaceAll("-+", "-")
