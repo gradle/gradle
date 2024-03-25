@@ -60,10 +60,13 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         metaDataProvider,
         componentIdentifierFactory,
         moduleIdentifierFactory,
-        configurationMetadataBuilder,
         projectStateRegistry,
-        new LocalComponentGraphResolveStateFactory(Stub(AttributeDesugaring), Stub(ComponentIdGenerator)),
-        TestUtil.calculatedValueContainerFactory()
+        new LocalComponentGraphResolveStateFactory(
+            Stub(AttributeDesugaring),
+            Stub(ComponentIdGenerator),
+            configurationMetadataBuilder,
+            TestUtil.calculatedValueContainerFactory()
+        )
     )
 
     def builder = builderFactory.create(configurationsProvider)

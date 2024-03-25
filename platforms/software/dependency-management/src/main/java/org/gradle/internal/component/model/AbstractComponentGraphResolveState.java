@@ -68,6 +68,10 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return false;
     }
 
+    protected AttributeDesugaring getAttributeDesugaring() {
+        return attributeDesugaring;
+    }
+
     @Nullable
     @Override
     public ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {

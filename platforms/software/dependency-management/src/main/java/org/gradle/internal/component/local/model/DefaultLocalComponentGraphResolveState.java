@@ -106,8 +106,15 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     @Override
-    public LocalComponentGraphResolveMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts) {
-        return getMetadata().copy(componentIdentifier, artifacts);
+    public LocalComponentGraphResolveState copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts) {
+        LocalComponentGraphResolveMetadata copiedMetadata = getMetadata().copy(componentIdentifier, artifacts);
+        return new DefaultLocalComponentGraphResolveState(
+            idGenerator.nextComponentId(),
+            copiedMetadata,
+            getAttributeDesugaring(),
+            idGenerator,
+            adHoc
+        );
     }
 
     @Override

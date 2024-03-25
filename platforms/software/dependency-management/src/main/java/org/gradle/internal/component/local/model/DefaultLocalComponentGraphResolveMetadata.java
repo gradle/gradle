@@ -145,15 +145,14 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
 
     @Nullable
     private LocalVariantGraphResolveMetadata createVariantMetadata(String name) {
-        LocalVariantGraphResolveMetadata md;
-        md = variantFactory.getVariantByConfigurationName(name);
+        LocalVariantGraphResolveMetadata md = variantFactory.getVariantByConfigurationName(name);
         if (md == null) {
             return null;
         }
-        if (artifactTransformer != null) {
-            md = md.copyWithTransformedArtifacts(artifactTransformer);
+        if (artifactTransformer == null) {
+            return md;
         }
-        return md;
+        return md.copyWithTransformedArtifacts(artifactTransformer);
     }
 
     @Override
@@ -204,15 +203,15 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
      * metadata as its data source.
      */
     public static class VariantsMapMetadataFactory implements VariantMetadataFactory {
-        private final Map<String, LocalVariantGraphResolveMetadata> metadata;
+        private final List<? extends LocalVariantGraphResolveMetadata> variants;
 
-        public VariantsMapMetadataFactory(Map<String, LocalVariantGraphResolveMetadata> metadata) {
-            this.metadata = metadata;
+        public VariantsMapMetadataFactory(List<? extends LocalVariantGraphResolveMetadata> variants) {
+            this.variants = variants;
         }
 
         @Override
         public void visitConsumableVariants(Consumer<String> visitor) {
-            for (LocalVariantGraphResolveMetadata variant : metadata.values()) {
+            for (LocalVariantGraphResolveMetadata variant : variants) {
                 visitor.accept(variant.getName());
             }
         }
@@ -222,7 +221,9 @@ public final class DefaultLocalComponentGraphResolveMetadata implements LocalCom
 
         @Override
         public LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name) {
-            return metadata.get(name);
+            return variants.stream()
+                .filter(variant -> name.equals(variant.getConfigurationName()))
+                .findFirst().orElse(null);
         }
     }
 

@@ -39,7 +39,6 @@ import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveMetadata
 import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveMetadata.VariantDependencyState
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
@@ -123,19 +122,14 @@ class ProjectMetadataController(
         return context.runReadOperation {
             val id = readNonNull<ComponentIdentifier>()
             val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
-
-            val variants = readVariants(id, ownerService()).associateBy { it.name }
-            val variantsFactory = DefaultLocalComponentGraphResolveMetadata.VariantsMapMetadataFactory(variants)
-
-            val metadata = DefaultLocalComponentGraphResolveMetadata(
-                moduleVersionId,
+            val variants = readVariants(id, ownerService())
+            resolveStateFactory.realizedStateFor(
                 id,
+                moduleVersionId,
                 Project.DEFAULT_STATUS,
                 EmptySchema.INSTANCE,
-                variantsFactory,
-                null
+                variants
             )
-            resolveStateFactory.stateFor(metadata)
         }
     }
 
