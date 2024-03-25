@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.Matcher
 
 import static org.gradle.util.Matchers.containsLine
@@ -100,6 +101,20 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         expect:
         succeeds(':child:checkstyleMain')
         checkStyleReportFile(file('child')).assertExists()
+    }
+
+    @ToBeImplemented
+    def "configures checkstyle extension to read config from root project with isolated projects"() {
+        given:
+        settingsFile << "include 'child:grand'"
+        file('child/grand/build.gradle') << javaProjectUsingCheckstyle()
+        file('child/grand/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
+        file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
+
+        expect:
+        fails(':child:grand:checkstyleMain', '-Dorg.gradle.unsafe.isolated-projects=true')
+        errorOutput.contains("Cannot access project ':' from project ':child'")
+//        checkStyleReportFile(file('child/grand')).assertExists()
     }
 
     static String simpleCheckStyleConfig() {
