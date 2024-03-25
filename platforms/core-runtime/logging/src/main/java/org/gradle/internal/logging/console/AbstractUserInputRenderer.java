@@ -60,10 +60,14 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
     }
 
     private void handlePromptOutputEvent(PromptOutputEvent event) {
-        handlePrompt(event);
+        // Start capturing input prior to displaying the prompt so that the input received after the prompt is displayed will be captured.
+        // This does leave a small window where some text may be captured prior to the prompt being fully displayed, however this is
+        // better than doing things in the other order, where there will be a small window where text may not be captured after prompt is fully displayed.
+        // This is only a problem for tooling; for a human (the audience for this feature) this makes no difference.
         if (event.isNewQuestion()) {
             userInput.readAndForwardText(event);
         }
+        handlePrompt(event);
     }
 
     private void handleUserInputRequestEvent() {

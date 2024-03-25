@@ -46,27 +46,31 @@ class InProcessUserInputHandlingExecutor implements BuildActionExecuter<BuildAct
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext buildRequestContext) {
         userInputReceiver.dispatchTo(normalizer -> {
-            // Read a single line of text from stdin and forward to the UserInputReader
-            while (true) {
-                String line;
-                try {
-                    line = new BufferedReader(new InputStreamReader(System.in)).readLine();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                if (line != null) {
-                    String result = normalizer.normalize(line);
-                    if (result != null) {
-                        userInputReader.putInput(new UserInputReader.TextResponse(result));
-                    } else {
-                        // Need to prompt the user again
-                        continue;
+            Thread thread = new Thread(() -> {
+                // Read a single line of text from stdin and forward to the UserInputReader
+                while (true) {
+                    String line;
+                    try {
+                        line = new BufferedReader(new InputStreamReader(System.in)).readLine();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
-                } else {
-                    userInputReader.putInput(UserInputReader.END_OF_INPUT);
+                    if (line != null) {
+                        String result = normalizer.normalize(line);
+                        if (result != null) {
+                            userInputReader.putInput(new UserInputReader.TextResponse(result));
+                        } else {
+                            // Need to prompt the user again
+                            continue;
+                        }
+                    } else {
+                        userInputReader.putInput(UserInputReader.END_OF_INPUT);
+                    }
+                    break;
                 }
-                break;
-            }
+            });
+            thread.setDaemon(true);
+            thread.start();
         });
         try {
             return delegate.execute(action, actionParameters, buildRequestContext);
