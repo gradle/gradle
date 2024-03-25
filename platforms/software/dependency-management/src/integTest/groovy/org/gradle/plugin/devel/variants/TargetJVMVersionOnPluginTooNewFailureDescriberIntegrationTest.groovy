@@ -171,7 +171,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             project :
          > Dependency 'project :producer' requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
-        failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
+        failure.assertHasResolution("Run this build using a Java ${higherVersion.javaVersion.majorVersion} or newer JVM.")
     }
 
     @Requires(UnitTestPreconditions.Jdk11OrEarlier)
