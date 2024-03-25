@@ -123,7 +123,6 @@ class FailureDecorator {
 
         private
         fun drainBuffer(): String = buffer.toString().also { buffer.setLength(0) }
-
     }
 }
 
