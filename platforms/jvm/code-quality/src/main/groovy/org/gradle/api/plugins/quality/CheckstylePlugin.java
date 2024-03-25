@@ -68,7 +68,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
-        Directory directory = project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
+        Directory directory = getRootProjectDirectory().dir(CONFIG_DIR_NAME);
         extension.getConfigDirectory().convention(directory);
         extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")
             // If for whatever reason the provider above cannot be resolved, go back to default location, which we know how to ignore if missing
@@ -137,5 +137,9 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         task.setDescription("Run Checkstyle analysis for " + sourceSet.getName() + " classes");
         task.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
         task.setSource(sourceSet.getAllJava());
+    }
+
+    private Directory getRootProjectDirectory() {
+        return project.getIsolated().getRootProject().getProjectDirectory();
     }
 }
