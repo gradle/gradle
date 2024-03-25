@@ -18,7 +18,6 @@ package org.gradle.configurationcache.problems
 
 import org.gradle.internal.problems.failure.FailurePrinter
 import org.gradle.internal.problems.failure.FailurePrinterListener
-import org.gradle.internal.problems.failure.StackFramePredicate
 import org.gradle.internal.problems.failure.StackTraceRelevance
 import org.gradle.internal.problems.failure.Failure
 
@@ -63,7 +62,7 @@ class FailureDecorator {
     fun partitionedTraceFor(failure: Failure): List<StackTracePart> {
         val listener = PartitioningFailurePrinterListener(stringBuilder)
         try {
-            FailurePrinter.print(stringBuilder, failure, DisplayStackFramePredicate, listener)
+            FailurePrinter.print(stringBuilder, failure, listener)
             return listener.parts
         } finally {
             stringBuilder.setLength(0)
@@ -73,7 +72,7 @@ class FailureDecorator {
     private
     fun exceptionSummaryFor(failure: Failure): StructuredMessage? {
         failure.stackTrace.forEachIndexed { index, element ->
-            if (failure.getStackTraceRelevance(index) == StackTraceRelevance.USER_CODE) {
+            if (failure.getStackTraceRelevance(index).isUserCode()) {
                 return exceptionSummaryFrom(element)
             }
         }
@@ -103,7 +102,7 @@ class FailureDecorator {
 
         override fun beforeFrame(element: StackTraceElement, relevance: StackTraceRelevance) {
             val lastIsInternal = lastIsInternal
-            val curIsInternal = relevance.isInternalForDisplay()
+            val curIsInternal = !relevance.isUserCode()
             if (lastIsInternal != null && lastIsInternal != curIsInternal) {
                 cutPart(lastIsInternal)
             }
@@ -125,18 +124,9 @@ class FailureDecorator {
         private
         fun drainBuffer(): String = buffer.toString().also { buffer.setLength(0) }
 
-        private
-        fun StackTraceRelevance.isInternalForDisplay() = when (this) {
-            StackTraceRelevance.USER_CODE -> false
-            else -> true
-        }
-    }
-
-    private
-    object DisplayStackFramePredicate : StackFramePredicate {
-        override fun test(frame: StackTraceElement, relevance: StackTraceRelevance): Boolean {
-            return relevance == StackTraceRelevance.USER_CODE
-                || relevance == StackTraceRelevance.RUNTIME
-        }
     }
 }
+
+
+private
+fun StackTraceRelevance.isUserCode() = this == StackTraceRelevance.USER_CODE

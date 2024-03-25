@@ -26,33 +26,23 @@ import java.util.List;
 public class FailurePrinter {
 
     public static String printToString(Failure failure) {
-        return printToString(failure, StackFramePredicate.ALL);
-    }
-
-    public static String printToString(Failure failure, StackFramePredicate predicate) {
         StringBuilder output = new StringBuilder();
-        print(output, failure, predicate, FailurePrinterListener.NO_OP);
+        print(output, failure, FailurePrinterListener.NO_OP);
         return output.toString();
     }
 
-    public static void print(Appendable output, Failure failure, StackFramePredicate predicate, FailurePrinterListener listener) {
-        new Job(output, predicate, listener).print(failure);
+    public static void print(Appendable output, Failure failure, FailurePrinterListener listener) {
+        new Job(output, listener).print(failure);
     }
 
     private static final class Job {
 
-        private final StackFramePredicate predicate;
         private final FailurePrinterListener listener;
 
         private final Appendable builder;
         private final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
-        private Job(
-            Appendable builder,
-            StackFramePredicate predicate,
-            FailurePrinterListener listener
-        ) {
-            this.predicate = predicate;
+        private Job(Appendable builder, FailurePrinterListener listener) {
             this.listener = listener;
             this.builder = builder;
         }
@@ -118,10 +108,6 @@ public class FailurePrinter {
         }
 
         private void appendFrame(String prefix, StackTraceElement frame, StackTraceRelevance relevance) throws IOException {
-            if (!predicate.test(frame, relevance)) {
-                return;
-            }
-
             listener.beforeFrame(frame, relevance);
 
             builder.append(prefix)

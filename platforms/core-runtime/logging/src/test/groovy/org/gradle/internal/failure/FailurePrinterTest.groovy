@@ -74,20 +74,7 @@ class FailurePrinterTest extends Specification {
         actual.contains("Cause 2: java.lang.RuntimeException: two")
     }
 
-    def "filters frames by predicate"() {
-        def e = new RuntimeException("BOOM")
-        def firstFrame = e.stackTrace[0]
-
-        def f = toFailure(e)
-
-        when: // Filtering out all frames except the first
-        def actual = FailurePrinter.printToString(f, { frame, r -> frame === firstFrame })
-
-        then: // Print matches the head of the stack trace: header and the first frame
-        actual.trim() == getTraceString(e).readLines().take(2).join(System.lineSeparator())
-    }
-
-    def "notifies the listener only about frames to be printed"() {
+    def "notifies the listener"() {
         def e = new RuntimeException("BOOM")
         def firstFrame = e.stackTrace[0]
 
@@ -95,9 +82,9 @@ class FailurePrinterTest extends Specification {
 
         def f = toFailure(e)
 
-        when: // Filtering out all frames except the first
+        when:
         def output = new StringBuilder()
-        FailurePrinter.print(output, f, { frame, r -> frame === firstFrame }, listener)
+        FailurePrinter.print(output, f, listener)
 
         then:
         getTraceString(e).startsWith(output.toString())
@@ -106,7 +93,6 @@ class FailurePrinterTest extends Specification {
         1 * listener.beforeFrames()
         1 * listener.beforeFrame(firstFrame, USER_CODE)
         1 * listener.afterFrames()
-        0 * _
     }
 
     private static Failure toFailure(Throwable t) {

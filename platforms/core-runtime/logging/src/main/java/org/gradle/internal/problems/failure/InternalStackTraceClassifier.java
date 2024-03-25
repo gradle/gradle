@@ -18,15 +18,15 @@ package org.gradle.internal.problems.failure;
 
 import javax.annotation.Nullable;
 
-public class InternalRuntimeStackTraceClassifier implements StackTraceClassifier {
+public class InternalStackTraceClassifier implements StackTraceClassifier {
 
     @Nullable
     @Override
     public StackTraceRelevance classify(StackTraceElement frame) {
-        return isSystemStackFrame(frame.getClassName()) ? StackTraceRelevance.RUNTIME : null;
+        return isInternal(frame.getClassName()) ? StackTraceRelevance.INTERNAL : null;
     }
 
-    private static boolean isSystemStackFrame(String className) {
+    private static boolean isInternal(String className) {
         // JDK calls
         return className.startsWith("java.") ||
             className.startsWith("jdk.") ||
