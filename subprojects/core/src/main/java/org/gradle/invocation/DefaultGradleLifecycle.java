@@ -33,7 +33,6 @@ import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.invocation.GradleLifecycle;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DeprecatedInGradleScope;
@@ -82,7 +81,7 @@ public class DefaultGradleLifecycle implements GradleLifecycleInternal {
             @Override
             public void projectsLoaded(Gradle gradle) {
                 if (!rootProjectActions.isEmpty()) {
-                    crossProjectConfigurator.rootProject(getRootProject(this), rootProjectActions);
+                    crossProjectConfigurator.rootProject(getRootProject(getInvocationSource()), rootProjectActions);
                 }
                 if (!isolatedProjectActions.isEmpty()) {
                     projectEvaluationListenerBroadcast.add(isolatedProjectActions.isolate());
@@ -287,7 +286,7 @@ public class DefaultGradleLifecycle implements GradleLifecycleInternal {
     }
 
     private void assertProjectMutatingMethodAllowed(String methodName) {
-        MutationGuards.of(crossProjectConfigurator).assertMutationAllowed(methodName, this, GradleLifecycle.class);
+        MutationGuards.of(crossProjectConfigurator).assertMutationAllowed(methodName, (Gradle) getInvocationSource(), Gradle.class);
     }
 
     private Closure<?> decorate(String registrationPoint, Closure closure) {
