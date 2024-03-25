@@ -18,11 +18,9 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-
 import org.junit.Test
 
 
@@ -133,6 +131,121 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
 
                 @Rule @JvmField val temporaryFolder = TemporaryFolder()
+            }
+            """
+        )
+
+        println(
+            build("test").output
+        )
+    }
+
+    @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
+    fun `generated accessors work in the debug mode`() {
+
+        withDefaultSettings()
+
+        withBuildScript(
+            """
+
+            plugins {
+                `java-gradle-plugin`
+                `kotlin-dsl`
+            }
+
+            gradlePlugin {
+                plugins {
+                    register("test") {
+                        id = "test"
+                        implementationClass = "plugin.TestPlugin"
+                    }
+                }
+            }
+
+            dependencies {
+                implementation(kotlin("stdlib"))
+                testImplementation("junit:junit:4.13")
+                testImplementation("org.hamcrest:hamcrest-core:1.3")
+            }
+
+            $repositoriesBlock
+
+            """
+        )
+
+        withFile(
+            "src/main/kotlin/plugin/TestPlugin.kt",
+            """
+
+            package plugin
+
+            import org.gradle.api.*
+            import org.gradle.kotlin.dsl.*
+            import org.gradle.api.provider.*
+
+            class TestPlugin : Plugin<Project> {
+                override fun apply(project: Project) {
+                    project.extensions.create("myExtension", TestExtension::class)
+                }
+            }
+
+            interface TestExtension {
+                val say: Property<String>
+            }
+            """
+        )
+
+        withFile(
+            "src/test/kotlin/plugin/TestPluginTest.kt",
+            """
+
+            package plugin
+
+            import org.gradle.testkit.runner.*
+            import org.hamcrest.CoreMatchers.*
+            import org.junit.*
+            import org.hamcrest.MatcherAssert.assertThat
+            import org.junit.rules.TemporaryFolder
+            import kotlin.io.path.appendText
+            import kotlin.io.path.createFile
+
+            class TestPluginTest {
+
+                @Rule
+                @JvmField
+                val temporaryFolder = TemporaryFolder()
+
+                @Test
+                fun `test extension can be configured`() {
+                    val projectDir = temporaryFolder.root
+                    projectDir.toPath()
+                        .resolve("build.gradle.kts")
+                        .createFile()
+                        .appendText(""${'"'}
+                            import plugin.TestExtension
+
+                            plugins {
+                                id("test")
+                            }
+
+                            val myExtension = extensions.get("myExtension") as TestExtension
+                            myExtension.say.set("Hi!")
+
+                            myExtension {
+                                say = "Oh!"
+                            }
+                        ""${'"'})
+
+                    GradleRunner
+                        .create()
+                        .withProjectDir(projectDir)
+                        .withPluginClasspath()
+                        .withDebug(true)
+                        .withTestKitDir(java.io.File("${executer.gradleUserHomeDir.normalisedPath}"))
+                        .build()
+                }
             }
             """
         )

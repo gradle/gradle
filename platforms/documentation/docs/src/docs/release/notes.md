@@ -52,6 +52,10 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+## Configuration cache improvements
+
+[Java Record classes](https://docs.oracle.com/en/java/javase/21/language/records.html) are now supported in the configuration cache.
+
 #### Ability to set conventions on file collections
 
 Plugin-provided tasks often expose file collections that are meant to be customizable by build engineers (for instance, the classpath for the JavaCompile task).
@@ -84,6 +88,36 @@ println(files.elements.get()) // [.../dir2]
 This feature caters to plugin developers.
 It is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Property.html#convention-T-) methods that have been available on lazy properties since Gradle 5.1.
 
+<a name="replace-method"></a>
+#### Updating lazy property based on its current value with `replace()`
+
+[Lazy configuration](userguide/lazy_configuration.html) delays calculating a property’s value until it is required for the build.
+Sometimes it is necessary to modify the property based on its current value, for example, by appending something to it.
+Previously, the only way to do that was to obtain the current value explicitly by calling `Property.get()`:
+
+```
+val property = objects.property<String>()
+property.set("some value")
+property.set("${property.get()} and more" })
+
+println(property.get()) // "some value and more""
+```
+
+This could lead to performance issues like configuration cache misses.
+Trying to build the value lazily, for example, by using `property.set(property.map { "$it and more" })`, causes build failure because of a circular reference evaluation.
+
+[`Property`](javadoc/org/gradle/api/provider/Property.html#replace-org.gradle.api.Transformer-) and [`ConfigurableFileCollection`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#replace-org.gradle.api.Transformer-) now provide their respective `replace(Transformer<...>)` methods that allow lazily building the new value based on the current one:
+
+```
+val property = objects.property<String>()
+property.set("some value")
+property.replace { it.map { "$it and more" } }
+
+println(property.get()) // "some value and more"
+```
+
+Refer to the Javadoc for [`Property.replace(Transformer<>)`](javadoc/org/gradle/api/provider/Property.html#replace-org.gradle.api.Transformer-) and [`ConfigurableFileCollection.replace(Transformer<>)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#replace-org.gradle.api.Transformer-) for more details, including limitations.
+
 #### Improved error handling for toolchain resolvers
 
 When attempting to download Java toolchains from the configured resolvers, errors will be better handled now, and all resolvers will be tried.
@@ -113,6 +147,15 @@ Previously, the display name could be obtained only by parsing the operation dis
 Additionally, for JUnit5 and Spock, we updated the test descriptor for dynamic and parameterized tests to include information about the class name and method name containing the test.
 These enhancements enable IDEs to offer improved navigation and reporting capabilities for dynamic and parameterized tests.
 
+#### Fix IDE performance issues with large projects
+
+A performance issue in the Tooling API causing delays at the end of task execution in large projects has been identified and fixed by a community member.
+This problem occurred while transmitting task information for executed tasks to the IDE. 
+
+After executing approximately 15,000 tasks, the IDE would encounter a delay of several seconds. 
+The root cause was that much more information than needed was serialized via the Tooling API.
+We added a test to the fix to ensure there will be no future regression, demonstrating a performance improvement of around 12%.
+The environments that benefit from this fix are Android Studio, IntelliJ IDEA, Eclipse, and other Tooling API clients.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -125,6 +168,27 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
+
+This Gradle release promotes the following features to stable:
+
+### File permissions API
+
+The new API for defining file permissions (added in Gradle 8.3) is now stable, see:
+
+* [FilePermissions](javadoc/org/gradle/api/file/FilePermissions.html)
+* [ConfigurableFilePermissions](javadoc/org/gradle/api/file/ConfigurableFilePermissions.html)
+* [CopyProcessingSpec.getFilePermissions()](javadoc/org/gradle/api/file/CopyProcessingSpec.html#getFilePermissions--)
+* [CopyProcessingSpec.filePermissions(Action)](javadoc/org/gradle/api/file/CopyProcessingSpec.html#filePermissions-org.gradle.api.Action-)
+* [CopyProcessingSpec.getDirPermissions()](javadoc/org/gradle/api/file/CopyProcessingSpec.html#getDirPermissions--)
+* [CopyProcessingSpec.dirPermissions(Action)](javadoc/org/gradle/api/file/CopyProcessingSpec.html#dirPermissions-org.gradle.api.Action-)
+* [FileCopyDetails.permissions(Action)](javadoc/org/gradle/api/file/FileCopyDetails.html#permissions-org.gradle.api.Action-)
+* [FileCopyDetails.setPermissions(FilePermissions)](javadoc/org/gradle/api/file/FileCopyDetails.html#setPermissions-org.gradle.api.file.FilePermissions-)
+* [FileSystemOperations.filePermissions(Action)](javadoc/org/gradle/api/file/FileSystemOperations.html#filePermissions-org.gradle.api.Action-)
+* [FileSystemOperations.directoryPermissions(Action)](javadoc/org/gradle/api/file/FileSystemOperations.html#directoryPermissions-org.gradle.api.Action-)
+* [FileSystemOperations.permissions(int)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-int-)
+* [FileSystemOperations.permissions(String)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-java.lang.String-)
+* [FileSystemOperations.permissions(Provider)](javadoc/org/gradle/api/file/FileSystemOperations.html#permissions-org.gradle.api.provider.Provider-)
+* [FileTreeElement.getPermissions()](javadoc/org/gradle/api/file/FileTreeElement.html#getPermissions--)
 
 <!--
 ### Example promoted

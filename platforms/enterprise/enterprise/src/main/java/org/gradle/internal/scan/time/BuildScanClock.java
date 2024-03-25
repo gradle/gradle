@@ -16,7 +16,7 @@
 
 package org.gradle.internal.scan.time;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 4.2
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildScanClock {
 
     /**

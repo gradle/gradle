@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Receives interactive responses from the user.
  */
-@ServiceScope(Scopes.Global.class)
+@ServiceScope(Scope.Global.class)
 public interface UserInputReader {
     void startInput();
 

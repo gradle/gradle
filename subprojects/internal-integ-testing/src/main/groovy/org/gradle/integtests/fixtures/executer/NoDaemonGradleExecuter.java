@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import static java.util.stream.Collectors.joining;
 import static org.junit.Assert.fail;
 
 public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
@@ -231,8 +232,8 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
             builder.executable("cmd");
 
             List<String> allArgs = builder.getArgs();
-            builder.setArgs(Arrays.asList("/c", cmd));
-            builder.args(allArgs);
+            String actualCommand = quote(quote(cmd) + " " + allArgs.stream().map(NoDaemonGradleExecuter::quote).collect(joining(" ")));
+            builder.setArgs(Arrays.asList("/c", actualCommand));
 
             String gradleHome = getDistribution().getGradleHomeDir().getAbsolutePath();
 
@@ -248,6 +249,17 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
             builder.environment("PATH", path);
             builder.environment("Path", path);
         }
+    }
+
+    private static String quote(String arg) {
+        if(arg.isEmpty()){
+            return "\"\"";
+        }
+        if (arg.contains(" ")) {
+            return "\"" + arg + "\"";
+
+        }
+        return arg;
     }
 
     private class UnixConfigurer implements ExecHandlerConfigurer {

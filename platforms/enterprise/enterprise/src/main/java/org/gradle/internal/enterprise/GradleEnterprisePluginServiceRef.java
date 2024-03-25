@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * The plugin uses this to encapsulate its service in user facing code that may be cached.
  * This allows such cached code to use the plugin service for the current build when used from-cache.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface GradleEnterprisePluginServiceRef {
 
     GradleEnterprisePluginService get();

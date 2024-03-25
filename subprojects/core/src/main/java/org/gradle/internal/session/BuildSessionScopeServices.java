@@ -70,7 +70,7 @@ import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.WorkerSharedBuildSessionScopeServices;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
@@ -130,7 +130,7 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
     }
 
     DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
-        return parent.createChild(Scopes.BuildSession.class);
+        return parent.createChild(Scope.BuildSession.class);
     }
 
     CrossProjectConfigurator createCrossProjectConfigurator(BuildOperationRunner buildOperationRunner) {

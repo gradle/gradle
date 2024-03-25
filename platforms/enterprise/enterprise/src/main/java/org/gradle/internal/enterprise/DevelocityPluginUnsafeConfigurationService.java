@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.function.Supplier;
@@ -27,7 +27,7 @@ import java.util.function.Supplier;
  * This is currently especially for ignoring configuration inputs that are handled differently in the
  * Develocity plugin.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface DevelocityPluginUnsafeConfigurationService {
     /**
      * Run some code without tracking its inputs.

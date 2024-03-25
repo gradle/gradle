@@ -17,7 +17,7 @@
 package org.gradle.internal.execution;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Optional;
@@ -25,7 +25,7 @@ import java.util.Optional;
 /**
  * Provides access to the work executing on the current thread.
  */
-@ServiceScope(Scopes.Global.class)
+@ServiceScope(Scope.Global.class)
 public interface WorkExecutionTracker {
 
     /**

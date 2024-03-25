@@ -236,7 +236,7 @@ import java.util.List;
 public class BuildScopeServices extends ScopedServiceRegistry {
 
     public BuildScopeServices(ServiceRegistry parent, BuildModelControllerServices.Supplier supplier) {
-        super(Scopes.Build.class, parent);
+        super(Scope.Build.class, parent);
         addProvider(new BuildCacheServices());
         register(registration -> {
             registration.add(DefaultExecOperations.class);
@@ -345,7 +345,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
     }
 
     protected DefaultListenerManager createListenerManager(DefaultListenerManager listenerManager) {
-        return listenerManager.createChild(Scopes.Build.class);
+        return listenerManager.createChild(Scope.Build.class);
     }
 
     protected ClassPathRegistry createClassPathRegistry() {

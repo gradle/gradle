@@ -48,7 +48,7 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
 import java.io.File
@@ -56,7 +56,7 @@ import java.io.InputStream
 import java.io.OutputStream
 
 
-@ServiceScope(Scopes.Gradle::class)
+@ServiceScope(Scope.Gradle::class)
 class ConfigurationCacheIO internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val host: DefaultConfigurationCache.Host,

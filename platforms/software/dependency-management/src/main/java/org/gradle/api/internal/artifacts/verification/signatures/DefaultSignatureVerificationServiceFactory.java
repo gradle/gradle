@@ -32,7 +32,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.FileResourceListener;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.security.internal.EmptyPublicKeyService;
 import org.gradle.security.internal.Fingerprint;
@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class DefaultSignatureVerificationServiceFactory implements SignatureVerificationServiceFactory {
 
     private static final HashCode NO_KEYRING_FILE_HASH = Hashing.signature(DefaultSignatureVerificationServiceFactory.class);
@@ -134,6 +134,10 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         @Override
         public void verify(File origin, File signature, Set<String> trustedKeys, Set<String> ignoredKeys, SignatureVerificationResultBuilder result) {
             PGPSignatureList pgpSignatures = SecuritySupport.readSignatures(signature);
+            if (pgpSignatures == null) {
+                result.noSignatures();
+                return;
+            }
             for (PGPSignature pgpSignature : pgpSignatures) {
                 String longIdKey = toLongIdHexString(pgpSignature.getKeyID());
                 if (ignoredKeys.contains(longIdKey)) {

@@ -26,7 +26,7 @@ interface RuntimeFunctionResolver {
     fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): Resolution
 
     sealed interface Resolution {
-        data class Resolved(val function: RestrictedRuntimeFunction) : Resolution
+        data class Resolved(val function: DeclarativeRuntimeFunction) : Resolution
         data object Unresolved : Resolution
     }
 }

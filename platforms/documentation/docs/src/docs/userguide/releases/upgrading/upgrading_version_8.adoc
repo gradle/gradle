@@ -126,6 +126,24 @@ Use link:{javadocPath}/org/gradle/api/Named.Namer.html#INSTANCE[`Named.Namer.INS
 
 The superinterface, link:{javadocPath}/org/gradle/api/Namer.html[`Namer`], is *not* being deprecated.
 
+[[unix_file_permissions_deprecated]]
+==== Unix mode based file permissions deprecated ====
+
+A new API for defining file permissions has been added in Gradle 8.3, see:
+
+- link:{javadocPath}/org/gradle/api/file/FilePermissions.html[FilePermissions].
+- link:{javadocPath}/org/gradle/api/file/ConfigurableFilePermissions.html[ConfigurableFilePermissions].
+
+The new API has now been promoted to stable and the old methods have been deprecated:
+
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getFileMode--[CopyProcessingSpec.getFileMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setFileMode-java.lang.Integer-[CopyProcessingSpec.setFileMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getDirMode--[CopyProcessingSpec.getDirMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setDirMode-java.lang.Integer-[CopyProcessingSpec.setDirMode]
+- link:{javadocPath}/org/gradle/api/file/FileTreeElement.html#getMode--[FileTreeElement.getMode]
+- link:{javadocPath}/org/gradle/api/file/FileCopyDetails.html#setMode-int-[FileCopyDetails.setMode]
+
+
 === Potential breaking changes
 
 ==== Changes in the Problems API
@@ -143,7 +161,7 @@ In implementing this spec, we have introduced the following breaking changes to 
 
 ==== Upgrade to Kotlin 1.9.22
 
-The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.22[Kotlin 1.9.22].
+The embedded Kotlin has been updated from 1.9.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.22[Kotlin 1.9.22].
 
 ==== Upgrade to Apache SSHD 2.10.0
 
@@ -241,7 +259,7 @@ Currently, `ProjectDependency` and `FileCollectionDependency` implement this int
 In Gradle 9.0, these types will no longer implement `SelfResolvingDependency`.
 Instead, they will both directly implement `Dependency`.
 
-As such, the following methods of `ProjectDependency` and `FileCollectionDependency` will no longer be avaDilable:
+As such, the following methods of `ProjectDependency` and `FileCollectionDependency` will no longer be available:
 
 - `resolve`
 - `resolve(boolean)`

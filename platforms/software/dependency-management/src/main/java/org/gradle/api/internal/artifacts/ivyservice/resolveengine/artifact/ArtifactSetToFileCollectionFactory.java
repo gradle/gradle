@@ -40,7 +40,7 @@ import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class ArtifactSetToFileCollectionFactory {
     private final BuildOperationExecutor buildOperationExecutor;
     private final TaskDependencyFactory taskDependencyFactory;

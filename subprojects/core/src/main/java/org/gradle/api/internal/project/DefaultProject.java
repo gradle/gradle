@@ -23,6 +23,7 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.IsolatedProject;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.PathValidation;
@@ -773,11 +774,16 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     /**
-     * This method is used when scripts access the project via project.x
+     * This method is used when scripts access the project via project.
      */
     @Override
     public ProjectInternal getProject() {
         return this;
+    }
+
+    @Override
+    public IsolatedProject getIsolated() {
+        return new DefaultIsolatedProject(this, rootProject);
     }
 
     @Override

@@ -71,9 +71,8 @@ import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
-import org.gradle.tooling.events.problems.ProblemAggregation;
 import org.gradle.tooling.events.problems.ProblemCategory;
-import org.gradle.tooling.events.problems.ProblemDescriptor;
+import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.ProblemEvent;
 import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.events.problems.Solution;
@@ -89,7 +88,7 @@ import org.gradle.tooling.events.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultPluginIdLocation;
 import org.gradle.tooling.events.problems.internal.DefaultProblemAggregation;
 import org.gradle.tooling.events.problems.internal.DefaultProblemAggregationEvent;
-import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor;
+import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationContext;
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSolution;
@@ -154,8 +153,8 @@ import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregation;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetailsV2;
+import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
@@ -221,7 +220,6 @@ import org.gradle.tooling.internal.protocol.problem.InternalTaskPathLocation;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -571,7 +569,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         InternalProblemDetails details = problemEvent.getDetails();
         OperationDescriptor parentDescriptor = getParentDescriptor(descriptor.getParentId());
 
-        if(details instanceof InternalBasicProblemDetails){
+        if (details instanceof InternalBasicProblemDetails) {
             InternalBasicProblemDetails basicProblemDetails = (InternalBasicProblemDetails) details;
             return new DefaultSingleProblemEvent(
                 problemEvent.getEventTime(),
@@ -586,55 +584,40 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 toAdditionalData(basicProblemDetails.getAdditionalData()),
                 toFailureContainer(basicProblemDetails)
             );
-        } else if(details instanceof InternalProblemAggregationDetails){
+        } else if (details instanceof InternalProblemAggregationDetailsV2) {
+            InternalProblemAggregationDetailsV2 problemAggregationDetails = (InternalProblemAggregationDetailsV2) details;
             return new DefaultProblemAggregationEvent(
                 problemEvent.getEventTime(),
                 parentDescriptor,
-                toSummaries((InternalProblemAggregationDetails) details)
-            );
+                new DefaultProblemAggregation(
+                    toProblemCategory(problemAggregationDetails.getCategory()),
+                    toProblemLabel(problemAggregationDetails.getLabel()),
+                    toProblemSeverity(problemAggregationDetails.getSeverity()),
+                    toDocumentationLink(problemAggregationDetails.getDocumentationLink()),
+                    toProblemContextDetails(problemAggregationDetails.getProblems())));
+
         }
 
         return null;
     }
 
     @Nonnull
-    private static DefaultProblemsOperationDescriptor toSingleProblemDescriptor(InternalBasicProblemDetails details) {
-        return new DefaultProblemsOperationDescriptor(
-            toProblemCategory(details.getCategory()),
-            toProblemLabel(details.getLabel()),
+    private static DefaultProblemsOperationContext toSingleProblemContextDetail(InternalProblemContextDetails details) {
+        return new DefaultProblemsOperationContext(
             toProblemDetails(details.getDetails()),
-            toProblemSeverity(details.getSeverity()),
             toLocations(details.getLocations()),
-            toDocumentationLink(details.getDocumentationLink()),
             toSolutions(details.getSolutions()),
             toAdditionalData(details.getAdditionalData()),
-            toFailureContainer(details)
+            toFailureContainer(details.getFailure())
         );
     }
-
-    private static List<ProblemAggregation> toSummaries(InternalProblemAggregationDetails details) {
-        Builder<ProblemAggregation> summaries = builderWithExpectedSize(details.getSummaries().size());
-        for (InternalProblemAggregation summary : details.getSummaries()) {
-            summaries.add(toSummary(summary));
-        }
-        return summaries.build();
-    }
-
-    private static ProblemAggregation toSummary(InternalProblemAggregation basicDetails) {
-        return new DefaultProblemAggregation(
-            toProblemCategory(basicDetails.getCategory()),
-            toProblemLabel(basicDetails.getLabel()),
-            toProblemDescriptors(basicDetails.getProblems()));
-    }
-
-    private static List<ProblemDescriptor> toProblemDescriptors(Collection<InternalProblemEvent> problems) {
-        Builder<ProblemDescriptor> result = builderWithExpectedSize(problems.size());
-        for (InternalProblemEvent problem : problems) {
-            result.add(toSingleProblemDescriptor((InternalBasicProblemDetails) problem.getDetails()));
+    private static List<ProblemContext> toProblemContextDetails(List<InternalProblemContextDetails> problems) {
+        Builder<ProblemContext> result = builderWithExpectedSize(problems.size());
+        for (InternalProblemContextDetails problem : problems) {
+            result.add(toSingleProblemContextDetail(problem));
         }
         return result.build();
     }
-
 
 
     private @Nullable ProgressEvent toGenericProgressEvent(InternalProgressEvent event) {
@@ -806,7 +789,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (!(problemDetails instanceof InternalBasicProblemDetailsVersion2)) {
             return null;
         }
-        InternalFailure failure = ((InternalBasicProblemDetailsVersion2) problemDetails).getFailure();
+        return toFailureContainer(((InternalBasicProblemDetailsVersion2) problemDetails).getFailure());
+    }
+
+    @Nullable
+    private static FailureContainer toFailureContainer(@Nullable InternalFailure failure) {
         if (failure == null) {
             return null;
         }
@@ -826,7 +813,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static Severity toProblemSeverity(InternalSeverity severity) {
-        return DefaultSeverity.from(severity.getSeverity());
+        return DefaultSeverity.from(severity != null ? severity.getSeverity() : Severity.WARNING.getSeverity());
     }
 
     private static List<Location> toLocations(List<InternalLocation> locations) {

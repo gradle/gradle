@@ -36,7 +36,7 @@ import org.gradle.internal.code.UserCodeApplicationId
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationRunner
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import spock.lang.Specification
 
 class DefaultListenerBuildOperationDecoratorTest extends Specification {
@@ -569,7 +569,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
     def 'decorated listeners can be removed from listener manager'() {
         given:
-        def listenerManager = new DefaultListenerManager(Scopes.Build)
+        def listenerManager = new DefaultListenerManager(Scope.Build)
         def gradle = Mock(Gradle)
         boolean called = false
         def undecorated = new BuildAdapter() {

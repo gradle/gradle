@@ -17,12 +17,12 @@
 package org.gradle.configurationcache.serialization.beans
 
 import org.gradle.internal.instantiation.InstantiatorFactory
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.util.concurrent.ConcurrentHashMap
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class BeanStateReaderLookup(
     private val constructors: BeanConstructors,

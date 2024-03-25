@@ -26,16 +26,17 @@ import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
 import java.io.File
 import java.nio.file.Files
+import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import kotlin.contracts.contract
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 class ConfigurationCacheReport(
     executorFactory: ExecutorFactory,
     temporaryFileProvider: TemporaryFileProvider,
@@ -127,12 +128,16 @@ class ConfigurationCacheReport(
             }
 
             override fun commitReportTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int): Pair<State, File?> {
-                lateinit var reportFile: File
-                executor.submit {
-                    closeHtmlReport(cacheAction, requestedTasks, totalProblemCount)
-                    reportFile = moveSpoolFileTo(outputDirectory)
+                val reportFile = try {
+                    executor
+                        .submit(Callable {
+                            closeHtmlReport(cacheAction, requestedTasks, totalProblemCount)
+                            moveSpoolFileTo(outputDirectory)
+                        })
+                        .get(30, TimeUnit.SECONDS)
+                } finally {
+                    executor.shutdownAndAwaitTermination()
                 }
-                executor.shutdownAndAwaitTermination()
                 return Closed to reportFile
             }
 
@@ -157,11 +162,13 @@ class ConfigurationCacheReport(
             private
             fun ManagedExecutor.shutdownAndAwaitTermination() {
                 shutdown()
-                if (!awaitTermination(30, TimeUnit.SECONDS)) {
+                if (!awaitTermination(1, TimeUnit.SECONDS)) {
+                    val unfinishedTasks = shutdownNow()
                     logger.warn(
                         "Configuration cache report is taking too long to write... "
                             + "The build might finish before the report has been completely written."
                     )
+                    logger.info("Unfinished tasks: {}", unfinishedTasks)
                 }
             }
 

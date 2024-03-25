@@ -1803,20 +1803,20 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         copy.files == [new File("a"), new File("b")] as Set<File>
     }
 
-    def "update can modify contents of the collection"() {
+    def "replace can modify contents of the collection"() {
         given:
         def a = new File("a.txt")
         def b = new File("b.md")
         collection.from(containing(a, b))
 
         when:
-        collection.update { it.filter { f -> !f.name.endsWith(".txt") } }
+        collection.replace { it.filter { f -> !f.name.endsWith(".txt") } }
 
         then:
         collection.files == [b] as Set<File>
     }
 
-    def "update is not applied to later collection modifications"() {
+    def "replace is not applied to later collection modifications"() {
         given:
         def a = new File("a.txt")
         def b = new File("b.md")
@@ -1824,14 +1824,14 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from(containing(a, b))
 
         when:
-        collection.update { it.filter { f -> !f.name.endsWith(".txt") } }
+        collection.replace { it.filter { f -> !f.name.endsWith(".txt") } }
         collection.from(containing(c))
 
         then:
         collection.files == [b, c] as Set<File>
     }
 
-    def "update argument is live"() {
+    def "replace argument is live"() {
         given:
         def a = new File("a.txt")
         def b = new File("b.md")
@@ -1841,43 +1841,43 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         def upstream = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, host).from(containing(a, b))
         collection.from(upstream)
         when:
-        collection.update { it.filter { f -> !f.name.endsWith(".txt") } }
+        collection.replace { it.filter { f -> !f.name.endsWith(".txt") } }
         upstream.from(containing(c, d))
 
         then:
         collection.files == [b, d] as Set<File>
     }
 
-    def "returning null from update clears collection"() {
+    def "returning null from replace clears collection"() {
         given:
         collection.from(containing(new File("a.txt")))
 
         when:
-        collection.update { null }
+        collection.replace { null }
 
         then:
         collection.isEmpty()
     }
 
-    def "update transformation runs eagerly"() {
+    def "replace transformation runs eagerly"() {
         given:
         Transformer<FileCollection, FileCollection> transform = Mock()
         collection.from(containing(new File("a.txt")))
 
         when:
-        collection.update(transform)
+        collection.replace(transform)
 
         then:
         1 * transform.transform(_)
     }
 
-    def "update transformation result is evaluated lazily"() {
+    def "replace transformation result is evaluated lazily"() {
         given:
         Spec<File> filterSpec = Mock()
         collection.from(containing(new File("a.txt")))
 
         when:
-        collection.update { it.filter(filterSpec) }
+        collection.replace { it.filter(filterSpec) }
 
         then:
         0 * filterSpec._

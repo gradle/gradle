@@ -17,14 +17,15 @@
 package org.gradle.launcher.daemon.configuration;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.process.internal.CurrentProcess;
 
 import java.io.File;
 
 public class ForegroundDaemonConfiguration extends DefaultDaemonServerConfiguration {
 
-    public ForegroundDaemonConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs, FileCollectionFactory fileCollectionFactory, boolean instrumentationAgentAllowed, boolean useNativeServices) {
+    public ForegroundDaemonConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs, FileCollectionFactory fileCollectionFactory, boolean instrumentationAgentAllowed, NativeServicesMode nativeServicesMode) {
         // Foreground daemon cannot be 'told' what's his startup options as the client sits in the same process so we will infer the jvm opts from the inputArguments()
-        super(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, false, DaemonParameters.Priority.NORMAL, new CurrentProcess(fileCollectionFactory).getJvmOptions().getAllImmutableJvmArgs(), instrumentationAgentAllowed, useNativeServices);
+        super(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, false, DaemonParameters.Priority.NORMAL, new CurrentProcess(fileCollectionFactory).getJvmOptions().getAllImmutableJvmArgs(), instrumentationAgentAllowed, nativeServicesMode);
     }
 }

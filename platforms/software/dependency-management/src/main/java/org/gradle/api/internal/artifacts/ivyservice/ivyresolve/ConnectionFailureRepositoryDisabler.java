@@ -20,14 +20,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Set;
 
 import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class ConnectionFailureRepositoryDisabler implements RepositoryDisabler {
     private static final Logger LOGGER = Logging.getLogger(ConnectionFailureRepositoryDisabler.class);
 

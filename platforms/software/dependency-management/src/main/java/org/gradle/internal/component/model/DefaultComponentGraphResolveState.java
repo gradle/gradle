@@ -57,14 +57,14 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
 
     public DefaultComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         super(instanceId, graphMetadata, artifactMetadata, attributeDesugaring);
-        allVariantsForGraphResolution = Lazy.locking().of(() -> graphMetadata.getVariantsForGraphTraversal().map(variants ->
+        this.allVariantsForGraphResolution = Lazy.locking().of(() -> graphMetadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream()
                 .map(ModuleConfigurationMetadata.class::cast)
                 .map(variant -> resolveStateFor(variant).asVariant())
                 .collect(Collectors.toList())
         ));
         this.idGenerator = idGenerator;
-        selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream()
+        this.selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream()
             .flatMap(variant -> variant.getVariants().stream())
             .map(variant -> new DefaultResolvedVariantResult(
                 getId(),
@@ -116,15 +116,16 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     }
 
     private DefaultConfigurationGraphResolveState newVariantState(ModuleConfigurationMetadata configuration) {
-        return new DefaultConfigurationGraphResolveState(idGenerator.nextVariantId(), getArtifactMetadata(), configuration);
+        return new DefaultConfigurationGraphResolveState(idGenerator.nextVariantId(), this, getArtifactMetadata(), configuration);
     }
 
-    private class DefaultConfigurationGraphResolveState extends AbstractVariantGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
+    private static class DefaultConfigurationGraphResolveState extends AbstractVariantGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
         private final long instanceId;
         private final ModuleConfigurationMetadata configuration;
         private final Lazy<DefaultConfigurationArtifactResolveState> artifactResolveState;
 
-        public DefaultConfigurationGraphResolveState(long instanceId, ExternalComponentResolveMetadata component, ModuleConfigurationMetadata configuration) {
+        public DefaultConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?, ?> componentState, ExternalComponentResolveMetadata component, ModuleConfigurationMetadata configuration) {
+            super(componentState);
             this.instanceId = instanceId;
             this.configuration = configuration;
             this.artifactResolveState = Lazy.locking().of(() -> new DefaultConfigurationArtifactResolveState(component, configuration));

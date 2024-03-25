@@ -35,6 +35,7 @@ import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.operations.TestBuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
@@ -278,7 +279,7 @@ public abstract class AvailableJavaHomes {
         DefaultJvmMetadataDetector defaultJvmMetadataDetector =
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
-        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), metadataDetector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory())
+        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), metadataDetector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new JvmInstallationProblemReporter())
             .toolchains()
             .stream()
             .map(x -> x.metadata)
@@ -332,7 +333,7 @@ public abstract class AvailableJavaHomes {
             return System.getenv().entrySet()
                 .stream()
                 .filter(it -> JDK_PATTERN.matcher(it.getKey()).matches())
-                .map(entry -> new InstallationLocation(new File(entry.getValue()), "env var " + entry.getKey()))
+                .map(entry -> InstallationLocation.userDefined(new File(entry.getValue()), "env var " + entry.getKey()))
                 .collect(Collectors.toSet());
         }
     }
@@ -358,7 +359,7 @@ public abstract class AvailableJavaHomes {
                     .filter(File::isDirectory)
                     .filter(file -> file.getName().toLowerCase().contains("jdk") || file.getName().toLowerCase().contains("jre"))
                     .filter(file -> new File(file, OperatingSystem.current().getExecutableName("bin/java")).exists())
-                    .map(file -> new InstallationLocation(file, getSourceName()))
+                    .map(file -> InstallationLocation.autoDetected(file, getSourceName()))
                     .collect(Collectors.toSet());
             }
             return Collections.emptySet();

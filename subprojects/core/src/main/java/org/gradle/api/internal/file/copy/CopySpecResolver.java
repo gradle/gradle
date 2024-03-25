@@ -34,9 +34,18 @@ import java.util.List;
 public interface CopySpecResolver {
 
     boolean isCaseSensitive();
+
+    /**
+     * @deprecated Use {@link #getImmutableFilePermissions()} instead. This method is scheduled for removal in Gradle 9.0.
+     */
     @Nullable
+    @Deprecated
     Integer getFileMode();
+    /**
+     * @deprecated Use {@link #getImmutableDirPermissions()} instead. This method is scheduled for removal in Gradle 9.0.
+     */
     @Nullable
+    @Deprecated
     Integer getDirMode();
     Provider<ConfigurableFilePermissions> getFilePermissions();
     Provider<FilePermissions> getImmutableFilePermissions();

@@ -17,14 +17,14 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.problems.internal.DocLink;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.GradleVersion;
 
 /**
  * Locates documentation for various features.
  */
-@ServiceScope(Scopes.Global.class)
+@ServiceScope(Scope.Global.class)
 public class DocumentationRegistry {
     public static final String BASE_URL = "https://docs.gradle.org/" + GradleVersion.current().getVersion();
     public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";

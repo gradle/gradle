@@ -193,8 +193,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder documentedAt(String url) {
-        this.docLink = new DefaultDocLink(url);
+    public InternalProblemBuilder documentedAt(@Nullable String url) {
+        this.docLink = url == null ? null : new DefaultDocLink(url);
         return this;
     }
 

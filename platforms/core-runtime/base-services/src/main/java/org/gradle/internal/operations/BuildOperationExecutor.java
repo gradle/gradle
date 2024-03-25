@@ -18,7 +18,7 @@ package org.gradle.internal.operations;
 
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Executes build operations via a {@link BuildOperationQueue}.
  */
 @ThreadSafe
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface BuildOperationExecutor {
     /**
      * Submits an arbitrary number of runnable operations, created synchronously by the scheduling action, to be executed in the global

@@ -18,7 +18,7 @@ package org.gradle.internal.enterprise;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -29,7 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 8.8
  */
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scope.Gradle.class)
 public interface DevelocityBuildLifecycleService {
 
     /**
