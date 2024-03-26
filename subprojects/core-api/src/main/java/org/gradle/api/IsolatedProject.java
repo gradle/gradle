@@ -47,6 +47,14 @@ public interface IsolatedProject {
     String getPath();
 
     /**
+     * Returns a path to the project for the full build tree.
+     *
+     * @return The build tree path
+     * @since 8.8
+     */
+    String getBuildTreePath();
+
+    /**
      * <p>The directory containing the project build file.</p>
      *
      * @return The project directory. Never returns null.

@@ -40,6 +40,11 @@ public final class DefaultIsolatedProject implements IsolatedProject {
     }
 
     @Override
+    public String getBuildTreePath() {
+        return project.getBuildTreePath();
+    }
+
+    @Override
     public Directory getProjectDirectory() {
         return project.getLayout().getProjectDirectory();
     }
