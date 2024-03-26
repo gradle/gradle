@@ -51,6 +51,7 @@ import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.BuildOperationTimeSupplier;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
@@ -67,7 +68,6 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
-import org.gradle.internal.time.Clock;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
@@ -288,7 +288,7 @@ public class ExampleBuildCacheClient {
         @Provides
         BuildOperationRunner createBuildOperationRunner(
             CurrentBuildOperationRef currentBuildOperationRef,
-            DefaultBuildOperationRunner.TimeSupplier timeSupplier,
+            BuildOperationTimeSupplier timeSupplier,
             BuildOperationIdFactory buildOperationIdFactory,
             BuildOperationExecutionListenerFactory buildOperationExecutionListenerFactory
         ) {
@@ -312,12 +312,12 @@ public class ExampleBuildCacheClient {
 
         @Provides
         BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
-            Clock clock,
+            BuildOperationTimeSupplier timeSupplier,
             CurrentBuildOperationRef currentBuildOperationRef,
             BuildOperationListener buildOperationListener
         ) {
             return new DefaultBuildOperationProgressEventEmitter(
-                clock,
+                timeSupplier,
                 currentBuildOperationRef,
                 buildOperationListener
             );
@@ -349,14 +349,8 @@ public class ExampleBuildCacheClient {
         }
 
         @Provides
-        Clock createClock() {
-            // TODO Better clock?
+        BuildOperationTimeSupplier createTimeSupplier() {
             return System::currentTimeMillis;
-        }
-
-        @Provides
-        DefaultBuildOperationRunner.TimeSupplier createTimeSupplier(Clock clock) {
-            return clock::getCurrentTime;
         }
 
         @Provides
@@ -423,12 +417,8 @@ public class ExampleBuildCacheClient {
         @Provides
         OriginMetadataFactory createOriginMetadataFactory() {
             return new OriginMetadataFactory(
-                System.getProperty("user.name"),
-                System.getProperty("os.name"),
                 buildInvocationId,
-                properties -> properties.put("client", "example-client"),
-                // TODO Properly resolve the host name
-                () -> "localhost"
+                properties -> properties.put("client", "example-client")
             );
         }
 
