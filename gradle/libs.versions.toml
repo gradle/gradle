@@ -21,6 +21,7 @@ sqldelight-extensions-coroutines = { module = "app.cash.sqldelight:coroutines-ex
 sqldelight-driver-sqlite = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 decompose-decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 decompose-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
+essenty-lifecycle-coroutines = { module = "com.arkivanov.essenty:lifecycle-coroutines", version = "1.3.0" }
 gradle-tooling = { module = "org.gradle:gradle-tooling-api", version.ref = "gradle-tooling" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.12" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.3" }

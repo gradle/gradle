@@ -4,11 +4,13 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.*
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
+import org.gradle.client.logic.database.BuildsRepository
 import org.gradle.client.ui.build.BuildComponent
 import org.gradle.client.ui.welcome.WelcomeComponent
 
 class UiComponent(
-    context: ComponentContext
+    context: ComponentContext,
+    private val buildsRepository: BuildsRepository,
 ) : ComponentContext by context {
 
     sealed interface Child {
@@ -32,6 +34,7 @@ class UiComponent(
             Config.Welcome -> Child.Welcome(
                 WelcomeComponent(
                     context = context,
+                    buildsRepository = buildsRepository,
                     onBuildSelected = { id -> navigation.push(Config.Build(id)) }
                 )
             )
@@ -39,6 +42,7 @@ class UiComponent(
             is Config.Build -> Child.Build(
                 BuildComponent(
                     context = context,
+                    buildsRepository = buildsRepository,
                     id = config.id,
                     onFinished = { navigation.pop() }
                 )

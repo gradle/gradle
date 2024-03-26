@@ -1,5 +1,16 @@
 .gradle
 **/build/
 !**/src/**/build/
-.idea
+
 .DS_Store
+
+!/.idea
+/.idea/*
+!.idea/detekt.xml
+!.idea/externalDependencies.xml
+!/.idea/codeStyles
+!/.idea/inspectionProfiles
+!.idea/icon.svg
+!/.idea/icon.png
+!/.idea/icon_dark.png
+*/**/.idea

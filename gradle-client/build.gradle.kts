@@ -33,6 +33,7 @@ kotlin {
 
             implementation(libs.decompose.decompose)
             implementation(libs.decompose.compose)
+            implementation(libs.essenty.lifecycle.coroutines)
             implementation(libs.kotlinx.serialization.json)
 
             implementation(libs.slf4j.api)
@@ -69,6 +70,7 @@ compose.desktop {
             jvmArgs += "-splash:${'$'}APPDIR/resources/splash.png"
             modules(
                 "java.naming",
+                "java.sql",
             )
         }
     }

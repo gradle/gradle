@@ -8,6 +8,7 @@ import androidx.compose.ui.window.application
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import org.gradle.client.logic.Constants.APPLICATION_DISPLAY_NAME
+import org.gradle.client.logic.database.BuildsRepository
 import org.gradle.client.logic.database.sqldelight.ApplicationDatabaseFactory
 import org.gradle.client.logic.database.sqldelight.SqlDriverFactory
 import org.gradle.client.ui.theme.GradleClientTheme
@@ -29,14 +30,16 @@ fun main() {
             logger.atInfo().log { "DB stopped" }
         }
     )
-    val db = ApplicationDatabaseFactory().createDatabase(sqlDriver).also {
+    val database = ApplicationDatabaseFactory().createDatabase(sqlDriver).also {
         logger.atInfo().log { "DB started" }
     }
 
-    GradleClientUiMain().run()
+    GradleClientUiMain(BuildsRepository(database.buildsQueries)).run()
 }
 
-class GradleClientUiMain : Runnable {
+class GradleClientUiMain(
+    private val buildsRepository: BuildsRepository
+) : Runnable {
 
     @OptIn(ExperimentalComposeUiApi::class)
     override fun run() {
@@ -47,7 +50,10 @@ class GradleClientUiMain : Runnable {
 
         val lifecycle = LifecycleRegistry()
         val uiComponent = runOnUiThread {
-            UiComponent(DefaultComponentContext(lifecycle = lifecycle))
+            UiComponent(
+                context = DefaultComponentContext(lifecycle = lifecycle),
+                buildsRepository = buildsRepository,
+            )
         }
 
         application {

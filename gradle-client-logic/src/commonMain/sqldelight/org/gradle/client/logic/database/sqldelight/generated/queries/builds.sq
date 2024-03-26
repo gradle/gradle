@@ -5,3 +5,15 @@ SELECT DbBuild.* FROM DbBuild;
 
 select:
 SELECT DbBuild.* FROM DbBuild WHERE id = :id;
+
+insert:
+INSERT INTO DbBuild (
+    id,
+    rootDir
+) VALUES (
+    :id,
+    :rootDir
+);
+
+delete:
+DELETE FROM DbBuild WHERE id = :id;

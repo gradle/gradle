@@ -47,8 +47,14 @@
 # Logging
 -keep class org.slf4j.** { *; }
 -keep class ch.qos.logback.** { *; }
--keep class org.gradle.client.logic.util.Logback*
+-keep class org.gradle.client.ui.util.Logback*
 
 # Gradle shaded dependencies
 -dontwarn org.gradle.internal.impldep.**
 -keep class org.gradle.internal.impldep.** { *; }
+
+# Decompose
+-keep class com.arkivanov.decompose.extensions.compose.mainthread.**
+
+# JDBC
+-keep class **.sqlite.** { *; }
