@@ -52,7 +52,7 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-## Configuration cache improvements
+### Configuration cache improvements
 
 [Java Record classes](https://docs.oracle.com/en/java/javase/21/language/records.html) are now supported in the configuration cache.
 
@@ -179,6 +179,10 @@ ADD RELEASE FEATURES ABOVE
 ==========================================================
 
 -->
+
+### Allow specifying source encoding for Jacoco report tasks
+
+The source encoding of `JacocoReport` tasks may now be specified via the `sourceEncoding` property.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
