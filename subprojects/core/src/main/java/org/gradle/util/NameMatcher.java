@@ -207,4 +207,20 @@ public class NameMatcher {
         return candidates;
     }
 
+    /**
+     * Returns a formatted error message describing why the pattern matching failed.
+     *
+     * @return The error message.
+     */
+    public String formatErrorMessage(String singularItemDescription, Object container) {
+        String capItem = StringUtils.capitalize(singularItemDescription);
+        if (!matches.isEmpty()) {
+            return String.format("%s '%s' is ambiguous in %s. Candidates are: %s.", capItem, pattern, container, GUtil.toString(matches));
+        }
+        if (!candidates.isEmpty()) {
+            return String.format("%s '%s' not found in %s. Some candidates are: %s.", capItem, pattern, container, GUtil.toString(candidates));
+        }
+        return String.format("%s '%s' not found in %s.", capItem, pattern, container);
+    }
+
 }
