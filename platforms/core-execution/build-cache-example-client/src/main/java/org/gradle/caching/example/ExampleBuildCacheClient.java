@@ -5,7 +5,6 @@ import com.google.common.collect.Interner;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Provides;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.cache.StringInterner;
@@ -15,12 +14,11 @@ import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.DefaultCacheBuilder;
 import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
-import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProcessMetaDataProvider;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -150,24 +148,27 @@ public class ExampleBuildCacheClient {
 
         FileSystemLocationSnapshot outputDirectorySnapshot = fileSystemAccess.read(originalOutputDirectory.toAbsolutePath().toString());
         Map<String, FileSystemSnapshot> outputSnapshots = ImmutableMap.of("output", outputDirectorySnapshot);
+        LOGGER.info("Storing in cache");
         buildCacheController.store(cacheKey, originalEntity, outputSnapshots, Duration.ofSeconds(10));
 
         Path loadedFromCacheDirectory = Files.createTempDirectory("cache-entity-loaded");
         CacheableEntity loadedEntity = new ExampleEntity("test-entity", loadedFromCacheDirectory.toFile());
 
+        LOGGER.info("Loading from cache");
         @SuppressWarnings("unused")
         BuildCacheLoadResult loadResult = buildCacheController.load(cacheKey, loadedEntity)
             .orElseThrow(() -> new RuntimeException("Couldn't load from cache"));
+        LOGGER.info("Loaded from cache ({} archive entries)", loadResult.getArtifactEntryCount());
 
         Files.walkFileTree(loadedFromCacheDirectory, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                System.out.println(" - " + file.toAbsolutePath());
+                LOGGER.info(" - " + file.toAbsolutePath());
                 return FileVisitResult.CONTINUE;
             }
         });
 
-        System.out.println("Finished");
+        LOGGER.info("Finished");
     }
 
 
@@ -406,17 +407,17 @@ public class ExampleBuildCacheClient {
             return new BuildOperationListener() {
                 @Override
                 public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-                    
+                    LOGGER.info("Started: {}", buildOperation.getDisplayName());
                 }
 
                 @Override
                 public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-
+                    LOGGER.info("Progress: {}", operationIdentifier);
                 }
 
                 @Override
                 public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-
+                    LOGGER.info("Finished: {}", buildOperation.getDisplayName());
                 }
             };
         }
