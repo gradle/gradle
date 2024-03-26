@@ -50,15 +50,17 @@ data class ProjectSchema<out T>(
     val conventions: List<ProjectSchemaEntry<T>>,
     val tasks: List<ProjectSchemaEntry<T>>,
     val containerElements: List<ProjectSchemaEntry<T>>,
-    val configurations: List<ConfigurationEntry<String>>
-) : Serializable {
+    val configurations: List<ConfigurationEntry<String>>,
+    val scriptTarget: Any? = null
+) {
 
     fun <U> map(f: (T) -> U) = ProjectSchema(
         extensions.map { it.map(f) },
         conventions.map { it.map(f) },
         tasks.map { it.map(f) },
         containerElements.map { it.map(f) },
-        configurations
+        configurations,
+        scriptTarget
     )
 
     fun isNotEmpty(): Boolean =
