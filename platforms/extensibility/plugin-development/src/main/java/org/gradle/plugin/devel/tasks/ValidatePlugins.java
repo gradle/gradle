@@ -55,7 +55,7 @@ import java.util.stream.Stream;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.introductionFor;
+import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.introductionFor;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.

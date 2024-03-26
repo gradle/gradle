@@ -18,10 +18,16 @@ package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
+import org.gradle.api.problems.internal.Problem;
 
 import javax.annotation.Nullable;
 
+import java.util.Map;
+import java.util.Optional;
+
 import static java.lang.Boolean.TRUE;
+import static java.lang.Boolean.parseBoolean;
+import static java.util.Optional.ofNullable;
 
 @NonNullApi
 public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
@@ -65,6 +71,73 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
         additionalData(PARENT_PROPERTY_NAME, pp);
         parentPropertyAdditionalData = pp;
         return this;
+    }
+
+    @Override
+    public InternalProblemBuilder contextualLabel(String message) {
+        super.contextualLabel(introductionFor(super.build().getAdditionalData()) + message);
+        return this;
+    }
+
+    @Override
+    public Problem build() {
+        Problem problem = super.build();
+        String prefix = introductionFor(problem.getAdditionalData());
+        String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
+        return problem.toBuilder().contextualLabel(prefix + text).build();
+    }
+
+    public static String introductionFor(Map<String, Object> additionalMetadata) {
+        StringBuilder builder = new StringBuilder();
+        String rootType = ofNullable(additionalMetadata.get(TYPE_NAME))
+            .map(Object::toString)
+            .filter(DefaultTypeAwareProblemBuilder::shouldRenderType)
+            .orElse(null);
+        DefaultPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID))
+            .map(Object::toString)
+            .map(DefaultPluginId::new)
+            .orElse(null);
+        boolean typeRelevant = rootType != null && !parseBoolean(additionalMetadata.getOrDefault(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, "").toString());
+        if (typeRelevant) {
+            if (pluginId != null) {
+                builder.append("In plugin '")
+                    .append(pluginId)
+                    .append("' type '");
+            } else {
+                builder.append("Type '");
+            }
+            builder.append(rootType).append("' ");
+        }
+
+        Object property = additionalMetadata.get(PROPERTY_NAME);
+        if (property != null) {
+            if (typeRelevant) {
+                builder.append("property '");
+            } else {
+                if (pluginId != null) {
+                    builder.append("In plugin '")
+                        .append(pluginId)
+                        .append("' property '");
+                } else {
+                    builder.append("Property '");
+                }
+            }
+            ofNullable(additionalMetadata.get(PARENT_PROPERTY_NAME)).ifPresent(parentProperty -> {
+                builder.append(parentProperty);
+                builder.append('.');
+            });
+            builder.append(property)
+                .append("' ");
+        }
+        return builder.toString();
+    }
+
+    // A heuristic to determine if the type is relevant or not.
+    // The "DefaultTask" type may appear in error messages
+    // (if using "adhoc" tasks) but isn't visible to this
+    // class so we have to rely on text matching for now.
+    private static boolean shouldRenderType(String className) {
+        return !"org.gradle.api.DefaultTask".equals(className);
     }
 
     private String parentPropertyAdditionalData = null;
