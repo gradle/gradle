@@ -29,10 +29,12 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,14 +61,14 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         super(instanceId, graphMetadata, attributeDesugaring);
         this.artifactMetadata = artifactMetadata;
         this.allVariantsForGraphResolution = Lazy.locking().of(() ->
-            graphMetadata.getVariantsForGraphTraversal()
+            getVariantsForGraphTraversal(graphMetadata)
                 .stream()
                 .map(ModuleConfigurationMetadata.class::cast)
                 .map(variant -> resolveStateFor(variant).asVariant())
                 .collect(Collectors.toList())
         );
         this.idGenerator = idGenerator;
-        this.selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().stream()
+        this.selectableVariantResults = getVariantsForGraphTraversal(graphMetadata).stream()
             .flatMap(variant -> variant.getVariants().stream())
             .map(variant -> new DefaultResolvedVariantResult(
                 getId(),
@@ -76,6 +78,13 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
                 null
             ))
             .collect(Collectors.toList());
+    }
+
+    private static <T extends ComponentGraphResolveMetadata> List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal(T graphMetadata) {
+        if (!(graphMetadata instanceof ModuleComponentResolveMetadata)) {
+            return ImmutableList.of();
+        }
+        return ((ModuleComponentResolveMetadata) graphMetadata).getVariantsForGraphTraversal();
     }
 
     public S getArtifactMetadata() {
@@ -104,6 +113,14 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
 
     private List<? extends VariantGraphResolveState> getVariantsForGraphTraversal() {
         return allVariantsForGraphResolution.get();
+    }
+
+    private Set<String> getConfigurationNames() {
+        if (!(getMetadata() instanceof ModuleComponentGraphResolveMetadata)) {
+            return Collections.emptySet();
+        }
+
+        return ((ModuleComponentGraphResolveMetadata) getMetadata()).getConfigurationNames();
     }
 
     @Nullable
@@ -265,6 +282,11 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
                 throw new IllegalStateException("No variants available for attribute matching.");
             }
             return variants;
+        }
+
+        @Override
+        public Set<String> getConfigurationNames() {
+            return component.getConfigurationNames();
         }
 
         @Nullable

@@ -20,8 +20,10 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * The meta-data for a component that is resolved from a module in a binary repository.
@@ -38,6 +40,12 @@ public interface ModuleComponentResolveMetadata extends ExternalComponentResolve
     @Nullable
     @Override
     ModuleConfigurationMetadata getConfiguration(String name);
+
+    /**
+     * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes.
+     * May be empty, in which case selection falls back to an ecosystem-specific selection strategy.
+     */
+    List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal();
 
     /**
      * Creates a mutable copy of this metadata.

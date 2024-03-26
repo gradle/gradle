@@ -125,10 +125,10 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private LocalComponentGraphResolveState createRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ModelContainer<?> model) {
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         if (shouldCacheResolutionState()) {
-            return localResolveStateFactory.stateFor(model, componentIdentifier, configurationsProvider, moduleVersionIdentifier, module.getStatus(), schema);
+            return localResolveStateFactory.stateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, module.getStatus(), schema);
         } else {
             // Mark the state as 'ad hoc' and not cacheable
-            return localResolveStateFactory.adHocStateFor(model, componentIdentifier, configurationsProvider, moduleVersionIdentifier, module.getStatus(), schema);
+            return localResolveStateFactory.adHocStateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, module.getStatus(), schema);
         }
     }
 

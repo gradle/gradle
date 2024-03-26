@@ -42,13 +42,11 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -150,11 +148,6 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         @Nullable
         public ModuleConfigurationMetadata getConfiguration(String name) {
             return new ClientModuleConfigurationMetadata(delegate.getId(), name, clientModuleArtifact, clientModuleDependencies);
-        }
-
-        @Override
-        public List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal() {
-            return Collections.emptyList();
         }
 
         @Override

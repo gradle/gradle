@@ -22,7 +22,9 @@ import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -32,9 +34,11 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
@@ -43,36 +47,34 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 
 /**
- * Tests {@link DefaultLocalComponentGraphResolveMetadata}.
- *
- * TODO: This class currently tests a lot of the functionality of
- * {@link DefaultLocalVariantMetadataBuilder}. That class should either be merged
- * with {@link DefaultLocalComponentGraphResolveMetadata}, or the relevant tests should be moved
- * to the builder's test class.
+ * Tests {@link LocalComponentGraphResolveStateFactory}.
  */
-class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuilderSpec {
-    def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
-    def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
+class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderSpec {
+    ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
+    ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
 
     def metadataBuilder = new DefaultLocalVariantMetadataBuilder(
         new TestDependencyMetadataFactory(),
         new DefaultExcludeRuleConverter(new DefaultImmutableModuleIdentifierFactory())
     )
 
-    DefaultLocalComponentGraphResolveMetadata.VariantMetadataFactory configurationsFactory
-    DefaultLocalComponentGraphResolveMetadata metadata
+    LocalComponentGraphResolveStateFactory stateFactory = new LocalComponentGraphResolveStateFactory(
+        Stub(AttributeDesugaring),
+        new ComponentIdGenerator(),
+        metadataBuilder,
+        TestUtil.calculatedValueContainerFactory()
+    )
+
+    LocalComponentGraphResolveState state
 
     def setup() {
-        configurationsFactory = new DefaultLocalComponentGraphResolveMetadata.ConfigurationsProviderMetadataFactory(
-            componentIdentifier,
-            project.configurations as ConfigurationsProvider,
-            metadataBuilder,
+        state = stateFactory.stateFor(
             RootScriptDomainObjectContext.INSTANCE,
-            TestUtil.calculatedValueContainerFactory()
-        )
-        metadata = new DefaultLocalComponentGraphResolveMetadata(
-            id, componentIdentifier, "status", Mock(AttributesSchemaInternal),
-            configurationsFactory, null
+            componentIdentifier,
+            id,
+            project.configurations as ConfigurationsProvider,
+            "status",
+            EmptySchema.INSTANCE
         )
     }
 
@@ -82,7 +84,7 @@ class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuild
         consumable("conf", [parent])
 
         expect:
-        metadata.variantsForGraphTraversal.find { it -> it.configurationName == 'conf' }
+        state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf")
     }
 
     def "configuration has no dependencies or artifacts when none have been added"() {
@@ -91,18 +93,16 @@ class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuild
         consumable("conf", [parent])
 
         when:
-        def confMd = metadata.variantsForGraphTraversal.find { it -> it.configurationName == 'conf' }
+        def confState = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf")
 
         then:
-        confMd.dependencies.empty
-        confMd.excludes.empty
-        confMd.files.empty
+        confState.metadata.dependencies.empty
+        confState.metadata.excludes.empty
+        confState.metadata.files.empty
 
-        when:
-        def artifactState = confMd.prepareToResolveArtifacts()
-
-        then:
-        artifactState.artifacts.isEmpty()
+        and:
+        confState.resolveArtifacts().artifacts.isEmpty()
+        confState.prepareForArtifactResolution().artifactVariants.size() == 1
     }
 
     def "can lookup artifact in various ways after it has been added"() {
@@ -114,18 +114,18 @@ class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuild
         addArtifact(conf, artifact, file)
 
         when:
-        def confMd = metadata.variantsForGraphTraversal.find { it -> it.configurationName == 'conf' }
+        def confState = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf")
 
         then:
-        confMd.prepareToResolveArtifacts().artifacts.size() == 1
+        confState.resolveArtifacts().artifacts.size() == 1
 
-        def publishArtifact = confMd.prepareToResolveArtifacts().artifacts.first()
+        def publishArtifact = confState.resolveArtifacts().artifacts.first()
         publishArtifact.id
         publishArtifact.name.name == artifact.name
         publishArtifact.name.type == artifact.type
         publishArtifact.name.extension == artifact.extension
         publishArtifact.file == file
-        publishArtifact == confMd.prepareToResolveArtifacts().variants.first().artifacts.first()
+        publishArtifact == confState.prepareForArtifactResolution().artifactVariants.first().artifacts.first()
     }
 
     def "artifact is attached to child configurations"() {
@@ -147,12 +147,12 @@ class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuild
         addArtifact(child1, artifact3, file3)
 
         when:
-        def child1Md = metadata.variantsForGraphTraversal.find { it.configurationName == "child1" }
-        def child2Md = metadata.variantsForGraphTraversal.find { it.configurationName == "child2" }
+        def conf1State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("child1")
+        def conf2State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("child2")
 
         then:
-        child1Md.prepareToResolveArtifacts().artifacts.size() == 3
-        child2Md.prepareToResolveArtifacts().artifacts.size() == 1
+        conf1State.resolveArtifacts().artifacts.size() == 3
+        conf2State.resolveArtifacts().artifacts.size() == 1
     }
 
     def "can add artifact to several configurations"() {
@@ -168,12 +168,12 @@ class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuild
         conf2.artifacts.add(publishArtifact)
 
         when:
-        def conf1Md = metadata.variantsForGraphTraversal.find { it.configurationName == "conf1" }
-        def conf2Md = metadata.variantsForGraphTraversal.find { it.configurationName == "conf2" }
+        def conf1State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf1")
+        def conf2State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf2")
 
         then:
-        conf1Md.prepareToResolveArtifacts().artifacts.size() == 1
-        conf1Md.prepareToResolveArtifacts().artifacts == conf2Md.prepareToResolveArtifacts().artifacts
+        conf1State.resolveArtifacts().artifacts.size() == 1
+        conf1State.resolveArtifacts().artifacts == conf2State.resolveArtifacts().artifacts
     }
 
     def "artifact has same file as original publish artifact"() {
@@ -187,10 +187,10 @@ class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuild
         addArtifact(conf, artifact, file)
 
         when:
-        def confMd = metadata.variantsForGraphTraversal.find { it -> it.configurationName == 'conf' }
+        def confState = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf")
 
         then:
-        confMd.prepareToResolveArtifacts().artifacts.first().file == file
+        confState.resolveArtifacts().artifacts.first().file == file
     }
 
     def "treats as distinct two artifacts with duplicate attributes and different files"() {
@@ -206,20 +206,20 @@ class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuild
         addArtifact(conf2, artifact2, file2)
 
         when:
-        def conf1Md = metadata.variantsForGraphTraversal.find { it.configurationName == "conf1" }
-        def conf2Md = metadata.variantsForGraphTraversal.find { it.configurationName == "conf2" }
+        def conf1State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf1")
+        def conf2State = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf2")
 
         then:
-        def conf1Artifacts = conf1Md.prepareToResolveArtifacts().artifacts as List
+        def conf1Artifacts = conf1State.prepareForArtifactResolution().artifactVariants as List
         conf1Artifacts.size() == 1
         def artifactMetadata1 = conf1Artifacts[0]
 
-        def conf2Artifacts = conf2Md.prepareToResolveArtifacts().artifacts as List
+        def conf2Artifacts = conf2State.prepareForArtifactResolution().artifactVariants as List
         conf2Artifacts.size() == 1
         def artifactMetadata2 = conf2Artifacts[0]
 
         and:
-        artifactMetadata1.id != artifactMetadata2.id
+        artifactMetadata1.identifier != artifactMetadata2.identifier
 
         and:
         conf1Artifacts == [artifactMetadata1]
@@ -243,19 +243,19 @@ class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuild
         variant2.artifacts.add(Stub(PublishArtifact))
 
         when:
-        def config1 = metadata.variantsForGraphTraversal.find { it.configurationName == "conf1" }
-        def config2 = metadata.variantsForGraphTraversal.find { it.configurationName == "conf2" }
+        def config1 = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf1")
+        def config2 = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf2")
 
         then:
-        config1.prepareToResolveArtifacts().variants*.name as List == ["conf1", "conf1-variant1"]
-        config1.prepareToResolveArtifacts().variants.find { it.name == "conf1-variant1" }.attributes == AttributeTestUtil.attributes(["foo1": "bar1"])
+        config1.prepareForArtifactResolution().artifactVariants*.name as List == ["conf1", "conf1-variant1"]
+        config1.prepareForArtifactResolution().artifactVariants.find { it.name == "conf1-variant1" }.attributes == AttributeTestUtil.attributes(["foo1": "bar1"])
 
-        config2.prepareToResolveArtifacts().variants*.name as List == ["conf2", "conf2-variant2"]
-        config2.prepareToResolveArtifacts().variants.find { it.name == "conf2-variant2" }.attributes == AttributeTestUtil.attributes(["foo2": "bar2"])
+        config2.prepareForArtifactResolution().artifactVariants*.name as List == ["conf2", "conf2-variant2"]
+        config2.prepareForArtifactResolution().artifactVariants.find { it.name == "conf2-variant2" }.attributes == AttributeTestUtil.attributes(["foo2": "bar2"])
 
         and:
-        config1.prepareToResolveArtifacts().variants.find { it.name == "conf1-variant1" }.artifacts.size() == 1
-        config2.prepareToResolveArtifacts().variants.find { it.name == "conf2-variant2" }.artifacts.size() == 2
+        config1.prepareForArtifactResolution().artifactVariants.find { it.name == "conf1-variant1" }.artifacts.size() == 1
+        config2.prepareForArtifactResolution().artifactVariants.find { it.name == "conf2-variant2" }.artifacts.size() == 2
     }
 
     def "files attached to configuration and its children"() {
@@ -276,8 +276,8 @@ class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuild
         conf3.getDependencies().add(files3)
 
         expect:
-        metadata.getRootVariant('child1').files*.source == [files1, files2, files3]
-        metadata.getRootVariant('child2').files*.source == [files1]
+        state.getRootVariant('child1').metadata.files*.source == [files1, files2, files3]
+        state.getRootVariant('child2').metadata.files*.source == [files1]
     }
 
     def "dependency is attached to configuration and its children"() {
@@ -298,9 +298,9 @@ class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuild
         conf3.getDependencies().add(dependency3)
 
         then:
-        metadata.getRootVariant("child1").dependencies*.source == [dependency1, dependency2, dependency3]
-        metadata.getRootVariant("child2").dependencies*.source == [dependency1]
-        metadata.getRootVariant("other").dependencies.isEmpty()
+        state.getRootVariant("child1").metadata.dependencies*.source == [dependency1, dependency2, dependency3]
+        state.getRootVariant("child2").metadata.dependencies*.source == [dependency1]
+        state.getRootVariant("other").metadata.dependencies.isEmpty()
     }
 
     def "builds and caches exclude rules for a configuration"() {
@@ -312,7 +312,7 @@ class DefaultLocalComponentGraphResolveMetadataTest extends AbstractProjectBuild
         child.exclude([group: "group2", module: "module2"])
 
         expect:
-        def config = metadata.getRootVariant("child")
+        def config = state.getRootVariant("child").metadata
         def excludes = config.excludes
         config.excludes*.moduleId.group == ["group2", "group1"]
         config.excludes*.moduleId.name == ["module2", "module1"]

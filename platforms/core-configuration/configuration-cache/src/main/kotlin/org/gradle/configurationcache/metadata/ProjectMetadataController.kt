@@ -45,6 +45,7 @@ import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState
 import org.gradle.internal.component.local.model.LocalVariantMetadata
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -74,23 +75,35 @@ class ProjectMetadataController(
         context.runWriteOperation {
             write(value.id)
             write(value.moduleVersionId)
-            writeVariants(value.metadata.getVariantsForGraphTraversal())
+            writeVariants(value.candidatesForGraphVariantSelection)
         }
     }
 
     private
-    suspend fun WriteContext.writeVariants(variants: List<LocalVariantGraphResolveMetadata>) {
+    suspend fun WriteContext.writeVariants(candidates: LocalComponentGraphResolveState.LocalComponentGraphSelectionCandidates) {
+        val variants = mutableListOf<LocalVariantGraphResolveState>()
+
+        // Collect all variants that have attributes
+        if (candidates.supportsAttributeMatching()) {
+            variants.addAll(candidates.variantsForAttributeMatching.filterNotNull())
+        }
+
+        // Collect remaining variants without attributes
+        val allConfigurationNames = candidates.configurationNames.toMutableSet()
+        allConfigurationNames.removeAll(variants.mapNotNull { it.metadata.configurationName }.toSet())
+        variants.addAll(allConfigurationNames.map { candidates.getVariantByConfigurationName(it)!! })
+
         writeCollection(variants) {
             writeVariant(it)
         }
     }
 
     private
-    suspend fun WriteContext.writeVariant(variant: LocalVariantGraphResolveMetadata) {
+    suspend fun WriteContext.writeVariant(variant: LocalVariantGraphResolveState) {
         writeString(variant.name)
         write(variant.attributes)
-        writeDependencies(variant.dependencies)
-        writeArtifactVariants(variant.prepareToResolveArtifacts().variants)
+        writeDependencies(variant.metadata.dependencies)
+        writeArtifactVariants(variant.prepareForArtifactResolution().artifactVariants)
     }
 
     private
@@ -159,7 +172,7 @@ class ProjectMetadataController(
 
         return DefaultLocalVariantGraphResolveMetadata(
             variantName, variantName, componentId, true, attributes,
-            ImmutableCapabilities.EMPTY, false, false, dependencyMetadata,
+            ImmutableCapabilities.EMPTY, false, dependencyMetadata,
             variants, factory, artifactMetadata
         )
     }

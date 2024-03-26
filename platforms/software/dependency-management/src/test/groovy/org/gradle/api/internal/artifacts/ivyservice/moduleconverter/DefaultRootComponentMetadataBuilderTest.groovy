@@ -103,11 +103,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         configurationsProvider.findByName('conf') >> resolvable()
 
         def root = builder.toRootComponent('root')
-        def metadata = root.rootComponent.metadata
-
-        assert !metadata.isConfigurationRealized('conf')
-        metadata.getRootVariant('conf')
-        assert metadata.isConfigurationRealized('conf')
+        def variant = root.rootComponent.getRootVariant('conf')
 
         when:
         builder.validator.validateMutation(mutationType)
@@ -116,7 +112,9 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         then:
         root.rootComponent.is(otherRoot.rootComponent)
         root.rootComponent.metadata.is(otherRoot.rootComponent.metadata)
-        !metadata.isConfigurationRealized('conf')
+        !otherRoot.rootComponent.getRootVariant('conf').is(variant)
+
+        when:
 
         where:
         mutationType << [
@@ -137,11 +135,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         configurationsProvider.findByName('conf') >> resolvable()
 
         def root = builder.toRootComponent('root')
-        def metadata = root.rootComponent.metadata
-
-        assert !metadata.isConfigurationRealized("conf")
-        metadata.getRootVariant("conf")
-        assert metadata.isConfigurationRealized("conf")
+        def variant = root.rootComponent.getRootVariant("conf")
 
         when:
         builder.validator.validateMutation(mutationType)
@@ -150,7 +144,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         then:
         root.rootComponent.is(otherRoot.rootComponent)
         root.rootComponent.metadata.is(otherRoot.rootComponent.metadata)
-        metadata.isConfigurationRealized("conf")
+        otherRoot.rootComponent.getRootVariant('conf').is(variant)
 
         where:
         mutationType << [MutationValidator.MutationType.STRATEGY]

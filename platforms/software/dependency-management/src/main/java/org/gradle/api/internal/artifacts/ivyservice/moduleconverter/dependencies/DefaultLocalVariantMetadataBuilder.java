@@ -128,7 +128,6 @@ public class DefaultLocalVariantMetadataBuilder implements LocalVariantMetadataB
             attributes,
             capabilities,
             configuration.isDeprecatedForConsumption(),
-            configuration.isCanBeResolved(),
             dependencies,
             variantsBuilder.build(),
             calculatedValueContainerFactory,

@@ -58,6 +58,6 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
         ConfigurationsProvider configurations = (DefaultConfigurationContainer) project.getConfigurations();
 
-        return resolveStateFactory.stateFor(projectState, componentIdentifier, configurations, moduleVersionIdentifier, module.getStatus(), schema);
+        return resolveStateFactory.stateFor(projectState, componentIdentifier, moduleVersionIdentifier, configurations, module.getStatus(), schema);
     }
 }

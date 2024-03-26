@@ -47,12 +47,6 @@ public interface ComponentGraphResolveMetadata {
     boolean isChanging();
 
     /**
-     * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes.
-     * May be empty, in which case selection falls back to an ecosystem-specific selection strategy.
-     */
-    List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal();
-
-    /**
      * Returns the platforms that this component belongs to.
      */
     List<? extends VirtualComponentIdentifier> getPlatformOwners();

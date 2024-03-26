@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Dependency;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 public interface GraphSelectionCandidates {
     /**
@@ -35,6 +36,11 @@ public interface GraphSelectionCandidates {
      * @throws IllegalStateException if {@link #supportsAttributeMatching()} returns false.
      */
     List<? extends VariantGraphResolveState> getVariantsForAttributeMatching();
+
+    /**
+     * Return all names such that {@link #getVariantByConfigurationName(String)} is non-null.
+     */
+    Set<String> getConfigurationNames();
 
     /**
      * Returns the variant to use when attribute-based variant selection is not enabled.

@@ -388,6 +388,11 @@ Configuration 'bar':
         }
 
         @Override
+        Set<String> getConfigurationNames() {
+            return variants.collect { it.name } as Set
+        }
+
+        @Override
         VariantGraphResolveState getVariantByConfigurationName(String name) {
             variants.find { it -> it.name == name }
         }

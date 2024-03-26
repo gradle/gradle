@@ -19,9 +19,13 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.GraphSelectionCandidates;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
 
 /**
  * A specialized {@link ComponentGraphResolveState} for local components (ie project dependencies).
@@ -43,10 +47,13 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
      */
     LocalVariantGraphResolveState getRootVariant(String name);
 
+    @Override
+    LocalComponentGraphSelectionCandidates getCandidatesForGraphVariantSelection();
+
     ModuleVersionIdentifier getModuleVersionId();
 
     @Override
-    LocalComponentGraphResolveMetadata getMetadata();
+    ComponentGraphResolveMetadata getMetadata();
 
     /**
      * Copies this state, but with the new component ID and the artifacts transformed by the given transformer.
@@ -57,4 +64,13 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
      * @see LocalComponentGraphResolveState#reevaluate()
      */
     void reevaluate();
+
+    interface LocalComponentGraphSelectionCandidates extends GraphSelectionCandidates {
+        @Override
+        List<? extends LocalVariantGraphResolveState> getVariantsForAttributeMatching();
+
+        @Nullable
+        @Override
+        LocalVariantGraphResolveState getVariantByConfigurationName(String name);
+    }
 }

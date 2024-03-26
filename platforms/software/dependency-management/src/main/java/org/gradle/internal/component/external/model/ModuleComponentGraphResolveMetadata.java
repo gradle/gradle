@@ -30,7 +30,7 @@ public interface ModuleComponentGraphResolveMetadata extends ComponentGraphResol
 
     /**
      * Returns the names of all legacy configurations for this component.
-     * May be empty, in which case the component should provide at least one variant via {@link ComponentGraphResolveMetadata#getVariantsForGraphTraversal()}.
+     * May be empty, in which case the component should provide at least one variant via {@link ModuleComponentResolveMetadata#getVariantsForGraphTraversal()}.
      */
     Set<String> getConfigurationNames();
 
