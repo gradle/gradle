@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local;
+package org.gradle.internal.file;
 
-import org.gradle.internal.file.FileAccessTimeJournal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 
+@SuppressWarnings("Since15")
 public class ModificationTimeFileAccessTimeJournal implements FileAccessTimeJournal {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ModificationTimeFileAccessTimeJournal.class);

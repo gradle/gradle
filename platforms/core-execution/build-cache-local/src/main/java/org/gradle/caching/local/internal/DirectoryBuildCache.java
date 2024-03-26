@@ -17,13 +17,12 @@
 package org.gradle.caching.local.internal;
 
 import com.google.common.io.Closer;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.NonNullApi;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.io.IoConsumer;
-import org.gradle.util.internal.GFileUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -109,15 +108,15 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
 
         try {
             reader.accept(file);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             // Try to move the file out of the way in case its permanently corrupt
             // Don't delete, so that it can be potentially used for debugging
             File failedFile = new File(file.getAbsolutePath() + failedFileSuffix);
-            GFileUtils.deleteQuietly(failedFile);
+            FileUtils.deleteQuietly(failedFile);
             //noinspection ResultOfMethodCallIgnored
             file.renameTo(failedFile);
 
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw e;
         }
     }
 
@@ -134,7 +133,7 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
                     closer.close();
                 }
             } catch (IOException ex) {
-                throw UncheckedException.throwAsUncheckedException(ex);
+                throw new UncheckedIOException(ex);
             }
 
             storeLocally(key, file);

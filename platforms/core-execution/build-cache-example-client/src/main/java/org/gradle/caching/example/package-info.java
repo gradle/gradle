@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.caching.example;
 
-CREATE SCHEMA IF NOT EXISTS filestore;
-
-CREATE TABLE IF NOT EXISTS filestore.catalog
-(
-    entry_key     VARCHAR(32)         NOT NULL PRIMARY KEY,
-    entry_size    BIGINT              NOT NULL,
-    entry_content BINARY LARGE OBJECT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS filestore.lru
-(
-    entry_key     VARCHAR(32)         NOT NULL PRIMARY KEY,
-    entry_accessed    BIGINT          NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS entry_accessed
-ON filestore.lru (entry_accessed);
+import org.gradle.api.NonNullApi;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.local
+package org.gradle.internal.file
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

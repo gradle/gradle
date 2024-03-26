@@ -177,7 +177,7 @@ dependencies {
         api(libs.cglib)                 { version { strictly("3.2.6") }}
         api(libs.compileTesting)        { version { strictly("0.21.0")}}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
-        api(libs.guice)                 { version { strictly("4.2.3") }}
+        api(libs.guice)                 { version { strictly("5.1.0") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
         api(libs.javaParser)            { version { strictly("3.17.0") }}
         api(libs.jetty)                 { version { strictly(jettyVersion) }}

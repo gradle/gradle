@@ -2572,7 +2572,6 @@ Class <org.gradle.internal.resource.local.LocallyAvailableResource> is not annot
 Class <org.gradle.internal.resource.local.LocallyAvailableResourceCandidates> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LocallyAvailableResourceCandidates.java:0)
 Class <org.gradle.internal.resource.local.LocallyAvailableResourceFinder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LocallyAvailableResourceFinder.java:0)
 Class <org.gradle.internal.resource.local.LocallyAvailableResourceFinderSearchableFileStoreAdapter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LocallyAvailableResourceFinderSearchableFileStoreAdapter.java:0)
-Class <org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ModificationTimeFileAccessTimeJournal.java:0)
 Class <org.gradle.internal.resource.local.PathKeyFileStore> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PathKeyFileStore.java:0)
 Class <org.gradle.internal.resource.local.PathNormalisingKeyFileStore> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PathNormalisingKeyFileStore.java:0)
 Class <org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory$NoMavenLocalRepositoryResourceFinder$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LocallyAvailableResourceFinderFactory.java:0)
