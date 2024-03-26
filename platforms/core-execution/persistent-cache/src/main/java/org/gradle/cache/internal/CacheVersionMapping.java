@@ -65,6 +65,11 @@ public class CacheVersionMapping {
             return changedTo(versions.get(versions.lastKey()) + 1, minGradleVersion);
         }
 
+        /**
+         * Specify the Gradle version where this cache directory was retired.
+         * For this and any newer Gradle version, the cache directory is unused.
+         * This is indicated by setting the current cache version to Integer.MAX_VALUE (so it cannot be further incremented).
+         */
         public Builder retiredIn(String gradleVersion) {
             return changedTo(Integer.MAX_VALUE, gradleVersion);
         }
