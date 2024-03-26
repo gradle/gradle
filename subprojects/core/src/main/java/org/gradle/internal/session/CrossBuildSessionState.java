@@ -54,12 +54,11 @@ import java.io.Closeable;
 
 /**
  * Services to be shared across build sessions.
- *
+ * <p>
  * Generally, one regular Gradle invocation is conceptually a session.
  * However, the GradleBuild task is currently implemented in such a way that it uses a discrete session.
- * Having the GradleBuild task reuse the outer session is complicated because it may use a different Gradle user home.
- * See https://github.com/gradle/gradle/issues/4559.
- *
+ * Having the GradleBuild task reuse the outer session is complicated because it <a href="https://github.com/gradle/gradle/issues/4559">may use a different Gradle user home</a>.
+ * <p>
  * This set of services is added as a parent of each build session scope.
  */
 @ServiceScope(Scope.CrossBuildSession.class)

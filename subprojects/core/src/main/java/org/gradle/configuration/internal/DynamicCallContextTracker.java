@@ -40,6 +40,7 @@ public interface DynamicCallContextTracker {
     /**
      * Notifies the tracker that the control flow entered the context of a new dynamic call.
      * The tracker itself notifies all the registered listeners.
+     *
      * @param entryPoint the key to identify the dynamic call
      */
     void enterDynamicCall(Object entryPoint);
@@ -47,6 +48,7 @@ public interface DynamicCallContextTracker {
     /**
      * Notifies the tracker that the dynamic call ended.
      * The tracker itself notifies all the registered listeners.
+     *
      * @param entryPoint the key identifying the dynamic call, should match the key passed to {@code enterDynamicCall}.
      * @throws IllegalStateException if the {@code entryPoint} does not match the one stored in the call entry.
      */
