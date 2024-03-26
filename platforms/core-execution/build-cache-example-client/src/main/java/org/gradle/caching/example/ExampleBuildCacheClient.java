@@ -5,11 +5,27 @@ import com.google.common.collect.Interner;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.cache.CacheCleanupStrategy;
+import org.gradle.cache.DefaultCacheCleanupStrategy;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.DefaultCacheFactory;
+import org.gradle.cache.internal.DefaultFileLockManager;
+import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
+import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory;
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
+import org.gradle.cache.internal.ProcessMetaDataProvider;
+import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
+import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.BuildCacheKeyInternal;
 import org.gradle.caching.internal.CacheableEntity;
@@ -24,19 +40,27 @@ import org.gradle.caching.internal.packaging.impl.GZipBuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.TarBuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.TarPackerFileSystemSupport;
 import org.gradle.caching.local.internal.DirectoryBuildCache;
+import org.gradle.caching.local.internal.DirectoryBuildCacheService;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.caching.local.internal.TemporaryFileFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.ModificationTimeFileAccessTimeJournal;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
+import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
@@ -46,6 +70,7 @@ import org.gradle.internal.nativeintegration.filesystem.jdk7.WindowsJdk7Symlink;
 import org.gradle.internal.nativeintegration.filesystem.services.EmptyChmod;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackStat;
 import org.gradle.internal.nativeintegration.filesystem.services.GenericFileSystem;
+import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -63,11 +88,13 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
+import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
@@ -86,8 +113,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 
+import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
@@ -96,6 +124,13 @@ public class ExampleBuildCacheClient {
 
     private final BuildCacheController buildCacheController;
     private final FileSystemAccess fileSystemAccess;
+
+    public static void main(String[] args) throws IOException {
+        LOGGER.info("Hello world!");
+        Guice.createInjector(new ApplicationModule("build-1"))
+            .getInstance(ExampleBuildCacheClient.class)
+            .useBuildCache();
+    }
 
     @Inject
     public ExampleBuildCacheClient(BuildCacheController buildCacheController, FileSystemAccess fileSystemAccess) {
@@ -131,14 +166,10 @@ public class ExampleBuildCacheClient {
                 return FileVisitResult.CONTINUE;
             }
         });
+
+        System.out.println("Finished");
     }
 
-    public static void main(String[] args) throws IOException {
-        LOGGER.info("Hello world!");
-        Guice.createInjector(new ApplicationModule("build-1"))
-            .getInstance(ExampleBuildCacheClient.class)
-            .useBuildCache();
-    }
 
     // TODO Add a SimpleBuildCacheKey to the library
     private static class SimpleBuildCacheKey implements BuildCacheKeyInternal {
@@ -247,28 +278,76 @@ public class ExampleBuildCacheClient {
         }
 
         @Provides
-        LocalBuildCacheService createLocalBuildCacheService() {
-            return new LocalBuildCacheService() {
-                @Override
-                public void loadLocally(BuildCacheKey key, Consumer<? super File> reader) {
+        UnscopedCacheBuilderFactory createUnscopedCacheBuilderFactory(CacheFactory cacheFactory) {
+            return new DefaultUnscopedCacheBuilderFactory(cacheFactory);
+        }
 
-                }
+        @Provides
+        FileAccessTimeJournal createFileAccessTimeJournal() {
+            return new ModificationTimeFileAccessTimeJournal();
+        }
 
-                @Override
-                public void storeLocally(BuildCacheKey key, File file) {
+        @Provides
+        ExecutorFactory createExecutorFactory() {
+            return new DefaultExecutorFactory();
+        }
 
-                }
+        @Provides
+        InetAddressFactory createInetAddressFactory() {
+            return new InetAddressFactory();
+        }
 
-                @Override
-                public void close() {
+        @Provides
+        FileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
+            return new DefaultFileLockContentionHandler(executorFactory, inetAddressFactory);
+        }
 
-                }
+        @Provides
+        ProcessEnvironment createProcessEnvironment() {
+            return new UnsupportedEnvironment();
+        }
 
-                @Override
-                public void withTempFile(HashCode key, Consumer<? super File> action) {
+        @Provides
+        FileLockManager createFileLockManager(ProcessEnvironment processEnvironment, FileLockContentionHandler fileLockContentionHandler) {
+            ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(processEnvironment);
+            return new DefaultFileLockManager(metaDataProvider, fileLockContentionHandler);
+        }
 
-                }
-            };
+        @Provides
+        CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
+            return new DefaultCacheFactory(fileLockManager, executorFactory, buildOperationRunner);
+        }
+
+        @Provides
+        LocalBuildCacheService createLocalBuildCacheService(
+            CacheCleanupStrategy cacheCleanupStrategy,
+            FileAccessTimeJournal fileAccessTimeJournal,
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
+        ) throws IOException {
+            File target = Files.createTempDirectory("build-cache").toFile();
+            FileUtils.forceMkdir(target);
+
+            FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, 1);
+
+            PersistentCache persistentCache = unscopedCacheBuilderFactory
+                .cache(target)
+                .withCleanupStrategy(cacheCleanupStrategy)
+                .withDisplayName("Build cache")
+                .withInitialLockMode(OnDemand)
+                .open();
+            return new DirectoryBuildCacheService(
+                persistentCache,
+                fileAccessTracker,
+                ".failed"
+            );
+        }
+
+        @Provides
+        CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal) {
+            SingleDepthFilesFinder filesFinder = new SingleDepthFilesFinder(1);
+            Supplier<Long> removeUnusedEntriesOlderThan = TimestampSuppliers.daysAgo(1);
+            LeastRecentlyUsedCacheCleanup cleanupAction = new LeastRecentlyUsedCacheCleanup(filesFinder, fileAccessTimeJournal, removeUnusedEntriesOlderThan);
+            return DefaultCacheCleanupStrategy.from(cleanupAction);
         }
 
         @Provides
@@ -333,7 +412,7 @@ public class ExampleBuildCacheClient {
             return new BuildOperationListener() {
                 @Override
                 public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-
+                    
                 }
 
                 @Override
