@@ -40,7 +40,6 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.composite.internal.BuildTreeWorkGraphController
-import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
@@ -58,7 +57,6 @@ import org.gradle.configurationcache.serialization.codecs.transform.TransformedA
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedExternalArtifactSetCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedProjectArtifactSetCodec
 import org.gradle.configurationcache.serialization.reentrant
-import org.gradle.configurationcache.serialization.unsupported
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.Factory
@@ -85,7 +83,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.state.ManagedFactoryRegistry
-import java.io.Externalizable
 
 
 internal
@@ -199,9 +196,6 @@ class Codecs(
             bind(ServicesCodec())
 
             bind(ProxyCodec)
-
-            // Java serialization integration
-            bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
 
             bind(BeanSpecCodec)
 

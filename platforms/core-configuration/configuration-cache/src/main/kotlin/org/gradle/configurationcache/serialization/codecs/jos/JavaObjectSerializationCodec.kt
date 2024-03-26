@@ -32,6 +32,7 @@ import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.withBeanTrace
 import org.gradle.configurationcache.serialization.withImmediateMode
 import org.gradle.configurationcache.serialization.writeEnum
+import java.io.Externalizable
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
@@ -82,6 +83,12 @@ class JavaObjectSerializationCodec(
     override suspend fun ReadContext.decode(): Any =
         decodePreservingIdentity { id ->
             when (readEnum<Format>()) {
+                Format.Externalizable -> {
+                    decodingBeanWithId(id) { bean, _, beanStateReader ->
+                        val objectInputStream = objectInputStreamAdapterFor(bean, beanStateReader)
+                        (bean as Externalizable).readExternal(objectInputStream)
+                    }
+                }
                 Format.WriteObject -> {
                     withImmediateMode {
                         decodingBeanWithId(id) { bean, beanType, beanStateReader ->
@@ -119,6 +126,25 @@ class JavaObjectSerializationCodec(
     private
     fun ReadContext.objectInputStreamAdapterFor(bean: Any, beanStateReader: BeanStateReader): ObjectInputStreamAdapter =
         ObjectInputStreamAdapter(bean, beanStateReader, this)
+
+    internal
+    object ExternalizableEncoding : EncodingProvider<Any> {
+        override suspend fun WriteContext.encode(value: Any) {
+            encodePreservingIdentityOf(value) {
+                val beanType = value.javaClass
+                val record = recordWritingOf(beanType, value)
+                writeEnum(Format.Externalizable)
+                writeClass(beanType)
+                record.run { playback() }
+            }
+        }
+
+        private
+        fun recordWritingOf(beanType: Class<Any>, value: Any): RecordingObjectOutputStream =
+            RecordingObjectOutputStream(beanType, value).also { recordingObjectOutputStream ->
+                (value as Externalizable).writeExternal(recordingObjectOutputStream)
+            }
+    }
 
     internal
     class WriteObjectEncoding(private val writeObject: List<Method>) : EncodingProvider<Any> {
@@ -181,6 +207,7 @@ class JavaObjectSerializationCodec(
 
     private
     enum class Format {
+        Externalizable,
         ReadResolve,
         WriteObject,
         ReadObject,

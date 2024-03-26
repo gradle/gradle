@@ -19,24 +19,35 @@ package org.gradle.configurationcache.serialization.codecs.jos
 import org.gradle.configurationcache.serialization.codecs.Encoding
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.Externalizable
 import java.io.ObjectOutputStream
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 
 
+/**
+ * This service determines the [Encoding] to be used for a type, if covered by the
+ * Java object serialization support in the configuration cache.
+ */
 @ServiceScope(Scope.BuildTree::class)
 internal
 class JavaSerializationEncodingLookup {
     private
     val encodings = ConcurrentHashMap<Class<*>, EncodingDetails>()
 
+    /**
+     * Returns the proper encoding provider for the given type, or null, if not covered by Java Object serialization.
+     */
     fun encodingFor(type: Class<*>): Encoding? {
         return encodings.computeIfAbsent(type) { t -> calculateEncoding(t) }.encoding
     }
 
     private
     fun calculateEncoding(type: Class<*>): EncodingDetails {
+        if (Externalizable::class.java.isAssignableFrom(type)) {
+            return EncodingDetails(JavaObjectSerializationCodec.ExternalizableEncoding)
+        }
         val candidates = type.allMethods()
         val encoding = writeReplaceEncodingFor(candidates)
             ?: readResolveEncodingFor(candidates)
