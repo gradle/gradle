@@ -278,11 +278,6 @@ public class ExampleBuildCacheClient {
         }
 
         @Provides
-        UnscopedCacheBuilderFactory createUnscopedCacheBuilderFactory(CacheFactory cacheFactory) {
-            return new DefaultUnscopedCacheBuilderFactory(cacheFactory);
-        }
-
-        @Provides
         FileAccessTimeJournal createFileAccessTimeJournal() {
             return new ModificationTimeFileAccessTimeJournal();
         }
@@ -322,15 +317,14 @@ public class ExampleBuildCacheClient {
         LocalBuildCacheService createLocalBuildCacheService(
             CacheCleanupStrategy cacheCleanupStrategy,
             FileAccessTimeJournal fileAccessTimeJournal,
-            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
+            CacheFactory cacheFactory
         ) throws IOException {
             File target = Files.createTempDirectory("build-cache").toFile();
             FileUtils.forceMkdir(target);
 
             FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, 1);
 
-            PersistentCache persistentCache = unscopedCacheBuilderFactory
-                .cache(target)
+            PersistentCache persistentCache = new DefaultCacheBuilder(cacheFactory, target)
                 .withCleanupStrategy(cacheCleanupStrategy)
                 .withDisplayName("Build cache")
                 .withInitialLockMode(OnDemand)
