@@ -74,6 +74,7 @@ import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.BuildOperationState;
 import org.gradle.internal.operations.BuildOperationTimeSupplier;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
@@ -101,6 +102,7 @@ import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -124,7 +126,6 @@ public class ExampleBuildCacheClient {
     private final FileSystemAccess fileSystemAccess;
 
     public static void main(String[] args) throws IOException {
-        LOGGER.info("Hello world!");
         Guice.createInjector(new ApplicationModule("build-1"))
             .getInstance(ExampleBuildCacheClient.class)
             .useBuildCache();
@@ -148,18 +149,16 @@ public class ExampleBuildCacheClient {
 
         FileSystemLocationSnapshot outputDirectorySnapshot = fileSystemAccess.read(originalOutputDirectory.toAbsolutePath().toString());
         Map<String, FileSystemSnapshot> outputSnapshots = ImmutableMap.of("output", outputDirectorySnapshot);
-        LOGGER.info("Storing in cache");
         buildCacheController.store(cacheKey, originalEntity, outputSnapshots, Duration.ofSeconds(10));
 
         Path loadedFromCacheDirectory = Files.createTempDirectory("cache-entity-loaded");
         CacheableEntity loadedEntity = new ExampleEntity("test-entity", loadedFromCacheDirectory.toFile());
 
-        LOGGER.info("Loading from cache");
         @SuppressWarnings("unused")
         BuildCacheLoadResult loadResult = buildCacheController.load(cacheKey, loadedEntity)
             .orElseThrow(() -> new RuntimeException("Couldn't load from cache"));
-        LOGGER.info("Loaded from cache ({} archive entries)", loadResult.getArtifactEntryCount());
 
+        LOGGER.info("Loaded from cache:");
         Files.walkFileTree(loadedFromCacheDirectory, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
@@ -167,8 +166,6 @@ public class ExampleBuildCacheClient {
                 return FileVisitResult.CONTINUE;
             }
         });
-
-        LOGGER.info("Finished");
     }
 
 
@@ -381,7 +378,32 @@ public class ExampleBuildCacheClient {
 
         @Provides
         BuildOperationExecutionListenerFactory createBuildOperationExecutionListenerFactory() {
-            return () -> BuildOperationExecutionListener.NO_OP;
+            return () -> new BuildOperationExecutionListener() {
+                @Override
+                public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+                    LOGGER.info("Start: {}", descriptor.getDisplayName());
+                }
+
+                @Override
+                public void progress(BuildOperationDescriptor descriptor, String status) {
+                    LOGGER.info("Progress: {}", descriptor.getDisplayName());
+                }
+
+                @Override
+                public void progress(BuildOperationDescriptor descriptor, long progress, long total, String units, String status) {
+                    LOGGER.info("Progress: {} ({} / {} {} - {})", descriptor.getDisplayName(), progress, total, units, status);
+                }
+
+                @Override
+                public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationRunner.ReadableBuildOperationContext context) {
+                    LOGGER.info("Stop: {}", descriptor.getDisplayName());
+                }
+
+                @Override
+                public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+                    LOGGER.info("Close: {}", descriptor.getDisplayName());
+                }
+            };
         }
 
         @Provides
@@ -402,6 +424,9 @@ public class ExampleBuildCacheClient {
             return new CurrentBuildOperationRef();
         }
 
+        // TODO What's the difference between BuildOperationExecutionListener
+        //      (which seems to be called) and BuildOperationListener (which
+        //      seems not to be called)?
         @Provides
         BuildOperationListener createBuildOperationListener() {
             return new BuildOperationListener() {
