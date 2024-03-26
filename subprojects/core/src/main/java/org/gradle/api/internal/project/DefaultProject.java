@@ -45,6 +45,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
@@ -60,6 +61,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -399,6 +401,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public File getBuildFile() {
         return buildFile;
+    }
+
+    @Override
+    public RegularFile getBuildScriptFile() {
+        return services.get(FileFactory.class).file(buildFile);
     }
 
     @Override

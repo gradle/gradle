@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.IsolatedProject;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
 
 public final class DefaultIsolatedProject implements IsolatedProject {
 
@@ -47,6 +48,11 @@ public final class DefaultIsolatedProject implements IsolatedProject {
     @Override
     public Directory getProjectDirectory() {
         return project.getLayout().getProjectDirectory();
+    }
+
+    @Override
+    public RegularFile getBuildFile() {
+        return project.getBuildScriptFile();
     }
 
     @Override
