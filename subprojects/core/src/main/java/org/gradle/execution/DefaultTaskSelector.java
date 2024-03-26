@@ -94,7 +94,23 @@ public class DefaultTaskSelector implements TaskSelector {
         String searchContext = getSearchContext(targetProject, includeSubprojects);
 
         if (context.getOriginalPath().getPath().equals(taskName)) {
-            throw new TaskSelectionException(matcher.formatErrorMessage("Task", searchContext));
+            throw getProblemsService().getInternalReporter().throwing(builder -> {
+                if (!matcher.getMatches().isEmpty()) {
+                    builder.id("ambiguous-task", "task matches ambiguous tasks", GradleCoreProblemGroup.taskSelection());
+                } else if (!matcher.getCandidates().isEmpty()) {
+                    builder.id("no-task-matches", "task has no matches", GradleCoreProblemGroup.taskSelection());
+                } else {
+                    builder.id("selection-failed", "task selection failed", GradleCoreProblemGroup.taskSelection());
+                }
+
+                String message = matcher.formatErrorMessage("Task", searchContext);
+                builder.contextualLabel(message)
+                    .fileLocation(Objects.requireNonNull(context.getOriginalPath().getName()))
+                    .severity(Severity.ERROR)
+                    .withException(new TaskSelectionException(message));
+            });
+
+
         }
         String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
             matcher.formatErrorMessage("task", searchContext));
