@@ -16,8 +16,12 @@
 
 package org.gradle.performance.mutator
 
+import com.google.common.collect.Lists
 import org.apache.commons.io.file.PathUtils
-import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.CompositeBuildMutator
+import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.util.GradleVersion
 
 import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitor
@@ -39,11 +43,34 @@ import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INST
  * but does not want to test impact of re-instrumenting jars.
  *
  * This mutator could be also moved to the gradle-profiler.
+ * TODO Refactor gradle-profiler `AbstractCacheCleanupMutator` so that it can clean up files in `caches/<gradle-version>/<cache-dir>`
  */
-class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends ClearArtifactTransformCacheMutator {
+class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends AbstractCleanupMutator {
 
-    ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(File gradleUserHome, CleanupSchedule schedule) {
-        super(gradleUserHome, schedule)
+    private final File cachesDir;
+    private final String cacheNamePrefix;
+
+    ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(File cachesDir, CleanupSchedule schedule, String cacheNamePrefix) {
+        super(schedule);
+        this.cachesDir = cachesDir;
+        this.cacheNamePrefix = cacheNamePrefix;
+    }
+
+    @Override
+    protected void cleanup() {
+        System.out.println("> Cleaning " + cacheNamePrefix + " caches in " + cachesDir);
+        FileFilter filter = (File file) -> file.getName().startsWith(cacheNamePrefix)
+        if (cachesDir.isDirectory()) {
+            File[] cacheDirs = cachesDir.listFiles(filter);
+            if (cacheDirs == null) {
+                throw new IllegalStateException(String.format("Cannot find cache directories with prefix '%s' in %s", cacheNamePrefix, gradleUserHome));
+            }
+            for (File cacheDir : cacheDirs) {
+                if (cacheDir.isDirectory()) {
+                    cleanupCacheDir(cacheDir);
+                }
+            }
+        }
     }
 
     protected void cleanupCacheDir(File cacheDir) {
@@ -81,5 +108,21 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends ClearArt
                 return FileVisitResult.CONTINUE
             }
         })
+    }
+
+    static BuildMutator create(File gradleUserHome, CleanupSchedule schedule) {
+        def clearOldTransformsDir = new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(
+            new File(gradleUserHome, "caches"),
+            schedule,
+            "transforms-")
+
+        def clearNewTransformsDir = new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(
+            new File(gradleUserHome, "caches/" + GradleVersion.current().version),
+            schedule,
+            "transforms")
+
+        return new CompositeBuildMutator(
+            Lists.asList(clearOldTransformsDir, clearNewTransformsDir)
+        )
     }
 }
