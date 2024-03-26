@@ -16,6 +16,8 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.internal.file.archive.DecompressionCoordinator;
+import org.gradle.api.internal.file.archive.DefaultDecompressionCoordinator;
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory;
 
 import java.io.File;
@@ -23,10 +25,10 @@ import java.io.File;
 /**
  * Static util class for obtaining test doubles for a {@link DecompressionCoordinator}.
  */
-public abstract class TestCaches {
-    private TestCaches() {}
+public abstract class TestDecompressionCoordinators {
+    private TestDecompressionCoordinators() {}
 
-    public static DecompressionCoordinator decompressionCache(File cacheDir) {
+    public static DecompressionCoordinator decompressionCoordinator(File cacheDir) {
         final TestInMemoryCacheFactory cacheFactory = new TestInMemoryCacheFactory();
         return new DefaultDecompressionCoordinator(cacheFactory.open(cacheDir, "test compression cache"));
     }
