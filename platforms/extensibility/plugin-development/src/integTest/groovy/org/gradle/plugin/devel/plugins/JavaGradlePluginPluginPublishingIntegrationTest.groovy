@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.plugins
 
+import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -261,10 +262,29 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12259")
-    def "Can publish maven and set displayName and description to pom"() {
-
+    def "when publishing to maven then name and description from plugin block are used by convention when writing pom"() {
         given:
-        plugin('foo', 'com.example.foo', 'fooName', 'fooDesc')
+        plugin('foo', 'com.example.foo', 'pluginName', 'pluginDesc')
+        publishToMaven()
+
+        when:
+        succeeds 'publish'
+
+        then:
+        mavenRepo.module('com.example', 'plugins', '1.0').assertPublished()
+
+        def module = mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
+        module.assertPublished()
+
+        def xml = new XmlSlurper().parseText(module.getPomFile().text)
+        xml.name.text() == 'pluginName'
+        xml.description.text() == 'pluginDesc'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12259")
+    def "when publishing to maven then name and description from plugin block can be overriden by the publishing block when writing pom"() {
+        given:
+        plugin('foo', 'com.example.foo', 'pluginName', 'pluginDesc')
         publishToMaven()
 
         and:
@@ -272,8 +292,8 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
             publishing {
                 publications.withType(MavenPublication) {
                     pom {
-                        name = "CustomName"
-                        description = "CustomDescription"
+                        name = "publishingName"
+                        description = "publishingDesc"
                     }
                 }
             }
@@ -287,13 +307,14 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
 
         def module = mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
         module.assertPublished()
-        module.getPomFile().text.contains('fooName')
-        module.getPomFile().text.contains('fooDesc')
+
+        def xml = new XmlSlurper().parseText(module.getPomFile().text)
+        xml.name.text() == 'publishingName'
+        xml.description.text() == 'publishingDesc'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12259")
-    def "Can publish maven with name and description from custom pom declaration"() {
-
+    def "when publishing to maven then name and description from publishing block are used if not defined in plugin block when writing pom"() {
         given:
         plugin('foo', 'com.example.foo')
         publishToMaven()
@@ -303,8 +324,8 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
             publishing {
                 publications.withType(MavenPublication) {
                     pom {
-                        name = "CustomName"
-                        description = "CustomDescription"
+                        name = "publishingName"
+                        description = "publishingDesc"
                     }
                 }
             }
@@ -318,8 +339,10 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
 
         def module = mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
         module.assertPublished()
-        module.getPomFile().text.contains('CustomName')
-        module.getPomFile().text.contains('CustomDescription')
+
+        def xml = new XmlSlurper().parseText(module.getPomFile().text)
+        xml.name.text() == 'publishingName'
+        xml.description.text() == 'publishingDesc'
     }
 
     def publishToMaven() {
