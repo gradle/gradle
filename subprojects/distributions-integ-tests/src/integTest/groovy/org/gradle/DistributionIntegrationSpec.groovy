@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 146
+    protected static final THIRD_PARTY_LIB_COUNT = 147
 
     @Shared String baseVersion = GradleVersion.current().baseVersion.version
 
@@ -78,7 +78,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         expect:
         def size = getZip().size()
 
-        size <= getMaxDistributionSizeBytes()
+        assert size <= getMaxDistributionSizeBytes() : "Distribution content needs to be verified. If the increase is expected, raise the size by ${Math.ceil((size - getMaxDistributionSizeBytes()) / 1024 / 1024)}"
     }
 
     def "no duplicate jar entries in distribution"() {

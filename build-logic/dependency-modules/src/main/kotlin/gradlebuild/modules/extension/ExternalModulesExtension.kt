@@ -40,9 +40,9 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val awsS3Kms = "com.amazonaws:aws-java-sdk-kms"
     val awsS3S3 = "com.amazonaws:aws-java-sdk-s3"
     val awsS3Sts = "com.amazonaws:aws-java-sdk-sts"
-    val bouncycastlePgp = "org.bouncycastle:bcpg-jdk15on"
-    val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk15on"
-    val bouncycastleProvider = "org.bouncycastle:bcprov-jdk15on"
+    val bouncycastlePgp = "org.bouncycastle:bcpg-jdk18on"
+    val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk18on"
+    val bouncycastleProvider = "org.bouncycastle:bcprov-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
     val capsule = "io.usethesource:capsule"
     val commonsCodec = "commons-codec:commons-codec"
@@ -151,6 +151,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     // Compile only dependencies (dynamically downloaded if needed)
     val maven3Compat = "org.apache.maven:maven-compat"
     val maven3PluginApi = "org.apache.maven:maven-plugin-api"
+    val zinc = "org.scala-sbt:zinc_2.13"
 
     // Test classpath only libraries
     val aircompressor = "io.airlift:aircompressor"
@@ -297,6 +298,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
-        xmlApis to License.Apache2
+        xmlApis to License.Apache2,
+        zinc to License.Apache2
     )
 }
