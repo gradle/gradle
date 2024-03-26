@@ -137,6 +137,7 @@ class JsonModelWriter(val writer: Writer) {
                         comma()
                         property("declaringType", firstTypeFrom(trace.trace).name)
                     }
+
                     PropertyKind.PropertyUsage -> {
                         property("kind", trace.kind.name)
                         comma()
@@ -144,6 +145,7 @@ class JsonModelWriter(val writer: Writer) {
                         comma()
                         property("from", projectPathFrom(trace.trace))
                     }
+
                     else -> {
                         property("kind", trace.kind.name)
                         comma()
@@ -153,11 +155,13 @@ class JsonModelWriter(val writer: Writer) {
                     }
                 }
             }
+
             is PropertyTrace.SystemProperty -> {
                 property("kind", "SystemProperty")
                 comma()
                 property("name", trace.name)
             }
+
             is PropertyTrace.Task -> {
                 property("kind", "Task")
                 comma()
@@ -165,29 +169,35 @@ class JsonModelWriter(val writer: Writer) {
                 comma()
                 property("type", trace.type.name)
             }
+
             is PropertyTrace.Bean -> {
                 property("kind", "Bean")
                 comma()
                 property("type", trace.type.name)
             }
+
             is PropertyTrace.Project -> {
                 property("kind", "Project")
                 comma()
                 property("path", trace.path)
             }
+
             is PropertyTrace.BuildLogic -> {
                 property("kind", "BuildLogic")
                 comma()
                 property("location", trace.source.displayName)
             }
+
             is PropertyTrace.BuildLogicClass -> {
                 property("kind", "BuildLogicClass")
                 comma()
                 property("type", trace.name)
             }
+
             PropertyTrace.Gradle -> {
                 property("kind", "Gradle")
             }
+
             PropertyTrace.Unknown -> {
                 property("kind", "Unknown")
             }
