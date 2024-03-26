@@ -1,14 +1,15 @@
 package org.gradle.client.logic.files
 
-import org.gradle.client.logic.Constants.APPLICATION_NAME
-import org.gradle.client.logic.Constants.INSTALLATION_IDENTIFIER
 import org.gradle.client.logic.util.DesktopOS
 import org.gradle.client.logic.util.currentDesktopOS
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.io.File
 
-object AppDirs {
+class AppDirs(
+    private val appName: String,
+    private val installationIdentifier: String,
+) {
 
     val configurationDirectory: File by lazy {
         persistentDir("conf")
@@ -48,40 +49,40 @@ object AppDirs {
 
     private fun persistentDir(dirName: String): File =
         when (currentDesktopOS) {
-            DesktopOS.Linux -> userDir.resolve(".$APPLICATION_NAME")
-                .resolve(INSTALLATION_IDENTIFIER)
+            DesktopOS.Linux -> userDir.resolve(".$appName")
+                .resolve(installationIdentifier)
                 .resolve(dirName)
 
             DesktopOS.Mac -> userDir.resolve("Library")
                 .resolve("Application Support")
-                .resolve(APPLICATION_NAME)
-                .resolve(INSTALLATION_IDENTIFIER)
+                .resolve(appName)
+                .resolve(installationIdentifier)
                 .resolve(dirName)
 
             DesktopOS.Windows -> userDir.resolve("AppData")
                 .resolve("Roaming")
-                .resolve(APPLICATION_NAME)
-                .resolve(INSTALLATION_IDENTIFIER)
+                .resolve(appName)
+                .resolve(installationIdentifier)
                 .resolve(dirName)
         }.probed()
 
     private fun transientDir(dirName: String): File =
         when (currentDesktopOS) {
             DesktopOS.Linux -> userDir.resolve(".cache")
-                .resolve(APPLICATION_NAME)
-                .resolve(INSTALLATION_IDENTIFIER)
+                .resolve(appName)
+                .resolve(installationIdentifier)
                 .resolve(dirName)
 
             DesktopOS.Mac -> userDir.resolve("Library")
                 .resolve("Caches")
-                .resolve(APPLICATION_NAME)
-                .resolve(INSTALLATION_IDENTIFIER)
+                .resolve(appName)
+                .resolve(installationIdentifier)
                 .resolve(dirName)
 
             DesktopOS.Windows -> userDir.resolve("AppData")
                 .resolve("LocalLow")
-                .resolve(APPLICATION_NAME)
-                .resolve(INSTALLATION_IDENTIFIER)
+                .resolve(appName)
+                .resolve(installationIdentifier)
                 .resolve(dirName)
         }.probed()
 

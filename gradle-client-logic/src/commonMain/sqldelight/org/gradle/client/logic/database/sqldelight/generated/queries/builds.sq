@@ -1,0 +1,7 @@
+-- Builds database queries
+
+selectAll:
+SELECT DbBuild.* FROM DbBuild;
+
+select:
+SELECT DbBuild.* FROM DbBuild WHERE id = :id;

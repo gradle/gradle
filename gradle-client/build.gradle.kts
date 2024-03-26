@@ -9,10 +9,17 @@ kotlin {
     jvm()
     sourceSets {
 
+        all {
+            dependencies {
+                implementation(project.dependencies.platform(libs.kotlin.bom))
+                implementation(project.dependencies.platform(libs.kotlinx.coroutines.bom))
+                implementation(project.dependencies.platform(libs.kotlinx.serialization.bom))
+            }
+        }
+
         jvmMain.dependencies {
 
             implementation(projects.gradleClientLogic)
-            implementation(libs.slf4j.api)
 
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -22,6 +29,11 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(compose.desktop.currentOs)
+
+            implementation(libs.slf4j.api)
+            implementation(libs.logback.classic)
+
+            runtimeOnly(libs.kotlinx.coroutines.swing)
         }
 
         jvmTest.dependencies {

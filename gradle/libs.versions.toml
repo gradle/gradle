@@ -1,10 +1,25 @@
 [versions]
 kotlin = "1.9.23"
+kotlinx-coroutines = "1.7.3"
+kotlinx-serialization = "1.6.2"
 compose-plugin = "1.6.1"
 gradle-tooling = "8.7"
+sqldelight = "2.0.1"
 junit = "5.10.2"
 
 [libraries]
+kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
+kotlinx-coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing" }
+kotlinx-serialization-bom = { module = "org.jetbrains.kotlinx:kotlinx-serialization-bom", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json" }
+sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
+sqldelight-extensions-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+sqldelight-driver-sqlite = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
+sqldelight-driver-jdbc = { module = "app.cash.sqldelight:jdbc-driver", version.ref = "sqldelight" }
 gradle-tooling = { module = "org.gradle:gradle-tooling-api", version.ref = "gradle-tooling" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.12" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.3" }
@@ -12,4 +27,6 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }

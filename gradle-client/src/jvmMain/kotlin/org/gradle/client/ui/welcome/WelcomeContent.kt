@@ -1,4 +1,4 @@
-package org.gradle.client.ui
+package org.gradle.client.ui.welcome
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,7 +18,7 @@ import java.awt.Frame
 import java.io.File
 
 @Composable
-fun UiRoot() {
+fun WelcomeContent() {
     Scaffold(
         topBar = {
             Surface(tonalElevation = 24.dp) {
@@ -82,6 +82,7 @@ fun UiRoot() {
         }
     }
 }
+
 
 @Composable
 private fun BuildChooserDialog(

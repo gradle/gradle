@@ -1,0 +1,8 @@
+-- Application Database Migration #1
+
+DROP TABLE IF EXISTS DbBuild;
+
+CREATE TABLE DbBuild (
+    id TEXT PRIMARY KEY NOT NULL,
+    rootDir TEXT NOT NULL
+);

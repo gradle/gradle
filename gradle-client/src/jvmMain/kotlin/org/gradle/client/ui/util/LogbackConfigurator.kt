@@ -1,4 +1,4 @@
-package org.gradle.client.logic.util
+package org.gradle.client.ui.util
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
@@ -12,7 +12,6 @@ import ch.qos.logback.core.rolling.TimeBasedRollingPolicy
 import ch.qos.logback.core.spi.ContextAwareBase
 import ch.qos.logback.core.util.FileSize
 import org.gradle.client.logic.Constants.APPLICATION_NAME
-import org.gradle.client.logic.files.AppDirs
 
 // Configures logback debug logging to file
 // https://logback.qos.ch/manual/configuration.html
@@ -23,7 +22,7 @@ class LogbackConfigurator : ContextAwareBase(), Configurator {
 
         addInfo("Setting up $APPLICATION_NAME logging configuration.")
 
-        val logDir = AppDirs.logDirectory
+        val logDir = appDirs.logDirectory
         val logFilename = "application"
         val logFile = logDir.resolve("$logFilename.log")
 
