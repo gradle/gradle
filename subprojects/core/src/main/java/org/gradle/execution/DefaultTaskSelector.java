@@ -96,11 +96,11 @@ public class DefaultTaskSelector implements TaskSelector {
         if (context.getOriginalPath().getPath().equals(taskName)) {
             throw getProblemsService().getInternalReporter().throwing(builder -> {
                 if (!matcher.getMatches().isEmpty()) {
-                    builder.id("ambiguous-task", "task matches ambiguous tasks", GradleCoreProblemGroup.taskSelection());
+                    builder.id("ambiguous", "task matches ambiguous tasks", GradleCoreProblemGroup.taskSelection());
                 } else if (!matcher.getCandidates().isEmpty()) {
-                    builder.id("no-task-matches", "task has no matches", GradleCoreProblemGroup.taskSelection());
+                    builder.id("no-matches", "task has no matches", GradleCoreProblemGroup.taskSelection());
                 } else {
-                    builder.id("selection-failed", "task selection failed", GradleCoreProblemGroup.taskSelection());
+                    builder.id("failed", "task selection failed", GradleCoreProblemGroup.taskSelection());
                 }
 
                 String message = matcher.formatErrorMessage("Task", searchContext);
