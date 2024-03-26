@@ -36,6 +36,9 @@ class JsonModelWriter(val writer: Writer) {
     val documentationRegistry = DocumentationRegistry()
 
     private
+    val dict: MutableMap<String, Int> = hashMapOf()
+
+    private
     var first = true
 
     fun beginModel() {
@@ -59,7 +62,36 @@ class JsonModelWriter(val writer: Writer) {
         comma()
         property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
 
+        writeDict()
+
         endObject()
+    }
+
+
+    private
+    fun writeDict() {
+        val dictList = ArrayList<String>(dict.size)
+        repeat(dict.size) {
+            dictList.add("?????")
+        }
+        for ((key, index) in dict) {
+            dictList[index] = key
+        }
+
+        comma()
+        property("dictionary") {
+            jsonList(dictList) {
+                jsonString(it)
+            }
+        }
+    }
+
+    private
+    fun compact(s: String): String {
+        dict[s]?.let { return it.toString() }
+        val next = dict.size
+        dict[s] = next
+        return next.toString()
     }
 
     fun writeDiagnostic(kind: DiagnosticKind, details: DecoratedPropertyProblem) {
@@ -97,7 +129,7 @@ class JsonModelWriter(val writer: Writer) {
                 }
                 property("parts") {
                     jsonObjectList(exception.parts) { (isInternal, text) ->
-                        property(if (isInternal) "internalText" else "text", text)
+                        property(if (isInternal) "internalText" else "text", compact(text))
                     }
                 }
             }
@@ -120,8 +152,8 @@ class JsonModelWriter(val writer: Writer) {
     private
     fun writeFragment(fragment: StructuredMessage.Fragment) {
         when (fragment) {
-            is StructuredMessage.Fragment.Reference -> property("name", fragment.name)
-            is StructuredMessage.Fragment.Text -> property("text", fragment.text)
+            is StructuredMessage.Fragment.Reference -> property("name", compact(fragment.name))
+            is StructuredMessage.Fragment.Text -> property("text", compact(fragment.text))
         }
     }
 
@@ -285,7 +317,7 @@ class JsonModelWriter(val writer: Writer) {
 
     private
     fun documentationLinkFor(section: DocumentationSection) =
-        documentationRegistry.documentationLinkFor(section)
+        compact(documentationRegistry.documentationLinkFor(section))
 
     private
     fun write(csq: CharSequence) = writer.append(csq)
