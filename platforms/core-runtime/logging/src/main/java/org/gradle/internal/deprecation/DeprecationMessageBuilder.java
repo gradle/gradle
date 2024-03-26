@@ -54,7 +54,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     protected String createDefaultDeprecationIdString() {
-        return createDefaultDeprecationIdString(summary);
+        return summary;
     }
 
     @SuppressWarnings("unchecked")

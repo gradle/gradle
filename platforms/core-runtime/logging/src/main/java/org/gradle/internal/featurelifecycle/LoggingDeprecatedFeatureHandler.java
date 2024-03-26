@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -98,7 +99,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             public void execute(InternalProblemSpec builder) {
                 InternalProblemSpec problemSpec = builder
                     // usage.getKind() could be be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
-                    .id(createDefaultDeprecationIdString(usage.getProblemIdDisplayName()), usage.getProblemIdDisplayName())
+                    .id(createDefaultDeprecationIdString(usage.getProblemIdDisplayName()), usage.getProblemIdDisplayName(), GradleCoreProblemGroup.deprecation())
                     .contextualLabel(usage.getSummary())
                     .details(usage.getRemovalDetails())
                     .documentedAt(usage.getDocumentationUrl())
