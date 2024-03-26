@@ -29,17 +29,30 @@ errorprone {
 }
 
 dependencies {
-    api(projects.baseAnnotations)
-    api(projects.buildCache)
-    api(projects.buildCacheLocal)
-    api(projects.snapshots)
+    implementation(projects.baseAnnotations)
+    implementation(projects.buildCache)
+    implementation(projects.buildCacheLocal)
+    implementation(projects.snapshots)
 
-    api(libs.guava)
-    api(libs.guice)
-    api(libs.slf4jApi)
-    api(libs.commonsIo)
+    implementation(projects.baseServices)
+    implementation(projects.buildCacheBase)
+    implementation(projects.buildCachePackaging)
+    implementation(projects.buildCacheSpi)
+    implementation(projects.buildOperations)
+    implementation(projects.fileTemp)
+    implementation(projects.files)
+    implementation(projects.functional)
+    implementation(projects.hashing)
+    implementation(projects.messaging)
+    implementation(projects.native)
+    implementation(projects.persistentCache)
+
+    implementation(libs.guava)
+    implementation(libs.guice)
+    implementation(libs.slf4jApi)
+    implementation(libs.commonsIo)
     // TODO Add this to the global version catalog
-//    api("org.slf4j:slf4j-simple:1.7.30")
+    implementation("org.slf4j:slf4j-simple:1.7.36")
 }
 
 application {
