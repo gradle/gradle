@@ -70,6 +70,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-cache-example-client",
+    "path": "platforms/core-execution/build-cache-example-client",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-cache-http",
     "path": "platforms/core-execution/build-cache-http",
     "unitTests": false,
