@@ -176,7 +176,7 @@ class ImplicitDependencyCollectorFunctionResolver(configurations: DependencyConf
                         }
                     })
                 } else {
-                    throw IllegalStateException()
+                    throw IllegalStateException("Unexpected parameter binding contents: ${parameterValueBinding.bindingMap.keys} for function: $name in: $receiverClass")
                 }
             }
         }
