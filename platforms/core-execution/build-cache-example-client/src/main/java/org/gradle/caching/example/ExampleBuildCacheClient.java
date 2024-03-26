@@ -89,9 +89,14 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.snapshot.CaseSensitivity;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -105,10 +110,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.util.Collections;
@@ -154,17 +157,34 @@ public class ExampleBuildCacheClient {
         Path loadedFromCacheDirectory = Files.createTempDirectory("cache-entity-loaded");
         CacheableEntity loadedEntity = new ExampleEntity("test-entity", loadedFromCacheDirectory.toFile());
 
-        @SuppressWarnings("unused")
         BuildCacheLoadResult loadResult = buildCacheController.load(cacheKey, loadedEntity)
             .orElseThrow(() -> new RuntimeException("Couldn't load from cache"));
 
         LOGGER.info("Loaded from cache:");
-        Files.walkFileTree(loadedFromCacheDirectory, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                LOGGER.info(" - " + file.toAbsolutePath());
-                return FileVisitResult.CONTINUE;
-            }
+        loadResult.getResultingSnapshots().forEach((name, snapshot) -> {
+            LOGGER.info(" - Output property '{}':", name);
+            snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
+                @Override
+                public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
+                    snapshot.accept(new FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor() {
+                        @Override
+                        public void visitDirectory(DirectorySnapshot directorySnapshot) {
+                            LOGGER.info("   - {}/", snapshot.getAbsolutePath());
+                        }
+
+                        @Override
+                        public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                            LOGGER.info("   - {}", snapshot.getAbsolutePath());
+                        }
+
+                        @Override
+                        public void visitMissing(MissingFileSnapshot missingSnapshot) {
+                            LOGGER.info("   - {} (?)", snapshot.getAbsolutePath());
+                        }
+                    });
+                    return SnapshotVisitResult.CONTINUE;
+                }
+            });
         });
     }
 
