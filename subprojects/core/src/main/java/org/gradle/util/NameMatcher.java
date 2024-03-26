@@ -15,13 +15,16 @@
  */
 package org.gradle.util;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.util.internal.GUtil;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
@@ -204,19 +207,4 @@ public class NameMatcher {
         return candidates;
     }
 
-    /**
-     * Returns a formatted error message describing why the pattern matching failed.
-     *
-     * @return The error message.
-     */
-    public String formatErrorMessage(String singularItemDescription, Object container) {
-        String capItem = StringUtils.capitalize(singularItemDescription);
-        if (!matches.isEmpty()) {
-            return String.format("%s '%s' is ambiguous in %s. Candidates are: %s.", capItem, pattern, container, GUtil.toString(matches));
-        }
-        if (!candidates.isEmpty()) {
-            return String.format("%s '%s' not found in %s. Some candidates are: %s.", capItem, pattern, container, GUtil.toString(candidates));
-        }
-        return String.format("%s '%s' not found in %s.", capItem, pattern, container);
-    }
 }

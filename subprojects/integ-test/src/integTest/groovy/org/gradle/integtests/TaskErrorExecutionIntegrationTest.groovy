@@ -167,6 +167,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "reports unknown task"() {
+        enableProblemsApiCheck()
         createDirs("a", "b")
         settingsFile << """
             rootProject.name = 'test'
