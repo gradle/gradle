@@ -84,7 +84,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease", ":extractSymbolsRelease", ":stripSymbolsRelease", ":assembleRelease")
         file("build/modules/main/release/${lib.moduleName}.swiftmodule").assertIsFile()
         sharedLibrary("build/lib/main/release/${lib.moduleName}").assertExists()
-        sharedLibrary("build/lib/main/release/${lib.moduleName}").assertHasStrippedDebugSymbolsFor(lib.sourceFileNames)
+        sharedLibrary("build/lib/main/release/${lib.moduleName}").assertHasStrippedDebugSymbolsFor(["greeter.o", "sum.o", "multiply.o"])
     }
 
     def "can use link file as task dependency"() {
@@ -293,9 +293,9 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         result.assertTasksExecuted(":log:compileReleaseSwift", ":log:linkRelease", ":log:stripSymbolsRelease", ":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:extractSymbolsRelease", ":hello:stripSymbolsRelease", ":hello:assembleRelease")
         sharedLibrary("hello/build/lib/main/release/Hello").assertExists()
-        sharedLibrary("hello/build/lib/main/release/Hello").assertHasStrippedDebugSymbolsFor(app.library.sourceFileNames)
+        sharedLibrary("hello/build/lib/main/release/Hello").assertHasStrippedDebugSymbolsFor(['greeter.o'])
         sharedLibrary("log/build/lib/main/release/Log").assertExists()
-        sharedLibrary("log/build/lib/main/release/Log").assertHasDebugSymbolsFor(app.logLibrary.sourceFileNames)
+        sharedLibrary("log/build/lib/main/release/Log").assertHasDebugSymbolsFor(['log.o'])
     }
 
     def "can change default module name and successfully link against library"() {
