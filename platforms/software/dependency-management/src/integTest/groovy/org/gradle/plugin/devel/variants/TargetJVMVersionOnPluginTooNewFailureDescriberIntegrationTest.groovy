@@ -66,7 +66,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
                 }
             }
         """
-        producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation(currentJava.toString())
+        producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation()
 
         consumer.file('settings.gradle') << """
             pluginManagement {
@@ -139,7 +139,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
                 }
             }
         """
-        producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation(higherVersion.javaVersion.majorVersion)
+        producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation()
 
         and:
         def consumer = file('consumer')
@@ -248,7 +248,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasResolution("Run this build using a Java 17 or newer JVM.")
     }
 
-    private String pluginImplementation(String javaVersion) {
+    private String pluginImplementation() {
         """
             package example.plugin;
 
@@ -265,7 +265,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
                 public static class GreetTask extends DefaultTask {
                     @TaskAction
                     public void greet() {
-                        System.out.println("Hello from Java $javaVersion JVM!");
+                        System.out.println("Hello from Java ${JavaVersion.current().majorVersion} JVM!");
                     }
                 }
             }
