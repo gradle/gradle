@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.problems
+package org.gradle.internal.failure;
 
-import java.io.PrintWriter
-import java.io.StringWriter
+public class SimulatedJavaException {
 
-
-internal
-class StackTraceExtractor {
-
-    private
-    val stringWriter = StringWriter()
-
-    private
-    val printWriter = PrintWriter(stringWriter)
-
-    fun stackTraceStringFor(error: Throwable): String {
-        error.printStackTrace(printWriter)
-        return stringWriter.toString().also {
-            stringWriter.buffer.setLength(0)
-        }
+    public static RuntimeException simulateDeeperException() {
+        return new RuntimeException("Simulated exception");
     }
+
 }

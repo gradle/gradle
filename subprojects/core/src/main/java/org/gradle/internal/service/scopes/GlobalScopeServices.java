@@ -78,6 +78,12 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
+import org.gradle.internal.problems.failure.CompositeStackTraceClassifier;
+import org.gradle.internal.problems.failure.DefaultFailureFactory;
+import org.gradle.internal.problems.failure.FailureFactory;
+import org.gradle.internal.problems.failure.InternalRuntimeStackTraceClassifier;
+import org.gradle.internal.problems.failure.StackTraceClassifier;
+import org.gradle.internal.problems.failure.SystemCallStackTraceClassifier;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.DefaultScriptFileResolverListeners;
@@ -108,6 +114,7 @@ import org.gradle.process.internal.health.memory.JvmMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -305,5 +312,13 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     AgentInitializer createAgentInitializer() {
         return new AgentInitializer(agentStatus);
+    }
+
+    FailureFactory createFailureFactory() {
+        return new DefaultFailureFactory(new CompositeStackTraceClassifier(Arrays.asList(
+            new SystemCallStackTraceClassifier(),
+            new InternalRuntimeStackTraceClassifier(),
+            new StackTraceClassifier.UserCode()
+        )));
     }
 }

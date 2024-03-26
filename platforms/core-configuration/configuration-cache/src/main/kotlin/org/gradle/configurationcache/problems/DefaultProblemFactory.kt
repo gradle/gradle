@@ -72,11 +72,13 @@ class DefaultProblemFactory(
                 return this
             }
 
+            // Getting CC exception as a diagnostic
             override fun build(): PropertyProblem {
+                val exceptionMessage = exceptionMessage
                 val diagnostics = if (exceptionMessage == null) {
                     problemStream.forCurrentCaller()
                 } else {
-                    problemStream.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage!!) })
+                    problemStream.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage) })
                 }
                 val location = locationMapper(locationForCaller(consumer, diagnostics))
                 return PropertyProblem(location, message, diagnostics.exception, documentationSection)
