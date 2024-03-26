@@ -26,11 +26,11 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
-    Integer currentJava = Integer.valueOf(JavaVersion.current().majorVersion)
-    Integer tooHighJava = currentJava + 1
-
     def 'JVM version too low uses custom error message for plugin'() {
         given:
+        Integer currentJava = Integer.valueOf(JavaVersion.current().majorVersion)
+        Integer tooHighJava = currentJava + 1
+
         def producer = file('producer')
         def consumer = file('consumer')
         def pluginModule = mavenRepo.module('com.example', 'producer', '1.0')
@@ -66,7 +66,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
                 }
             }
         """
-        producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation()
+        producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation(currentJava.toString())
 
         consumer.file('settings.gradle') << """
             pluginManagement {
@@ -112,6 +112,8 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         def lowerVersion = currentJdk.javaVersion.compareTo(otherJdk.javaVersion) < 0 ? currentJdk : otherJdk
         def higherVersion = currentJdk.javaVersion.compareTo(otherJdk.javaVersion) < 0 ? otherJdk : currentJdk
 
+        println("Using JDK ${lowerVersion.javaVersion.majorVersion} as the consumer JDK and JDK ${higherVersion.javaVersion.majorVersion} as the producer JDK")
+
         and:
         def producer = file('producer')
         producer.file('build.gradle') << """
@@ -137,7 +139,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
                 }
             }
         """
-        producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation()
+        producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation(higherVersion.javaVersion.majorVersion)
 
         and:
         def consumer = file('consumer')
@@ -177,6 +179,8 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
     @Requires(UnitTestPreconditions.Jdk11OrEarlier)
     def 'spring boot 3 plugin usage with jvm < 17 uses custom error message'() {
         given:
+        Integer currentJava = Integer.valueOf(JavaVersion.current().majorVersion)
+
         buildFile << """
             plugins {
                 id "application"
@@ -244,7 +248,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasResolution("Run this build using a Java 17 or newer JVM.")
     }
 
-    private String pluginImplementation() {
+    private String pluginImplementation(String javaVersion) {
         """
             package example.plugin;
 
@@ -261,7 +265,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
                 public static class GreetTask extends DefaultTask {
                     @TaskAction
                     public void greet() {
-                        System.out.println("Hello from Java $currentJava JVM!");
+                        System.out.println("Hello from Java $javaVersion JVM!");
                     }
                 }
             }
