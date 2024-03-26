@@ -62,12 +62,13 @@ import java.io.Closeable;
  *
  * This set of services is added as a parent of each build session scope.
  */
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public class CrossBuildSessionState implements Closeable {
     private final ServiceRegistry services;
 
     public CrossBuildSessionState(ServiceRegistry parent, StartParameter startParameter) {
         this.services = ServiceRegistryBuilder.builder()
+            .scope(Scope.CrossBuildSession.class)
             .displayName("cross session services")
             .parent(parent)
             .provider(new Services(startParameter))

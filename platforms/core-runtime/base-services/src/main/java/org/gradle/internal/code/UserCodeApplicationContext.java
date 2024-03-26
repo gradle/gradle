@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 /**
  * Assigns and stores an ID for the application of some user code (e.g. scripts and plugins).
  */
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface UserCodeApplicationContext {
     /**
      * Applies some user code, assigning an ID for this particular application.

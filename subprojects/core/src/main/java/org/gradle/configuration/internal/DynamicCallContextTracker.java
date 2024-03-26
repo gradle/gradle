@@ -16,6 +16,9 @@
 
 package org.gradle.configuration.internal;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.util.function.Consumer;
 
 /**
@@ -32,6 +35,7 @@ import java.util.function.Consumer;
  */
 // TODO: consider transforming this to a more generic tool for tracking the events
 //       of entering and leaving some generic context (marked with a key?)
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface DynamicCallContextTracker {
     /**
      * Notifies the tracker that the control flow entered the context of a new dynamic call.

@@ -29,7 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * The notification listener is effectively of cross build tree scope, which doesn't exist.
  * This is because GradleBuild uses a discrete tree (which is intended to change later).
  */
-@ServiceScope(Scope.BuildSession.class)
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface BuildOperationNotificationValve {
 
     void start();
