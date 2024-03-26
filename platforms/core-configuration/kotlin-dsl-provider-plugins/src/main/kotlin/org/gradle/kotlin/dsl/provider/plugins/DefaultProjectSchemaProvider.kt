@@ -60,7 +60,8 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
                     targetSchema.containerElements,
                     (scriptTarget as? Project)
                         ?.let { accessibleConfigurationsOf(it) }
-                        ?: emptyList()
+                        ?: emptyList(),
+                    scriptTarget
                 ).map(::SchemaType)
             }
 

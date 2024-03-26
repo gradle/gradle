@@ -674,6 +674,13 @@ fun fragmentsForContainerElementOf(
 
 
 private
+fun MetadataFragmentScope.maybeHasAnnotations(flags: Int): Int = when {
+    useLowPriorityInOverloadResolution -> flags + flagsOf(Flag.HAS_ANNOTATIONS)
+    else -> flags
+}
+
+
+private
 fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
 
     val accessorSpec = accessor.spec
@@ -683,11 +690,6 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
     val receiverType = accessibleReceiverType.type.kmType
     val receiverTypeName = accessibleReceiverType.internalName()
     val (kotlinExtensionType, jvmExtensionType) = accessibleTypesFor(extensionType)
-
-    // When building accessors for Settings, preserve semantics for existing custom accessors by
-    // giving the generated accessors lower priority in Kotlin overload resolution.
-    val useLowPriorityInOverloadResolution = receiverTypeName.value == "org/gradle/api/initialization/Settings"
-    val maybeHasAnnotations = if (useLowPriorityInOverloadResolution) flagsOf(Flag.HAS_ANNOTATIONS) else 0
 
     return className to sequenceOf(
 
@@ -715,7 +717,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.properties += newPropertyOf(
-                    flags = readOnlyPropertyFlags + maybeHasAnnotations,
+                    flags = maybeHasAnnotations(readOnlyPropertyFlags),
                     name = propertyName,
                     receiverType = receiverType,
                     returnType = kotlinExtensionType,
@@ -754,7 +756,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    flags = publicFunctionFlags + maybeHasAnnotations,
+                    flags = maybeHasAnnotations(publicFunctionFlags),
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
                     name = propertyName,
@@ -900,6 +902,7 @@ val TypeOf<*>.kmType: KmType
             classOf(parameterizedTypeDefinition.concreteClass),
             actualTypeArguments.map { it.kmType }
         )
+
         isWildcard -> (upperBound ?: lowerBound)?.kmType ?: KotlinType.any
         else -> classOf(concreteClass)
     }
@@ -926,6 +929,7 @@ fun kotlinNameOf(className: InternalName) = className.run {
         value.startsWith("kotlin/jvm/functions/") -> {
             "kotlin/" + value.substringAfter("kotlin/jvm/functions/")
         }
+
         else -> {
             kotlinPrimitiveTypes[value] ?: value.replace('$', '.')
         }
