@@ -28,6 +28,86 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
     def 'JVM version too low uses custom error message for plugin'() {
         given:
+        def currentJdk = Jvm.current()
+        def otherJdk = AvailableJavaHomes.differentVersion
+
+        def lowerVersion = currentJdk.javaVersion.compareTo(otherJdk.javaVersion) < 0 ? currentJdk : otherJdk
+        def higherVersion = currentJdk.javaVersion.compareTo(otherJdk.javaVersion) < 0 ? otherJdk : currentJdk
+
+        println("Using JDK ${lowerVersion.javaVersion.majorVersion} as the consumer JDK and JDK ${higherVersion.javaVersion.majorVersion} as the producer JDK")
+
+        def producer = file('producer')
+        def consumer = file('consumer')
+        def pluginModule = mavenRepo.module('com.example', 'producer', '1.0')
+        def pluginMarker = mavenRepo.module('com.example.greeting', 'com.example.greeting.gradle.plugin', '1.0')
+
+        producer.file('settings.gradle').createFile()
+        producer.file('build.gradle') << """
+            plugins {
+                id('java-gradle-plugin')
+                id('maven-publish')
+            }
+
+            group = "com.example"
+            version = "1.0"
+
+             java {
+                targetCompatibility = ${higherVersion.javaVersion.majorVersion}
+            }
+            ${javaPluginToolchainVersion(higherVersion)}
+
+            gradlePlugin {
+                plugins.create('greeting') {
+                    id = 'com.example.greeting'
+                    implementationClass = 'example.plugin.GreetingPlugin'
+                }
+            }
+            publishing {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+            }
+        """
+        producer.file('src/main/java/example/plugin/GreetingPlugin.java') << pluginImplementation()
+
+        consumer.file('settings.gradle') << """
+            pluginManagement {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+            }
+        """
+        consumer.file('build.gradle') << """
+            plugins {
+                id('com.example.greeting') version '1.0'
+            }
+        """
+
+        when:
+        projectDir(producer)
+        succeeds 'publish'
+
+        then:
+        pluginModule.assertPublished()
+        pluginMarker.assertPublished()
+        pluginModule.artifact([:]).assertPublished()
+
+        when:
+        projectDir(consumer)
+        fails 'greet', "--stacktrace"
+
+        then:
+        failure.assertHasErrorOutput("""> Could not resolve all artifacts for configuration ':classpath'.
+   > Could not resolve com.example:producer:1.0.
+     Required by:
+         project : > com.example.greeting:com.example.greeting.gradle.plugin:1.0
+      > Dependency 'com.example:producer:1.0' requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")
+        failure.assertHasErrorOutput("Caused by: " + VariantSelectionException.class.getName())
+        failure.assertHasResolution("Run this build using a Java ${higherVersion.javaVersion.majorVersion} or newer JVM.")
+    }
+
+    def 'JVM version too low uses custom error message for plugin when version attribute explicitly mis-set'() {
+        given:
         Integer currentJava = Integer.valueOf(JavaVersion.current().majorVersion)
         Integer tooHighJava = currentJava + 1
 
@@ -35,6 +115,8 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         def consumer = file('consumer')
         def pluginModule = mavenRepo.module('com.example', 'producer', '1.0')
         def pluginMarker = mavenRepo.module('com.example.greeting', 'com.example.greeting.gradle.plugin', '1.0')
+
+        println("Using JDK $currentJava as the consumer JDK and JDK $tooHighJava as the producer JDK")
 
         producer.file('settings.gradle').createFile()
         producer.file('build.gradle') << """
@@ -104,7 +186,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
     }
 
-    def 'JVM version too low uses custom error message for plugin when using composite build and JVM toolchains'() {
+    def 'JVM version too low uses custom error message for plugin when using composite build'() {
         given:
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion
@@ -125,6 +207,9 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             group = "com.example"
             version = "1.0"
 
+            java {
+                targetCompatibility = ${higherVersion.javaVersion.majorVersion}
+            }
             ${javaPluginToolchainVersion(higherVersion)}
 
             gradlePlugin {
