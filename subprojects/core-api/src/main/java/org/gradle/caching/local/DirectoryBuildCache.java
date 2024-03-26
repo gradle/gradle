@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
  */
 public abstract class DirectoryBuildCache extends AbstractBuildCache {
     private Object directory;
-    private int removeUnusedEntriesAfterDays = -1;
+    private int removeUnusedEntriesAfterDays = 7;
 
     /**
      * Returns the directory to use to store the build cache.
@@ -48,27 +48,35 @@ public abstract class DirectoryBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * Returns the number of days after unused entries are garbage collected.
-     * If not set, entries will be removed based on the value configured for {@link org.gradle.api.cache.CacheConfigurations#createdResources}.
+     * Returns the number of days after unused entries are garbage collected. Defaults to 7 days.
      *
      * @since 4.6
+     * @deprecated
      */
+    @Deprecated
     public int getRemoveUnusedEntriesAfterDays() {
         return removeUnusedEntriesAfterDays;
     }
 
     /**
-     * Sets the number of days after unused entries are garbage collected.
-     * When set, this will take precedence over the value configured for {@link org.gradle.api.cache.CacheConfigurations#createdResources}.
+     * Sets the number of days after unused entries are garbage collected. Defaults to 7 days.
      *
      * Must be greater than 1.
      *
      * @since 4.6
+     * @deprecated
      */
+    @Deprecated
     public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
         if (removeUnusedEntriesAfterDays < 1) {
             throw new IllegalArgumentException("Directory build cache needs to retain entries for at least a day.");
         }
+//        DeprecationLogger.deprecateProperty(this.getClass(), "removeEntriesAfterDays")
+//            .withAdvice("Use an init-script to configure cache cleanup")
+//            .willBeRemovedInGradle9()
+//            .withUpgradeGuideSection(8, "local_build_cache_retention_deprecated")
+//            .nagUser();
+
         this.removeUnusedEntriesAfterDays = removeUnusedEntriesAfterDays;
     }
 }

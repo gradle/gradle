@@ -84,15 +84,17 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         }
         checkDirectory(target);
 
+        @SuppressWarnings("deprecation")
         int removeUnusedEntriesAfterDays = configuration.getRemoveUnusedEntriesAfterDays();
 
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).
             config("removeUnusedEntriesAfter", removeUnusedEntriesAfterDays + " days");
 
-        // Use the days configured for the local build cache, or the global 'createdResources' config if not specified.
-        Supplier<Long> removeUnusedEntriesOlderThan = removeUnusedEntriesAfterDays < 1
-            ? cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThanAsSupplier()
+        // Use the deprecated retention period if configured on `DirectoryBuildCache`, or use the central 'buildCache' cleanup config if not.
+        // If the deprecated property remains at the default, we can safely use the central value (which has the same default).
+        Supplier<Long> removeUnusedEntriesOlderThan = removeUnusedEntriesAfterDays == CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES
+            ? cacheConfigurations.getBuildCache().getRemoveUnusedEntriesOlderThanAsSupplier()
             : TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays);
 
         PersistentCache persistentCache = unscopedCacheBuilderFactory

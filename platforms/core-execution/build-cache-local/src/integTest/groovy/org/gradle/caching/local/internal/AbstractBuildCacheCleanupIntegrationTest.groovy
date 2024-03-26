@@ -66,14 +66,8 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         """
     }
 
-    def withLocalBuildCacheRetentionInDays(long period) {
-        settingsFile << """
-            buildCache {
-                local {
-                    removeUnusedEntriesAfterDays = ${period}
-                }
-            }
-        """
+    def withDeprecatedBuildCacheRetentionInDays(long period) {
+        withBuildCacheRetentionInDays(period)
     }
 
     def "cleans up entries when #cleanupTrigger"() {
@@ -145,11 +139,11 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
     def "cleans up entries after #scenario"() {
         def lastCleanupCheck = initializeHome()
 
-        if (createdResourcesCleanup != null) {
-            withCreatedResourcesRetentionInDays(createdResourcesCleanup)
-        }
         if (buildCacheCleanup != null) {
-            withLocalBuildCacheRetentionInDays(buildCacheCleanup)
+            withBuildCacheRetentionInDays(buildCacheCleanup)
+        }
+        if (deprecatedCacheCleanup != null) {
+            withDeprecatedBuildCacheRetentionInDays(deprecatedCacheCleanup)
         }
 
         when:
@@ -177,11 +171,11 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         assertCacheWasCleanedUpSince(lastCleanupCheck)
 
         where:
-        createdResourcesCleanup | buildCacheCleanup | effectiveCleanup | scenario
-        null                    | null              | 7                | "default period when not explicitly configured"
-        2                       | null              | 2                | "configured period for created resources"
-        null                    | 2                 | 2                | "configured period for build cache cleanup"
-        1                       | 10                | 10               | "configured period for build cache cleanup when both are configured"
+        buildCacheCleanup | deprecatedCacheCleanup | effectiveCleanup | scenario
+        null              | null                   | 7                | "default period when not explicitly configured"
+        2                 | null                   | 2                | "configured period for build cache cleanup"
+        null              | 2                      | 2                | "configured period for deprecated build cache cleanup"
+        1                 | 10                     | 10               | "configured period for deprecated build cache cleanup when both are configured"
     }
 
     def "produces reasonable message when cache retention is too short (#days days)"() {
