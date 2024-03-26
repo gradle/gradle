@@ -165,7 +165,7 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
         }) {
             assertThat(it.someString, equalTo("foo"))
             assertThat(
-                it.childBean.value,
+                it.childBean?.value,
                 equalTo(42)
             )
             assertThat(it.someInt, equalTo(13))
@@ -234,6 +234,17 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
                 decodedPair.first,
                 sameInstance(decodedPair.second)
             )
+        }
+    }
+
+    @Test
+    fun `preserves identity of Externalizable objects`() {
+        verifyRoundtripOf({
+            val toShare = ExternalizableBean(42)
+            toShare to toShare
+        }) { (first, second) ->
+            assertThat(first.value, equalTo(42))
+            assertThat(first, sameInstance(second))
         }
     }
 
@@ -342,11 +353,11 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
         }
     }
 
-    class SerializableBeanContainingExternalizable() : Serializable {
-        var someString: String? = null
-        var childBean: ExternalizableBean = ExternalizableBean()
+    class SerializableBeanContainingExternalizable(
+        var someString: String? = null,
+        var childBean: ExternalizableBean? = null,
         var someInt: Int? = null
-    }
+    ) : Serializable
 
     open class ExternalizableBean(var value: Int = 0) : Externalizable {
 
