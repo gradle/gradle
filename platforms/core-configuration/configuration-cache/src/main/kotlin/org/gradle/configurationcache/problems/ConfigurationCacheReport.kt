@@ -65,9 +65,7 @@ class ConfigurationCacheReport(
          */
         open fun commitReportTo(
             outputDirectory: File,
-            cacheAction: String,
-            requestedTasks: String,
-            totalProblemCount: Int
+            summary: ConfigurationCacheReportDisplaySummary
         ): Pair<State, File?> =
             illegalState()
 
@@ -87,9 +85,7 @@ class ConfigurationCacheReport(
              */
             override fun commitReportTo(
                 outputDirectory: File,
-                cacheAction: String,
-                requestedTasks: String,
-                totalProblemCount: Int
+                summary: ConfigurationCacheReportDisplaySummary
             ): Pair<State, File?> =
                 this to null
 
@@ -130,17 +126,22 @@ class ConfigurationCacheReport(
                 return this
             }
 
-            override fun commitReportTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int): Pair<State, File?> {
+            override fun commitReportTo(
+                outputDirectory: File,
+                summary: ConfigurationCacheReportDisplaySummary
+            ): Pair<State, File?> {
+
                 val reportFile = try {
                     executor
                         .submit(Callable {
-                            closeHtmlReport(cacheAction, requestedTasks, totalProblemCount)
+                            closeHtmlReport(summary)
                             moveSpoolFileTo(outputDirectory)
                         })
                         .get(30, TimeUnit.SECONDS)
                 } finally {
                     executor.shutdownAndAwaitTermination()
                 }
+
                 return Closed to reportFile
             }
 
@@ -157,8 +158,8 @@ class ConfigurationCacheReport(
             }
 
             private
-            fun closeHtmlReport(cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
-                writer.endHtmlReport(cacheAction, requestedTasks, totalProblemCount)
+            fun closeHtmlReport(summary: ConfigurationCacheReportDisplaySummary) {
+                writer.endHtmlReport(summary)
                 writer.close()
             }
 
@@ -273,10 +274,10 @@ class ConfigurationCacheReport(
      * see [HtmlReportWriter].
      */
     internal
-    fun writeReportFileTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int): File? {
+    fun writeReportFileTo(outputDirectory: File, summary: ConfigurationCacheReportDisplaySummary): File? {
         var reportFile: File?
         modifyState {
-            val (newState, outputFile) = commitReportTo(outputDirectory, cacheAction, requestedTasks, totalProblemCount)
+            val (newState, outputFile) = commitReportTo(outputDirectory, summary)
             reportFile = outputFile
             newState
         }
