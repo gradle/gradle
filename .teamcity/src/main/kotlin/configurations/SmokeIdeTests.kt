@@ -35,10 +35,10 @@ class SmokeIdeTests(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
     }
 
     applyTestDefaults(
-        model,
-        this,
-        ":smoke-ide-test:smokeIdeTest",
-        extraParameters = buildScanTag("SmokeIdeTests") + " -PautoDownloadAndroidStudio=true -PrunAndroidStudioInHeadlessMode=true",
+        model = model,
+        buildType = this,
+        gradleTasks = ":smoke-ide-test:smokeIdeTest",
+        extraParameters = buildScanTag("SmokeIdeTests"),
     )
 }) {
     companion object {
