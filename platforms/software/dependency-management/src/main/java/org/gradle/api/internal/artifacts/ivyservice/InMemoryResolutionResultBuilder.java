@@ -29,6 +29,8 @@ import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import java.util.Collections;
+
 /**
  * Dependency graph visitor that will build a {@link ResolutionResult} eagerly.
  * It is designed to be used during resolution for build dependencies.
@@ -38,8 +40,14 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
     private final DefaultResolutionResultBuilder resolutionResultBuilder = new DefaultResolutionResultBuilder();
+    private final boolean returnAllVariants;
+
     private ResolvedComponentResult root;
     private ImmutableAttributes requestAttributes;
+
+    public InMemoryResolutionResultBuilder(boolean returnAllVariants) {
+        this.returnAllVariants = returnAllVariants;
+    }
 
     @Override
     public void visitNode(DependencyGraphNode node) {
@@ -49,7 +57,13 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
         for (ResolvedGraphVariant variant : component.getSelectedVariants()) {
             resolutionResultBuilder.visitSelectedVariant(variant.getNodeId(), variant.getResolveState().getVariantResult(null));
         }
-        resolutionResultBuilder.visitComponentVariants(component.getResolveState().getAllSelectableVariantResults());
+
+        if (returnAllVariants) {
+            resolutionResultBuilder.visitComponentVariants(component.getResolveState().getAllSelectableVariantResults());
+        } else {
+            resolutionResultBuilder.visitComponentVariants(Collections.emptyList());
+        }
+
         resolutionResultBuilder.endVisitComponent();
     }
 
