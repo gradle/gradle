@@ -110,7 +110,7 @@ public class LocalComponentGraphResolveStateFactory {
         AttributesSchemaInternal schema,
         boolean adHoc
     ) {
-        VariantMetadataFactory configurationFactory = new ConfigurationsProviderMetadataFactory(
+        VariantMetadataFactory variantsFactory = new ConfigurationsProviderMetadataFactory(
             componentIdentifier,
             configurations,
             metadataBuilder,
@@ -118,7 +118,7 @@ public class LocalComponentGraphResolveStateFactory {
             calculatedValueContainerFactory
         );
 
-        return createLocalComponentState(componentIdentifier, moduleVersionId, status, schema, adHoc, configurationFactory);
+        return createLocalComponentState(componentIdentifier, moduleVersionId, status, schema, adHoc, variantsFactory);
     }
 
     private DefaultLocalComponentGraphResolveState createLocalComponentState(
@@ -127,7 +127,7 @@ public class LocalComponentGraphResolveStateFactory {
         String status,
         AttributesSchemaInternal schema,
         boolean adHoc,
-        VariantMetadataFactory configurationFactory
+        VariantMetadataFactory variantsFactory
     ) {
         LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
             moduleVersionId,
@@ -142,7 +142,7 @@ public class LocalComponentGraphResolveStateFactory {
             attributeDesugaring,
             idGenerator,
             adHoc,
-            configurationFactory,
+            variantsFactory,
             calculatedValueContainerFactory,
             null
         );
@@ -153,15 +153,15 @@ public class LocalComponentGraphResolveStateFactory {
      * metadata as its data source.
      */
     private static class VariantsListMetadataFactory implements VariantMetadataFactory {
-        private final List<? extends LocalVariantGraphResolveMetadata> metadata;
+        private final List<? extends LocalVariantGraphResolveMetadata> variants;
 
-        public VariantsListMetadataFactory(List<? extends LocalVariantGraphResolveMetadata> metadata) {
-            this.metadata = metadata;
+        public VariantsListMetadataFactory(List<? extends LocalVariantGraphResolveMetadata> variants) {
+            this.variants = variants;
         }
 
         @Override
         public void visitConsumableVariants(Consumer<LocalVariantGraphResolveMetadata> visitor) {
-            for (LocalVariantGraphResolveMetadata variant : metadata) {
+            for (LocalVariantGraphResolveMetadata variant : variants) {
                 visitor.accept(variant);
             }
         }
@@ -171,15 +171,15 @@ public class LocalComponentGraphResolveStateFactory {
 
         @Override
         public LocalVariantGraphResolveMetadata getVariantByConfigurationName(String name) {
-            return metadata.stream()
-                .filter(configuration -> name.equals(configuration.getName()))
+            return variants.stream()
+                .filter(variant -> name.equals(variant.getConfigurationName()))
                 .findFirst()
                 .orElse(null);
         }
 
         @Override
         public Set<String> getConfigurationNames() {
-            return metadata.stream()
+            return variants.stream()
                 .map(LocalVariantGraphResolveMetadata::getName)
                 .collect(Collectors.toSet());
         }
