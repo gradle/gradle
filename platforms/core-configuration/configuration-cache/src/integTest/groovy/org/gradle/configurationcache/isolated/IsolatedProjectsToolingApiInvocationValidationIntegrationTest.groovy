@@ -39,8 +39,8 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': line 3: Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access 'plugins' on project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access 'plugins' on project ':b' from project ':'")
         }
 
         when:
@@ -51,8 +51,8 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': line 3: Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access 'plugins' on project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access 'plugins' on project ':b' from project ':'")
         }
     }
 
@@ -77,8 +77,8 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
+            problem("Plugin class 'my.MyPlugin': Cannot access 'extensions' on project ':a' from project ':'")
+            problem("Plugin class 'my.MyPlugin': Cannot access 'extensions' on project ':b' from project ':'")
         }
 
         when:
@@ -89,8 +89,8 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
+            problem("Plugin class 'my.MyPlugin': Cannot access 'extensions' on project ':a' from project ':'")
+            problem("Plugin class 'my.MyPlugin': Cannot access 'extensions' on project ':b' from project ':'")
         }
     }
 

@@ -60,8 +60,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             projectsConfigured(":")
             buildModelCreated()
             modelsCreated(":a", ":b", ":c")
-            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': line 6: Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access 'plugins' on project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 6: Cannot access 'plugins' on project ':b' from project ':'")
         }
 
         when:
@@ -101,10 +101,10 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             modelsCreated(":a", ":b")
             modelsQueriedAndNotPresent(":")
             modelsReused(":c", ":buildSrc")
-            problem("Build file 'build.gradle': line 10: Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': line 11: Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': line 6: Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 10: Cannot access 'afterEvaluate' on project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 11: Cannot access 'myExtension' on project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access 'plugins' on project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 6: Cannot access 'plugins' on project ':b' from project ':'")
         }
     }
 
@@ -139,8 +139,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             buildModelCreated()
             // TODO - should create model for root
             modelsCreated(":b")
-            problem("Build file 'a/build.gradle': line 2: Cannot access project ':' from project ':a'")
-            problem("Build file 'a/build.gradle': line 3: Cannot access project ':' from project ':a'")
+            problem("Build file 'a/build.gradle': line 2: Cannot access 'plugins' on project ':' from project ':a'")
+            problem("Build file 'a/build.gradle': line 3: Cannot access 'myExtension' on project ':' from project ':a'")
         }
 
         when:
@@ -171,8 +171,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             projectConfigured(":buildSrc")
             modelsQueriedAndNotPresent(":", ":a")
             modelsReused(":b", ":buildSrc")
-            problem("Build file 'a/build.gradle': line 2: Cannot access project ':' from project ':a'")
-            problem("Build file 'a/build.gradle': line 3: Cannot access project ':' from project ':a'")
+            problem("Build file 'a/build.gradle': line 2: Cannot access 'plugins' on project ':' from project ':a'")
+            problem("Build file 'a/build.gradle': line 3: Cannot access 'myExtension' on project ':' from project ':a'")
         }
     }
 
@@ -209,7 +209,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             projectsConfigured(":", ":c")
             buildModelCreated()
             modelsCreated(":a", ":b")
-            problem("Build file 'b/build.gradle': line 4: Cannot access project ':a' from project ':b'")
+            problem("Build file 'b/build.gradle': line 4: Cannot access 'myExtension' on project ':a' from project ':b'")
         }
 
         when:
@@ -243,7 +243,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             projectConfigured(":")
             modelsCreated(":a", ":b")
             modelsReused(":", ":c", ":buildSrc")
-            problem("Build file 'b/build.gradle': line 4: Cannot access project ':a' from project ':b'")
+            problem("Build file 'b/build.gradle': line 4: Cannot access 'myExtension' on project ':a' from project ':b'")
         }
 
         when:
@@ -276,7 +276,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             projectConfigured(":")
             modelsCreated(":a", ":b")
             modelsReused(":", ":c", ":buildSrc")
-            problem("Build file 'b/build.gradle': line 4: Cannot access project ':a' from project ':b'")
+            problem("Build file 'b/build.gradle': line 4: Cannot access 'myExtension' on project ':a' from project ':b'")
         }
     }
 
@@ -314,7 +314,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             projectsConfigured(":", ":c")
             buildModelCreated()
             modelsCreated(":a", ":b")
-            problem("Build file 'b/build.gradle': line 4: Cannot access project ':a' from project ':b'")
+            problem("Build file 'b/build.gradle': line 4: Cannot access 'myExtension' on project ':a' from project ':b'")
         }
 
         when:
@@ -348,7 +348,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             projectsConfigured(":", ":b")
             modelsCreated(":b")
             modelsReused(":", ":a", ":c", ":buildSrc")
-            problem("Build file 'b/build.gradle': line 4: Cannot access project ':a' from project ':b'. 'org.gradle.internal.invalidate-coupled-projects=false' is preventing configuration of project ':a'")
+            problem("Build file 'b/build.gradle': line 4: Cannot access 'myExtension' on project ':a' from project ':b'. 'org.gradle.internal.invalidate-coupled-projects=false' is preventing configuration of project ':a'")
         }
     }
 }
