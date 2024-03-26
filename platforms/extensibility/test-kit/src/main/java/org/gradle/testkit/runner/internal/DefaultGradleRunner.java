@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.initialization.StartParameterBuildOptions;
@@ -254,7 +255,11 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private static OutputStream toOutputStream(Writer standardOutput) {
-        return new WriterOutputStream(standardOutput, Charset.defaultCharset());
+        try {
+            return WriterOutputStream.builder().setWriter(standardOutput).get();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private void validateArgumentNotNull(Object argument, String argumentName) {

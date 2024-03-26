@@ -47,7 +47,6 @@ import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -165,7 +164,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             ExecutorFactory executorFactory,
             ListenerManager listenerManager,
             BuildOperationListenerManager buildOperationListenerManager,
-            BuildOperationExecutor buildOperationExecutor,
+            BuildOperationRunner buildOperationRunner,
             WorkInputListeners workListeners,
             FileChangeListeners fileChangeListeners,
             StyledTextOutputFactory styledTextOutputFactory,
@@ -207,7 +206,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
                             new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator, valueSnapshotter),
-                            buildOperationExecutor,
+                            buildOperationRunner,
                             loggingBuildOperationProgressBroadcaster,
                             buildOperationNotificationValve))));
         }

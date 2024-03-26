@@ -19,6 +19,7 @@ errorprone {
 dependencies {
     api(project(":base-annotations"))
     api(project(":base-services"))
+    api(project(":build-operations"))
     api(project(":core"))
     api(project(":core-api"))
     api(project(":logging"))

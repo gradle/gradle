@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality.pmd
 
+import org.gradle.api.plugins.quality.PmdPlugin
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.quality.integtest.fixtures.PmdCoverage
@@ -25,15 +26,10 @@ import org.gradle.util.internal.VersionNumber
 
 @TargetCoverage({ PmdCoverage.getSupportedVersionsByJdk() })
 class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
-    String calculateDefaultDependencyNotation() {
-        if (versionNumber < VersionNumber.version(5)) {
-            return "pmd:pmd:$version"
-        } else if (versionNumber < VersionNumber.parse("5.2.0")) {
-            return "net.sourceforge.pmd:pmd:$version"
-        }
-        return "net.sourceforge.pmd:pmd-java:$version"
-    }
 
+    Set<String> calculateDefaultDependencyNotation() {
+        return PmdPlugin.calculateDefaultDependencyNotation(versionNumber.toString())
+    }
     /**
      * Checks if the current PMD version supports the current Java version, if not we set the sourceCompatibility to the max Java version supported by the current PMD version.
      */
@@ -52,7 +48,7 @@ class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpe
             "java.sourceCompatibility = 13"
         } else if (versionNumber < VersionNumber.parse('6.48.0') && TestPrecondition.satisfied(UnitTestPreconditions.Jdk19OrLater)) {
             "java.sourceCompatibility = 18"
-        } else if (versionNumber < VersionNumber.parse('7.0.0-rc4') && TestPrecondition.satisfied(UnitTestPreconditions.Jdk21OrLater)) {
+        } else if (versionNumber < VersionNumber.parse('7.0.0') && TestPrecondition.satisfied(UnitTestPreconditions.Jdk21OrLater)) {
             "java.sourceCompatibility = 20"
         } else {
             "" // do not set a source compatibility for the DEFAULT_PMD_VERSION running on latest Java, this way we will catch if it breaks with a new Java version

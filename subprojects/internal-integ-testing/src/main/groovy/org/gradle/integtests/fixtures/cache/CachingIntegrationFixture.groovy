@@ -30,7 +30,7 @@ trait CachingIntegrationFixture {
     }
 
     TestFile getMetadataCacheDir() {
-        return userHomeCacheDir.file(CacheLayout.ROOT.key)
+        return userHomeCacheDir.file(CacheLayout.MODULES.key)
     }
 
     void markForArtifactCacheCleanup() {

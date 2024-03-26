@@ -33,6 +33,12 @@ import org.gradle.internal.serialize.Serializer
 import kotlin.reflect.KClass
 
 
+/**
+ * An implementation of the Codec protocol that (based on a [Binding.tag]) chooses and delegates
+ * to the proper binding (if one is found).
+ *
+ * @see Binding.tag
+ */
 class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
 
     internal
@@ -91,8 +97,14 @@ data class Binding(
 }
 
 
+/**
+ * An object that can determine, for a given type, whether it can encode instances of that type, and which specific encoding to use.
+ */
 interface EncodingProducer {
 
+    /**
+     * Returns the encoding to use for that type, or null, if not supported.
+     */
     fun encodingForType(type: Class<*>): Encoding?
 }
 
@@ -115,6 +127,9 @@ class Bindings(
         fun of(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(emptyList()).apply(builder).build()
     }
 
+    /**
+     * Builds a new set of bindings based on the current bindings plus any bindings created via the given builder.
+     */
     fun append(builder: BindingsBuilder.() -> Unit) = BindingsBuilder(bindings).apply(builder).build()
 
     fun build() = BindingsBackedCodec(bindings)

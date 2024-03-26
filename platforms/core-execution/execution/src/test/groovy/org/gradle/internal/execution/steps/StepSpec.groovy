@@ -18,13 +18,12 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.operations.BuildOperationType
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationRunner
 
 import java.util.function.Consumer
 
 abstract class StepSpec<C extends Context> extends StepSpecBase<C> {
-    final buildOperationExecutor = new TestBuildOperationExecutor()
+    final buildOperationRunner = new TestBuildOperationRunner()
 
     final delegate = Mock(DeferredExecutionAwareStep)
     final work = Stub(UnitOfWork)
@@ -35,7 +34,7 @@ abstract class StepSpec<C extends Context> extends StepSpecBase<C> {
     }
 
     protected void assertNoOperation() {
-        assert buildOperationExecutor.log.records.empty
+        assert buildOperationRunner.log.records.empty
     }
 
     protected <T, R> void assertSuccessfulOperation(Class<BuildOperationType<T, R>> operationType, String displayName, R result) {
@@ -56,9 +55,9 @@ abstract class StepSpec<C extends Context> extends StepSpecBase<C> {
         Class<T> operationType,
         Consumer<TestBuildOperationRunner.Log.TypedRecord<D, R>> verifier
     ) {
-        assert buildOperationExecutor.log.records.size() == 1
+        assert buildOperationRunner.log.records.size() == 1
         interaction {
-            verifier.accept(buildOperationExecutor.log.mostRecent(operationType))
+            verifier.accept(buildOperationRunner.log.mostRecent(operationType))
         }
     }
 }

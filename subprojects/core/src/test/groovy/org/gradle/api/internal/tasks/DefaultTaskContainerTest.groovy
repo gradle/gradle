@@ -74,8 +74,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         taskFactory,
         project as ProjectInternal,
         new TaskStatistics(),
-        buildOperationExecutor,
-        new BuildOperationCrossProjectConfigurator(buildOperationExecutor),
+        buildOperationRunner,
+        new BuildOperationCrossProjectConfigurator(buildOperationRunner),
         callbackActionDecorator
     ).create()
 

@@ -25,7 +25,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -39,8 +38,8 @@ class LifecycleProjectEvaluatorTest extends Specification {
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
     private cancellationToken = Mock(BuildCancellationToken)
-    private buildOperationExecutor = new TestBuildOperationExecutor()
-    private evaluator = new LifecycleProjectEvaluator(buildOperationExecutor, delegate, cancellationToken)
+    private buildOperationRunner = new TestBuildOperationRunner()
+    private evaluator = new LifecycleProjectEvaluator(buildOperationRunner, delegate, cancellationToken)
     private state = new ProjectStateInternal()
     private mutationState = Mock(ProjectState)
 
@@ -270,7 +269,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
     }
 
     List<TestBuildOperationRunner.Log.Record> getOperations() {
-        buildOperationExecutor.log.records.toList()
+        buildOperationRunner.log.records.toList()
     }
 
 

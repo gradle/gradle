@@ -20,8 +20,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
@@ -31,14 +31,14 @@ public class BuildOperationFiringSettingsPreparer implements SettingsPreparer {
     };
 
     private final SettingsPreparer delegate;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationProgressEventEmitter emitter;
     @Nullable
     private final PublicBuildPath fromBuild;
 
-    public BuildOperationFiringSettingsPreparer(SettingsPreparer delegate, BuildOperationExecutor buildOperationExecutor, BuildOperationProgressEventEmitter emitter, @Nullable PublicBuildPath fromBuild) {
+    public BuildOperationFiringSettingsPreparer(SettingsPreparer delegate, BuildOperationRunner buildOperationRunner, BuildOperationProgressEventEmitter emitter, @Nullable PublicBuildPath fromBuild) {
         this.delegate = delegate;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.emitter = emitter;
         this.fromBuild = fromBuild;
     }
@@ -51,7 +51,7 @@ public class BuildOperationFiringSettingsPreparer implements SettingsPreparer {
                 return gradle.getIdentityPath().toString();
             }
         });
-        buildOperationExecutor.run(new LoadBuild(gradle));
+        buildOperationRunner.run(new LoadBuild(gradle));
     }
 
     private class LoadBuild implements RunnableBuildOperation {

@@ -31,6 +31,7 @@ dependencies {
     api(project(":logging-api"))
     api(project(":base-annotations"))
     api(project(":base-services"))
+    api(project(":build-operations"))
     api(project(":core-api"))
     api(project(":enterprise-logging"))
     api(project(":file-temp"))
@@ -41,7 +42,6 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
-    implementation(project(":build-operations"))
     implementation(project(":functional"))
 
     implementation(libs.guava)

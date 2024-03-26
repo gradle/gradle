@@ -78,25 +78,25 @@ class JsonModelWriter(val writer: Writer) {
                 comma()
                 property("documentationLink", documentationLinkFor(it))
             }
-            details.exception?.let { exception ->
+            details.failure?.let { failure ->
                 comma()
-                writeError(exception)
+                writeError(failure)
             }
         }
     }
 
     private
-    fun writeError(exception: DecoratedException) {
+    fun writeError(failure: DecoratedFailure) {
         property("error") {
             jsonObject {
-                exception.summary?.let {
+                failure.summary?.let {
                     property("summary") {
                         writeStructuredMessage(it)
                     }
                     comma()
                 }
                 property("parts") {
-                    jsonObjectList(exception.parts) { (isInternal, text) ->
+                    jsonObjectList(failure.parts) { (isInternal, text) ->
                         property(if (isInternal) "internalText" else "text", text)
                     }
                 }

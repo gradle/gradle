@@ -4598,7 +4598,6 @@ Class <org.gradle.process.internal.health.memory.JvmMemoryInfo> is not annotated
 Class <org.gradle.process.internal.health.memory.JvmMemoryStatus> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JvmMemoryStatus.java:0)
 Class <org.gradle.process.internal.health.memory.JvmMemoryStatusListener> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JvmMemoryStatusListener.java:0)
 Class <org.gradle.process.internal.health.memory.JvmMemoryStatusSnapshot> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JvmMemoryStatusSnapshot.java:0)
-Class <org.gradle.process.internal.health.memory.MBeanAttributeProvider> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MBeanAttributeProvider.java:0)
 Class <org.gradle.process.internal.health.memory.MBeanOsMemoryInfo> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MBeanOsMemoryInfo.java:0)
 Class <org.gradle.process.internal.health.memory.MaximumHeapHelper> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MaximumHeapHelper.java:0)
 Class <org.gradle.process.internal.health.memory.MemInfoOsMemoryInfo$Meminfo> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MemInfoOsMemoryInfo.java:0)

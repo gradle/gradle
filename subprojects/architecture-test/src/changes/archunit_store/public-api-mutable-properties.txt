@@ -29,6 +29,7 @@ Method <org.gradle.api.Project.getDisplayName()> does not have raw return type a
 Method <org.gradle.api.Project.getExtensions()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getGradle()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getGroup()> does not have raw return type assignable to org.gradle.api.provider.Property in (Project.java:0)
+Method <org.gradle.api.Project.getIsolated()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getLayout()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getLogger()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)
 Method <org.gradle.api.Project.getLogging()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Project.java:0)

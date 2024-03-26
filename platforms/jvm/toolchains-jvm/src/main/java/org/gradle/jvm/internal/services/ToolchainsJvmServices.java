@@ -27,7 +27,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -70,8 +70,8 @@ public class ToolchainsJvmServices extends AbstractPluginServiceRegistry {
             return objectFactory.newInstance(JdkCacheDirectory.class, homeDirProvider, operations, lockManager, detector);
         }
 
-        protected JavaInstallationRegistry createJavaInstallationRegistry(ObjectFactory objectFactory, List<InstallationSupplier> suppliers, BuildOperationExecutor executor, OperatingSystem os) {
-            return objectFactory.newInstance(JavaInstallationRegistry.class, suppliers, executor, os);
+        protected JavaInstallationRegistry createJavaInstallationRegistry(ObjectFactory objectFactory, List<InstallationSupplier> suppliers, BuildOperationRunner buildOperationRunner, OperatingSystem os) {
+            return objectFactory.newInstance(JavaInstallationRegistry.class, suppliers, buildOperationRunner, os);
         }
 
     }

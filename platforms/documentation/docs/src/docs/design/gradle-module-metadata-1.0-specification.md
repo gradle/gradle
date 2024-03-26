@@ -2,7 +2,7 @@
 
 Consumption of Gradle Module Metadata is automatic. However, publication needs to be enabled explicitly for any Gradle version prior to Gradle 6.
 
-Publishing Gradle Module Metadata can be enabled in Gradle settings file (`settings.gradle`):
+Publishing Gradle Module Metadata can be enabled in the Gradle settings file (`settings.gradle`):
 
 ```
 enableFeaturePreview("GRADLE_METADATA")
@@ -12,7 +12,7 @@ enableFeaturePreview("GRADLE_METADATA")
 
 This document describes version 1.0 of the Gradle module metadata file. A module metadata file describes the contents of a _module_, which is the unit of publication for a particular repository format, such as a module in a Maven repository. This is often called a "package" in many repository formats.
 
-The module metadata file is a JSON file published alongside the existing repository-specific metadata files, such as a Maven POM or Ivy descriptor. It adds additional metadata that can be used by Gradle versions and other tooling that understand the format. This allows the rich Gradle model to be mapped to and "tunneled" through existing repository formats while continuing to support existing Gradle versions and tooling that does not understand the format. 
+The module metadata file is a JSON file published alongside the existing repository-specific metadata files, such as a Maven POM or Ivy descriptor. It adds additional metadata that can be used by Gradle versions and other tooling that understand the format. This allows the rich Gradle model to be mapped to and "tunneled" through existing repository formats while continuing to support existing Gradle versions and tooling that do not understand the format. 
 
 The module metadata file is intended to be machine-generated rather than written by a human but is intended to be human-readable.
 
@@ -22,7 +22,7 @@ In version 1.0, the module metadata file can describe only those modules that co
 
 ## Usage in a Maven repository
 
-When present in a Maven module, the file must have extension `module`. For example, in version 1.2 of 'mylib', the file should be called `mylib-1.2.module`.
+When present in a Maven module, the file must have the extension `module`. For example, in version 1.2 of 'mylib', the file should be called `mylib-1.2.module`.
 
 Gradle ignores the contents of the Maven POM when the module metadata file is present.
 
@@ -68,7 +68,7 @@ This value must contain an array with zero or more elements. Each element must b
 - `available-at`: optional. Information about where the metadata and files of this variant are available.
 - `dependencies`: optional. When missing the variant is assumed to have no dependencies. Must not be present when `available-at` is present.
 - `files`: optional. When missing the variant is assumed to have no files. Must not be present when `available-at` is present.
-- `capabilities`: optional. When missing the variant is assumed to declared no specific capability.
+- `capabilities`: optional. When missing, the variant is assumed to declare no specific capability.
 
 ### `attributes` value
 
@@ -85,16 +85,16 @@ This value must contain an array of 0 or more capabilities. Each capability is a
 
 #### Standard attributes
 
-- `org.gradle.usage` indicates the purpose of the variant. See the `org.gradle.api.attributes.Usage` class for more details. Value must be a string.
+- `org.gradle.usage` indicates the purpose of the variant. See the `org.gradle.api.attributes.Usage` class for more details. The value must be a string.
 - `org.gradle.status` indicates the kind of release: one of `release` or `integration`.
 - `org.gradle.category` indicates the type of component (library, platform or documentation). This attribute is mostly used to disambiguate Maven POM files derived either as a platform or a library. Value must be a string.
 - `org.gradle.libraryelements` indicates the content of a `org.gradle.category=library` variant, like `jar`, `classes` or `headers-cplusplus`. Value must be a string.
-- `org.gradle.docstype` indicates the documentation type of a `org.gradle.category=documentation` variant, like `javadoc`, `sources` or `doxygen`. Value must be a string.
-- `org.gradle.dependency.bundling` indicates how dependencies of the variant are bundled. Either externally, embedded or shadowed. See the `org.gradle.api.attributes.Bundling` for more details. Value must be a string.
+- `org.gradle.docstype` indicates the documentation type of a `org.gradle.category=documentation` variant, like `javadoc`, `sources` or `doxygen`. The value must be a string.
+- `org.gradle.dependency.bundling` indicates how dependencies of the variant are bundled. Either externally, embedded or shadowed. See the `org.gradle.api.attributes.Bundling` for more details. The value must be a string.
 
 ##### Deprecated attributes value
 
-The `org.gradle.usage` attribute has seen an evolution for its values.
+The `org.gradle.usage` attribute has seen an evolution in its values.
 The values `java-api-*` and `java-runtime-*` are now deprecated and replaced by a new combination.
 
 The values for the Java ecosystem are now limited to `java-api` / `java-runtime` combined with the relevant value for `org.gradle.libraryelements`.
@@ -158,7 +158,7 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 - `group`: The group of the dependency constraint.
 - `module`: The module of the dependency constraint.
 - `version`: optional. The version constraint of the dependency constraint.
-- `reason`: optional. An explanation of why the constraint is used. Can typically be used to explain why a specific version is rejected, or from where a platform comes from.
+- `reason`: optional. An explanation of why the constraint is used. It can typically be used to explain why a specific version is rejected or from where a platform comes from.
 - `attributes`: optional. If set, attributes will override the consumer attributes during dependency resolution for this specific dependency.
 
 ### `files` value

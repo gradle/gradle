@@ -16,15 +16,14 @@
 
 package org.gradle.tooling.provider.model.internal
 
-
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.Describables
 import org.gradle.internal.Factory
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -37,8 +36,8 @@ import java.util.function.Supplier
 class DefaultToolingModelBuilderRegistryTest extends Specification {
     final def projectStateRegistry = Mock(ProjectStateRegistry)
     final def userCodeApplicationContext = Mock(UserCodeApplicationContext)
-    final def buildOperationExecutor = Mock(BuildOperationExecutor)
-    final def registry = new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry, userCodeApplicationContext)
+    final def buildOperationRunner = Mock(BuildOperationRunner)
+    final def registry = new DefaultToolingModelBuilderRegistry(buildOperationRunner, projectStateRegistry, userCodeApplicationContext)
 
     def "wraps builder for requested model"() {
         def builder1 = Mock(ToolingModelBuilder)
@@ -100,7 +99,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         result == "result"
 
         and:
-        1 * buildOperationExecutor.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
+        1 * buildOperationRunner.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
         1 * projectState.fromMutableState(_) >> { Function f -> f.apply(project) }
         1 * application.reapply(_) >> { Supplier supplier -> supplier.get() }
         1 * builder2.buildAll("model", project) >> "result"
@@ -196,7 +195,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         result == "result"
 
         and:
-        1 * buildOperationExecutor.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
+        1 * buildOperationRunner.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
         1 * projectState.fromMutableState(_) >> { Function factory -> factory.apply(project) }
         1 * builder.buildAll("model", "param", project) >> "result"
         0 * _

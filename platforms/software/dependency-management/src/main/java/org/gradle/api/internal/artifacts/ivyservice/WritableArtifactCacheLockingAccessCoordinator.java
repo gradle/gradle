@@ -68,7 +68,7 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
 
     private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CacheConfigurationsInternal cacheConfigurations) {
         return CompositeCleanupAction.builder()
-                .add(UnusedVersionsCacheCleanup.create(CacheLayout.ROOT.getName(), CacheLayout.ROOT.getVersionMapping(), usedGradleVersions))
+                .add(UnusedVersionsCacheCleanup.create(CacheLayout.MODULES.getName(), CacheLayout.MODULES.getVersionMapping(), usedGradleVersions))
                 .add(cacheMetaData.getExternalResourcesStoreDirectory(),
                     UnusedVersionsCacheCleanup.create(CacheLayout.RESOURCES.getName(), CacheLayout.RESOURCES.getVersionMapping(), usedGradleVersions),
                     new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(DefaultExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, getMaxAgeTimestamp(cacheConfigurations)))

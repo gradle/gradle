@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
@@ -34,15 +34,15 @@ import java.util.concurrent.ConcurrentMap;
 
 @ThreadSafe
 public class DefaultTransformedVariantFactory implements TransformedVariantFactory {
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final TransformStepNodeFactory transformStepNodeFactory;
     private final ConcurrentMap<VariantKey, ResolvedArtifactSet> variants = new ConcurrentHashMap<>();
     private final Factory externalFactory = this::doCreateExternal;
     private final Factory projectFactory = this::doCreateProject;
 
-    public DefaultTransformedVariantFactory(BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory, TransformStepNodeFactory transformStepNodeFactory) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public DefaultTransformedVariantFactory(BuildOperationRunner buildOperationRunner, CalculatedValueContainerFactory calculatedValueContainerFactory, TransformStepNodeFactory transformStepNodeFactory) {
+        this.buildOperationRunner = buildOperationRunner;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.transformStepNodeFactory = transformStepNodeFactory;
     }
@@ -119,14 +119,14 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
             @Override
             public void visitArtifact(ResolvableArtifact artifact) {
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformStep);
-                TransformStepNode transformStepNode = transformStepNodeFactory.createInitial(targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                TransformStepNode transformStepNode = transformStepNodeFactory.createInitial(targetComponentVariant, sourceAttributes, transformStep, artifact, upstreamDependencies, buildOperationRunner, calculatedValueContainerFactory);
                 builder.add(transformStepNode);
             }
 
             @Override
             public void visitTransform(TransformStepNode source) {
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformStep);
-                TransformStepNode transformStepNode = transformStepNodeFactory.createChained(targetComponentVariant, sourceAttributes, transformStep, source, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                TransformStepNode transformStepNode = transformStepNodeFactory.createChained(targetComponentVariant, sourceAttributes, transformStep, source, upstreamDependencies, buildOperationRunner, calculatedValueContainerFactory);
                 builder.add(transformStepNode);
             }
         });

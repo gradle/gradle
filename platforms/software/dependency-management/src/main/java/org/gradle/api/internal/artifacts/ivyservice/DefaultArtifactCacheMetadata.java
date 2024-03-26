@@ -32,7 +32,7 @@ public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, Glob
 
     public DefaultArtifactCacheMetadata(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
         this.baseDir = cacheBuilderFactory.getRootDir();
-        this.cacheDir = cacheBuilderFactory.baseDirForCrossVersionCache(CacheLayout.ROOT.getKey());
+        this.cacheDir = cacheBuilderFactory.baseDirForCrossVersionCache(CacheLayout.MODULES.getKey());
         this.transformsDir = cacheBuilderFactory.baseDirForCrossVersionCache(CacheLayout.TRANSFORMS.getKey());
     }
 

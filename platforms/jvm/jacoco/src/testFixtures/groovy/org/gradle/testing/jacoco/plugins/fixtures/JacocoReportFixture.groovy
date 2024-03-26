@@ -56,6 +56,10 @@ class JacocoReportFixture {
         return Integer.parseInt(numberOfClasses)
     }
 
+    String sourceCode(String pkg, String file) {
+        return htmlDir.file("${pkg}/${file}.html").getText('UTF-8')
+    }
+
     boolean assertVersion(String version) {
         String jacocoVersion = jacocoVersion()
         // Newer versions of JaCoCo include the timestamp in the rendered report

@@ -22,6 +22,14 @@ import org.gradle.internal.time.Clock;
 
 import javax.annotation.Nullable;
 
+/**
+ * Adapts the {@link DefaultBuildOperationRunner.BuildOperationExecutionListener} to the {@link BuildOperationListener} and the {@link ProgressLogger} interfaces.
+ *
+ * This notification of build operation execution can be received by tooling API clients.
+ * The adapter also generates progress logging events.
+ *
+ * TODO Separate these two purposes into separate classes
+ */
 public class BuildOperationProgressEventListenerAdapter implements DefaultBuildOperationRunner.BuildOperationExecutionListener {
     private final BuildOperationListener buildOperationListener;
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -38,7 +46,7 @@ public class BuildOperationProgressEventListenerAdapter implements DefaultBuildO
     @Override
     public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
         buildOperationListener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, descriptor);
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationRunner.class, descriptor);
         this.progressLogger = progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
     }
 
@@ -49,7 +57,7 @@ public class BuildOperationProgressEventListenerAdapter implements DefaultBuildO
         // This should be pushed down into the progress logger infrastructure so that an operation can have both a display name (that doesn't change) and
         // a status (that does)
         if (statusProgressLogger == null) {
-            statusProgressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, progressLogger);
+            statusProgressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationRunner.class, progressLogger);
             statusProgressLogger.start(descriptor.getDisplayName(), status);
         } else {
             statusProgressLogger.progress(status);

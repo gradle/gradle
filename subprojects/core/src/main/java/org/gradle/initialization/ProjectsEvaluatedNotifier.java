@@ -19,20 +19,20 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class ProjectsEvaluatedNotifier {
     private static final NotifyProjectsEvaluatedBuildOperationType.Result PROJECTS_EVALUATED_RESULT = new NotifyProjectsEvaluatedBuildOperationType.Result() {
     };
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public ProjectsEvaluatedNotifier(BuildOperationExecutor buildOperationExecutor) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public ProjectsEvaluatedNotifier(BuildOperationRunner buildOperationRunner) {
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     public void notify(GradleInternal gradle) {
-        buildOperationExecutor.run(new NotifyProjectsEvaluatedListeners(gradle));
+        buildOperationRunner.run(new NotifyProjectsEvaluatedListeners(gradle));
     }
 
     private static class NotifyProjectsEvaluatedListeners implements RunnableBuildOperation {

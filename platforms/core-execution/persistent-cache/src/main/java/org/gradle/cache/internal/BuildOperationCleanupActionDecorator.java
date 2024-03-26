@@ -21,13 +21,13 @@ import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 public class BuildOperationCleanupActionDecorator implements CleanupActionDecorator {
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationExecutor;
 
-    public BuildOperationCleanupActionDecorator(BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperationCleanupActionDecorator(BuildOperationRunner buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -37,10 +37,10 @@ public class BuildOperationCleanupActionDecorator implements CleanupActionDecora
     }
 
     private static class BuildOperationCacheCleanupDecorator implements CleanupAction {
-        private final BuildOperationExecutor buildOperationExecutor;
+        private final BuildOperationRunner buildOperationExecutor;
         private final CleanupAction delegate;
 
-        public BuildOperationCacheCleanupDecorator(CleanupAction delegate, BuildOperationExecutor buildOperationExecutor) {
+        public BuildOperationCacheCleanupDecorator(CleanupAction delegate, BuildOperationRunner buildOperationExecutor) {
             this.buildOperationExecutor = buildOperationExecutor;
             this.delegate = delegate;
         }

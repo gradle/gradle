@@ -29,7 +29,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -108,7 +108,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                             IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory,
                                             JavaForkOptionsFactory forkOptionsFactory,
                                             WorkerLeaseRegistry workerLeaseRegistry,
-                                            BuildOperationExecutor buildOperationExecutor,
+                                            BuildOperationRunner buildOperationRunner,
                                             AsyncWorkTracker asyncWorkTracker,
                                             WorkerDirectoryProvider workerDirectoryProvider,
                                             ClassLoaderStructureProvider classLoaderStructureProvider,
@@ -119,7 +119,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                             ProjectLayout projectLayout,
                                             ProjectCacheDir projectCacheDir
                                             ) {
-            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, instantiatorFactory, actionExecutionSpecFactory, projectServices);
+            NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationRunner, instantiatorFactory, actionExecutionSpecFactory, projectServices);
 
             DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(
                 DefaultWorkerExecutor.class,
@@ -128,7 +128,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                 noIsolationWorkerFactory,
                 forkOptionsFactory,
                 workerLeaseRegistry,
-                buildOperationExecutor,
+                buildOperationRunner,
                 asyncWorkTracker,
                 workerDirectoryProvider,
                 workerExecutionQueueFactory,
@@ -142,8 +142,8 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
             return workerExecutor;
         }
 
-        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationExecutor buildOperationExecutor) {
-            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationExecutor);
+        WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, BuildOperationRunner buildOperationRunner) {
+            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationRunner);
         }
     }
 }

@@ -86,12 +86,12 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
         when:
         settingsFile << ""
         buildFile << """
-            import org.gradle.internal.operations.BuildOperationExecutor
+            import org.gradle.internal.operations.BuildOperationRunner
 
             task checkOpId() {
-                def buildOperationExecutor = gradle.services.get(BuildOperationExecutor)
+                def buildOperationRunner = gradle.services.get(BuildOperationRunner)
                 doLast() {
-                    file(resultFile) << buildOperationExecutor.currentOperation.id
+                    file(resultFile) << buildOperationRunner.currentOperation.id
                 }
             }
 

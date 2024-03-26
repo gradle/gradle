@@ -16,12 +16,16 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.annotation.Nullable;
 
 /**
  * Runs build operations: the pieces of work that make up a build.
  * Build operations can be nested inside other build operations.
  */
+@ServiceScope(Scope.Global.class)
 public interface BuildOperationRunner {
     /**
      * Runs the given build operation.
@@ -52,4 +56,12 @@ public interface BuildOperationRunner {
      * Executes the given build operation with the given worker, returns the result.
      */
     <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent);
+
+    /**
+     * Returns the state of the build operation currently running on this thread. Can be used as parent of a new build operation
+     * started in a different thread (or process). See {@link BuildOperationDescriptor.Builder#parent(BuildOperationRef)}
+     *
+     * @throws IllegalStateException When the current thread is not executing an operation.
+     */
+    BuildOperationRef getCurrentOperation();
 }

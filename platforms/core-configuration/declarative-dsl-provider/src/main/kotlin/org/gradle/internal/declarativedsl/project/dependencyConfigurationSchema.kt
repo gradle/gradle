@@ -86,7 +86,7 @@ class DependencyFunctionsExtractor(val configurations: DependencyConfigurations)
                 DataMemberFunction(
                     kClass.toDataTypeRef(),
                     configurationName,
-                    listOf(DataParameter("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
+                    listOf(projectDependencyParam),
                     false,
                     FunctionSemantics.AddAndConfigure(ProjectDependency::class.toDataTypeRef(), NOT_ALLOWED)
                 )
@@ -104,13 +104,22 @@ class ImplicitDependencyCollectorFunctionExtractor(val configurations: Dependenc
         .filter { function -> hasDependencyCollectorGetterSignature(function) }
         .map { function -> function.name.removePrefix("get").replaceFirstChar { it.lowercase(Locale.getDefault()) } }
         .filter { confName -> confName in configurations.configurationNames }
-        .map { confName ->
-            DataMemberFunction(
-                kClass.toDataTypeRef(),
-                confName,
-                listOf(DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)),
-                false,
-                FunctionSemantics.AddAndConfigure(kClass.toDataTypeRef(), NOT_ALLOWED)
+        .flatMap { confName ->
+            listOf(
+                DataMemberFunction(
+                    kClass.toDataTypeRef(),
+                    confName,
+                    listOf(gavDependencyParam),
+                    false,
+                    FunctionSemantics.AddAndConfigure(kClass.toDataTypeRef(), NOT_ALLOWED)
+                ),
+                DataMemberFunction(
+                    kClass.toDataTypeRef(),
+                    confName,
+                    listOf(projectDependencyParam),
+                    false,
+                    FunctionSemantics.AddAndConfigure(kClass.toDataTypeRef(), NOT_ALLOWED)
+                )
             )
         }
 
@@ -148,14 +157,27 @@ class ImplicitDependencyCollectorFunctionResolver(configurations: DependencyConf
         if (name in configurationNames) {
             val getterFunction = getDependencyCollectorGetter(receiverClass, name)
             if (getterFunction != null) {
-                return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
-                    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
-                        val dependencyNotation = binding.values.single().toString()
-                        val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
-                        collector.add(dependencyNotation)
-                        return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
-                    }
-                })
+                if (parameterValueBinding.bindingMap.containsKey(gavDependencyParam)) {
+                    return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
+                        override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
+                            val dependencyNotation = binding.values.single().toString()
+                            val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
+                            collector.add(dependencyNotation)
+                            return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
+                        }
+                    })
+                } else if (parameterValueBinding.bindingMap.containsKey(projectDependencyParam)) {
+                    return RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
+                        override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
+                            val dependencyNotation = binding.values.single() as ProjectDependency
+                            val collector: DependencyCollector = getterFunction.call(receiver) as DependencyCollector
+                            collector.add(dependencyNotation)
+                            return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
+                        }
+                    })
+                } else {
+                    throw IllegalStateException("Unexpected parameter binding contents: ${parameterValueBinding.bindingMap.keys} for function: $name in: $receiverClass")
+                }
             }
         }
         return RuntimeFunctionResolver.Resolution.Unresolved
@@ -178,3 +200,11 @@ fun hasDependencyCollectorGetterSignature(function: KFunction<*>): Boolean {
     }
     return function.name.startsWith("get") && returnType == DependencyCollector::class.java && function.parameters.size == 1
 }
+
+
+private
+val gavDependencyParam = DataParameter("dependency", String::class.toDataTypeRef(), false, ParameterSemantics.Unknown)
+
+
+private
+val projectDependencyParam = DataParameter("dependency", ProjectDependency::class.toDataTypeRef(), false, ParameterSemantics.Unknown)

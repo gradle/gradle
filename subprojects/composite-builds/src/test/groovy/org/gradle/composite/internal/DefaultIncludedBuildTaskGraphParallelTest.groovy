@@ -61,7 +61,6 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.file.Stat
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -457,7 +456,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
             planExecutor = new DefaultPlanExecutor(configuration, execFactory, workerLeaseService, cancellationToken, coordinationService, new DefaultInternalOptions([:]))
             buildTaskGraph = new DefaultIncludedBuildTaskGraph(
                 execFactory,
-                new TestBuildOperationExecutor(),
+                new TestBuildOperationRunner(),
                 buildStateRegistry,
                 workerLeaseService,
                 planExecutor,

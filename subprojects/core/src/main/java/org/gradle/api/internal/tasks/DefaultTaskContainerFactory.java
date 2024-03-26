@@ -28,7 +28,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Factory;
 import org.gradle.internal.model.RuleBasedPluginListener;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.ChildNodeInitializerStrategyAccessors;
@@ -60,7 +60,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private final CollectionCallbackActionDecorator callbackDecorator;
     private final ProjectInternal project;
     private final TaskStatistics statistics;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final CrossProjectConfigurator crossProjectConfigurator;
 
     public DefaultTaskContainerFactory(
@@ -69,7 +69,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         ITaskFactory taskFactory,
         ProjectInternal project,
         TaskStatistics statistics,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator callbackDecorator
     ) {
@@ -78,14 +78,14 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         this.taskFactory = taskFactory;
         this.project = project;
         this.statistics = statistics;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.crossProjectConfigurator = crossProjectConfigurator;
         this.callbackDecorator = callbackDecorator;
     }
 
     @Override
     public TaskContainerInternal create() {
-        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskIdentityFactory, taskFactory, statistics, buildOperationExecutor, crossProjectConfigurator, callbackDecorator);
+        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskIdentityFactory, taskFactory, statistics, buildOperationRunner, crossProjectConfigurator, callbackDecorator);
         bridgeIntoSoftwareModelWhenNeeded(tasks);
         return tasks;
     }

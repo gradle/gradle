@@ -25,13 +25,13 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 
 
 internal
 class InitialTransformStepNodeCodec(
     private val transformStepNodeFactory: TransformStepNodeFactory,
-    private val buildOperationExecutor: BuildOperationExecutor,
+    private val buildOperationRunner: BuildOperationRunner,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : AbstractTransformStepNodeCodec<TransformStepNode.InitialTransformStepNode>() {
 
@@ -49,6 +49,6 @@ class InitialTransformStepNodeCodec(
         val sourceAttributes = readNonNull<AttributeContainer>()
         val transformStepSpec = readNonNull<TransformStepSpec>()
         val artifacts = readNonNull<ResolvableArtifact>()
-        return transformStepNodeFactory.recreateInitial(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStepSpec.transformStep, artifacts, transformStepSpec.recreateDependencies(), buildOperationExecutor, calculatedValueContainerFactory)
+        return transformStepNodeFactory.recreateInitial(transformStepNodeId, targetComponentVariant, sourceAttributes, transformStepSpec.transformStep, artifacts, transformStepSpec.recreateDependencies(), buildOperationRunner, calculatedValueContainerFactory)
     }
 }

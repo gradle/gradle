@@ -35,7 +35,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
@@ -52,7 +52,7 @@ import java.lang.annotation.Annotation;
 
 public class DefaultTransformRegistrationFactory implements TransformRegistrationFactory {
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final IsolatableFactory isolatableFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final TransformInvocationFactory transformInvocationFactory;
@@ -67,7 +67,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     private final InstantiationScheme actionInstantiationScheme;
 
     public DefaultTransformRegistrationFactory(
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         IsolatableFactory isolatableFactory,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         TransformInvocationFactory transformInvocationFactory,
@@ -80,7 +80,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
         TransformActionScheme actionScheme,
         ServiceLookup internalServices
     ) {
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.transformInvocationFactory = transformInvocationFactory;
@@ -140,7 +140,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
             dependenciesDirectorySensitivity,
             artifactLineEndingSensitivity,
             dependenciesLineEndingSensitivity,
-            buildOperationExecutor,
+            buildOperationRunner,
             classLoaderHierarchyHasher,
             isolatableFactory,
             fileCollectionFactory,

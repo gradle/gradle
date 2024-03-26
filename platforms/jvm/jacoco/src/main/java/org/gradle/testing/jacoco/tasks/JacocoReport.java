@@ -85,6 +85,7 @@ public abstract class JacocoReport extends JacocoReportBase implements Reporting
             projectName.get(),
             getAllClassDirs().filter(File::exists),
             getAllSourceDirs().filter(File::exists),
+            getSourceEncoding().getOrNull(),
             getExecutionData().filter(File::exists),
             getReports()
         );

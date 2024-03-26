@@ -17,11 +17,11 @@ package org.gradle.profile;
 
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
+import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
 
-import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,26 +48,26 @@ import java.util.Map;
 public class BuildProfile {
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
-
+    private static final long NOT_INITIALIZED_VALUE = -1L;
     private final Map<String, ProjectProfile> projects = new LinkedHashMap<>();
     private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<>();
     private final Map<String, FragmentedOperation> transforms = new LinkedHashMap<>();
-    private long profilingStarted;
-    private long buildStarted;
-    private long settingsEvaluated;
-    private long projectsLoaded;
-    private long projectsEvaluated;
+    private long profilingStarted = NOT_INITIALIZED_VALUE;
+    private long buildStarted = NOT_INITIALIZED_VALUE;
+    private long settingsEvaluated = NOT_INITIALIZED_VALUE;
+    private long projectsLoaded = NOT_INITIALIZED_VALUE;
     private long buildFinished;
     private final StartParameter startParameter;
+    private final BuildStartedTime buildStartedTime;
     private boolean successful;
-    private File buildDir;
 
-    public BuildProfile(StartParameter startParameter) {
+    public BuildProfile(StartParameter startParameter, BuildStartedTime buildStartedTime) {
         this.startParameter = startParameter;
+        this.buildStartedTime = buildStartedTime;
     }
 
     public long getBuildStarted() {
-        return buildStarted;
+        return valueOrBuildStartedTimeIfNotInitialized(buildStarted);
     }
 
     /**
@@ -191,14 +191,6 @@ public class BuildProfile {
     }
 
     /**
-     * Should be set with a timestamp from a {@link org.gradle.BuildListener#projectsEvaluated}
-     * callback.
-     */
-    public void setProjectsEvaluated(long projectsEvaluated) {
-        this.projectsEvaluated = projectsEvaluated;
-    }
-
-    /**
      * Should be set with a timestamp from a {@link org.gradle.BuildListener#buildFinished}
      * callback.
      */
@@ -210,14 +202,14 @@ public class BuildProfile {
      * Get the elapsed time (in mSec) between the start of profiling and the buildStarted event.
      */
     public long getElapsedStartup() {
-        return buildStarted - profilingStarted;
+        return valueOrBuildStartedTimeIfNotInitialized(buildStarted) - valueOrBuildStartedTimeIfNotInitialized(profilingStarted);
     }
 
     /**
      * Get the total elapsed time (in mSec) between the start of profiling and the buildFinished event.
      */
     public long getElapsedTotal() {
-        return buildFinished - profilingStarted;
+        return buildFinished - valueOrBuildStartedTimeIfNotInitialized(profilingStarted);
     }
 
     /**
@@ -225,21 +217,14 @@ public class BuildProfile {
      * Note that this will include processing of buildSrc as well as the settings file.
      */
     public long getElapsedSettings() {
-        return settingsEvaluated - buildStarted;
+        return valueOrBuildStartedTimeIfNotInitialized(settingsEvaluated) - valueOrBuildStartedTimeIfNotInitialized(buildStarted);
     }
 
     /**
      * Get the elapsed time (in mSec) between the settingsEvaluated event and the projectsLoaded event.
      */
     public long getElapsedProjectsLoading() {
-        return projectsLoaded - settingsEvaluated;
-    }
-
-    /**
-     * Get the elapsed time (in mSec) between the projectsLoaded event and the projectsEvaluated event.
-     */
-    public long getElapsedProjectsConfiguration() {
-        return projectsEvaluated - projectsLoaded;
+        return valueOrBuildStartedTimeIfNotInitialized(projectsLoaded) - valueOrBuildStartedTimeIfNotInitialized(settingsEvaluated);
     }
 
     /**
@@ -261,18 +246,19 @@ public class BuildProfile {
         for (ProjectProfile projectProfile : projects.values()) {
             result += projectProfile.getElapsedTime();
         }
+
         return result;
     }
 
     public String getBuildStartedDescription() {
-        return "Started on: " + DATE_FORMAT.format(buildStarted);
+        return "Started on: " + DATE_FORMAT.format(valueOrBuildStartedTimeIfNotInitialized(buildStarted));
     }
 
-    public File getBuildDir() {
-        return buildDir;
-    }
-
-    public void setBuildDir(File buildDir) {
-        this.buildDir = buildDir;
+    /*
+     * When loading from configuration cache, the fields that are set on configuration time ain't initialized.
+     * After configuration cache hit it's fair to use build start time value for them.
+     * */
+    private long valueOrBuildStartedTimeIfNotInitialized(long time) {
+        return time == NOT_INITIALIZED_VALUE ? buildStartedTime.getStartTime() : time;
     }
 }

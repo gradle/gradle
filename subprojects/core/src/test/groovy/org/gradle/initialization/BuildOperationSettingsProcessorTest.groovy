@@ -21,16 +21,16 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.internal.operations.BuildOperationMetadata
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import spock.lang.Specification
 
 class BuildOperationSettingsProcessorTest extends Specification {
 
-    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
     def settingsProcessor = Mock(SettingsProcessor)
     def gradleInternal = Mock(GradleInternal)
     def settingsLocation = Mock(SettingsLocation)
-    def buildOperationScriptPlugin = new BuildOperationSettingsProcessor(settingsProcessor, buildOperationExecutor)
+    def buildOperationScriptPlugin = new BuildOperationSettingsProcessor(settingsProcessor, buildOperationRunner)
     def classLoaderScope = Mock(ClassLoaderScope)
     def startParameter = Mock(StartParameter)
     def state = Mock(SettingsState)
@@ -61,13 +61,13 @@ class BuildOperationSettingsProcessorTest extends Specification {
         1 * gradleInternal.contextualize("Evaluate settings") >> contextualizedName
 
         and:
-        buildOperationExecutor.operations.size() == 1
-        buildOperationExecutor.operations.get(0).displayName == contextualizedName
-        buildOperationExecutor.operations.get(0).name == contextualizedName
+        buildOperationRunner.operations.size() == 1
+        buildOperationRunner.operations.get(0).displayName == contextualizedName
+        buildOperationRunner.operations.get(0).name == contextualizedName
 
-        buildOperationExecutor.operations.get(0).metadata == BuildOperationMetadata.NONE
-        buildOperationExecutor.operations.get(0).details.settingsDir == rootDir.absolutePath
-        buildOperationExecutor.operations.get(0).details.settingsFile == "settings.gradle"
+        buildOperationRunner.operations.get(0).metadata == BuildOperationMetadata.NONE
+        buildOperationRunner.operations.get(0).details.settingsDir == rootDir.absolutePath
+        buildOperationRunner.operations.get(0).details.settingsFile == "settings.gradle"
     }
 
     private void settings() {

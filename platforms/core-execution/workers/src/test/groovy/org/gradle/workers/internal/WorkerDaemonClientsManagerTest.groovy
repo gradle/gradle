@@ -26,6 +26,7 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.session.BuildSessionLifecycleListener
 import org.gradle.process.internal.ExecException
+import org.gradle.process.internal.health.memory.DefaultMBeanAttributeProvider
 import org.gradle.process.internal.health.memory.MBeanOsMemoryInfo
 import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.util.ConcurrentSpecification
@@ -39,7 +40,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def memoryManager = Mock(MemoryManager)
 
     @Subject
-        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo())
+        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo(new DefaultMBeanAttributeProvider()))
 
     def "does not reserve idle client when no clients"() {
         expect:
@@ -145,7 +146,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
     def "can stop session-scoped clients"() {
         listenerManager = new DefaultListenerManager(Scope.BuildSession)
-        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo())
+        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo(new DefaultMBeanAttributeProvider()))
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
         starter.startDaemon(options) >>> [client1, client2]
@@ -164,7 +165,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
     def "Stopping session-scoped clients does not stop other clients"() {
         listenerManager = new DefaultListenerManager(Scope.BuildSession)
-        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo())
+        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo(new DefaultMBeanAttributeProvider()))
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
         starter.startDaemon(options) >>> [client1, client2]
@@ -212,7 +213,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         loggingManager.getLevel() >> LogLevel.INFO
 
         when:
-        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo())
+        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo(new DefaultMBeanAttributeProvider()))
 
         then:
         listener != null
@@ -289,7 +290,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
         WorkerDaemonExpiration workerDaemonExpiration
 
         when:
-        def manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo())
+        def manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo(new DefaultMBeanAttributeProvider()))
 
         then:
         1 * memoryManager.addMemoryHolder(_) >> { args -> workerDaemonExpiration = args[0] }

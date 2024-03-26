@@ -202,8 +202,8 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -433,7 +433,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
 
     protected BuildLoader createBuildLoader(
         GradleProperties gradleProperties,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter emitter,
         ListenerManager listenerManager
     ) {
@@ -443,7 +443,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
                 new InstantiatingBuildLoader(),
                 listenerManager.getBroadcaster(FileResourceListener.class)
             ),
-            buildOperationExecutor,
+            buildOperationRunner,
             emitter
         );
     }
@@ -467,7 +467,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
     }
 
     protected GroovyScriptClassCompiler createFileCacheBackedScriptClassCompiler(
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         DefaultScriptCompilationHandler scriptCompilationHandler,
         CachedClasspathTransformer classpathTransformer,
@@ -478,7 +478,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         ClasspathElementTransformFactoryForLegacy transformFactoryForLegacy
     ) {
         return new GroovyScriptClassCompiler(
-            new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationExecutor),
+            new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationRunner),
             classLoaderHierarchyHasher,
             classpathTransformer,
             executionEngine,
@@ -489,10 +489,10 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         );
     }
 
-    protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, ListenerManager listenerManager) {
+    protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, ListenerManager listenerManager) {
         DefaultScriptPluginFactory defaultScriptPluginFactory = defaultScriptPluginFactory();
         ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(this));
-        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationExecutor, userCodeApplicationContext, listenerManager.getBroadcaster(ScriptSourceListener.class));
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationRunner, userCodeApplicationContext, listenerManager.getBroadcaster(ScriptSourceListener.class));
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
     }
@@ -509,7 +509,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
 
     protected BuildSourceBuilder createBuildSourceBuilder(
         BuildState currentBuild,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         CachingServiceLocator cachingServiceLocator,
         BuildStateRegistry buildRegistry,
         PublicBuildPath publicBuildPath,
@@ -518,7 +518,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
     ) {
         return new BuildSourceBuilder(
             currentBuild,
-            buildOperationExecutor,
+            buildOperationRunner,
             new BuildSrcBuildListenerFactory(
                 PluginsProjectConfigureActions.of(
                     BuildSrcProjectConfigurationAction.class,
@@ -537,13 +537,13 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         return new DefaultBuildLogicBuilder(currentBuild, scriptClassPathResolver, buildQueue);
     }
 
-    protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor, TextFileResourceLoader resourceLoader) {
+    protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationRunner buildOperationRunner, TextFileResourceLoader resourceLoader) {
         return new InitScriptHandler(
             new DefaultInitScriptProcessor(
                 scriptPluginFactory,
                 scriptHandlerFactory
             ),
-            buildOperationExecutor,
+            buildOperationRunner,
             resourceLoader
         );
     }
@@ -553,7 +553,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         ScriptHandlerFactory scriptHandlerFactory,
         Instantiator instantiator,
         GradleProperties gradleProperties,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         TextFileResourceLoader textFileResourceLoader
     ) {
         return new BuildOperationSettingsProcessor(
@@ -571,16 +571,16 @@ public class BuildScopeServices extends ScopedServiceRegistry {
                     )
                 )
             ),
-            buildOperationExecutor
+            buildOperationRunner
         );
     }
 
-    protected SettingsPreparer createSettingsPreparer(SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildOperationProgressEventEmitter emitter, BuildDefinition buildDefinition) {
+    protected SettingsPreparer createSettingsPreparer(SettingsLoaderFactory settingsLoaderFactory, BuildOperationRunner buildOperationRunner, BuildOperationProgressEventEmitter emitter, BuildDefinition buildDefinition) {
         return new BuildOperationFiringSettingsPreparer(
             new DefaultSettingsPreparer(
                 settingsLoaderFactory
             ),
-            buildOperationExecutor,
+            buildOperationRunner,
             emitter,
             buildDefinition.getFromBuild());
     }
@@ -590,7 +590,7 @@ public class BuildScopeServices extends ScopedServiceRegistry {
         BuildSourceBuilder buildSourceBuilder,
         BuildInclusionCoordinator inclusionCoordinator,
         BuildLoader buildLoader,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildModelParameters buildModelParameters
     ) {
         return new BuildOperationFiringProjectsPreparer(
@@ -598,16 +598,16 @@ public class BuildScopeServices extends ScopedServiceRegistry {
                 new DefaultProjectsPreparer(
                     projectConfigurer,
                     buildModelParameters,
-                    buildOperationExecutor),
+                    buildOperationRunner),
                 buildLoader,
                 inclusionCoordinator,
                 buildSourceBuilder),
-            buildOperationExecutor);
+            buildOperationRunner);
     }
 
-    protected BuildWorkPreparer createWorkPreparer(BuildOperationExecutor buildOperationExecutor, ExecutionPlanFactory executionPlanFactory, ToPlannedNodeConverterRegistry converterRegistry) {
+    protected BuildWorkPreparer createWorkPreparer(BuildOperationRunner buildOperationRunner, ExecutionPlanFactory executionPlanFactory, ToPlannedNodeConverterRegistry converterRegistry) {
         return new BuildOperationFiringBuildWorkPreparer(
-            buildOperationExecutor,
+            buildOperationRunner,
             new DefaultBuildWorkPreparer(
                 executionPlanFactory
             ),
@@ -660,11 +660,11 @@ public class BuildScopeServices extends ScopedServiceRegistry {
 
     protected DefaultToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(
         List<BuildScopeToolingModelBuilderRegistryAction> registryActions,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ProjectStateRegistry projectStateRegistry,
         UserCodeApplicationContext userCodeApplicationContext
     ) {
-        DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry, userCodeApplicationContext);
+        DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationRunner, projectStateRegistry, userCodeApplicationContext);
         // Services are created on demand, and this may happen while applying a plugin
         userCodeApplicationContext.gradleRuntime(() -> {
             for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {

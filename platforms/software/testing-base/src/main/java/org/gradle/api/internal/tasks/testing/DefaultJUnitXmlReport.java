@@ -23,13 +23,13 @@ import org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 
 public abstract class DefaultJUnitXmlReport extends TaskGeneratedSingleDirectoryReport implements JUnitXmlReport {
-
     private boolean outputPerTestCase;
-    private final Property<Boolean> mergeReruns;
 
     public DefaultJUnitXmlReport(String name, Task task, ObjectFactory objectFactory) {
         super(name, task, null);
-        this.mergeReruns = objectFactory.property(Boolean.class).convention(false);
+        this.getMergeReruns().convention(false);
+        this.getIncludeSystemOutLog().convention(true);
+        this.getIncludeSystemErrLog().convention(true);
     }
 
     @Override
@@ -43,7 +43,11 @@ public abstract class DefaultJUnitXmlReport extends TaskGeneratedSingleDirectory
     }
 
     @Override
-    public Property<Boolean> getMergeReruns() {
-        return mergeReruns;
-    }
+    public abstract Property<Boolean> getMergeReruns();
+
+    @Override
+    public abstract Property<Boolean> getIncludeSystemOutLog();
+
+    @Override
+    public abstract Property<Boolean> getIncludeSystemErrLog();
 }

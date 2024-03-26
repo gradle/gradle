@@ -24,7 +24,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -73,7 +73,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private final SecureFileDownloader downloader;
     private final JdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildPlatform buildPlatform;
 
     @Inject
@@ -82,14 +82,14 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         SecureFileDownloader downloader,
         JdkCacheDirectory cacheDirProvider,
         ProviderFactory factory,
-        BuildOperationExecutor executor,
+        BuildOperationRunner executor,
         BuildPlatform buildPlatform
     ) {
         this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
         this.downloader = downloader;
         this.cacheDirProvider = cacheDirProvider;
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
-        this.buildOperationExecutor = executor;
+        this.buildOperationRunner = executor;
         this.buildPlatform = buildPlatform;
     }
 
@@ -185,7 +185,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     }
 
     private <T> T wrapInOperation(String displayName, Callable<T> provisioningStep) {
-        return buildOperationExecutor.call(new ToolchainProvisioningBuildOperation<>(displayName, provisioningStep));
+        return buildOperationRunner.call(new ToolchainProvisioningBuildOperation<>(displayName, provisioningStep));
     }
 
     private static class ToolchainProvisioningBuildOperation<T> implements CallableBuildOperation<T> {

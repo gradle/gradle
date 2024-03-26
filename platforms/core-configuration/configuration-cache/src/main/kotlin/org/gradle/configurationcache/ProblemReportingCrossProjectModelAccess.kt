@@ -22,6 +22,7 @@ import groovy.lang.GroovyRuntimeException
 import groovy.lang.Script
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
+import org.gradle.api.IsolatedProject
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.PathValidation
@@ -319,6 +320,10 @@ class ProblemReportingCrossProjectModelAccess(
 
         override fun getProject(): ProjectInternal {
             return this
+        }
+
+        override fun getIsolated(): IsolatedProject {
+            return delegate.isolated
         }
 
         override fun task(name: String): Task {

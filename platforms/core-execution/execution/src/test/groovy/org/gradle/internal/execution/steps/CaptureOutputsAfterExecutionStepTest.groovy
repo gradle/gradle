@@ -39,7 +39,7 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<TestCachingContext> 
     def outputFilter = Mock(AfterExecutionOutputFilter)
     def delegateResult = Stub(Result)
 
-    def step = new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, outputFilter, delegate)
+    def step = new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildInvocationScopeId, outputSnapshotter, outputFilter, delegate)
 
     def "no state is captured if cache key calculated state is unavailable"() {
         def delegateDuration = Duration.ofMillis(123)
