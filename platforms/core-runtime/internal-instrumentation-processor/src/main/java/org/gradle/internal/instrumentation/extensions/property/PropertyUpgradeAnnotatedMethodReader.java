@@ -249,7 +249,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         Type originalType = accessor.originalType;
         return new CallInterceptionRequestImpl(
             extractCallableInfo(GROOVY_PROPERTY_GETTER, method, originalType, accessor.propertyName, parameters),
-            extractImplementationInfo(method, originalType, "get", Collections.emptyList()),
+            extractImplementationInfo(method, originalType, accessor.methodName, "get", Collections.emptyList()),
             extras
         );
     }
@@ -260,7 +260,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         Type originalType = accessor.originalType;
         return new CallInterceptionRequestImpl(
             extractCallableInfo(INSTANCE_METHOD, method, originalType, callableName, Collections.emptyList()),
-            extractImplementationInfo(method, originalType, "get", Collections.emptyList()),
+            extractImplementationInfo(method, originalType, accessor.methodName, "get", Collections.emptyList()),
             extras
         );
     }
@@ -275,7 +275,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         List<RequestExtra> extras = getJvmRequestExtras(propertyName, method, isFluentSetter);
         return new CallInterceptionRequestImpl(
             extractCallableInfo(INSTANCE_METHOD, method, returnType, callableName, parameters),
-            extractImplementationInfo(method, returnType, "set", parameters),
+            extractImplementationInfo(method, returnType, accessor.methodName, "set", parameters),
             extras
         );
     }
@@ -299,10 +299,10 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         return new CallableInfoImpl(kindInfo, owner, callableName, returnTypeInfo, parameters);
     }
 
-    private static ImplementationInfoImpl extractImplementationInfo(ExecutableElement method, Type returnType, String methodPrefix, List<ParameterInfo> parameters) {
+    private static ImplementationInfoImpl extractImplementationInfo(ExecutableElement method, Type returnType, String interceptedMethodName, String methodPrefix, List<ParameterInfo> parameters) {
         Type owner = extractType(method.getEnclosingElement().asType());
         Type implementationOwner = Type.getObjectType(getGeneratedClassName(method.getEnclosingElement()));
-        String implementationName = "access_" + methodPrefix + "_" + getPropertyName(method);
+        String implementationName = "access_" + methodPrefix + "_" + interceptedMethodName;
         String implementationDescriptor = Type.getMethodDescriptor(returnType, toArray(owner, parameters));
         return new ImplementationInfoImpl(implementationOwner, implementationName, implementationDescriptor);
     }

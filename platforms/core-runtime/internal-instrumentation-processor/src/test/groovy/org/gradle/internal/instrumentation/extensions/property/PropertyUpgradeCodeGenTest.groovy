@@ -57,11 +57,11 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             public class Task_Adapter {
-                public static int access_get_maxErrors(Task self) {
+                public static int access_get_getMaxErrors(Task self) {
                     return self.getMaxErrors().getOrElse(0);
                 }
 
-                public static void access_set_maxErrors(Task self, int arg0) {
+                public static void access_set_setMaxErrors(Task self, int arg0) {
                     self.getMaxErrors().set(arg0);
                 }
             }
@@ -100,11 +100,11 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
                          if (name.equals("isIncremental") && descriptor.equals("()Z") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_incremental", "(Lorg/gradle/test/Task;)Z");
+                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_isIncremental", "(Lorg/gradle/test/Task;)Z");
                              return true;
                          }
                         if (name.equals("setIncremental") && descriptor.equals("(Z)Lorg/gradle/test/Task;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_incremental", "(Lorg/gradle/test/Task;Z)Lorg/gradle/test/Task;");
+                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setIncremental", "(Lorg/gradle/test/Task;Z)Lorg/gradle/test/Task;");
                              return true;
                          }
                     }
@@ -117,11 +117,11 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             public class Task_Adapter {
-                public static boolean access_get_incremental(Task self) {
+                public static boolean access_get_isIncremental(Task self) {
                     return self.getIncremental().getOrElse(false);
                 }
 
-                public static Task access_set_incremental(Task self, boolean arg0) {
+                public static Task access_set_setIncremental(Task self, boolean arg0) {
                     self.getIncremental().set(arg0);
                     return self;
                 }
@@ -158,6 +158,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
         then:
         boolean hasSuppressWarnings = originalType in ["List", "Map", "Set"]
+        String getterPrefix = originalType == "boolean" ? "is" : "get"
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
             ${imports.collect { "import $it.name;" }.join("\n")}
@@ -165,12 +166,12 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             public class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
-                public static $originalType access_get_property(Task self) {
+                public static $originalType access_get_${getterPrefix}Property(Task self) {
                     return $getCall;
                 }
 
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
-                public static void access_set_property(Task self, $originalType arg0) {
+                public static void access_set_setProperty(Task self, $originalType arg0) {
                     self.getProperty()$setCall;
                 }
             }
@@ -227,7 +228,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             public class Task_Adapter {
                 @SuppressWarnings({"unchecked", "rawtypes"})
-                public static void access_set_property(Task self, Provider arg0) {
+                public static void access_set_setProperty(Task self, Provider arg0) {
                     self.getProperty()$setCall;
                 }
             }
@@ -272,11 +273,11 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
                          if (name.equals("getTargetCompatibility") && descriptor.equals("()Ljava/lang/String;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_targetCompatibility", "(Lorg/gradle/test/Task;)Ljava/lang/String;");
+                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_getTargetCompatibility", "(Lorg/gradle/test/Task;)Ljava/lang/String;");
                              return true;
                          }
                          if (name.equals("setTargetCompatibility") && descriptor.equals("(Ljava/lang/String;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                           _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_targetCompatibility", "(Lorg/gradle/test/Task;Ljava/lang/String;)V");
+                           _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setTargetCompatibility", "(Lorg/gradle/test/Task;Ljava/lang/String;)V");
                            return true;
                        }
                     }
@@ -349,7 +350,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                 @UpgradedProperty(originalAccessors = {
                     @UpgradedAccessor(value = AccessorType.GETTER, methodName = "getDestinationDir"),
                     @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setDestinationDir"),
-                    // @UpgradedAccessor(value = AccessorType.SETTER, methodName = "destinationDir", originalType = File.class),
+                    @UpgradedAccessor(value = AccessorType.SETTER, methodName = "destinationDir", originalType = File.class),
                     @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setDestinationDir", originalType = Provider.class)
                 })
                 public abstract DirectoryProperty getDestinationDirectory();
@@ -368,15 +369,19 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                                                String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
                         if (name.equals("getDestinationDir") && descriptor.equals("()Ljava/io/File;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_destinationDirectory", "(Lorg/gradle/test/Task;)Ljava/io/File;");
+                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_getDestinationDir", "(Lorg/gradle/test/Task;)Ljava/io/File;");
                             return true;
                         }
                         if (name.equals("setDestinationDir") && descriptor.equals("(Ljava/io/File;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_destinationDirectory", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
+                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setDestinationDir", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
+                            return true;
+                        }
+                        if (name.equals("destinationDir") && descriptor.equals("(Ljava/io/File;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_destinationDir", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
                             return true;
                         }
                         if (name.equals("setDestinationDir") && descriptor.equals("(Lorg/gradle/api/provider/Provider;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_destinationDirectory", "(Lorg/gradle/test/Task;Lorg/gradle/api/provider/Provider;)V");
+                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setDestinationDir", "(Lorg/gradle/test/Task;Lorg/gradle/api/provider/Provider;)V");
                             return true;
                         }
                     }
