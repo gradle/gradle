@@ -88,7 +88,6 @@ include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
 include::more_about_tasks.adoc[leveloffset=+2]
 include::lifecycle_tasks.adoc[leveloffset=+2]
 include::actionable_tasks.adoc[leveloffset=+2]
-include::task_configuration_avoidance.adoc[leveloffset=+2]
 include::lazy_configuration.adoc[leveloffset=+2]
 include::worker_api.adoc[leveloffset=+2]
 include::custom_tasks.adoc[leveloffset=+2]
@@ -96,8 +95,9 @@ include::custom_tasks.adoc[leveloffset=+2]
 == DEVELOPING PLUGINS
 
 include::custom_plugins.adoc[leveloffset=+2]
-include::designing_gradle_plugins.adoc[leveloffset=+2]
 include::implementing_gradle_plugins.adoc[leveloffset=+2]
+include::implementing_gradle_plugins_precompiled.adoc[leveloffset=+2]
+include::implementing_gradle_plugins_binary.adoc[leveloffset=+2]
 include::testing_gradle_plugins.adoc[leveloffset=+2]
 include::publishing_gradle_plugins.adoc[leveloffset=+2]
 
