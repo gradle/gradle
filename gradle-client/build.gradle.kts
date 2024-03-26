@@ -2,6 +2,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.jetbrainsCompose)
 }
 
@@ -29,6 +30,10 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(compose.desktop.currentOs)
+
+            implementation(libs.decompose.decompose)
+            implementation(libs.decompose.compose)
+            implementation(libs.kotlinx.serialization.json)
 
             implementation(libs.slf4j.api)
             implementation(libs.logback.classic)

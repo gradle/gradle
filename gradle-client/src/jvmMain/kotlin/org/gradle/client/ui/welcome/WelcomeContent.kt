@@ -18,36 +18,35 @@ import java.awt.Frame
 import java.io.File
 
 @Composable
-fun WelcomeContent() {
+@OptIn(ExperimentalMaterial3Api::class)
+fun WelcomeContent(component: WelcomeComponent) {
     Scaffold(
         topBar = {
-            Surface(tonalElevation = 24.dp) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(40.dp).padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Gradle Client", style = MaterialTheme.typography.labelLarge)
+            TopAppBar(
+                modifier = Modifier.padding(0.dp).height(56.dp).fillMaxWidth(),
+                title = {
+                    Row(Modifier.fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("Gradle Client")
+                    }
                 }
-            }
+            )
         },
         floatingActionButton = {
             var isDirChooserOpen by remember { mutableStateOf(false) }
             if (isDirChooserOpen) {
                 BuildChooserDialog(
-                    onBuildChosen = { file ->
+                    onBuildChosen = { rootDir ->
                         isDirChooserOpen = false
-                        println("Build root dir: $file")
+                        if (rootDir != null) {
+                            component.onAddBuildClicked(rootDir)
+                        }
                     }
                 )
             }
-            Button(
-                onClick = {
-                    isDirChooserOpen = true
-                },
-                content = {
-                    Icon(Icons.Default.Add, "")
-                    Text("Add build")
-                },
+            ExtendedFloatingActionButton(
+                icon = { Icon(Icons.Default.Add, "") },
+                text = { Text("Add build") },
+                onClick = { isDirChooserOpen = true },
             )
         }
     ) { scaffoldPadding ->
@@ -59,7 +58,9 @@ fun WelcomeContent() {
                     ListItem(
                         modifier = Modifier.selectable(
                             selected = false,
-                            onClick = {}
+                            onClick = {
+                                component.onBuildClicked(number.toString())
+                            }
                         ),
                         leadingContent = {
                             Icon(
@@ -100,7 +101,7 @@ private fun BuildChooserDialog(
             override fun setVisible(value: Boolean) {
                 super.setVisible(value)
                 if (value) {
-                    onBuildChosen(File(directory))
+                    onBuildChosen(directory?.let(::File))
                 }
             }
         }
