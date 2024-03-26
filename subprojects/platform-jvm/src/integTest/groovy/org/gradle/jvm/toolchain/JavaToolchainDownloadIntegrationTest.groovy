@@ -254,7 +254,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         """
 
         propertiesFile << """
-            org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=https://example.com
+            org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=https://gradle.org
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
@@ -274,8 +274,8 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=IBM, implementation=vendor-specific}) from 'https://example.com/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/openj9/normal/adoptopenjdk'.")
-            .assertHasCause("Could not read 'https://example.com/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/openj9/normal/adoptopenjdk' as it does not exist.")
+            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=IBM, implementation=vendor-specific}) from 'https://gradle.org/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/openj9/normal/adoptopenjdk'.")
+            .assertHasCause("Could not read 'https://gradle.org/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/openj9/normal/adoptopenjdk' as it does not exist.")
     }
 
     private static String os() {
