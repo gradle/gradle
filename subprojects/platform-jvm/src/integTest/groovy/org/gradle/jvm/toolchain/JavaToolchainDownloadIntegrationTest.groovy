@@ -240,6 +240,44 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=ADOPTIUM, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def 'toolchain download of IBM forces openj9'() {
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                    vendor = JvmVendorSpec.IBM
+                }
+            }
+        """
+
+        propertiesFile << """
+            org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=https://example.com
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+            .withTasks("compileJava")
+            .requireOwnGradleUserHomeDir()
+            .withToolchainDetectionEnabled()
+            .withToolchainDownloadEnabled()
+            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
+                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                    "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
+                    "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
+            .runWithFailure()
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=IBM, implementation=vendor-specific}) from 'https://example.com/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/openj9/normal/adoptopenjdk'.")
+            .assertHasCause("Could not read 'https://example.com/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/openj9/normal/adoptopenjdk' as it does not exist.")
+    }
+
     private static String os() {
         OperatingSystem os = OperatingSystem.current()
         if (os.isWindows()) {
