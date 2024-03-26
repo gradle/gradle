@@ -67,7 +67,21 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
     }
 
     def withDeprecatedBuildCacheRetentionInDays(long period) {
-        withBuildCacheRetentionInDays(period)
+        settingsFile << """
+            buildCache {
+                local {
+                    removeUnusedEntriesAfterDays = ${period}
+                }
+            }
+        """
+    }
+
+    def expectRetentionMethodDeprecationWarning() {
+        executer.expectDocumentedDeprecationWarning(
+            "The DirectoryBuildCache.removeEntriesAfterDays property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#directory_build_cache_retention_deprecated"
+        )
     }
 
     def "cleans up entries when #cleanupTrigger"() {
@@ -152,6 +166,9 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         createBuildCacheEntry("0" * hashStringLength, newTrashFile, System.currentTimeMillis())
         createBuildCacheEntry("1" * hashStringLength, oldTrashFile, daysAgo(effectiveCleanup - 1))
         createBuildCacheEntry("2" * hashStringLength, oldTrashFile, daysAgo(effectiveCleanup + 1))
+        if (deprecatedCacheCleanup != null) {
+            expectRetentionMethodDeprecationWarning()
+        }
         run()
 
         then:
@@ -162,6 +179,9 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
 
         when:
         lastCleanupCheck = markCacheLastCleaned(twoDaysAgo())
+        if (deprecatedCacheCleanup != null) {
+            expectRetentionMethodDeprecationWarning()
+        }
         run()
 
         then:

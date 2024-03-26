@@ -17,6 +17,7 @@
 package org.gradle.caching.local;
 
 import org.gradle.caching.configuration.AbstractBuildCache;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 
@@ -71,11 +72,10 @@ public abstract class DirectoryBuildCache extends AbstractBuildCache {
         if (removeUnusedEntriesAfterDays < 1) {
             throw new IllegalArgumentException("Directory build cache needs to retain entries for at least a day.");
         }
-//        DeprecationLogger.deprecateProperty(this.getClass(), "removeEntriesAfterDays")
-//            .withAdvice("Use an init-script to configure cache cleanup")
-//            .willBeRemovedInGradle9()
-//            .withUpgradeGuideSection(8, "local_build_cache_retention_deprecated")
-//            .nagUser();
+        DeprecationLogger.deprecateProperty(DirectoryBuildCache.class, "removeEntriesAfterDays")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "directory_build_cache_retention_deprecated")
+            .nagUser();
 
         this.removeUnusedEntriesAfterDays = removeUnusedEntriesAfterDays;
     }
