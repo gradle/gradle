@@ -203,7 +203,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     @Override
     public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
-        InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder();
+        ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
+        InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder(resolutionStrategy.getReturnAllVariants());
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
 
