@@ -196,6 +196,7 @@ class ProblemReportingCrossProjectModelAccess(
             onProjectsCoupled()
 
             return withDelegateDynamicCallReportingConfigurationOrder(
+                propertyName,
                 action = { tryGetProperty(propertyName) },
                 resultNotFoundExceptionProvider = { getMissingProperty(propertyName) }
             )
@@ -213,6 +214,7 @@ class ProblemReportingCrossProjectModelAccess(
             onProjectsCoupled()
 
             return withDelegateDynamicCallReportingConfigurationOrder(
+                name,
                 action = { tryInvokeMethod(name, *varargs) },
                 resultNotFoundExceptionProvider = { methodMissingException(name, *varargs) }
             )
@@ -1074,6 +1076,7 @@ class ProblemReportingCrossProjectModelAccess(
 
         private
         fun withDelegateDynamicCallReportingConfigurationOrder(
+            accessRef: String,
             action: DynamicObject.() -> DynamicInvokeResult,
             resultNotFoundExceptionProvider: DynamicObject.() -> GroovyRuntimeException
         ): Any? {
@@ -1083,7 +1086,7 @@ class ProblemReportingCrossProjectModelAccess(
 
             return when {
                 result.isSuccess -> {
-                    reportCrossProjectAccessProblem { configurationOrderMessage() }
+                    reportCrossProjectAccessProblem(accessRef) { configurationOrderMessage() }
                     result.getOrNull()
                 }
 
@@ -1091,12 +1094,12 @@ class ProblemReportingCrossProjectModelAccess(
                 // This can be a case in an incremental sync scenario, when referrer script was changed and since re-configured,
                 // but referent wasn't changed and since wasn't configured.
                 delegate < referrer && delegate.state.isUnconfigured && !buildModelParameters.isInvalidateCoupledProjects -> {
-                    reportCrossProjectAccessProblem { missedReferentConfigurationMessage() }
+                    reportCrossProjectAccessProblem(accessRef) { missedReferentConfigurationMessage() }
                     null
                 }
 
                 else -> {
-                    reportCrossProjectAccessProblem { configurationOrderMessage() }
+                    reportCrossProjectAccessProblem(accessRef) { configurationOrderMessage() }
                     throw result.exceptionOrNull()!!
                 }
             }
