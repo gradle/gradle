@@ -113,7 +113,7 @@ To apply a precompiled script plugin, you need to know its ID.
 The ID is derived from the plugin script's filename and its (optional) package declaration.
 
 For example, the script `src/main/\*/java-library-convention.gradle(.kts)` has a plugin ID of `java-library-convention` (assuming it has no package declaration).
-Likewise, `src/main/\*/my/java-library-convention.gradle(.kts)` has a plugin ID of `my.java-library-convention` as long as it has a package declaration of `my`.
+Likewise, `src/main/*/my/java-library-convention.gradle(.kts)` has a plugin ID of `my.java-library-convention` as long as it has a package declaration of `my`.
 
 Precompiled script plugin names have two important limitations:
 
