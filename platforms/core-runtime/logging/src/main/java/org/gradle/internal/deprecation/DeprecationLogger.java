@@ -234,10 +234,10 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder.ConfigurationDeprecationTypeSelector(configurationType);
     }
 
-    static void nagUserWith(DeprecationMessageBuilder<?> deprecationMessageBuilder, Class<?> calledFrom) {
+    static void nagUserWith(DeprecationMessageBuilder<?> deprecationMessageBuilder) {
         if (isEnabled()) {
             DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();
-            DeprecatedFeatureUsage featureUsage = deprecationMessage.toDeprecatedFeatureUsage(calledFrom);
+            DeprecatedFeatureUsage featureUsage = deprecationMessage.toDeprecatedFeatureUsage();
             nagUserWith(featureUsage);
 
             if (!featureUsage.formattedMessage().contains("deprecated")) {

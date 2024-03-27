@@ -21,11 +21,9 @@ package org.gradle.internal.featurelifecycle;
  */
 public abstract class FeatureUsage {
     private final String summary;
-    private final Class<?> calledFrom;
 
-    protected FeatureUsage(String summary, Class<?> calledFrom) {
+    protected FeatureUsage(String summary) {
         this.summary = summary;
-        this.calledFrom = calledFrom;
     }
 
     /**
@@ -35,10 +33,6 @@ public abstract class FeatureUsage {
      */
     public String getSummary() {
         return summary;
-    }
-
-    protected Class<?> getCalledFrom() {
-        return calledFrom;
     }
 
     public String formattedMessage() {

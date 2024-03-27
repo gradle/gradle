@@ -52,7 +52,7 @@ class DeprecationMessage {
     }
 
     DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-        return new DeprecatedFeatureUsage(summary, removalDetails, advice, context, documentation, usageType, problemIdDisplayName, problemId, calledFrom);
+        return new DeprecatedFeatureUsage(summary, removalDetails, advice, context, documentation, usageType, problemIdDisplayName, problemId);
     }
 
 }

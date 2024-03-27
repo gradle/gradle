@@ -44,10 +44,9 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         @Nullable DocLink documentation,
         Type type,
         String problemIdDisplayName,
-        String problemId,
-        Class<?> calledFrom
+        String problemId
     ) {
-        super(summary, calledFrom);
+        super(summary);
         this.removalDetails = Preconditions.checkNotNull(removalDetails);
         this.advice = advice;
         this.contextualAdvice = contextualAdvice;
@@ -59,7 +58,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
 
     @VisibleForTesting
     DeprecatedFeatureUsage(DeprecatedFeatureUsage usage) {
-        super(usage.getSummary(), usage.getCalledFrom());
+        super(usage.getSummary());
         this.removalDetails = usage.removalDetails;
         this.advice = usage.advice;
         this.contextualAdvice = usage.contextualAdvice;

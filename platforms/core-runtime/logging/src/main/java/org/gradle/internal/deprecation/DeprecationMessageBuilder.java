@@ -168,7 +168,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
          * Terminal operation. Emits the deprecation message.
          */
         public void nagUser() {
-            DeprecationLogger.nagUserWith(builder, WithDocumentation.class);
+            DeprecationLogger.nagUserWith(builder);
         }
     }
 
