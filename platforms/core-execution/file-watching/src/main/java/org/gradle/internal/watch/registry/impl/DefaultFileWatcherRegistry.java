@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
@@ -85,8 +86,9 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             @Override
                             public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
                                 fileWatchingStatistics.eventReceived();
-                                fileWatcherUpdater.triggerWatchProbe(absolutePath);
-                                handler.handleChange(convertType(type), Paths.get(absolutePath));
+                                Path path = Paths.get(absolutePath);
+                                fileWatcherUpdater.triggerWatchProbe(path);
+                                handler.handleChange(convertType(type), path);
                             }
 
                             @Override
@@ -144,8 +146,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, root);
+    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, File probeLocation) {
+        fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, root, probeLocation);
     }
 
     @Override
@@ -165,7 +167,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
     @Override
     public SnapshotHierarchy updateVfsAfterBuildFinished(SnapshotHierarchy root) {
-        return fileWatcherUpdater.updateVfsBeforeAfterFinished(root);
+        return fileWatcherUpdater.updateVfsBeforeBuildFinished(root);
     }
 
     private static Type convertType(FileWatchEvent.ChangeType type) {

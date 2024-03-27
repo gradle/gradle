@@ -16,97 +16,163 @@
 
 package org.gradle.internal.watch.registry.impl;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import com.google.common.primitives.Longs;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileStore;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherProbeRegistry.class);
 
-    private final Map<File, WatchProbe> watchProbesByHierarchy = new ConcurrentHashMap<>();
-    private final Map<String, WatchProbe> watchProbesByPath = new ConcurrentHashMap<>();
+    private final Map<FileStore, WatchProbeImpl> probesByFS = new ConcurrentHashMap<>();
+    private final Map<Path, WatchProbeImpl> watchProbesByHierarchy = new ConcurrentHashMap<>();
+    private final Set<File> unwatchedHierarchies = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private ImmutableSet<File> probedHierarchies = ImmutableSet.of();
 
-    private final Function<File, File> probeLocationResolver;
+    @Override
+    public void registerProbe(File watchableHierarchy, File probeLocation) {
+        LOGGER.debug("Registering probe for {}", watchableHierarchy);
+        File probeFile = new File(probeLocation, "file-system.probe");
 
-    public DefaultFileWatcherProbeRegistry(Function<File, File> probeLocationResolver) {
-        this.probeLocationResolver = probeLocationResolver;
+        FileStore fileStore = getFileStore(watchableHierarchy.toPath());
+        WatchProbeImpl watchProbe;
+        if (fileStore != null) {
+            watchProbe = probesByFS.computeIfAbsent(fileStore, k -> new WatchProbeImpl(probeFile, isSubpath(probeFile, watchableHierarchy)));
+        } else { // fallback, unlikely to happen
+            watchProbe = watchProbesByHierarchy
+                .values()
+                .stream()
+                .filter(probe -> probe.probeFile.equals(probeFile))
+                .findFirst()
+                .orElseGet(() -> new WatchProbeImpl(probeFile, isSubpath(probeFile, watchableHierarchy)));
+
+            watchProbesByHierarchy.put(watchableHierarchy.toPath(), watchProbe);
+        }
+
+        watchProbe.addWatchableHierarchy(watchableHierarchy);
+    }
+
+    private static boolean isSubpath(File probeFile, File watchableHierarchy) {
+        return probeFile.toPath().startsWith(watchableHierarchy.toPath());
     }
 
     @Override
-    public void registerProbe(File watchableHierarchy) {
-        if (watchProbesByHierarchy.containsKey(watchableHierarchy)) {
-            // Already registered
+    public void updateProbedHierarchies(ImmutableSet<File> probedHierarchies, BiConsumer<File, Boolean> probeDisarmed, BiConsumer<File, Boolean> beforeProbeArmed) {
+        if (this.probedHierarchies.equals(probedHierarchies)) {
             return;
         }
-        LOGGER.debug("Registering probe for {}", watchableHierarchy);
-        File probeFile = probeLocationResolver.apply(watchableHierarchy);
-        WatchProbe watchProbe = new WatchProbe(watchableHierarchy, probeFile);
-        watchProbesByHierarchy.put(watchableHierarchy, watchProbe);
-        watchProbesByPath.put(probeFile.getAbsolutePath(), watchProbe);
+
+        Set<File> removedHierarchies = Sets.difference(this.probedHierarchies, probedHierarchies);
+        stopWatching(removedHierarchies.stream(), probeDisarmed);
+
+        Set<File> addedHierarchies = Sets.difference(probedHierarchies, this.probedHierarchies);
+        startWatching(addedHierarchies.stream(), beforeProbeArmed);
+
+        this.probedHierarchies = probedHierarchies;
+    }
+
+    private void stopWatching(Stream<File> hierarchies, BiConsumer<File, Boolean> probeDisarmed) {
+        hierarchies
+            .map(hierarchy -> {
+                unwatchedHierarchies.add(hierarchy);
+                return getProbeForHierarchy(hierarchy.toPath());
+            })
+            .filter(Objects::nonNull)
+            .distinct()
+            .forEach(probe -> {
+                if (!probe.hasWatchableHierarchies(unwatchedHierarchies)) {
+                    probe.disarm();
+                    probeDisarmed.accept(probe.getLocation(), probe.isSubPathOfWatchableHierarchy());
+                }
+            });
+    }
+
+    private void startWatching(Stream<File> hierarchies, BiConsumer<File, Boolean> beforeProbeArmed) {
+        hierarchies
+            .map(File::toPath)
+            .map(this::getProbeForHierarchy)
+            .filter(Objects::nonNull)
+            .filter(x -> x.state == WatchProbeImpl.State.UNARMED)
+            .distinct()
+            .forEach(probe -> {
+                beforeProbeArmed.accept(probe.getLocation(), probe.isSubPathOfWatchableHierarchy());
+                probe.arm();
+            });
     }
 
     @Override
     public Stream<File> unprovenHierarchies() {
-        return watchProbesByHierarchy.values().stream()
-            .filter(WatchProbe::leftArmed)
-            .map(WatchProbe::getWatchableHierarchy);
-    }
-
-    @Override
-    public void armWatchProbe(File watchableHierarchy) {
-        WatchProbe probe = watchProbesByHierarchy.get(watchableHierarchy);
-        if (probe != null) {
-            try {
-                probe.arm();
-            } catch (IOException e) {
-                LOGGER.debug("Could not arm watch probe for hierarchy {}", watchableHierarchy, e);
-            }
-        } else {
-            LOGGER.debug("Did not find watchable hierarchy to arm probe for: {}", watchableHierarchy);
-        }
-    }
-
-    @Override
-    public void disarmWatchProbe(File watchableHierarchy) {
-        WatchProbe probe = watchProbesByHierarchy.get(watchableHierarchy);
-        if (probe != null) {
-            probe.disarm();
-        } else {
-            LOGGER.debug("Did not find watchable hierarchy to disarm probe for: {}", watchableHierarchy);
-        }
+        return Streams.concat(
+                probesByFS.values().stream(),
+                watchProbesByHierarchy.values().stream()
+            )
+            .filter(WatchProbeImpl::leftArmed)
+            .flatMap(watchProbe -> watchProbe.getWatchableHierarchies(unwatchedHierarchies));
     }
 
     /**
      * Triggers a watch probe at the given location if one exists.
      */
     @Override
-    public void triggerWatchProbe(String path) {
-        WatchProbe probe = watchProbesByPath.get(path);
+    public void triggerWatchProbe(Path path) {
+        WatchProbeImpl probe = getProbeForHierarchy(path);
         if (probe != null) {
-            LOGGER.debug("Triggering watch probe for {}", probe.getWatchableHierarchy());
+            LOGGER.debug("Triggering watch probe for {}", probe.getWatchableHierarchies(unwatchedHierarchies));
             probe.trigger();
         }
     }
 
-    @Override
-    public File getProbeDirectory(File hierarchy) {
-        WatchProbe watchProbe = watchProbesByHierarchy.get(hierarchy);
-        if (watchProbe == null) {
-            throw new IllegalStateException("Cannot find probe for hierarchy: " + hierarchy);
+
+    // can be null if watchableHierarchy is moved
+    @Nullable
+    private WatchProbeImpl getProbeForHierarchy(Path watchableHierarchy) {
+        FileStore fileStore = getFileStore(watchableHierarchy);
+        WatchProbeImpl watchProbe;
+        if (fileStore != null) {
+            watchProbe = probesByFS.get(fileStore);
+        } else {
+            watchProbe = watchProbesByHierarchy.get(watchableHierarchy);
         }
-        return watchProbe.getProbeFile().getParentFile();
+        if (watchProbe == null) {
+            LOGGER.debug("Did not find watchable hierarchy probe for: {}", watchableHierarchy);
+        }
+        return watchProbe;
     }
 
-    private static class WatchProbe {
+    @Nullable
+    private static FileStore getFileStore(Path file) {
+        try {
+            return Files.getFileStore(file);
+        } catch (FileNotFoundException e) {
+            LOGGER.debug("Could not detect file system for hierarchy because it does not exists: {}", file, e);
+            return null;
+        } catch (IOException e) {
+            LOGGER.debug("Could not detect file system for hierarchy: {}", file, e);
+            return null;
+        }
+    }
+
+    private static class WatchProbeImpl {
         public enum State {
             /**
              * Probe hasn't been armed yet.
@@ -124,16 +190,26 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
             TRIGGERED
         }
 
-        private final File watchableHierarchy;
+        private final Set<File> watchableHierarchies;
         private final File probeFile;
+        private final boolean subPathOfWatchableHierarchy;
         private State state = State.UNARMED;
 
-        public WatchProbe(File watchableHierarchy, File probeFile) {
-            this.watchableHierarchy = watchableHierarchy;
+        public WatchProbeImpl(File probeFile, boolean subPathOfWatchableHierarchy) {
             this.probeFile = probeFile;
+            this.subPathOfWatchableHierarchy = subPathOfWatchableHierarchy;
+            this.watchableHierarchies = new HashSet<>();
         }
 
-        public synchronized void arm() throws IOException {
+        public File getLocation() {
+            return probeFile.getParentFile();
+        }
+
+        public boolean isSubPathOfWatchableHierarchy() {
+            return subPathOfWatchableHierarchy;
+        }
+
+        public synchronized void arm() {
             switch (state) {
                 case UNARMED:
                     state = State.ARMED;
@@ -141,14 +217,17 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
                     probeFile.getParentFile().mkdirs();
                     try (FileOutputStream out = new FileOutputStream(probeFile)) {
                         out.write(Longs.toByteArray(System.currentTimeMillis()));
+                    } catch (IOException e) {
+                        LOGGER.debug("Could not arm watch probe for hierarchies: {}", watchableHierarchies, e);
+                        return;
                     }
-                    LOGGER.debug("Watch probe has been armed for hierarchy: {}", watchableHierarchy);
+                    LOGGER.debug("Watch probe has been armed for hierarchies: {}", watchableHierarchies);
                     break;
                 case ARMED:
-                    LOGGER.debug("Watch probe for hierarchy is already armed: {}", watchableHierarchy);
+                    LOGGER.debug("Watch probe for hierarchies is already armed: {}", watchableHierarchies);
                     break;
                 case TRIGGERED:
-                    LOGGER.debug("Watch probe for hierarchy has already been triggered: {}", watchableHierarchy);
+                    LOGGER.debug("Watch probe for hierarchies has already been triggered: {}", watchableHierarchies);
                     break;
                 default:
                     throw new AssertionError();
@@ -158,21 +237,21 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         public synchronized void disarm() {
             switch (state) {
                 case UNARMED:
-                    LOGGER.debug("Watch probe has already been disarmed for hierarchy: {}", watchableHierarchy);
+                    LOGGER.debug("Watch probe has already been disarmed for hierarchies: {}", watchableHierarchies);
                     break;
                 case ARMED:
                     state = State.UNARMED;
-                    LOGGER.debug("Watch probe has been disarmed for hierarchy: {}", watchableHierarchy);
+                    LOGGER.debug("Watch probe has been disarmed for hierarchies: {}", watchableHierarchies);
                     break;
                 case TRIGGERED:
-                    LOGGER.debug("Watch probe has already been triggered for hierarchy: {}", watchableHierarchy);
+                    LOGGER.debug("Watch probe has already been triggered for hierarchies: {}", watchableHierarchies);
                     break;
             }
         }
 
         public synchronized void trigger() {
             if (state != State.TRIGGERED) {
-                LOGGER.debug("Watch probe in state {} has been triggered for hierarchy: {}", state, watchableHierarchy);
+                LOGGER.debug("Watch probe in state {} has been triggered for hierarchies: {}", state, watchableHierarchies);
                 state = State.TRIGGERED;
             }
         }
@@ -181,12 +260,34 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
             return state == State.ARMED;
         }
 
-        public File getProbeFile() {
-            return probeFile;
+        public Stream<File> getWatchableHierarchies(Set<File> unwatchedHierarchies) {
+            return Sets.difference(watchableHierarchies, unwatchedHierarchies).stream();
         }
 
-        public File getWatchableHierarchy() {
-            return watchableHierarchy;
+        public void addWatchableHierarchy(File watchableHierarchy) {
+            watchableHierarchies.add(watchableHierarchy);
+        }
+
+        public boolean hasWatchableHierarchies(Set<File> unwatchedHierarchies) {
+            return !Sets.difference(watchableHierarchies, unwatchedHierarchies).isEmpty();
+        }
+
+        // Equals and hash code should only be used for set comparison, so WatchProbe are unique by probeFile
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            WatchProbeImpl that = (WatchProbeImpl) o;
+            return Objects.equals(probeFile, that.probeFile);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(probeFile);
         }
     }
 }

@@ -16,7 +16,11 @@
 
 package org.gradle.internal.watch.registry;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.io.File;
+import java.nio.file.Path;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 /**
@@ -24,14 +28,14 @@ import java.util.stream.Stream;
  * indeed receives file system events from the operating system.
  * This is to avoid trusting locations where OSs silently not send any events, despite watchers being registered.
  *
- * When the hierarchy is first registered via {@link #registerProbe(File)}, we don't yet create the probe.
+ * When the hierarchy is first registered via {@link #registerProbe(File, File)}, we don't yet create the probe.
  * That only happens when the hierarchy is actually read or written by Gradle, in which case
- * {@link #armWatchProbe(File)} is called.
+ * watch probe is armed.
  *
- * When the probe is armed, a probe file is created (or re-created) under the hierarchy.
+ * When the probe is armed, a probe file is created (or re-created) for the hierarchy.
  * This should cause a file system event to be produced by the operating system.
  * We listen to those events specifically in {@link FileWatcherRegistry}.
- * Once the event arrives, {@link #triggerWatchProbe(String)} is called with the path,
+ * Once the event arrives, {@link #triggerWatchProbe(Path)} is called with the path,
  * and the probe becomes triggered (or proven).
  *
  * The {@link #unprovenHierarchies()} stream returns any hierarchies that were armed, but never received
@@ -42,15 +46,11 @@ import java.util.stream.Stream;
  * the registry is closed.
  */
 public interface FileWatcherProbeRegistry {
-    void registerProbe(File hierarchy);
+    void registerProbe(File hierarchy, File probeLocation);
+
+    void updateProbedHierarchies(ImmutableSet<File> probedHierarchies, BiConsumer<File, Boolean> probeDisarmed, BiConsumer<File, Boolean> beforeProbeArmed);
+
+    void triggerWatchProbe(Path path);
 
     Stream<File> unprovenHierarchies();
-
-    void armWatchProbe(File watchableHierarchy);
-
-    void disarmWatchProbe(File watchableHierarchy);
-
-    void triggerWatchProbe(String path);
-
-    File getProbeDirectory(File hierarchy);
 }

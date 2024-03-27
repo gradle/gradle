@@ -23,7 +23,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
 
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies, movedWatchedDirectoriesSupplier)
+        new NonHierarchicalFileWatcherUpdater(watcher, new DefaultFileWatcherProbeRegistry(), watchableHierarchies, movedWatchedDirectoriesSupplier)
     }
 
     @Override
@@ -33,6 +33,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         def watchableHierarchies = ["first", "second", "third"].collect { file(it).createDir() }
         def fileInWatchableHierarchies = file("first/inside/root/dir/file.txt")
         def fileOutsideOfWatchableHierarchies = file("forth").file("someFile.txt")
+        def watchProbeDir = watchableHierarchies[0].file(".gradle")
 
         when:
         registerWatchableHierarchies(watchableHierarchies)
@@ -43,7 +44,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         fileInWatchableHierarchies.createFile()
         addSnapshot(snapshotRegularFile(fileInWatchableHierarchies))
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(file("first"))]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [watchProbeDir]) })
         1 * watcher.startWatching({ equalIgnoringOrder(it, [fileInWatchableHierarchies.parentFile]) })
         1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchies[0]]) })
         0 * _
@@ -65,6 +66,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
     def "watchers are stopped when removing the last watched snapshot"() {
         def rootDir = file("root").createDir()
         ["first", "second", "third"].collect { rootDir.createFile(it) }
+        def watchProbeDir = rootDir.file('.gradle')
         def rootDirSnapshot = snapshotDirectory(rootDir)
 
         when:
@@ -72,7 +74,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         addSnapshot(rootDirSnapshot)
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir]) })
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(rootDir)]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [watchProbeDir]) })
         0 * _
 
         when:
@@ -85,7 +87,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         invalidate(rootDirSnapshot.children[2])
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(rootDir)]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [watchProbeDir]) })
         0 * _
     }
 
@@ -95,12 +97,14 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         def unsupportedFileSystemMountPoint = watchableHierarchy.file("unsupported")
         def unwatchableContent = unsupportedFileSystemMountPoint.file("some/file.txt").createFile()
 
+        def watchProbeDir = watchableHierarchy.file('.gradle')
+
         when:
         registerWatchableHierarchies([watchableHierarchy])
         addSnapshot(snapshotRegularFile(watchableContent))
         then:
         vfsHasSnapshotsAt(watchableContent)
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(watchableHierarchy)]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [watchProbeDir]) })
         1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableContent.parentFile]) })
         1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
         0 * _

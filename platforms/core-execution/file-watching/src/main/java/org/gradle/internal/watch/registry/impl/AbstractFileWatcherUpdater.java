@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -43,7 +44,6 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected final WatchableHierarchies watchableHierarchies;
     private final MovedDirectoryHandler movedDirectoryHandler;
     protected FileHierarchySet watchedFiles = FileHierarchySet.empty();
-    private ImmutableSet<File> probedHierarchies = ImmutableSet.of();
 
     public AbstractFileWatcherUpdater(
         FileWatcherProbeRegistry probeRegistry,
@@ -56,15 +56,16 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, File probeLocation) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
-        probeRegistry.registerProbe(watchableHierarchy);
+        probeRegistry.registerProbe(watchableHierarchy, probeLocation);
         update(root);
     }
 
     @Override
     public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode, unsupportedFileSystems);
+        Stream<File> unprovenHierarchies = probeRegistry.unprovenHierarchies();
+        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode, unsupportedFileSystems, unprovenHierarchies);
         newRoot = invalidateMovedDirectoriesOnBuildStarted(newRoot);
         if (root != newRoot) {
             update(newRoot);
@@ -110,7 +111,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root) {
+    public SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root) {
         SnapshotHierarchy newRoot = WatchableHierarchies.removeUnwatchableContentAfterBuildFinished(
             root,
             createInvalidator()
@@ -128,7 +129,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void triggerWatchProbe(String path) {
+    public void triggerWatchProbe(Path path) {
         probeRegistry.triggerWatchProbe(path);
     }
 
@@ -141,41 +142,28 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
             updateWatchesOnChangedWatchedFiles(watchedFiles);
         }
 
-        // Probe every hierarchy that is watched, even ones nested inside others
-        ImmutableSet<File> oldProbedHierarchies = probedHierarchies;
-        probedHierarchies = watchableHierarchies.stream()
+        ImmutableSet<File> probedHierarchies = watchableHierarchies.stream()
             .filter(watchedFiles::contains)
             .collect(ImmutableSet.toImmutableSet());
-        if (oldProbedHierarchies.equals(probedHierarchies)) {
-            return;
-        }
 
-        oldProbedHierarchies.stream()
-            .filter(oldProbedHierarchy -> !probedHierarchies.contains(oldProbedHierarchy))
-            .forEach(probedHierarchy -> {
-                File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
-                probeRegistry.disarmWatchProbe(probedHierarchy);
-                stopWatchingProbeDirectory(probeDirectory);
-            });
-
-        probedHierarchies.stream()
-            .filter(newProbedHierarchy -> !oldProbedHierarchies.contains(newProbedHierarchy))
-            .forEach(probedHierarchy -> {
-                File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
-                // Make sure the directory exists, this can be necessary when
-                // included builds are evaluated with configuration cache
-                //noinspection ResultOfMethodCallIgnored
-                probeDirectory.mkdirs();
-                startWatchingProbeDirectory(probeDirectory);
-                probeRegistry.armWatchProbe(probedHierarchy);
-            });
+        probeRegistry.updateProbedHierarchies(
+            probedHierarchies,
+            this::stopWatchingProbeDirectory,
+            (probeLocation, isSubdirectoryOfWatchedHierarchy) -> {
+            // Make sure the directory exists, this can be necessary when
+            // included builds are evaluated with configuration cache
+            //noinspection ResultOfMethodCallIgnored
+                probeLocation.mkdirs();
+                startWatchingProbeDirectory(probeLocation, isSubdirectoryOfWatchedHierarchy);
+            }
+        );
     }
 
     protected abstract void updateWatchesOnChangedWatchedFiles(FileHierarchySet newWatchedFiles);
 
-    protected abstract void startWatchingProbeDirectory(File probeDirectory);
+    protected abstract void startWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfWatchedHierarchy);
 
-    protected abstract void stopWatchingProbeDirectory(File probeDirectory);
+    protected abstract void stopWatchingProbeDirectory(File probeDirectory, boolean isSubdirectoryOfWatchedHierarchy);
 
     @VisibleForTesting
     static FileHierarchySet resolveWatchedFiles(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {

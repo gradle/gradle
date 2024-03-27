@@ -22,6 +22,7 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 
@@ -74,9 +75,9 @@ public interface FileWatcherUpdater {
     /**
      * Registers a watchable hierarchy.
      *
-     * @see FileWatcherRegistry#registerWatchableHierarchy(File, SnapshotHierarchy)
+     * @see FileWatcherRegistry#registerWatchableHierarchy(File, SnapshotHierarchy, File)
      */
-    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
+    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, File probeLocation);
 
     /**
      * Updates the watchers after changes to the root.
@@ -88,7 +89,7 @@ public interface FileWatcherUpdater {
     /**
      * Trigger armed watch probe at given path.
      */
-    void triggerWatchProbe(String path);
+    void triggerWatchProbe(Path path);
 
     /**
      * Remove watched hierarchies that have been moved.
@@ -112,7 +113,7 @@ public interface FileWatcherUpdater {
      * @see FileWatcherRegistry#updateVfsBeforeBuildFinished(SnapshotHierarchy, int, List)
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root);
+    SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root);
 
     /**
      * The files actually being watched right now.

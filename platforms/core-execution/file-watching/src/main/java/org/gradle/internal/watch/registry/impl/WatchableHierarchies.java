@@ -22,7 +22,6 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
-import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,6 @@ public class WatchableHierarchies {
 
     public static final String INVALIDATING_HIERARCHY_MESSAGE = "Invalidating hierarchy because watch probe hasn't been triggered";
 
-    private final FileWatcherProbeRegistry probeRegistry;
     private final Predicate<String> immutableLocationsFilter;
 
     /**
@@ -71,10 +69,8 @@ public class WatchableHierarchies {
     private final List<File> watchableHierarchiesSinceLastBuildFinish = new ArrayList<>();
 
     public WatchableHierarchies(
-        FileWatcherProbeRegistry probeRegistry,
         Predicate<String> immutableLocationsFilter
     ) {
-        this.probeRegistry = probeRegistry;
         this.immutableLocationsFilter = immutableLocationsFilter;
     }
 
@@ -220,17 +216,17 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeUnwatchableContentOnBuildStart(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode, List<File> unsupportedFileSystems) {
+    public SnapshotHierarchy removeUnwatchableContentOnBuildStart(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode, List<File> unsupportedFileSystems, Stream<File> unprovenHierarchies) {
         SnapshotHierarchy newRoot = root;
-        newRoot = removeUnprovenHierarchies(newRoot, invalidator, watchMode);
+        newRoot = removeUnprovenHierarchies(newRoot, invalidator, watchMode, unprovenHierarchies);
         newRoot = updateUnwatchableFilesOnBuildStart(newRoot, invalidator, unsupportedFileSystems);
         return newRoot;
     }
 
     @CheckReturnValue
-    private SnapshotHierarchy removeUnprovenHierarchies(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode) {
+    private SnapshotHierarchy removeUnprovenHierarchies(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode, Stream<File> unprovenHierarchies) {
         // Remove hierarchies that did not respond to a watch probe
-        return probeRegistry.unprovenHierarchies()
+        return unprovenHierarchies
             .reduce(root, (currentRoot, unprovenHierarchy) -> {
                 if (hierarchies.remove(unprovenHierarchy)) {
                     watchMode.loggerForWarnings(LOGGER).warn(INVALIDATING_HIERARCHY_MESSAGE + " {}", unprovenHierarchy);

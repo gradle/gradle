@@ -27,7 +27,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
 
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, movedWatchedDirectoriesSupplier)
+        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, new DefaultFileWatcherProbeRegistry(), watchableHierarchies, movedWatchedDirectoriesSupplier)
     }
 
     @Override
@@ -194,7 +194,10 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def secondDir = file("second").createDir()
         def directoryWithinFirst = file("first/within").createDir()
 
-        registerWatchableHierarchies([directoryWithinFirst, firstDir, secondDir])
+        def hierarchies = [directoryWithinFirst, firstDir, secondDir]
+        def watchProbeDir = hierarchies[0].file(".gradle")
+
+        registerWatchableHierarchies(hierarchies)
 
         when:
         addSnapshotInWatchableHierarchy(secondDir)
@@ -209,9 +212,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        updater.triggerWatchProbe(watchProbeFor(secondDir).absolutePath)
-        updater.triggerWatchProbe(watchProbeFor(firstDir).absolutePath)
-        updater.triggerWatchProbe(watchProbeFor(directoryWithinFirst).absolutePath)
+        updater.triggerWatchProbe(watchProbeDir.toPath())
         then:
         0 * _
 

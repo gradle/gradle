@@ -146,7 +146,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         def newWatcherProbe = new File(newWatchableHierarchy, ".gradle/watch-probe")
 
         when:
-        watchingVirtualFileSystem.registerWatchableHierarchy(watchableHierarchy)
+        watchingVirtualFileSystem.registerWatchableHierarchy(watchableHierarchy, watcherProbe)
         then:
         0 * _
 
@@ -156,13 +156,13 @@ class WatchingVirtualFileSystemTest extends Specification {
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.updateVfsOnBuildStarted(_, _, _) >> watchingVirtualFileSystem.root
         1 * watcherRegistry.setDebugLoggingEnabled(false)
-        1 * watcherRegistry.registerWatchableHierarchy(watchableHierarchy, _)
+        1 * watcherRegistry.registerWatchableHierarchy(watchableHierarchy, _, _)
         0 * _
 
         when:
-        watchingVirtualFileSystem.registerWatchableHierarchy(anotherWatchableHierarchy)
+        watchingVirtualFileSystem.registerWatchableHierarchy(anotherWatchableHierarchy, anotherWatcherProbe)
         then:
-        1 * watcherRegistry.registerWatchableHierarchy(anotherWatchableHierarchy, _)
+        1 * watcherRegistry.registerWatchableHierarchy(anotherWatchableHierarchy, _, _)
 
         when:
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
@@ -179,9 +179,9 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        watchingVirtualFileSystem.registerWatchableHierarchy(newWatchableHierarchy)
+        watchingVirtualFileSystem.registerWatchableHierarchy(newWatchableHierarchy, newWatcherProbe.parentFile)
         then:
-        1 * watcherRegistry.registerWatchableHierarchy(newWatchableHierarchy, _)
+        1 * watcherRegistry.registerWatchableHierarchy(newWatchableHierarchy, _, _)
     }
 
     def "detects unsupported file systems on default watch mode"() {
