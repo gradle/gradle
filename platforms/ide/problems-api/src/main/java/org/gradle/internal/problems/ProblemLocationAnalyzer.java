@@ -16,6 +16,7 @@
 
 package org.gradle.internal.problems;
 
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
@@ -30,5 +31,5 @@ public interface ProblemLocationAnalyzer {
      * @return A display name for the location or null for an unknown location.
      */
     @Nullable
-    Location locationForUsage(List<StackTraceElement> stack, boolean fromException);
+    Location locationForUsage(Failure failure, boolean fromException);
 }

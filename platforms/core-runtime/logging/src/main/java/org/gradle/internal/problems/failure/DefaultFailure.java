@@ -80,4 +80,15 @@ class DefaultFailure implements Failure {
     public List<Failure> getCauses() {
         return causes;
     }
+
+    @Override
+    public int indexOfStackFrame(int fromIndex, StackFramePredicate predicate) {
+        int size = stackTrace.size();
+        for (int i = fromIndex; i < size; i++) {
+            if (predicate.test(stackTrace.get(i), getStackTraceRelevance(i))) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }
