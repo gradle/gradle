@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.api.JavaVersion
-import org.gradle.internal.jvm.Jvm
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -27,7 +24,7 @@ import javax.tools.JavaCompiler
 
 class JdkToolsTest extends Specification {
     @Subject
-    JdkTools current = new JdkTools(Jvm.current(), [])
+    JdkTools current = new JdkTools([])
 
     def "can get java compiler"() {
         def compiler = current.systemJavaCompiler
@@ -37,44 +34,4 @@ class JdkToolsTest extends Specification {
         compiler.class == current.systemJavaCompiler.class
     }
 
-    def "throws when no tools"() {
-        when:
-        new JdkTools(Mock(Jvm) {
-            getToolsJar() >> null
-            getJavaVersion() >> JavaVersion.VERSION_1_8
-            getJavaHome() >> new File('.')
-        }, [])
-
-        then:
-        thrown IllegalStateException
-    }
-
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    def "throws when tools doesn't contain compiler"() {
-        when:
-        if (defaultCompilerClassAlreadyInjectedIntoExtensionClassLoader()) {
-            throw new IllegalStateException()
-        }
-        new JdkTools(Mock(Jvm) {
-            getToolsJar() >> new File("/nothing")
-        }, []).systemJavaCompiler
-
-        then:
-        thrown IllegalStateException
-    }
-
-    /*
-     * See https://github.com/gradle/gradle-private/issues/1299
-     *
-     * Previously, before this test class is executed, DEFAULT_COMPILER_IMPL_NAME may already be injected into Extension Classloader,
-     * so here we check for prerequisite.
-     */
-    private static boolean defaultCompilerClassAlreadyInjectedIntoExtensionClassLoader() {
-        try {
-            ClassLoader.getSystemClassLoader().loadClass(JdkTools.DEFAULT_COMPILER_IMPL_NAME)
-            return true
-        } catch (ClassNotFoundException ignored) {
-            return false
-        }
-    }
 }

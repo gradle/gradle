@@ -21,15 +21,16 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.compile.MinimalGroovyCompilerDaemonForkOptions;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
-import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
-import org.gradle.api.internal.tasks.compile.MinimalGroovyCompilerDaemonForkOptions;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.jvm.JpmsConfiguration;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
@@ -40,6 +41,7 @@ import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -79,7 +81,6 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         VisitableURLClassLoader.Spec targetGroovyClasspath = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(classpath).getAsURLs());
 
         Collection<File> languageGroovyFiles = classPathRegistry.getClassPath("GROOVY-COMPILER").getAsFiles();
-        VisitableURLClassLoader.Spec compilerClasspath = new VisitableURLClassLoader.Spec("compiler-loader", DefaultClassPath.of(languageGroovyFiles).getAsURLs());
 
         FilteringClassLoader.Spec gradleAndUserFilter = getMinimalGradleFilter();
 
@@ -87,19 +88,26 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             gradleAndUserFilter.allowPackage(sharedPackage);
         }
 
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
+        javaForkOptions.setWorkingDir(daemonWorkingDir);
+        javaForkOptions.setExecutable(javaOptions.getExecutable());
+        if (jvmVersionDetector.getJavaVersion(javaForkOptions.getExecutable()).isJava9Compatible()) {
+            javaForkOptions.jvmArgs(JpmsConfiguration.GROOVY_JPMS_ARGS);
+        } else {
+            // In JDK 8 and below, we need to attach the 'tools.jar' to the classpath.
+            File javaExecutable = new File(javaForkOptions.getExecutable());
+            File toolsJar = Jvm.forHome(javaExecutable.getParentFile().getParentFile()).getToolsJar();
+            languageGroovyFiles = new ArrayList<>(languageGroovyFiles);
+            languageGroovyFiles.add(toolsJar);
+        }
+
+        VisitableURLClassLoader.Spec compilerClasspath = new VisitableURLClassLoader.Spec("compiler-loader", DefaultClassPath.of(languageGroovyFiles).getAsURLs());
         HierarchicalClassLoaderStructure classLoaderStructure =
             new HierarchicalClassLoaderStructure(classLoaderRegistry.getGradleWorkerExtensionSpec())
                 .withChild(getMinimalGradleFilter())
                 .withChild(targetGroovyClasspath)
                 .withChild(gradleAndUserFilter)
                 .withChild(compilerClasspath);
-
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
-        javaForkOptions.setWorkingDir(daemonWorkingDir);
-        javaForkOptions.setExecutable(javaOptions.getExecutable());
-        if (jvmVersionDetector.getJavaVersion(javaForkOptions.getExecutable()).isJava9Compatible()) {
-            javaForkOptions.jvmArgs(JpmsConfiguration.GROOVY_JPMS_ARGS);
-        }
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)

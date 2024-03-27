@@ -59,6 +59,8 @@ public class DirectInstantiator implements Instantiator {
                 // in between the creation time and now
                 match = constructorCache.get(type, argTypes).getMethod();
             }
+            // IncrementalCompileTask classloader: jdk-tools
+            // I do not understand how the ReflectionCache works, but it seems that it finds the jdk-tools classloader
             return type.cast(match.newInstance(params));
         } catch (InvocationTargetException e) {
             throw new ObjectInstantiationException(type, e.getCause());

@@ -33,8 +33,8 @@ public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactor
     }
 
     @Override
-    protected DefaultJavaCompileSpec getForkingSpec(File javaHome) {
-        return new DefaultForkingJavaCompileSpec(javaHome);
+    protected DefaultJavaCompileSpec getForkingSpec(File javaHome, int javaLanguageVersion) {
+        return new DefaultForkingJavaCompileSpec(javaHome, javaLanguageVersion);
     }
 
     @Override
@@ -57,14 +57,21 @@ public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactor
 
     private static class DefaultForkingJavaCompileSpec extends DefaultJavaCompileSpec implements ForkingJavaCompileSpec {
         private final File javaHome;
+        private final int javaLanguageVersion;
 
-        private DefaultForkingJavaCompileSpec(File javaHome) {
+        private DefaultForkingJavaCompileSpec(File javaHome, int javaLanguageVersion) {
             this.javaHome = javaHome;
+            this.javaLanguageVersion = javaLanguageVersion;
         }
 
         @Override
         public File getJavaHome() {
             return javaHome;
+        }
+
+        @Override
+        public int getJavaLanguageVersion() {
+            return javaLanguageVersion;
         }
     }
 }

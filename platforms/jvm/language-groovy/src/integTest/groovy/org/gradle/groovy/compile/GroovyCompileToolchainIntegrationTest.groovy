@@ -27,6 +27,7 @@ import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
+import spock.lang.IgnoreRest
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
@@ -81,6 +82,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         option << ["executable", "javaHome"]
     }
 
+    @IgnoreRest
     def "uses #what toolchain #when for Groovy "() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion

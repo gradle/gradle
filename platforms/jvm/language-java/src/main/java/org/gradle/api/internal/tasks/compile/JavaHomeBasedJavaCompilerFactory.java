@@ -17,16 +17,14 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.internal.Factory;
-import org.gradle.internal.jvm.Jvm;
 
-import javax.tools.JavaCompiler;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
+public class JavaHomeBasedJavaCompilerFactory implements Factory<ContextAwareJavaCompiler>, Serializable {
     private final List<File> compilerPluginsClasspath;
     // We use a static cache here because we want to reuse classloaders in compiler workers as
     // it has a huge impact on performance. Previously there was a single, JdkTools.current()
@@ -39,12 +37,12 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, 
     }
 
     @Override
-    public JavaCompiler create() {
+    public ContextAwareJavaCompiler create() {
         JdkTools jdkTools = JavaHomeBasedJavaCompilerFactory.JDK_TOOLS.computeIfAbsent(compilerPluginsClasspath, JavaHomeBasedJavaCompilerFactory::createJdkTools);
         return jdkTools.getSystemJavaCompiler();
     }
 
     private static JdkTools createJdkTools(List<File> compilerPluginsClasspath) {
-        return new JdkTools(Jvm.current(), compilerPluginsClasspath);
+        return new JdkTools(compilerPluginsClasspath);
     }
 }

@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorke
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.initialization.layout.ProjectCacheDir;
-import org.gradle.internal.Factory;
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -30,8 +29,6 @@ import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
-import javax.tools.JavaCompiler;
-
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final WorkerDirectoryProvider workingDirProvider;
     private final WorkerDaemonFactory workerDaemonFactory;
@@ -40,7 +37,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final AnnotationProcessorDetector processorDetector;
     private final ClassPathRegistry classPathRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
-    private Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
+    private JavaHomeBasedJavaCompilerFactory javaHomeBasedJavaCompilerFactory;
     private final InternalProblems problems;
     private final ProjectCacheDir projectCacheDir;
 
@@ -66,7 +63,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         this.projectCacheDir = projectCacheDir;
     }
 
-    private Factory<JavaCompiler> getJavaHomeBasedJavaCompilerFactory() {
+    private JavaHomeBasedJavaCompilerFactory getJavaHomeBasedJavaCompilerFactory() {
         if (javaHomeBasedJavaCompilerFactory == null) {
             javaHomeBasedJavaCompilerFactory = new JavaHomeBasedJavaCompilerFactory(classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles());
         }

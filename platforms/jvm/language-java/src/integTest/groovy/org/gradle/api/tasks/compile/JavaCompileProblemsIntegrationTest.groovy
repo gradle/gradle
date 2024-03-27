@@ -25,7 +25,6 @@ import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.test.fixtures.file.TestFile
-
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
  */
@@ -45,6 +44,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         enableProblemsApiCheck()
+        // Explicitly enable the toolchain detection, as the test will use the toolchain to compile the code
+        executer.withToolchainDetectionEnabled()
 
         propertiesFile << """
             # Feature flag as of 8.6 to enable the Problems API
@@ -73,8 +74,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo"), 2)
 
         when:
-        fails("compileJava")
-
+        fails("compileJava", "--stacktrace", "--info")
 
         then:
         verifyAll(receivedProblem(0)) {
@@ -273,6 +273,37 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "problems are reported when using a JDK #jvmVersion toolchain"(int jvmVersion) {
+        given:
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jvmVersion})
+                }
+            }
+
+            // Force the compiler forking
+            // This will fork a compiler daemon, even if the Gradle daemon is running the same JVM version
+            tasks.compileJava.options.fork = true
+        """
+        possibleFileLocations.put(writeJavaCausingTwoCompilationErrors("Foo"), 2)
+
+        when:
+        executer.withToolchainDetectionEnabled()
+        fails("compileJava")
+
+        then:
+        collectedProblems.size() == 2
+        for (ReceivedProblem problem in collectedProblems) {
+            assertProblem(problem, "ERROR", true) { details ->
+                assert details == "';' expected"
+            }
+        }
+
+        where:
+        jvmVersion << [8, 11, 21]
+    }
+
     /**
      * Assert if a compilation problems looks like how we expect it to look like.
      * <p>
@@ -281,6 +312,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
      *
      * @param problem the problem to assert
      * @param severity the expected severity of the problem
+     * @param expectPreciseLocation if it is expected that the problem has a precise location (path, line, column, length) and (path, offset, length)
      * @param extraChecks an optional closure to perform any custom checks on the problem, like checking the precise message of the problem
      *
      * @throws AssertionError if the problem does not look like how we expect it to look like
