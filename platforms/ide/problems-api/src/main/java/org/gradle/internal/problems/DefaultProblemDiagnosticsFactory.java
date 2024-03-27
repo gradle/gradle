@@ -22,6 +22,7 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
+import org.gradle.internal.problems.failure.StackFramePredicate;
 import org.gradle.internal.problems.failure.StackTraceRelevance;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
@@ -104,15 +105,24 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         Failure failure = getFailure(throwable);
         Location location = locationAnalyzer.locationForUsage(failure, fromException);
 
-        return new DefaultProblemDiagnostics(keepException ? failure : null, getUserCodeStackTrace(failure), location, source);
+        return new DefaultProblemDiagnostics(keepException ? failure : null, getMinimizedStackTrace(failure), location, source);
     }
 
-    private static List<StackTraceElement> getUserCodeStackTrace(final Failure failure) {
+    /**
+     * Returns a subsequence of the stacktrace that contains only user code
+     * and one internal frame that occurs just before the deepest user code.
+     */
+    private static List<StackTraceElement> getMinimizedStackTrace(final Failure failure) {
+        final int firstUserCodeIndex = failure.indexOfStackFrame(0, StackFramePredicate.USER_CODE);
+
         return CollectionUtils.filterIndexed(failure.getStackTrace(), new IndexedSpec<StackTraceElement>() {
             @Override
             public boolean isSatisfiedBy(int index, StackTraceElement element) {
-                StackTraceRelevance relevance = failure.getStackTraceRelevance(index);
-                return relevance.equals(StackTraceRelevance.USER_CODE);
+                if (firstUserCodeIndex - 1 == index) {
+                    return true;
+                }
+
+                return failure.getStackTraceRelevance(index).equals(StackTraceRelevance.USER_CODE);
             }
         });
     }
