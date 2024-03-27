@@ -130,8 +130,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         collectProblems(typeMetadata).empty
     }
 
-    private static final String TEST_PROBLEM = "test.problem"
-
     def "custom annotation handler can inspect for static property problems"() {
         def annotationHandler = Stub(PropertyAnnotationHandler)
         _ * annotationHandler.propertyRelevant >> true

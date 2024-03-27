@@ -20,69 +20,92 @@ class KnownProblemIds {
 
     static void assertHasKnownId(ReceivedProblem problem) {
         assert problem != null
-        def id = problem['definition']['id']
-        assert id != null : "Id must be present"
-        assert id['name'] != null : "Must specify a main id: $id"
-        assert id['displayName'] != null : "Must specify displayName: $id"
-        def fqId = toFullyQualifiedId(id)
-        assert KNOWN_IDS.contains(fqId): "Unknown problem id: ${fqId}"
+        def definition = problem.definition
+        def knownDefinition = KNOWN_DEFINITIONS[problem.definition.id.fqid]
+        assert knownDefinition != null : "Unknown problem id: ${definition.id.fqid}"
+        assert knownDefinition == definition.id.displayName : "Unexpected display name for problem: ${definition.id.fqid}. Expected=${knownDefinition}, actual=${definition.id.displayName}"
+
+        def groupFqid = groupOf(definition.id.fqid)
+        while (groupFqid != null) {
+            def group = KNOWN_GROUPS[groupFqid]
+            assert group != null : "Unknown problem group: ${groupFqid}"
+            groupFqid = groupOf(groupFqid)
+        }
     }
 
-    private static String toFullyQualifiedId(problem) {
-        "${toFullyQualifiedGroup(problem['group'])}:${problem['name']}"
+    private static def groupOf(String fqid) {
+        int idx = fqid.lastIndexOf(':')
+        if (idx > 0) {
+            return fqid.substring(0, idx)
+        } else {
+            return null
+        }
     }
 
-    private static String toFullyQualifiedGroup(group) {
-        return "${group['parent'] ? toFullyQualifiedGroup(group['parent']) + ":" :  ""}" + group['name']
-    }
+    private static final def KNOWN_GROUPS = [
+        'problems-api' : 'Problems API',
+        'validation' : 'Validation',
+        'compilation' : 'Compilation',
+        'deprecation' : 'Deprecation',
+        'compilation:java' : 'Java compilation',
+        'task-selection' : 'Task selection',
+        'dependency-version-catalog' : 'Version catalog',
+        'compilation:groovy-dsl' : 'Groovy DSL script compilation',
+        'validation:property-validation' : 'Property validation problems',
+        'validation:type-validation' : 'Gradle type validation',
 
-    private static final def KNOWN_IDS = [
-        'problems-api:missing-id',
-        'compilation:groovy-dsl:compilation-failed',
-        'compilation:java:java-compilation-error',
-        'compilation:java:java-compilation-failed',
-        'compilation:java:java-compilation-warning',
-        'compilation:java:java-compilation-advice',
-        'dependency-version-catalog:alias-not-finished',
-        'dependency-version-catalog:invalid-dependency-notation',
-        'dependency-version-catalog:reserved-alias-name',
-        'dependency-version-catalog:catalog-file-does-not-exist',
-        'dependency-version-catalog:toml-syntax-error',
-        'dependency-version-catalog:too-many-import-files',
-        'dependency-version-catalog:too-many-import-invocation',
-        'dependency-version-catalog:no-import-files',
-        'deprecation:deprecated-feature-used',
-        'task-selection:no-matches',
-        'validation:property-validation:annotation-invalid-in-context',
-        'validation:property-validation:cannot-use-optional-on-primitive-types',
-        'validation:property-validation:cannot-write-output',
-        'validation:property-validation:conflicting-annotations',
-        'validation:property-validation:ignored-property-must-not-be-annotated',
-        'validation:property-validation:implicit-dependency',
-        'validation:property-validation:incompatible-annotations',
-        'validation:property-validation:incorrect-use-of-input-annotation',
-        'validation:property-validation:input-file-does-not-exist',
-        'validation:property-validation:missing-annotation',
-        'validation:property-validation:missing-normalization-annotation',
-        'validation:property-validation:nested-map-unsupported-key-type',
-        'validation:property-validation:nested-type-unsupported',
-        'validation:property-validation:mutable-type-with-setter',
-        'validation:property-validation:private-getter-must-not-be-annotated',
-        'validation:property-validation:unexpected-input-file-type',
-        'validation:property-validation:unsupported-notation',
-        'validation:property-validation:unknown-implementation',
-        'validation:property-validation:unsupported-value-type',
-        'validation:property-validation:value-not-set',
-        'validation:type-validation:ignored-annotations-on-method',
-        'validation:type-validation:invalid-use-of-type-annotation',
-        'validation:type-validation:not-cacheable-without-reason',
+        // groups from integration tests
+        'generic' : 'Generic'
+    ]
 
-        // categories from integration tests
-        'TEST_PROBLEM',
-        'generic:deprecation:plugin',
-        'generic:type',
-        'problems-api:invalid-additional-data',
-        'problems-api:missing-category',
-        'problems-api:missing-label',
+    private static final def KNOWN_DEFINITIONS = [
+        'problems-api:missing-id' : 'Problem id must be specified',
+        'problems-api:invalid-additional-data' : 'ProblemBuilder.additionalData() only supports values of type String',
+        'compilation:groovy-dsl:compilation-failed' : 'Groovy DSL script compilation problem',
+        'compilation:java:java-compilation-error' : 'Java compilation error',
+        'compilation:java:java-compilation-failed' : 'Java compilation error',
+        'compilation:java:java-compilation-warning' : 'Java compilation warning',
+        'compilation:java:java-compilation-advice' : 'Java compilation note',
+        'dependency-version-catalog:alias-not-finished' : 'version catalog error',
+        'dependency-version-catalog:invalid-dependency-notation' : 'Dependency version catalog problem',
+        'dependency-version-catalog:reserved-alias-name' : 'version catalog error',
+        'dependency-version-catalog:catalog-file-does-not-exist' : 'version catalog error',
+        'dependency-version-catalog:toml-syntax-error' : 'Dependency version catalog problem',
+        'dependency-version-catalog:too-many-import-files' : 'version catalog error',
+        'dependency-version-catalog:too-many-import-invocation' : 'version catalog error',
+        'dependency-version-catalog:no-import-files' : 'version catalog error',
+        'deprecation:deprecated-feature-used' : 'Deprecated feature used',
+        'task-selection:no-matches' : 'cannot locate task',
+        'validation:property-validation:annotation-invalid-in-context' : 'is annotated with invalid property type',
+        'validation:property-validation:cannot-use-optional-on-primitive-types' : 'Property should be annotated with @Optional',
+        'validation:property-validation:cannot-write-output' : 'property not writeable',
+        'validation:property-validation:conflicting-annotations' : 'type has conflicting annotation',
+        'validation:property-validation:ignored-property-must-not-be-annotated' : 'has wrong combination of annotations',
+        'validation:property-validation:implicit-dependency' : 'Property has implicit dependency',
+        'validation:property-validation:incompatible-annotations' : 'Wrong property annotation',
+        'validation:property-validation:incorrect-use-of-input-annotation' : 'has @Input annotation used on property',
+        'validation:property-validation:input-file-does-not-exist' : 'input not allowed for property',
+        'validation:property-validation:missing-annotation' : 'property missing',
+        'validation:property-validation:missing-normalization-annotation' : 'Missing normalization',
+        'validation:property-validation:nested-map-unsupported-key-type' : 'where key of nested map',
+        'validation:property-validation:nested-type-unsupported' : 'with nested type',
+        'validation:property-validation:mutable-type-with-setter' : 'mutable type is writeable',
+        'validation:property-validation:private-getter-must-not-be-annotated' : 'is private and with wrong annotation',
+        'validation:property-validation:unexpected-input-file-type' : 'input not allowed for property',
+        'validation:property-validation:unsupported-notation' : 'property has unsupported value',
+        'validation:property-validation:unknown-implementation' : 'Problem with property',
+        'validation:property-validation:unknown-implementation-nested' : 'Nested input problem for property',
+        'validation:property-validation:unsupported-value-type' : 'property with unsupported annotation',
+        'validation:property-validation:unsupported-value-type-for-input' : 'has @Input annotation used',
+        'validation:property-validation:value-not-set' : 'doesn\'t have a configured value',
+        'validation:type-validation:ignored-annotations-on-method' : 'method has wrong annotation',
+        'validation:type-validation:invalid-use-of-type-annotation' : 'is incorrectly annotated',
+        'validation:type-validation:not-cacheable-without-reason' : 'annotation missing',
+
+        // integration test problems
+        'generic:deprecation:plugin' : 'DisplayName',
+        'generic:type' : 'label',
+        'generic:type1' : 'inner',
+        'generic:type2' : 'outer',
     ]
 }
