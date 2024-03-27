@@ -37,6 +37,8 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -46,6 +48,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.SETTER;
 
 /**
  * Main options for Java compilation.
@@ -512,6 +517,11 @@ public abstract class CompileOptions extends AbstractOptions {
      */
     @Optional
     @OutputDirectory
+    @UpgradedProperty(originalAccessors = {
+        @UpgradedAccessor(value = GETTER, methodName = "getAnnotationProcessorGeneratedSourcesDirectory"),
+        @UpgradedAccessor(value = SETTER, methodName = "setAnnotationProcessorGeneratedSourcesDirectory"),
+        @UpgradedAccessor(value = SETTER, methodName = "setAnnotationProcessorGeneratedSourcesDirectory", originalType = Provider.class)
+    })
     public DirectoryProperty getGeneratedSourceOutputDirectory() {
         return generatedSourceOutputDirectory;
     }

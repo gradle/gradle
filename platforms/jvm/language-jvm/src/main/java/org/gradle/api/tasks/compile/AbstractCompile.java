@@ -24,9 +24,14 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
+
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.SETTER;
 
 /**
  * The base class for all JVM-based language compilation tasks.
@@ -68,6 +73,11 @@ public abstract class AbstractCompile extends SourceTask {
      * @since 6.1
      */
     @OutputDirectory
+    @UpgradedProperty(originalAccessors = {
+        @UpgradedAccessor(value = GETTER, methodName = "getDestinationDir"),
+        @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir"),
+        @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir", originalType = Provider.class),
+    })
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;
     }

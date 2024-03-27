@@ -31,6 +31,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.GUtil;
@@ -38,6 +40,8 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.io.File;
+
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.GETTER;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
@@ -120,6 +124,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @OutputFile
     @SuppressWarnings("DanglingJavadoc")
+    @UpgradedProperty(originalAccessors = {
+        @UpgradedAccessor(value = GETTER, methodName = "getArchivePath")
+    })
     public Provider<RegularFile> getArchiveFile() {
         // TODO: Turn this into an `@implSpec` annotation on the comment above:
         // https://github.com/gradle/gradle/issues/7486
