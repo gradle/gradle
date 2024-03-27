@@ -26,6 +26,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
@@ -280,7 +281,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 previouslySeenBuilder.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .id(TextUtil.screamingSnakeToKebabCase(REDUNDANT_GETTERS), "has redundant getters", GradleCoreProblemGroup.validation().property())
+                        .id(TextUtil.screamingSnakeToKebabCase(REDUNDANT_GETTERS), "Property has redundant getters", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                         .contextualLabel(
                             String.format(
                                 "has redundant getters: '%s()' and '%s()'",
@@ -439,7 +440,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             metadataBuilder.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED), "is private and with wrong annotation", GradleCoreProblemGroup.validation().property())
+                    .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED), "Private property with wrong annotation", GradleCoreProblemGroup.validation().property())
                     .contextualLabel(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                     .documentedAt(userManual("validation_problems", PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED.toLowerCase()))
                     .severity(ERROR)
@@ -462,7 +463,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER), "mutable type is writeable", GradleCoreProblemGroup.validation().property())
+                    .id(TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER), "Mutable type with setter", GradleCoreProblemGroup.validation().property())
                     .contextualLabel(String.format("of mutable type '%s' is writable", setterType.getName()))
                     .documentedAt(userManual("validation_problems", MUTABLE_TYPE_WITH_SETTER.toLowerCase()))
                     .severity(ERROR)
@@ -602,7 +603,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         visitPropertyProblem(problem ->
                             problem
                                 .forProperty(propertyName)
-                                .id(TextUtil.screamingSnakeToKebabCase(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED), "has wrong combination of annotations", GradleCoreProblemGroup.validation().property())
+                                .id(TextUtil.screamingSnakeToKebabCase(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED), "Has wrong combination of annotations", GradleCoreProblemGroup.validation().property())
                                 .contextualLabel(
                                     String.format(
                                         "annotated with @%s should not be also annotated with %s",
@@ -661,7 +662,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), category.getDisplayName() + " has conflicting annotation", GradleCoreProblemGroup.validation().property())
+                        .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", GradleCoreProblemGroup.validation().property())
                         .contextualLabel(
                             String.format(
                                 "has conflicting %s annotations %s: %s",

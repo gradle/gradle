@@ -269,7 +269,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem) {
                 fqid == 'validation:property-validation:cannot-use-optional-on-primitive-types'
-                contextualLabel == 'Type \'MyTask\' property \'primitive\' Property should be annotated with @Optional'
+                contextualLabel == "Type 'MyTask' property 'primitive' of type $primitiveType shouldn't be annotated with @Optional"
                 details == 'Properties of primitive type cannot be optional'
                 solutions == [
                     'Remove the @Optional annotation',

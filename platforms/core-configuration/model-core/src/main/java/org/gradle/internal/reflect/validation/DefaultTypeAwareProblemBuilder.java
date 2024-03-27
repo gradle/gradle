@@ -74,12 +74,6 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
     }
 
     @Override
-    public InternalProblemBuilder contextualLabel(String message) {
-        super.contextualLabel(introductionFor(super.build().getAdditionalData()) + message);
-        return this;
-    }
-
-    @Override
     public Problem build() {
         Problem problem = super.build();
         String prefix = introductionFor(problem.getAdditionalData());
