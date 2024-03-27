@@ -20,6 +20,7 @@ import com.google.common.base.Supplier
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.problems.failure.DefaultFailureFactory
+import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.problems.failure.StackTraceClassifier
 import org.gradle.problems.Location
 import spock.lang.Specification
@@ -43,8 +44,8 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         assertIsCallerStackTrace(diagnostics.stack)
         diagnostics.location == location
 
-        1 * locationAnalyzer.locationForUsage(_, false) >> { List<StackTraceElement> trace, b ->
-            assertIsCallerStackTrace(trace)
+        1 * locationAnalyzer.locationForUsage(_, false) >> { Failure failure, b ->
+            assertIsCallerStackTrace(failure.stackTrace)
             location
         }
     }
@@ -66,8 +67,8 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         diagnostics.failure.stackTrace == exception.stackTrace.toList()
         diagnostics.location == location
 
-        1 * locationAnalyzer.locationForUsage(_, false) >> { List<StackTraceElement> trace, b ->
-            assert trace == exception.stackTrace.toList()
+        1 * locationAnalyzer.locationForUsage(_, false) >> { Failure failure, b ->
+            assert failure.stackTrace == exception.stackTrace.toList()
             location
         }
     }

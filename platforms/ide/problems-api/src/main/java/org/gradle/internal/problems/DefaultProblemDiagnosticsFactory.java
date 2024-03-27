@@ -102,10 +102,9 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
 
         Failure failure = getFailure(throwable);
-        List<StackTraceElement> stackTrace = getUserCodeStackTrace(failure);
-        Location location = locationAnalyzer.locationForUsage(stackTrace, fromException);
+        Location location = locationAnalyzer.locationForUsage(failure, fromException);
 
-        return new DefaultProblemDiagnostics(keepException ? failure : null, stackTrace, location, source);
+        return new DefaultProblemDiagnostics(keepException ? failure : null, getUserCodeStackTrace(failure), location, source);
     }
 
     private static List<StackTraceElement> getUserCodeStackTrace(final Failure failure) {
