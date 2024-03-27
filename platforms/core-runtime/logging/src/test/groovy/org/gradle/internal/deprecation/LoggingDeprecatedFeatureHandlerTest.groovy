@@ -32,6 +32,7 @@ import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter
 import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.time.Clock
 import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
@@ -501,13 +502,19 @@ feature1 removal""")
 
     private void useStackTrace(List<StackTraceElement> stackTrace = []) {
         1 * problemStream.forCurrentCaller() >> Stub(ProblemDiagnostics) {
-            _ * getLocation() >> null
+            _ * getFailure() >> Stub(Failure) {
+                getStackTrace() >> stackTrace
+            }
             _ * getUserCodeStackTrace() >> stackTrace
+            _ * getLocation() >> null
         }
     }
 
     private void useLocation(String displayName, int lineNumber, List<StackTraceElement> stackTrace = []) {
         1 * problemStream.forCurrentCaller() >> Stub(ProblemDiagnostics) {
+            _ * getFailure() >> Stub(Failure) {
+                getStackTrace() >> stackTrace
+            }
             _ * getUserCodeStackTrace() >> stackTrace
             _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), lineNumber)
         }

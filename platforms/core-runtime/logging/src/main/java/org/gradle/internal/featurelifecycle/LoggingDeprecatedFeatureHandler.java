@@ -136,10 +136,12 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             // This usage has no stack trace and has already been logged with the same location, so skip it
             return;
         }
-        displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics.getUserCodeStackTrace());
+        displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics);
     }
 
-    private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder message, List<StackTraceElement> callStack) {
+    private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder message, ProblemDiagnostics diagnostics) {
+        List<StackTraceElement> callStack = selectStackTrace(diagnostics);
+
         // Let's cut the first 10 lines of stack traces as the "key" to identify a deprecation message uniquely.
         // Even when two deprecation messages are emitted from the same location,
         // the stack traces at very bottom might be different due to thread pool scheduling.
@@ -147,6 +149,15 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (loggedMessages.add(message.toString())) {
             appendLogTraceIfNecessary(message, callStack, 10, callStack.size());
             LOGGER.warn(message.toString());
+        }
+    }
+
+    private static List<StackTraceElement> selectStackTrace(ProblemDiagnostics diagnostics) {
+        Failure failure = diagnostics.getFailure();
+        if (isTraceLoggingEnabled() && failure != null) {
+            return failure.getStackTrace();
+        } else {
+            return diagnostics.getUserCodeStackTrace();
         }
     }
 
