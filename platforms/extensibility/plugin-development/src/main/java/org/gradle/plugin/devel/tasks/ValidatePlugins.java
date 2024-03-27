@@ -136,10 +136,7 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     private void reportProblems(List<? extends Problem> problems) {
         InternalProblemReporter reporter = getServices().get(InternalProblems.class).getInternalReporter();
-        problems.stream()
-            .map(Problem.class::cast)
-            //.map(problem -> problem.toBuilder().contextualLabel(introductionFor(problem.getAdditionalData()) + problem.getDefinition().getId().getDisplayName()).build())
-            .forEach(reporter::report);
+        problems.forEach(reporter::report);
     }
 
     private String annotateTaskPropertiesDoc() {

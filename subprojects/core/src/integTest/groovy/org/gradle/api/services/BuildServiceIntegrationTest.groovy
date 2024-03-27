@@ -570,7 +570,6 @@ service: closed with value 12
 
     def "@ServiceReference property must implement BuildService"() {
         given:
-        enableProblemsApiCheck()
         buildFile """
             abstract class CountingService {}
             abstract class Consumer extends DefaultTask {
