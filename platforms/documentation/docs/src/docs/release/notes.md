@@ -199,7 +199,7 @@ publishing {
 }
 ```
 
-Previously, this was not working as expected and the published POM would contain the name and description values configured via `plugins` block.
+Previously, this was not working as expected and the published POM would contain the name and description values configured via the `plugins` block.
 
 Now, any values configured in the `pom` block will take priority if present, and be written to the published POM for that publication:
 
