@@ -16,7 +16,6 @@
 
 package org.gradle.performance.mutator
 
-
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -30,42 +29,84 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutatorTest extends Spec
     @TempDir
     File gradleUserHome
 
-    def "should cleanup all folders except the ones with instrumented jars"() {
+    def "should cleanup all transforms-X folders except the ones with instrumented jars"() {
         given:
-        createFile(new File(gradleUserHome, "caches/transforms-1/first/transformed/file"))
-        createFile(new File(gradleUserHome, "caches/transforms-1/first/metadata.bin"))
-        createFile(new File(gradleUserHome, "caches/transforms-1/first/transformed/instrumented/file"))
-        createFile(new File(gradleUserHome, "caches/transforms-1/second/transformed/original/file"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/first/transformed/instrumented/file"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/first/transformed/original/file"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/second/metadata.bin"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/second/transformed/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/second/transformed/instrumented/file"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/second/transformed/original/file"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/third/metadata.bin"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/third/transformed/$ANALYSIS_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/third/transformed/original/file"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/fourth/metadata.bin"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/fourth/transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
-        createFile(new File(gradleUserHome, "caches/transforms-2/fourth/transformed/original/file"))
-        def mutator = new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(gradleUserHome, BUILD)
+        def cachesDir = new File(gradleUserHome, "caches")
+        createFile(new File(cachesDir, "transforms-1/first/transformed/file"))
+        createFile(new File(cachesDir, "transforms-1/first/metadata.bin"))
+        createFile(new File(cachesDir, "transforms-1/first/transformed/instrumented/file"))
+        createFile(new File(cachesDir, "transforms-1/second/transformed/original/file"))
+        createFile(new File(cachesDir, "transforms-2/first/transformed/instrumented/file"))
+        createFile(new File(cachesDir, "transforms-2/first/transformed/original/file"))
+        createFile(new File(cachesDir, "transforms-2/second/metadata.bin"))
+        createFile(new File(cachesDir, "transforms-2/second/transformed/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
+        createFile(new File(cachesDir, "transforms-2/second/transformed/instrumented/file"))
+        createFile(new File(cachesDir, "transforms-2/second/transformed/original/file"))
+        createFile(new File(cachesDir, "transforms-2/third/metadata.bin"))
+        createFile(new File(cachesDir, "transforms-2/third/transformed/$ANALYSIS_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
+        createFile(new File(cachesDir, "transforms-2/third/transformed/original/file"))
+        createFile(new File(cachesDir, "transforms-2/fourth/metadata.bin"))
+        createFile(new File(cachesDir, "transforms-2/fourth/transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
+        createFile(new File(cachesDir, "transforms-2/fourth/transformed/original/file"))
+
+        def mutator = ClearArtifactTransformCacheWithoutInstrumentedJarsMutator.create(gradleUserHome, BUILD)
 
         when:
         mutator.beforeBuild(null)
 
         then:
-        !new File(gradleUserHome, "caches/transforms-1/").exists()
-        !new File(gradleUserHome, "caches/transforms-2/first").exists()
-        new File(gradleUserHome, "caches/transforms-2/second/metadata.bin").exists()
-        new File(gradleUserHome, "caches/transforms-2/second/transformed/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}").exists()
-        new File(gradleUserHome, "caches/transforms-2/second/transformed/instrumented/file").exists()
-        new File(gradleUserHome, "caches/transforms-2/second/transformed/original/file").exists()
-        new File(gradleUserHome, "caches/transforms-2/third/metadata.bin").exists()
-        new File(gradleUserHome, "caches/transforms-2/third/transformed/$ANALYSIS_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}").exists()
-        new File(gradleUserHome, "caches/transforms-2/third/transformed/original/file").exists()
-        new File(gradleUserHome, "caches/transforms-2/fourth/metadata.bin").exists()
-        new File(gradleUserHome, "caches/transforms-2/fourth/transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}").exists()
-        new File(gradleUserHome, "caches/transforms-2/fourth/transformed/original/file").exists()
+        !new File(cachesDir, "transforms-1/").exists()
+        !new File(cachesDir, "transforms-2/first").exists()
+        new File(cachesDir, "transforms-2/second/metadata.bin").exists()
+        new File(cachesDir, "transforms-2/second/transformed/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}").exists()
+        new File(cachesDir, "transforms-2/second/transformed/instrumented/file").exists()
+        new File(cachesDir, "transforms-2/second/transformed/original/file").exists()
+        new File(cachesDir, "transforms-2/third/metadata.bin").exists()
+        new File(cachesDir, "transforms-2/third/transformed/$ANALYSIS_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}").exists()
+        new File(cachesDir, "transforms-2/third/transformed/original/file").exists()
+        new File(cachesDir, "transforms-2/fourth/metadata.bin").exists()
+        new File(cachesDir, "transforms-2/fourth/transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}").exists()
+        new File(cachesDir, "transforms-2/fourth/transformed/original/file").exists()
+    }
+
+    def "should cleanup all version-bound transform folders except the ones with instrumented jars"() {
+        given:
+        def cachesDir = new File(gradleUserHome, "caches")
+        createFile(new File(cachesDir, "8.7-rc-4/transforms/first/transformed/file"))
+        createFile(new File(cachesDir, "8.7-rc-4/transforms/first/metadata.bin"))
+        createFile(new File(cachesDir, "8.7-rc-4/transforms/first/transformed/instrumented/file"))
+        createFile(new File(cachesDir, "8.7-rc-4/transforms/second/transformed/original/file"))
+        createFile(new File(cachesDir, "8.8/transforms/first/transformed/instrumented/file"))
+        createFile(new File(cachesDir, "8.8/transforms/first/transformed/original/file"))
+        createFile(new File(cachesDir, "8.8/transforms/second/metadata.bin"))
+        createFile(new File(cachesDir, "8.8/transforms/second/transformed/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
+        createFile(new File(cachesDir, "8.8/transforms/second/transformed/instrumented/file"))
+        createFile(new File(cachesDir, "8.8/transforms/second/transformed/original/file"))
+        createFile(new File(cachesDir, "8.8/transforms/third/metadata.bin"))
+        createFile(new File(cachesDir, "8.8/transforms/third/transformed/$ANALYSIS_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
+        createFile(new File(cachesDir, "8.8/transforms/third/transformed/original/file"))
+        createFile(new File(cachesDir, "8.8/transforms/fourth/metadata.bin"))
+        createFile(new File(cachesDir, "8.8/transforms/fourth/transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
+        createFile(new File(cachesDir, "8.8/transforms/fourth/transformed/original/file"))
+
+        def mutator = ClearArtifactTransformCacheWithoutInstrumentedJarsMutator.create(gradleUserHome, BUILD)
+
+        when:
+        mutator.beforeBuild(null)
+
+        then:
+        !new File(cachesDir, "8.7-rc-4/transforms/").exists()
+        !new File(cachesDir, "8.8/transforms/first").exists()
+        new File(cachesDir, "8.8/transforms/second/metadata.bin").exists()
+        new File(cachesDir, "8.8/transforms/second/transformed/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}").exists()
+        new File(cachesDir, "8.8/transforms/second/transformed/instrumented/file").exists()
+        new File(cachesDir, "8.8/transforms/second/transformed/original/file").exists()
+        new File(cachesDir, "8.8/transforms/third/metadata.bin").exists()
+        new File(cachesDir, "8.8/transforms/third/transformed/$ANALYSIS_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}").exists()
+        new File(cachesDir, "8.8/transforms/third/transformed/original/file").exists()
+        new File(cachesDir, "8.8/transforms/fourth/metadata.bin").exists()
+        new File(cachesDir, "8.8/transforms/fourth/transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}").exists()
+        new File(cachesDir, "8.8/transforms/fourth/transformed/original/file").exists()
     }
 
     private static void createFile(File file) {

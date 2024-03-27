@@ -85,6 +85,7 @@ public enum CacheLayout {
         .changedTo(3, "6.8-rc-1")
         // Introduced move semantics
         .changedTo(4, "8.6-rc-1")
+        .retiredIn("8.8-rc-1")
     );
 
     private final String name;
