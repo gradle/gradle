@@ -136,7 +136,7 @@ public abstract class CollectionUtils {
         return filter(Arrays.asList(array), Lists.<T>newArrayListWithCapacity(array.length), filter);
     }
 
-    public static <T> List<T> filter(List<? extends T> list, IndexedSpec<? super T> filter) {
+    public static <T> List<T> filterIndexed(List<? extends T> list, IndexedSpec<? super T> filter) {
         return filter(list, Lists.<T>newArrayListWithCapacity(list.size()), filter);
     }
 
