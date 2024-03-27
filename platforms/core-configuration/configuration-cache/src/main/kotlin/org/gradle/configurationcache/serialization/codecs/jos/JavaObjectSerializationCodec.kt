@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs.jos
 
+import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.EncodingProvider
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -32,6 +33,7 @@ import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.withBeanTrace
 import org.gradle.configurationcache.serialization.withImmediateMode
 import org.gradle.configurationcache.serialization.writeEnum
+import java.io.Externalizable
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
@@ -257,4 +259,31 @@ fun invokeAll(methods: List<Method>, bean: Any, vararg args: Any?) {
     methods.forEach { method ->
         method.invoke(bean, *args)
     }
+}
+
+
+internal
+object ExternalizableCodec : Codec<Externalizable> {
+    override suspend fun WriteContext.encode(value: Externalizable) {
+        encodePreservingIdentityOf(value) {
+            val beanType = value.javaClass
+            writeClass(beanType)
+            val record = recordWritingOf(beanType, value)
+            record.run { playback() }
+        }
+    }
+
+    private
+    fun recordWritingOf(beanType: Class<Externalizable>, value: Externalizable): RecordingObjectOutputStream =
+        RecordingObjectOutputStream(beanType, value).also { recordingObjectOutputStream ->
+            value.writeExternal(recordingObjectOutputStream)
+        }
+
+    override suspend fun ReadContext.decode(): Externalizable? =
+        decodePreservingIdentity { id ->
+            decodingBeanWithId(id) { bean, _, beanStateReader ->
+                val objectInputStream = ObjectInputStreamAdapter(bean, beanStateReader, this)
+                (bean as Externalizable).readExternal(objectInputStream)
+            } as Externalizable
+        }
 }

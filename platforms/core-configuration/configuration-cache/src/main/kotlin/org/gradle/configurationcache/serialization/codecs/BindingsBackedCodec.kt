@@ -37,6 +37,10 @@ import kotlin.reflect.KClass
  * An implementation of the Codec protocol that (based on a [Binding.tag]) chooses and delegates
  * to the proper binding (if one is found).
  *
+ * The binding (a tagged codec) is chosen based on the availability of a Binding.encoding for the value being encoded.
+ * This is basically implemented as a predicate dispatching on the value type, first available Binding.encoding wins
+ * and its Binding.tag is recorded in the output stream so decoding can be implemented via a fast array lookup.
+ *
  * @see Binding.tag
  */
 class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
