@@ -31,14 +31,14 @@ public class SimulatedSingleMessageLogger {
     }
 
     public static TestFeatureUsage nagUserWith(String message) {
-        return new TestFeatureUsage(message, SimulatedSingleMessageLogger.class);
+        return new TestFeatureUsage(message);
     }
 
-    static class TestFeatureUsage extends FeatureUsage {
+    public static class TestFeatureUsage extends FeatureUsage {
         public final Exception exception = new Exception();
 
-        public TestFeatureUsage(String summary, Class<?> calledFrom) {
-            super(summary, calledFrom);
+        public TestFeatureUsage(String summary) {
+            super(summary);
         }
     }
 }
