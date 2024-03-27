@@ -39,6 +39,7 @@ public class InternalStackTraceClassifier implements StackTraceClassifier {
             className.startsWith("groovy.lang") ||
             className.startsWith("org.codehaus.groovy.") ||
             // Gradle calls
-            className.startsWith("org.gradle.");
+            className.startsWith("org.gradle.") ||
+            className.startsWith("worker.org.gradle.");
     }
 }
