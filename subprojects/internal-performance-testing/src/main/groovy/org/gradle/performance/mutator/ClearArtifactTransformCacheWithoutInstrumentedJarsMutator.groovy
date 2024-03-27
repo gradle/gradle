@@ -18,6 +18,7 @@ package org.gradle.performance.mutator
 
 import com.google.common.collect.Lists
 import groovy.io.FileType
+import org.apache.commons.io.FilenameUtils
 import org.apache.commons.io.file.PathUtils
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.CompositeBuildMutator
@@ -52,8 +53,8 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends Abstract
 
     ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(File gradleUserHome, CleanupSchedule schedule, String cacheDirPattern) {
         super(schedule);
-        this.gradleUserHome = gradleUserHome;
-        this.cacheDirPattern = cacheDirPattern;
+        this.gradleUserHome = gradleUserHome
+        this.cacheDirPattern = cacheDirPattern
     }
 
     @Override
@@ -63,7 +64,8 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends Abstract
         List<File> cacheDirsToClean = []
         gradleUserHome.eachFileRecurse(FileType.DIRECTORIES) {
             def relativePath = gradleUserHome.toPath().relativize(it.toPath())
-            if (relativePath.toString().matches(cacheDirPattern)) {
+            def normalizedPath = FilenameUtils.separatorsToUnix(relativePath.toString())
+            if (normalizedPath.toString().matches(cacheDirPattern)) {
                 cacheDirsToClean << it
             }
         }
