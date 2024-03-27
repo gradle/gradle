@@ -137,7 +137,7 @@ public abstract class CollectionUtils {
     }
 
     public static <T> List<T> filterIndexed(List<? extends T> list, IndexedSpec<? super T> filter) {
-        return filter(list, Lists.<T>newArrayListWithCapacity(list.size()), filter);
+        return filterIndexed(list, Lists.<T>newArrayListWithCapacity(list.size()), filter);
     }
 
     /**
@@ -167,7 +167,7 @@ public abstract class CollectionUtils {
         return destination;
     }
 
-    public static <T, C extends Collection<T>> C filter(Iterable<? extends T> source, C destination, IndexedSpec<? super T> filter) {
+    public static <T, C extends Collection<T>> C filterIndexed(Iterable<? extends T> source, C destination, IndexedSpec<? super T> filter) {
         int index = 0;
         for (T item : source) {
             if (filter.isSatisfiedBy(index, item)) {
