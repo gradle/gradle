@@ -22,7 +22,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface ProblemLocationAnalyzer {
