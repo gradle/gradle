@@ -93,6 +93,7 @@ import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -197,7 +198,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private boolean visible = true;
     private boolean transitive = true;
-    private Set<Configuration> extendsFrom = new LinkedHashSet<>();
+    private final DomainObjectSet<Configuration> extendsFrom;
     private String description;
     private final Set<Object> excludeRules = new LinkedHashSet<>();
     private Set<ExcludeRule> parsedExcludeRules;
@@ -327,6 +328,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.declarationDeprecated = roleAtCreation.isDeclarationAgainstDeprecated();
         this.usageCanBeMutated = !lockUsage;
         this.roleAtCreation = roleAtCreation;
+
+        this.extendsFrom = domainObjectCollectionFactory.newDomainObjectSet(Configuration.class);
+        this.extendsFrom.whenObjectAdded(this::addConfigurationToExtendsFrom);
+        this.extendsFrom.whenObjectRemoved(this::removeConfigurationFromExtendsFrom);
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -380,47 +385,65 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
         validateMutation(MutationType.HIERARCHY);
-        for (Configuration configuration : this.extendsFrom) {
-            if (inheritedArtifacts != null) {
-                inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
-            }
-            if (inheritedDependencies != null) {
-                inheritedDependencies.removeCollection(configuration.getAllDependencies());
-            }
-            if (inheritedDependencyConstraints != null) {
-                inheritedDependencyConstraints.removeCollection(configuration.getAllDependencyConstraints());
-            }
-            ((ConfigurationInternal) configuration).removeMutationValidator(parentMutationValidator);
-        }
-        this.extendsFrom = new LinkedHashSet<>();
+        this.extendsFrom.clear();
         for (Configuration configuration : extendsFrom) {
             extendsFrom(configuration);
         }
         return this;
     }
 
+    private void removeConfigurationFromExtendsFrom(Configuration configuration) {
+        validateMutation(MutationType.HIERARCHY);
+        if (inheritedArtifacts != null) {
+            inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
+        }
+        if (inheritedDependencies != null) {
+            inheritedDependencies.removeCollection(configuration.getAllDependencies());
+        }
+        if (inheritedDependencyConstraints != null) {
+            inheritedDependencyConstraints.removeCollection(configuration.getAllDependencyConstraints());
+        }
+        ((ConfigurationInternal) configuration).removeMutationValidator(parentMutationValidator);
+    }
+
     @Override
     public Configuration extendsFrom(Configuration... extendsFrom) {
-        validateMutation(MutationType.HIERARCHY);
         for (Configuration configuration : extendsFrom) {
-            if (configuration.getHierarchy().contains(this)) {
-                throw new InvalidUserDataException(String.format(
-                    "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
-                    configuration, configuration.getHierarchy()));
-            }
-            if (this.extendsFrom.add(configuration)) {
-                if (inheritedArtifacts != null) {
-                    inheritedArtifacts.addCollection(configuration.getAllArtifacts());
-                }
-                if (inheritedDependencies != null) {
-                    inheritedDependencies.addCollection(configuration.getAllDependencies());
-                }
-                if (inheritedDependencyConstraints != null) {
-                    inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
-                }
-                ((ConfigurationInternal) configuration).addMutationValidator(parentMutationValidator);
-            }
+            checkCycle(configuration);
+            this.extendsFrom.add(configuration);
         }
+        return this;
+    }
+
+    private void checkCycle(Configuration configuration) {
+        if (configuration.getHierarchy().contains(this)) {
+            throw new InvalidUserDataException(String.format(
+                "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
+                configuration, configuration.getHierarchy()));
+        }
+    }
+
+    private void addConfigurationToExtendsFrom(Configuration configuration) {
+        validateMutation(MutationType.HIERARCHY);
+        if (inheritedArtifacts != null) {
+            inheritedArtifacts.addCollection(configuration.getAllArtifacts());
+        }
+        if (inheritedDependencies != null) {
+            inheritedDependencies.addCollection(configuration.getAllDependencies());
+        }
+        if (inheritedDependencyConstraints != null) {
+            inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
+        }
+        ((ConfigurationInternal) configuration).addMutationValidator(parentMutationValidator);
+    }
+
+    @Override
+    public Configuration extendsFrom(Provider<? extends Configuration> superConfig) {
+        this.extendsFrom.addLater(superConfig.map(configuration -> {
+                checkCycle(configuration);
+                return configuration;
+            }
+            ));
         return this;
     }
 
