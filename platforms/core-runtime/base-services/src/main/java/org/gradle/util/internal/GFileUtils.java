@@ -158,6 +158,14 @@ public class GFileUtils {
         }
     }
 
+    public static String readFile(File file, Charset charset) {
+        try {
+            return FileUtils.readFileToString(file, charset);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     /**
      * Reads and returns file contents. If some exception is triggered the method returns information about this exception.
      * Useful for including file contents in debug trace / exception messages.

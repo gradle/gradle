@@ -16,7 +16,10 @@
 
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
+
+import java.nio.charset.Charset;
 
 /**
  * Provides lazy access to the contents of a given file.
@@ -46,6 +49,24 @@ public interface FileContents {
      * @return provider of the entire file contents as a single String.
      */
     Provider<String> getAsText();
+
+    /**
+     * Gets a provider of the entire file contents as a single String.
+     *
+     * See {@link #getAsText()} for details
+     *
+     * @param charset Charset to be used
+     * @return provider of the entire file contents as a single String.
+     * @since 8.7
+     */
+    @Incubating
+    default Provider<String> getAsText(String charset) {
+        if (Charset.defaultCharset().toString().equals(charset)) {
+            return getAsText();
+        } else {
+            throw new IllegalArgumentException("The " + FileContents.class + " implementation does not implement #getAsText(String charset)");
+        }
+    }
 
     /**
      * Gets a provider of the entire file contents as a single byte array.

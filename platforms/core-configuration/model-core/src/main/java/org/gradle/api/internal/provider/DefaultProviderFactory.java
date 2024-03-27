@@ -42,6 +42,7 @@ import org.gradle.process.ExecOutput;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -172,9 +173,17 @@ public class DefaultProviderFactory implements ProviderFactory {
         return new FileContents() {
             @Override
             public Provider<String> getAsText() {
+                return getAsText(null);
+            }
+
+            @Override
+            public Provider<String> getAsText(@CheckForNull String charset) {
                 return of(
                     FileTextValueSource.class,
-                    spec -> setFileProperty.execute(spec.getParameters().getFile())
+                    spec -> {
+                        setFileProperty.execute(spec.getParameters().getFile());
+                        spec.getParameters().getCharset().set(charset);
+                    }
                 );
             }
 
