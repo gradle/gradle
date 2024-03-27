@@ -29,7 +29,19 @@ fun BuildContent(component: BuildComponent) {
 
 @Composable
 private fun BuildMainContent(component: BuildComponent, model: BuildModel.Loaded) {
-    Text(model.build.rootDir.absolutePath)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(model.build.rootDir.absolutePath)
+        TextField(System.getenv("JAVA_HOME"), onValueChange = {}, label = { Text("Java Home") })
+        TextField("8.7", onValueChange = {}, label = { Text("Gradle Version") })
+        Button(
+            onClick = {},
+            content = { Text("Connect") }
+        )
+    }
 }
 
 @Composable

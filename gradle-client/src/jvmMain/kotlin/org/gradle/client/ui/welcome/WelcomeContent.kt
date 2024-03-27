@@ -16,7 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.AwtWindow
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.gradle.client.logic.Constants.APPLICATION_DISPLAY_NAME
+import org.gradle.client.logic.build.Build
 import org.gradle.client.ui.composables.Loading
+import org.gradle.client.ui.composables.PlainTextTooltip
 import org.gradle.client.ui.theme.plusPaneSpacing
 import java.awt.FileDialog
 import java.awt.Frame
@@ -50,12 +52,7 @@ private fun BuildsList(component: WelcomeComponent, model: WelcomeModel.Loaded) 
                 leadingContent = { BuildListIcon() },
                 headlineContent = { Text(build.rootDir.name) },
                 supportingContent = { Text(build.rootDir.absolutePath) },
-                trailingContent = {
-                    IconButton(
-                        onClick = { component.onDeleteBuildClicked(build) },
-                        content = { Icon(Icons.Default.Close, "Close") }
-                    )
-                }
+                trailingContent = { BuildListDeleteButon(component, build) }
             )
         }
     }
@@ -68,6 +65,16 @@ private fun BuildListIcon() {
         painter = painterResource(resourcePath = "/icons/icon_gradle_rgb.png"),
         contentDescription = "Gradle Build"
     )
+}
+
+@Composable
+private fun BuildListDeleteButon(component: WelcomeComponent, build: Build) {
+    PlainTextTooltip("Delete") {
+        IconButton(
+            onClick = { component.onDeleteBuildClicked(build) },
+            content = { Icon(Icons.Default.Close, "Close") }
+        )
+    }
 }
 
 @Composable
@@ -96,12 +103,16 @@ private fun AddBuildButton(component: WelcomeComponent) {
             }
         )
     }
-    ExtendedFloatingActionButton(
-        icon = { Icon(Icons.Default.Add, "") },
-        text = { Text("Add build") },
-        onClick = { isDirChooserOpen = true },
-    )
+    PlainTextTooltip(addBuildHelpText) {
+        ExtendedFloatingActionButton(
+            icon = { Icon(Icons.Default.Add, "") },
+            text = { Text("Add build") },
+            onClick = { isDirChooserOpen = true },
+        )
+    }
 }
+
+private const val addBuildHelpText = "Choose a Gradle settings script"
 
 @Composable
 private fun BuildChooserDialog(
@@ -109,7 +120,7 @@ private fun BuildChooserDialog(
     onBuildChosen: (buildRootDir: File?) -> Unit
 ) = AwtWindow(
     create = {
-        object : FileDialog(parent, "Choose a Gradle settings script", LOAD) {
+        object : FileDialog(parent, addBuildHelpText, LOAD) {
             init {
                 setFilenameFilter { dir, name ->
                     dir.resolve(name).let { it.isFile && it.name.startsWith("settings.gradle") }
