@@ -32,6 +32,11 @@ public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
     public DefaultUserInputReceiver() {
     }
 
+    /**
+     * This instance requires access to the "console" pipeline in order to prompt the user when there are validation problems.
+     * However, the console pipeline also needs access to this instance in order to handle user input prompt requests.
+     * Break this cycle for now using a non-final field.
+     */
     public void attachConsole(OutputEventListener console) {
         this.console = console;
     }
