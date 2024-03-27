@@ -109,7 +109,7 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     }
 
     private static List<StackTraceElement> getUserCodeStackTrace(final Failure failure) {
-        return CollectionUtils.filter(failure.getStackTrace(), new IndexedSpec<StackTraceElement>() {
+        return CollectionUtils.filterIndexed(failure.getStackTrace(), new IndexedSpec<StackTraceElement>() {
             @Override
             public boolean isSatisfiedBy(int index, StackTraceElement element) {
                 StackTraceRelevance relevance = failure.getStackTraceRelevance(index);
