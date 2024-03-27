@@ -1,0 +1,112 @@
+Label name,Issues,Description,SME,Team,Platform,Blanks,Issue count
+in:android-support,issues,DO NOT USE,DO NOT USE,DO NOT USE,No platform,0,4
+in:annotation-processing,issues,processor annotation incremental isolated aggregating apt kapt,Anže,,JVM,1,4
+in:ant-integration,issues,ant builder,Adam?,,,1,2
+in:antlr-plugin,issues,,Lóránt,,Software,1,7
+in:api-evolution,issues,"Bytecode upgrades, multi-gradle-version support",Lóránt,Execution,Core/execution,0,2
+in:api-impl-separation,issues,,Louis,,JVM,1,6
+in:application-plugin,issues,,"Justin, Alex S",,JVM,1,14
+in:artifact-transforms,issues,,"Louis, Stefan",,Core/execution,1,14
+in:build-cache,issues,,,Execution,Core/execution,1,25
+in:build-environment,issues,"Gradle, project, system and environment properties, CLI flags",,,Core/runtime,,10
+in:build-init-plugin,issues,,Donát,,Mixed,1,24
+in:build-operations,issues,,,Execution,GE integration,,
+in:build-scan,issues,,,GE,GE integration,1,18
+in:build-services,issues,Shared Build Services,,CC,Core/configuration,1,21
+in:build-src,issues,,Sterling?,,Core/configuration,1,11
+in:building-gradle,issues,gradle/gradle build,,DevProd,Build infrastructure,1,20
+in:buildscript-compilation,issues,,Paul,,Core/configuration,1,4
+in:checkstyle-plugin,issues,,Anže,,JVM,1,4
+in:classloading,issues,LABEL REMOVED,,,,,5
+in:clean-task,issues,DO NOT USE,DO NOT USE,DO NOT USE,No platform,0,3
+in:codenarc-plugin,issues,,Kyle,,JVM,1,4
+in:component-metadata-rules,issues,,Louis,,Software,1,11
+in:composite-builds,issues,,Sterling?,,Core/configuration,1,45
+in:configuration-cache,issues,Configuration Caching,,CC,Core/configuration,1,71
+in:configuration-model,issues,"lazy api, domain object container",Sterling,,Core/configuration,1,91
+in:configure-on-demand,issues,,Daz,,Core/configuration,1,6
+in:consistent-resolution,issues,,Louis,,Software,1,3
+in:console,issues,output progress tty mintty cygwin cli,"Eric?, Adam?",,Core/runtime,1,37
+in:continuous-build,issues,,Stefan,Execution,Core/execution,0,3
+in:continuous-integration,issues,LABEL REMOVED,,,,,0
+in:core,issues,DO NOT USE,DO NOT USE,DO NOT USE,,,2
+in:daemon,issues,,Paul,,Core/runtime,1,54
+in:dependency-cache,issues,,Louis,,Software,1,11
+in:dependency-declarations,issues,variant notation attributes capability substitution,Louis,,Software,1,66
+in:dependency-locking,issues,,Louis,,Software,1,6
+in:dependency-management,issues,DO NOT USE,DO NOT USE,DO NOT USE,No platform,,1
+in:dependency-remoting,issues,"interaction with dependency repositories, mostly networked",,,Software,,
+in:dependency-resolution,issues,engine metadata,"Louis, Sterling, Kyle, Sergey",,Software,1,106
+in:dependency-verification,issues,trustkey truststore checksum signature,"Louis, Anže, Bálint",,Software,1,30
+in:dependency-version-catalog,issues,,"Louis, Octavia, Bálint",,Software,1,39
+in:deprecation-logging,issues,warning,"Tom?, Sterling?",,Core/runtime,1,2
+in:distribution-plugin,issues,,Alex?,,Software,1,4
+in:documentation,issues,DO NOT USE,DO NOT USE,DO NOT USE,No platform,,4
+in:documentation-infrastructure,issues,,"Sterling?, Stefan?, Mike?",,Documentation,1,12
+in:ear-plugin,issues,,Donát ,,JVM,1,7
+in:eclipse-plugin,issues,,Donát,,IDE,1,16
+in:enterprise-plugin,issues,,"Lóránt, François",GE,GE integration,0,6
+in:exec-tasks,issues,,"Sterling?, Gary?",,Core/execution,1,18
+in:execution-engine,issues,"incremental, up-to-date, work validation",Lóránt,Execution,Core/execution,0,61
+in:file-locking,issues,,Adam?,,Core/runtime,1,3
+in:file-tasks,issues,copy sync zip tar rename delete,Stefan,,Core/execution,1,42
+in:gradle-module-metadata,issues,,Louis,,Software,1,15
+in:groovy-dsl,issues,,Tom,,Core/configuration,1,17
+in:groovy-plugin,issues,,Lóránt,,JVM,1,7
+in:ide,issues,"Issues related to using Gradle with an IDE like IntelliJ, Eclipse or Android Studio",Donát,,IDE,1,8
+in:idea-plugin,issues,,Donát,,IDE,1,7
+in:init-scripts,issues,init.gradle init.d,"Donát, Sterling",,Core/configuration,1,8
+in:input-normalization,issues,fingerprinting,,Execution,Core/execution,,
+in:integrations,issues,DO NOT USE,DO NOT USE,DO NOT USE,No platform,0,6
+in:internal-caches,issues,LABEL REMOVED,"Gary, Adam?",,,,
+in:invoking-gradle,issues,GradleBuild ProjectBuilder Running Executing,,,Mixed,2,52
+in:jacoco-plugin,issues,,,Core,JVM,1,22
+in:java-plugins,issues,"java-library, java, java-base, java-platform, java-test-fixtures",,Core,JVM,1,29
+in:javadoc-task,issues,,,Core,JVM,1,5
+in:jvm-ecosystem,issues,,Louis,Core,JVM,0,53
+in:kotlin-dsl,issues,,"Paul, Rodrigo",,Core/configuration,1,85
+in:learning,issues,LABEL REMOVED,,,Documentation,2,0
+in:legacy-script-plugins,issues,,"Adam?, Sterling?",,Core/configuration,1,2
+in:lifecycle-tasks,issues,work with or wire up lifecycle tasks,Lóránt,,Core/execution,1,4
+in:logging,issues,,Adam?,,Core/runtime,1,24
+in:maven-integration,issues,,Kyle,,Software,1,2
+in:memory-usage,issues,LABEL REMOVED,,,,,0
+in:modular-java,issues,,Louis,,JVM,1,18
+in:multi-projects,issues,,Sterling?,,Core/configuration,1,10
+in:native-platform,issues,,"Adam, Sterling",,Core/execution,1,20
+in:non-http-publishing,issues,LABEL REMOVED,,,,,
+in:performance-test,issues,,,,Release coordination,,
+in:plugin-development,issues,,Paul,,Extensibility,1,53
+in:plugin-management,issues,,Paul,,Extensibility,1,31
+in:plugin-portal,issues,,"Louis, József",,Extensibility,1,4
+in:pmd-plugin,issues,,Anže,,JVM,1,7
+in:precompiled-script-plugin,issues,,Paul,,Extensibility,1,18
+in:problems,issues,"warnings, errors, messages, deprecations",,Execution / CC,Core/runtime,1,14
+in:project-accessors,issues,,Paul,,Core/configuration,1,16
+in:project-isolation,issues,,,,Core/configuration,,
+in:provider-api,issues,property lazy provider MapProperty ListProperty DirectoryProperty,Sterling?,Execution,Core/configuration,0,63
+in:publishing-plugins,issues,ivy-publish maven-publish,"Louis, József",,Software,1,72
+in:remoting,issues,DO NOT USE,Bálint,,,1,23
+in:reporting-tasks,issues,help dependencyInsight dependencies,"Louis, Octavia",,Mixed,1,30
+in:repository-declarations,issues,exclusive content,Louis,,Software,1,22
+in:resource-handler,issues,resources files,,Execution,,1,7
+in:scala-plugin,issues,,Louis,,JVM,1,16
+in:scheduler,issues,"execution plan, task graph, work lease, project lock","Adam, Gary",,Core/execution,1,15
+in:settings-script,issues,,"Sterling, Paul, József",,Core/configuration,1,3
+in:signing-plugin,issues,,Bálint,,Software,1,11
+in:smoke-test,issues,,,,Release coordination,,
+in:source-dependencies,issues,,Sterling,,Software,1,9
+in:test-kit,issues,,Paul,,Extensibility,1,21
+in:test-suites,issues,Work related to the JvmTestSuite Plugin,Tom,Core,Software,0,8
+in:testing,issues,,,Core,Software,1,77
+in:testing-junit4,issues,,,Core,JVM,1,4
+in:testing-junit5,issues,junit platform vintage jupiter,,Core,JVM,1,11
+in:testing-testng,issues,,,Core,JVM,1,2
+in:toolchains,issues,Java Toolchains,"Louis, Mike, József",,JVM,1,38
+in:tooling-api,issues,,Donát,,IDE,1,34
+in:virtual-file-system,issues,"VFS,  file system watching, snapshots",,Execution,Core/execution,1,13
+in:war-plugin,issues,,Donát ,,JVM,1,8
+in:work-validation,issues,,,Execution,Core/execution,,
+in:workers,issues,,"Gary, Paul",,Core/execution,1,25
+in:wrapper,issues,,Paul,,Core/runtime,1,30
+in:writing-tasks,issues,task option,,Execution,Core/execution,1,24
