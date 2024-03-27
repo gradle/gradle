@@ -159,7 +159,7 @@ public enum ValidationActions implements ValidationAction {
             String lowerKind = kind.toLowerCase();
             problem
                 .forProperty(propertyName)
-                .id(TextUtil.screamingSnakeToKebabCase(UNEXPECTED_INPUT_FILE_TYPE), "Unexpected input file type", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                .id(TextUtil.screamingSnakeToKebabCase(INPUT_FILE_DOES_NOT_EXIST), "Input file does not exist", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                 .contextualLabel("specifies " + lowerKind + " '" + input + "' which doesn't exist")
                 .documentedAt(userManual("validation_problems", INPUT_FILE_DOES_NOT_EXIST.toLowerCase()))
                 .severity(Severity.ERROR)
