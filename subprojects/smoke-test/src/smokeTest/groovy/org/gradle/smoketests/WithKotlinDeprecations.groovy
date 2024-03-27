@@ -210,7 +210,7 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
                 versionNumber < VersionNumber.parse("1.9.20"),
                 "Calling setCanBeConsumed(false) on configuration '$it' has been deprecated. " +
                     "This will fail with an error in Gradle 9.0. " +
-                    "This configuration's role was set upon creation should not be changed. " +
+                    "This configuration's role was set upon creation and its usage should not be changed. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#configurations_allowed_usage"
             )
         }

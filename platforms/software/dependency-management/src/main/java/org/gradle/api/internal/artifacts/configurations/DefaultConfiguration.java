@@ -1627,22 +1627,21 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     /**
-     * Conditionally warn when the usage of the configuration changes.
+     * If this configuration has a role set upon creation, conditionally warn upon usage mutation.
+     * Configurations with roles set upon creation should not have their usage changed. In 9.0,
+     * changing the usage of a configuration with a role set upon creation will become an error.
      *
-     * <p>If this configuration was created with the legacy role, meaning it did not have a role set upon creation, this
-     * method will not emit a warning. We will want to remove this condition once the role-locked configuration creation
-     * APIs are de-incubated.</p>
+     * <p>In the below two cases, for non-legacy configurations, this method does not warn. This is
+     * to avoid spamming users with these warnings, as popular third-party plugins continue to
+     * violate these conditions.
+     * </p>
+     * <ul>
+     *     <li>The configuration is detached and the new value is false.</li>
+     *     <li>The current value and the new value are the same</li>
+     * </ul>
      *
-     * <p>If a usage is being disabled for a detached configuration, this method does not emit a warning.
-     * KMP disables consumable for detached configurations even though this is not necessary. This condition
-     * can be disabled with an internal feature flag system property for testing purposes.</p>
-     *
-     * <p>This method will also not warn if the current and new value are the same. We also want to eventually remove
-     * this condition, as build logic should not attempt to mutate a configuration's roles if that configuration
-     * has a role set upon creation. This condition can be disabled with an internal feature flag system property
-     * for testing purposes.</p>
-     *
-     * The eventual goal is that all configuration usage be specified upon creation and immutable thereafter.
+     * The eventual goal is that all configuration usage be specified upon creation and immutable
+     * thereafter.
      */
     private void maybeWarnOnChangingUsage(String methodName, boolean current, boolean newValue) {
         if (isInLegacyRole()) {
@@ -1669,7 +1668,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         DeprecationLogger.deprecateAction(String.format("Calling %s(%b) on %s", methodName, newValue, this))
-            .withContext("This configuration's role was set upon creation should not be changed.")
+            .withContext("This configuration's role was set upon creation and its usage should not be changed.")
             .willBecomeAnErrorInGradle9()
             .withUpgradeGuideSection(8, "configurations_allowed_usage")
             .nagUser();
