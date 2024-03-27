@@ -27,7 +27,7 @@ import java.util.List;
 @ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
-    private CurrentBuildOperationRef currentBuildOperationRef;
+    private final CurrentBuildOperationRef currentBuildOperationRef;
     private final ProblemEmitter emitter;
     private final List<ProblemTransformer> transformers;
     private final InternalProblemReporter internalReporter;

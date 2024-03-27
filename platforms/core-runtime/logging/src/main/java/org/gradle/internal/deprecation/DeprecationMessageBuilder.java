@@ -40,6 +40,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
     protected String problemIdDisplayName;
+    protected String problemId;
 
     DeprecationMessageBuilder() {
     }
@@ -53,7 +54,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return withDeprecationTimeline.undocumented();
     }
 
-    protected String createDefaultDeprecationIdString() {
+    protected String createDefaultDeprecationId() {
         return summary;
     }
 
@@ -72,6 +73,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     @SuppressWarnings("unchecked")
     public T withProblemIdDisplayName(String problemIdDisplayName) {
         this.problemIdDisplayName = problemIdDisplayName;
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public T withProblemId(String problemId) {
+        this.problemId = problemId;
         return (T) this;
     }
 
@@ -129,10 +136,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     DeprecationMessage build() {
         if (problemIdDisplayName == null) {
-            setProblemIdDisplayName(createDefaultDeprecationIdString());
+            setProblemIdDisplayName(createDefaultDeprecationId());
         }
 
-        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName);
+        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName, problemId);
     }
 
     public static class WithDeprecationTimeline extends Documentation.AbstractBuilder<WithDocumentation> {
@@ -251,8 +258,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdString() {
-            return createDefaultDeprecationIdString("property", this.propertyClass.getSimpleName(), this.property);
+        protected String createDefaultDeprecationId() {
+            return createDefaultDeprecationId("property", this.propertyClass.getSimpleName(), this.property);
         }
 
         @Override
@@ -306,8 +313,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdString() {
-            return createDefaultDeprecationIdString("system-property", this.systemProperty);
+        protected String createDefaultDeprecationId() {
+            return createDefaultDeprecationId("system-property", this.systemProperty);
         }
 
         @Override
@@ -376,13 +383,14 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
-    public static String createDefaultDeprecationIdString(String... ids) {
+    public static String createDefaultDeprecationId(String... ids) {
         // the replaceAll calls are to ensure that the id is a valid identifier.
         // it removes all whitespace and non-alphanumeric characters, and replaces multiple dashes with a single dash.
         return screamingSnakeToKebabCase(StringUtils.join(ids, "-"))
             .replaceAll("[^a-z-]", "-")
             .replaceAll("-+", "-")
-            .replaceAll("^-+|-+$", "");
+            .replaceAll("^-+|-+$", "")
+            .replaceAll(" has been deprecated", "");
     }
 
     public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> {
@@ -422,8 +430,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdString() {
-            return createDefaultDeprecationIdString("invocation", this.subject);
+        protected String createDefaultDeprecationId() {
+            return createDefaultDeprecationId("invocation", this.subject);
         }
 
         @Override
@@ -444,8 +452,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdString() {
-            return createDefaultDeprecationIdString("type", this.subject);
+        protected String createDefaultDeprecationId() {
+            return createDefaultDeprecationId("type", this.subject);
         }
 
         @Override
@@ -465,8 +473,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdString() {
-            return createDefaultDeprecationIdString("task", this.subject);
+        protected String createDefaultDeprecationId() {
+            return createDefaultDeprecationId("task", this.subject);
         }
 
         @Override
@@ -489,8 +497,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdString() {
-            return createDefaultDeprecationIdString("task-type", path, this.subject);
+        protected String createDefaultDeprecationId() {
+            return createDefaultDeprecationId("task-type", path, this.subject);
         }
 
         @Override
@@ -513,8 +521,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdString() {
-            return createDefaultDeprecationIdString("plugin", this.subject);
+        protected String createDefaultDeprecationId() {
+            return createDefaultDeprecationId("plugin", this.subject);
         }
 
         @Override
@@ -542,8 +550,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdString() {
-            return createDefaultDeprecationIdString("internal-api", this.subject);
+        protected String createDefaultDeprecationId() {
+            return createDefaultDeprecationId("internal-api", this.subject);
         }
 
         @Override
@@ -566,8 +574,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdString() {
-            return createDefaultDeprecationIdString("behaviour", behaviour);
+        protected String createDefaultDeprecationId() {
+            return createDefaultDeprecationId("behaviour", behaviour);
         }
 
         /**

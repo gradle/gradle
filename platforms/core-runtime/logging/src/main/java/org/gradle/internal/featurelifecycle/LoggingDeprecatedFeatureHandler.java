@@ -45,7 +45,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static org.gradle.api.problems.Severity.WARNING;
-import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationIdString;
+import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -99,7 +99,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             public void execute(InternalProblemSpec builder) {
                 InternalProblemSpec problemSpec = builder
                     // usage.getKind() could be be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
-                    .id(createDefaultDeprecationIdString(usage.getProblemIdDisplayName()), usage.getProblemIdDisplayName(), GradleCoreProblemGroup.deprecation())
+                    .id(getDefaultDeprecationIdDisplayName(usage), usage.getProblemIdDisplayName(), GradleCoreProblemGroup.deprecation())
                     .contextualLabel(usage.getSummary())
                     .details(usage.getRemovalDetails())
                     .documentedAt(usage.getDocumentationUrl())
@@ -114,18 +114,25 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         reporter.report(problem);
     }
 
+    private static String getDefaultDeprecationIdDisplayName(DeprecatedFeatureUsage usage) {
+        if(usage.getProblemId() != null) {
+            return usage.getProblemId();
+        }
+        return createDefaultDeprecationId(usage.getProblemIdDisplayName());
+    }
+
     private static void addSolution(@Nullable String advice, InternalProblemSpec problemSpec) {
         if (advice != null) {
             problemSpec.solution(advice);
         }
     }
 
-    private static void addPossibleLocation(ProblemDiagnostics diagnostics, InternalProblemSpec genericDeprecation) {
+    private static void addPossibleLocation(ProblemDiagnostics diagnostics, InternalProblemSpec deprecationProblemBuilder) {
         Location location = diagnostics.getLocation();
         if (location == null) {
             return;
         }
-        genericDeprecation.lineInFileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
+        deprecationProblemBuilder.lineInFileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {

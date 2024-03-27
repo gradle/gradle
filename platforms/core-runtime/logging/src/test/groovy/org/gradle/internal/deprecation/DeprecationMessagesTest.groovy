@@ -37,20 +37,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
-import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationIdString
+import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId
 
-class InvocationLogger {
-    static def createWithLogging(mock) {
-        def proxy = [:].withDefault { methodName ->
-            { Object[] args ->
-                println "Method $methodName called with arguments ${args}"
-                // Delegate the call to the actual mock
-                mock."$methodName"(*args)
-            }
-        }
-        return proxy
-    }
-}
 
 class DeprecationMessagesTest extends Specification {
 
@@ -63,21 +51,18 @@ class DeprecationMessagesTest extends Specification {
     private final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     private ProblemEmitter problemEmitter
-    private ProblemEmitter problemEmitterProxy
     private identifier = new OperationIdentifier(2)
 
     def setup() {
         def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
 
         problemEmitter = Mock(ProblemEmitter)
-        problemEmitterProxy = InvocationLogger.createWithLogging(problemEmitter) as ProblemEmitter
         def currentBuildRef = Mock(CurrentBuildOperationRef)
 
         currentBuildRef.getId() >> identifier
 
         def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-        def loggingProgressEmitter = InvocationLogger.createWithLogging(buildOperationProgressEventEmitter) as BuildOperationProgressEventEmitter
-        DeprecationLogger.init(WarningMode.All, loggingProgressEmitter, new DefaultProblems(problemEmitterProxy, currentBuildRef), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter, currentBuildRef), diagnosticsFactory.newUnlimitedStream())
     }
 
     def cleanup() {
@@ -117,7 +102,7 @@ class DeprecationMessagesTest extends Specification {
     }
 
     def createProblem(deprecationDisplayName) {
-        def id = new DefaultProblemId(createDefaultDeprecationIdString(deprecationDisplayName), deprecationDisplayName, GradleCoreProblemGroup.deprecation())
+        def id = new DefaultProblemId(createDefaultDeprecationId(deprecationDisplayName), deprecationDisplayName, GradleCoreProblemGroup.deprecation())
         def definition = new DefaultProblemDefinition(id, Severity.WARNING, null)
 
         return new DefaultProblem(definition, "Summary is deprecated.", [], [], "This is scheduled to be removed in Gradle 9.0.", null, ["type": "USER_CODE_DIRECT"])
