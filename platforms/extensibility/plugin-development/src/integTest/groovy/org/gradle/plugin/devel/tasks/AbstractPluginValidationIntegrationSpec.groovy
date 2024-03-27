@@ -334,29 +334,29 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem(0)) {
                 fqid == 'validation:type-validation:invalid-use-of-type-annotation'
-                contextualLabel == 'Type \'MyTask\' is incorrectly annotated'
+                contextualLabel == 'Type \'MyTask\' is incorrectly annotated with @CacheableTransform'
                 details == 'This annotation only makes sense on TransformAction types'
                 solutions == [ 'Remove the annotation' ]
                 additionalData == [ 'typeName' : 'MyTask' ]
             }
             verifyAll(receivedProblem(1)) {
                 fqid == 'validation:type-validation:invalid-use-of-type-annotation'
-                contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated'
+                contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTask'
                 details == 'This annotation only makes sense on Task types'
                 solutions == [ 'Remove the annotation' ]
                 additionalData == [ 'typeName' : 'MyTask.Options' ]
             }
             verifyAll(receivedProblem(2)) {
                 fqid == 'validation:type-validation:invalid-use-of-type-annotation'
-                contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated'
-                details == 'This annotation only makes sense on Task, TransformAction types'
+                contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTransform'
+                details == 'This annotation only makes sense on TransformAction types'
                 solutions == [ 'Remove the annotation' ]
                 additionalData == [ 'typeName' : 'MyTask.Options' ]
             }
             verifyAll(receivedProblem(3)) {
                 fqid == 'validation:type-validation:invalid-use-of-type-annotation'
-                contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated'
-                details == 'This annotation only makes sense on TransformAction types'
+                contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @DisableCachingByDefault'
+                details == 'This annotation only makes sense on Task, TransformAction types'
                 solutions == [ 'Remove the annotation' ]
                 additionalData == [ 'typeName' : 'MyTask.Options' ]
             }
@@ -714,7 +714,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem(0)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
-                contextualLabel == 'Type \'MyTask\' method has wrong annotation'
+                contextualLabel == 'Type \'MyTask\' method \'notAGetter()\' should not be annotated with: @Input'
                 details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
                 solutions == [
                     'Remove the annotations',
@@ -724,7 +724,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             }
             verifyAll(receivedProblem(1)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
-                contextualLabel == 'Type \'MyTask.Options\' method has wrong annotation'
+                contextualLabel == 'Type \'MyTask.Options\' method \'notANestedGetter()\' should not be annotated with: @Input'
                 details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
                 solutions == [
                     'Remove the annotations',

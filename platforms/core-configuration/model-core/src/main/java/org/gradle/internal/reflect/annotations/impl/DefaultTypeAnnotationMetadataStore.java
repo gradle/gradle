@@ -347,7 +347,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     validationContext.visitTypeProblem(problem ->
                         problem
                             .withAnnotationType(type)
-                            .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_FIELD), "field without corresponding getter has been annotated with a wrong annotation", GradleCoreProblemGroup.validation().property())
+                            .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_FIELD), "Incorrect annotations on field", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                             .contextualLabel(
                                 String.format(
                                     "field '%s' without corresponding getter has been annotated with %s",
@@ -498,7 +498,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD), "method has wrong annotation", GradleCoreProblemGroup.validation().type())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD), "Ignored annotations on method", GradleCoreProblemGroup.validation().type())
                     .contextualLabel(
                         String.format(
                             "%s '%s()' should not be annotated with: %s",

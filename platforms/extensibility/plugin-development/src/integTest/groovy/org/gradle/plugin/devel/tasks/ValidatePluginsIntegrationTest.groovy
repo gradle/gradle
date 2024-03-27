@@ -706,7 +706,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
          and:
          verifyAll(receivedProblem(0)) {
              fqid == 'validation:type-validation:not-cacheable-without-reason'
-             contextualLabel == 'Type \'MyTask\' annotation missing'
+             contextualLabel == 'Type \'MyTask\' must be annotated either with @CacheableTask or with @DisableCachingByDefault'
              details == 'The task author should make clear why a task is not cacheable'
              solutions == [
                  'Add @DisableCachingByDefault(because = ...)',
@@ -717,7 +717,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
          }
          verifyAll(receivedProblem(1)) {
              fqid == 'validation:type-validation:not-cacheable-without-reason'
-             contextualLabel == 'Type \'MyTransformAction\' annotation missing'
+             contextualLabel == 'Type \'MyTransformAction\' must be annotated either with @CacheableTransform or with @DisableCachingByDefault'
              details == 'The transform action author should make clear why a transform action is not cacheable'
              solutions == [
                  'Add @DisableCachingByDefault(because = ...)',
