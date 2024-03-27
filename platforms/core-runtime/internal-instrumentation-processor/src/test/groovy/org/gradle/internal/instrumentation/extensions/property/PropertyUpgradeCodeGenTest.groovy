@@ -94,6 +94,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
+            @SuppressWarnings({"NotJavadoc", "UnusedMethod", "UnusedVariable"})
             public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
@@ -241,8 +242,8 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         where:
         upgradedType          | setCall
         "Property<String>"    | ".set((Provider) arg0)"
-        "RegularFileProperty" | ".fileProvider((Provider) arg0)"
-        "DirectoryProperty"   | ".fileProvider((Provider) arg0)"
+        "RegularFileProperty" | ".fileProvider(arg0)"
+        "DirectoryProperty"   | ".fileProvider(arg0)"
     }
 
     def "should correctly generate interceptor when property name contains get"() {
@@ -267,6 +268,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
+            @SuppressWarnings({"NotJavadoc", "UnusedMethod", "UnusedVariable"})
             public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
@@ -363,6 +365,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         then:
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
+            @SuppressWarnings({"NotJavadoc", "UnusedMethod", "UnusedVariable"})
             public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor, org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.BytecodeUpgradeInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,

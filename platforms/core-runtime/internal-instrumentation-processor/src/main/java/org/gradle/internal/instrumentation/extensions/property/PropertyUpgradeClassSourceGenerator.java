@@ -142,7 +142,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             case FILE_SYSTEM_LOCATION_PROPERTY:
                 if (isProviderOrProperty(parameterType)) {
                     // expect `Provider<File> arg0`
-                    return ".fileProvider((Provider) arg0)";
+                    return ".fileProvider(arg0)";
                 } else {
                     // expect `File arg0`
                     return ".fileValue(arg0)";

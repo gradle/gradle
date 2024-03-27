@@ -16,10 +16,19 @@
 
 package org.gradle.internal.instrumentation.processor.codegen;
 
+import com.squareup.javapoet.AnnotationSpec;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 
 public class SignatureUtils {
+
+    /**
+     * Suppress some error prone warnings that are not important and would complicate the logic for code generation.
+     */
+    public static final AnnotationSpec SUPPRESS_ERROR_PRONE = AnnotationSpec.builder(SuppressWarnings.class)
+        .addMember("value", "$L", "{\"NotJavadoc\", \"UnusedMethod\", \"UnusedVariable\"}")
+        .build();
+
     public static boolean hasCallerClassName(CallableInfo callableInfo) {
         return callableInfo.getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.CALLER_CLASS_NAME);
     }
