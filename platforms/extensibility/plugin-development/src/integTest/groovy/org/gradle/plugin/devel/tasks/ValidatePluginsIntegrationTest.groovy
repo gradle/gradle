@@ -176,19 +176,20 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
 
         and:
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == "Type 'MyTask' property 'tree.nonAnnotated' property missing"
-            details == "A property without annotation isn't considered during up-to-date checking"
+            fqid == 'validation:property-validation:missing-annotation'
+            contextualLabel == 'Type \'MyTask\' property \'tree.nonAnnotated\' is missing an input or output annotation'
+            details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
-                'Mark it as @Internal'
+                'Mark it as @Internal',
             ]
             additionalData == [
                 'parentPropertyName' : 'tree',
                 'typeName' : 'MyTask',
-                'propertyName' : 'nonAnnotated'
+                'propertyName' : 'nonAnnotated',
             ]
         }
+
     }
 
     def "task cannot have property with annotation @#ann.simpleName"() {
@@ -228,7 +229,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         and:
         verifyAll(receivedProblem(0)) {
             fqid == 'validation:property-validation:annotation-invalid-in-context'
-            contextualLabel == 'Type \'MyTask\' property \'options.nestedThing\' is annotated with invalid property type'
+            contextualLabel == "Type \'MyTask\' property \'options.nestedThing\' is annotated with invalid property type @$ann.simpleName"
             details == "The '@${ann.simpleName}' annotation cannot be used in this context"
             solutions == [
                 'Remove the property',
@@ -242,7 +243,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'validation:property-validation:annotation-invalid-in-context'
-            contextualLabel == 'Type \'MyTask\' property \'thing\' is annotated with invalid property type'
+            contextualLabel == "Type 'MyTask' property 'thing' is annotated with invalid property type @$ann.simpleName"
             details == "The '@${ann.simpleName}' annotation cannot be used in this context"
             solutions == [
                 'Remove the property',
@@ -304,8 +305,8 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
 
         and:
         verifyAll(receivedProblem(0)) {
-            definition.id.fqid == 'validation:property-validation:missing-normalization-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'dirProp\' Missing normalization'
+            fqid == 'validation:property-validation:missing-normalization-annotation'
+            contextualLabel == 'Type \'MyTask\' property \'dirProp\' is annotated with @InputDirectory but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
             additionalData == [
@@ -314,8 +315,8 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
             ]
         }
         verifyAll(receivedProblem(1)) {
-            definition.id.fqid == 'validation:property-validation:missing-normalization-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'fileProp\' Missing normalization'
+            fqid == 'validation:property-validation:missing-normalization-annotation'
+            contextualLabel == 'Type \'MyTask\' property \'fileProp\' is annotated with @InputFile but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
             additionalData == [
@@ -324,8 +325,8 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
             ]
         }
         verifyAll(receivedProblem(2)) {
-            definition.id.fqid == 'validation:property-validation:missing-normalization-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'filesProp\' Missing normalization'
+            fqid == 'validation:property-validation:missing-normalization-annotation'
+            contextualLabel == 'Type \'MyTask\' property \'filesProp\' is annotated with @InputFiles but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
             additionalData == [
@@ -648,8 +649,8 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
 
         and:
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'PluginTask\' property \'badProperty\' property missing'
+            fqid == 'validation:property-validation:missing-annotation'
+            contextualLabel == 'Type \'PluginTask\' property \'badProperty\' is missing an input or output annotation'
             details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
@@ -1321,7 +1322,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         and:
         verifyAll(receivedProblem(0)) {
             fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'doubleIterableOptions.*.*.notAnnotated\' property missing'
+            contextualLabel == 'Type \'MyTask\' property \'doubleIterableOptions.*.*.notAnnotated\' is missing an input or output annotation'
             details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
@@ -1335,7 +1336,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'iterableMappedOptions.*.<key>.*.notAnnotated\' property missing'
+            contextualLabel == 'Type \'MyTask\' property \'iterableMappedOptions.*.<key>.*.notAnnotated\' is missing an input or output annotation'
             details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
@@ -1349,7 +1350,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(2)) {
             fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'iterableOptions.*.notAnnotated\' property missing'
+            contextualLabel == 'Type \'MyTask\' property \'iterableOptions.*.notAnnotated\' is missing an input or output annotation'
             details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
@@ -1363,7 +1364,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(3)) {
             fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'mappedOptions.<key>.notAnnotated\' property missing'
+            contextualLabel == 'Type \'MyTask\' property \'mappedOptions.<key>.notAnnotated\' is missing an input or output annotation'
             details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
@@ -1377,7 +1378,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(4)) {
             fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'namedIterable.<name>.notAnnotated\' property missing'
+            contextualLabel == 'Type \'MyTask\' property \'namedIterable.<name>.notAnnotated\' is missing an input or output annotation'
             details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
@@ -1391,7 +1392,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(5)) {
             fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'options.notAnnotated\' property missing'
+            contextualLabel == 'Type \'MyTask\' property \'options.notAnnotated\' is missing an input or output annotation'
             details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
@@ -1405,7 +1406,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(6)) {
             fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'optionsList.*.notAnnotated\' property missing'
+            contextualLabel == 'Type \'MyTask\' property \'optionsList.*.notAnnotated\' is missing an input or output annotation'
             details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
@@ -1419,7 +1420,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(7)) {
             fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'providedOptions.notAnnotated\' property missing'
+            contextualLabel == 'Type \'MyTask\' property \'providedOptions.notAnnotated\' is missing an input or output annotation'
             details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
