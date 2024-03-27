@@ -72,7 +72,7 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
 
     @Override
     public List<StackTraceElement> getStackTrace() {
-        return diagnostics.getUserCodeStackTrace();
+        return diagnostics.getMinimizedStackTrace();
     }
 
     @Override

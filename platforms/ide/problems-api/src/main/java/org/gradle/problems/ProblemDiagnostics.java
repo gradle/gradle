@@ -36,11 +36,11 @@ public interface ProblemDiagnostics {
     Failure getFailure();
 
     /**
-     * Returns the stack trace that can be reported to the user about where the problem occurred.
+     * Returns a minimized stack trace that can be reported to the user about where the problem occurred.
      *
      * <p>Not every problem has a meaningful stack, even when the problem has an associated exception. Returns an empty list in this case.</p>
      */
-    List<StackTraceElement> getUserCodeStackTrace();
+    List<StackTraceElement> getMinimizedStackTrace();
 
     /**
      * Returns the location of the problem, if known.

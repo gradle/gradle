@@ -505,7 +505,7 @@ feature1 removal""")
             _ * getFailure() >> Stub(Failure) {
                 getStackTrace() >> stackTrace
             }
-            _ * getUserCodeStackTrace() >> stackTrace
+            _ * getMinimizedStackTrace() >> stackTrace
             _ * getLocation() >> null
         }
     }
@@ -515,7 +515,7 @@ feature1 removal""")
             _ * getFailure() >> Stub(Failure) {
                 getStackTrace() >> stackTrace
             }
-            _ * getUserCodeStackTrace() >> stackTrace
+            _ * getMinimizedStackTrace() >> stackTrace
             _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), lineNumber)
         }
     }
