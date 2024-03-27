@@ -105,7 +105,7 @@ class ConfigurationCacheReport(
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
             val groovyJsonClassLoader: ClassLoader,
-            val decorate: (PropertyProblem) -> DecoratedPropertyProblem
+            val decorate: (PropertyProblem, ProblemSeverity) -> DecoratedPropertyProblem
         ) : State() {
 
             private
@@ -123,7 +123,8 @@ class ConfigurationCacheReport(
 
             override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
                 executor.submit {
-                    writer.writeDiagnostic(kind, decorate(problem))
+                    val severity = if (kind == DiagnosticKind.PROBLEM) ProblemSeverity.Failure else ProblemSeverity.Info
+                    writer.writeDiagnostic(kind, decorate(problem, severity))
                 }
                 return this
             }
@@ -216,14 +217,23 @@ class ConfigurationCacheReport(
     val failureDecorator = FailureDecorator()
 
     private
-    fun decorateProblem(problem: PropertyProblem): DecoratedPropertyProblem {
+    fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity): DecoratedPropertyProblem {
         val failure = problem.failure
         return DecoratedPropertyProblem(
             problem.trace,
             decorateMessage(problem, failure),
-            failure?.let { failureDecorator.decorate(it) },
+            decoratedFailureFor(problem.failure, severity),
             problem.documentationSection
         )
+    }
+
+    private
+    fun decoratedFailureFor(failure: Failure?, severity: ProblemSeverity): DecoratedFailure? {
+        return when {
+            failure != null -> failureDecorator.decorate(failure)
+            severity == ProblemSeverity.Failure -> DecoratedFailure.MARKER
+            else -> null
+        }
     }
 
     private
