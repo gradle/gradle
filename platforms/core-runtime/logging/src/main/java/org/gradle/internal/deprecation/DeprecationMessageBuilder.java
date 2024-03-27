@@ -363,11 +363,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdString() {
-            return createDefaultDeprecationIdString("configuration", deprecationType.name(), this.subject);
-        }
-
-        @Override
         String formatSummary(String configuration) {
             return String.format("The %s configuration has been deprecated for %s.", configuration, deprecationType.displayName());
         }
@@ -398,11 +393,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(methodWithParams);
             this.methodClass = methodClass;
             this.methodWithParams = methodWithParams;
-        }
-
-        @Override
-        protected String createDefaultDeprecationIdString() {
-            return createDefaultDeprecationIdString("method", methodClass.getSimpleName(), methodWithParams);
         }
 
         @Override

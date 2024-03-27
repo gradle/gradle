@@ -19,11 +19,11 @@ package org.gradle.internal.deprecation
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.SharedProblemGroup
 import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.api.problems.internal.DefaultProblemDefinition
 import org.gradle.api.problems.internal.DefaultProblemId
 import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.logging.CollectingTestOutputEventListener
@@ -38,7 +38,6 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationIdString
-
 
 class InvocationLogger {
     static def createWithLogging(mock) {
@@ -86,8 +85,8 @@ class DeprecationMessagesTest extends Specification {
     }
 
 
+    def summary = "Summary is deprecated."
     def "logs deprecation message with default problem id"() {
-        def summary = "Summary is deprecated."
         given:
         def builder = new DeprecationMessageBuilder()
         builder.setSummary(summary)
@@ -96,7 +95,7 @@ class DeprecationMessagesTest extends Specification {
         builder.willBeRemovedInGradle9().undocumented().nagUser()
 
         then:
-        expectMessage "Summary is deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
+        expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
 
         1 * problemEmitter.emit(createProblem(summary), identifier)
     }
@@ -105,20 +104,20 @@ class DeprecationMessagesTest extends Specification {
         def deprecationDisplayName = "summary deprecation"
         given:
         def builder = new DeprecationMessageBuilder()
-        builder.setSummary("Summary is deprecated.")
+        builder.setSummary(summary)
         builder.withProblemIdDisplayName(deprecationDisplayName)
 
         when:
         builder.willBeRemovedInGradle9().undocumented().nagUser()
 
         then:
-        expectMessage "Summary is deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
+        expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
 
         1 * problemEmitter.emit(createProblem(deprecationDisplayName), identifier)
     }
 
     def createProblem(deprecationDisplayName) {
-        def id = new DefaultProblemId(createDefaultDeprecationIdString(deprecationDisplayName), deprecationDisplayName, SharedProblemGroup.generic())
+        def id = new DefaultProblemId(createDefaultDeprecationIdString(deprecationDisplayName), deprecationDisplayName, GradleCoreProblemGroup.deprecation())
         def definition = new DefaultProblemDefinition(id, Severity.WARNING, null)
 
         return new DefaultProblem(definition, "Summary is deprecated.", [], [], "This is scheduled to be removed in Gradle 9.0.", null, ["type": "USER_CODE_DIRECT"])

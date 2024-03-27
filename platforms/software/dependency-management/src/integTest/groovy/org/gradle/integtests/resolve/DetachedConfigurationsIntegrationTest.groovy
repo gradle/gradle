@@ -132,11 +132,11 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     @Deprecated
     def "detached configurations can contain artifacts and resolve them during a self-dependency scenario"() {
         given:
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'test'
         """
 
-        buildFile << """
+        buildFile """
             plugins {
                 id 'java-library'
             }
@@ -180,11 +180,11 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption'
             contextualLabel == 'The detachedConfiguration1 configuration has been deprecated for consumption.'
         }
         verifyAll(receivedProblem(1)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:while-resolving-configuration-detachedconfiguration-it-was-also-selected-as-a-variant-configurations-should-not-act-as-both-a-resolution-root-and-a-variant-simultaneously-depending-on-the-resolved-configuration-in-this-manner-has-been-deprecated'
             contextualLabel == 'While resolving configuration \'detachedConfiguration1\', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated.'
             solutions == [ 'Be sure to mark configurations meant for resolution as canBeConsumed=false or use the \'resolvable(String)\' configuration factory method to create them.' ]
         }
@@ -208,9 +208,9 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:creating-a-configuration-with-a-name-that-starts-with-detachedconfiguration-has-been-deprecated'
             contextualLabel == 'Creating a configuration with a name that starts with \'detachedConfiguration\' has been deprecated.'
-            solutions == [ "Use a different name for the configuration '$name'." ]
+            solutions == ["Use a different name for the configuration '$name'.".toString()]
         }
 
         where:

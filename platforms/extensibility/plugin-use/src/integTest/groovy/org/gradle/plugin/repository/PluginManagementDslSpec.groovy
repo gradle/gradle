@@ -329,7 +329,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:the-repositoryhandler-jcenter-method-has-been-deprecated'
             contextualLabel == 'The RepositoryHandler.jcenter() method has been deprecated.'
             solutions == [ 'JFrog announced JCenter\'s sunset in February 2021. Use mavenCentral() instead.' ]
         }
