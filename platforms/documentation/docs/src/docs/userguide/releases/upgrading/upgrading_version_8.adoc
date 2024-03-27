@@ -1709,13 +1709,6 @@ tasks.withType(HtmlDependencyReportTask) {
 =====
 ====
 
-[[redundant_configuration_usage_activation]]
-==== Redundant configuration usage activation
-
-Calling `setCanBeConsumed(boolean)` or `setCanBeResolved(boolean)` on a configuration that already allows that usage is deprecated.
-
-This deprecation is intended to help users identify unnecessary configuration usage modifications.
-
 [[deprecated_configuration_get_all]]
 ==== `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]` method deprecations
 
