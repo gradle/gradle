@@ -14,14 +14,14 @@ errorprone {
 }
 
 dependencies {
+    api(project(":base-annotations"))
     api(project(":files"))
     api(project(":functional"))
     api(project(":hashing"))
 
-    implementation(project(":base-annotations"))
+    api(libs.guava)
+    api(libs.jsr305)
 
-    implementation(libs.guava)
-    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     testImplementation(project(":process-services"))

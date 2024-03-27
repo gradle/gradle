@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.api.internal.file.archive;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 
 import java.io.File;

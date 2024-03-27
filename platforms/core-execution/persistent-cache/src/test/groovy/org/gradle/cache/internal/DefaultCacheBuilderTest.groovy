@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import static org.gradle.cache.FileLockManager.LockMode.OnDemand
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 
-class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
+class DefaultCacheBuilderTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final TestFile homeDir = tmpDir.createDir("home")
@@ -34,11 +34,11 @@ class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
     private final Map<String, ?> properties = [a: "value", b: "value2"]
     private final CacheFactory cacheFactory = Mock()
     private final PersistentCache cache = Mock()
-    private final DefaultUnscopedCacheBuilderFactory repository = new DefaultUnscopedCacheBuilderFactory(cacheFactory)
+    private final DefaultCacheBuilder builder = new DefaultCacheBuilder(cacheFactory, sharedCacheDir)
 
     void createsGlobalDirectoryBackedCache() {
         when:
-        def result = repository.cache(sharedCacheDir).open()
+        def result = builder.open()
 
         then:
         result == cache
@@ -48,7 +48,7 @@ class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
 
     void createsGlobalCacheWithProperties() {
         when:
-        repository.cache(sharedCacheDir).withProperties(properties).open()
+        builder.withProperties(properties).open()
 
         then:
         1 * cacheFactory.open(sharedCacheDir, null, properties, mode(Shared), null, null) >> cache
@@ -58,7 +58,7 @@ class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
         Action<?> action = Mock()
 
         when:
-        repository.cache(sharedCacheDir).withInitializer(action).open()
+        builder.withInitializer(action).open()
 
         then:
         1 * cacheFactory.open(sharedCacheDir, null, [:], mode(Shared), action, null) >> cache
@@ -66,7 +66,7 @@ class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
 
     void canSpecifyLockModeForDirectoryCache() {
         when:
-        repository.cache(sharedCacheDir).withInitialLockMode(OnDemand).open()
+        builder.withInitialLockMode(OnDemand).open()
 
         then:
         1 * cacheFactory.open(sharedCacheDir, null, [:], mode(OnDemand), null, null) >> cache
@@ -74,7 +74,7 @@ class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
 
     void canSpecifyDisplayNameForDirectoryCache() {
         when:
-        repository.cache(sharedCacheDir).withDisplayName("<cache>").open()
+        builder.withDisplayName("<cache>").open()
 
         then:
         1 * cacheFactory.open(sharedCacheDir, "<cache>", [:], mode(Shared), null, null) >> cache
