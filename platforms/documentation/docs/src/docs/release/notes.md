@@ -177,7 +177,7 @@ tasks.test {
 
 #### Setting custom POM values in Maven publications for plugins
 
-The following example demonstrates how to set custom POM values per-publication:
+The maven-publish plugin provides a way to set custom POM values for a Gradle plugin publication, as demonstrated in the following example:
 
 ```groovy
 gradlePlugin {
