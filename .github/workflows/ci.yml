@@ -33,3 +33,51 @@ jobs:
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
       - run: ./gradlew check
+  build_linux:
+    needs: check_linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v3
+      - run: ./gradlew packageZip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-distribution
+          path: gradle-client/build/dist
+          if-no-files-found: error
+  build_macos:
+    needs: check_macos
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v3
+      - run: ./gradlew packageZip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-distribution
+          path: gradle-client/build/dist
+          if-no-files-found: error
+  build_windows:
+    needs: check_windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v3
+      - run: ./gradlew packageZip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-distribution
+          path: gradle-client/build/dist
+          if-no-files-found: error
