@@ -18,6 +18,11 @@ package org.gradle.configurationcache.problems
 
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.logging.Logging
+import org.gradle.api.problems.ProblemBuilderDefiningCategory
+import org.gradle.api.problems.ProblemBuilderDefiningDocumentation
+import org.gradle.api.problems.ProblemBuilderDefiningLocation
+import org.gradle.api.problems.Problems
+import org.gradle.api.problems.Severity
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
 import org.gradle.configurationcache.ConfigurationCacheAction.STORE
@@ -27,6 +32,7 @@ import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -49,7 +55,10 @@ class ConfigurationCacheProblems(
     val cacheKey: ConfigurationCacheKey,
 
     private
-    val listenerManager: ListenerManager
+    val listenerManager: ListenerManager,
+
+    private
+    val problemsService: Problems
 
 ) : ProblemsListener, ProblemReporter, AutoCloseable {
     private
@@ -130,8 +139,48 @@ class ConfigurationCacheProblems(
     private
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         if (summarizer.onProblem(problem, severity)) {
+            problemsService.onProblem(problem, severity)
             report.onProblem(problem)
         }
+    }
+
+    private
+    fun Problems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
+        createProblem { builder ->
+            builder.label(problem.message.toString())
+                .documentOfProblem(problem)
+                .locationOfProblem(problem)
+                .category("CC")
+                .severity(severity.toProblemSeverity())
+        }.report()
+    }
+
+    private
+    fun ProblemBuilderDefiningDocumentation.documentOfProblem(problem: PropertyProblem) =
+        problem.documentationSection?.let {
+            documentedAt(Documentation.userManual("configuration_cache", it.anchor))
+        } ?: undocumented()
+
+    private
+    fun ProblemBuilderDefiningLocation.locationOfProblem(problem: PropertyProblem): ProblemBuilderDefiningCategory {
+        val trace = problem.trace.buildLogic()
+        return when {
+            trace?.lineNumber != null ->
+                location(trace.source.displayName, trace.lineNumber)
+
+            else ->
+                noLocation()
+        }
+    }
+
+    private
+    fun PropertyTrace.buildLogic() = sequence.filterIsInstance<PropertyTrace.BuildLogic>().firstOrNull()
+
+    private
+    fun ProblemSeverity.toProblemSeverity() = when {
+        this == ProblemSeverity.Suppressed -> Severity.ADVICE
+        isFailOnProblems -> Severity.ERROR
+        else -> Severity.WARNING
     }
 
     override fun getId(): String {

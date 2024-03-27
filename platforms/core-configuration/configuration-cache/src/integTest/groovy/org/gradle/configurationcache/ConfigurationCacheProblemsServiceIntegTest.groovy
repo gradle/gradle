@@ -1,0 +1,100 @@
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.configurationcache
+
+class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCacheIntegrationTest {
+    @Override
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
+    def "problems are reported through the Problems API"() {
+        given:
+        buildFile << """
+            gradle.buildFinished { }
+
+            task run
+        """
+
+        when:
+        configurationCacheFails 'run'
+
+        then:
+        collectedProblems.size() == 1
+        with(collectedProblems.get(0)) {
+            label == "registration of listener on 'Gradle.buildFinished' is unsupported"
+            with(where) {
+                path == "build file 'build.gradle'"
+                line == 2
+            }
+            documentationLink != null
+            severity == "ERROR"
+        }
+
+        when:
+        configurationCacheRunLenient 'run'
+
+        then:
+        collectedProblems.size() == 1
+        with(collectedProblems.get(0)) {
+            label == "registration of listener on 'Gradle.buildFinished' is unsupported"
+            severity == "WARNING"
+            documentationLink != null
+        }
+    }
+
+    def "max problems are still reported as warnings"() {
+        given:
+        buildFile << """
+            gradle.buildFinished { }
+
+            task run
+        """
+
+        when:
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "-D$MAX_PROBLEMS_GRADLE_PROP=0", 'run'
+
+        then:
+        collectedProblems.size() == 1
+        with(collectedProblems.get(0)) {
+            label == "registration of listener on 'Gradle.buildFinished' is unsupported"
+            severity == "WARNING"
+        }
+    }
+
+    def "notCompatibleWithConfigurationCache task problems are reported as Advice"() {
+        given:
+        buildFile << """
+            task run {
+                notCompatibleWithConfigurationCache("because")
+                doLast {
+                    println(project.name)
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("run")
+
+        then:
+        collectedProblems.size() == 1
+        with(collectedProblems.get(0)) {
+            label == "invocation of 'Task.project' at execution time is unsupported."
+            severity == "ADVICE"
+        }
+    }
+}

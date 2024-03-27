@@ -41,7 +41,6 @@ const val maxCauses = 5
 
 internal
 enum class ProblemSeverity {
-    Warn,
     Failure,
 
     /**
