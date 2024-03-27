@@ -24,6 +24,7 @@ import gradlebuild.basics.testSplitOnlyTestGradleVersion
 import gradlebuild.basics.testing.TestType
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.tasks.DistributionTest
+import gradlebuild.integrationtests.tasks.GenerateSnippetTests
 import gradlebuild.integrationtests.tasks.IntegrationTest
 import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.testing.services.BuildBucketProvider
@@ -101,12 +102,35 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
 
 internal
 fun Project.addSourceSet(testType: TestType): SourceSet {
+    fun SourceSet.groovySourceSet() = extensions.findByType<GroovySourceDirectorySet>()
+
     val prefix = testType.prefix
     val sourceSets = the<SourceSetContainer>()
     val main by sourceSets.getting
     return sourceSets.create("${prefix}Test") {
         compileClasspath += main.output
         runtimeClasspath += main.output
+
+        val groovySources = groovySourceSet()
+        // The task generate test class in Groovy, so it cannot be used if the project doesn't use Groovy for integration tests.
+        // This is the case for kotlin-dsl integration tests.
+        if (groovySources != null && testType == TestType.INTEGRATION) {
+            val generateSnippetTests = tasks.register<GenerateSnippetTests>("generateJavadocSnippetsTests") {
+                // In some cases projects have customized test setup, with settings files or subprojects.
+                // For such projects we must not generate the test class.
+                // TODO(mlopatkin) Stop piggybacking on usesJavadocCodeSnippets.
+                val hasCustomTestClass = project.the<IntegrationTestExtension>().usesJavadocCodeSnippets.orElse(false)
+
+                onlyIf { !hasCustomTestClass.get() }
+
+                sources.from(main.java)
+                main.groovySourceSet()?.let { sources.from(it) }
+                // TODO(mlopatkin) derive class name from the project name?
+                testClassName = "GeneratedJavadocSnippetsTest"
+                output = layout.buildDirectory.dir("generated/sources/samplesTests/groovy")
+            }
+            groovySourceSet()?.srcDir(generateSnippetTests)
+        }
     }
 }
 
@@ -170,6 +194,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         classpath = sourceSet.runtimeClasspath
         extraConfig.execute(this)
         if (integTest.usesJavadocCodeSnippets.get()) {
+            // TODO(mlopatkin) Can we add the argument provider unconditionally?
             val samplesDir = layout.projectDirectory.dir("src/main")
             jvmArgumentProviders.add(SamplesBaseDirPropertyProvider(samplesDir))
         }
