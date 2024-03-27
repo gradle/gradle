@@ -502,13 +502,13 @@ feature1 removal""")
     private void useStackTrace(List<StackTraceElement> stackTrace = []) {
         1 * problemStream.forCurrentCaller() >> Stub(ProblemDiagnostics) {
             _ * getLocation() >> null
-            _ * getStack() >> stackTrace
+            _ * getUserCodeStackTrace() >> stackTrace
         }
     }
 
     private void useLocation(String displayName, int lineNumber, List<StackTraceElement> stackTrace = []) {
         1 * problemStream.forCurrentCaller() >> Stub(ProblemDiagnostics) {
-            _ * getStack() >> stackTrace
+            _ * getUserCodeStackTrace() >> stackTrace
             _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), lineNumber)
         }
     }

@@ -37,7 +37,7 @@ public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory 
         }
 
         @Override
-        public List<StackTraceElement> getStack() {
+        public List<StackTraceElement> getUserCodeStackTrace() {
             return Collections.emptyList();
         }
 

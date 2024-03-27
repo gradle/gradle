@@ -32,6 +32,7 @@ import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
@@ -121,7 +122,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
         String featureMessage = usage.formattedMessage();
         Location location = diagnostics.getLocation();
-        if (!loggedUsages.add(featureMessage) && location == null && diagnostics.getStack().isEmpty()) {
+        if (!loggedUsages.add(featureMessage) && location == null && diagnostics.getUserCodeStackTrace().isEmpty()) {
             // This usage does not contain any useful diagnostics and the usage has already been logged, so skip it
             return;
         }
@@ -131,11 +132,11 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             message.append(SystemProperties.getInstance().getLineSeparator());
         }
         message.append(featureMessage);
-        if (location != null && !loggedUsages.add(message.toString()) && diagnostics.getStack().isEmpty()) {
+        if (location != null && !loggedUsages.add(message.toString()) && diagnostics.getUserCodeStackTrace().isEmpty()) {
             // This usage has no stack trace and has already been logged with the same location, so skip it
             return;
         }
-        displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics.getStack());
+        displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics.getUserCodeStackTrace());
     }
 
     private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder message, List<StackTraceElement> callStack) {

@@ -40,7 +40,7 @@ public interface ProblemDiagnostics {
      *
      * <p>Not every problem has a meaningful stack, even when the problem has an associated exception. Returns an empty list in this case.</p>
      */
-    List<StackTraceElement> getStack();
+    List<StackTraceElement> getUserCodeStackTrace();
 
     /**
      * Returns the location of the problem, if known.

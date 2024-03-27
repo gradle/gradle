@@ -182,7 +182,7 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
 
         @Override
-        public List<StackTraceElement> getStack() {
+        public List<StackTraceElement> getUserCodeStackTrace() {
             return stackTrace;
         }
 

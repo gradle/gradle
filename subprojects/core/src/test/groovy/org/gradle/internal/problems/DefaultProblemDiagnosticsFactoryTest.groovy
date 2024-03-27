@@ -41,7 +41,7 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
 
         then:
         diagnostics.failure == null
-        assertIsCallerStackTrace(diagnostics.stack)
+        assertIsCallerStackTrace(diagnostics.userCodeStackTrace)
         diagnostics.location == location
 
         1 * locationAnalyzer.locationForUsage(_, false) >> { Failure failure, b ->
@@ -82,23 +82,23 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         expect:
         def diagnostics1 = stream.forCurrentCaller()
         diagnostics1.failure == null
-        !diagnostics1.stack.empty
+        !diagnostics1.userCodeStackTrace.empty
 
         def diagnostics2 = stream.forCurrentCaller()
         diagnostics2.failure == null
-        !diagnostics2.stack.empty
+        !diagnostics2.userCodeStackTrace.empty
 
         def diagnostics3 = stream.forCurrentCaller()
         diagnostics3.failure == null
-        diagnostics3.stack.empty
+        diagnostics3.userCodeStackTrace.empty
 
         def diagnostics4 = stream.forCurrentCaller()
         diagnostics4.failure == null
-        diagnostics4.stack.empty
+        diagnostics4.userCodeStackTrace.empty
 
         def diagnostics5 = stream.forCurrentCaller(supplier)
         diagnostics5.failure == null
-        diagnostics5.stack.empty
+        diagnostics5.userCodeStackTrace.empty
     }
 
     def "each stream has an independent stack trace limit"() {
@@ -109,13 +109,13 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         stream1.forCurrentCaller()
 
         expect:
-        !stream1.forCurrentCaller().stack.empty
+        !stream1.forCurrentCaller().userCodeStackTrace.empty
 
-        !stream2.forCurrentCaller().stack.empty
-        !stream2.forCurrentCaller().stack.empty
-        stream2.forCurrentCaller().stack.empty
+        !stream2.forCurrentCaller().userCodeStackTrace.empty
+        !stream2.forCurrentCaller().userCodeStackTrace.empty
+        stream2.forCurrentCaller().userCodeStackTrace.empty
 
-        stream1.forCurrentCaller().stack.empty
+        stream1.forCurrentCaller().userCodeStackTrace.empty
     }
 
     def "keeps stack trace after limit has been reached when diagnostics constructed from exception"() {
@@ -125,19 +125,19 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         stream.forCurrentCaller()
 
         expect:
-        stream.forCurrentCaller().stack.empty
+        stream.forCurrentCaller().userCodeStackTrace.empty
 
         def failure1 = new Exception("broken")
         def diagnostics1 = stream.forCurrentCaller(failure1)
         diagnostics1.failure.header == failure1.toString()
         diagnostics1.failure.stackTrace == failure1.stackTrace.toList()
-        !diagnostics1.stack.empty
+        !diagnostics1.userCodeStackTrace.empty
 
         def failure2 = new Exception("broken")
         def diagnostics2 = factory.forException(failure2)
         diagnostics2.failure.header == failure2.toString()
         diagnostics2.failure.stackTrace == failure2.stackTrace.toList()
-        !diagnostics2.stack.empty
+        !diagnostics2.userCodeStackTrace.empty
     }
 
     def "tracks user code source"() {
