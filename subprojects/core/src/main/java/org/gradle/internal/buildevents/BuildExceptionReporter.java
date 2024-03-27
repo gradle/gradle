@@ -193,6 +193,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         private final Set<Throwable> printedNodes = new HashSet<>();
         private int depth;
+        private int suppressedDuplicateBranchCount;
 
         private ExceptionFormattingVisitor(FailureDetails failureDetails) {
             this.failureDetails = failureDetails;
@@ -216,6 +217,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
                 if (null == node.getCause() || isUsefulMessage(getMessage(node))) {
                     LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
                     renderStyledError(node, output);
+                }
+            } else {
+                // Only increment the suppressed branch count for the ultimate cause of the failure, which has no cause itself
+                if (node.getCause() == null) {
+                    suppressedDuplicateBranchCount++;
                 }
             }
         }
@@ -277,6 +283,15 @@ public class BuildExceptionReporter implements Action<Throwable> {
             details.details.style(Info).text(RESOLUTION_LINE_PREFIX).style(Normal);
 
             return new LinePrefixingStyledTextOutput(details.details, prefix, false);
+        }
+
+        @Override
+        protected void uponFinishedVisiting() {
+            if (suppressedDuplicateBranchCount > 0) {
+                boolean plural = suppressedDuplicateBranchCount > 1;
+                LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
+                output.append(String.format("There were %d additional failure%s with the same cause that %s not printed.", suppressedDuplicateBranchCount, plural ? "s" : "", plural ? "were" : "was"));
+            }
         }
     }
 

@@ -51,6 +51,7 @@ public class ContextAwareException extends GradleException {
             contextVisitor.visitCause(cause);
             visitCauses(cause, contextVisitor);
         }
+        contextVisitor.uponFinishedVisiting();
     }
 
     private void visitCauses(Throwable t, TreeVisitor<? super Throwable> visitor) {

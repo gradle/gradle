@@ -29,6 +29,7 @@ class LocationAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
+        1 * visitor.uponFinishedVisiting()
         1 * visitor.visitLocation("Location line: 42")
         0 * visitor._
 
