@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -65,8 +66,8 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "org.gradle.client"
-            packageVersion = "1.0.0"
+            packageName = project.name
+            packageVersion = project.version.toString()
             vendor = "Gradle"
             appResourcesRootDir = layout.projectDirectory.dir("src/assets")
             jvmArgs += "-splash:${'$'}APPDIR/resources/splash.png"
@@ -74,10 +75,48 @@ compose.desktop {
                 "java.naming",
                 "java.sql",
             )
+            macOS {
+                dockName = "Gradle Client"
+                appStore = false
+            }
         }
     }
 }
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+}
+
+enum class DesktopOS(val id: String) {
+    Linux("linux"),
+    Mac("macos"),
+    Windows("windows");
+}
+
+val currentDesktopOS: DesktopOS by lazy {
+    val os = System.getProperty("os.name")
+    when {
+        os.startsWith("Linux", ignoreCase = true) -> DesktopOS.Linux
+        os.equals("Mac OS X", ignoreCase = true) -> DesktopOS.Mac
+        os.startsWith("Win", ignoreCase = true) -> DesktopOS.Windows
+        else -> error("Unknown OS name: $os")
+    }
+}
+
+// Package as ZIP
+afterEvaluate {
+    val arch = System.getProperty("os.arch")
+    val distDir = layout.buildDirectory.dir("dist")
+    val createDistributable by tasks.existing(AbstractJPackageTask::class)
+    tasks.register<Zip>("packageZip") {
+        archiveFileName = "${project.name}-${project.version}-${currentDesktopOS.id}-$arch-debug.zip"
+        from(createDistributable.flatMap { it.destinationDir })
+        destinationDirectory = distDir
+    }
+    val createReleaseDistributable by tasks.existing(AbstractJPackageTask::class)
+    tasks.register<Zip>("packageReleaseZip") {
+        archiveFileName = "${project.name}-${project.version}-${currentDesktopOS.id}-$arch.zip"
+        from(createReleaseDistributable.flatMap { it.destinationDir })
+        destinationDirectory = distDir
+    }
 }
