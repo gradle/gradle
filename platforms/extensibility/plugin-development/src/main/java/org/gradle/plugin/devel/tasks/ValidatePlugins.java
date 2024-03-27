@@ -55,7 +55,6 @@ import java.util.stream.Stream;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.introductionFor;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
@@ -139,7 +138,7 @@ public abstract class ValidatePlugins extends DefaultTask {
         InternalProblemReporter reporter = getServices().get(InternalProblems.class).getInternalReporter();
         problems.stream()
             .map(Problem.class::cast)
-            .map(problem -> problem.toBuilder().contextualLabel(introductionFor(problem.getAdditionalData()) + problem.getDefinition().getId().getDisplayName()).build())
+            //.map(problem -> problem.toBuilder().contextualLabel(introductionFor(problem.getAdditionalData()) + problem.getDefinition().getId().getDisplayName()).build())
             .forEach(reporter::report);
     }
 

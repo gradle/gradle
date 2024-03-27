@@ -438,7 +438,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         and:
         verifyAll(receivedProblem(0)) {
             fqid == 'validation:property-validation:annotation-invalid-in-context'
-            contextualLabel == 'Type \'MyTransformAction\' property \'inputFile\' is annotated with invalid property type'
+            contextualLabel == 'Type \'MyTransformAction\' property \'inputFile\' is annotated with invalid property type @InputFile'
             details == 'The \'@InputFile\' annotation cannot be used in this context'
             solutions == [
                 'Remove the property',
@@ -451,7 +451,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'MyTransformAction\' property \'badTime\' property missing'
+            contextualLabel == 'Type \'MyTransformAction\' property \'badTime\' is missing an input annotation'
             details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input annotation',
@@ -464,7 +464,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(2)) {
             fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'MyTransformAction\' property \'oldThing\' property missing'
+            contextualLabel == 'Type \'MyTransformAction\' property \'oldThing\' is missing an input annotation'
             details == 'A property without annotation isn\'t considered during up-to-date checking'
             solutions == [
                 'Add an input annotation',
@@ -540,56 +540,57 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
             error(missingAnnotationConfig { type('MyTransformParameters').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
 
-         and:
-         verifyAll(receivedProblem(0)) {
-             fqid == 'validation:property-validation:annotation-invalid-in-context'
-             contextualLabel == 'Type \'MyTransformParameters\' property \'inputFile\' is annotated with invalid property type'
-             details == 'The \'@InputArtifact\' annotation cannot be used in this context'
-             solutions == [
-                 'Remove the property',
-                 'Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference',
-             ]
-             additionalData == [
-                 'typeName' : 'MyTransformParameters',
-                 'propertyName' : 'inputFile',
-             ]
-         }
-         verifyAll(receivedProblem(1)) {
-             fqid == 'validation:property-validation:incompatible-annotations'
-             contextualLabel == 'Type \'MyTransformParameters\' property \'incrementalNonFileInput\' Wrong property annotation'
-             details == 'This modifier is used in conjunction with a property of type \'Input\' but this doesn\'t have semantics'
-             solutions == [ 'Remove the \'@Incremental\' annotation' ]
-             additionalData == [
-                 'typeName' : 'MyTransformParameters',
-                 'propertyName' : 'incrementalNonFileInput',
-             ]
-         }
-         verifyAll(receivedProblem(2)) {
-             fqid == 'validation:property-validation:missing-annotation'
-             contextualLabel == 'Type \'MyTransformParameters\' property \'badTime\' property missing'
-             details == 'A property without annotation isn\'t considered during up-to-date checking'
-             solutions == [
-                 'Add an input annotation',
-                 'Mark it as @Internal',
-             ]
-             additionalData == [
-                 'typeName' : 'MyTransformParameters',
-                 'propertyName' : 'badTime',
-             ]
-         }
-         verifyAll(receivedProblem(3)) {
-             fqid == 'validation:property-validation:missing-annotation'
-             contextualLabel == 'Type \'MyTransformParameters\' property \'oldThing\' property missing'
-             details == 'A property without annotation isn\'t considered during up-to-date checking'
-             solutions == [
-                 'Add an input annotation',
-                 'Mark it as @Internal',
-             ]
-             additionalData == [
-                 'typeName' : 'MyTransformParameters',
-                 'propertyName' : 'oldThing',
-             ]
-         }
+        and:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            contextualLabel == 'Type \'MyTransformParameters\' property \'inputFile\' is annotated with invalid property type @InputArtifact'
+            details == 'The \'@InputArtifact\' annotation cannot be used in this context'
+            solutions == [
+                'Remove the property',
+                'Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference',
+            ]
+            additionalData == [
+                'typeName' : 'MyTransformParameters',
+                'propertyName' : 'inputFile',
+            ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'validation:property-validation:incompatible-annotations'
+            contextualLabel == 'Type \'MyTransformParameters\' property \'incrementalNonFileInput\' is annotated with @Incremental but that is not allowed for \'Input\' properties'
+            details == 'This modifier is used in conjunction with a property of type \'Input\' but this doesn\'t have semantics'
+            solutions == [ 'Remove the \'@Incremental\' annotation' ]
+            additionalData == [
+                'typeName' : 'MyTransformParameters',
+                'propertyName' : 'incrementalNonFileInput',
+            ]
+        }
+        verifyAll(receivedProblem(2)) {
+            fqid == 'validation:property-validation:missing-annotation'
+            contextualLabel == 'Type \'MyTransformParameters\' property \'badTime\' is missing an input annotation'
+            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            solutions == [
+                'Add an input annotation',
+                'Mark it as @Internal',
+            ]
+            additionalData == [
+                'typeName' : 'MyTransformParameters',
+                'propertyName' : 'badTime',
+            ]
+        }
+        verifyAll(receivedProblem(3)) {
+            fqid == 'validation:property-validation:missing-annotation'
+            contextualLabel == 'Type \'MyTransformParameters\' property \'oldThing\' is missing an input annotation'
+            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            solutions == [
+                'Add an input annotation',
+                'Mark it as @Internal',
+            ]
+            additionalData == [
+                'typeName' : 'MyTransformParameters',
+                'propertyName' : 'oldThing',
+            ]
+        }
+
     }
 
     def "tests only classes from plugin source set"() {
@@ -806,7 +807,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         and:
         verifyAll(receivedProblem(0)) {
             fqid == 'validation:property-validation:unsupported-value-type'
-            contextualLabel == 'Type \'MyTask\' property \'direct\' property with unsupported annotation'
+            contextualLabel == "Type 'MyTask' property 'direct' has @$annotation annotation used on property of type 'ResolvedArtifactResult'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
                 'Extract artifact metadata and annotate with @Input',
@@ -819,7 +820,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'validation:property-validation:unsupported-value-type'
-            contextualLabel == 'Type \'MyTask\' property \'listPropertyInput\' property with unsupported annotation'
+            contextualLabel == "Type 'MyTask' property 'listPropertyInput' has @$annotation annotation used on property of type 'ListProperty<ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
                 'Extract artifact metadata and annotate with @Input',
@@ -832,7 +833,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(2)) {
             fqid == 'validation:property-validation:unsupported-value-type'
-            contextualLabel == 'Type \'MyTask\' property \'mapPropertyInput\' property with unsupported annotation'
+            contextualLabel == "Type 'MyTask' property 'mapPropertyInput' has @$annotation annotation used on property of type 'MapProperty<String, ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
                 'Extract artifact metadata and annotate with @Input',
@@ -845,7 +846,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(3)) {
             fqid == 'validation:property-validation:unsupported-value-type'
-            contextualLabel == 'Type \'MyTask\' property \'nestedBean.nestedInput\' property with unsupported annotation'
+            contextualLabel == "Type 'MyTask' property 'nestedBean.nestedInput' has @$annotation annotation used on property of type 'Property<ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
                 'Extract artifact metadata and annotate with @Input',
@@ -859,7 +860,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(4)) {
             fqid == 'validation:property-validation:unsupported-value-type'
-            contextualLabel == 'Type \'MyTask\' property \'propertyInput\' property with unsupported annotation'
+            contextualLabel == "Type 'MyTask' property 'propertyInput' has @$annotation annotation used on property of type 'Property<ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
                 'Extract artifact metadata and annotate with @Input',
@@ -872,7 +873,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(5)) {
             fqid == 'validation:property-validation:unsupported-value-type'
-            contextualLabel == 'Type \'MyTask\' property \'providerInput\' property with unsupported annotation'
+            contextualLabel == "Type 'MyTask' property 'providerInput' has @$annotation annotation used on property of type 'Provider<ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
                 'Extract artifact metadata and annotate with @Input',
@@ -885,7 +886,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(6)) {
             fqid == 'validation:property-validation:unsupported-value-type'
-            contextualLabel == 'Type \'MyTask\' property \'setPropertyInput\' property with unsupported annotation'
+            contextualLabel == "Type 'MyTask' property 'setPropertyInput' has @$annotation annotation used on property of type 'SetProperty<ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
                 'Extract artifact metadata and annotate with @Input',
@@ -970,7 +971,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         and:
         verifyAll(receivedProblem(0)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
-            contextualLabel == 'Type \'MyTask\' property \'direct\' has @Input annotation used'
+            contextualLabel == 'Type \'MyTask\' property \'direct\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
             additionalData == [
@@ -980,7 +981,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
-            contextualLabel == 'Type \'MyTask\' property \'listPropertyInput\' has @Input annotation used'
+            contextualLabel == 'Type \'MyTask\' property \'listPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
             additionalData == [
@@ -990,7 +991,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(2)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
-            contextualLabel == 'Type \'MyTask\' property \'mapPropertyInput\' has @Input annotation used'
+            contextualLabel == 'Type \'MyTask\' property \'mapPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
             additionalData == [
@@ -1000,7 +1001,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(3)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
-            contextualLabel == 'Type \'MyTask\' property \'nestedBean.nestedInput\' has @Input annotation used'
+            contextualLabel == 'Type \'MyTask\' property \'nestedBean.nestedInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
             additionalData == [
@@ -1011,7 +1012,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(4)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
-            contextualLabel == 'Type \'MyTask\' property \'propertyInput\' has @Input annotation used'
+            contextualLabel == 'Type \'MyTask\' property \'propertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
             additionalData == [
@@ -1021,7 +1022,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(5)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
-            contextualLabel == 'Type \'MyTask\' property \'providerInput\' has @Input annotation used'
+            contextualLabel == 'Type \'MyTask\' property \'providerInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
             additionalData == [
@@ -1031,7 +1032,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(6)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
-            contextualLabel == 'Type \'MyTask\' property \'setPropertyInput\' has @Input annotation used'
+            contextualLabel == 'Type \'MyTask\' property \'setPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
             solutions == [ 'Use type \'java.net.URI\' instead' ]
             additionalData == [
@@ -1117,7 +1118,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         and:
         verifyAll(receivedProblem(0)) {
             fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'file\' has @Input annotation used on property'
+            contextualLabel == 'Type \'MyTask\' property \'file\' has @Input annotation used on property of type \'File\''
             details == 'A property of type \'File\' annotated with @Input cannot determine how to interpret the file'
             solutions == [
                 'Annotate with @InputFile for regular files',
@@ -1131,7 +1132,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'fileCollection\' has @Input annotation used on property'
+            contextualLabel == 'Type \'MyTask\' property \'fileCollection\' has @Input annotation used on property of type \'FileCollection\''
             details == 'A property of type \'FileCollection\' annotated with @Input cannot determine how to interpret the file'
             solutions == [
                 'Annotate with @InputFile for regular files',
@@ -1145,7 +1146,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(2)) {
             fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'filePath\' has @Input annotation used on property'
+            contextualLabel == 'Type \'MyTask\' property \'filePath\' has @Input annotation used on property of type \'Path\''
             details == 'A property of type \'Path\' annotated with @Input cannot determine how to interpret the file'
             solutions == [
                 'Annotate with @InputFile for regular files',
@@ -1159,7 +1160,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(3)) {
             fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'fileTree\' has @Input annotation used on property'
+            contextualLabel == 'Type \'MyTask\' property \'fileTree\' has @Input annotation used on property of type \'FileTree\''
             details == 'A property of type \'FileTree\' annotated with @Input cannot determine how to interpret the file'
             solutions == [
                 'Annotate with @InputFile for regular files',
@@ -1173,7 +1174,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(4)) {
             fqid == 'validation:property-validation:missing-normalization-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'inputDirectory\' Missing normalization'
+            contextualLabel == 'Type \'MyTask\' property \'inputDirectory\' is annotated with @InputDirectory but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
             additionalData == [
@@ -1183,7 +1184,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(5)) {
             fqid == 'validation:property-validation:missing-normalization-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'inputFile\' Missing normalization'
+            contextualLabel == 'Type \'MyTask\' property \'inputFile\' is annotated with @InputFile but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
             additionalData == [
@@ -1193,7 +1194,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         }
         verifyAll(receivedProblem(6)) {
             fqid == 'validation:property-validation:missing-normalization-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'inputFiles\' Missing normalization'
+            contextualLabel == 'Type \'MyTask\' property \'inputFiles\' is annotated with @InputFiles but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
             additionalData == [
@@ -1528,7 +1529,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         and:
         verifyAll(receivedProblem) {
             fqid == 'validation:property-validation:nested-map-unsupported-key-type'
-            contextualLabel == 'Type \'MyTask\' property \'mapWithUnsupportedKey\' where key of nested map'
+            contextualLabel == "Type 'MyTask' property 'mapWithUnsupportedKey' where key of nested map is of type 'java.lang.Boolean'"
             details == 'Key of nested map must be one of the following types: \'Enum\', \'Integer\', \'String\''
             solutions == [ 'Change type of key to one of the following types: \'Enum\', \'Integer\', \'String\'' ]
             additionalData == [
@@ -1569,7 +1570,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         and:
         verifyAll(receivedProblem) {
             fqid == 'validation:property-validation:nested-type-unsupported'
-            contextualLabel == "Type 'MyTask' property 'my$typeName' with nested type"
+            contextualLabel == "Type 'MyTask' property 'my$typeName' with nested type '$className' is not supported"
             details == 'Type is in \'java.*\' or \'javax.*\' package that are reserved for standard Java API types'
             solutions == [
                 'Use a different input annotation if type is not a bean',
