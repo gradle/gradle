@@ -471,7 +471,7 @@ service: closed with value 10001
 
         then:
         outputDoesNotContain "'Task#usesService'"
-        outputContains """
+        result.normalizedOutput.contains """
 > Configure project :
 service: created with value = 10
 service: value is 11
