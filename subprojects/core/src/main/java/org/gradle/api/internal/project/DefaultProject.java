@@ -191,10 +191,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final ProjectStateInternal state;
 
-    private FileResolver fileResolver;
-
-    private TaskDependencyFactory taskDependencyFactory;
-
     private Factory<AntBuilder> antBuilderFactory;
 
     private AntBuilder ant;
@@ -202,12 +198,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final int depth;
 
     private final TaskContainerInternal taskContainer;
-
-    private DependencyHandler dependencyHandler;
-
-    private RoleBasedConfigurationContainerInternal configurationContainer;
-
-    private ArtifactHandler artifactHandler;
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
 
@@ -542,49 +532,25 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return state;
     }
 
-    @Override
-    public FileResolver getFileResolver() {
-        if (fileResolver == null) {
-            fileResolver = services.get(FileResolver.class);
-        }
-        return fileResolver;
-    }
+    @Override @Inject
+    public abstract FileResolver getFileResolver();
 
-    @Override
-    public TaskDependencyFactory getTaskDependencyFactory() {
-        if (taskDependencyFactory == null) {
-            taskDependencyFactory = services.get(TaskDependencyFactory.class);
-        }
-        return taskDependencyFactory;
-    }
-
-    public void setFileResolver(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-    }
+    @Override @Inject
+    public abstract TaskDependencyFactory getTaskDependencyFactory();
 
     public void setAnt(AntBuilder ant) {
         this.ant = ant;
     }
 
-    @Override
-    public ArtifactHandler getArtifacts() {
-        if (artifactHandler == null) {
-            artifactHandler = services.get(ArtifactHandler.class);
-        }
-        return artifactHandler;
-    }
+    @Override @Inject
+    public abstract ArtifactHandler getArtifacts();
 
     @Inject
     @Override
     public abstract RepositoryHandler getRepositories();
 
-    @Override
-    public RoleBasedConfigurationContainerInternal getConfigurations() {
-        if (configurationContainer == null) {
-            configurationContainer = services.get(RoleBasedConfigurationContainerInternal.class);
-        }
-        return configurationContainer;
-    }
+    @Override @Inject
+    public abstract RoleBasedConfigurationContainerInternal getConfigurations();
 
     @Deprecated
     @Override
@@ -1053,13 +1019,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return antBuilderFactory;
     }
 
-    @Override
-    public DependencyHandler getDependencies() {
-        if (dependencyHandler == null) {
-            dependencyHandler = services.get(DependencyHandler.class);
-        }
-        return dependencyHandler;
-    }
+    @Override @Inject
+    public abstract DependencyHandler getDependencies();
 
     @Override
     @Inject
