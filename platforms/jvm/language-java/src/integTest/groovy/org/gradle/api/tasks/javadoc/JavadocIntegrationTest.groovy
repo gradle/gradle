@@ -649,6 +649,31 @@ Joe!""")
         file("build/docs/javadoc/pkg/internal/IFoo.html").assertDoesNotExist()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/25081")
+    def "javadoc task doesnt attempt to visit links when running Gradle with --offline"() {
+        when:
+        buildFile << """
+            apply plugin: 'java'
+
+            javadoc {
+                options {
+                    // This link doesn't exist and will always cause a Javadoc error if it is accessed.
+                    // If we run Gradle with --offline though, we have no way of telling that the link
+                    // doesn't exist, so we shouldn't fail the build.
+                    links 'https://nonsense-url-that-doesnt-exist/something'
+                }
+            }
+        """
+        writeSourceFile()
+
+        then:
+        fails("javadoc")
+        failureCauseContains("Javadoc generation failed.")
+
+        then:
+        succeeds("javadoc", "--offline")
+    }
+
     private TestFile writeSourceFile() {
         file("src/main/java/Foo.java") << "public class Foo {}"
     }
