@@ -95,7 +95,7 @@ class KnownProblemIds {
         'validation:property-validation:implicit-dependency' : 'Property has implicit dependency',
         'validation:property-validation:incompatible-annotations' : 'Incompatible annotations',
         'validation:property-validation:incorrect-use-of-input-annotation' : 'Incorrect use of @Input annotation',
-        'validation:property-validation:input-file-does-not-exist' : 'input not allowed for property',
+        'validation:property-validation:input-file-does-not-exist' : 'Input file does not exist',
         'validation:property-validation:missing-annotation' : 'Missing annotation',
         'validation:property-validation:missing-normalization-annotation' : 'Missing normalization',
         'validation:property-validation:nested-map-unsupported-key-type' : 'Unsupported nested map key',
