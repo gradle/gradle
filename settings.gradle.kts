@@ -3,7 +3,18 @@
 pluginManagement {
     repositories {
         mavenCentral()
+        gradlePluginPortal {
+            content {
+                includeGroupAndSubgroups("com.gradle")
+                includeGroupAndSubgroups("io.github.gradle")
+            }
+        }
     }
+}
+
+plugins {
+    id("com.gradle.enterprise") version "3.16.2"
+    id("io.github.gradle.gradle-enterprise-conventions-plugin") version "0.9.1"
 }
 
 dependencyResolutionManagement {
