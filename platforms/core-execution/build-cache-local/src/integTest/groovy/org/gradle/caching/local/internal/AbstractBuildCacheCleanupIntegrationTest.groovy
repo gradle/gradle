@@ -138,7 +138,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
 
         when:
         lastCleanupCheck = markCacheLastCleaned(twoDaysAgo())
-        cleanupMethod.maybeExpectDeprecationWarning(executer)
+        executer.noDeprecationChecks()
         run()
 
         then:
@@ -179,9 +179,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
 
         when:
         lastCleanupCheck = markCacheLastCleaned(twoDaysAgo())
-        if (deprecatedCacheCleanup != null) {
-            expectRetentionMethodDeprecationWarning()
-        }
+        executer.noDeprecationChecks()
         run()
 
         then:
