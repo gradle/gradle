@@ -718,6 +718,7 @@ class ConfigurationCacheState(
             write(cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.createdResources.removeUnusedEntriesOlderThan)
+            write(cacheConfigurations.buildCache.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.cleanup)
             write(cacheConfigurations.markingStrategy)
         }
@@ -730,6 +731,7 @@ class ConfigurationCacheState(
             cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
+            cacheConfigurations.buildCache.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
             cacheConfigurations.markingStrategy.value(readNonNull<Provider<MarkingStrategy>>())
         }

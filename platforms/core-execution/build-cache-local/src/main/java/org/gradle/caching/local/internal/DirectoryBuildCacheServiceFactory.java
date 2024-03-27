@@ -17,6 +17,7 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.PersistentCache;
@@ -53,6 +54,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final PathToFileResolver resolver;
     private final CleanupActionDecorator cleanupActionDecorator;
     private final FileAccessTimeJournal fileAccessTimeJournal;
+    private final CacheConfigurationsInternal cacheConfigurations;
 
     @Inject
     public DirectoryBuildCacheServiceFactory(
@@ -60,13 +62,15 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         PathToFileResolver resolver,
         CleanupActionDecorator cleanupActionDecorator,
-        FileAccessTimeJournal fileAccessTimeJournal
+        FileAccessTimeJournal fileAccessTimeJournal,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
         this.cacheBuilderFactory = cacheBuilderFactory;
         this.resolver = resolver;
         this.cleanupActionDecorator = cleanupActionDecorator;
         this.fileAccessTimeJournal = fileAccessTimeJournal;
+        this.cacheConfigurations = cacheConfigurations;
     }
 
     @Override
@@ -80,11 +84,18 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         }
         checkDirectory(target);
 
+        @SuppressWarnings("deprecation")
         int removeUnusedEntriesAfterDays = configuration.getRemoveUnusedEntriesAfterDays();
-        Supplier<Long> removeUnusedEntriesOlderThan = TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays);
+
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).
             config("removeUnusedEntriesAfter", removeUnusedEntriesAfterDays + " days");
+
+        // Use the deprecated retention period if configured on `DirectoryBuildCache`, or use the central 'buildCache' cleanup config if not.
+        // If the deprecated property remains at the default, we can safely use the central value (which has the same default).
+        Supplier<Long> removeUnusedEntriesOlderThan = removeUnusedEntriesAfterDays == CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES
+            ? cacheConfigurations.getBuildCache().getRemoveUnusedEntriesOlderThanAsSupplier()
+            : TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays);
 
         PersistentCache persistentCache = unscopedCacheBuilderFactory
             .cache(target)
@@ -98,7 +109,10 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     }
 
     private CacheCleanupStrategy createCacheCleanupStrategy(Supplier<Long> removeUnusedEntriesTimestamp) {
-        return DefaultCacheCleanupStrategy.from(cleanupActionDecorator.decorate(createCleanupAction(removeUnusedEntriesTimestamp)));
+        return DefaultCacheCleanupStrategy.from(
+            cleanupActionDecorator.decorate(createCleanupAction(removeUnusedEntriesTimestamp)),
+            cacheConfigurations.getCleanupFrequency()::get
+        );
     }
 
     private LeastRecentlyUsedCacheCleanup createCleanupAction(Supplier<Long> removeUnusedEntriesTimestamp) {
