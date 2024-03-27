@@ -19,7 +19,6 @@ package org.gradle.configurationcache.serialization.codecs.jos
 import org.gradle.configurationcache.serialization.codecs.Encoding
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import java.io.Externalizable
 import java.io.ObjectOutputStream
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -45,9 +44,6 @@ class JavaSerializationEncodingLookup {
 
     private
     fun calculateEncoding(type: Class<*>): EncodingDetails {
-        if (Externalizable::class.java.isAssignableFrom(type)) {
-            return EncodingDetails(JavaObjectSerializationCodec.ExternalizableEncoding)
-        }
         val candidates = type.allMethods()
         val encoding = writeReplaceEncodingFor(candidates)
             ?: readResolveEncodingFor(candidates)
