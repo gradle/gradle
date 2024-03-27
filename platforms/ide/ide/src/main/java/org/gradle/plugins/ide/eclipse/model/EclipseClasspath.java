@@ -357,7 +357,12 @@ public abstract class EclipseClasspath {
     public List<ClasspathEntry> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), EclipseClassPathUtil.isInferModulePath(this.project));
+        ClasspathFactory classpathFactory = new ClasspathFactory(
+            this,
+            ideArtifactRegistry,
+            DefaultGradleApiSourcesResolver.newSourcesResolverWithDefaultRepoConfig(projectInternal),
+            EclipseClassPathUtil.isInferModulePath(this.project)
+        );
         return classpathFactory.createEntries();
     }
 

@@ -464,7 +464,8 @@ Specifies the JDK installation directory to use for the client VM.
 This VM is also used for the daemon unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
 
 `GRADLE_LIBS_REPO_OVERRIDE`::
-Overrides for the default Gradle library repository.
+Overrides for the default Gradle library repository. The default Gradle library repository can also be overridden
+with the `org.gradle.internal.gradle.libs.repo.override` property.
 +
 Can be used to specify a default Gradle repository URL in `org.gradle.plugins.ide.internal.resolver`.
 +

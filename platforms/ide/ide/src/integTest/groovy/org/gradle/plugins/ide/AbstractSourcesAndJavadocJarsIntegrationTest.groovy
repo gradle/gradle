@@ -310,7 +310,7 @@ dependencies {
     @Requires(IntegTestPreconditions.IsDaemonExecutor)
     def "does not download gradleApi() sources when sources download is disabled"() {
         given:
-        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
 
         buildScript """
             apply plugin: "java"
@@ -336,7 +336,7 @@ dependencies {
     @Requires(IntegTestPreconditions.IsDaemonExecutor)
     def "does not download gradleApi() sources when offline"() {
         given:
-        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
 
         buildScript """
             apply plugin: "java"
@@ -394,10 +394,70 @@ dependencies {
 
     @ToBeFixedForConfigurationCache
     @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    def "sources for localGroovy() are downloaded and attached when using property based url override"() {
+        given:
+        def repo = givenGroovyExistsInGradleRepo()
+        propertiesFile << "org.gradle.internal.gradle.libs.repo.override=$repo.uri/"
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation localGroovy()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-ant-${groovyVersion}.jar", ["groovy-ant-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-astbuilder-${groovyVersion}.jar", ["groovy-astbuilder-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-console-${groovyVersion}.jar", ["groovy-console-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-datetime-${groovyVersion}.jar", ["groovy-datetime-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-dateutil-${groovyVersion}.jar", ["groovy-dateutil-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-groovydoc-${groovyVersion}.jar", ["groovy-groovydoc-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-json-${groovyVersion}.jar", ["groovy-json-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-nio-${groovyVersion}.jar", ["groovy-nio-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-sql-${groovyVersion}.jar", ["groovy-sql-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-templates-${groovyVersion}.jar", ["groovy-templates-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-test-${groovyVersion}.jar", ["groovy-test-${groovyVersion}-sources.jar"], [])
+        ideFileContainsEntry("groovy-xml-${groovyVersion}.jar", ["groovy-xml-${groovyVersion}-sources.jar"], [])
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    def "sources for localGroovy() are downloaded and attached when using gradleApi() and property based url override"() {
+        given:
+        def repo = givenGroovyExistsInGradleRepo()
+        propertiesFile << "org.gradle.internal.gradle.libs.repo.override=$repo.uri/"
 
         buildScript """
             apply plugin: "java"
@@ -425,6 +485,33 @@ dependencies {
         given:
         def repo = givenGroovyExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleTestKit()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Requires(
+        value = [UnitTestPreconditions.StableGroovy, IntegTestPreconditions.NotEmbeddedExecutor],
+        reason = "localGroovy() version cannot be swapped-out when a snapshot Groovy build is used"
+    )
+    def "sources for localGroovy() are downloaded and attached when using gradleTestKit() and property based url override"() {
+        given:
+        def repo = givenGroovyExistsInGradleRepo()
+        propertiesFile << "org.gradle.internal.gradle.libs.repo.override=$repo.uri/"
 
         buildScript """
             apply plugin: "java"
