@@ -23,13 +23,12 @@ import static DefaultTypeAwareProblemBuilder.PROPERTY_NAME
 import static DefaultTypeAwareProblemBuilder.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE
 import static DefaultTypeAwareProblemBuilder.TYPE_NAME
 import static java.lang.Boolean.TRUE
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.introductionFor
 
-class TypeValidationRendererTest extends Specification {
+class DefaultTypeAwareProblemBuilderTest extends Specification {
 
     def "render introduction without type"() {
         given:
-        def result = introductionFor ImmutableMap.of(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, TRUE.toString(),
+        def result = DefaultTypeAwareProblemBuilder.introductionFor ImmutableMap.of(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, TRUE.toString(),
             TYPE_NAME, "foo", PROPERTY_NAME, "bar")
 
         expect:
@@ -38,7 +37,7 @@ class TypeValidationRendererTest extends Specification {
 
     def "render introduction with type"() {
         given:
-        def result = introductionFor ImmutableMap.of(TYPE_NAME, "foo", PROPERTY_NAME, "bar")
+        def result = DefaultTypeAwareProblemBuilder.introductionFor ImmutableMap.of(TYPE_NAME, "foo", PROPERTY_NAME, "bar")
 
         expect:
         result == "Type 'foo' property 'bar' "
