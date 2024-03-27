@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Extends {@link ConfigurationContainer} to define internal-only methods for creating configurations.
@@ -31,6 +33,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
  *
  * <strong>New configurations should leverage the role-based factory methods on {@link ConfigurationContainer}.</strong>
  */
+@ServiceScope(Scope.Project.class)
 public interface RoleBasedConfigurationContainerInternal extends ConfigurationContainer {
 
     /**
