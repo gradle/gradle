@@ -75,9 +75,14 @@ class FailureDecorator {
 
     private
     fun exceptionSummaryFor(failure: Failure): StructuredMessage? {
-        failure.stackTrace.forEachIndexed { index, element ->
-            if (failure.getStackTraceRelevance(index).isUserCode()) {
-                return exceptionSummaryFrom(element)
+        return failure.findFirstUserCode()?.let(::exceptionSummaryFrom)
+    }
+
+    private
+    fun Failure.findFirstUserCode(): StackTraceElement? {
+        stackTrace.forEachIndexed { index, element ->
+            if (getStackTraceRelevance(index).isUserCode()) {
+                return element
             }
         }
 
@@ -85,9 +90,9 @@ class FailureDecorator {
     }
 
     private
-    fun exceptionSummaryFrom(elem: StackTraceElement) = StructuredMessage.build {
+    fun exceptionSummaryFrom(frame: StackTraceElement) = StructuredMessage.build {
         text("at ")
-        reference(elem.toString())
+        reference(frame.toString())
     }
 
     private
