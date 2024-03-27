@@ -42,9 +42,10 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
         buildFile """
             tasks.configureEach { println("configured \$path") }
 
+            tasks.register("foo", Copy)
+
             tasks.$filtering.$configAction
 
-            tasks.register("foo", Copy)
             tasks.register("bar", Delete)
         """
 
@@ -64,37 +65,42 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
             outputDoesNotContain("configured :projects")
         }
 
-        // are explicitly registered tasks realized and configured?
-        if (realizesExplicitTasks) {
+        // are tasks explicitly registered BEFORE filtering realized and configured?
+        if (realizesPreExplicitTasks) {
             outputContains("configured :foo")
-            outputContains("configured :bar")
         } else {
             outputDoesNotContain("configured :foo")
+        }
+
+        // are tasks explicitly registered AFTER filtering realized and configured?
+        if (realizesPostExplicitTasks) {
+            outputContains("configured :bar")
+        } else {
             outputDoesNotContain("configured :bar")
         }
 
         where:
-        filtering                           | configAction        | realizesBuiltInTasks  | realizesExplicitTasks
+        filtering                           | configAction        | realizesBuiltInTasks  | realizesPreExplicitTasks    | realizesPostExplicitTasks
 
-        "named { it == \"help\" }"          | "all {}"            | true                  | true
-        "named { it == \"help\" }"          | "forEach {}"        | true                  | false
-        "named { it == \"help\" }"          | "configureEach {}"  | false                 | false
-        "named { it == \"help\" }"          | "toList()"          | true                  | false
-        "named { it == \"help\" }"          | "iterator()"        | true                  | false
-        // TODO: no other tasks should be realized, that was the intent of having the new `named()` method
+        "named { it == \"help\" }"          | "all {}"            | true                  | true                        | true
+        "named { it == \"help\" }"          | "forEach {}"        | true                  | true                        | false
+        "named { it == \"help\" }"          | "configureEach {}"  | false                 | false                       | false
+        "named { it == \"help\" }"          | "toList()"          | true                  | true                        | false
+        "named { it == \"help\" }"          | "iterator()"        | true                  | true                        | false
 
-        "matching { it.name == \"help\" }"  | "all {}"            | true                  | true
-        "matching { it.name == \"help\" }"  | "forEach {}"        | true                  | false
-        "matching { it.name == \"help\" }"  | "configureEach {}"  | false                 | false
-        "matching { it.name == \"help\" }"  | "toList()"          | true                  | false
-        "matching { it.name == \"help\" }"  | "iterator()"        | true                  | false
+        "matching { it.name == \"help\" }"  | "all {}"            | true                  | true                        | true
+        "matching { it.name == \"help\" }"  | "forEach {}"        | true                  | true                        | false
+        "matching { it.name == \"help\" }"  | "configureEach {}"  | false                 | false                       | false
+        "matching { it.name == \"help\" }"  | "toList()"          | true                  | true                        | false
+        "matching { it.name == \"help\" }"  | "iterator()"        | true                  | true                        | false
 
-        "matching { it.group == \"help\" }" | "all {}"            | true                  | true
-        "matching { it.group == \"help\" }" | "forEach {}"        | true                  | false
-        "matching { it.group == \"help\" }" | "configureEach {}"  | false                 | false
-        "matching { it.group == \"help\" }" | "toList()"          | true                  | false
-        "matching { it.group == \"help\" }" | "iterator()"        | true                  | false
+        "matching { it.group == \"help\" }" | "all {}"            | true                  | true                        | true
+        "matching { it.group == \"help\" }" | "forEach {}"        | true                  | true                        | false
+        "matching { it.group == \"help\" }" | "configureEach {}"  | false                 | false                       | false
+        "matching { it.group == \"help\" }" | "toList()"          | true                  | true                        | false
+        "matching { it.group == \"help\" }" | "iterator()"        | true                  | true                        | false
 
+        // TODO: only the "help" task should be realized, that was the intent of having the new `named()` method
     }
 
     def "chained lookup of tasks.withType.matching"() {
