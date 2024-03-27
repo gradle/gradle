@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.impl;
+package org.gradle.invocation;
 
-
-import org.gradle.api.Action;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.Project;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.enterprise.DevelocityBuildLifecycleService;
+import org.gradle.api.ProjectEvaluationListener;
 
-public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLifecycleService {
+import javax.annotation.Nullable;
 
-    private final Gradle gradle;
+public interface IsolatedProjectEvaluationListenerProvider {
 
-    public DefaultDevelocityBuildLifecycleService(Gradle gradle) {
-        this.gradle = gradle;
-    }
+    void beforeProject(IsolatedAction<? super Project> action);
 
-    @Override
-    public void beforeProject(Action<? super Project> action) {
-        gradle.getLifecycle().beforeProject(action::execute);
-    }
+    @Nullable
+    ProjectEvaluationListener isolate();
+
+    void clear();
+
 }

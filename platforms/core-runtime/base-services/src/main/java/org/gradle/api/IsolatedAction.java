@@ -14,24 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.impl;
+package org.gradle.api;
 
+import java.io.Serializable;
 
-import org.gradle.api.Action;
-import org.gradle.api.Project;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.enterprise.DevelocityBuildLifecycleService;
-
-public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLifecycleService {
-
-    private final Gradle gradle;
-
-    public DefaultDevelocityBuildLifecycleService(Gradle gradle) {
-        this.gradle = gradle;
-    }
-
-    @Override
-    public void beforeProject(Action<? super Project> action) {
-        gradle.getLifecycle().beforeProject(action::execute);
-    }
+/**
+ * Performs some action against objects of type {@link T}.
+ *
+ * <p>
+ * <b>IMPORTANT: </b> Isolated action instances are never reused. TBD
+ * </p>
+ *
+ * @param <T> The type of object which the action expects.
+ * @since 8.8
+ */
+@HasImplicitReceiver
+@Incubating
+@FunctionalInterface
+public interface IsolatedAction<T> extends Serializable {
+    /**
+     * Performs this action against the given object.
+     *
+     * @param target The object to perform the action on.
+     * @since 8.8
+     */
+    void execute(T target);
 }

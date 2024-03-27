@@ -13,25 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * Implementation of {@link org.gradle.api.invocation.Gradle} and related services.
+ */
+@NonNullApi
+package org.gradle.invocation;
 
-package org.gradle.internal.enterprise.impl;
-
-
-import org.gradle.api.Action;
-import org.gradle.api.Project;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.enterprise.DevelocityBuildLifecycleService;
-
-public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLifecycleService {
-
-    private final Gradle gradle;
-
-    public DefaultDevelocityBuildLifecycleService(Gradle gradle) {
-        this.gradle = gradle;
-    }
-
-    @Override
-    public void beforeProject(Action<? super Project> action) {
-        gradle.getLifecycle().beforeProject(action::execute);
-    }
-}
+import org.gradle.api.NonNullApi;
