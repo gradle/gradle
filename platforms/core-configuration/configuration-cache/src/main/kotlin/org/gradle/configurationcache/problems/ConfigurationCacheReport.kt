@@ -227,7 +227,7 @@ class ConfigurationCacheReport(
 
     private
     fun decorateProblem(problem: PropertyProblem, severity: ProblemSeverity): DecoratedPropertyProblem {
-        val failure = problem.exception?.toFailure()
+        val failure = problem.stackTracingFailure
         return DecoratedPropertyProblem(
             problem.trace,
             decorateMessage(problem, failure),
@@ -235,9 +235,6 @@ class ConfigurationCacheReport(
             problem.documentationSection
         )
     }
-
-    private
-    fun Throwable.toFailure() = failureFactory.create(this)
 
     private
     fun decoratedFailureFor(failure: Failure?, severity: ProblemSeverity): DecoratedFailure? {

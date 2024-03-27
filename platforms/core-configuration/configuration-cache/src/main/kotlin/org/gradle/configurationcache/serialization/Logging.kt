@@ -34,7 +34,7 @@ fun IsolateContext.logPropertyProblem(
     documentationSection: DocumentationSection? = null,
     message: StructuredMessageBuilder
 ) {
-    logPropertyProblem(action, PropertyProblem(trace, build(message), null, documentationSection))
+    logPropertyProblem(action, PropertyProblem(trace, build(message), documentationSection = documentationSection))
 }
 
 
@@ -107,7 +107,7 @@ fun IsolateContext.logNotImplemented(feature: String, documentationSection: Docu
             build {
                 text("support for $feature is not yet implemented with the configuration cache.")
             },
-            null, documentationSection
+            documentationSection = documentationSection
         )
     )
 }
@@ -115,7 +115,7 @@ fun IsolateContext.logNotImplemented(feature: String, documentationSection: Docu
 
 private
 fun IsolateContext.logPropertyProblem(documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder) {
-    val problem = PropertyProblem(trace, build(message), null, documentationSection)
+    val problem = PropertyProblem(trace, build(message), documentationSection = documentationSection)
     logPropertyProblem("serialize", problem)
 }
 

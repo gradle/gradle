@@ -19,7 +19,6 @@ package org.gradle.internal.deprecation
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
@@ -33,6 +32,7 @@ import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter
 import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.time.Clock
 import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
@@ -502,14 +502,20 @@ feature1 removal""")
 
     private void useStackTrace(List<StackTraceElement> stackTrace = []) {
         1 * problemStream.forCurrentCaller() >> Stub(ProblemDiagnostics) {
+            _ * getFailure() >> Stub(Failure) {
+                getStackTrace() >> stackTrace
+            }
+            _ * getMinifiedStackTrace() >> stackTrace
             _ * getLocation() >> null
-            _ * getStack() >> stackTrace
         }
     }
 
     private void useLocation(String displayName, int lineNumber, List<StackTraceElement> stackTrace = []) {
         1 * problemStream.forCurrentCaller() >> Stub(ProblemDiagnostics) {
-            _ * getStack() >> stackTrace
+            _ * getFailure() >> Stub(Failure) {
+                getStackTrace() >> stackTrace
+            }
+            _ * getMinifiedStackTrace() >> stackTrace
             _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), lineNumber)
         }
     }
@@ -520,7 +526,7 @@ feature1 removal""")
         progressEvent.details.stackTrace.size() > 0
     }
 
-    private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
-        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, calledFrom)
+    private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary) {
+        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id", "id display name")
     }
 }

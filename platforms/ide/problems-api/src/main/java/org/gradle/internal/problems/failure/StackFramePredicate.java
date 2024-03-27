@@ -19,7 +19,6 @@ package org.gradle.internal.problems.failure;
 public interface StackFramePredicate {
 
     StackFramePredicate USER_CODE = new ForRelevance(StackTraceRelevance.USER_CODE);
-    StackFramePredicate INTERNAL_CODE = new ForRelevance(StackTraceRelevance.INTERNAL);
 
     boolean test(StackTraceElement frame, StackTraceRelevance relevance);
 

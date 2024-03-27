@@ -24,6 +24,7 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
 import org.gradle.internal.problems.failure.StackFramePredicate;
 import org.gradle.problems.Location;
 
@@ -37,6 +38,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
+
+    private static final StackFramePredicate GRADLE_CODE = (frame, relevance) -> InternalStackTraceClassifier.isGradleCall(frame.getClassName());
+
     private final Lock lock = new ReentrantLock();
     private final Map<String, ClassLoaderScopeOrigin.Script> scripts = new HashMap<>();
     private final ClassLoaderScopeRegistryListenerManager listenerManager;
@@ -94,7 +98,8 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
                 // No user code in the stack
                 return null;
             }
-            endPos = failure.indexOfStackFrame(startPos + 1, StackFramePredicate.INTERNAL_CODE);
+            // Treat Gradle code as the boundary to allow stepping over JDK and Groovy calls
+            endPos = failure.indexOfStackFrame(startPos + 1, GRADLE_CODE);
             if (endPos == -1) {
                 endPos = stack.size();
             }

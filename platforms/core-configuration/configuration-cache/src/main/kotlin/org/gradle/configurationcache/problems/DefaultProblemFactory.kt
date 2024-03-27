@@ -37,7 +37,7 @@ class DefaultProblemFactory(
     override fun problem(message: StructuredMessage, exception: Throwable?, documentationSection: DocumentationSection?): PropertyProblem {
         val diagnostics = problemStream.forCurrentCaller(exception)
         val trace = locationForCaller(null, diagnostics)
-        return PropertyProblem(trace, message, diagnostics.failure, documentationSection)
+        return PropertyProblem(trace, message, exception, diagnostics.failure, documentationSection)
     }
 
     override fun problem(consumer: String?, messageBuilder: StructuredMessage.Builder.() -> Unit): ProblemFactory.Builder {
@@ -80,7 +80,7 @@ class DefaultProblemFactory(
                     problemStream.forCurrentCaller { InvalidUserCodeException(exceptionMessage) }
                 }
                 val location = locationMapper(locationForCaller(consumer, diagnostics))
-                return PropertyProblem(location, message, diagnostics.failure, documentationSection)
+                return PropertyProblem(location, message, null, diagnostics.failure, documentationSection)
             }
         }
     }

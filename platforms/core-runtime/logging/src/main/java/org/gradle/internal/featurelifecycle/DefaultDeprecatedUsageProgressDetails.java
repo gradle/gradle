@@ -21,7 +21,6 @@ import org.gradle.api.problems.internal.DocLink;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
-import org.gradle.problems.ProblemDiagnostics;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -32,11 +31,11 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
 
     @VisibleForTesting
     public final DeprecatedFeatureUsage featureUsage;
-    private final ProblemDiagnostics diagnostics;
+    private final List<StackTraceElement> minifiedStackTrace;
 
-    public DefaultDeprecatedUsageProgressDetails(DeprecatedFeatureUsage featureUsage, ProblemDiagnostics diagnostics) {
+    public DefaultDeprecatedUsageProgressDetails(DeprecatedFeatureUsage featureUsage, List<StackTraceElement> minifiedStackTrace) {
         this.featureUsage = featureUsage;
-        this.diagnostics = diagnostics;
+        this.minifiedStackTrace = minifiedStackTrace;
     }
 
     @Override
@@ -72,7 +71,7 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
 
     @Override
     public List<StackTraceElement> getStackTrace() {
-        return diagnostics.getStack();
+        return minifiedStackTrace;
     }
 
     @Override

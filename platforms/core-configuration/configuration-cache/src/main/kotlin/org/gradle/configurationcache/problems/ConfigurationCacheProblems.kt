@@ -42,12 +42,24 @@ import java.io.File
 @ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheProblems(
-    private val startParameter: ConfigurationCacheStartParameter,
-    private val report: ConfigurationCacheReport,
-    private val cacheKey: ConfigurationCacheKey,
-    private val listenerManager: ListenerManager,
-    private val failureFactory: FailureFactory,
+
+    private
+    val startParameter: ConfigurationCacheStartParameter,
+
+    private
+    val report: ConfigurationCacheReport,
+
+    private
+    val cacheKey: ConfigurationCacheKey,
+
+    private
+    val listenerManager: ListenerManager,
+
+    private
+    val failureFactory: FailureFactory,
+
 ) : ProblemsListener, ProblemReporter, AutoCloseable {
+
     private
     val summarizer = ConfigurationCacheProblemsSummary()
 
@@ -122,8 +134,8 @@ class ConfigurationCacheProblems(
             }
 
             override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
-                val failure = failureFactory.create(error)
-                onProblem(PropertyProblem(trace, StructuredMessage.build(message), failure))
+                val stackTracing = failureFactory.create(error)
+                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, stackTracing))
             }
         }
     }

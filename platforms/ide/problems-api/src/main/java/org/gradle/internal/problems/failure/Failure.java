@@ -29,9 +29,6 @@ import java.util.List;
  */
 public interface Failure {
 
-    // TODO: this is available temporarily while we migrate from exceptions to failures where it makes sense
-    Throwable getException();
-
     Class<? extends Throwable> getExceptionType();
 
     /**

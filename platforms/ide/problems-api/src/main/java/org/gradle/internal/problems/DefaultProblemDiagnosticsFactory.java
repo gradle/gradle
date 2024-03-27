@@ -22,6 +22,7 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
+import org.gradle.internal.problems.failure.StackFramePredicate;
 import org.gradle.internal.problems.failure.StackTraceRelevance;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
@@ -86,10 +87,10 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
     @Override
     public ProblemDiagnostics forException(Throwable exception) {
-        return locationFromStackTrace(exception, true, true);
+        return locationFromStackTrace(exception, true);
     }
 
-    private ProblemDiagnostics locationFromStackTrace(@Nullable Throwable throwable, boolean fromException, boolean keepException) {
+    private ProblemDiagnostics locationFromStackTrace(@Nullable Throwable throwable, boolean fromException) {
         UserCodeApplicationContext.Application applicationContext = userCodeContext.current();
 
         if (applicationContext == null && throwable == null) {
@@ -98,21 +99,32 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
         UserCodeSource source = applicationContext != null ? applicationContext.getSource() : null;
         if (throwable == null) {
-            return new DefaultProblemDiagnostics(null, Collections.<StackTraceElement>emptyList(), null, source);
+            return new DefaultProblemDiagnostics(null, null, source);
         }
 
-        Failure failure = getFailure(throwable);
-        Location location = locationAnalyzer.locationForUsage(failure, fromException);
+        Failure stackTracing = getFailure(throwable);
+        Location location = locationAnalyzer.locationForUsage(stackTracing, fromException);
 
-        return new DefaultProblemDiagnostics(keepException ? failure : null, getUserCodeStackTrace(failure), location, source);
+        return new DefaultProblemDiagnostics(stackTracing, location, source);
     }
 
-    private static List<StackTraceElement> getUserCodeStackTrace(final Failure failure) {
+    /**
+     * Returns a subsequence of the stacktrace that contains only user code
+     * and one internal frame that occurs just before the deepest user code
+     * to indicate the API the user is calling into, which ultimately produces the deprecation.
+     */
+    private static List<StackTraceElement> minifedStackTrace(final Failure failure) {
+        int firstUserCodeIndex = failure.indexOfStackFrame(0, StackFramePredicate.USER_CODE);
+        final int preUserCodeIndex = firstUserCodeIndex - 1;
+
         return CollectionUtils.filterIndexed(failure.getStackTrace(), new IndexedSpec<StackTraceElement>() {
             @Override
             public boolean isSatisfiedBy(int index, StackTraceElement element) {
-                StackTraceRelevance relevance = failure.getStackTraceRelevance(index);
-                return relevance.equals(StackTraceRelevance.USER_CODE);
+                if (preUserCodeIndex == index) {
+                    return true;
+                }
+
+                return failure.getStackTraceRelevance(index).equals(StackTraceRelevance.USER_CODE);
             }
         });
     }
@@ -131,20 +143,20 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         @Override
         public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
             if (exception == null) {
-                return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false);
+                return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false);
             } else {
-                return locationFromStackTrace(exception, true, true);
+                return locationFromStackTrace(exception, true);
             }
         }
 
         @Override
         public ProblemDiagnostics forCurrentCaller() {
-            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false);
+            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false);
         }
 
         @Override
         public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
-            return locationFromStackTrace(getImplicitThrowable(exceptionFactory), false, true);
+            return locationFromStackTrace(getImplicitThrowable(exceptionFactory), false);
         }
 
         @Nullable
@@ -158,19 +170,16 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     }
 
     private static class DefaultProblemDiagnostics implements ProblemDiagnostics {
-        private final Failure failure;
-        private final List<StackTraceElement> stackTrace;
+        private final Failure stackTracing;
         private final Location location;
         private final UserCodeSource source;
 
         public DefaultProblemDiagnostics(
-            @Nullable Failure failure,
-            List<StackTraceElement> stackTrace,
+            @Nullable Failure stackTracing,
             @Nullable Location location,
             @Nullable UserCodeSource source
         ) {
-            this.failure = failure;
-            this.stackTrace = stackTrace;
+            this.stackTracing = stackTracing;
             this.location = location;
             this.source = source;
         }
@@ -178,12 +187,12 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         @Nullable
         @Override
         public Failure getFailure() {
-            return failure;
+            return stackTracing;
         }
 
         @Override
-        public List<StackTraceElement> getStack() {
-            return stackTrace;
+        public List<StackTraceElement> getMinifiedStackTrace() {
+            return stackTracing == null ? Collections.<StackTraceElement>emptyList() : minifedStackTrace(stackTracing);
         }
 
         @Nullable

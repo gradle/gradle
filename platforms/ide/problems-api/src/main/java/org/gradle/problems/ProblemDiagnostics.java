@@ -35,12 +35,7 @@ public interface ProblemDiagnostics {
     @Nullable
     Failure getFailure();
 
-    /**
-     * Returns the stack trace that can be reported to the user about where the problem occurred.
-     *
-     * <p>Not every problem has a meaningful stack, even when the problem has an associated exception. Returns an empty list in this case.</p>
-     */
-    List<StackTraceElement> getStack();
+    List<StackTraceElement> getMinifiedStackTrace();
 
     /**
      * Returns the location of the problem, if known.

@@ -47,11 +47,6 @@ class DefaultFailure implements Failure {
     }
 
     @Override
-    public Throwable getException() {
-        return original;
-    }
-
-    @Override
     public Class<? extends Throwable> getExceptionType() {
         return original.getClass();
     }
