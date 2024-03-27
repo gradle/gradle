@@ -1,0 +1,113 @@
+Method org.gradle.api.DomainObjectCollection.withType(java.lang.Class, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.afterEvaluate(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.allprojects(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.ant(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.artifacts(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.copy(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.copySpec(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.exec(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.fileTree(java.lang.Object, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.files(java.lang.Object, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.javaexec(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.project(java.lang.String, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.subprojects(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Project.task(java.lang.String, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Script.exec(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Script.javaexec(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Task.doFirst(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.Task.doLast(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.ArtifactRepositoryContainer.getByName(java.lang.String, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.ArtifactRepositoryContainer.getByName(java.lang.String, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.ComponentSelectionRules.all(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.ComponentSelectionRules.withModule(java.lang.Object, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.Configuration.resolutionStrategy(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.ConfigurationContainer.getByName(java.lang.String, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.ConfigurationContainer.getByName(java.lang.String, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.ModuleDependency.artifact(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.ResolvableDependencies.afterResolve(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.ResolvableDependencies.beforeResolve(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.dsl.ArtifactHandler.add(java.lang.String, java.lang.Object, groovy.lang.Closure) has parameter #3 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.dsl.ComponentMetadataHandler.all(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.dsl.ComponentMetadataHandler.withModule(java.lang.Object, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.dsl.RepositoryHandler.flatDir(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.dsl.RepositoryHandler.ivy(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.dsl.RepositoryHandler.maven(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.result.ResolutionResult.allComponents(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.artifacts.result.ResolutionResult.allDependencies(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.file.CopyProcessingSpec.eachFile(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.file.CopySourceSpec.from(java.lang.Object, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.file.CopySpec.eachFile(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.file.CopySpec.eachFile(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.file.CopySpec.from(java.lang.Object, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.file.CopySpec.from(java.lang.Object, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.file.CopySpec.into(java.lang.Object, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.file.FileTree.matching(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.file.FileTree.visit(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.invocation.Gradle.beforeSettings(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.java.archives.Manifest.from(java.lang.Object, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.java.archives.ManifestMergeSpec.eachEntry(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.plugins.JavaPluginConvention.manifest(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.plugins.JavaPluginExtension.manifest(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.plugins.PluginAware.apply(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.plugins.quality.Checkstyle.reports(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.plugins.quality.Checkstyle.reports(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.plugins.quality.Pmd.reports(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.plugins.quality.Pmd.reports(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.reporting.Reporting.reports(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.GroovySourceSet.groovy(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.ScalaSourceSet.scala(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.SourceSet.java(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.SourceSet.resources(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.Upload.repositories(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.bundling.War.webInf(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.diagnostics.AbstractConfigurationReportTask.reports(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.diagnostics.AbstractConfigurationReportTask.reports(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.javadoc.Javadoc.options(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.testing.AbstractTestTask.testLogging(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.testing.Test.options(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.testing.Test.useJUnit(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.api.tasks.testing.Test.useTestNG(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.configuration.project.ProjectConfigurationActionContainer.add(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.internal.xml.XmlTransformer.addAction(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.jvm.tasks.Jar.manifest(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.jvm.tasks.Jar.metaInf(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.kotlin.dsl.KotlinGradleScriptTemplate.apply(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate.apply(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript.apply(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript.apply(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript.apply(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.kotlin.dsl.support.CompiledKotlinBuildScript.apply(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.kotlin.dsl.support.CompiledKotlinInitScript.apply(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript.apply(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ear.Ear.deploymentDescriptor(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ear.Ear.lib(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ear.EarPluginConvention.deploymentDescriptor(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ear.descriptor.DeploymentDescriptor.withXml(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.api.XmlFileContentMerger.withXml(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseClasspath.file(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseJdt.file(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseModel.classpath(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseModel.jdt(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseModel.project(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseModel.wtp(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseProject.file(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseProject.resourceFilter(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseWtp.component(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseWtp.facet(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent.file(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet.file(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter.matcher(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher.matcher(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.idea.model.IdeaModel.module(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.idea.model.IdeaModel.project(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.idea.model.IdeaModel.workspace(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.idea.model.IdeaModule.iml(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.idea.model.IdeaProject.ipr(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.idea.model.IdeaWorkspace.iws(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject.transformAction(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.internal.generator.PropertyListPersistableConfigurationObject.transformAction(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.transformAction(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.signing.SigningExtension.doSignOperation(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.plugins.signing.SigningExtension.sign(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.test.fixtures.file.TestFile.create(groovy.lang.Closure) has parameter #1 annotated with @DelegatesTo but not annotated with @ClosureParams
+Method org.gradle.test.fixtures.file.TestWorkspaceBuilder.dir(java.lang.String, groovy.lang.Closure) has parameter #2 annotated with @DelegatesTo but not annotated with @ClosureParams
