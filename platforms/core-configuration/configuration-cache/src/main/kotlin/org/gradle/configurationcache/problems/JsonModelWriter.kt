@@ -87,17 +87,22 @@ class JsonModelWriter(val writer: Writer) {
 
     private
     fun writeError(failure: DecoratedFailure) {
+        val summary = failure.summary
+        val parts = failure.parts
         property("error") {
             jsonObject {
-                failure.summary?.let {
+                if (summary != null) {
                     property("summary") {
-                        writeStructuredMessage(it)
+                        writeStructuredMessage(summary)
                     }
-                    comma()
                 }
-                property("parts") {
-                    jsonObjectList(failure.parts) { (isInternal, text) ->
-                        property(if (isInternal) "internalText" else "text", text)
+
+                if (parts != null) {
+                    if (summary != null) comma()
+                    property("parts") {
+                        jsonObjectList(parts) { (isInternal, text) ->
+                            property(if (isInternal) "internalText" else "text", text)
+                        }
                     }
                 }
             }
