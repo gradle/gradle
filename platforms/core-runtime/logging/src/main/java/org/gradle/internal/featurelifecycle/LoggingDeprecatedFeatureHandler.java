@@ -76,7 +76,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     @Override
     public void featureUsed(final DeprecatedFeatureUsage usage) {
         deprecationsFound = true;
-        final ProblemDiagnostics diagnostics = problemStream.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
+        final ProblemDiagnostics diagnostics = problemStream.forCurrentCaller();
         if (warningMode.shouldDisplayMessages()) {
             maybeLogUsage(usage, diagnostics);
         }
@@ -97,10 +97,10 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                         .documentedAt(usage.getDocumentationUrl());
                     addPossibleLocation(diagnostics, problemSpec);
                     problemSpec.severity(WARNING);
-                    if(usage.getAdvice() != null) {
+                    if (usage.getAdvice() != null) {
                         problemSpec.solution(usage.getAdvice());
                     }
-                    if(usage.getContextualAdvice() != null) {
+                    if (usage.getContextualAdvice() != null) {
                         problemSpec.solution(usage.getContextualAdvice());
                     }
                 }

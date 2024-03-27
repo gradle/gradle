@@ -16,19 +16,16 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.gradle.problems.buildtree.ProblemStream;
-
 import java.util.ArrayList;
 import java.util.List;
 
-class StackTraceSanitizer implements ProblemStream.StackTraceTransformer {
+class StackTraceSanitizer {
     private final Class<?> calledFrom;
 
     public StackTraceSanitizer(Class<?> calledFrom) {
         this.calledFrom = calledFrom;
     }
 
-    @Override
     public List<StackTraceElement> transform(StackTraceElement[] originalStack) {
         List<StackTraceElement> result = new ArrayList<StackTraceElement>();
         final String calledFromName = calledFrom.getName();

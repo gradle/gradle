@@ -37,7 +37,7 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         def diagnostics = stream.forCurrentCaller()
 
         then:
-        diagnostics.exception == null
+        diagnostics.failure == null
         assertIsCallerStackTrace(diagnostics.stack)
         diagnostics.location == location
 
@@ -60,7 +60,7 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         def diagnostics = stream.forCurrentCaller(supplier)
 
         then:
-        diagnostics.exception == exception
+        diagnostics.failure == exception
         diagnostics.stack == exception.stackTrace.toList()
         diagnostics.location == location
 
@@ -81,23 +81,23 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
 
         expect:
         def diagnostics1 = stream.forCurrentCaller(transformer)
-        diagnostics1.exception == null
+        diagnostics1.failure == null
         !diagnostics1.stack.empty
 
         def diagnostics2 = stream.forCurrentCaller(transformer)
-        diagnostics2.exception == null
+        diagnostics2.failure == null
         !diagnostics2.stack.empty
 
         def diagnostics3 = stream.forCurrentCaller(transformer)
-        diagnostics3.exception == null
+        diagnostics3.failure == null
         diagnostics3.stack.empty
 
         def diagnostics4 = stream.forCurrentCaller()
-        diagnostics4.exception == null
+        diagnostics4.failure == null
         diagnostics4.stack.empty
 
         def diagnostics5 = stream.forCurrentCaller(supplier)
-        diagnostics5.exception == null
+        diagnostics5.failure == null
         diagnostics5.stack.empty
     }
 
@@ -135,12 +135,12 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
 
         def failure1 = new Exception("broken")
         def diagnostics1 = stream.forCurrentCaller(failure1)
-        diagnostics1.exception == failure1
+        diagnostics1.failure == failure1
         !diagnostics1.stack.empty
 
         def failure2 = new Exception("broken")
         def diagnostics2 = factory.forException(failure2)
-        diagnostics2.exception == failure2
+        diagnostics2.failure == failure2
         !diagnostics2.stack.empty
     }
 

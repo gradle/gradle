@@ -17,6 +17,7 @@
 package org.gradle.problems;
 
 import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.problems.failure.Failure;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -25,13 +26,14 @@ import java.util.List;
  * An immutable set of diagnostic information for a problem.
  */
 public interface ProblemDiagnostics {
+
     /**
-     * Returns an exception that can be thrown when this problem should result in an error.
-     *
-     * <p>Not every problem has a useful exception associated with it.</p>
+     * A failure associated with the problem.
+     * <p>
+     * The failure can be omitted due to limits or not be present in the first place.
      */
     @Nullable
-    Throwable getException();
+    Failure getFailure();
 
     /**
      * Returns the stack trace that can be reported to the user about where the problem occurred.

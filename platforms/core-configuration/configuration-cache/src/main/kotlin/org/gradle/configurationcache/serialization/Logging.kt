@@ -31,11 +31,10 @@ import kotlin.reflect.KClass
 
 fun IsolateContext.logPropertyProblem(
     action: String,
-    exception: Throwable? = null,
     documentationSection: DocumentationSection? = null,
     message: StructuredMessageBuilder
 ) {
-    logPropertyProblem(action, PropertyProblem(trace, build(message), exception, documentationSection))
+    logPropertyProblem(action, PropertyProblem(trace, build(message), null, documentationSection))
 }
 
 
