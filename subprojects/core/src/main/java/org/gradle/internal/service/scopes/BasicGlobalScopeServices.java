@@ -76,7 +76,6 @@ public class BasicGlobalScopeServices {
             fileLockContentionHandler);
     }
 
-
     DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
         return new DefaultFileLockContentionHandler(
             executorFactory,
@@ -130,7 +129,7 @@ public class BasicGlobalScopeServices {
         return patternSpecFactory;
     }
 
-    protected Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
+    Factory<PatternSet> createPatternSetFactory(final PatternSpecFactory patternSpecFactory) {
         return PatternSets.getPatternSetFactory(patternSpecFactory);
     }
 
