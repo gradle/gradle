@@ -36,6 +36,8 @@ kotlin {
             implementation(libs.essenty.lifecycle.coroutines)
             implementation(libs.kotlinx.serialization.json)
 
+            implementation(libs.materialKolor)
+
             implementation(libs.slf4j.api)
             implementation(libs.logback.classic)
 
