@@ -18,14 +18,17 @@ package org.gradle.internal.problems;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.FailureFactory;
+import org.gradle.internal.problems.failure.StackTraceRelevance;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemStream;
+import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.IndexedSpec;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -33,19 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@NonNullApi
 public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
-
-    @NonNullApi
-    private static class CopyStackTraceTransFormer implements ProblemStream.StackTraceTransformer {
-        @Override
-        public List<StackTraceElement> transform(StackTraceElement[] original) {
-            return ImmutableList.copyOf(original);
-        }
-
-    }
-
-    private static final ProblemStream.StackTraceTransformer NO_OP = new CopyStackTraceTransFormer();
 
     private static final Supplier<Throwable> EXCEPTION_FACTORY = new Supplier<Throwable>() {
         @Override
@@ -54,24 +45,28 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
     };
 
+    private final FailureFactory failureFactory;
     private final ProblemLocationAnalyzer locationAnalyzer;
     private final UserCodeApplicationContext userCodeContext;
     private final int maxStackTraces;
 
     @Inject
     public DefaultProblemDiagnosticsFactory(
+        FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext
     ) {
-        this(locationAnalyzer, userCodeContext, 50);
+        this(failureFactory, locationAnalyzer, userCodeContext, 50);
     }
 
     @VisibleForTesting
     DefaultProblemDiagnosticsFactory(
+        FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext,
         int maxStackTraces
     ) {
+        this.failureFactory = failureFactory;
         this.locationAnalyzer = locationAnalyzer;
         this.userCodeContext = userCodeContext;
         this.maxStackTraces = maxStackTraces;
@@ -91,28 +86,42 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
     @Override
     public ProblemDiagnostics forException(Throwable exception) {
-        return locationFromStackTrace(exception, true, true, NO_OP);
+        return locationFromStackTrace(exception, true, true);
     }
 
-    private ProblemDiagnostics locationFromStackTrace(@Nullable Throwable throwable, boolean fromException, boolean keepException, ProblemStream.StackTraceTransformer transformer) {
+    private ProblemDiagnostics locationFromStackTrace(@Nullable Throwable throwable, boolean fromException, boolean keepException) {
         UserCodeApplicationContext.Application applicationContext = userCodeContext.current();
 
         if (applicationContext == null && throwable == null) {
             return NoOpProblemDiagnosticsFactory.EMPTY_DIAGNOSTICS;
         }
 
-        List<StackTraceElement> stackTrace = Collections.emptyList();
-        Location location = null;
-        if (throwable != null) {
-            stackTrace = transformer.transform(throwable.getStackTrace());
-            location = locationAnalyzer.locationForUsage(stackTrace, fromException);
+        UserCodeSource source = applicationContext != null ? applicationContext.getSource() : null;
+        if (throwable == null) {
+            return new DefaultProblemDiagnostics(null, Collections.<StackTraceElement>emptyList(), null, source);
         }
 
-        UserCodeSource source = applicationContext != null ? applicationContext.getSource() : null;
-        return new DefaultProblemDiagnostics(keepException ? throwable : null, stackTrace, location, source);
+        Failure failure = getFailure(throwable);
+        List<StackTraceElement> stackTrace = getUserCodeStackTrace(failure);
+        Location location = locationAnalyzer.locationForUsage(stackTrace, fromException);
+
+        return new DefaultProblemDiagnostics(keepException ? failure : null, stackTrace, location, source);
     }
 
-    @NonNullApi
+    private static List<StackTraceElement> getUserCodeStackTrace(final Failure failure) {
+        return CollectionUtils.filter(failure.getStackTrace(), new IndexedSpec<StackTraceElement>() {
+            @Override
+            public boolean isSatisfiedBy(int index, StackTraceElement element) {
+                StackTraceRelevance relevance = failure.getStackTraceRelevance(index);
+                return relevance.equals(StackTraceRelevance.USER_CODE);
+            }
+        });
+    }
+
+    private Failure getFailure(Throwable throwable) {
+        return failureFactory.create(throwable);
+    }
+
     private class DefaultProblemStream implements ProblemStream {
         private final AtomicInteger remainingStackTraces = new AtomicInteger();
 
@@ -123,25 +132,20 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         @Override
         public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
             if (exception == null) {
-                return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
+                return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false);
             } else {
-                return locationFromStackTrace(exception, true, true, NO_OP);
+                return locationFromStackTrace(exception, true, true);
             }
         }
 
         @Override
         public ProblemDiagnostics forCurrentCaller() {
-            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
+            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false);
         }
 
         @Override
         public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
-            return locationFromStackTrace(getImplicitThrowable(exceptionFactory), false, true, NO_OP);
-        }
-
-        @Override
-        public ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer) {
-            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, transformer);
+            return locationFromStackTrace(getImplicitThrowable(exceptionFactory), false, true);
         }
 
         @Nullable
@@ -154,20 +158,19 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
     }
 
-    @NonNullApi
     private static class DefaultProblemDiagnostics implements ProblemDiagnostics {
-        private final Throwable exception;
+        private final Failure failure;
         private final List<StackTraceElement> stackTrace;
         private final Location location;
         private final UserCodeSource source;
 
         public DefaultProblemDiagnostics(
-            @Nullable Throwable exception,
+            @Nullable Failure failure,
             List<StackTraceElement> stackTrace,
             @Nullable Location location,
             @Nullable UserCodeSource source
         ) {
-            this.exception = exception;
+            this.failure = failure;
             this.stackTrace = stackTrace;
             this.location = location;
             this.source = source;
@@ -175,8 +178,8 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
         @Nullable
         @Override
-        public Throwable getException() {
-            return exception;
+        public Failure getFailure() {
+            return failure;
         }
 
         @Override

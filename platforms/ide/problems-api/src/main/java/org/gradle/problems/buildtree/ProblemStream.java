@@ -20,24 +20,13 @@ import com.google.common.base.Supplier;
 import org.gradle.problems.ProblemDiagnostics;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 public interface ProblemStream {
+
     /**
      * Returns diagnostics based on the state of the calling thread.
-     *
-     * <p>This method is here because stack trace sanitizing is currently performed by the caller.
-     * However, each caller does this in a different way and they all do this in a different way
-     * to the services used by this type.
-     * </p>
-     *
-     * <p>
-     * Stack trace sanitization should be handled by this service and this method removed.
-     * </p>
-     *
-     * @param transformer A transformer to use to sanitize the stack trace.
      */
-    ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer);
+    ProblemDiagnostics forCurrentCaller();
 
     /**
      * Returns diagnostics based on the state of the calling thread.
@@ -48,17 +37,9 @@ public interface ProblemStream {
 
     /**
      * Returns diagnostics based on the state of the calling thread.
-     */
-    ProblemDiagnostics forCurrentCaller();
-
-    /**
-     * Returns diagnostics based on the state of the calling thread.
      *
      * @param exceptionFactory The factory to use to produce an exception when a stack trace is required.
      */
     ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory);
 
-    interface StackTraceTransformer {
-        List<StackTraceElement> transform(StackTraceElement[] original);
-    }
 }

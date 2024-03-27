@@ -18,6 +18,7 @@ package org.gradle.internal.problems;
 
 import com.google.common.base.Supplier;
 import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
@@ -31,7 +32,7 @@ public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory 
     public static final ProblemDiagnostics EMPTY_DIAGNOSTICS = new ProblemDiagnostics() {
         @Nullable
         @Override
-        public Throwable getException() {
+        public Failure getFailure() {
             return null;
         }
 
@@ -55,17 +56,12 @@ public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory 
 
     public static final ProblemStream EMPTY_STREAM = new ProblemStream() {
         @Override
-        public ProblemDiagnostics forCurrentCaller(ProblemStream.StackTraceTransformer transformer) {
+        public ProblemDiagnostics forCurrentCaller() {
             return EMPTY_DIAGNOSTICS;
         }
 
         @Override
         public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
-            return EMPTY_DIAGNOSTICS;
-        }
-
-        @Override
-        public ProblemDiagnostics forCurrentCaller() {
             return EMPTY_DIAGNOSTICS;
         }
 
