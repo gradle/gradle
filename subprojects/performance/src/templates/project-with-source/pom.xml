@@ -20,8 +20,8 @@
             <version>2.5</version>
         </dependency>
         <dependency>
-            <groupId>commons-httpclient</groupId>
-            <artifactId>commons-httpclient</artifactId>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
             <version>4.0</version>
         </dependency>
         <dependency>

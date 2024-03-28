@@ -30,7 +30,7 @@ repositories {
 
 dependencies {
     implementation("commons-lang:commons-lang:2.5")
-    implementation("commons-httpclient:commons-httpclient:4.0")
+    implementation("org.apache.httpcomponents:httpclient:4.0")
     implementation("commons-codec:commons-codec:1.2")
     implementation("org.slf4j:jcl-over-slf4j:1.7.10")
     implementation("org.codehaus.groovy:groovy:2.4.15")

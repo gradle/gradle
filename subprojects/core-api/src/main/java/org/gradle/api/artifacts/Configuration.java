@@ -231,7 +231,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The files of a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> files(Closure dependencySpecClosure);
 
     /**
@@ -245,7 +248,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The files of a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> files(Spec<? super Dependency> dependencySpec);
 
     /**
@@ -259,7 +265,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencies The dependencies to be resolved
      * @return The files of a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> files(Dependency... dependencies);
 
     /**
@@ -273,7 +282,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The FileCollection with a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     FileCollection fileCollection(Spec<? super Dependency> dependencySpec);
 
     /**
@@ -286,7 +298,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The FileCollection with a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     FileCollection fileCollection(Closure dependencySpecClosure);
 
     /**
@@ -300,7 +315,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @param dependencies The dependencies for which the FileCollection should contain the files.
      * @return The FileCollection with a subset of dependencies of this configuration.
+     *
+     * @deprecated Use {@code getIncoming().artifactView(Action)} with a {@code componentFilter} instead.
      */
+    @Deprecated
     FileCollection fileCollection(Dependency... dependencies);
 
     /**
