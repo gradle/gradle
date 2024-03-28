@@ -15,6 +15,7 @@ errorprone {
 
 dependencies {
     api(project(":base-services"))
+    api(project(":base-annotations"))
     api(project(":build-option"))
     api(project(":core-api"))
     api(project(":core"))
@@ -32,7 +33,6 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":base-annotations"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))
     implementation(project(":logging-api"))

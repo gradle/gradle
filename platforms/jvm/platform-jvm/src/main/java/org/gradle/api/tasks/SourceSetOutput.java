@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 
 import javax.annotation.Nullable;
@@ -101,6 +103,15 @@ public interface SourceSetOutput extends FileCollection {
      */
     @Nullable
     File getResourcesDir();
+
+    /**
+     * Returns the output directory for resources.
+     *
+     * @return The dir resources are copied to.
+     * @since 8.7
+     */
+    @Incubating
+    DirectoryProperty getResourcesDirectory();
 
     /**
      * Sets the output directory for resources

@@ -17,14 +17,17 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.provider.support.LazyGroovySupport;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
@@ -37,23 +40,24 @@ import java.util.function.Consumer;
 
 public abstract class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
     private final ConfigurableFileCollection outputDirectories;
-    private Object resourcesDir;
+    private final DirectoryProperty resourcesDirectory;
 
     private final ConfigurableFileCollection classesDirs;
     private final ConfigurableFileCollection dirs;
     private final ConfigurableFileCollection generatedSourcesDirs;
-    private final FileResolver fileResolver;
 
     private DirectoryContribution resourcesContributor;
 
     @Inject
-    public DefaultSourceSetOutput(String sourceSetDisplayName, TaskDependencyFactory taskDependencyFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+    public DefaultSourceSetOutput(String sourceSetDisplayName, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory) {
         super(taskDependencyFactory);
-        this.fileResolver = fileResolver;
 
         this.classesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classesDirs");
 
         this.outputDirectories = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classes");
+
+        this.resourcesDirectory = objectFactory.directoryProperty();
+
         outputDirectories.from(classesDirs, (Callable<File>) this::getResourcesDir);
 
         this.dirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " dirs");
@@ -99,20 +103,22 @@ public abstract class DefaultSourceSetOutput extends CompositeFileCollection imp
     @Override
     @Nullable
     public File getResourcesDir() {
-        if (resourcesDir == null) {
-            return null;
-        }
-        return fileResolver.resolve(resourcesDir);
+        return resourcesDirectory.map(it -> it.getAsFile()).getOrNull();
+    }
+
+    @Override
+    public DirectoryProperty getResourcesDirectory() {
+        return resourcesDirectory;
     }
 
     @Override
     public void setResourcesDir(File resourcesDir) {
-        this.resourcesDir = resourcesDir;
+        getResourcesDirectory().set(resourcesDir);
     }
 
     @Override
     public void setResourcesDir(Object resourcesDir) {
-        this.resourcesDir = resourcesDir;
+        Cast.cast(LazyGroovySupport.class, getResourcesDirectory()).setFromAnyValue(resourcesDir);
     }
 
     public void builtBy(Object... taskPaths) {

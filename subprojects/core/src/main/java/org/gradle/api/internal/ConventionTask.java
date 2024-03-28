@@ -47,6 +47,10 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
         if (conventionMapping == null) {
             org.gradle.api.plugins.Convention convention = DeprecationLogger.whileDisabled(this::getConvention);
             conventionMapping = new ConventionAwareHelper(this, convention);
+            DeprecationLogger.deprecateMethod(ConventionTask.class, "getConventionMapping()")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_access_to_convention_mappings")
+                .nagUser();
         }
         return conventionMapping;
     }

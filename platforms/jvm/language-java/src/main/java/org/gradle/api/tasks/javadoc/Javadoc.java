@@ -19,6 +19,8 @@ package org.gradle.api.tasks.javadoc;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -105,15 +107,19 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
-    private File destinationDir;
+    private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
+
+    private final DirectoryProperty destinationDir = getProject().getObjects().directoryProperty();
+
+    private final DirectoryProperty outputDir = getProject().getObjects().directoryProperty().convention(
+        destinationDir.orElse(getProject().getLayout().dir(getProject().provider(options::getDestinationDirectory)))
+    );
 
     private boolean failOnError = true;
 
-    private String title;
+    private final Property<String> title = getProject().getObjects().property(String.class);
 
     private String maxMemory;
-
-    private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
 
     private FileCollection classpath = getProject().files();
     private final ModularitySpec modularity;
@@ -239,26 +245,32 @@ public abstract class Javadoc extends SourceTask {
      *
      * @return The directory.
      */
-    @Internal
     @Nullable
+    @Internal
     public File getDestinationDir() {
+        return destinationDir.map(Directory::getAsFile).getOrNull();
+    }
+
+    @Internal
+    public DirectoryProperty getDestinationDirProperty() {
         return destinationDir;
     }
 
     @OutputDirectory
+    public DirectoryProperty getOutputDir() {
+        return outputDir;
+    }
+
+    @Internal
     protected File getOutputDirectory() {
-        File destinationDir = getDestinationDir();
-        if (destinationDir == null) {
-            destinationDir = options.getDestinationDirectory();
-        }
-        return destinationDir;
+        return outputDir.map(Directory::getAsFile).getOrNull();
     }
 
     /**
      * <p>Sets the directory to generate the documentation into.</p>
      */
     public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+        this.destinationDir.set(destinationDir);
     }
 
     /**
@@ -288,14 +300,20 @@ public abstract class Javadoc extends SourceTask {
     @Optional
     @Input
     public String getTitle() {
-        return title;
+        return title.getOrNull();
     }
 
     /**
      * <p>Sets the title for the generated documentation.</p>
      */
     public void setTitle(@Nullable String title) {
-        this.title = title;
+        this.title.set(title);
+    }
+
+    @Optional
+    @Input
+    public Property<String> getTitleProperty() {
+        return title;
     }
 
     /**
