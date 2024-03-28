@@ -199,11 +199,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             return subject;
         }
 
-//        @Override
-//        protected String createDefaultDeprecationIdDisplayName() {
-//            return formatSubject();
-//        }
-
         abstract String formatSummary(String subject);
 
         abstract String formatAdvice(T replacement);
@@ -394,8 +389,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return screamingSnakeToKebabCase(StringUtils.join(ids, "-"))
             .replaceAll("[^a-z-]", "-")
             .replaceAll("-+", "-")
-            .replaceAll("^-+|-+$", "")
-            .replaceAll(" has been deprecated", "");
+            .replaceAll("^-+|-+$", "");
     }
 
     public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> {
