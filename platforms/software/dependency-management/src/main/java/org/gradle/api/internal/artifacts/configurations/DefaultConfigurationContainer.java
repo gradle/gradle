@@ -365,6 +365,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private static void validateNameIsAllowed(String name) {
         if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
             DeprecationLogger.deprecateAction("Creating a configuration with a name that starts with 'detachedConfiguration'")
+//                    .withProblemIdDisplayName("")
                     .withAdvice(String.format("Use a different name for the configuration '%s'.", name))
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "reserved_configuration_names")

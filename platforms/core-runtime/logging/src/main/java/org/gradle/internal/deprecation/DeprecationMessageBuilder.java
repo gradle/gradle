@@ -54,7 +54,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return withDeprecationTimeline.undocumented();
     }
 
-    protected String createDefaultDeprecationId() {
+    protected String createDefaultDeprecationIdDisplayName() {
         return summary;
     }
 
@@ -136,7 +136,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     DeprecationMessage build() {
         if (problemIdDisplayName == null) {
-            setProblemIdDisplayName(createDefaultDeprecationId());
+            setProblemIdDisplayName(createDefaultDeprecationIdDisplayName());
         }
 
         return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName, problemId);
@@ -199,6 +199,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             return subject;
         }
 
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return formatSubject();
+//        }
+
         abstract String formatSummary(String subject);
 
         abstract String formatAdvice(T replacement);
@@ -257,10 +262,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.property = property;
         }
 
-        @Override
-        protected String createDefaultDeprecationId() {
-            return createDefaultDeprecationId("property", this.propertyClass.getSimpleName(), this.property);
-        }
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("property", this.propertyClass.getSimpleName(), this.property);
+//        }
 
         @Override
         public WithDeprecationTimeline willBeRemovedInGradle9() {
@@ -312,10 +317,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             setIndirectUsage();
         }
 
-        @Override
-        protected String createDefaultDeprecationId() {
-            return createDefaultDeprecationId("system-property", this.systemProperty);
-        }
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("system-property", this.systemProperty);
+//        }
 
         @Override
         String formatSubject() {
@@ -429,10 +434,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(invocation);
         }
 
-        @Override
-        protected String createDefaultDeprecationId() {
-            return createDefaultDeprecationId("invocation", this.subject);
-        }
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("invocation", this.subject);
+//        }
 
         @Override
         String formatSummary(String invocation) {
@@ -451,10 +456,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(type);
         }
 
-        @Override
-        protected String createDefaultDeprecationId() {
-            return createDefaultDeprecationId("type", this.subject);
-        }
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("type", this.subject);
+//        }
 
         @Override
         String formatSummary(String type) {
@@ -472,10 +477,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(task);
         }
 
-        @Override
-        protected String createDefaultDeprecationId() {
-            return createDefaultDeprecationId("task", this.subject);
-        }
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("task", this.subject);
+//        }
 
         @Override
         String formatSummary(String task) {
@@ -496,10 +501,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.path = path;
         }
 
-        @Override
-        protected String createDefaultDeprecationId() {
-            return createDefaultDeprecationId("task-type", path, this.subject);
-        }
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("task-type", path, this.subject);
+//        }
 
         @Override
         String formatSummary(String type) {
@@ -520,10 +525,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(plugin);
         }
 
-        @Override
-        protected String createDefaultDeprecationId() {
-            return createDefaultDeprecationId("plugin", this.subject);
-        }
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("plugin", this.subject);
+//        }
 
         @Override
         String formatSummary(String plugin) {
@@ -549,10 +554,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(api);
         }
 
-        @Override
-        protected String createDefaultDeprecationId() {
-            return createDefaultDeprecationId("internal-api", this.subject);
-        }
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("internal-api", this.subject);
+//        }
 
         @Override
         String formatSummary(String api) {
@@ -573,10 +578,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.behaviour = behaviour;
         }
 
-        @Override
-        protected String createDefaultDeprecationId() {
-            return createDefaultDeprecationId("behaviour", behaviour);
-        }
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("behaviour", behaviour);
+//        }
 
         /**
          * Output: This behavior is scheduled to be removed in Gradle 9.0.
