@@ -414,7 +414,7 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     protected static int numberOfProblemsWithStacktraceIn(jsModel) {
-        return (jsModel.diagnostics as List<Object>).count { it['error'] != null }
+        return (jsModel.diagnostics as List<Object>).count { it['error']?.getAt('parts') != null }
     }
 
     private static ProblemsSummary extractSummary(String text) {
