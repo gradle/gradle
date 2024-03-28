@@ -29,7 +29,7 @@ public abstract class ExceptionContextVisitor extends TreeVisitor<Throwable> {
      * This method can be used to perform any cleanup or final processing related
      * to the visitor's purpose.
      */
-    protected void uponFinishedVisiting() {
+    protected void endVisiting() {
         // default is no-op
     }
 }

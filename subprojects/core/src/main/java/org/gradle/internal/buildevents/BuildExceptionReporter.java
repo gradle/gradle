@@ -286,7 +286,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
 
         @Override
-        protected void uponFinishedVisiting() {
+        protected void endVisiting() {
             if (suppressedDuplicateBranchCount > 0) {
                 boolean plural = suppressedDuplicateBranchCount > 1;
                 LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);

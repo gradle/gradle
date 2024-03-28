@@ -30,7 +30,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
-        1 * visitor.uponFinishedVisiting()
+        1 * visitor.endVisiting()
         0 * visitor._
 
         and:
@@ -47,7 +47,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
-        1 * visitor.uponFinishedVisiting()
+        1 * visitor.endVisiting()
         1 * visitor.startChildren()
 
         and:
@@ -71,7 +71,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
-        1 * visitor.uponFinishedVisiting()
+        1 * visitor.endVisiting()
         1 * visitor.startChildren()
 
         and:
@@ -100,7 +100,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
-        1 * visitor.uponFinishedVisiting()
+        1 * visitor.endVisiting()
 
         1 * visitor.node(contextual)
         1 * visitor.node(lastContextual)
@@ -126,7 +126,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
-        1 * visitor.uponFinishedVisiting()
+        1 * visitor.endVisiting()
 
         1 * visitor.startChildren()
 
@@ -158,7 +158,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(intermediate2)
-        1 * visitor.uponFinishedVisiting()
+        1 * visitor.endVisiting()
 
         1 * visitor.startChildren()
 
@@ -202,7 +202,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
-        1 * visitor.uponFinishedVisiting()
+        1 * visitor.endVisiting()
 
         3 * visitor.startChildren()
         1 * visitor.node(childCause1)
