@@ -45,17 +45,19 @@ class JsonModelWriter(val writer: Writer) {
         beginArray()
     }
 
-    fun endModel(cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
+    fun endModel(summary: ConfigurationCacheReportDisplaySummary) {
         endArray()
 
         comma()
         property("totalProblemCount") {
-            write(totalProblemCount.toString())
+            write(summary.totalProblemCount.toString())
         }
         comma()
-        property("cacheAction", cacheAction)
+        property("rootName", summary.rootName)
         comma()
-        property("requestedTasks", requestedTasks)
+        property("cacheAction", summary.cacheAction)
+        comma()
+        property("requestedTasks", summary.requestedTasks)
         comma()
         property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
 

@@ -165,9 +165,11 @@ class ConfigurationCacheProblems(
         val summary = summarizer.get()
         val hasNoProblems = summary.problemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
+        val rootName = startParameter.rootProjectName
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, summary.problemCount)
+        val reportSummary = ConfigurationCacheReportDisplaySummary(rootName, cacheActionText, requestedTasks, summary.problemCount)
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, reportSummary)
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
             require(hasNoProblems)

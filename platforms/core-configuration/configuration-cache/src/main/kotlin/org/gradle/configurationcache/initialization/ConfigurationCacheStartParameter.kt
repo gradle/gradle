@@ -131,6 +131,9 @@ class ConfigurationCacheStartParameter(
     val isUpdateDependencyLocks
         get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
 
+    val rootProjectName: String
+        get() = TODO("Getting root project name at BuildTree scope")
+
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
     }
