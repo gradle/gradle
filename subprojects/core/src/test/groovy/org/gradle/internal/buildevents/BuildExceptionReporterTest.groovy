@@ -37,6 +37,8 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import spock.lang.Specification
 
+import java.lang.reflect.Field
+
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
     final StyledTextOutputFactory factory = Mock()
@@ -524,7 +526,10 @@ $GET_HELP
 
     def "multi-cause exceptions have branches with identical root causes summarized properly when ultimate cause is self-caused"() {
         def ultimateCause = new RuntimeException("ultimate cause")
-        ultimateCause.cause = ultimateCause
+        Field field = Throwable.class.getDeclaredField("cause")
+        field.setAccessible(true)
+        field.set(ultimateCause, ultimateCause)
+
         def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
         def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
         Throwable exception = new ContextAwareException(new DefaultLenientConfiguration.ArtifactResolveException("task dependencies", "org:example:1.0", [branch1, branch2]))
