@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import org.gradle.client.ui.build.BuildContent
 import org.gradle.client.ui.buildlist.BuildListContent
+import org.gradle.client.ui.connected.ConnectedContent
 
 @Composable
 fun UiContent(uiComponent: UiComponent) {
@@ -11,6 +12,7 @@ fun UiContent(uiComponent: UiComponent) {
         when (val child = it.instance) {
             is UiComponent.Child.BuildList -> BuildListContent(child.component)
             is UiComponent.Child.Build -> BuildContent(child.component)
+            is UiComponent.Child.Connected -> ConnectedContent(child.component)
         }
     }
 }

@@ -9,10 +9,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.gradle.client.logic.gradle.GradleConnectionParameters
 import org.gradle.client.ui.composables.BackIcon
 import org.gradle.client.ui.composables.Loading
 import org.gradle.client.ui.composables.PathChooserDialog
 import org.gradle.client.ui.composables.PlainTextTooltip
+import org.gradle.client.logic.gradle.GradleDistribution
 import org.gradle.client.ui.theme.plusPaneSpacing
 
 @Composable
@@ -203,8 +205,20 @@ private fun BuildMainContent(component: BuildComponent, model: BuildModel.Loaded
 
         Button(
             enabled = isCanConnect,
-            onClick = {},
-            content = { Text("Connect") }
+            content = { Text("Connect") },
+            onClick = {
+                component.onConnectClicked(
+                    GradleConnectionParameters(
+                        model.build.rootDir.absolutePath,
+                        javaHome,
+                        when (gradleDistSource) {
+                            GradleDistSource.DEFAULT -> GradleDistribution.Default
+                            GradleDistSource.VERSION -> GradleDistribution.Version(gradleDistVersion)
+                            GradleDistSource.LOCAL -> GradleDistribution.Local(gradleDistLocalDir)
+                        }
+                    )
+                )
+            },
         )
     }
 }

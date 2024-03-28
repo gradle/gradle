@@ -6,8 +6,10 @@ import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 import org.gradle.client.logic.database.BuildsRepository
 import org.gradle.client.logic.files.AppDirs
+import org.gradle.client.logic.gradle.GradleConnectionParameters
 import org.gradle.client.ui.build.BuildComponent
 import org.gradle.client.ui.buildlist.BuildListComponent
+import org.gradle.client.ui.connected.ConnectedComponent
 
 class UiComponent(
     context: ComponentContext,
@@ -18,6 +20,7 @@ class UiComponent(
     sealed interface Child {
         class BuildList(val component: BuildListComponent) : Child
         class Build(val component: BuildComponent) : Child
+        class Connected(val component: ConnectedComponent) : Child
     }
 
     private val navigation = StackNavigation<Config>()
@@ -47,7 +50,16 @@ class UiComponent(
                     appDirs = appDirs,
                     buildsRepository = buildsRepository,
                     id = config.id,
+                    onConnect = { inputs -> navigation.push(Config.Connected(inputs)) },
                     onFinished = { navigation.pop() }
+                )
+            )
+
+            is Config.Connected -> Child.Connected(
+                ConnectedComponent(
+                    context = context,
+                    gradleConnectionParameters = config.inputs,
+                    onFinished = { navigation.pop() },
                 )
             )
         }
@@ -59,5 +71,8 @@ class UiComponent(
 
         @Serializable
         data class Build(val id: String) : Config()
+
+        @Serializable
+        data class Connected(val inputs: GradleConnectionParameters) : Config()
     }
 }

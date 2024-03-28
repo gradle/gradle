@@ -13,6 +13,7 @@ import kotlinx.serialization.json.Json
 import org.gradle.client.logic.build.Build
 import org.gradle.client.logic.database.BuildsRepository
 import org.gradle.client.logic.files.AppDirs
+import org.gradle.client.logic.gradle.GradleConnectionParameters
 import org.gradle.client.ui.util.componentScope
 
 sealed interface BuildModel {
@@ -25,6 +26,7 @@ class BuildComponent(
     private val appDirs: AppDirs,
     private val buildsRepository: BuildsRepository,
     private val id: String,
+    private val onConnect: (GradleConnectionParameters) -> Unit,
     private val onFinished: () -> Unit
 ) : ComponentContext by context {
 
@@ -70,6 +72,10 @@ class BuildComponent(
 
     fun onCloseClicked() {
         onFinished()
+    }
+
+    fun onConnectClicked(gradleConnectionParameters: GradleConnectionParameters) {
+        onConnect(gradleConnectionParameters)
     }
 }
 

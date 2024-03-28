@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.sqldelight)
 }
 
@@ -22,6 +23,7 @@ kotlin {
             implementation(libs.sqldelight.extensions.coroutines)
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.driver.sqlite)
+            implementation(libs.kotlinx.serialization.core)
 
             implementation(libs.slf4j.api)
 
