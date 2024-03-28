@@ -500,7 +500,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'MyTask'.")
-        failure.assertHasCause("Class MyPlugin.MyTask is a non-static inner class.")
+        failure.assertHasCause("Class MyPlugin.MyTask is a non-static inner class, it probably captures a variable from the outer scope.")
     }
 
     def 'can run custom task with constructor arguments via Kotlin friendly DSL'() {
@@ -586,7 +586,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             def schema = tasks.collectionSchema.elements.collectEntries { e ->
                 [ e.name, e.publicType.simpleName ]
             }
-            
+
             // check some built-in tasks
             assert schema["help"] == "Help"
             assert schema["projects"] == "ProjectReportTask"
