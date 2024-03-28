@@ -19,14 +19,17 @@ package org.gradle.internal.problems
 import com.google.common.base.Supplier
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
+import org.gradle.internal.problems.failure.DefaultFailureFactory
+import org.gradle.internal.problems.failure.Failure
+import org.gradle.internal.problems.failure.StackTraceClassifier
 import org.gradle.problems.Location
-import org.gradle.problems.buildtree.ProblemStream
 import spock.lang.Specification
 
 class DefaultProblemDiagnosticsFactoryTest extends Specification {
+    def failureFactory = new DefaultFailureFactory(StackTraceClassifier.USER_CODE)
     def locationAnalyzer = Mock(ProblemLocationAnalyzer)
     def userCodeContext = Mock(UserCodeApplicationContext)
-    def factory = new DefaultProblemDiagnosticsFactory(locationAnalyzer, userCodeContext, 2)
+    def factory = new DefaultProblemDiagnosticsFactory(failureFactory, locationAnalyzer, userCodeContext, 2)
 
     def "uses caller's stack trace to calculate problem location"() {
         given:
@@ -37,12 +40,12 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         def diagnostics = stream.forCurrentCaller()
 
         then:
-        diagnostics.exception == null
-        assertIsCallerStackTrace(diagnostics.stack)
+        diagnostics.failure == null
+        assertIsCallerStackTrace(diagnostics.minimizedStackTrace)
         diagnostics.location == location
 
-        1 * locationAnalyzer.locationForUsage(_, false) >> { List<StackTraceElement> trace, b ->
-            assertIsCallerStackTrace(trace)
+        1 * locationAnalyzer.locationForUsage(_, false) >> { Failure failure, b ->
+            assertIsCallerStackTrace(failure.stackTrace)
             location
         }
     }
@@ -60,54 +63,45 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         def diagnostics = stream.forCurrentCaller(supplier)
 
         then:
-        diagnostics.exception == exception
-        diagnostics.stack == exception.stackTrace.toList()
+        diagnostics.failure.header == exception.toString()
+        diagnostics.failure.stackTrace == exception.stackTrace.toList()
         diagnostics.location == location
 
-        1 * locationAnalyzer.locationForUsage(_, false) >> { List<StackTraceElement> trace, b ->
-            assert trace == exception.stackTrace.toList()
+        1 * locationAnalyzer.locationForUsage(_, false) >> { Failure failure, b ->
+            assert failure.stackTrace == exception.stackTrace.toList()
             location
         }
     }
 
     def "does not populate stack traces after limit has been reached"() {
-        def transformer = Stub(ProblemStream.StackTraceTransformer) {
-            transform(_) >> { StackTraceElement[] original -> original.toList() }
-        }
         def supplier = Stub(Supplier) {
             get() >> { throw new Exception() }
         }
         def stream = factory.newStream()
 
         expect:
-        def diagnostics1 = stream.forCurrentCaller(transformer)
-        diagnostics1.exception == null
-        !diagnostics1.stack.empty
+        def diagnostics1 = stream.forCurrentCaller()
+        diagnostics1.failure == null
+        !diagnostics1.minimizedStackTrace.empty
 
-        def diagnostics2 = stream.forCurrentCaller(transformer)
-        diagnostics2.exception == null
-        !diagnostics2.stack.empty
+        def diagnostics2 = stream.forCurrentCaller()
+        diagnostics2.failure == null
+        !diagnostics2.minimizedStackTrace.empty
 
-        def diagnostics3 = stream.forCurrentCaller(transformer)
-        diagnostics3.exception == null
-        diagnostics3.stack.empty
+        def diagnostics3 = stream.forCurrentCaller()
+        diagnostics3.failure == null
+        diagnostics3.minimizedStackTrace.empty
 
         def diagnostics4 = stream.forCurrentCaller()
-        diagnostics4.exception == null
-        diagnostics4.stack.empty
+        diagnostics4.failure == null
+        diagnostics4.minimizedStackTrace.empty
 
         def diagnostics5 = stream.forCurrentCaller(supplier)
-        diagnostics5.exception == null
-        diagnostics5.stack.empty
+        diagnostics5.failure == null
+        diagnostics5.minimizedStackTrace.empty
     }
 
     def "each stream has an independent stack trace limit"() {
-        def transformer = Stub(ProblemStream.StackTraceTransformer) {
-            transform(_) >> { StackTraceElement[] original -> original.toList() }
-        }
-        def supplier = Stub(Supplier) {
-            get() >> { throw new Exception() }
-        }
         def stream1 = factory.newStream()
         def stream2 = factory.newStream()
 
@@ -115,13 +109,13 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         stream1.forCurrentCaller()
 
         expect:
-        !stream1.forCurrentCaller().stack.empty
+        !stream1.forCurrentCaller().minimizedStackTrace.empty
 
-        !stream2.forCurrentCaller().stack.empty
-        !stream2.forCurrentCaller().stack.empty
-        stream2.forCurrentCaller().stack.empty
+        !stream2.forCurrentCaller().minimizedStackTrace.empty
+        !stream2.forCurrentCaller().minimizedStackTrace.empty
+        stream2.forCurrentCaller().minimizedStackTrace.empty
 
-        stream1.forCurrentCaller().stack.empty
+        stream1.forCurrentCaller().minimizedStackTrace.empty
     }
 
     def "keeps stack trace after limit has been reached when diagnostics constructed from exception"() {
@@ -131,17 +125,19 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         stream.forCurrentCaller()
 
         expect:
-        stream.forCurrentCaller().stack.empty
+        stream.forCurrentCaller().minimizedStackTrace.empty
 
         def failure1 = new Exception("broken")
         def diagnostics1 = stream.forCurrentCaller(failure1)
-        diagnostics1.exception == failure1
-        !diagnostics1.stack.empty
+        diagnostics1.failure.header == failure1.toString()
+        diagnostics1.failure.stackTrace == failure1.stackTrace.toList()
+        !diagnostics1.minimizedStackTrace.empty
 
         def failure2 = new Exception("broken")
         def diagnostics2 = factory.forException(failure2)
-        diagnostics2.exception == failure2
-        !diagnostics2.stack.empty
+        diagnostics2.failure.header == failure2.toString()
+        diagnostics2.failure.stackTrace == failure2.stackTrace.toList()
+        !diagnostics2.minimizedStackTrace.empty
     }
 
     def "tracks user code source"() {

@@ -23,7 +23,6 @@ import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
-import org.gradle.internal.featurelifecycle.StackTraceSanitizerTest
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationListener
@@ -33,6 +32,7 @@ import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter
 import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.time.Clock
 import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
@@ -396,7 +396,7 @@ feature1 removal""")
         useStackTrace(fakeStackTrace)
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, StackTraceSanitizerTest)))
+        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT)))
         def events = outputEventListener.events
 
         then:
@@ -410,7 +410,7 @@ feature1 removal""")
 
         where:
         fakeStackTrace = [
-            new StackTraceElement(StackTraceSanitizerTest.name, 'calledFrom', 'FeatureUsageTest.java', 23),
+            new StackTraceElement(DocumentationTest.name, 'calledFrom', 'FeatureUsageTest.java', 23),
             new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
         ]
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
@@ -422,7 +422,7 @@ feature1 removal""")
         useStackTrace()
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, StackTraceSanitizerTest))
+        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT))
         def events = outputEventListener.events
 
         then:
@@ -501,15 +501,21 @@ feature1 removal""")
     }
 
     private void useStackTrace(List<StackTraceElement> stackTrace = []) {
-        1 * problemStream.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
+        1 * problemStream.forCurrentCaller() >> Stub(ProblemDiagnostics) {
+            _ * getFailure() >> Stub(Failure) {
+                getStackTrace() >> stackTrace
+            }
+            _ * getMinimizedStackTrace() >> stackTrace
             _ * getLocation() >> null
-            _ * getStack() >> stackTrace
         }
     }
 
     private void useLocation(String displayName, int lineNumber, List<StackTraceElement> stackTrace = []) {
-        1 * problemStream.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
-            _ * getStack() >> stackTrace
+        1 * problemStream.forCurrentCaller() >> Stub(ProblemDiagnostics) {
+            _ * getFailure() >> Stub(Failure) {
+                getStackTrace() >> stackTrace
+            }
+            _ * getMinimizedStackTrace() >> stackTrace
             _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), lineNumber)
         }
     }
@@ -520,7 +526,7 @@ feature1 removal""")
         progressEvent.details.stackTrace.size() > 0
     }
 
-    private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
-        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, calledFrom)
+    private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary) {
+        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT)
     }
 }

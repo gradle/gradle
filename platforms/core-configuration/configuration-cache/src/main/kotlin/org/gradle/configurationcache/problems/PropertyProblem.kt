@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.problems
 
 import org.gradle.internal.DisplayName
+import org.gradle.internal.problems.failure.Failure
 import kotlin.reflect.KClass
 
 
@@ -26,7 +27,7 @@ import kotlin.reflect.KClass
 data class PropertyProblem internal constructor(
     val trace: PropertyTrace,
     val message: StructuredMessage,
-    val exception: Throwable? = null,
+    val failure: Failure? = null,
     val documentationSection: DocumentationSection? = null
 )
 

@@ -29,6 +29,9 @@ import java.util.List;
  */
 public interface Failure {
 
+    // TODO: this is available temporarily while we migrate from exceptions to failures where it makes sense
+    Throwable getException();
+
     Class<? extends Throwable> getExceptionType();
 
     /**
@@ -59,5 +62,10 @@ public interface Failure {
      * There could be more than one cause if the failure was derived from a {@link org.gradle.internal.exceptions.MultiCauseException}.
      */
     List<Failure> getCauses();
+
+    /**
+     * Returns the index of the first matching frame in the stack trace, or {@code -1} if not found.
+     */
+    int indexOfStackFrame(int start, StackFramePredicate predicate);
 
 }

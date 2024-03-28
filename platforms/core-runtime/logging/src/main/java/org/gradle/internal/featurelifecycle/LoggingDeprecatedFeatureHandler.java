@@ -32,6 +32,7 @@ import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
@@ -76,7 +77,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     @Override
     public void featureUsed(final DeprecatedFeatureUsage usage) {
         deprecationsFound = true;
-        final ProblemDiagnostics diagnostics = problemStream.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
+        final ProblemDiagnostics diagnostics = problemStream.forCurrentCaller();
         if (warningMode.shouldDisplayMessages()) {
             maybeLogUsage(usage, diagnostics);
         }
@@ -97,10 +98,10 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                         .documentedAt(usage.getDocumentationUrl());
                     addPossibleLocation(diagnostics, problemSpec);
                     problemSpec.severity(WARNING);
-                    if(usage.getAdvice() != null) {
+                    if (usage.getAdvice() != null) {
                         problemSpec.solution(usage.getAdvice());
                     }
-                    if(usage.getContextualAdvice() != null) {
+                    if (usage.getContextualAdvice() != null) {
                         problemSpec.solution(usage.getContextualAdvice());
                     }
                 }
@@ -121,7 +122,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
         String featureMessage = usage.formattedMessage();
         Location location = diagnostics.getLocation();
-        if (!loggedUsages.add(featureMessage) && location == null && diagnostics.getStack().isEmpty()) {
+        if (!loggedUsages.add(featureMessage) && location == null && diagnostics.getMinimizedStackTrace().isEmpty()) {
             // This usage does not contain any useful diagnostics and the usage has already been logged, so skip it
             return;
         }
@@ -131,14 +132,16 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             message.append(SystemProperties.getInstance().getLineSeparator());
         }
         message.append(featureMessage);
-        if (location != null && !loggedUsages.add(message.toString()) && diagnostics.getStack().isEmpty()) {
+        if (location != null && !loggedUsages.add(message.toString()) && diagnostics.getMinimizedStackTrace().isEmpty()) {
             // This usage has no stack trace and has already been logged with the same location, so skip it
             return;
         }
-        displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics.getStack());
+        displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics);
     }
 
-    private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder message, List<StackTraceElement> callStack) {
+    private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder message, ProblemDiagnostics diagnostics) {
+        List<StackTraceElement> callStack = selectStackTrace(diagnostics);
+
         // Let's cut the first 10 lines of stack traces as the "key" to identify a deprecation message uniquely.
         // Even when two deprecation messages are emitted from the same location,
         // the stack traces at very bottom might be different due to thread pool scheduling.
@@ -146,6 +149,15 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (loggedMessages.add(message.toString())) {
             appendLogTraceIfNecessary(message, callStack, 10, callStack.size());
             LOGGER.warn(message.toString());
+        }
+    }
+
+    private static List<StackTraceElement> selectStackTrace(ProblemDiagnostics diagnostics) {
+        Failure failure = diagnostics.getFailure();
+        if (isTraceLoggingEnabled() && failure != null) {
+            return failure.getStackTrace();
+        } else {
+            return diagnostics.getMinimizedStackTrace();
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.util.internal;
 
-package org.gradle.internal.featurelifecycle;
+import org.gradle.api.NonNullApi;
 
 /**
- * An immutable description of the usage of a deprecated feature.
+ * Represents some predicate against objects of type T with a position in an iterable collection.
+ *
+ * @param <T> The target type for this spec
  */
-public abstract class FeatureUsage {
-    private final String summary;
-
-    protected FeatureUsage(String summary) {
-        this.summary = summary;
-    }
-
-    /**
-     * A concise sentence summarising the usage.
-     *
-     * Example: Method Foo.bar() has been deprecated.
-     */
-    public String getSummary() {
-        return summary;
-    }
-
-    public String formattedMessage() {
-        return summary;
-    }
+@NonNullApi
+public interface IndexedSpec<T> {
+    boolean isSatisfiedBy(int index, T element);
 }

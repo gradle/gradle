@@ -27,6 +27,7 @@ import static org.gradle.util.internal.CollectionUtils.compact
 import static org.gradle.util.internal.CollectionUtils.diffSetsBy
 import static org.gradle.util.internal.CollectionUtils.every
 import static org.gradle.util.internal.CollectionUtils.filter
+import static org.gradle.util.internal.CollectionUtils.filterIndexed
 import static org.gradle.util.internal.CollectionUtils.flattenCollections
 import static org.gradle.util.internal.CollectionUtils.groupBy
 import static org.gradle.util.internal.CollectionUtils.inject
@@ -399,6 +400,19 @@ class CollectionUtilsTest extends Specification {
         groupBy(["a", "b", "c"], transformer { it.toUpperCase() }) == ["A": ["a"], "B": ["b"], "C": ["c"]]
         groupBy([], transformer { throw new AssertionError("shouldn't be called") }).isEmpty()
     }
+
+    def "indexed list filtering"() {
+        given:
+        IndexedSpec<Integer> spec = { index, it -> index % 2 == 0 && it < 5 }
+        def filter = { Integer[] nums -> filterIndexed(nums as List, spec) }
+
+        expect:
+        filter(1, 2, 3, 4) == [1, 3]
+        filter(7, 8, 9, 10) == []
+        filter() == []
+        filter(4, 5, 6) == [4]
+    }
+
     def unpack() {
         expect:
         unpack([{ 1 } as org.gradle.internal.Factory, { 2 } as org.gradle.internal.Factory, { 3 } as org.gradle.internal.Factory]).toList() == [1, 2, 3]

@@ -20,6 +20,8 @@ import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
 import org.gradle.internal.Describables
+import org.gradle.internal.problems.failure.Failure
+import org.gradle.internal.problems.failure.StackTraceRelevance
 import spock.lang.Specification
 
 class DefaultProblemLocationAnalyzerTest extends Specification {
@@ -31,6 +33,12 @@ class DefaultProblemLocationAnalyzerTest extends Specification {
     def elementWithNoLineNumber = new StackTraceElement("class", "method", "filename", -1)
 
     def 'uses location info from deepest stack frame with matching source file and line information'() {
+        def stack = [elementWithNoSourceFile, elementWithNoLineNumber, otherElement, element, callerElement]
+        def failure = Mock(Failure) {
+            getStackTrace() >> stack
+            getStackTraceRelevance(_) >> StackTraceRelevance.USER_CODE
+            indexOfStackFrame(_, _) >> { start, predicate -> stack.findIndexOf(start) { predicate.test(it, StackTraceRelevance.USER_CODE) } }
+        }
         def longDisplayName = Describables.of("<long source>")
         def shortDisplayName = Describables.of("<short source>")
 
@@ -38,7 +46,7 @@ class DefaultProblemLocationAnalyzerTest extends Specification {
         analyzer.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId), new ClassLoaderScopeOrigin.Script("filename", longDisplayName, shortDisplayName))
 
         when:
-        def location = analyzer.locationForUsage([elementWithNoSourceFile, elementWithNoLineNumber, otherElement, element, callerElement], false)
+        def location = analyzer.locationForUsage(failure, false)
 
         then:
         location.sourceLongDisplayName == longDisplayName

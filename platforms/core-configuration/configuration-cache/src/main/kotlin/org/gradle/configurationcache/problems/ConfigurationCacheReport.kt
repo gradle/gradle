@@ -27,7 +27,6 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream
 import org.gradle.internal.problems.failure.Failure
-import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
@@ -42,8 +41,7 @@ import kotlin.contracts.contract
 class ConfigurationCacheReport(
     executorFactory: ExecutorFactory,
     temporaryFileProvider: TemporaryFileProvider,
-    internalOptions: InternalOptions,
-    private val failureFactory: FailureFactory
+    internalOptions: InternalOptions
 ) : Closeable {
 
     companion object {
@@ -219,19 +217,13 @@ class ConfigurationCacheReport(
 
     private
     fun decorateProblem(problem: PropertyProblem): DecoratedPropertyProblem {
-        val exception = problem.exception
-        val failure = exception?.toFailure()
+        val failure = problem.failure
         return DecoratedPropertyProblem(
             problem.trace,
             decorateMessage(problem, failure),
             failure?.let { failureDecorator.decorate(it) },
             problem.documentationSection
         )
-    }
-
-    private
-    fun Throwable.toFailure(): Failure {
-        return failureFactory.create(this)
     }
 
     private

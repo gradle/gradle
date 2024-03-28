@@ -136,6 +136,9 @@ public abstract class CollectionUtils {
         return filter(Arrays.asList(array), Lists.<T>newArrayListWithCapacity(array.length), filter);
     }
 
+    public static <T> List<T> filterIndexed(List<? extends T> list, IndexedSpec<? super T> filter) {
+        return filterIndexed(list, Lists.<T>newArrayListWithCapacity(list.size()), filter);
+    }
 
     /**
      * Returns a sorted copy of the provided collection of things. Uses the provided comparator to sort.
@@ -160,6 +163,17 @@ public abstract class CollectionUtils {
             if (filter.isSatisfiedBy(item)) {
                 destination.add(item);
             }
+        }
+        return destination;
+    }
+
+    public static <T, C extends Collection<T>> C filterIndexed(Iterable<? extends T> source, C destination, IndexedSpec<? super T> filter) {
+        int index = 0;
+        for (T item : source) {
+            if (filter.isSatisfiedBy(index, item)) {
+                destination.add(item);
+            }
+            index++;
         }
         return destination;
     }

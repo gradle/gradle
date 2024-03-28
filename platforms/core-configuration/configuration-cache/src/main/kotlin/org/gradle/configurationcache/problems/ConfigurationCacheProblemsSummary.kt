@@ -123,7 +123,7 @@ class Summary private constructor(
         val newUniqueProblems = uniqueProblems.__insert(uniqueProblem)
         val newCauses = problem
             .takeIf { newUniqueProblems !== uniqueProblems && causes.size < maxCauses }
-            ?.exception?.let { causes + it }
+            ?.failure?.exception?.let { causes + it }
             ?: causes
         return Summary(
             newProblemCount,
