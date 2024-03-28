@@ -35,8 +35,8 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'build.gradle.kts': Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle.kts': Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle.kts': Cannot access 'plugins' on project ':a' from project ':'")
+            problem("Build file 'build.gradle.kts': Cannot access 'plugins' on project ':b' from project ':'")
         }
 
         where:
@@ -66,8 +66,10 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'build.gradle.kts': Cannot access project ':a' from project ':'", 3)
-            problem("Build file 'build.gradle.kts': Cannot access project ':b' from project ':'", 3)
+            problem("Build file 'build.gradle.kts': Cannot access 'extensions' on project ':a' from project ':'", 2)
+            problem("Build file 'build.gradle.kts': Cannot access 'extensions' on project ':b' from project ':'", 2)
+            problem("Build file 'build.gradle.kts': Cannot access 'plugins' on project ':a' from project ':'", 1)
+            problem("Build file 'build.gradle.kts': Cannot access 'plugins' on project ':b' from project ':'", 1)
         }
 
         where:
@@ -93,7 +95,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             accessedProjects.each {
-                problem("Build file 'a/build.gradle.kts': Cannot access project '$it' from project ':a'")
+                problem("Build file 'a/build.gradle.kts': Cannot access 'buildDir' on project '$it' from project ':a'")
             }
         }
 
@@ -121,8 +123,8 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'a/build.gradle.kts': Cannot access project ':' from project ':a'")
-            problem("Build file 'a/build.gradle.kts': Cannot access project ':b' from project ':a'")
+            problem("Build file 'a/build.gradle.kts': Cannot access 'buildDir' on project ':' from project ':a'")
+            problem("Build file 'a/build.gradle.kts': Cannot access 'buildDir' on project ':b' from project ':a'")
         }
     }
 }
