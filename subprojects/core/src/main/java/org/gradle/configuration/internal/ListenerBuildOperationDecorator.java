@@ -23,14 +23,17 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Decorates listener functions/objects to fire {@link ExecuteListenerBuildOperationType} build operations when later executed.
- *
+ * <p>
  * Works in conjunction with {@link UserCodeApplicationContext} to attach the current user code application ID
  * to the listener, in order to convey it as part of the operation details.
  * This allows tracking the listener back to the plugin or script that <i>registered</i> it.
  */
+@ServiceScope(Scope.CrossBuildSession.class)
 public interface ListenerBuildOperationDecorator {
 
     /**
