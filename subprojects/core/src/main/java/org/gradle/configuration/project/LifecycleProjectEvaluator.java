@@ -25,7 +25,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.util.Path;
 
@@ -53,12 +53,12 @@ import java.io.File;
  * @see ProjectEvaluationListener
  */
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final ProjectEvaluator delegate;
     private final BuildCancellationToken cancellationToken;
 
-    public LifecycleProjectEvaluator(BuildOperationExecutor buildOperationExecutor, ProjectEvaluator delegate, BuildCancellationToken cancellationToken) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public LifecycleProjectEvaluator(BuildOperationRunner buildOperationRunner, ProjectEvaluator delegate, BuildCancellationToken cancellationToken) {
+        this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
         this.cancellationToken = cancellationToken;
     }
@@ -69,7 +69,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             if (cancellationToken.isCancellationRequested()) {
                 throw new BuildCancelledException();
             }
-            buildOperationExecutor.run(new EvaluateProject(project, state));
+            buildOperationRunner.run(new EvaluateProject(project, state));
         }
     }
 
@@ -101,7 +101,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
                 // Note: beforeEvaluate and afterEvaluate ops do not throw, instead mark state as failed
                 try {
                     state.toBeforeEvaluate();
-                    buildOperationExecutor.run(new NotifyBeforeEvaluate(project, state));
+                    buildOperationRunner.run(new NotifyBeforeEvaluate(project, state));
 
                     if (!state.hasFailure()) {
                         state.toEvaluate();
@@ -111,7 +111,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
                             addConfigurationFailure(project, state, e, context);
                         } finally {
                             state.toAfterEvaluate();
-                            buildOperationExecutor.run(new NotifyAfterEvaluate(project, state));
+                            buildOperationRunner.run(new NotifyAfterEvaluate(project, state));
                         }
                     }
 

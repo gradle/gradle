@@ -25,7 +25,6 @@ import static org.hamcrest.CoreMatchers.equalTo
 
 abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     TestFile testFile = file('src/test/java/org/gradle/SomeTest.java')
-    abstract String getMaybePackagePrefix()
 
     def setup() {
         executer.noExtraLogging()
@@ -91,7 +90,7 @@ abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestin
 
         then:
         outputContains("""
-            ${maybePackagePrefix}SomeTest > ${maybeParentheses('badTest')} FAILED
+            SomeTest > ${maybeParentheses('badTest')} FAILED
                 java.lang.RuntimeException at SomeTest.java:${lineNumberOf('RuntimeException("bad")')}
         """.stripIndent())
     }
@@ -112,7 +111,7 @@ abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestin
 
         outputContains("${maybeParentheses('ignoredTest')} SKIPPED")
 
-        outputContains("${maybePackagePrefix}SomeTest FAILED")
+        outputContains("SomeTest FAILED")
     }
 
     def "standard output logging"() {

@@ -214,11 +214,10 @@ The Kotlin DSL replaces such dynamic resolution with type-safe model accessors t
 The Kotlin DSL currently supports type-safe model accessors for any of the following that are contributed by plugins:
 
 * Dependency and artifact configurations (such as `implementation` and `runtimeOnly` contributed by the Java Plugin)
-* Project extensions and conventions (such as `sourceSets`)
-* Extensions on the `dependencies` and `repositories` containers
+* Project extensions and conventions (such as `sourceSets`), and extensions on them
+* Extensions on the `dependencies` and `repositories` containers, and extensions on them
 * Elements in the `tasks` and `configurations` containers
 * Elements in <<kotdsl:containers,project-extension containers>> (for example the source sets contributed by the Java Plugin that are added to the `sourceSets` container)
-* Extensions on each of the above
 
 [IMPORTANT]
 ====

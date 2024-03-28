@@ -23,14 +23,14 @@ import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.work.ProjectParallelExecutionController
 import spock.lang.Specification
 
 import java.util.function.Function
 
 class BuildTreeStateTest extends Specification {
-    def listenerManager = new DefaultListenerManager(Scopes.BuildSession)
+    def listenerManager = new DefaultListenerManager(Scope.BuildSession)
     def actionExecutor = Mock(BuildTreeActionExecutor)
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
     BuildTreeState state

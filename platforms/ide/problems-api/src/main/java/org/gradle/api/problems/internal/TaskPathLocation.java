@@ -18,7 +18,6 @@ package org.gradle.api.problems.internal;
 
 /**
  * Task path location.
- *
  */
 public interface TaskPathLocation extends ProblemLocation {
 

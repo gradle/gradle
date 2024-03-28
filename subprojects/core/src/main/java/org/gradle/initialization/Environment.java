@@ -16,7 +16,7 @@
 
 package org.gradle.initialization;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
@@ -28,7 +28,7 @@ import java.util.Map;
  *
  * Access to resources will be tracked when storing to the configuration cache.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface Environment {
 
     /**

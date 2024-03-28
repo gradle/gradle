@@ -26,7 +26,6 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.BuildCacheKeyInternal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.resource.local.PathKeyFileStore;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,8 +36,8 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
 
     private final DirectoryBuildCache cache;
 
-    public DirectoryBuildCacheService(PathKeyFileStore fileStore, PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
-        this.cache = new DirectoryBuildCache(fileStore, persistentCache, tempFileStore, fileAccessTracker, failedFileSuffix);
+    public DirectoryBuildCacheService(PersistentCache persistentCache, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
+        this.cache = new DirectoryBuildCache(persistentCache, fileAccessTracker, failedFileSuffix);
     }
 
     @Override

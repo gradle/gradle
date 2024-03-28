@@ -40,7 +40,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
@@ -93,7 +93,7 @@ class StandardKotlinScriptEvaluator(
     private val classpathHasher: ClasspathHasher,
     private val implicitImports: ImplicitImports,
     private val progressLoggerFactory: ProgressLoggerFactory,
-    private val buildOperationExecutor: BuildOperationExecutor,
+    private val buildOperationRunner: BuildOperationRunner,
     private val cachedClasspathTransformer: CachedClasspathTransformer,
     private val scriptExecutionListener: ScriptExecutionListener,
     private val executionEngine: ExecutionEngine,
@@ -114,7 +114,6 @@ class StandardKotlinScriptEvaluator(
         options: EvalOptions
     ) {
         withOptions(options) {
-
             interpreter.eval(
                 target,
                 scriptSource,
@@ -173,7 +172,7 @@ class StandardKotlinScriptEvaluator(
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
 
-            buildOperationExecutor.call(object : CallableBuildOperation<String> {
+            buildOperationRunner.call(object : CallableBuildOperation<String> {
 
                 override fun call(context: BuildOperationContext): String =
                     action().also {
@@ -387,8 +386,8 @@ class StandardKotlinScriptEvaluator(
             }
         }
 
-        override fun instrumentedJar(workspace: File): File {
-            return File(workspace, "instrumented/classes.jar")
+        override fun instrumentedOutput(workspace: File): File {
+            return File(workspace, "instrumented/classes")
         }
     }
 }

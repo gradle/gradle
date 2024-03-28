@@ -70,10 +70,10 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         events.tests.findAll { it.descriptor.displayName == "Test foo(example.MyTest)" }.size() == 2
         events.tests.findAll { it.descriptor.displayName == "Test foo2(example.MyTest)" }.size() == 2
         if (supportsEfficientClassFiltering()) {
-            events.tests.size() == 10
+            assert events.tests.size() == 10
         } else {
-            events.tests.findAll { it.descriptor.displayName == "Test class example2.MyOtherTest" }.size() == 2
-            events.tests.size() == 12
+            assert events.tests.findAll { it.descriptor.displayName == "Test class example2.MyOtherTest" }.size() == 2
+            assert events.tests.size() == 12
         }
     }
 
@@ -91,10 +91,10 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         if (supportsEfficientClassFiltering()) {
-            events.tests.size() == 10
+            assert events.tests.size() == 10
             assertTestNotExecuted(className: "example2.MyOtherTest")
         } else {
-            events.tests.size() == 12
+            assert events.tests.size() == 12
             assertTestExecuted(className: "example2.MyOtherTest")
         }
 

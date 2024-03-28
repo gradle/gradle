@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":core-api"))
     implementation(project(":core"))
+    implementation(project(":core-jvm"))
     implementation(project(":dependency-management"))
     implementation(project(":build-option"))
     implementation(project(":problems-api"))

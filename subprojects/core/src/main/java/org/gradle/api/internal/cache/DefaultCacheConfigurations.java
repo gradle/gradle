@@ -49,6 +49,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private static final String SNAPSHOT_WRAPPERS = "snapshotWrappers";
     private static final String DOWNLOADED_RESOURCES = "downloadedResources";
     private static final String CREATED_RESOURCES = "createdResources";
+    private static final String BUILD_CACHE = "buildCache";
     static final String UNSAFE_MODIFICATION_ERROR = "The property '%s' was modified from an unsafe location (for instance a settings script or plugin).  " +
         "This property can only be changed in an init script, preferably stored in the init.d directory inside the Gradle user home directory. " +
         DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information on this", "directory_layout", "dir:gradle_user_home:configure_cache_cleanup");
@@ -57,6 +58,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private final CacheResourceConfigurationInternal snapshotWrappersConfiguration;
     private final CacheResourceConfigurationInternal downloadedResourcesConfiguration;
     private final CacheResourceConfigurationInternal createdResourcesConfiguration;
+    private final CacheResourceConfigurationInternal buildCacheConfiguration;
     private final Property<Cleanup> cleanup;
     private final Property<MarkingStrategy> markingStrategy;
     private final LegacyCacheCleanupEnablement legacyCacheCleanupEnablement;
@@ -69,6 +71,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, SNAPSHOT_WRAPPERS, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
         this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DOWNLOADED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, CREATED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
+        this.buildCacheConfiguration = createResourceConfiguration(objectFactory, BUILD_CACHE, DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES);
         this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup").convention(createCleanupConvention());
         this.markingStrategy = new ContextualErrorMessageProperty<>(propertyHost, MarkingStrategy.class, "markingStrategy").convention(MarkingStrategy.CACHEDIR_TAG);
         this.legacyCacheCleanupEnablement = legacyCacheCleanupEnablement;
@@ -125,6 +128,16 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
+    public void buildCache(Action<? super CacheResourceConfiguration> cacheConfiguration) {
+        cacheConfiguration.execute(buildCacheConfiguration);
+    }
+
+    @Override
+    public CacheResourceConfigurationInternal getBuildCache() {
+        return buildCacheConfiguration;
+    }
+
+    @Override
     public Property<Cleanup> getCleanup() {
         return cleanup;
     }
@@ -147,6 +160,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         persistentCacheConfigurations.getSnapshotWrappers().getRemoveUnusedEntriesOlderThan().value(getSnapshotWrappers().getRemoveUnusedEntriesOlderThan());
         persistentCacheConfigurations.getDownloadedResources().getRemoveUnusedEntriesOlderThan().value(getDownloadedResources().getRemoveUnusedEntriesOlderThan());
         persistentCacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThan().value(getCreatedResources().getRemoveUnusedEntriesOlderThan());
+        persistentCacheConfigurations.getBuildCache().getRemoveUnusedEntriesOlderThan().value(getBuildCache().getRemoveUnusedEntriesOlderThan());
         persistentCacheConfigurations.getCleanup().value(getCleanup());
         persistentCacheConfigurations.getMarkingStrategy().value(getMarkingStrategy());
     }
@@ -163,6 +177,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         snapshotWrappersConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         downloadedResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         createdResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
+        buildCacheConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         getCleanup().finalizeValue();
         getMarkingStrategy().finalizeValue();
     }

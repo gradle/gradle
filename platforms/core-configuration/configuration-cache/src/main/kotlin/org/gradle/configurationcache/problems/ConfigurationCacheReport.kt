@@ -26,20 +26,24 @@ import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.HashingOutputStream
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.problems.failure.Failure
+import org.gradle.internal.problems.failure.FailureFactory
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
 import java.io.File
 import java.nio.file.Files
+import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import kotlin.contracts.contract
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 class ConfigurationCacheReport(
     executorFactory: ExecutorFactory,
     temporaryFileProvider: TemporaryFileProvider,
-    internalOptions: InternalOptions
+    internalOptions: InternalOptions,
+    private val failureFactory: FailureFactory
 ) : Closeable {
 
     companion object {
@@ -127,12 +131,16 @@ class ConfigurationCacheReport(
             }
 
             override fun commitReportTo(outputDirectory: File, cacheAction: String, requestedTasks: String, totalProblemCount: Int): Pair<State, File?> {
-                lateinit var reportFile: File
-                executor.submit {
-                    closeHtmlReport(cacheAction, requestedTasks, totalProblemCount)
-                    reportFile = moveSpoolFileTo(outputDirectory)
+                val reportFile = try {
+                    executor
+                        .submit(Callable {
+                            closeHtmlReport(cacheAction, requestedTasks, totalProblemCount)
+                            moveSpoolFileTo(outputDirectory)
+                        })
+                        .get(30, TimeUnit.SECONDS)
+                } finally {
+                    executor.shutdownAndAwaitTermination()
                 }
-                executor.shutdownAndAwaitTermination()
                 return Closed to reportFile
             }
 
@@ -157,11 +165,13 @@ class ConfigurationCacheReport(
             private
             fun ManagedExecutor.shutdownAndAwaitTermination() {
                 shutdown()
-                if (!awaitTermination(30, TimeUnit.SECONDS)) {
+                if (!awaitTermination(1, TimeUnit.SECONDS)) {
+                    val unfinishedTasks = shutdownNow()
                     logger.warn(
                         "Configuration cache report is taking too long to write... "
                             + "The build might finish before the report has been completely written."
                     )
+                    logger.info("Unfinished tasks: {}", unfinishedTasks)
                 }
             }
 
@@ -205,31 +215,34 @@ class ConfigurationCacheReport(
     val stateLock = Object()
 
     private
-    val stackTraceExtractor = StackTraceExtractor()
-
-    private
-    val exceptionDecorator = ExceptionDecorator(stackTraceExtractor::stackTraceStringFor)
+    val failureDecorator = FailureDecorator()
 
     private
     fun decorateProblem(problem: PropertyProblem): DecoratedPropertyProblem {
         val exception = problem.exception
+        val failure = exception?.toFailure()
         return DecoratedPropertyProblem(
             problem.trace,
-            decorateMessage(problem),
-            exception?.let { exceptionDecorator.decorateException(it) },
+            decorateMessage(problem, failure),
+            failure?.let { failureDecorator.decorate(it) },
             problem.documentationSection
         )
     }
 
     private
-    fun decorateMessage(problem: PropertyProblem): StructuredMessage {
-        if (!isStacktraceHashes || problem.exception == null) {
+    fun Throwable.toFailure(): Failure {
+        return failureFactory.create(this)
+    }
+
+    private
+    fun decorateMessage(problem: PropertyProblem, failure: Failure?): StructuredMessage {
+        if (!isStacktraceHashes || failure == null) {
             return problem.message
         }
 
-        val exceptionHash = problem.exception.hashWithoutMessages()
+        val failureHash = failure.hashWithoutMessages()
         return StructuredMessage.build {
-            reference("[${exceptionHash.toCompactString()}]")
+            reference("[${failureHash.toCompactString()}]")
             text(" ")
             message(problem.message)
         }
@@ -285,18 +298,22 @@ class ConfigurationCacheReport(
      * occurring at the same location.
      */
     private
-    fun Throwable.hashWithoutMessages(): HashCode {
-        val e = this@hashWithoutMessages
-        return Hashing.newHasher().apply {
-            putString(e.javaClass.name)
-            // Ignore messages and only take stack frames into account
-            stackTraceStringFor(e).lineSequence()
-                .filter { it.isStackFrameLine() }
-                .forEach { putString(it) }
-        }.hash()
+    fun Failure.hashWithoutMessages(): HashCode {
+        val root = this@hashWithoutMessages
+        val hasher = Hashing.newHasher()
+        for (failure in sequence { visitFailures(root) }) {
+            hasher.putString(failure.exceptionType.name)
+            for (element in failure.stackTrace) {
+                hasher.putString(element.toString())
+            }
+        }
+        return hasher.hash()
     }
 
     private
-    fun stackTraceStringFor(error: Throwable): String =
-        stackTraceExtractor.stackTraceStringFor(error)
+    suspend fun SequenceScope<Failure>.visitFailures(failure: Failure) {
+        yield(failure)
+        failure.suppressed.forEach { visitFailures(it) }
+        failure.causes.forEach { visitFailures(it) }
+    }
 }

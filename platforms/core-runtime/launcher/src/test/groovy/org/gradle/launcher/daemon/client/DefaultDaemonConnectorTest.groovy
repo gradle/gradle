@@ -31,6 +31,7 @@ import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import spock.lang.Specification
 
+import static org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
 import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
 
@@ -72,7 +73,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def startBusyDaemon() {
         def daemonNum = daemonCounter++
-        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [], false, DaemonParameters.Priority.NORMAL)
+        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [], false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
         def address = createAddress(daemonNum)
         registry.store(new DaemonInfo(address, context, "password".bytes, Busy))
         return new DaemonStartupInfo(daemonNum.toString(), null, null);
@@ -80,7 +81,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def startIdleDaemon() {
         def daemonNum = daemonCounter++
-        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [], false, DaemonParameters.Priority.NORMAL)
+        DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [], false, NativeServicesMode.ENABLED, DaemonParameters.Priority.NORMAL)
         def address = createAddress(daemonNum)
         registry.store(new DaemonInfo(address, context, "password".bytes, Idle))
     }

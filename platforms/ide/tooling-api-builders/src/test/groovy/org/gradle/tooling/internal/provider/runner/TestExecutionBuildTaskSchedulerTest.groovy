@@ -158,7 +158,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
     }
 
     private DefaultTestDescriptor testDescriptor() {
-        new DefaultTestDescriptor(Stub(OperationIdentifier), "test1", "test 1", "ATOMIC", "test suite", TEST_CLASS_NAME, TEST_METHOD_NAME, null, TEST_TASK_NAME)
+        new DefaultTestDescriptor(Stub(OperationIdentifier), "test1", "Test $TEST_METHOD_NAME($TEST_CLASS_NAME)", "test 1", "ATOMIC", "test suite", TEST_CLASS_NAME, TEST_METHOD_NAME, null, TEST_TASK_NAME)
     }
 
 }

@@ -409,6 +409,25 @@ include::{snippetsPath}/files/fileCollections/tests/fileCollectionsFiltering.out
 
 If `collection` changes at any time, either by adding or removing files from itself, then `textFiles` will immediately reflect the change because it is also a live collection. Note that the closure you pass to `filter()` takes a `File` as an argument and should return a boolean.
 
+==== Conventions for file collections
+
+It is possible to define conventions (or default values) for file collections, similarly to how you can <<lazy_configuration#applying_conventions,apply conventions to lazy properties>>,
+using link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#convention-Object-[#convention(...)]).
+
+Plugin-provided tasks often expose file collections that are meant to
+be customizable by build engineers (for instance, the classpath for the JavaCompile task).
+While plugin authors may choose to define defaults for file collections as initial values (via link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#setFrom-Object-[#setFrom(...)]),
+conventions provide a better model for that: plugin authors recommend default values via conventions, and users may choose to accept, add on top (via link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#from-Object-[#from(...)]),
+or completely replace them (the proper case for link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#setFrom-Object-[#setFrom(...)]) when defining their actual value.
+
+IMPORTANT: Note the `convention(...)` support is currently link:{userManualPath}/feature_lifecycle.html#sec:incubating_state[incubating], so it may change before promoted as stable.
+
+====
+include::sample[dir="snippets/files/fileCollections/kotlin",files="build.gradle.kts[tags=conventions]"]
+include::sample[dir="snippets/files/fileCollections/groovy",files="build.gradle[tags=conventions]"]
+====
+
+
 [[sec:file_trees]]
 === File trees
 

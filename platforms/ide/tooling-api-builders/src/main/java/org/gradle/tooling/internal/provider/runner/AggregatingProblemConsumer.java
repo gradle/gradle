@@ -21,15 +21,18 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.build.event.types.DefaultInternalProblemAggregation;
+import org.gradle.internal.build.event.types.DefaultInternalProblemContextDetails;
 import org.gradle.internal.build.event.types.DefaultProblemAggregationDetails;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregation;
+import org.gradle.tooling.internal.protocol.InternalProblemAggregationVersion2;
+import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
+import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetailsVersion2;
 
 import java.util.Collection;
 import java.util.List;
@@ -54,31 +57,45 @@ public class AggregatingProblemConsumer {
     }
 
     void sendProblemSummaries() {
-        List<InternalProblemAggregation> problemSummaries = createSummaries();
+        List<InternalProblemAggregationVersion2> problemSummaries = createSummaries();
 
         if (problemSummaries.isEmpty()) {
             seenProblems.clear();
             return;
         }
 
-        DefaultProblemEvent event = new DefaultProblemEvent(
-            new DefaultProblemDescriptor(operationIdentifierSupplier.get(), CurrentBuildOperationRef.instance().getId()),
-            new DefaultProblemAggregationDetails(problemSummaries));
-
-        progressEventConsumer.progress(event);
+        problemSummaries.forEach(summary -> {
+            List<InternalProblemContextDetails> problemContextDetails = summary.getProblemContextDetails();
+            progressEventConsumer.progress(new DefaultProblemEvent(
+                new DefaultProblemDescriptor(operationIdentifierSupplier.get(), CurrentBuildOperationRef.instance().getId()),
+                new DefaultProblemAggregationDetails(
+                    summary.getLabel(),
+                    summary.getCategory(),
+                    summary.getSeverity(),
+                    summary.getDocumentationLink(),
+                    problemContextDetails.stream().skip(1).collect(toImmutableList()))));
+        });
         seenProblems.clear();
     }
 
-    private List<InternalProblemAggregation> createSummaries() {
+    private List<InternalProblemAggregationVersion2> createSummaries() {
         return seenProblems.asMap().values()
             .stream()
             .map(ImmutableList::copyOf)
             .filter(values -> values.size() > 1)
-            .map(aggregatedEvents -> {
-                InternalBasicProblemDetails firstProblem = (InternalBasicProblemDetails) aggregatedEvents.iterator().next().getDetails();
-                return new DefaultInternalProblemAggregation(firstProblem.getCategory(), firstProblem.getLabel(), aggregatedEvents);
-            })
+            .map(AggregatingProblemConsumer::createProblemAggregation)
             .collect(toImmutableList());
+    }
+
+    private static DefaultInternalProblemAggregation createProblemAggregation(List<InternalProblemEvent> aggregatedEvents) {
+        InternalBasicProblemDetails firstProblem = (InternalBasicProblemDetails) aggregatedEvents.iterator().next().getDetails();
+
+        List<InternalProblemContextDetails> aggregatedContextDetails = aggregatedEvents.stream().map(event -> {
+            InternalBasicProblemDetailsVersion2 details = (InternalBasicProblemDetailsVersion2) event.getDetails();
+            return new DefaultInternalProblemContextDetails(details.getAdditionalData(), details.getDetails(), details.getLocations(), details.getSolutions(), details.getFailure());
+        }).collect(toImmutableList());
+
+        return new DefaultInternalProblemAggregation(firstProblem.getCategory(), firstProblem.getLabel(), firstProblem.getSeverity(), firstProblem.getDocumentationLink(), aggregatedContextDetails);
     }
 
     void emit(InternalProblemEvent problem) {

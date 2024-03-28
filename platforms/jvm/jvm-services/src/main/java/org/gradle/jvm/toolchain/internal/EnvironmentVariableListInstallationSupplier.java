@@ -64,7 +64,7 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
         if (value.isPresent()) {
             final String path = value.get().trim();
             if (!path.isEmpty()) {
-                return Optional.of(new InstallationLocation(fileResolver.resolve(path), "environment variable '" + environmentVariable + "'"));
+                return Optional.of(InstallationLocation.userDefined(fileResolver.resolve(path), "environment variable '" + environmentVariable + "'"));
             }
         }
         return Optional.empty();

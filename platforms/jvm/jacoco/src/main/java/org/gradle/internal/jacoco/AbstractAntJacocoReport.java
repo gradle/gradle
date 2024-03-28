@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -51,7 +52,7 @@ public abstract class AbstractAntJacocoReport<T> {
 
     protected void invokeJacocoReport(final GroovyObjectSupport antBuilder, final String projectName,
                      final FileCollection allClassesDirs, final FileCollection allSourcesDirs,
-                     final FileCollection executionData, final T t) {
+                     @Nullable final String encoding, final FileCollection executionData, final T t) {
         final Map<String, Object> emptyArgs = Collections.emptyMap();
         antBuilder.invokeMethod("jacocoReport", new Object[]{Collections.emptyMap(), new Closure<Object>(this, this) {
             @SuppressWarnings("UnusedDeclaration")
@@ -71,7 +72,8 @@ public abstract class AbstractAntJacocoReport<T> {
                                 return null;
                             }
                         }});
-                        antBuilder.invokeMethod("sourcefiles", new Object[]{emptyArgs, new Closure<Object>(this, this) {
+                        final Map<String, Object> sourcefilesArgs = encoding == null ? emptyArgs : Collections.singletonMap("encoding", encoding);
+                        antBuilder.invokeMethod("sourcefiles", new Object[]{sourcefilesArgs, new Closure<Object>(this, this) {
                             public Object doCall(Object ignore) {
                                 allSourcesDirs.addToAntBuilder(antBuilder, "resources");
                                 return null;

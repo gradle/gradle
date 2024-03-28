@@ -399,9 +399,8 @@ abstract class AbstractIsolateContext<T>(
     }
 
     override fun push(owner: IsolateOwner, codec: Codec<Any?>) {
-        contexts.add(0, Pair(currentIsolate, currentCodec))
+        push(codec)
         currentIsolate = newIsolate(owner)
-        currentCodec = codec
     }
 
     override fun pop() {

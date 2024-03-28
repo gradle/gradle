@@ -421,7 +421,7 @@ However, any tasks that depend on a failed task will not be executed.
 There is a special type of exception that behaves differently when downstream tasks only rely on the outputs of a failing task.
 A task can throw a subtype of link:{javadocPath}/org/gradle/api/tasks/VerificationException.html[VerificationException] to indicate that it has failed in a controlled manner such that its output is still valid for consumers.
 A task depends on the *outcome* of another task when it directly depends on it using `dependsOn`.
-When Gradle is run with `--continue`, consumer tasks that depend on a producer task's output (via a relationship between task inputs and outputs) can still run after the consumer fails.
+When Gradle is run with `--continue`, consumer tasks that depend on a producer task's output (via a relationship between task inputs and outputs) can still run after the producer fails.
 
 A failed unit test, for instance, will cause a failing outcome for the test task.
 However, this doesn't prevent another task from reading and processing the (valid) test results the task produced.

@@ -16,13 +16,13 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.io.File;
 
 public interface ClasspathFileTransformer {
-    File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentingTypeRegistry typeRegistry);
+    File transform(File source, FileSystemLocationSnapshot sourceSnapshot, File cacheDir, InstrumentationTypeRegistry typeRegistry);
 
     ClasspathFileHasher getFileHasher();
 }

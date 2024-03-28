@@ -29,7 +29,7 @@ class DeprecationMessage {
     private final DocLink documentation;
     private final DeprecatedFeatureUsage.Type usageType;
 
-    DeprecationMessage(String summary, String removalDetails, @Nullable String advice, @Nullable String context, DocLink documentation, DeprecatedFeatureUsage.Type usageType) {
+    DeprecationMessage(String summary, String removalDetails, @Nullable String advice, @Nullable String context, @Nullable DocLink documentation, DeprecatedFeatureUsage.Type usageType) {
         this.summary = summary;
         this.removalDetails = removalDetails;
         this.advice = advice;

@@ -91,7 +91,7 @@ Unused distributions are deleted.
 ==== Configuring cleanup of caches and distributions
 The retention periods of the various caches can be configured.
 
-Caches are classified into four categories:
+Caches are classified into five categories:
 
 - *Released wrapper distributions:* Distributions and related version-specific caches corresponding to released versions (e.g., `4.6.2` or `8.0`).
 +
@@ -105,6 +105,9 @@ Default retention for unused resources is 30 days.
 - *Created resources:* Shared caches that Gradle creates during a build (e.g., artifact transforms).
 +
 Default retention for unused resources is 7 days.
+- *Build cache:* The local build cache (e.g., build-cache-1).
++
+Default retention for unused build-cache entries is 7 days.
 
 The retention period for each category can be configured independently via an init script in Gradle User Home:
 

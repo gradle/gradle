@@ -35,6 +35,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
@@ -59,6 +60,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -215,9 +217,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
         throw ((InternalProblems) getProblemsService()).getInternalReporter().throwing(builder -> builder
-            .label(message)
+            .id(TextUtil.screamingSnakeToKebabCase("compilation-failed"), "Groovy DSL script compilation problem", GradleCoreProblemGroup.compilation().groovyDsl())
+            .contextualLabel(message)
             .lineInFileLocation(source.getFileName(), lineNumber)
-            .category("compilation", "groovy-dsl", "compilation-failed")
             .severity(Severity.ERROR)
             .withException(new ScriptCompilationException(message, e, source, lineNumber))
         );

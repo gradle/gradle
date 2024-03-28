@@ -17,7 +17,7 @@
 package org.gradle.process.internal.worker.problem;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
 
@@ -37,7 +37,7 @@ public class WorkerProblemEmitter implements ProblemEmitter {
     }
 
     @Override
-    public void emit(ProblemReport problem, @Nullable OperationIdentifier id) {
+    public void emit(Problem problem, @Nullable OperationIdentifier id) {
         protocol.reportProblem(problem, id);
     }
 }

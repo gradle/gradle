@@ -21,7 +21,7 @@ import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.GUtil
@@ -38,7 +38,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
     def lockManager = new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler())
     def initializationAction = Mock(Action)
     def cacheCleanup = Stub(CacheCleanupStrategy)
-    def progressLoggerFactory = Stub(ProgressLoggerFactory)
+    def buildOperationRunner = Stub(BuildOperationRunner)
 
     def properties = ['prop': 'value', 'prop2': 'other-value']
 
@@ -50,7 +50,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         emptyDir.assertDoesNotExist()
 
         when:
-        def cache = new DefaultPersistentDirectoryCache(emptyDir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        def cache = new DefaultPersistentDirectoryCache(emptyDir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), buildOperationRunner)
         try {
             cache.open()
         } finally {
@@ -66,7 +66,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
     def initializesCacheWhenPropertiesFileDoesNotExist() {
         given:
         def dir = temporaryFolder.getTestDirectory().file("dir").createDir()
-        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         try {
@@ -84,7 +84,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
     def rebuildsCacheWhenPropertiesHaveChanged() {
         given:
         def dir = createCacheDir(prop: "other-value")
-        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         try {
@@ -103,7 +103,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         given:
         def dir = createCacheDir()
         def properties = properties + [newProp: 'newValue']
-        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         try {
@@ -125,7 +125,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         Action<PersistentCache> failingAction = Stub(Action) {
             execute(_ as PersistentCache) >> { throw failure }
         }
-        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), failingAction, cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), failingAction, cacheCleanup, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         try {
@@ -139,7 +139,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         e.cause.is(failure)
 
         when:
-        cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), buildOperationRunner)
         try {
             cache.open()
         } finally {
@@ -155,7 +155,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
     def doesNotInitializeCacheWhenCacheDirExistsAndIsNotInvalid() {
         given:
         def dir = createCacheDir()
-        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        def cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         try {
@@ -175,7 +175,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         def dir = temporaryFolder.testDirectory.createDir("cache")
         def initialized = false
         def init = { initialized = true } as Action
-        def cache = new DefaultPersistentDirectoryCache(dir, "test", [:], mode(FileLockManager.LockMode.Exclusive), init, cacheCleanup, createDefaultFileLockManager(), Mock(ExecutorFactory), progressLoggerFactory)
+        def cache = new DefaultPersistentDirectoryCache(dir, "test", [:], mode(FileLockManager.LockMode.Exclusive), init, cacheCleanup, createDefaultFileLockManager(), Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         unlockUncleanly(dir.file("cache.properties"))
@@ -195,7 +195,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         def init = { initialized = true } as Action
         def properties = [foo: 'bar']
         def cache = new DefaultPersistentDirectoryCache(dir, "test", properties,
-            mode(FileLockManager.LockMode.Exclusive), init, cacheCleanup, createDefaultFileLockManager(), Mock(ExecutorFactory), progressLoggerFactory)
+            mode(FileLockManager.LockMode.Exclusive), init, cacheCleanup, createDefaultFileLockManager(), Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         dir.file("cache.properties").delete()
@@ -215,7 +215,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         def init = { initialized = true } as Action
         def properties = [:]
         def cache = new DefaultPersistentDirectoryCache(dir, "test", properties,
-            mode(FileLockManager.LockMode.Exclusive), init, cacheCleanup, createDefaultFileLockManager(), Mock(ExecutorFactory), progressLoggerFactory)
+            mode(FileLockManager.LockMode.Exclusive), init, cacheCleanup, createDefaultFileLockManager(), Mock(ExecutorFactory), buildOperationRunner)
 
         when:
         dir.file("cache.properties").delete()
@@ -244,7 +244,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         properties.putAll(this.properties)
         properties.putAll(extraProps)
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), null, null, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), null, null, lockManager, Mock(ExecutorFactory), buildOperationRunner)
 
         try {
             cache.open()

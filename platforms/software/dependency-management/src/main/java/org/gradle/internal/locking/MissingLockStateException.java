@@ -18,6 +18,7 @@ package org.gradle.internal.locking;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.exceptions.ResolutionProvider;
 
 import java.util.List;
@@ -27,11 +28,11 @@ public class MissingLockStateException extends RuntimeException implements Resol
     private static final List<String> RESOLUTIONS;
     static {
         RESOLUTIONS = ImmutableList.of(
-            "To create the lock state, run a task that will resolve that configuration and add '--write-locks' to the command line.",
+            "To create the lock state, run a task that performs dependency resolution and add '--write-locks' to the command line.",
             new DocumentationRegistry().getDocumentationRecommendationFor("information on generating lock state", "dependency_locking", "generating_and_updating_dependency_locks"));
     }
-    public MissingLockStateException(String configurationName) {
-        super("Locking strict mode: Configuration '" + configurationName + "' is locked but does not have lock state.");
+    public MissingLockStateException(DisplayName displayName) {
+        super("Locking strict mode: " + displayName.getCapitalizedDisplayName() + " is locked but does not have lock state.");
     }
 
     @Override

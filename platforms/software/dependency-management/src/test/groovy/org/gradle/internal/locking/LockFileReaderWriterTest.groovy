@@ -278,9 +278,9 @@ empty=d
 
         then:
         def ex = thrown(IllegalStateException)
-        1 * context.identityPath('foo') >> Path.path('foo')
-        ex.getMessage().contains('Dependency locking cannot be used for configuration')
-        ex.getMessage().contains('foo')
+        1 * context.getProjectPath() >> Path.path('bar')
+        ex.getMessage().contains('Dependency locking cannot be used for project')
+        ex.getMessage().contains('bar')
     }
 
     def 'fails to write a unique lockfile if root could not be determined'() {

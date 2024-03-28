@@ -19,18 +19,11 @@ package gradlebuild.basics.accessors
 import org.gradle.api.Project
 import org.gradle.api.file.SourceDirectorySet
 
-import org.gradle.api.tasks.GroovySourceSet
-import org.gradle.api.tasks.SourceSet
-
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 
 // TODO these accessors should be generated - https://github.com/gradle/gradle/issues/3191
-
-
-val SourceSet.groovy: SourceDirectorySet
-    get() = withConvention(GroovySourceSet::class) { groovy }
 
 val Project.kotlinMainSourceSet: SourceDirectorySet
     get() = the<KotlinJvmProjectExtension>().sourceSets.named("main").get().kotlin

@@ -17,10 +17,10 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class BuildModelParameters {
 
     private final boolean parallelProjectExecution;

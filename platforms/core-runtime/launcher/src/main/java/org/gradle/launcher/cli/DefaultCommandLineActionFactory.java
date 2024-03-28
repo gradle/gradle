@@ -52,7 +52,9 @@ import org.gradle.util.internal.DefaultGradleVersion;
 import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
@@ -329,6 +331,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             parser.allowMixedSubcommandsAndOptions();
 
             WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
+            Map<String, String> allProperties = Collections.emptyMap();
 
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
@@ -339,6 +342,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
                 // Read *.properties files
                 AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
+                allProperties = properties.getProperties();
 
                 // Calculate the logging configuration
                 loggingBuildOptions.convert(parsedCommandLine, properties, loggingConfiguration);
@@ -355,7 +359,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             try {
                 Action<ExecutionListener> exceptionReportingAction =
                     new ExceptionReportingAction(reporter, loggingManager,
-                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
+                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager, allProperties,
                             new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
                                 new DebugLoggerWarningAction(loggingConfiguration, action))));
                 exceptionReportingAction.execute(executionListener);

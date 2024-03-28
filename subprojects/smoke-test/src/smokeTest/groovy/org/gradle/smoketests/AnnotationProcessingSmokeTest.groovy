@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.JavaVersion
 import org.gradle.testkit.runner.GradleRunner
 
 class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
@@ -29,8 +28,8 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
             }
             ${mavenCentralRepository()}
             dependencies {
-                compileOnly 'org.projectlombok:lombok:1.18.18'
-                annotationProcessor 'org.projectlombok:lombok:1.18.18'
+                compileOnly 'org.projectlombok:lombok:1.18.30'
+                annotationProcessor 'org.projectlombok:lombok:1.18.30'
             }
             compileJava.options.fork = $fork
         """
@@ -58,9 +57,6 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
             }
         """
         GradleRunner gradleRunner = runner("compileJava")
-        if (JavaVersion.current().isJava9Compatible()) {
-            gradleRunner.withArguments("-Dorg.gradle.jvmargs=--add-opens jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED")
-        }
 
         expect:
         gradleRunner.build()

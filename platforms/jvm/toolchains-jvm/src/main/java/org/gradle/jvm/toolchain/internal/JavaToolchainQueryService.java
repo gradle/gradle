@@ -30,7 +30,7 @@ import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
@@ -45,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 
-@ServiceScope(Scopes.Project.class) //TODO #24353: should be much higher scoped, as many other toolchain related services, but is bogged down by the scope of services it depends on
+@ServiceScope(Scope.Project.class) //TODO #24353: should be much higher scoped, as many other toolchain related services, but is bogged down by the scope of services it depends on
 public class JavaToolchainQueryService {
 
     // A key that matches only the fallback toolchain
@@ -136,11 +136,11 @@ public class JavaToolchainQueryService {
 
     private JavaToolchain query(JavaToolchainSpec spec, boolean isFallback) {
         if (spec instanceof CurrentJvmToolchainSpec) {
-            return asToolchainOrThrow(new InstallationLocation(currentJavaHome, "current JVM"), spec, isFallback);
+            return asToolchainOrThrow(InstallationLocation.autoDetected(currentJavaHome, "current JVM"), spec, isFallback);
         }
 
         if (spec instanceof SpecificInstallationToolchainSpec) {
-            return asToolchainOrThrow(new InstallationLocation(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec, false);
+            return asToolchainOrThrow(InstallationLocation.userDefined(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec, false);
         }
 
         return findInstalledToolchain(spec).orElseGet(() -> downloadToolchain(spec));
@@ -180,7 +180,7 @@ public class JavaToolchainQueryService {
             throw new NoToolchainAvailableException(spec, buildPlatform, e);
         }
 
-        InstallationLocation downloadedInstallation = new InstallationLocation(installation, "provisioned toolchain", true);
+        InstallationLocation downloadedInstallation = InstallationLocation.autoProvisioned(installation, "provisioned toolchain");
         JavaToolchain downloadedToolchain = asToolchainOrThrow(downloadedInstallation, spec, false);
         registry.addInstallation(downloadedInstallation);
         return downloadedToolchain;

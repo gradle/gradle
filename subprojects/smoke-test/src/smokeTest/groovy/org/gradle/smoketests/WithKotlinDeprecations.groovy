@@ -208,9 +208,9 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         [':other:apiElements', ':other:runtimeElements'].each {
             runner.expectLegacyDeprecationWarningIf(
                 versionNumber < VersionNumber.parse("1.9.20"),
-                "Allowed usage is changing for configuration '$it', consumable was true and is now false. " +
-                    "Ideally, usage should be fixed upon creation. This behavior has been deprecated. " +
-                    "This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. " +
+                "Calling setCanBeConsumed(false) on configuration '$it' has been deprecated. " +
+                    "This will fail with an error in Gradle 9.0. " +
+                    "This configuration's role was set upon creation and its usage should not be changed. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#configurations_allowed_usage"
             )
         }

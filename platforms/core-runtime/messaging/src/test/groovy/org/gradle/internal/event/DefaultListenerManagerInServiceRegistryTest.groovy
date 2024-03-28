@@ -19,12 +19,12 @@ package org.gradle.internal.event
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.ListenerService
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.StatefulListener
 import spock.lang.Specification
 
 class DefaultListenerManagerInServiceRegistryTest extends Specification {
-    def listenerManager = new DefaultListenerManager(Scopes.BuildTree)
+    def listenerManager = new DefaultListenerManager(Scope.BuildTree)
     def services = new DefaultServiceRegistry()
 
     def setup() {
@@ -67,7 +67,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
                 return listener
             }
         })
-        def broadcast = listenerManager.createChild(Scopes.BuildTree).getBroadcaster(TestListener)
+        def broadcast = listenerManager.createChild(Scope.BuildTree).getBroadcaster(TestListener)
 
         then:
         0 * _
@@ -276,7 +276,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def services = new DefaultServiceRegistry()
 
         when:
-        services.add(ListenerManager, new DefaultListenerManager(Scopes.BuildTree))
+        services.add(ListenerManager, new DefaultListenerManager(Scope.BuildTree))
 
         then:
         def e = thrown(IllegalStateException)
@@ -288,7 +288,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         def services = new DefaultServiceRegistry()
         services.addProvider(new Object() {
             ListenerManager createListenerManager() {
-                return new DefaultListenerManager(Scopes.BuildTree)
+                return new DefaultListenerManager(Scope.BuildTree)
             }
         })
 
@@ -392,7 +392,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         0 * _
     }
 
-    @EventScope(Scopes.BuildTree)
+    @EventScope(Scope.BuildTree)
     interface NotStatefulListener {
         void something(String param)
     }
@@ -401,7 +401,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
     abstract class TestListenerService implements NotStatefulListener {
     }
 
-    @EventScope(Scopes.BuildTree)
+    @EventScope(Scope.BuildTree)
     @StatefulListener
     interface TestListener {
         void something(String param)
@@ -410,7 +410,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
     abstract static class SubListener implements TestListener, Runnable {
     }
 
-    @EventScope(Scopes.BuildTree)
+    @EventScope(Scope.BuildTree)
     @StatefulListener
     interface DifferentListener {
         void somethingElse(String param)

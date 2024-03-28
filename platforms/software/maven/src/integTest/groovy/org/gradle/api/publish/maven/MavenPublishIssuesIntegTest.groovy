@@ -374,29 +374,20 @@ subprojects {
     @Issue("https://github.com/gradle/gradle/issues/20581")
     void "warn deprecated behavior when GMM is modified after a Maven publication is populated"() {
         given:
-        buildKotlinFile << """
-             plugins {
-                java
-                `maven-publish`
-                kotlin("jvm") version "1.9.22"
-            }
-            repositories {
-                mavenCentral()
-            }
-            dependencies {
-                implementation(kotlin("stdlib"))
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
             }
             publishing {
                 publications {
-                    create<MavenPublication>("maven") {
-                        from(components["java"])
+                    maven(MavenPublication) {
+                        from(components.java)
                     }
                 }
             }
-            (publishing.publications["maven"] as MavenPublication).artifacts
-            (components["java"] as AdhocComponentWithVariants).apply {
-                withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
-            }
+            publishing.publications.maven.artifacts // Realize publication component
+            components.java.withVariantsFromConfiguration(configurations.apiElements) { skip() }
         """
 
         when:
@@ -411,43 +402,164 @@ subprojects {
         succeeds "help"
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/20581")
-    void "warn deprecated behavior when GMM is modified after an Ivy publication is populated"() {
+    @Issue("https://github.com/gradle/gradle/issues/26468")
+    def "publishes jar type and extension when publishing dependency on artifact with classifier"() {
         given:
-        buildKotlinFile << """
-             plugins {
-                java
-                `ivy-publish`
-                kotlin("jvm") version "1.9.22"
+        mavenRepo.module("org", "foo").artifact(classifier: "cls").publish()
+        settingsFile << 'rootProject.name = "producer"'
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
             }
-            repositories {
-                mavenCentral()
-            }
+
+            ${mavenTestRepository()}
+
+            group = "org"
+            version = "1.0"
+
             dependencies {
-                implementation(kotlin("stdlib"))
-            }
-            publishing {
-                publications {
-                    create<IvyPublication>("ivy") {
-                        from(components["java"])
+                implementation("org:foo:1.0") {
+                    artifact {
+                        classifier = "cls"
                     }
                 }
             }
-            (publishing.publications["ivy"] as IvyPublication).artifacts
-            (components["java"] as AdhocComponentWithVariants).apply {
-                withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
+
+            publishing {
+                ${mavenTestRepository()}
+                publications {
+                    maven(MavenPublication) {
+                        from(components.java)
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath
+                doLast {
+                    assert files*.name == ["foo-1.0-cls.jar"]
+                }
             }
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(
-            "Gradle Module Metadata is modified after an eagerly populated publication. " +
-                "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#gmm_modification_after_publication_populated"
-        )
+        succeeds("publish", "resolve")
 
         then:
-        succeeds "help"
+        mavenRepo.module("org", "producer", "1.0").parsedModuleMetadata.variant("runtimeElements") {
+            def fooDep = dependencies.find { it.group == "org" && it.module == "foo" }
+            assert fooDep != null
+            assert fooDep.artifactSelector.classifier == "cls"
+            assert fooDep.artifactSelector.type == "jar"
+            assert fooDep.artifactSelector.extension == "jar"
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26468")
+    def "defaults to type for null extension on published dependency artifact"() {
+        given:
+        mavenRepo.module("org", "foo").artifact(type: "type").publish()
+        settingsFile << 'rootProject.name = "producer"'
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            ${mavenTestRepository()}
+
+            group = "org"
+            version = "1.0"
+
+            dependencies {
+                implementation("org:foo:1.0") {
+                    artifact {
+                        type = "type"
+                    }
+                }
+            }
+
+            publishing {
+                ${mavenTestRepository()}
+                publications {
+                    maven(MavenPublication) {
+                        from(components.java)
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath
+                doLast {
+                    assert files*.name == ["foo-1.0.type"]
+                }
+            }
+        """
+
+        when:
+        succeeds("publish", "resolve")
+
+        then:
+        mavenRepo.module("org", "producer", "1.0").parsedModuleMetadata.variant("runtimeElements") {
+            def fooDep = dependencies.find { it.group == "org" && it.module == "foo" }
+            assert fooDep != null
+            assert fooDep.artifactSelector.type == "type"
+            assert fooDep.artifactSelector.extension == "type"
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26468")
+    def "does not default to type for empty extension on published dependency artifact"() {
+        given:
+        mavenRepo.module("org", "foo").artifact(type: "").publish()
+        settingsFile << 'rootProject.name = "producer"'
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            ${mavenTestRepository()}
+
+            group = "org"
+            version = "1.0"
+
+            dependencies {
+                implementation("org:foo:1.0") {
+                    artifact {
+                        type = "type"
+                        extension = ""
+                    }
+                }
+            }
+
+            publishing {
+                ${mavenTestRepository()}
+                publications {
+                    maven(MavenPublication) {
+                        from(components.java)
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath
+                doLast {
+                    assert files*.name == ["foo-1.0"]
+                }
+            }
+        """
+
+        when:
+        succeeds("publish", "resolve")
+
+        then:
+        mavenRepo.module("org", "producer", "1.0").parsedModuleMetadata.variant("runtimeElements") {
+            def fooDep = dependencies.find { it.group == "org" && it.module == "foo" }
+            assert fooDep != null
+            assert fooDep.artifactSelector.type == "type"
+            assert fooDep.artifactSelector.extension == ""
+        }
     }
 }

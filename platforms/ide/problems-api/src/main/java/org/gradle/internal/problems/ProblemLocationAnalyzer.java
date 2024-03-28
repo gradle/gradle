@@ -16,14 +16,14 @@
 
 package org.gradle.internal.problems;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface ProblemLocationAnalyzer {
     /**
      * Calculates the location for a problem with the given stack.

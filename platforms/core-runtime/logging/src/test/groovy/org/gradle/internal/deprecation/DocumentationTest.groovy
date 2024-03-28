@@ -23,15 +23,6 @@ class DocumentationTest extends Specification {
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
-    def "null documentation reference always returns nulls"() {
-        when:
-        def documentationReference = Documentation.NO_DOCUMENTATION
-
-        then:
-        documentationReference.getUrl() == null
-        documentationReference.getConsultDocumentationMessage() == null
-    }
-
     def "formats message for documentation id #documentationId, section #documentationSection"() {
         given:
         def documentationReference = Documentation.userManual(documentationId, documentationSection)

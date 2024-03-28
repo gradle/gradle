@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
 import java.util.Collections;
@@ -40,8 +41,10 @@ import java.util.Set;
 
 public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
 
+    private final String lockId;
+    private final DisplayName lockOwner;
     private final DependencyLockingProvider dependencyLockingProvider;
-    private final String configurationName;
+
     private Set<ModuleComponentIdentifier> allResolvedModules;
     private Set<ModuleComponentIdentifier> changingResolvedModules;
     private Set<ModuleComponentIdentifier> extraModules;
@@ -50,14 +53,15 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
     private DependencyLockingState dependencyLockingState;
     private boolean lockOutOfDate = false;
 
-    public DependencyLockingGraphVisitor(String configurationName, DependencyLockingProvider dependencyLockingProvider) {
-        this.configurationName = configurationName;
+    public DependencyLockingGraphVisitor(String lockId, DisplayName lockOwner, DependencyLockingProvider dependencyLockingProvider) {
+        this.lockId = lockId;
+        this.lockOwner = lockOwner;
         this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
     @Override
     public void start(RootGraphNode root) {
-        dependencyLockingState = dependencyLockingProvider.loadLockState(configurationName);
+        dependencyLockingState = dependencyLockingProvider.loadLockState(lockId, lockOwner);
         if (dependencyLockingState.mustValidateLockState()) {
             Set<ModuleComponentIdentifier> lockedModules = dependencyLockingState.getLockedDependencies();
             modulesToBeLocked = Maps.newHashMapWithExpectedSize(lockedModules.size());
@@ -122,7 +126,7 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
     public void writeLocks() {
         if (!lockOutOfDate) {
             Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.emptySet() : this.changingResolvedModules;
-            dependencyLockingProvider.persistResolvedDependencies(configurationName, allResolvedModules, changingModules);
+            dependencyLockingProvider.persistResolvedDependencies(lockId, lockOwner, allResolvedModules, changingModules);
         }
     }
 

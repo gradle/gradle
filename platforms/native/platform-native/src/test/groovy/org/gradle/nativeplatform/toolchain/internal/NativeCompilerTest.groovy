@@ -18,13 +18,11 @@ package org.gradle.nativeplatform.toolchain.internal
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationExecutorSupport
 import org.gradle.internal.operations.BuildOperationListener
-import org.gradle.internal.operations.DefaultBuildOperationExecutor
-import org.gradle.internal.operations.DefaultBuildOperationIdFactory
-import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
+import org.gradle.internal.operations.BuildOperationProgressEventListenerAdapter
 import org.gradle.internal.operations.logging.BuildOperationLogger
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.time.Clock
@@ -58,11 +56,14 @@ abstract class NativeCompilerTest extends Specification {
 
     WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
 
-    private BuildOperationListener buildOperationListener = Mock(BuildOperationListener)
-    private Clock timeProvider = Mock(Clock)
+    protected final BuildOperationListener buildOperationListener = Mock(BuildOperationListener)
+    protected final Clock timeProvider = Mock(Clock)
     private parallelismConfiguration = DefaultParallelismConfiguration.DEFAULT
-    protected BuildOperationExecutor buildOperationExecutor = new DefaultBuildOperationExecutor(buildOperationListener, timeProvider, new NoOpProgressLoggerFactory(),
-        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelismConfiguration, new DefaultBuildOperationIdFactory())
+    protected BuildOperationExecutor buildOperationExecutor = BuildOperationExecutorSupport.builder(parallelismConfiguration)
+        .withWorkerLeaseService(workerLeaseService)
+        .withTimeSupplier { timeProvider.currentTime }
+        .withExecutionListenerFactory { new BuildOperationProgressEventListenerAdapter(buildOperationListener, new NoOpProgressLoggerFactory(), timeProvider) }
+        .build()
 
     def setup() {
         _ * workerLeaseService.withLocks(_) >> { args ->

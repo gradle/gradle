@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
  * by name on a dependency that does not exist on the target component.
  */
 public class RequestedConfigurationNotFoundFailure extends AbstractConfigurationSelectionFailure {
-    public RequestedConfigurationNotFoundFailure(String requestedName, ComponentIdentifier requestedComponent) {
-        super(requestedName, requestedComponent);
+    public RequestedConfigurationNotFoundFailure(String requestedConfigurationName, ComponentIdentifier requestedComponent) {
+        super(requestedConfigurationName, requestedComponent.getDisplayName());
     }
 }

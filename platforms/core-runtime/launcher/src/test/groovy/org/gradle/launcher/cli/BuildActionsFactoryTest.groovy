@@ -20,6 +20,7 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Actions
 import org.gradle.internal.Factory
 import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.logging.console.GlobalUserInputReceiver
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -30,7 +31,6 @@ import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.provider.SetupLoggingActionExecuter
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -55,11 +55,13 @@ class BuildActionsFactoryTest extends Specification {
     def setup() {
         def factory = Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
         loggingServices.add(OutputEventListener, Mock(OutputEventListener))
+        loggingServices.add(GlobalUserInputReceiver, Mock(GlobalUserInputReceiver))
         loggingServices.add(StyledTextOutputFactory, Mock(StyledTextOutputFactory))
         loggingServices.addProvider(new Object() {
             Factory<LoggingManagerInternal> createFactory() {
                 return factory
-            }})
+            }
+        })
     }
 
     def "check that --max-workers overrides org.gradle.workers.max"() {
@@ -148,7 +150,7 @@ class BuildActionsFactoryTest extends Specification {
     void isInProcess(def action) {
         def runnable = unwrapAction(action)
         def executor = unwrapExecutor(runnable)
-        assert executor instanceof SetupLoggingActionExecuter
+        assert executor instanceof InProcessUserInputHandlingExecutor
     }
 
     void isSingleUseDaemon(def action) {

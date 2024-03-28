@@ -41,7 +41,7 @@ import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.Time;
@@ -93,7 +93,7 @@ public class TestFiles {
     }
 
     public static FileResourceRepository fileRepository() {
-        return new FileResourceConnector(FILE_SYSTEM, new DefaultListenerManager(Scopes.Build.class));
+        return new FileResourceConnector(FILE_SYSTEM, new DefaultListenerManager(Scope.Build.class));
     }
 
     /**

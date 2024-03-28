@@ -64,9 +64,7 @@ public class RunBuildAction implements Runnable {
                 throw new ReportedException();
             }
         } finally {
-            if (stoppable != null) {
-                stoppable.stop();
-            }
+            stoppable.stop();
         }
     }
 }

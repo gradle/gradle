@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
+import org.gradle.internal.Describables
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import spock.lang.Specification
 import spock.lang.Subject
@@ -37,21 +38,21 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 
 class DependencyLockingGraphVisitorTest extends Specification {
 
-    String configuration = 'config'
+    String lockId = 'config'
     DependencyLockingProvider dependencyLockingProvider = Mock()
     RootGraphNode rootNode = Mock()
     DependencyLockingState lockState = Mock()
     ModuleIdentifier mid = DefaultModuleIdentifier.newId("org", "foo")
 
     @Subject
-    def visitor = new DependencyLockingGraphVisitor(configuration, dependencyLockingProvider)
+    def visitor = new DependencyLockingGraphVisitor(lockId, Describables.of("owner"), dependencyLockingProvider)
 
     def 'initialises when there is lock state'() {
         when:
         visitor.start(rootNode)
 
         then:
-        1 * dependencyLockingProvider.loadLockState(configuration) >> lockState
+        1 * dependencyLockingProvider.loadLockState(lockId, _) >> lockState
         1 * lockState.mustValidateLockState() >> true
         1 * lockState.lockedDependencies >> emptySet()
         0 * _
@@ -62,7 +63,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         visitor.start(rootNode)
 
         then:
-        1 * dependencyLockingProvider.loadLockState(configuration) >> lockState
+        1 * dependencyLockingProvider.loadLockState(lockId, _) >> lockState
         1 * lockState.mustValidateLockState() >> false
         0 * _
     }
@@ -214,7 +215,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         visitor.writeLocks()
 
         then:
-        1 * dependencyLockingProvider.persistResolvedDependencies(configuration, singleton(identifier), emptySet())
+        1 * dependencyLockingProvider.persistResolvedDependencies(lockId, _, singleton(identifier), emptySet())
 
     }
 
@@ -228,7 +229,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         visitor.writeLocks()
 
         then:
-        1 * dependencyLockingProvider.persistResolvedDependencies(configuration, singleton(identifier), singleton(identifier))
+        1 * dependencyLockingProvider.persistResolvedDependencies(lockId, _, singleton(identifier), singleton(identifier))
 
     }
 
@@ -272,14 +273,14 @@ class DependencyLockingGraphVisitorTest extends Specification {
     }
 
     private startWithoutLockState() {
-        dependencyLockingProvider.loadLockState(configuration) >> lockState
+        dependencyLockingProvider.loadLockState(lockId, _) >> lockState
         lockState.mustValidateLockState() >> false
 
         visitor.start(rootNode)
     }
 
     private startWithState(List<ModuleComponentIdentifier> locks, LockEntryFilter ignoredEntries = LockEntryFilterFactory.FILTERS_NONE) {
-        dependencyLockingProvider.loadLockState(configuration) >> lockState
+        dependencyLockingProvider.loadLockState(lockId, _) >> lockState
         lockState.mustValidateLockState() >> true
         lockState.lockedDependencies >> locks
         lockState.ignoredEntryFilter >> ignoredEntries

@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.isolated
 
 class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+
     def "invalidates cached state when plugin in buildSrc changes"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()

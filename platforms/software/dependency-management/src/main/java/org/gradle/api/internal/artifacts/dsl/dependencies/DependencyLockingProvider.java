@@ -21,32 +21,36 @@ import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.DisplayName;
 
 import java.util.Set;
 
 /**
- * Provides dependency locking support for dependency configuration resolution.
+ * Provides dependency locking support for dependency resolution.
  */
 public interface DependencyLockingProvider {
 
     /**
-     * Loads the lock state associated to the given configuration.
+     * Loads the lock state for the lock with the given ID.
      *
-     * @param configurationName the configuration to load lock state for
+     * @param lockId the ID of the lock to load
+     * @param lockOwner the display name of the owner of the lock
      *
-     * @return the lock state of the configuration
+     * @return the lock state corresponding to the lock with the given ID.
+     *
      * @throws org.gradle.internal.locking.MissingLockStateException If the {@code LockMode} is {@link LockMode#STRICT} but no lock state can be found.
      */
-    DependencyLockingState loadLockState(String configurationName);
+    DependencyLockingState loadLockState(String lockId, DisplayName lockOwner);
 
     /**
-     * Records the resolution result for a locked configuration.
+     * Records the resolution result to the lock with the given ID.
      *
-     * @param configurationName the configuration that was resolved
+     * @param lockId the ID of the lock to persist the results to
+     * @param lockOwner the display name of the owner of the lock
      * @param resolutionResult the resolution result information necessary for locking
      * @param changingResolvedModules any modules that are resolved and marked as changing which defeats locking purpose
      */
-    void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolutionResult, Set<ModuleComponentIdentifier> changingResolvedModules);
+    void persistResolvedDependencies(String lockId, DisplayName lockOwner, Set<ModuleComponentIdentifier> resolutionResult, Set<ModuleComponentIdentifier> changingResolvedModules);
 
     /**
      * The current locking mode, exposed in the {@link org.gradle.api.artifacts.dsl.DependencyLockingHandler}.
@@ -61,7 +65,7 @@ public interface DependencyLockingProvider {
     void buildFinished();
 
     /**
-     * The file to be used as the per project lock file, exposed in the {@link DefaultDependencyHandler}.
+     * The file to be used as the per-project lock file, exposed in the {@link DefaultDependencyHandler}.
      *
      * @return the lock file
      */
@@ -69,15 +73,14 @@ public interface DependencyLockingProvider {
 
     /**
      * A list of module identifiers that are to be ignored in the lock state, exposed in the {@link org.gradle.api.artifacts.dsl.DependencyLockingHandler}.
-     * @return
      */
     ListProperty<String> getIgnoredDependencies();
 
     /**
-     * Confirms that a configuration is not locked.
-     * This allows the lock state for said configuration to be dropped if it existed before.
+     * Confirms that the given lock is not locked.
+     * This allows the lock state for the lock to be dropped if it existed before.
      *
-     * @param configurationName the unlocked configuration
+     * @param lockId the ID of the lock to confirm is not locked
      */
-    void confirmConfigurationNotLocked(String configurationName);
+    void confirmNotLocked(String lockId);
 }

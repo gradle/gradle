@@ -25,14 +25,14 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.exceptions.FailureResolutionAware;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class BuildLayoutValidator {
     private final BuildLayoutFactory buildLayoutFactory;
     private final DocumentationRegistry documentationRegistry;

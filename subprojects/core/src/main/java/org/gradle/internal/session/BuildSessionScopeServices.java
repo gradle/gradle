@@ -59,11 +59,10 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
@@ -71,7 +70,7 @@ import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.WorkerSharedBuildSessionScopeServices;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
@@ -126,16 +125,16 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return new PendingChangesManager(listenerManager);
     }
 
-    DefaultDeploymentRegistry createDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
-        return new DefaultDeploymentRegistry(pendingChangesManager, buildOperationExecutor, objectFactory);
+    DefaultDeploymentRegistry createDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationRunner buildOperationRunner, ObjectFactory objectFactory) {
+        return new DefaultDeploymentRegistry(pendingChangesManager, buildOperationRunner, objectFactory);
     }
 
     DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
-        return parent.createChild(Scopes.BuildSession.class);
+        return parent.createChild(Scope.BuildSession.class);
     }
 
-    CrossProjectConfigurator createCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
-        return new BuildOperationCrossProjectConfigurator(buildOperationExecutor);
+    CrossProjectConfigurator createCrossProjectConfigurator(BuildOperationRunner buildOperationRunner) {
+        return new BuildOperationCrossProjectConfigurator(buildOperationRunner);
     }
 
     BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
@@ -150,11 +149,11 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         GradleUserHomeDirProvider userHomeDirProvider,
         BuildLayout buildLayout,
         Deleter deleter,
-        ProgressLoggerFactory progressLoggerFactory,
+        BuildOperationRunner buildOperationRunner,
         StartParameter startParameter
     ) {
         BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
-        return new ProjectCacheDir(cacheDir.getDir(), progressLoggerFactory, deleter);
+        return new ProjectCacheDir(cacheDir.getDir(), buildOperationRunner, deleter);
     }
 
     BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
@@ -187,8 +186,8 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
     }
 
-    CleanupActionDecorator createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
-        return new BuildOperationCleanupActionDecorator(buildOperationExecutor);
+    CleanupActionDecorator createCleanupActionFactory(BuildOperationRunner buildOperationRunner) {
+        return new BuildOperationCleanupActionDecorator(buildOperationRunner);
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {

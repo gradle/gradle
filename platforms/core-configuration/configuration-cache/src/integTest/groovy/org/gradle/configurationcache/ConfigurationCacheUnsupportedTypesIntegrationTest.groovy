@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.IsolatedProject
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -68,8 +69,8 @@ import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandl
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConstraintHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
-import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver.EmptyLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolvedConfiguration
+import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver.EmptyLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQuery
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
@@ -84,6 +85,7 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DefaultCompatibilityRuleChain
 import org.gradle.api.internal.attributes.DefaultDisambiguationRuleChain
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
+import org.gradle.api.internal.project.DefaultIsolatedProject
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultSourceSet
@@ -100,6 +102,8 @@ import org.gradle.initialization.DefaultSettings
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.locking.DefaultDependencyLockingHandler
 import org.gradle.invocation.DefaultGradle
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Shared
 
 import java.util.concurrent.Executor
@@ -181,7 +185,6 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         where:
         serviceType << disallowedServiceTypesAtExecution
     }
-
 
     def "reports when task field references an object of type #baseType"() {
         buildFile << """
@@ -271,6 +274,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultGradle                         | Gradle                         | "project.gradle"
         DefaultSettings                       | Settings                       | "project.gradle.settings"
         DefaultProject                        | Project                        | "project"
+        DefaultIsolatedProject                | IsolatedProject                | "project.isolated"
         DefaultTaskContainer                  | TaskContainer                  | "project.tasks"
         DefaultTask                           | Task                           | "project.tasks.other"
         DefaultSourceSetContainer             | SourceSetContainer             | "project.sourceSets"
@@ -389,9 +393,167 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         outputContains("beanWithSameType.reference = null")
 
         where:
-        concreteType                     | baseType           | creator                                     | reference                                            | deserializedValue
-        DefaultUnlockedConfiguration     | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
-        DefaultResolvableConfiguration   | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
-        DefaultSourceDirectorySet        | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
+        concreteType                   | baseType           | creator                                     | reference                                            | deserializedValue
+        DefaultUnlockedConfiguration   | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultResolvableConfiguration | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
+    }
+
+    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    def "reports when task field references a record containing type #baseType"() {
+        file("buildSrc/src/main/java/JavaRecord.java") << """
+            public record JavaRecord(${baseType.name} value, int filler) {}
+        """
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+        """
+        buildFile << """
+            class SomeBean {
+                JavaRecord value
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+                private final JavaRecord value
+
+                SomeTask() {
+                    value = new JavaRecord(${reference}, 101)
+                    bean.value = new JavaRecord(${reference}, 202)
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.reference = " + value
+                    println "bean.reference = " + bean.value
+                }
+            }
+
+            task broken(type: SomeTask)
+        """
+
+        when:
+        configurationCacheRunLenient "broken"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(4)
+            withUniqueProblems(
+                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
+                "Task `:broken` of type `SomeTask`: cannot serialize object of type '$concreteTypeName', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
+            )
+            withProblemsWithStackTraceCount(0)
+        }
+
+        and:
+        outputContains("this.reference = JavaRecord[value=null, filler=101]")
+        outputContains("bean.reference = JavaRecord[value=null, filler=202]")
+
+        when:
+        configurationCacheRunLenient "broken"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(2)
+            withUniqueProblems(
+                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache."
+            )
+            withProblemsWithStackTraceCount(0)
+        }
+
+        and:
+        outputContains("this.reference = JavaRecord[value=null, filler=101]")
+        outputContains("bean.reference = JavaRecord[value=null, filler=202]")
+
+        where:
+        concreteType                  | baseType               | reference
+        // Live JVM state
+        Thread                        | Thread                 | "Thread.currentThread()"
+        ByteArrayInputStream          | InputStream            | "new java.io.ByteArrayInputStream([] as byte[])"
+        Socket                        | Socket                 | "new java.net.Socket()"
+        // Gradle Build Model
+        DefaultGradle                 | Gradle                 | "project.gradle"
+        // Dependency Resolution Types
+        DefaultConfigurationContainer | ConfigurationContainer | "project.configurations"
+
+        concreteTypeName = concreteType instanceof Class ? concreteType.name : concreteType
+    }
+
+    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    def "reports when task field is declared with record containing type #baseType"() {
+        file("buildSrc/src/main/java/JavaRecord.java") << """
+            public record JavaRecord(${baseType.name} value, int filler) {}
+        """
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+        """
+        buildFile << """
+            class SomeBean {
+                JavaRecord value
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+                private final JavaRecord value
+
+                SomeTask() {
+                    ${creator}
+                    value = new JavaRecord(${reference}, 101)
+                    bean.value = new JavaRecord(${reference}, 202)
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.reference = " + value
+                    println "bean.reference = " + bean.value
+                }
+            }
+
+            task broken(type: SomeTask)
+        """
+
+        when:
+        configurationCacheRunLenient "broken"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(6)
+            withUniqueProblems(
+                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
+                "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache.",
+                "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
+            )
+            withProblemsWithStackTraceCount(0)
+        }
+
+        when:
+        configurationCacheRunLenient "broken"
+
+        and:
+        outputContains("this.reference = JavaRecord[value=null, filler=101]")
+        outputContains("bean.reference = JavaRecord[value=null, filler=202]")
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(4)
+            withUniqueProblems(
+                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
+                "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
+            )
+            withProblemsWithStackTraceCount(0)
+        }
+
+        and:
+        outputContains("this.reference = JavaRecord[value=null, filler=101]")
+        outputContains("bean.reference = JavaRecord[value=null, filler=202]")
+
+        where:
+        concreteType                   | baseType           | creator                                     | reference                                            | deserializedValue
+        DefaultUnlockedConfiguration   | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultResolvableConfiguration | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }
 }

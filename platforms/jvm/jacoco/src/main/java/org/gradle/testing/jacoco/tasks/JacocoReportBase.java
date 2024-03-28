@@ -19,14 +19,17 @@ package org.gradle.testing.jacoco.tasks;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -57,6 +60,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     private final ConfigurableFileCollection classDirectories = getProject().files();
     private final ConfigurableFileCollection additionalClassDirs = getProject().files();
     private final ConfigurableFileCollection additionalSourceDirs = getProject().files();
+    private final Property<String> sourceEncoding = getProject().getObjects().property(String.class);
 
     public JacocoReportBase() {
         onlyIf("Any of the execution data files exists", new Spec<Task>() {
@@ -139,6 +143,18 @@ public abstract class JacocoReportBase extends JacocoBase {
     @InputFiles
     public ConfigurableFileCollection getAdditionalSourceDirs() {
         return additionalSourceDirs;
+    }
+
+    /**
+     * The character encoding of the source files.
+     *
+     * @since 8.8
+     */
+    @Incubating
+    @Optional
+    @Input
+    public Property<String> getSourceEncoding() {
+        return sourceEncoding;
     }
 
     /**

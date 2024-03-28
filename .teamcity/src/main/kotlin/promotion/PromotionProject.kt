@@ -11,7 +11,7 @@ class PromotionProject(branch: VersionedSettingsBranch) : Project({
     id("Promotion")
     name = "Promotion"
 
-    cleanupRule(historyDays = 28, artifactsDays = 14)
+    cleanupRule(historyDays = 14, artifactsDays = 7)
 
     buildType(SanityCheck)
     buildType(PublishNightlySnapshot(branch))

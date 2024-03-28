@@ -22,10 +22,11 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -44,8 +45,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static org.gradle.api.problems.Severity.WARNING;
-import static org.gradle.api.problems.internal.DefaultProblemCategory.DEPRECATION;
-import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -88,16 +87,16 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         }
         if (problemsService != null) {
             InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-            ProblemReport problem = reporter.create(new Action<InternalProblemSpec>() {
+            Problem problem = reporter.create(new Action<InternalProblemSpec>() {
                 @Override
                 public void execute(InternalProblemSpec builder) {
                     ProblemSpec problemSpec = builder
-                        .label(usage.getSummary())
+                        // usage.getKind() could be be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
+                        .id("deprecated-feature-used", "Deprecated feature used", GradleCoreProblemGroup.deprecation())
+                        .contextualLabel(usage.getSummary())
                         .documentedAt(usage.getDocumentationUrl());
                     addPossibleLocation(diagnostics, problemSpec);
-                    // TODO (donat) we can further categorize deprecation warnings https://github.com/gradle/gradle/issues/26928
-                    problemSpec.category(DEPRECATION, screamingSnakeToKebabCase(usage.getType().name()))
-                        .severity(WARNING);
+                    problemSpec.severity(WARNING);
                     if(usage.getAdvice() != null) {
                         problemSpec.solution(usage.getAdvice());
                     }

@@ -37,6 +37,18 @@ tasks.register("list") {
 }
 // end::closure[]
 
+tasks.register("conventions") {
+    val objects = objects
+    doLast {
+        // tag::conventions[]
+        val sourceDirs = objects.fileCollection().convention("src")
+        sourceDirs.from("src2")
+        val sourceDirNames = sourceDirs.map { it.name }
+        println("Source dirs: $sourceDirNames") // [src, src2]
+        // end::conventions[]
+    }
+}
+
 tasks.register("usage") {
     val projectLayout = layout
     doLast {

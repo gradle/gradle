@@ -49,12 +49,16 @@ class CustomTestTaskProgressEventCrossVersionTest extends ToolingApiSpecificatio
         void statusChanged(ProgressEvent event) {
             if (event.descriptor.displayName == "Test suite 'MyCustomTestRoot'") {
                 suiteEvent = event
-            } else if (event.descriptor.displayName == 'org.my.MyClass descriptor') {
+            } else if (targetDist.hasTestDisplayNames && event.descriptor.displayName == 'Test MyCustomTest(org.my.MyClass)') {
+                testEvent = event
+            } else if (!targetDist.hasTestDisplayNames && event.descriptor.displayName == 'org.my.MyClass descriptor') {
                 testEvent = event
             }
         }
-        boolean receivedCustomTestTaskProgressEvents() {
-            suiteEvent != null && testEvent != null
+
+        void receivedCustomTestTaskProgressEvents() {
+            assert suiteEvent != null
+            assert testEvent != null
         }
     }
 }

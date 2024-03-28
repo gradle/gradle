@@ -19,7 +19,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.ObjectHolder
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
@@ -42,7 +42,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
     def stateCache = new DummyObjectHolder()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(IncludeDirectives.EMPTY, includesParser, dependencyResolver, fileSystemAccess), new TestBuildOperationExecutor())
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(IncludeDirectives.EMPTY, includesParser, dependencyResolver, fileSystemAccess), new TestBuildOperationRunner())
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")

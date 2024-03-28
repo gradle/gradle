@@ -18,9 +18,7 @@ package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.NonNullApi;
 
-import java.util.List;
-
 @NonNullApi
 public interface InternalProblemAggregationDetails extends InternalProblemDetails {
-    List<InternalProblemAggregation> getSummaries();
+
 }

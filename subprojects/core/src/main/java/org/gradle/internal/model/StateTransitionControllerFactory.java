@@ -17,11 +17,11 @@
 package org.gradle.internal.model;
 
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.WorkerLeaseService;
 
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class StateTransitionControllerFactory {
     private final WorkerLeaseService workerLeaseService;
 

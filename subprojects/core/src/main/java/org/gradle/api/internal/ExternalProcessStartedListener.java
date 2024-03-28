@@ -17,11 +17,11 @@
 package org.gradle.api.internal;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 import javax.annotation.Nullable;
 
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 public interface ExternalProcessStartedListener {
     void onExternalProcessStarted(String command, @Nullable String consumer);
 }

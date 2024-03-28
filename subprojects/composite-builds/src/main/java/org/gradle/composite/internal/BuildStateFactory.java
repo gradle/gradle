@@ -32,7 +32,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.plugin.management.internal.PluginRequests;
@@ -42,7 +42,7 @@ import java.io.File;
 
 import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class BuildStateFactory {
     private final BuildTreeState buildTreeState;
     private final ListenerManager listenerManager;

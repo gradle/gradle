@@ -104,4 +104,46 @@ class ConfigurationCacheJavaSerializationIntegrationTest extends AbstractConfigu
         outputContains("bean.value = 42")
     }
 
+    def "restores task fields whose value is Externalizable"() {
+        buildFile << """
+            class SomeBean implements Externalizable {
+                String value
+
+                @Override
+                void writeExternal(java.io.ObjectOutput oos) {
+                    oos.writeUTF("42")
+                }
+
+                @Override
+                void readExternal(java.io.ObjectInput ois) {
+                    value = ois.readUTF()
+                }
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+
+                @TaskAction
+                void run() {
+                    println "bean = " + bean
+                    println "bean.value = " + bean.value
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        configurationCacheRun "ok"
+
+        then: "bean is serialized before task runs"
+        outputContains("bean.value = 42")
+
+        when:
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("bean.value = 42")
+    }
+
 }

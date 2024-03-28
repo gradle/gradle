@@ -17,11 +17,11 @@
 package org.gradle.configurationcache
 
 import org.gradle.internal.service.scopes.EventScope
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import java.io.File
 
 
-@EventScope(Scopes.BuildTree::class)
+@EventScope(Scope.BuildTree::class)
 interface UndeclaredBuildInputListener {
     /**
      * Called when an undeclared system property read happens.

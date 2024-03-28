@@ -16,11 +16,13 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.util.Optional.ofNullable;
@@ -34,23 +36,25 @@ import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class TypeValidationProblemRenderer {
 
-    public static String renderMinimalInformationAbout(ProblemReport problem) {
+    public static String renderMinimalInformationAbout(Problem problem) {
         return renderMinimalInformationAbout(problem, true);
     }
 
-    public static String renderMinimalInformationAbout(ProblemReport problem, boolean renderDocLink) {
+    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink) {
         return renderMinimalInformationAbout(problem, renderDocLink, true);
     }
 
-    public static String renderMinimalInformationAbout(ProblemReport problem, boolean renderDocLink, boolean renderSolutions) {
+    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getContext().getAdditionalData()) + endLineWithDot(problem.getDefinition().getLabel()));
-        ofNullable(problem.getContext().getDetails()).ifPresent(reason -> {
+        formatter.node(introductionFor(problem.getAdditionalData()) + endLineWithDot(Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName())));
+        ofNullable(problem.getDetails()).ifPresent(reason -> {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getContext().getDetails())));
+            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         });
         if (renderSolutions) {
-            renderSolutions(formatter, problem.getDefinition().getSolutions());
+            List<String> allSolutions = new ArrayList<>(problem.getSolutions().size() + problem.getSolutions().size());
+            allSolutions.addAll(problem.getSolutions());
+            renderSolutions(formatter, allSolutions);
         }
         if (renderDocLink) {
             ofNullable(problem.getDefinition().getDocumentationLink()).ifPresent(docLink -> {

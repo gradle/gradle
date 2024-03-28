@@ -29,7 +29,7 @@ import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
@@ -43,7 +43,7 @@ import java.util.function.Supplier;
  * consumption.
  */
 @UsedByScanPlugin
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}

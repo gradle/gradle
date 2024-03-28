@@ -21,7 +21,7 @@ import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.configuration.inputs.InstrumentedInputsListener
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 
@@ -63,7 +63,7 @@ val allowedProperties = setOf(
 )
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class InstrumentedInputAccessListener(
     listenerManager: ListenerManager,

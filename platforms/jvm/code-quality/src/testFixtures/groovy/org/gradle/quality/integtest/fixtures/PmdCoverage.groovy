@@ -20,7 +20,7 @@ package org.gradle.quality.integtest.fixtures
 import org.gradle.api.plugins.quality.PmdPlugin
 
 class PmdCoverage {
-    private final static List<String> ALL = [PmdPlugin.DEFAULT_PMD_VERSION, '4.3', '5.0.5', '5.1.1', '5.3.3', '6.0.0' /*Java 9*/, '6.13.0' /*Java 12*/].asImmutable()
+    private final static List<String> ALL = [PmdPlugin.DEFAULT_PMD_VERSION, '4.3', '5.0.5', '5.1.1', '5.3.3', '6.0.0' /*Java 9*/, '6.13.0' /*Java 12*/, '7.0.0'].asImmutable()
 
     static List<String> getSupportedVersionsByJdk() {
         ALL

@@ -236,9 +236,22 @@ You can create a new `SetProperty` using link:{javadocPath}/org/gradle/api/model
 
 This type of property allows you to overwrite the entire collection value with link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#set-java.lang.Iterable-[HasMultipleValues.set(Iterable)] and link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#set-org.gradle.api.provider.Provider-[HasMultipleValues.set(Provider)] or add new elements through the various `add` methods:
 
-* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-T-[HasMultipleValues.add(T)]: Add a single element to the collection
-* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-org.gradle.api.provider.Provider-[HasMultipleValues.add(Provider)]: Add a lazily calculated element to the collection
-* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#addAll-org.gradle.api.provider.Provider-[HasMultipleValues.addAll(Provider)]: Add a lazily calculated collection of elements to the list
+* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-T-[HasMultipleValues.add(T)] or link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#append-T-[append(T)]: Add a single element to the collection
+* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-org.gradle.api.provider.Provider-[HasMultipleValues.add(Provider)] or link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#append-org.gradle.api.provider.Provider-[append(Provider)]: Add a lazily calculated element to the collection
+* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#addAll-org.gradle.api.provider.Provider-[HasMultipleValues.addAll(Provider)]  or link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#appendAll-org.gradle.api.provider.Provider-[appendAll(Provider)]: Add a lazily calculated collection of elements to the list
+
+The `add*(...)` and `append*(...)` variants add value(s) to the end of the collection.
+The table below summarizes the differences in behavior between the two groups of variants.
+
+[%header%autowidth,compact]
+|===
+|Behavior|`add*(...)`|`append*(...)`|
+|When a convention is defined|Ignores the convention|Commits the convention as the base value, if property had no value|
+|When property has no value|Property remains with no value|Arguments define the new value of the property|
+|When argument is a provider with no value|Property will have no value|Property will preserve existing value|
+|===
+
+IMPORTANT: Note the `append*()` variants are currently link:{userManualPath}/feature_lifecycle.html#sec:incubating_state[incubating], so they may change before promoted as stable.
 
 Just like every `Provider`, the collection is calculated when link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] is called. The following example shows the link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty] in action:
 
@@ -265,7 +278,21 @@ Gradle provides a lazy link:{javadocPath}/org/gradle/api/provider/MapProperty.ht
 You can create a `MapProperty` instance using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#mapProperty-java.lang.Class-java.lang.Class-[ObjectFactory.mapProperty(Class, Class)].
 
 Similar to other property types, a `MapProperty` has a link:{javadocPath}/org/gradle/api/provider/MapProperty.html#set-java.util.Map-[set()] method that you can use to specify the value for the property.
+
 Some additional methods allow entries with lazy values to be added to the map.
+Both `put*(...)` and `insert*(...)` variants add entries(s) to the map.
+The table below summarizes the differences in behavior between the two groups of variants.
+
+[%header%autowidth,compact]
+|===
+|Behavior|`put*(...)`|`insert*(...)`|
+|When a convention is defined|Ignores the convention|Commits the convention as the base value, if property had no value|
+|When property has no value|Property remains with no value|Arguments define the new value of the property|
+|When the value is a provider with no value|Property will have no value|Property will preserve existing value|
+|===
+
+IMPORTANT: Note the `insert*()` variants are currently link:{userManualPath}/feature_lifecycle.html#sec:incubating_state[incubating], so they may change before promoted as stable.
+
 
 ====
 include::sample[dir="snippets/providers/mapProperty/kotlin",files="build.gradle.kts[]"]

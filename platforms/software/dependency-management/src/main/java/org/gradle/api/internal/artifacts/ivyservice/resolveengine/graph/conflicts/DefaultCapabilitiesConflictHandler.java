@@ -43,7 +43,8 @@ import java.util.Set;
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers;
     private final Map<String, Set<NodeState>> capabilityWithoutVersionToNodes = new HashMap<>();
-    private final Deque<CapabilityConflict> conflicts = new ArrayDeque<>();
+    private final Deque<String> conflicts = new ArrayDeque<>();
+    private final Map<String, CapabilityConflict> capabilityIdToConflict = new HashMap<>();
 
     public DefaultCapabilitiesConflictHandler(List<Resolver> resolvers) {
         this.resolvers = resolvers;
@@ -95,7 +96,10 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                         return true;
                     }
                 };
-                conflicts.add(new CapabilityConflict(group, name, candidatesForConflict));
+                if (capabilityIdToConflict.put(capability.getCapabilityId(), new CapabilityConflict(group, name, candidatesForConflict)) == null) {
+                    // No previous conflict, enqueue the capability for resolution
+                    conflicts.add(capability.getCapabilityId());
+                }
                 return conflict;
             }
         }
@@ -115,7 +119,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     @Override
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
-        CapabilityConflict conflict = conflicts.poll();
+        String capabilityInConflict = conflicts.poll();
+        CapabilityConflict conflict = capabilityIdToConflict.remove(capabilityInConflict);
+
         Details details = new Details(conflict);
         for (Resolver resolver : resolvers) {
             resolver.resolve(details);
@@ -141,7 +147,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         if (conflicts.isEmpty()) {
             return false;
         }
-        return conflicts.stream().flatMap(capability -> capability.nodes.stream()).anyMatch(node -> node.getComponent().getId().equals(id));
+        return capabilityIdToConflict.values().stream()
+            .flatMap(capability -> capability.nodes.stream())
+            .anyMatch(node -> node.getComponent().getId().equals(id));
     }
 
     public static CapabilitiesConflictHandler.Candidate candidate(NodeState node, Capability capability, Collection<NodeState> implicitCapabilityProviders) {
@@ -286,15 +294,5 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             this.descriptors = builder.build();
         }
 
-    }
-
-    private static boolean sameComponentAppearsMultipleTimes(CapabilityConflict conflict) {
-        Set<ComponentState> components = new HashSet<>();
-        for (NodeState node : conflict.nodes) {
-            if (!components.add(node.getComponent())) {
-                return true;
-            }
-        }
-        return false;
     }
 }

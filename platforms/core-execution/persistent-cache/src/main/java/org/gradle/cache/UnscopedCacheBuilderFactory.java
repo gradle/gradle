@@ -19,7 +19,7 @@ import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
@@ -32,7 +32,7 @@ import java.io.File;
  * or {@link BuildTreeScopedCacheBuilderFactory}
  * or {@link BuildScopedCacheBuilderFactory} instead.
  */
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public interface UnscopedCacheBuilderFactory {
     /**
      * Returns a builder for the cache with the given base directory. You should prefer one of the other ways of creating a cache with a scoped builder.

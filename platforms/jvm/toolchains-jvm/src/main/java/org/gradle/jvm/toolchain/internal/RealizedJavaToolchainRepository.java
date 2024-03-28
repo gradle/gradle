@@ -52,4 +52,8 @@ public class RealizedJavaToolchainRepository {
         }
         return configuredAuthentication;
     }
+
+    public String getRepositoryName() {
+        return repository.getName();
+    }
 }

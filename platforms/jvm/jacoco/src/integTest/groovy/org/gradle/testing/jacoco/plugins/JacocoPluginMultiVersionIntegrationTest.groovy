@@ -257,6 +257,32 @@ public class ThingTest {
         htmlReport().numberOfClasses() == 2000
     }
 
+    def "allows specifying a source encoding"() {
+        given:
+        testDirectory.createDir('src/main/java/foo').file('Bar.java').canonicalFile.write('''
+            // öäüß
+            package foo;
+            public class Bar {}
+        ''', 'UTF-8')
+
+        buildFile << """
+            jacocoTestReport {
+                sourceEncoding = '$encoding'
+            }
+        """
+
+        when:
+        succeeds('test', 'jacocoTestReport')
+
+        then:
+        htmlReport().sourceCode('foo', 'Bar.java').contains('öäüß') == match
+
+        where:
+        encoding     || match
+        'UTF-8'      || true
+        'ISO-8859-1' || false
+    }
+
     private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {
         return new JacocoReportFixture(file(basedir))
     }

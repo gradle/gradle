@@ -16,17 +16,23 @@
 
 package org.gradle.internal.component;
 
+import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException;
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+
+import java.util.Collections;
+
 /**
  * This type is {@code deprecated} and will be removed in Gradle 9.0.
  *
  * This is temporarily available for migration only.
- * This exception class is internal and has been replaced by {@link AmbiguousArtifactVariantsException}, which is also internal.
+ * This exception class is internal and has been replaced by {@link ArtifactVariantSelectionException}, which is also internal.
  * If possible, catch a {@link RuntimeException} instead to avoid depending on Gradle internal classes.
  */
-@SuppressWarnings("DeprecatedIsStillUsed")
 @Deprecated
 public abstract class AmbiguousVariantSelectionException extends ArtifactVariantSelectionException {
+    private static final ResolutionFailure EMPTY_RESOLUTION_FAILURE = () -> "Empty failure";
+
     public AmbiguousVariantSelectionException(String message) {
-        super(message);
+        super(message, EMPTY_RESOLUTION_FAILURE, Collections.emptyList());
     }
 }

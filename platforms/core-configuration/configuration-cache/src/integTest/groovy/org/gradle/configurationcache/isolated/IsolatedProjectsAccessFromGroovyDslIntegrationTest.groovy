@@ -673,6 +673,39 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         outputContains("project name = b")
     }
 
+    def "build script can query basic details of isolated projects in allprojects block"() {
+        createDirs("a", "b")
+        settingsFile << """
+            rootProject.name = "root"
+            include("a")
+            include("b")
+        """
+        buildFile << """
+            plugins {
+                id('java-library')
+            }
+            allprojects { p ->
+                def isolatedProject = p.isolated
+
+                println("project name = " + isolatedProject.name)
+                println("project path = " + isolatedProject.path)
+                println("project projectDir = " + isolatedProject.projectDirectory)
+                println("project rootDir = " + isolatedProject.rootProject.projectDirectory)
+            }
+        """
+
+        when:
+        isolatedProjectsRun("assemble")
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":b")
+        }
+        outputContains("project name = root")
+        outputContains("project name = a")
+        outputContains("project name = b")
+    }
+
     def "reports problem on #expr buildDependencies.getDependencies(...)"() {
         given:
         buildFile << """

@@ -62,7 +62,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
                .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=14, vendor=ADOPTIUM, implementation=J9} ${getFailureMessageBuildPlatform()}.")
-               .assertHasCause("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either.")
+               .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories.")
                .assertHasResolutions(
                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
@@ -136,8 +136,11 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-               .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'http://exoticJavaToolchain.com/java-99'.")
-               .assertHasCause("Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-99. This is not supported, use a secure URI instead.")
+               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=99, vendor=any, implementation=vendor-specific} for")
+               .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
+                   "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
+                   "({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'http://exoticJavaToolchain.com/java-99', " +
+                   "due to: Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-99. This is not supported, use a secure URI instead.).")
     }
 
     private static String unsecuredToolchainResolverCode() {

@@ -25,7 +25,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.PluginCoordinates;
@@ -37,7 +37,7 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
 import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.AUTO_APPLIED;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
 
     @Override

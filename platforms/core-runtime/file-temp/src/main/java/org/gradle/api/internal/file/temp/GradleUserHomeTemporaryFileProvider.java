@@ -19,13 +19,13 @@ package org.gradle.api.internal.file.temp;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 import java.io.File;
 
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public class GradleUserHomeTemporaryFileProvider extends DefaultTemporaryFileProvider {
     @Inject
     public GradleUserHomeTemporaryFileProvider(final GradleUserHomeDirProvider gradleUserHomeDirProvider) {

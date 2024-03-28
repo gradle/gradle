@@ -122,6 +122,10 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
         withCacheRetentionInDays(days, "downloadedResources")
     }
 
+    void withBuildCacheRetentionInDays(int days) {
+        withCacheRetentionInDays(days, "buildCache")
+    }
+
     void withCacheRetentionInDays(int days, String resources) {
         def initDir = new File(gradleUserHomeDir, "init.d")
         initDir.mkdirs()

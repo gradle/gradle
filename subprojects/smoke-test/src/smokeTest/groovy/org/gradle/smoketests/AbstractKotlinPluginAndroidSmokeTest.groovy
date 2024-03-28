@@ -76,6 +76,10 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
                     }
                     expectBasePluginExtensionArchivesBaseNameDeprecation(kotlinPluginVersionNumber, androidPluginVersionNumber)
                     expectClientModuleDeprecationWarning(androidPluginVersion)
+                    expectConfigurationMutationDeprecationWarnings(androidPluginVersion, [":app:debugCompileClasspath"])
+                    if (GradleContextualExecuter.configCache || (kotlinPluginVersionNumber >= KOTLIN_1_8_0 && kotlinPluginVersionNumber.baseVersion < KOTLIN_2_0_0)) {
+                        expectConfigurationMutationDeprecationWarnings(androidPluginVersion, [":app:debugUnitTestCompileClasspath"])
+                    }
                 }.build()
 
         then:

@@ -28,7 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentSetSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer;
+import org.gradle.internal.serialize.HierarchicalNameSerializer;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;

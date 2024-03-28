@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
 import org.gradle.integtests.tooling.r85.ProblemProgressEventCrossVersionTest.ProblemProgressListener
+import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -31,7 +32,7 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 @ToolingApiVersion(">=8.6")
 class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecification {
 
-    static String getBuildScriptSampleContent(boolean pre86api, boolean includeAdditionalMetadata) {
+    static String getBuildScriptSampleContent(boolean pre86api, boolean includeAdditionalMetadata, GradleVersion targetVersion) {
         """
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
             import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -59,8 +60,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
                 }
                 Object buildAll(String modelName, Project project) {
                     problemsService.${pre86api ? "create" : "forNamespace(\"org.example.plugin\").reporting"} {
-                        it.label("label")
-                            .category("testcategory")
+                        it.${targetVersion < GradleVersion.version("8.8") ? 'label("label").category("testcategory")' : 'id("testcategory", "label")'}
                             .withException(new RuntimeException("test"))
                             ${pre86api ? ".undocumented()" : ""}
                             ${includeAdditionalMetadata ? ".additionalData(\"keyToString\", \"value\")" : ""}
@@ -85,7 +85,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
     def "Can use problems service in model builder and get problem"() {
         given:
         Assume.assumeTrue(jdk != null)
-        buildFile getBuildScriptSampleContent(false, false)
+        buildFile getBuildScriptSampleContent(false, false, targetVersion)
         def listener = new ProblemProgressListener()
 
         when:

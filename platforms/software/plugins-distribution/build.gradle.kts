@@ -39,7 +39,9 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
+        because("Uses application plugin.")
+    }
 }
 
 integTest.usesJavadocCodeSnippets = true

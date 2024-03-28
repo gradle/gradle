@@ -16,6 +16,7 @@
 
 package org.gradle.internal.locking
 
+import org.gradle.internal.Describables
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -28,7 +29,7 @@ class NoOpDependencyLockingProviderTest extends Specification {
 
     def 'does not find locked dependencies'() {
         when:
-        def result = provider.loadLockState('conf')
+        def result = provider.loadLockState('conf', Describables.of("foo"))
 
         then:
         !result.mustValidateLockState()
@@ -40,7 +41,7 @@ class NoOpDependencyLockingProviderTest extends Specification {
 
 
         when:
-        provider.persistResolvedDependencies('conf', result, emptySet())
+        provider.persistResolvedDependencies('conf', Describables.of("foo"), result, emptySet())
 
         then:
         0 * _

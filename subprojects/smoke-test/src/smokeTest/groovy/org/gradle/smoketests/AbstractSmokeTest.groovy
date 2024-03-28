@@ -22,15 +22,12 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMa
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
-import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
@@ -78,7 +75,10 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaResolutionRules = "11.2.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("8.1.1")
+        static shadow = "8.1.1"
+
+        // https://plugins.gradle.org/plugin/io.github.goooler.shadow
+        static shadowFork = "8.1.7"
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
         static asciidoctor = Versions.of("3.3.2", "4.0.2")
@@ -93,7 +93,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = "1.1.4"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "3.2.1"
+        static springBoot = "3.2.2"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "34.0.0"
@@ -258,6 +258,7 @@ abstract class AbstractSmokeTest extends Specification {
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
         return new SmokeTestGradleRunner(gradleRunner)
+            .withBuildOperationTracing(file("operations").absolutePath)
     }
 
     private List<String> configurationCacheParameters() {
@@ -267,7 +268,6 @@ abstract class AbstractSmokeTest extends Specification {
             parameters += [
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
                 "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=$maxProblems".toString(),
-                "-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath()}".toString()
             ]
             if (maxProblems > 0) {
                 parameters += ["--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(),]
@@ -310,30 +310,6 @@ abstract class AbstractSmokeTest extends Specification {
 
     protected int maxConfigurationCacheProblems() {
         return 0
-    }
-
-    protected void assertConfigurationCacheStateStored() {
-        if (GradleContextualExecuter.isConfigCache()) {
-            newConfigurationCacheBuildOperationsFixture().assertStateStored()
-        }
-    }
-
-    protected void assertConfigurationCacheStateLoaded() {
-        if (GradleContextualExecuter.isConfigCache()) {
-            newConfigurationCacheBuildOperationsFixture().assertStateLoaded()
-        }
-    }
-
-    private ConfigurationCacheBuildOperationsFixture newConfigurationCacheBuildOperationsFixture() {
-        return new ConfigurationCacheBuildOperationsFixture(
-            new BuildOperationTreeFixture(
-                BuildOperationTrace.read(buildOperationTracePath())
-            )
-        )
-    }
-
-    private String buildOperationTracePath() {
-        return file("operations").absolutePath
     }
 
     protected void useSample(String sampleDirectory) {

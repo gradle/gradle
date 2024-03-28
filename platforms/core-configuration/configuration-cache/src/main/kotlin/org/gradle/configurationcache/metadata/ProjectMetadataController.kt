@@ -65,8 +65,9 @@ class ProjectMetadataController(
     private val host: DefaultConfigurationCache.Host,
     private val cacheIO: ConfigurationCacheIO,
     private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
-    store: ConfigurationCacheStateStore
-) : ProjectStateStore<Path, LocalComponentGraphResolveState>(store, StateType.ProjectMetadata) {
+    store: ConfigurationCacheStateStore,
+    calculatedValueContainerFactory: CalculatedValueContainerFactory
+) : ProjectStateStore<Path, LocalComponentGraphResolveState>(store, StateType.ProjectMetadata, "project metadata", calculatedValueContainerFactory) {
 
     override fun projectPathForKey(key: Path) = key
 

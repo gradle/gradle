@@ -54,7 +54,8 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -62,8 +63,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolversFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
@@ -102,7 +103,6 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -112,7 +112,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.Cache;
 import org.gradle.cache.ManualEvictionInMemoryCache;
@@ -144,9 +143,9 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
-import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -217,11 +216,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ResolutionStrategyFactory.class);
             registration.add(DefaultLocalComponentRegistry.class);
             registration.add(ProjectDependencyResolver.class);
-            registration.add(ComponentResolversFactory.class);
             registration.add(ConsumerProvidedVariantFinder.class);
             registration.add(DefaultVariantSelectorFactory.class);
             registration.add(DefaultConfigurationFactory.class);
             registration.add(DefaultComponentSelectorConverter.class);
+            registration.add(DefaultArtifactResolutionQueryFactory.class);
         }
 
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport, ServiceRegistry serviceRegistry) {
@@ -253,14 +252,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformInvocationFactory createTransformInvocationFactory(
-                ExecutionEngine executionEngine,
-                FileSystemAccess fileSystemAccess,
-                ImmutableTransformWorkspaceServices transformWorkspaceServices,
-                TransformExecutionListener transformExecutionListener,
-                FileCollectionFactory fileCollectionFactory,
-                ProjectStateRegistry projectStateRegistry,
-                BuildOperationExecutor buildOperationExecutor,
-                BuildOperationProgressEventEmitter progressEventEmitter
+            ExecutionEngine executionEngine,
+            FileSystemAccess fileSystemAccess,
+            ImmutableTransformWorkspaceServices transformWorkspaceServices,
+            TransformExecutionListener transformExecutionListener,
+            FileCollectionFactory fileCollectionFactory,
+            ProjectStateRegistry projectStateRegistry,
+            BuildOperationRunner buildOperationRunner,
+            BuildOperationProgressEventEmitter progressEventEmitter
         ) {
             return new DefaultTransformInvocationFactory(
                 executionEngine,
@@ -269,28 +268,27 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformWorkspaceServices,
                 fileCollectionFactory,
                 projectStateRegistry,
-                buildOperationExecutor,
+                buildOperationRunner,
                 progressEventEmitter
             );
         }
 
         TransformRegistrationFactory createTransformRegistrationFactory(
-                BuildOperationExecutor buildOperationExecutor,
-                IsolatableFactory isolatableFactory,
-                ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                TransformInvocationFactory transformInvocationFactory,
-                DomainObjectContext domainObjectContext,
-                TransformParameterScheme parameterScheme,
-                TransformActionScheme actionScheme,
-                InputFingerprinter inputFingerprinter,
-                CalculatedValueContainerFactory calculatedValueContainerFactory,
-                FileCollectionFactory fileCollectionFactory,
-                FileLookup fileLookup,
-                ServiceRegistry internalServices,
-                Problems problems
+            BuildOperationRunner buildOperationRunner,
+            IsolatableFactory isolatableFactory,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            TransformInvocationFactory transformInvocationFactory,
+            DomainObjectContext domainObjectContext,
+            TransformParameterScheme parameterScheme,
+            TransformActionScheme actionScheme,
+            InputFingerprinter inputFingerprinter,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            FileCollectionFactory fileCollectionFactory,
+            FileLookup fileLookup,
+            ServiceRegistry internalServices
         ) {
             return new DefaultTransformRegistrationFactory(
-                buildOperationExecutor,
+                buildOperationRunner,
                 isolatableFactory,
                 classLoaderHierarchyHasher,
                 transformInvocationFactory,
@@ -506,7 +504,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ConfigurationResolver createDependencyResolver(
-            ComponentResolversFactory componentResolversFactory,
             DependencyGraphResolver dependencyGraphResolver,
             RepositoriesSupplier repositoriesSupplier,
             GlobalDependencyResolutionRules metadataHandler,
@@ -530,15 +527,19 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             SelectedVariantSerializer selectedVariantSerializer,
             ResolvedVariantCache resolvedVariantCache,
             GraphVariantSelector graphVariantSelector,
-            ProjectStateRegistry projectStateRegistry
+            ProjectStateRegistry projectStateRegistry,
+            LocalComponentRegistry localComponentRegistry,
+            List<ResolverProviderFactory> resolverFactories,
+            ExternalModuleComponentResolverFactory moduleDependencyResolverFactory,
+            ProjectDependencyResolver projectDependencyResolver,
+            DependencyLockingProvider dependencyLockingProvider
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
-                componentResolversFactory,
                 dependencyGraphResolver,
                 repositoriesSupplier,
                 metadataHandler,
                 resolutionResultsStoreFactory,
-                startParameter.isBuildProjectDependencies(),
+                startParameter,
                 attributesSchema,
                 variantSelectorFactory,
                 moduleIdentifierFactory,
@@ -547,7 +548,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 calculatedValueContainerFactory,
                 componentSelectorConverter,
                 attributeContainerSerializer,
-                currentBuild.getBuildIdentifier(),
+                currentBuild,
                 attributeDesugaring,
                 artifactSetResolver,
                 componentSelectionDescriptorFactory,
@@ -556,7 +557,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 selectedVariantSerializer,
                 resolvedVariantCache,
                 graphVariantSelector,
-                projectStateRegistry
+                projectStateRegistry,
+                localComponentRegistry,
+                resolverFactories,
+                moduleDependencyResolverFactory,
+                projectDependencyResolver,
+                dependencyLockingProvider
             );
 
             return new ShortCircuitEmptyConfigurationResolver(
@@ -573,18 +579,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         DependencyResolutionServices createDependencyResolutionServices(ServiceRegistry services) {
             return new DefaultDependencyResolutionServices(services);
-        }
-
-        ArtifactResolutionQueryFactory createArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer,
-                                                                            RepositoriesSupplier repositoriesSupplier,
-                                                                            ResolveIvyFactory ivyFactory,
-                                                                            GlobalDependencyResolutionRules metadataHandler,
-                                                                            ComponentTypeRegistry componentTypeRegistry,
-                                                                            ImmutableAttributesFactory attributesFactory,
-                                                                            ArtifactTypeRegistry artifactTypeRegistry,
-                                                                            ComponentMetadataSupplierRuleExecutor executor) {
-            return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoriesSupplier, ivyFactory, metadataHandler, componentTypeRegistry, attributesFactory, artifactTypeRegistry, executor);
-
         }
 
         RepositoriesSupplier createRepositoriesSupplier(RepositoryHandler repositoryHandler, DependencyResolutionManagementInternal drm, DomainObjectContext context) {

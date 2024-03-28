@@ -16,18 +16,21 @@
 
 package org.gradle.integtests.internal.component
 
-import org.gradle.api.internal.artifacts.transform.AmbiguousArtifactTransformException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.internal.component.AbstractVariantSelectionException
-import org.gradle.internal.component.AmbiguousArtifactVariantsException
-import org.gradle.internal.component.AmbiguousGraphVariantsException
-import org.gradle.internal.component.ConfigurationNotFoundException
-import org.gradle.internal.component.ExternalConfigurationNotFoundException
-import org.gradle.internal.component.IncompatibleArtifactVariantsException
-import org.gradle.internal.component.IncompatibleGraphVariantsException
-import org.gradle.internal.component.NoMatchingArtifactVariantsException
-import org.gradle.internal.component.NoMatchingGraphVariantsException
+import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException
+import org.gradle.internal.component.resolution.failure.exception.ArtifactVariantSelectionException
+import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException
+import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformFailure
+import org.gradle.internal.component.resolution.failure.type.AmbiguousResolutionFailure
+import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodeSelectionFailure
+import org.gradle.internal.component.resolution.failure.type.IncompatibleRequestedConfigurationFailure
+import org.gradle.internal.component.resolution.failure.type.IncompatibleResolutionFailure
+import org.gradle.internal.component.resolution.failure.type.RequestedConfigurationNotFoundFailure
+import org.gradle.internal.component.resolution.failure.type.ResolutionFailure
+import org.gradle.internal.component.resolution.failure.type.VariantAwareAmbiguousResolutionFailure
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -49,7 +52,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousGraphVariantForProject.prepare()
 
         expect:
-        assertResolutionFailsWithException(ambiguousGraphVariantForProject.exception)
+        assertResolutionFailsAsExpected(ambiguousGraphVariantForProject)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
@@ -75,7 +78,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousGraphVariantForExternalDep.prepare()
 
         expect:
-        assertResolutionFailsWithException(ambiguousGraphVariantForExternalDep.exception)
+        assertResolutionFailsAsExpected(ambiguousGraphVariantForExternalDep)
 
         and: "Has error output"
         failure.assertHasDescription("Execution failed for task ':forceResolution'")
@@ -110,7 +113,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         noMatchingGraphVariantsForProject.prepare()
 
         expect:
-        assertResolutionFailsWithException(noMatchingGraphVariantsForProject.exception)
+        assertResolutionFailsAsExpected(noMatchingGraphVariantsForProject)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
@@ -133,7 +136,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         noMatchingGraphVariantsForExternalDep.prepare()
 
         expect:
-        assertResolutionFailsWithException(noMatchingGraphVariantsForExternalDep.exception)
+        assertResolutionFailsAsExpected(noMatchingGraphVariantsForExternalDep)
 
         and: "Has error output"
         failure.assertHasDescription("Execution failed for task ':forceResolution'.")
@@ -158,7 +161,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         incompatibleRequestedConfiguration.prepare()
 
         expect:
-        assertResolutionFailsWithException(incompatibleRequestedConfiguration.exception)
+        assertResolutionFailsAsExpected(incompatibleRequestedConfiguration)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
@@ -181,7 +184,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         configurationNotFound.prepare()
 
         expect:
-        assertResolutionFailsWithException(configurationNotFound.exception)
+        assertResolutionFailsAsExpected(configurationNotFound)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
@@ -201,7 +204,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         externalConfigurationNotFound.prepare()
 
         expect:
-        assertResolutionFailsWithException(externalConfigurationNotFound.exception)
+        assertResolutionFailsAsExpected(externalConfigurationNotFound)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
@@ -222,7 +225,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         incompatibleArtifactVariants.prepare()
 
         expect:
-        assertResolutionFailsWithException(incompatibleArtifactVariants.exception)
+        assertResolutionFailsAsExpected(incompatibleArtifactVariants)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
@@ -243,7 +246,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         noMatchingArtifactVariants.prepare()
 
         expect:
-        assertResolutionFailsWithException(noMatchingArtifactVariants.exception)
+        assertResolutionFailsAsExpected(noMatchingArtifactVariants)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
@@ -263,7 +266,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousArtifactTransforms.prepare()
 
         expect:
-        assertResolutionFailsWithException(ambiguousArtifactTransforms.exception)
+        assertResolutionFailsAsExpected(ambiguousArtifactTransforms)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
@@ -296,7 +299,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousArtifactVariants.prepare()
 
         expect:
-        assertResolutionFailsWithException(ambiguousArtifactVariants.exception)
+        assertResolutionFailsAsExpected(ambiguousArtifactVariants)
 
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
@@ -383,12 +386,14 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private static class Demonstration {
         private final String name
-        private final Class<AbstractVariantSelectionException> exception
+        private final Class<AbstractResolutionFailureException> exception
+        private final Class<? extends ResolutionFailure> failure
         private final Closure setup
 
-        private Demonstration(String name, Class<AbstractVariantSelectionException> exception, Closure setup) {
+        private Demonstration(String name, Class<AbstractResolutionFailureException> exception, Class<? extends ResolutionFailure> failure, Closure setup) {
             this.name = name
             this.exception = exception
+            this.failure = failure
             this.setup = setup
         }
 
@@ -397,20 +402,20 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    private final Demonstration ambiguousGraphVariantForProject = new Demonstration("Ambiguous graph variant (project)", AmbiguousGraphVariantsException.class, this.&setupAmbiguousGraphVariantFailureForProject)
-    private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", AmbiguousGraphVariantsException.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
-    private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", NoMatchingGraphVariantsException.class, this.&setupNoMatchingGraphVariantsFailureForProject)
-    private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", NoMatchingGraphVariantsException.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
+    private final Demonstration ambiguousGraphVariantForProject = new Demonstration("Ambiguous graph variant (project)", VariantSelectionException.class, VariantAwareAmbiguousResolutionFailure.class, this.&setupAmbiguousGraphVariantFailureForProject)
+    private final Demonstration ambiguousGraphVariantForExternalDep = new Demonstration("Ambiguous graph variant (external)", VariantSelectionException.class, VariantAwareAmbiguousResolutionFailure.class, this.&setupAmbiguousGraphVariantFailureForExternalDep)
+    private final Demonstration noMatchingGraphVariantsForProject = new Demonstration("No matching graph variants (project dependency)", VariantSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupNoMatchingGraphVariantsFailureForProject)
+    private final Demonstration noMatchingGraphVariantsForExternalDep = new Demonstration("No matching graph variants (external dependency)", VariantSelectionException.class, IncompatibleGraphVariantFailure.class, this.&setupNoMatchingGraphVariantsFailureForExternalDep)
 
-    private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", IncompatibleGraphVariantsException.class, this.&setupIncompatibleRequestedConfigurationFailureForProject)
+    private final Demonstration incompatibleRequestedConfiguration = new Demonstration("Incompatible requested configuration", VariantSelectionException.class, IncompatibleRequestedConfigurationFailure.class, this.&setupIncompatibleRequestedConfigurationFailureForProject)
 
-    private final Demonstration configurationNotFound = new Demonstration("Configuration not found", ConfigurationNotFoundException.class, this.&setupConfigurationNotFound)
-    private final Demonstration externalConfigurationNotFound = new Demonstration("External configuration not found", ExternalConfigurationNotFoundException.class, this.&setupExternalConfigurationNotFound)
+    private final Demonstration configurationNotFound = new Demonstration("Configuration not found", ConfigurationSelectionException.class, RequestedConfigurationNotFoundFailure.class, this.&setupConfigurationNotFound)
+    private final Demonstration externalConfigurationNotFound = new Demonstration("External configuration not found", ConfigurationSelectionException.class, RequestedConfigurationNotFoundFailure.class, this.&setupExternalConfigurationNotFound)
 
-    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible artifact variants", IncompatibleArtifactVariantsException.class, this.&setupIncompatibleArtifactVariantsFailureForProject)
-    private final Demonstration noMatchingArtifactVariants = new Demonstration("No matching artifact variants", NoMatchingArtifactVariantsException.class, this.&setupNoMatchingArtifactVariantsFailureForProject)
-    private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", AmbiguousArtifactTransformException.class, this.&setupAmbiguousArtifactTransformFailureForProject)
-    private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", AmbiguousArtifactVariantsException.class, this.&setupAmbiguousArtifactVariantsFailureForProject)
+    private final Demonstration incompatibleArtifactVariants = new Demonstration("Incompatible artifact variants", ArtifactVariantSelectionException.class, IncompatibleMultipleNodeSelectionFailure.class, this.&setupIncompatibleArtifactVariantsFailureForProject)
+    private final Demonstration noMatchingArtifactVariants = new Demonstration("No matching artifact variants", ArtifactVariantSelectionException.class, IncompatibleResolutionFailure.class, this.&setupNoMatchingArtifactVariantsFailureForProject)
+    private final Demonstration ambiguousArtifactTransforms = new Demonstration("Ambiguous artifact transforms", ArtifactVariantSelectionException.class, AmbiguousArtifactTransformFailure.class, this.&setupAmbiguousArtifactTransformFailureForProject)
+    private final Demonstration ambiguousArtifactVariants = new Demonstration("Ambiguous artifact variants", ArtifactVariantSelectionException.class, AmbiguousResolutionFailure.class, this.&setupAmbiguousArtifactVariantsFailureForProject)
 
     private final List<Demonstration> demonstrations = [
         ambiguousGraphVariantForProject,
@@ -848,8 +853,10 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasResolution(resolution)
     }
 
-    private void assertResolutionFailsWithException(Class<? extends RuntimeException> exception) {
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + exception.getName())
+    private void assertResolutionFailsAsExpected(Demonstration demonstration) {
+        fails "forceResolution", "--stacktrace", "--info"
+
+        outputContains("Variant Selection Exception: " + demonstration.exception.getName() + " caused by Resolution Failure: " + demonstration.failure.getName())
+        failure.assertHasErrorOutput("Caused by: " + demonstration.exception.getName())
     }
 }

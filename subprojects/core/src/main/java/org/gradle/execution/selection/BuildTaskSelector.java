@@ -20,13 +20,13 @@ import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelection;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.io.File;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildTaskSelector {
     Filter resolveExcludedTaskName(BuildState targetBuild, String taskName);
 

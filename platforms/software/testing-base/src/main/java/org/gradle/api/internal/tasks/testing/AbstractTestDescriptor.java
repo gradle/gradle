@@ -44,6 +44,11 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
+    public String getMethodName() {
+        return null;
+    }
+
+    @Override
     public TestDescriptorInternal getParent() {
         return null;
     }

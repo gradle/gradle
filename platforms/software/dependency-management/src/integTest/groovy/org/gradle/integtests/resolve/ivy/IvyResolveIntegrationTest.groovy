@@ -390,4 +390,59 @@ dependencies {
             }
         }
     }
+
+    // TODO: This is not desired behavior. We should deprecate and forbid this.
+    def "can consume non-consumable project configuration when substituted as a transitive dependency"() {
+
+        file("included/settings.gradle") << """
+            rootProject.name = "transitive"
+        """
+        file("included/build.gradle") << """
+            group = "org"
+
+            task myZip(type: Zip) {
+                archiveFileName = "transitive.zip"
+                destinationDirectory = layout.buildDirectory
+            }
+
+            configurations {
+                "default" {
+                    canBeConsumed = false
+                    outgoing {
+                        artifact(tasks.myZip)
+                    }
+                }
+            }
+        """
+
+        settingsFile << """
+            includeBuild("included")
+        """
+
+        ivyRepo.module("org", "direct")
+            .dependsOn("org", "transitive", "1.0")
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${ivyTestRepository()}
+
+            dependencies {
+                implementation("org:direct:1.0")
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath
+                files.forEach {
+                    println(it)
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
 }

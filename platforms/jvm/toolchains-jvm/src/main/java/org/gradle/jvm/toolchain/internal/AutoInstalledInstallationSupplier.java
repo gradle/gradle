@@ -49,7 +49,7 @@ public class AutoInstalledInstallationSupplier extends AutoDetectingInstallation
     }
 
     private InstallationLocation asInstallation(File javaHome) {
-        return new InstallationLocation(javaHome, getSourceName(), true);
+        return InstallationLocation.autoProvisioned(javaHome, getSourceName());
     }
 
     @Override

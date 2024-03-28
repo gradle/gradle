@@ -18,13 +18,10 @@ package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -94,73 +91,46 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return selector;
     }
 
-    @Override
-    public String getDependencyConfiguration() {
-        return GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
-    }
-
     /**
      * Choose a single target configuration based on: a) the consumer attributes, b) the target configuration name and c) the target component
      *
      * Use attribute matching to choose a single variant when:
      * - The target configuration name is not specified AND
-     * - Either: we have consumer attributes OR the target component has variants.
+     * - The target component has variants.
      *
      * Otherwise, revert to legacy selection of target configuration.
      *
      * @return A List containing a single `ConfigurationMetadata` representing the target variant.
      */
     @Override
-    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
-        GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
-        boolean consumerHasAttributes = !consumerAttributes.isEmpty();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || candidates.isUseVariants());
-        if (useConfigurationAttributes) {
-            return variantSelector.selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
+    public GraphVariantSelectionResult selectVariants(
+        GraphVariantSelector variantSelector,
+        ImmutableAttributes consumerAttributes,
+        ComponentGraphResolveState targetComponentState,
+        AttributesSchemaInternal consumerSchema,
+        Collection<? extends Capability> explicitRequestedCapabilities
+    ) {
+        // If the target component is variant-aware, and we haven't requested an explicit configuration, use variant aware matching.
+        boolean variantAware = targetComponentState.getCandidatesForGraphVariantSelection().isUseVariants();
+        if (dependencyConfiguration == null && variantAware) {
+            VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
+                consumerAttributes,
+                explicitRequestedCapabilities, targetComponentState,
+                consumerSchema,
+                getArtifacts()
+            );
+            return new GraphVariantSelectionResult(Collections.singletonList(selected), true);
+        }
+
+        // Otherwise, select a legacy configuration.
+        VariantGraphResolveState selected;
+        if (dependencyConfiguration != null) {
+            selected = variantSelector.selectConfigurationByName(dependencyConfiguration, consumerAttributes, targetComponentState, consumerSchema);
         } else {
-            ConfigurationGraphResolveState toConfiguration = selectRequestedConfiguration(variantSelector, consumerAttributes, targetComponentState, consumerSchema, targetComponent, consumerHasAttributes);
-            return new GraphVariantSelectionResult(ImmutableList.of(toConfiguration.asVariant()), false);
-        }
-    }
-
-    private ConfigurationGraphResolveState selectRequestedConfiguration(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, ComponentGraphResolveMetadata targetComponent, boolean consumerHasAttributes) {
-        String targetConfiguration = getDependencyConfiguration();
-        ConfigurationGraphResolveState toConfiguration = targetComponentState.getConfiguration(targetConfiguration);
-        if (toConfiguration == null) {
-            throw variantSelector.getFailureProcessor().configurationNotFoundFailure(targetComponent.getId(), targetConfiguration);
+            selected = variantSelector.selectLegacyConfiguration(consumerAttributes, targetComponentState, consumerSchema);
         }
 
-        verifyConsumability(variantSelector, targetComponent, toConfiguration);
-        verifyAttributeCompatibility(variantSelector, consumerAttributes, consumerSchema, targetComponent, consumerHasAttributes, toConfiguration);
-
-        return toConfiguration;
-    }
-
-    private void verifyAttributeCompatibility(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema, ComponentGraphResolveMetadata targetComponent, boolean consumerHasAttributes, ConfigurationGraphResolveState toConfiguration) {
-        if (consumerHasAttributes && !toConfiguration.getAttributes().isEmpty()) {
-            // need to validate that the selected configuration still matches the consumer attributes
-            // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
-            AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
-            if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), consumerAttributes)) {
-                throw variantSelector.getFailureProcessor().incompatibleRequestedConfigurationFailure(consumerSchema, consumerSchema.withProducer(producerAttributeSchema), consumerAttributes, targetComponent, toConfiguration);
-            }
-        }
-    }
-
-    private void verifyConsumability(GraphVariantSelector variantSelector, ComponentGraphResolveMetadata targetComponent, ConfigurationGraphResolveState toConfiguration) {
-        ConfigurationGraphResolveMetadata metadata = toConfiguration.getMetadata();
-        if (!metadata.isCanBeConsumed()) {
-            throw variantSelector.getFailureProcessor().configurationNotConsumableFailure(targetComponent.getId(), toConfiguration.getName());
-        }
-
-        if (metadata.isDeprecatedForConsumption()) {
-            DeprecationLogger.deprecateConfiguration(toConfiguration.getName())
-                .forConsumption()
-                .willBecomeAnErrorInGradle9()
-                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
-                .nagUser();
-        }
+        return new GraphVariantSelectionResult(ImmutableList.of(selected), false);
     }
 
     @Override

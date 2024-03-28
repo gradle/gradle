@@ -29,7 +29,7 @@ import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -59,7 +59,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 4.7
  */
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class LoggingBuildOperationProgressBroadcaster implements Stoppable, OutputEventListener {
 
     private final OutputEventListenerManager outputEventListenerManager;

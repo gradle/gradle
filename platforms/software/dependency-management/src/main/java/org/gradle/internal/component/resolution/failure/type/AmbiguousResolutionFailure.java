@@ -18,7 +18,6 @@ package org.gradle.internal.component.resolution.failure.type;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 
 import java.util.List;
@@ -30,8 +29,8 @@ import java.util.List;
 public class AmbiguousResolutionFailure extends AbstractIncompatibleAttributesSelectionFailure {
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
-    public AmbiguousResolutionFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(schema, requestedName, requestedAttributes);
+    public AmbiguousResolutionFailure(String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+        super(requestedName, requestedAttributes);
         this.candidates = ImmutableList.copyOf(candidates);
     }
 

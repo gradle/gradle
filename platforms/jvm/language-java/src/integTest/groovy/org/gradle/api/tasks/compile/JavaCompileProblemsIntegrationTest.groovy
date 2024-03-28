@@ -18,6 +18,10 @@ package org.gradle.api.tasks.compile
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.FileLocation
+import org.gradle.api.problems.internal.LineInFileLocation
+import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.test.fixtures.file.TestFile
@@ -35,7 +39,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     /**
      * A map of all visited file locations, and the number of occurrences we have found in the problems.
      * <p>
-     * This field will be updated by {@link #assertProblem(ReceivedProblem, String, Closure)} as it asserts a problem.
+     * This field will be updated by {@link #assertProblem(ReceivedProblem, String, Boolean, Closure)} as it asserts a problem.
      */
     private final Map<String, Integer> visitedFileLocations = [:]
 
@@ -73,12 +77,15 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
 
         then:
-        def problems = collectedProblems
-        problems.size() == 2
-        for (def problem in (problems)) {
-            assertProblem(problem, "ERROR") { details ->
-                assert details == "';' expected"
-            }
+        verifyAll(receivedProblem(0)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
+        }
+        verifyAll(receivedProblem(1)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
         }
     }
 
@@ -91,11 +98,26 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         fails("compileJava")
 
         then:
-        collectedProblems.size() == 4
-        for (def problem in collectedProblems) {
-            assertProblem(problem, "ERROR") { details ->
-                assert details == "';' expected"
-            }
+        verifyAll(receivedProblem(0)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
+        }
+        verifyAll(receivedProblem(1)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
+        }
+        verifyAll(receivedProblem(2)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
+            solutions.empty
+        }
+        verifyAll(receivedProblem(3)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
         }
     }
 
@@ -107,11 +129,15 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         def result = run("compileJava")
 
         then:
-        collectedProblems.size() == 2
-        for (def problem in collectedProblems) {
-            assertProblem(problem, "WARNING") { details ->
-                assert details == "redundant cast to java.lang.String"
-            }
+        verifyAll(receivedProblem(0)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+        }
+        verifyAll(receivedProblem(1)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
         }
     }
 
@@ -124,11 +150,25 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         def result = run("compileJava")
 
         then:
-        collectedProblems.size() == 4
-        for (def problem in collectedProblems) {
-            assertProblem(problem, "WARNING") { details ->
-                assert details == "redundant cast to java.lang.String"
-            }
+        verifyAll(receivedProblem(0)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+        }
+        verifyAll(receivedProblem(1)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+        }
+        verifyAll(receivedProblem(2)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+        }
+        verifyAll(receivedProblem(3)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
         }
     }
 
@@ -141,11 +181,25 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         def result = fails("compileJava")
 
         then:
-        collectedProblems.size() == 4
-        for (def problem in collectedProblems) {
-            assertProblem(problem, "ERROR") { details ->
-                assert details == "';' expected"
-            }
+        verifyAll(receivedProblem(0)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
+        }
+        verifyAll(receivedProblem(1)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
+        }
+        verifyAll(receivedProblem(2)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
+        }
+        verifyAll(receivedProblem(3)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
         }
     }
 
@@ -161,26 +215,25 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         fails("compileTestJava")
 
         then:
-        collectedProblems.size() == 4
-
-        def warningProblems = collectedProblems.findAll {
-            it['definition']["severity"] == "WARNING"
+        verifyAll(receivedProblem(0)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
         }
-        warningProblems.size() == 2
-        for (def problem in warningProblems) {
-            assertProblem(problem, "WARNING") {details ->
-                assert details == "redundant cast to java.lang.String"
-            }
+        verifyAll(receivedProblem(1)) {
+            assertProblem(it, "ERROR", true)
+            fqid == 'compilation:java:java-compilation-error'
+            details == '\';\' expected'
         }
-
-        def errorProblems = collectedProblems.findAll {
-            it['definition']["severity"] == "ERROR"
+        verifyAll(receivedProblem(2)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
         }
-        errorProblems.size() == 2
-        for (def problem in errorProblems) {
-            assertProblem(problem, "ERROR") { details ->
-                assert details == "';' expected"
-            }
+        verifyAll(receivedProblem(3)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
         }
     }
 
@@ -192,28 +245,31 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails("compileJava")
 
+
         then:
         // 2 warnings + 1 special error
-        collectedProblems.size() == 3
-
-        // The two expected warnings are still reported as warnings
-        def warningProblems = collectedProblems.findAll {
-            it['definition']["severity"] == "WARNING"
-        }
-        warningProblems.size() == 2
-        for (def problem in warningProblems) {
-            assertProblem(problem, "WARNING") {details ->
-                assert details == "redundant cast to java.lang.String"
-            }
-        }
-
         // The compiler will report a single error, implying that the warnings were treated as errors
-        def errorProblems = collectedProblems.findAll {
-            it['definition']["severity"] == "ERROR"
+        verifyAll(receivedProblem(0)) {
+            assertProblem(it, "ERROR", false)
+            fqid == 'compilation:java:java-compilation-error'
+            details == 'warnings found and -Werror specified'
+            solutions.empty
+            additionalData.isEmpty()
         }
-        errorProblems.size() == 1
-        assertProblem(errorProblems[0], "ERROR") {details ->
-            assert details == "warnings found and -Werror specified"
+        // The two expected warnings are still reported as warnings
+        verifyAll(receivedProblem(1)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+            solutions.empty
+            additionalData.isEmpty()
+        }
+        verifyAll(receivedProblem(2)) {
+            assertProblem(it, "WARNING", true)
+            fqid == 'compilation:java:java-compilation-warning'
+            details == 'redundant cast to java.lang.String'
+            solutions.empty
+            additionalData.isEmpty()
         }
     }
 
@@ -232,45 +288,62 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
     void assertProblem(
         ReceivedProblem problem,
         String severity,
+        boolean expectPreciseLocation = true,
         @ClosureParams(
             value = SimpleType,
             options = [
                 "java.lang.String"
             ]
-        )
-            Closure extraChecks = null
+        ) Closure extraChecks = null
     ) {
-        assert problem['definition']["severity"] == severity: "Expected severity to be ${severity}, but was ${problem['definition']["severity"]}"
+        // TODO (donat) we can probably delete some of this method
+        assert problem.definition.severity == Severity.valueOf(severity) : "Expected severity to be ${severity}, but was ${problem.definition.severity}"
         switch (severity) {
             case "ERROR":
-                assert problem['definition']["label"] == "Java compilation error": "Expected label 'Java compilation error', but was ${problem['definition']["label"]}"
+                assert problem.definition.id.displayName == "Java compilation error": "Expected label 'Java compilation error', but was ${problem.definition.id.displayName}"
                 break
             case "WARNING":
-                assert problem['definition']["label"] == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem['definition']["message"]}"
+                assert problem.definition.id.displayName == "Java compilation warning": "Expected label 'Java compilation warning', but was ${problem.definition.id.displayName}"
                 break
             default:
                 throw new IllegalArgumentException("Unknown severity: ${severity}")
         }
 
-        def details = problem['context']["details"] as String
+        def details = problem.details
         assert details: "Expected details to be non-null, but was null"
 
-        def locations = problem['context']["locations"] as List<Map<String, Object>>
-        assert locations.size() == 1: "Expected one location, but received ${locations.size()}"
+        def locations = problem.locations
+        // We use this counter to assert that we have visited all locations
+        def assertedLocationCount = 0
 
-        def fileLocation = locations.find {
-            it.containsKey("path") && it.containsKey("line") && it.containsKey("column") && it.containsKey("length")
-        }
+        FileLocation fileLocation = locations.find { it instanceof FileLocation }
         assert fileLocation != null: "Expected a file location, but it was null"
-        assert fileLocation["line"] != null: "Expected a line number, but it was null"
-        assert fileLocation["column"] != null: "Expected a column number, but it was null"
-        assert fileLocation["length"] != null: "Expected a length, but it was null"
-
-        def fileLocationPath = fileLocation["path"] as String
+        def fileLocationPath = fileLocation.path
+        // Register that we've asserted this location
+        assertedLocationCount += 1
+        // Check if we expect this file location
         def occurrences = possibleFileLocations.get(fileLocationPath)
         assert occurrences: "Not found file location '${fileLocationPath}' in the expected file locations: ${possibleFileLocations.keySet()}"
         visitedFileLocations.putIfAbsent(fileLocationPath, 0)
         visitedFileLocations[fileLocationPath] += 1
+
+        if (expectPreciseLocation) {
+            def positionLocation = locations.find {
+                it instanceof LineInFileLocation
+            }
+            assert positionLocation != null: "Expected a precise file location, but it was null"
+            // Register that we've asserted this location
+            assertedLocationCount += 1
+
+            def offsetLocation = locations.find {
+                it instanceof OffsetInFileLocation
+            }
+            assert offsetLocation != null: "Expected a precise file location, but it was null"
+            // Register that we've asserted this location
+            assertedLocationCount += 1
+        }
+
+        assert assertedLocationCount == locations.size(): "Expected to assert all locations, but only visited ${assertedLocationCount} out of ${locations.size()}"
 
         if (extraChecks != null) {
             extraChecks.call(details)

@@ -17,6 +17,7 @@
 package org.gradle.internal.featurelifecycle;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.problems.internal.DocLink;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
@@ -60,7 +61,8 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
 
     @Override
     public String getDocumentationUrl() {
-        return featureUsage.getDocumentationUrl().getUrl();
+        DocLink documentationUrl = featureUsage.getDocumentationUrl();
+        return documentationUrl == null ? null : documentationUrl.getUrl();
     }
 
     @Override

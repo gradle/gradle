@@ -35,12 +35,12 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
-@ServiceScope(Scopes.Project.class)
+@ServiceScope(Scope.Project.class)
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
     private final ProjectArtifactResolver artifactResolver;

@@ -123,6 +123,9 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
+    implementation(project(":core-jvm")) {
+        because("This is temporary, as ideally the core-jvm project would (optionally) depend on the core project.  This would require a base-core project, or some other common dep of both core and core-jvm to hold common code that is not yet created.")
+    }
     implementation(project(":input-tracking"))
     implementation(project(":model-groovy"))
 
@@ -200,6 +203,9 @@ dependencies {
     }
     testFixturesApi(project(":resources")) {
         because("test fixtures expose file resource types")
+    }
+    testFixturesApi(testFixtures(project(":build-operations"))) {
+        because("test fixtures expose test build operations runner")
     }
     testFixturesApi(testFixtures(project(":persistent-cache"))) {
         because("test fixtures expose cross-build cache factory")

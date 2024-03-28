@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
@@ -30,7 +29,6 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
@@ -130,18 +128,12 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                 throw new IllegalStateException("Thread should hold project lock for " + projectState.getDisplayName());
             }
             return projectState.fromMutableState(project -> {
-                LocalComponentGraphResolveState state = createProjectRootComponentMetadata(project, module, componentIdentifier);
-                // This should move into the configuration metadata builder
-                configurationsProvider.visitAll(ConfigurationInternal::preventFromFurtherMutation);
-                return state;
+                AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
+                return createRootComponentMetadata(module, componentIdentifier, schema, project.getModel());
             });
         } else {
             return createRootComponentMetadata(module, componentIdentifier, EmptySchema.INSTANCE, RootScriptDomainObjectContext.INSTANCE);
         }
-    }
-
-    private LocalComponentGraphResolveState createProjectRootComponentMetadata(ProjectInternal project, Module module, ComponentIdentifier componentIdentifier) {
-        return createRootComponentMetadata(module, componentIdentifier, (AttributesSchemaInternal) project.getDependencies().getAttributesSchema(), project.getModel());
     }
 
     private LocalComponentGraphResolveState createRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ModelContainer<?> model) {
@@ -149,8 +141,6 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory configurationMetadataFactory =
             new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
                 configurationsProvider, configurationMetadataBuilder, model, calculatedValueContainerFactory);
-
-        configurationsProvider.visitAll(ConfigurationInternal::preventFromFurtherMutation);
 
         LocalComponentMetadata metadata = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
         if (shouldCacheResolutionState()) {
@@ -191,10 +181,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
         @Override
         public void validateMutation(MutationType type) {
-            if (type == MutationType.DEPENDENCIES || type == MutationType.ARTIFACTS ||
-                type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.USAGE ||
-                type == MutationType.HIERARCHY
-            ) {
+            if (type != MutationType.STRATEGY) {
                 LocalComponentGraphResolveState value = currentValue();
                 if (value != null) {
                     value.reevaluate();

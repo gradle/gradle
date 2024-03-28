@@ -29,16 +29,17 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static java.util.Arrays.asList
+import static org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
 
 @UsesNativeServices
 class DaemonServicesTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
-    final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, false, DaemonParameters.Priority.NORMAL, asList()),
+    final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, false, DaemonParameters.Priority.NORMAL, asList(), NativeServicesMode.ENABLED),
         LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))
 
-    final DaemonServices singleRunServices = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 200, 50, true, DaemonParameters.Priority.NORMAL, asList()),
+    final DaemonServices singleRunServices = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 200, 50, true, DaemonParameters.Priority.NORMAL, asList(), NativeServicesMode.ENABLED),
         LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))
 
 

@@ -23,14 +23,14 @@ import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scope.Gradle.class)
 public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
     /**
      * @param maxUsages Same semantics as {@link SharedResource#getMaxUsages()}.

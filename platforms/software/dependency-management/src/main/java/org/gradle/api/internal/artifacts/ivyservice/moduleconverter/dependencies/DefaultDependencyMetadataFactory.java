@@ -20,10 +20,12 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
@@ -56,7 +58,12 @@ public class DefaultDependencyMetadataFactory implements DependencyMetadataFacto
 
     private ComponentSelector createSelector(DependencyConstraint dependencyConstraint) {
         if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
-            return DefaultProjectComponentSelector.newSelector(((DefaultProjectDependencyConstraint) dependencyConstraint).getProjectDependency().getDependencyProject());
+            ProjectDependency projectDependency = ((DefaultProjectDependencyConstraint) dependencyConstraint).getProjectDependency();
+            return DefaultProjectComponentSelector.newSelector(
+                projectDependency.getDependencyProject(),
+                ((ImmutableAttributes) projectDependency.getAttributes()).asImmutable(),
+                Collections.emptyList()
+            );
         }
         return DefaultModuleComponentSelector.newSelector(
             DefaultModuleIdentifier.newId(nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName())), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of());

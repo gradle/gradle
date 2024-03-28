@@ -286,7 +286,7 @@ public class ModuleMetadataSpecBuilder {
         return new ModuleMetadataSpec.ArtifactSelector(
             dependencyArtifact.getName(),
             dependencyArtifact.getType(),
-            isNullOrEmpty(dependencyArtifact.getExtension()) ? null : dependencyArtifact.getExtension(),
+            dependencyArtifact.getExtension() == null ? dependencyArtifact.getType() : dependencyArtifact.getExtension(),
             isNullOrEmpty(dependencyArtifact.getClassifier()) ? null : dependencyArtifact.getClassifier()
         );
     }

@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r86
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.GradleConnectionException
@@ -113,6 +114,7 @@ class StreamingBuildActionCrossVersionTest extends ToolingApiSpecification {
         eclipseModel.gradleProject.name == "hello-world"
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4145")
     def "client application receives streamed value before build action completes"() {
         when:
         server.start()

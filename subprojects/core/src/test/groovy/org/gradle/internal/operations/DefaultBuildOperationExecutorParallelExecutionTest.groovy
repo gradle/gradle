@@ -17,13 +17,9 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
-import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
-import org.gradle.internal.time.Clock
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.NoAvailableWorkerLeaseException
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -35,16 +31,12 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     BuildOperationExecutor buildOperationExecutor
     WorkerLeaseRegistry.WorkerLeaseCompletion outerOperationCompletion
     WorkerLeaseRegistry.WorkerLease outerOperation
-    BuildOperationListener operationListener = Mock(BuildOperationListener)
-    private ExecutorFactory executorFactory = new DefaultExecutorFactory()
 
     def setupBuildOperationExecutor(int maxThreads) {
         def parallelismConfiguration = new DefaultParallelismConfiguration(true, maxThreads)
         workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), parallelismConfiguration)
         workerRegistry.startProjectExecution(true)
-        buildOperationExecutor = new DefaultBuildOperationExecutor(
-            operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
-            new DefaultBuildOperationQueueFactory(workerRegistry), executorFactory, parallelismConfiguration, new DefaultBuildOperationIdFactory())
+        buildOperationExecutor = BuildOperationExecutorSupport.builder(parallelismConfiguration).withWorkerLeaseService(workerRegistry).build()
         outerOperationCompletion = workerRegistry.startWorker()
         outerOperation = workerRegistry.getCurrentWorkerLease()
     }
@@ -195,9 +187,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
             create(_, _, _) >> { buildQueue }
         }
 
-        def buildOperationExecutor = new DefaultBuildOperationExecutor(operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
-            buildOperationQueueFactory, Stub(ExecutorFactory), new DefaultParallelismConfiguration(true, 1),
-            new DefaultBuildOperationIdFactory())
+        def buildOperationExecutor = BuildOperationExecutorSupport.builder(true, 1).withQueueFactory(buildOperationQueueFactory).build()
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 
@@ -223,9 +213,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
             create(_, _, _) >> { buildQueue }
         }
-        def buildOperationExecutor = new DefaultBuildOperationExecutor(
-            operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
-            buildOperationQueueFactory, Stub(ExecutorFactory), new DefaultParallelismConfiguration(true, 1), new DefaultBuildOperationIdFactory())
+        def buildOperationExecutor = BuildOperationExecutorSupport.builder(true, 1).withQueueFactory(buildOperationQueueFactory).build()
         def worker = Stub(BuildOperationWorker)
         def operation = Mock(DefaultBuildOperationQueueTest.TestBuildOperation)
 

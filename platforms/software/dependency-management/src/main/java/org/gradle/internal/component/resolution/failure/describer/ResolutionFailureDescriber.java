@@ -16,17 +16,19 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
-import org.gradle.internal.component.AbstractVariantSelectionException;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.type.ResolutionFailure;
+
+import java.util.Optional;
 
 /**
  * Describe a certain type of resolution failure, by providing concise and specific human-readable
  * information to the message of the resulting exception, and also adding resolution suggestions if possible.
  *
- * @param <EXCEPTION> the exception type that will be used to contain a description of a failure
  * @param <FAILURE> the type of failure that this describer can describe
  */
-public interface ResolutionFailureDescriber<EXCEPTION extends AbstractVariantSelectionException, FAILURE extends ResolutionFailure> {
+public interface ResolutionFailureDescriber<FAILURE extends ResolutionFailure> {
     /**
      * Tests whether this describer can be applied to a given failure.
      *
@@ -46,10 +48,11 @@ public interface ResolutionFailureDescriber<EXCEPTION extends AbstractVariantSel
      * for the given failure.
      *
      * @param failure the failure to describe
+     * @param schema the schema of the attributes that were used to select the variant, if available
      * @return the exception that describes the failure
      *
      * @implSpec Testing {@link #canDescribeFailure(ResolutionFailure)} should <strong>NOT</strong> be done by
      * implementations of this method; ensuring this is done first is the responsibility of the caller.
      */
-    EXCEPTION describeFailure(FAILURE failure);
+    AbstractResolutionFailureException describeFailure(FAILURE failure, @SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<AttributesSchemaInternal> schema);
 }

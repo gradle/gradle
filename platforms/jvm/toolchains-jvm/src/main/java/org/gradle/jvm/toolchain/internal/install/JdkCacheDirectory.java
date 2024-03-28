@@ -193,7 +193,7 @@ public class JdkCacheDirectory {
     private JvmInstallationMetadata getMetadata(File markedLocation) {
         File javaHome = getJavaHome(markedLocation);
 
-        JvmInstallationMetadata metadata = detector.getMetadata(new InstallationLocation(javaHome, "provisioned toolchain", true));
+        JvmInstallationMetadata metadata = detector.getMetadata(InstallationLocation.autoProvisioned(javaHome, "provisioned toolchain"));
         if (!metadata.isValidInstallation()) {
             throw new GradleException("Provisioned toolchain '" + javaHome + "' could not be probed: " + metadata.getErrorMessage(), metadata.getErrorCause());
         }

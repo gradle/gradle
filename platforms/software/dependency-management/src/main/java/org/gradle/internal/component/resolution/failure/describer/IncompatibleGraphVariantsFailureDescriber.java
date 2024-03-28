@@ -17,32 +17,33 @@
 package org.gradle.internal.component.resolution.failure.describer;
 
 import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.internal.component.NoMatchingGraphVariantsException;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.StyledAttributeDescriber;
+import org.gradle.internal.component.resolution.failure.exception.VariantSelectionException;
 import org.gradle.internal.component.resolution.failure.type.IncompatibleGraphVariantFailure;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
 /**
  * A {@link ResolutionFailureDescriber} that describes an {@link IncompatibleGraphVariantFailure}.
  */
-public abstract class IncompatibleGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<NoMatchingGraphVariantsException, IncompatibleGraphVariantFailure> {
+public abstract class IncompatibleGraphVariantsFailureDescriber extends AbstractResolutionFailureDescriber<IncompatibleGraphVariantFailure> {
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
 
     @Override
-    public NoMatchingGraphVariantsException describeFailure(IncompatibleGraphVariantFailure failure) {
-        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), failure.getSchema());
+    public VariantSelectionException describeFailure(IncompatibleGraphVariantFailure failure, Optional<AttributesSchemaInternal> schema) {
+        AttributeDescriber describer = AttributeDescriberSelector.selectDescriber(failure.getRequestedAttributes(), schema.orElseThrow(IllegalArgumentException::new));
         String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledAttributeDescriber(describer), failure);
-        NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
-        suggestReviewAlgorithm(e);
-        suggestSpecificDocumentation(e, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
-        return e;
+        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION), suggestReviewAlgorithm());
+        return new VariantSelectionException(message, failure, resolutions);
     }
 
     protected String buildNoMatchingGraphVariantSelectionFailureMsg(StyledAttributeDescriber describer, IncompatibleGraphVariantFailure failure) {
@@ -60,7 +61,7 @@ public abstract class IncompatibleGraphVariantsFailureDescriber extends Abstract
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
             for (ResolutionCandidateAssessor.AssessedCandidate candidate : failure.getCandidates()) {
-                formatUnselectableVariant(candidate, formatter, failure.getTargetComponent(), describer);
+                formatUnselectableVariant(candidate, formatter, describer);
             }
         }
         formatter.endChildren();
@@ -70,7 +71,6 @@ public abstract class IncompatibleGraphVariantsFailureDescriber extends Abstract
     private void formatUnselectableVariant(
         ResolutionCandidateAssessor.AssessedCandidate assessedCandidate,
         TreeFormatter formatter,
-        ComponentGraphResolveMetadata targetComponent,
         AttributeDescriber describer
     ) {
         formatter.node("Variant '");

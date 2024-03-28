@@ -30,7 +30,6 @@ import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleResolveMetadataSerializationHelper;
 import org.gradle.internal.component.external.model.ComponentVariant;
-import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.external.model.ForcedDependencyMetadataWrapper;
 import org.gradle.internal.component.external.model.GradleDependencyMetadata;
@@ -97,16 +96,14 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             if (dependency instanceof GradleDependencyMetadata) {
                 encoder.writeByte(GRADLE_DEPENDENCY_METADATA);
                 writeDependencyMetadata(encoder, (GradleDependencyMetadata) dependency);
-            } else if (dependency instanceof ConfigurationBoundExternalDependencyMetadata) {
-                ConfigurationBoundExternalDependencyMetadata dependencyMetadata = (ConfigurationBoundExternalDependencyMetadata) dependency;
-                ExternalDependencyDescriptor dependencyDescriptor = dependencyMetadata.getDependencyDescriptor();
-                if (dependencyDescriptor instanceof MavenDependencyDescriptor) {
-                    encoder.writeByte(MAVEN_DEPENDENCY_METADATA);
-                    writeMavenDependency(encoder, (MavenDependencyDescriptor) dependencyDescriptor, deduplicationDependencyCache);
-                } else {
-                    throw new IllegalStateException("Unknown type of dependency descriptor: " + dependencyDescriptor.getClass());
-                }
+            } else if (dependency instanceof MavenDependencyMetadata) {
+                MavenDependencyMetadata dependencyMetadata = (MavenDependencyMetadata) dependency;
+                MavenDependencyDescriptor dependencyDescriptor = dependencyMetadata.getDependencyDescriptor();
+                encoder.writeByte(MAVEN_DEPENDENCY_METADATA);
+                writeMavenDependency(encoder, dependencyDescriptor, deduplicationDependencyCache);
                 encoder.writeNullableString(dependency.getReason());
+            } else {
+                throw new IllegalStateException("Unknown type of dependency: " + dependency.getClass());
             }
         }
     }
@@ -145,14 +142,14 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
 
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(),
                 hierarchy, artifacts, ImmutableList.of(), attributes, capabilities, false, isExternalVariant);
-            ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, metadata, configurationMetadata, deduplicationDependencyCache);
+            ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, deduplicationDependencyCache);
             configurationMetadata.setDependencies(dependencies);
             configurations.put(configurationName, configurationMetadata);
         }
         return configurations;
     }
 
-    private ImmutableList<ModuleDependencyMetadata> readDependencies(Decoder decoder, DefaultMavenModuleResolveMetadata metadata, RealisedConfigurationMetadata configurationMetadata, Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
+    private ImmutableList<ModuleDependencyMetadata> readDependencies(Decoder decoder, Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
         ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builder();
         int dependenciesCount = decoder.readSmallInt();
         if (dependenciesCount == 0) {
@@ -172,8 +169,8 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
                     break;
                 case MAVEN_DEPENDENCY_METADATA:
                     MavenDependencyDescriptor mavenDependencyDescriptor = readMavenDependency(decoder, deduplicationDependencyCache);
-                    ModuleDependencyMetadata dependencyMetadata = RealisedMavenModuleResolveMetadata.contextualize(configurationMetadata, metadata.getId(), mavenDependencyDescriptor);
-                    md = dependencyMetadata.withReason(decoder.readNullableString());
+                    String reason = decoder.readNullableString();
+                    md = new MavenDependencyMetadata(mavenDependencyDescriptor, reason, false);
                     break;
                 case IVY_DEPENDENCY_METADATA:
                     throw new IllegalStateException("Unexpected Ivy dependency for Maven module");
@@ -223,7 +220,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             false,
             isExternalVariant
         );
-        ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, resolveMetadata, realized, deduplicationDependencyCache);
+        ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, deduplicationDependencyCache);
         realized.setDependencies(dependencies);
         return realized;
 

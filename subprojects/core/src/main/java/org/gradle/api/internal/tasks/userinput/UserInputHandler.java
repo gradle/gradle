@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks.userinput;
 
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.function.Function;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface UserInputHandler {
     /**
      * Prompts the user with a yes/no question and returns the answer. Requires that the user explicitly type "yes" or "no".

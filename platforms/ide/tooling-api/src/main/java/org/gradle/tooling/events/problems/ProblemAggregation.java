@@ -19,6 +19,7 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -48,11 +49,28 @@ public interface ProblemAggregation {
     Label getLabel();
 
     /**
+     * Returns the problem severity.
+     *
+     * @return the problem severity
+     * @since 8.8
+     */
+    Severity getSeverity();
+
+    /**
+     * Returns the link to the documentation
+     *
+     * @return the locations
+     * @since 8.8
+     */
+    @Nullable
+    DocumentationLink getDocumentationLink();
+
+    /**
      * The list of aggregated problems.
      *
      * @return The list of aggregated problems.
-     * @since 8.6
+     * @since 8.8
      */
-    List<ProblemDescriptor> getProblemDescriptors();
+    List<ProblemContext> getProblemContext();
 
 }

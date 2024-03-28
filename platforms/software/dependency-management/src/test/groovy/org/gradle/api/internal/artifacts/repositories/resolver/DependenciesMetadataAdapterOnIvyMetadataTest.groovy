@@ -18,18 +18,16 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import com.google.common.collect.ArrayListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.ExternalDependencyDescriptor
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
+import org.gradle.internal.component.external.model.ivy.IvyDependencyMetadata
 
 class DependenciesMetadataAdapterOnIvyMetadataTest extends DependenciesMetadataAdapterTest {
 
     @Override
     ModuleDependencyMetadata newDependency(ModuleComponentSelector requested) {
-        ExternalDependencyDescriptor dependencyDescriptor = new IvyDependencyDescriptor(requested, ArrayListMultimap.create())
-        return new ConfigurationBoundExternalDependencyMetadata(null, DefaultModuleComponentIdentifier.newId(requested.moduleIdentifier, requested.version), dependencyDescriptor)
+        IvyDependencyDescriptor dependencyDescriptor = new IvyDependencyDescriptor(requested, ArrayListMultimap.create())
+        return new IvyDependencyMetadata(null, dependencyDescriptor)
     }
 
 }

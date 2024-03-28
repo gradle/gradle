@@ -17,7 +17,7 @@
 package org.gradle.internal.watch.vfs;
 
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.watch.registry.WatchMode;
@@ -27,7 +27,7 @@ import java.io.File;
 /**
  * Controls the lifecycle and bookkeeping for file system watching.
  */
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem {
 
     /**

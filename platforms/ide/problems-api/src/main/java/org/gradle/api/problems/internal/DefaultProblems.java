@@ -17,13 +17,13 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemReporter;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collections;
 import java.util.List;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
     private final ProblemEmitter emitter;
@@ -37,7 +37,7 @@ public class DefaultProblems implements InternalProblems {
     public DefaultProblems(ProblemEmitter emitter, List<ProblemTransformer> transformers) {
         this.emitter = emitter;
         this.transformers = transformers;
-        internalReporter = createReporter(DefaultProblemCategory.GRADLE_CORE_NAMESPACE, emitter, transformers);
+        internalReporter = createReporter(emitter, transformers);
     }
 
     @Override
@@ -45,11 +45,11 @@ public class DefaultProblems implements InternalProblems {
         if (DefaultProblemCategory.GRADLE_CORE_NAMESPACE.equals(namespace)) {
             throw new IllegalStateException("Cannot use " + DefaultProblemCategory.GRADLE_CORE_NAMESPACE + " namespace.");
         }
-        return createReporter(namespace, emitter, transformers);
+        return createReporter(emitter, transformers);
     }
 
-    private static DefaultProblemReporter createReporter(String namespace, ProblemEmitter emitter, List<ProblemTransformer> transformers) {
-        return new DefaultProblemReporter(emitter, transformers, namespace);
+    private static DefaultProblemReporter createReporter(ProblemEmitter emitter, List<ProblemTransformer> transformers) {
+        return new DefaultProblemReporter(emitter, transformers);
     }
 
     @Override

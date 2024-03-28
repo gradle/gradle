@@ -36,7 +36,7 @@ import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.isolation.TestIsolatableFactory
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceRegistry
@@ -71,7 +71,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def registryFactory = new DefaultTransformRegistrationFactory(
-        new TestBuildOperationExecutor(),
+        new TestBuildOperationRunner(),
         isolatableFactory,
         classLoaderHierarchyHasher,
         transformInvocationFactory,

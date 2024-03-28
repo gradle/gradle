@@ -16,8 +16,13 @@
 
 package org.gradle.performance.mutator
 
+import com.google.common.collect.Lists
+import groovy.io.FileType
+import org.apache.commons.io.FilenameUtils
 import org.apache.commons.io.file.PathUtils
-import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.CompositeBuildMutator
+import org.gradle.profiler.mutations.AbstractCleanupMutator
 
 import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitor
@@ -25,27 +30,65 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 
-import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_MARKER_FILE_NAME
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR
+import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR
+import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INSTRUMENTATION_CLASSPATH_MARKER
 
 /**
  * A mutator that cleans up the artifact transform cache directory, but leaves folders with the instrumented jars.
  *
- * This mutator should be moved to the gradle-profiler.
+ * Since buildscript classpath instrumentation also uses artifact transforms, we can avoid
+ * re-instrumenting jars by applying this mutator.
+ *
+ * In other words, this mutator can be applied to a scenario that tests performance of artifact transforms,
+ * but does not want to test impact of re-instrumenting jars.
+ *
+ * This mutator could be also moved to the gradle-profiler.
+ * TODO Refactor gradle-profiler `AbstractCacheCleanupMutator` so that it can clean up files in `caches/<gradle-version>/<cache-dir>`
  */
-class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends ClearArtifactTransformCacheMutator {
+class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends AbstractCleanupMutator {
 
-    ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(File gradleUserHome, CleanupSchedule schedule) {
-        super(gradleUserHome, schedule)
+    private final File gradleUserHome;
+    private final String cacheDirPattern;
+
+    ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(File gradleUserHome, CleanupSchedule schedule, String cacheDirPattern) {
+        super(schedule);
+        this.gradleUserHome = gradleUserHome
+        this.cacheDirPattern = cacheDirPattern
+    }
+
+    @Override
+    protected void cleanup() {
+        System.out.println("> Cleaning '" + cacheDirPattern + "' caches in " + gradleUserHome)
+
+        List<File> cacheDirsToClean = []
+        gradleUserHome.eachFileRecurse(FileType.DIRECTORIES) {
+            def relativePath = gradleUserHome.toPath().relativize(it.toPath())
+            def normalizedPath = FilenameUtils.separatorsToUnix(relativePath.toString())
+            if (normalizedPath.toString().matches(cacheDirPattern)) {
+                cacheDirsToClean << it
+            }
+        }
+
+        cacheDirsToClean.forEach {
+            cleanupCacheDir(it)
+        }
     }
 
     protected void cleanupCacheDir(File cacheDir) {
         Files.walkFileTree(cacheDir.toPath(), new FileVisitor<Path>() {
             @Override
             FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                if (Files.exists(dir.resolve("transformed/$INSTRUMENTED_MARKER_FILE_NAME"))) {
+                if (hasInstrumentationClasspathMarkerFile(dir)) {
                     return FileVisitResult.SKIP_SUBTREE
                 }
                 return FileVisitResult.CONTINUE
+            }
+
+            private boolean hasInstrumentationClasspathMarkerFile(Path transformedDir) {
+                return Files.exists(transformedDir.resolve("transformed/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}")) ||
+                    Files.exists(transformedDir.resolve("transformed/$ANALYSIS_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}")) ||
+                    Files.exists(transformedDir.resolve("transformed/$MERGE_OUTPUT_DIR/${INSTRUMENTATION_CLASSPATH_MARKER.fileName}"))
             }
 
             @Override
@@ -67,5 +110,17 @@ class ClearArtifactTransformCacheWithoutInstrumentedJarsMutator extends ClearArt
                 return FileVisitResult.CONTINUE
             }
         })
+    }
+
+    static BuildMutator create(File gradleUserHome, CleanupSchedule schedule) {
+        def clearOldTransformsDir = new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(
+            gradleUserHome, schedule, "caches/transforms-[\\d+]")
+
+        def clearNewTransformsDir = new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(
+            gradleUserHome, schedule, "caches/[\\d].*/transforms")
+
+        return new CompositeBuildMutator(
+            Lists.asList(clearOldTransformsDir, clearNewTransformsDir)
+        )
     }
 }

@@ -17,10 +17,10 @@
 package org.gradle.plugin.use.resolve.service.internal;
 
 import org.gradle.internal.classpath.CachedClasspathTransformer;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface InjectedClasspathInstrumentationStrategy {
     CachedClasspathTransformer.StandardTransform getTransform();
 }

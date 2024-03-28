@@ -19,7 +19,6 @@ package org.gradle.internal.component.resolution.failure.type;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 import java.util.List;
 
@@ -30,8 +29,8 @@ import java.util.List;
 public final class AmbiguousArtifactTransformFailure extends AbstractIncompatibleAttributesSelectionFailure {
     private final ImmutableList<TransformedVariant> transformedVariants;
 
-    public AmbiguousArtifactTransformFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<TransformedVariant> transformedVariants) {
-        super(schema, requestedName, requestedAttributes);
+    public AmbiguousArtifactTransformFailure(String requestedName, AttributeContainerInternal requestedAttributes, List<TransformedVariant> transformedVariants) {
+        super(requestedName, requestedAttributes);
         this.transformedVariants = ImmutableList.copyOf(transformedVariants);
     }
 

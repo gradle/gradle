@@ -17,8 +17,6 @@
 package org.gradle.internal.component.resolution.failure.type;
 
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 
 import java.util.List;
@@ -28,15 +26,8 @@ import java.util.List;
  * failure to select a variant for a component when building a dependency resolution graph.
  */
 public final class IncompatibleGraphVariantFailure extends IncompatibleResolutionFailure {
-    private ComponentGraphResolveMetadata targetComponent;
-
-    public IncompatibleGraphVariantFailure(AttributesSchemaInternal schema, String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates, ComponentGraphResolveMetadata targetComponent) {
-        super(schema, requestedName, requestedAttributes, candidates);
-        this.targetComponent = targetComponent;
-    }
-
-    public ComponentGraphResolveMetadata getTargetComponent() {
-        return targetComponent;
+    public IncompatibleGraphVariantFailure(String requestedName, AttributeContainerInternal requestedAttributes, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+        super(requestedName, requestedAttributes, candidates);
     }
 
     public boolean noCandidatesHaveAttributes() {

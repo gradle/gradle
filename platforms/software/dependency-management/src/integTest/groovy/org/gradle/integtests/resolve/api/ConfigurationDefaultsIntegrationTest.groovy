@@ -252,6 +252,7 @@ configurations.conf.incoming.beforeResolve {
         resolve.prepare()
 
         when:
+        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         run "checkDeps"
 
         then:

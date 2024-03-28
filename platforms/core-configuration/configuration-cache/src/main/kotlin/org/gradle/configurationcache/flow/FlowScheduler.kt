@@ -22,12 +22,12 @@ import org.gradle.api.flow.FlowParameters
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.process.ExecOperations
 
 
-@ServiceScope(Scopes.Build::class)
+@ServiceScope(Scope.Build::class)
 internal
 class FlowScheduler(
     instantiatorFactory: InstantiatorFactory,

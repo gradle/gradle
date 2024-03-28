@@ -20,23 +20,23 @@ import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType;
 
 public class BuildOperationFiringBuildTreeWorkExecutor implements BuildTreeWorkExecutor {
     private static final RunRequestedWorkBuildOperationType.Details DETAILS = new RunRequestedWorkBuildOperationType.Details() {};
     private final BuildTreeWorkExecutor delegate;
-    private final BuildOperationExecutor executor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public BuildOperationFiringBuildTreeWorkExecutor(BuildTreeWorkExecutor delegate, BuildOperationExecutor executor) {
+    public BuildOperationFiringBuildTreeWorkExecutor(BuildTreeWorkExecutor delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
-        this.executor = executor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
     public ExecutionResult<Void> execute(BuildTreeWorkGraph.FinalizedGraph graph) {
-        return executor.call(new CallableBuildOperation<ExecutionResult<Void>>() {
+        return buildOperationRunner.call(new CallableBuildOperation<ExecutionResult<Void>>() {
             @Override
             public ExecutionResult<Void> call(BuildOperationContext context) {
                 return delegate.execute(graph);

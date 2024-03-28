@@ -39,7 +39,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         String removalDetails,
         @Nullable String advice,
         @Nullable String contextualAdvice,
-        DocLink documentation,
+        @Nullable DocLink documentation,
         Type type,
         Class<?> calledFrom
     ) {
@@ -48,7 +48,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.advice = advice;
         this.contextualAdvice = contextualAdvice;
         this.type = Preconditions.checkNotNull(type);
-        this.documentation = Preconditions.checkNotNull(documentation);
+        this.documentation = documentation;
     }
 
     @VisibleForTesting
@@ -126,9 +126,8 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
      * Link to documentation, describing how to migrate from this deprecated usage.
      *
      * Example: https://docs.gradle.org/current/userguide/upgrading_version_5.html#plugin_validation_changes
-     *
-     * @since 6.2
      */
+    @Nullable
     public DocLink getDocumentationUrl() {
         return documentation;
     }
@@ -143,7 +142,9 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         append(outputBuilder, removalDetails);
         append(outputBuilder, contextualAdvice);
         append(outputBuilder, advice);
-        append(outputBuilder, documentation.getConsultDocumentationMessage());
+        if (documentation != null) {
+            append(outputBuilder, documentation.getConsultDocumentationMessage());
+        }
         return outputBuilder.toString();
     }
 

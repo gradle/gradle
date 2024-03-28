@@ -33,6 +33,11 @@ public interface ResolveContext extends DependencyMetaDataProvider {
 
     String getName();
 
+    /**
+     * Identifies this resolve context within a lockfile.
+     */
+    String getDependencyLockingId();
+
     ResolutionHost getResolutionHost();
 
     DomainObjectContext getDomainObjectContext();
@@ -65,4 +70,10 @@ public interface ResolveContext extends DependencyMetaDataProvider {
      * called on a configuration that does not permit this usage.
      */
     List<? extends DependencyMetadata> getSyntheticDependencies();
+
+    /**
+     * Marks this resolve context as observed, meaning its state has been seen by some external operation
+     * and further changes to this context that would change its public state are forbidden.
+     */
+    void markAsObserved();
 }

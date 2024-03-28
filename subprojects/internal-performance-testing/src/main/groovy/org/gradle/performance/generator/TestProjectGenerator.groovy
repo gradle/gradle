@@ -19,7 +19,7 @@ package org.gradle.performance.generator
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class TestProjectGenerator {
+class TestProjectGenerator extends AbstractTestProjectGenerator {
 
     TestProjectGeneratorConfiguration config
     FileContentGenerator fileContentGenerator
@@ -55,14 +55,14 @@ class TestProjectGenerator {
     def generateProjects(File outputBaseDir, DependencyTree dependencyTree) {
         def rootProjectDir = new File(outputBaseDir, config.projectName)
         rootProjectDir.mkdirs()
-        generateProject(rootProjectDir, dependencyTree, null)
+        generateProject(rootProjectDir, dependencyTree, null, 0)
         for (int subProjectNumber = 0; subProjectNumber < config.subProjects; subProjectNumber++) {
             def subProjectDir = new File(rootProjectDir, "project$subProjectNumber")
-            generateProject(subProjectDir, dependencyTree, subProjectNumber)
+            generateProject(subProjectDir, dependencyTree, subProjectNumber, config.projectDepth)
         }
     }
 
-    def generateProject(File projectDir, DependencyTree dependencyTree, Integer subProjectNumber) {
+    def generateProject(File projectDir, DependencyTree dependencyTree, Integer subProjectNumber, int projectDepth) {
         def isRoot = subProjectNumber == null
 
         file projectDir, config.dsl.fileNameFor('build'), fileContentGenerator.generateBuildGradle(config.language, subProjectNumber, dependencyTree)
@@ -93,6 +93,12 @@ class TestProjectGenerator {
         if (isRoot && config.buildSrc) {
             addDummyBuildSrcProject(projectDir)
         }
+
+        if (projectDepth > 0) {
+            def subProjectDir = new File(projectDir, "sub${projectDepth}project$subProjectNumber")
+            subProjectDir.mkdirs()
+            generateProject(subProjectDir, dependencyTree, subProjectNumber, projectDepth - 1)
+        }
     }
 
     /**
@@ -101,15 +107,6 @@ class TestProjectGenerator {
     private addDummyBuildSrcProject(File projectDir) {
         file projectDir, "buildSrc/src/main/${config.language.name}/Thing.${config.language.name}", "public class Thing {}"
         file projectDir, "buildSrc/build.gradle", "compileJava.options.incremental = true"
-    }
-
-    static void file(File dir, String name, String content) {
-        if (content == null) {
-            return
-        }
-        def file = new File(dir, name)
-        file.parentFile.mkdirs()
-        file.setText(content.stripIndent().trim())
     }
 
     static void main(String[] args) {

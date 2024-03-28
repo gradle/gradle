@@ -25,7 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.Path
 import spock.lang.Specification
 
@@ -38,8 +38,8 @@ class LifecycleProjectEvaluatorTest extends Specification {
     private listener = Mock(ProjectEvaluationListener)
     private delegate = Mock(ProjectEvaluator)
     private cancellationToken = Mock(BuildCancellationToken)
-    private buildOperationExecutor = new TestBuildOperationExecutor()
-    private evaluator = new LifecycleProjectEvaluator(buildOperationExecutor, delegate, cancellationToken)
+    private buildOperationRunner = new TestBuildOperationRunner()
+    private evaluator = new LifecycleProjectEvaluator(buildOperationRunner, delegate, cancellationToken)
     private state = new ProjectStateInternal()
     private mutationState = Mock(ProjectState)
 
@@ -223,7 +223,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         evaluator.evaluate(project, state)
     }
 
-    static void assertConfigureOp(TestBuildOperationExecutor.Log.Record op, Throwable failureCause = null) {
+    static void assertConfigureOp(TestBuildOperationRunner.Log.Record op, Throwable failureCause = null) {
         assert op.descriptor.name == 'Configure project :project1'
         assert op.descriptor.displayName == 'Configure project :project1'
 
@@ -234,7 +234,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         assertOpFailureOrNot(op, ConfigureProjectBuildOperationType.Result, failureCause)
     }
 
-    static void assertBeforeEvaluateOp(TestBuildOperationExecutor.Log.Record op, Throwable failureCause = null) {
+    static void assertBeforeEvaluateOp(TestBuildOperationRunner.Log.Record op, Throwable failureCause = null) {
         assert op.descriptor.name == 'Notify beforeEvaluate listeners of :project1'
         assert op.descriptor.displayName == 'Notify beforeEvaluate listeners of :project1'
 
@@ -245,7 +245,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         assertOpFailureOrNot(op, NotifyProjectBeforeEvaluatedBuildOperationType.Result, failureCause)
     }
 
-    static void assertAfterEvaluateOp(TestBuildOperationExecutor.Log.Record op, Throwable failureCause = null) {
+    static void assertAfterEvaluateOp(TestBuildOperationRunner.Log.Record op, Throwable failureCause = null) {
         assert op.descriptor.name == 'Notify afterEvaluate listeners of :project1'
         assert op.descriptor.displayName == 'Notify afterEvaluate listeners of :project1'
 
@@ -256,7 +256,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         assertOpFailureOrNot(op, NotifyProjectAfterEvaluatedBuildOperationType.Result, failureCause)
     }
 
-    private static void assertOpFailureOrNot(TestBuildOperationExecutor.Log.Record op, Class<?> resultType, Throwable failureCause) {
+    private static void assertOpFailureOrNot(TestBuildOperationRunner.Log.Record op, Class<?> resultType, Throwable failureCause) {
         if (failureCause) {
             assert op.result == null
             assert op.failure instanceof ProjectConfigurationException
@@ -268,8 +268,8 @@ class LifecycleProjectEvaluatorTest extends Specification {
         }
     }
 
-    List<TestBuildOperationExecutor.Log.Record> getOperations() {
-        buildOperationExecutor.log.records.toList()
+    List<TestBuildOperationRunner.Log.Record> getOperations() {
+        buildOperationRunner.log.records.toList()
     }
 
 

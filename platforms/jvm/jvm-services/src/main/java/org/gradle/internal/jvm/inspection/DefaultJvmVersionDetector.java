@@ -50,7 +50,7 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
     }
 
     private JavaVersion getVersionFromJavaHome(File javaHome) {
-        return validate(detector.getMetadata(new InstallationLocation(javaHome, "specific path"))).getLanguageVersion();
+        return validate(detector.getMetadata(InstallationLocation.autoDetected(javaHome, "specific path"))).getLanguageVersion();
     }
 
     private JvmInstallationMetadata validate(JvmInstallationMetadata metadata) {

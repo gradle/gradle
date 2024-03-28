@@ -19,7 +19,7 @@ package org.gradle.composite.internal;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.operations.lifecycle.FinishRootBuildTreeBuildOperationType;
 
@@ -28,18 +28,18 @@ import java.util.List;
 
 public class OperationFiringBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildTreeFinishExecutor delegate;
 
-    public OperationFiringBuildTreeFinishExecutor(BuildOperationExecutor buildOperationExecutor, BuildTreeFinishExecutor delegate) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public OperationFiringBuildTreeFinishExecutor(BuildOperationRunner buildOperationRunner, BuildTreeFinishExecutor delegate) {
+        this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
     }
 
     @Nullable
     @Override
     public RuntimeException finishBuildTree(List<Throwable> failures) {
-        return buildOperationExecutor.call(new CallableBuildOperation<RuntimeException>() {
+        return buildOperationRunner.call(new CallableBuildOperation<RuntimeException>() {
             @Override
             public RuntimeException call(BuildOperationContext context) {
                 try {

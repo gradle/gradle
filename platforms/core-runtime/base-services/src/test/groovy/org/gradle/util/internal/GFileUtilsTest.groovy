@@ -116,7 +116,7 @@ three
         expect:
         readFileQuietly(temp.file("foo.txt")) == "hey"
         // end of message is platform specific
-        readFileQuietly(new File("missing")).startsWith "Unable to read file 'missing' due to: org.gradle.api.UncheckedIOException: java.io.FileNotFoundException: missing"
+        readFileQuietly(new File("missing")).startsWith "Unable to read file 'missing' due to: org.gradle.api.UncheckedIOException: java.nio.file.NoSuchFileException: missing"
         readFileQuietly(temp.createDir("dir")).startsWith "Unable to read file"
     }
 
@@ -205,7 +205,8 @@ three
         exception.message.startsWith("Could not update timestamp")
         file.file
         file.lastModified() == original
-        file.text == "data"
+        // Changes in implementation of commons-io require us to not have a stubbed Path here
+        new File(file.absolutePath).text == "data"
     }
 
     private static class PathOverridingFile extends TestFile {

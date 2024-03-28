@@ -86,6 +86,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
@@ -492,6 +493,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter requireOwnGradleUserHomeDir() {
         return withGradleUserHomeDir(testDirectoryProvider.getTestDirectory().file("user-home"));
+    }
+
+    @Override
+    public GradleExecuter requireOwnGradleUserHomeDir(String because) {
+        return requireOwnGradleUserHomeDir();
     }
 
     public File getUserHomeDir() {
@@ -1117,7 +1123,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private boolean hasSettingsFile(TestFile dir) {
         if (dir.isDirectory()) {
-            return dir.file("settings.gradle").isFile() || dir.file("settings.gradle.kts").isFile();
+            return dir.file("settings.gradle").isFile() || dir.file("settings.gradle.kts").isFile() || dir.file("settings.gradle.something").isFile();
         }
         return false;
     }
@@ -1436,9 +1442,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter withFileLeakDetection(String... args) {
-        String leakDetectorUrl = "https://repo1.maven.org/maven2/org/kohsuke/file-leak-detector/1.13/file-leak-detector-1.13-jar-with-dependencies.jar";
+        return withFileLeakDetection(checkNotNull(Jvm.current().getJavaVersion()), args);
+    }
+
+    @Override
+    public GradleExecuter withFileLeakDetection(JavaVersion javaVersion, String... args) {
+        String leakDetectionVersion = javaVersion.isCompatibleWith(JavaVersion.VERSION_11) ? "1.17" : "1.14";
+        String leakDetectionJar = String.format("file-leak-detector-%s-jar-with-dependencies.jar", leakDetectionVersion);
+        String leakDetectorUrl = String.format("https://repo.jenkins-ci.org/releases/org/kohsuke/file-leak-detector/%s/%s", leakDetectionVersion, leakDetectionJar);
         this.beforeExecute(executer -> {
-            File leakDetectorJar = new File(this.gradleUserHomeDir, "file-leak-detector-1.13-jar-with-dependencies.jar");
+            File leakDetectorJar = new File(this.gradleUserHomeDir, leakDetectionJar);
             if (!leakDetectorJar.exists()) {
                 // Need to download the jar
                 GFileUtils.parentMkdirs(leakDetectorJar);

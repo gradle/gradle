@@ -27,8 +27,4 @@ public interface ConfigurationGraphResolveMetadata extends VariantGraphResolveMe
     boolean isCanBeConsumed();
 
     boolean isVisible();
-
-    default boolean isDeprecatedForConsumption() {
-        return false;
-    }
 }

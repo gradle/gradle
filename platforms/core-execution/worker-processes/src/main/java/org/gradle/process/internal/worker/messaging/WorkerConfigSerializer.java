@@ -22,6 +22,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.io.ClassLoaderObjectInputStream.UnsupportedClassVersionErrorWithJavaVersion;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -48,19 +49,30 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
     public WorkerConfig read(Decoder decoder) throws IOException {
         LogLevel logLevel = LogLevel.values()[decoder.readSmallInt()];
         boolean shouldPublishJvmMemoryInfo = decoder.readBoolean();
+        NativeServicesMode nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
         String gradleUserHomeDirPath = decoder.readString();
         MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
         final long workerId = decoder.readSmallLong();
         final String displayName = decoder.readString();
         Action<? super WorkerProcessContext> workerAction = deserializeWorker(decoder.readBinary(), getClass().getClassLoader());
 
-        return new WorkerConfig(logLevel, shouldPublishJvmMemoryInfo, gradleUserHomeDirPath, serverAddress, workerId, displayName, workerAction);
+        return new WorkerConfig(
+            logLevel,
+            shouldPublishJvmMemoryInfo,
+            gradleUserHomeDirPath,
+            serverAddress,
+            workerId,
+            displayName,
+            workerAction,
+            nativeServicesMode
+        );
     }
 
     @Override
     public void write(Encoder encoder, WorkerConfig config) throws IOException {
         encoder.writeSmallInt(config.getLogLevel().ordinal());
         encoder.writeBoolean(config.shouldPublishJvmMemoryInfo());
+        encoder.writeSmallInt(config.getNativeServicesMode().ordinal());
         encoder.writeString(config.getGradleUserHomeDirPath());
         new MultiChoiceAddressSerializer().write(encoder, config.getServerAddress());
         encoder.writeSmallLong(config.getWorkerId());

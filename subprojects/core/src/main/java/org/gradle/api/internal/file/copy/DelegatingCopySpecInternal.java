@@ -238,11 +238,13 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
+    @Deprecated
     public Integer getFileMode() {
         return getDelegateCopySpec().getFileMode();
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
         return getDelegateCopySpec().setFileMode(mode);
     }
@@ -258,11 +260,13 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
+    @Deprecated
     public Integer getDirMode() {
         return getDelegateCopySpec().getDirMode();
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
         return getDelegateCopySpec().setDirMode(mode);
     }

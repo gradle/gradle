@@ -19,7 +19,9 @@ import org.gradle.api.Action
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.progress.NoOpProgressLoggerFactory
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,8 +36,14 @@ class DefaultCacheFactoryTest extends Specification {
     final Action<?> opened = Mock()
     final Action<?> closed = Mock()
     final ProcessMetaDataProvider metaDataProvider = Mock()
-    def progressLoggerFactory = new NoOpProgressLoggerFactory()
-    private final DefaultCacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()), Mock(ExecutorFactory), progressLoggerFactory) {
+    final buildOperationRunner = Stub(BuildOperationRunner) {
+        run(_ as RunnableBuildOperation) >> { RunnableBuildOperation operation ->
+            def context = Stub(BuildOperationContext)
+            operation.run(context)
+        }
+    }
+
+    private final DefaultCacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()), Mock(ExecutorFactory), buildOperationRunner) {
         @Override
         void onOpen(Object cache) {
             opened.execute(cache)
@@ -236,7 +244,7 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         visited.containsAll(['foo', 'baz'])
-        ! visited.contains('bar')
+        !visited.contains('bar')
 
         cleanup:
         factory.close()

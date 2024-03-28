@@ -631,54 +631,83 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
+
+            assert detached.canBeConsumed
             assert detached.canBeResolved
+            assert detached.canBeDeclared
+
             detached.canBeResolved = false
+            detached.canBeConsumed = false
+            detached.canBeDeclared = false
         """
 
         expect:
         run "help"
     }
 
-    def "redundantly calling #setMethod on a configuration that is already #isSetMethod warns when #desc"() {
+    def "changing usage on detached configurations warns when flag is set"() {
         given:
         buildFile << """
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+            def detached = project.configurations.detachedConfiguration()
 
-            configurations.$confCreationCode
-
-            configurations.test {
-                assert $isSetMethod
-                $setMethod
-            }
+            detached.canBeResolved = false
+            detached.canBeConsumed = false
+            detached.canBeDeclared = false
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The $usage usage is already allowed on configuration ':test'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Remove the call to $setMethod, it has no effect. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#redundant_configuration_usage_activation")
-        succeeds 'help'
-
-        where:
-        desc                                              | confCreationCode         | usage                | isSetMethod                   | setMethod
-        "using consumable to make a configuration"        | "consumable('test')"     | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
-        "using resolvable to make a configuration"        | "resolvable('test')"     | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
-        "using dependencyScope to make a configuration"   | "dependencyScope('test')"   | "declarable"         | "isCanBeDeclared()"           | "setCanBeDeclared(true)"
+        expectConsumableChanging(":detachedConfiguration1", false)
+        expectResolvableChanging(":detachedConfiguration1", false)
+        expectDeclarableChanging(":detachedConfiguration1", false)
+        succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
     }
 
-    def "redundantly calling #setMethod on a configuration that is already #isSetMethod does not warn when #desc"() {
+    def "redundantly changing usage on a role-locked configuration warns when flag is set"() {
         given:
         buildFile << """
-            def test = configurations.$confCreationCode
-            assert test.$isSetMethod
-            test.$setMethod
+            configurations {
+                consumable('cons')
+                resolvable('res')
+                dependencyScope('dep')
+            }
+
+            configurations.cons.canBeConsumed = true
+            configurations.cons.canBeResolved = false
+            configurations.cons.canBeDeclared = false
+
+            configurations.res.canBeConsumed = false
+            configurations.res.canBeResolved = true
+            configurations.res.canBeDeclared = false
+
+            configurations.dep.canBeConsumed = false
+            configurations.dep.canBeResolved = false
+            configurations.dep.canBeDeclared = true
         """
 
         expect:
-        succeeds 'help'
+        expectConsumableChanging(":cons", true)
+        expectResolvableChanging(":cons", false)
+        expectDeclarableChanging(":cons", false)
+        expectConsumableChanging(":res", false)
+        expectResolvableChanging(":res", true)
+        expectDeclarableChanging(":res", false)
+        expectConsumableChanging(":dep", false)
+        expectResolvableChanging(":dep", false)
+        expectDeclarableChanging(":dep", true)
+        succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
+    }
 
-        where:
-        desc                                                        | confCreationCode              | usage                | isSetMethod            | setMethod
-        "using create to make an implicitly LEGACY configuration"   | "create('test')"              | "consumable"         | "isCanBeConsumed()"    | "setCanBeConsumed(true)"
-        "creating a detachedConfiguration"                          | "detachedConfiguration()"     | "consumable"         | "isCanBeConsumed()"    | "setCanBeConsumed(true)"
+    def "redundantly changing usage on a legacy configuration does not warn"() {
+        given:
+        buildFile << """
+            def test = configurations.create('test')
+            test.setCanBeConsumed(true)
+            test.setCanBeResolved(true)
+            test.setCanBeDeclared(true)
+        """
+
+        expect:
+        succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
     }
     // endregion Warnings
 

@@ -41,9 +41,10 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.classpath.Instrumented;
@@ -213,13 +214,14 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     }
 
     private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
-        return builder.label(message)
+        return builder.
+            id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), "version catalog error", GradleCoreProblemGroup.versionCatalog())
+            .contextualLabel(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
-            .category("dependency-version-catalog", TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()))
             .severity(ERROR);
     }
 
-    private static RuntimeException throwVersionCatalogProblemException(InternalProblems problemsService, ProblemReport problem) {
+    private static RuntimeException throwVersionCatalogProblemException(InternalProblems problemsService, Problem problem) {
         throw throwError(problemsService, "Invalid catalog definition", ImmutableList.of(problem));
     }
 

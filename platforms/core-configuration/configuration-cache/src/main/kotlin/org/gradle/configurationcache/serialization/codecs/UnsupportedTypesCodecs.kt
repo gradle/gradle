@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.IsolatedProject
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -95,6 +96,7 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<Gradle>())
     bind(unsupported<Settings>())
     bind(unsupported<Project>())
+    bind(unsupported<IsolatedProject>())
     bind(unsupported<TaskContainer>())
     bind(unsupported<TaskDependency>())
     bind(unsupported<SourceSetContainer>())
@@ -150,8 +152,10 @@ fun BindingsBuilder.unsupportedTypes() {
 internal
 object UnsupportedFingerprintBuildServiceProviderCodec : Codec<BuildServiceProvider<*, *>> {
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
-        logUnsupported("serialize",
-            documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint) {
+        logUnsupported(
+            "serialize",
+            documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint
+        ) {
             text(" BuildServiceProvider of service ")
             reference(value.serviceDetails.implementationType)
             text(" with name ")

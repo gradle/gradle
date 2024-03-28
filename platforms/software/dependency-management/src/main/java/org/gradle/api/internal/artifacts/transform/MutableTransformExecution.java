@@ -22,8 +22,8 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.io.File;
@@ -42,7 +42,7 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
         ProjectInternal producerProject,
 
         TransformExecutionListener transformExecutionListener,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
@@ -50,7 +50,7 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
     ) {
         super(
             transform, inputArtifact, dependencies, subject,
-            transformExecutionListener, buildOperationExecutor, progressEventEmitter, fileCollectionFactory, inputFingerprinter
+            transformExecutionListener, buildOperationRunner, progressEventEmitter, fileCollectionFactory, inputFingerprinter
         );
         this.rootProjectLocation = producerProject.getRootDir().getAbsolutePath() + File.separator;
         this.producerBuildTreePath = producerProject.getBuildTreePath();

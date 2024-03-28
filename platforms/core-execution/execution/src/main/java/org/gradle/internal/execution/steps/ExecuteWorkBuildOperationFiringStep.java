@@ -26,7 +26,7 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
 
 import javax.annotation.Nullable;
@@ -40,8 +40,8 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
 
     private final Step<? super C, R> delegate;
 
-    public ExecuteWorkBuildOperationFiringStep(BuildOperationExecutor buildOperationExecutor, Step<C, R> delegate) {
-        super(buildOperationExecutor);
+    public ExecuteWorkBuildOperationFiringStep(BuildOperationRunner buildOperationRunner, Step<C, R> delegate) {
+        super(buildOperationRunner);
         this.delegate = delegate;
     }
 

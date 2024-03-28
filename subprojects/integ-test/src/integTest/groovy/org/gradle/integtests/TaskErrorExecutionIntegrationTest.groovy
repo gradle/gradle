@@ -139,6 +139,31 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         failureDescriptionContains("Some problems were found with the configuration of task ':custom' (type 'CustomTask').")
         failureDescriptionContains(missingValueMessage { type('CustomTask').property('srcFile') })
         failureDescriptionContains(missingValueMessage { type('CustomTask').property('destFile') })
+
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:value-not-set'
+            details == 'This property isn\'t marked as optional and no value has been configured'
+            solutions == [
+                'Assign a value to \'destFile\'',
+                'Mark property \'destFile\' as optional',
+            ]
+            additionalData == [
+                'typeName' : 'CustomTask',
+                'propertyName' : 'destFile',
+            ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'validation:property-validation:value-not-set'
+            details == 'This property isn\'t marked as optional and no value has been configured'
+            solutions == [
+                'Assign a value to \'srcFile\'',
+                'Mark property \'srcFile\' as optional',
+            ]
+            additionalData == [
+                'typeName' : 'CustomTask',
+                'propertyName' : 'srcFile',
+            ]
+        }
     }
 
     def "reports unknown task"() {

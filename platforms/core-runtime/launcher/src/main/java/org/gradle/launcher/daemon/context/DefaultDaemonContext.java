@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.context;
 
 import com.google.common.base.Joiner;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
@@ -41,6 +42,7 @@ public class DefaultDaemonContext implements DaemonContext {
     private final List<String> daemonOpts;
     private final boolean applyInstrumentationAgent;
     private final DaemonParameters.Priority priority;
+    private final NativeServicesMode nativeServicesMode;
 
     public DefaultDaemonContext(
         String uid,
@@ -50,6 +52,7 @@ public class DefaultDaemonContext implements DaemonContext {
         Integer idleTimeout,
         List<String> daemonOpts,
         boolean applyInstrumentationAgent,
+        NativeServicesMode nativeServicesMode,
         DaemonParameters.Priority priority
     ) {
         this.uid = uid;
@@ -60,12 +63,13 @@ public class DefaultDaemonContext implements DaemonContext {
         this.daemonOpts = daemonOpts;
         this.applyInstrumentationAgent = applyInstrumentationAgent;
         this.priority = priority;
+        this.nativeServicesMode = nativeServicesMode;
     }
 
     @Override
     public String toString() {
-        return String.format("DefaultDaemonContext[uid=%s,javaHome=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,priority=%s,applyInstrumentationAgent=%s,daemonOpts=%s]",
-            uid, javaHome, daemonRegistryDir, pid, idleTimeout, priority, applyInstrumentationAgent, Joiner.on(',').join(daemonOpts));
+        return String.format("DefaultDaemonContext[uid=%s,javaHome=%s,daemonRegistryDir=%s,pid=%s,idleTimeout=%s,priority=%s,applyInstrumentationAgent=%s,nativeServicesMode=%s,daemonOpts=%s]",
+            uid, javaHome, daemonRegistryDir, pid, idleTimeout, priority, applyInstrumentationAgent, nativeServicesMode, Joiner.on(',').join(daemonOpts));
     }
 
     @Override
@@ -104,6 +108,11 @@ public class DefaultDaemonContext implements DaemonContext {
     }
 
     @Override
+    public NativeServicesMode getNativeServicesMode() {
+        return nativeServicesMode;
+    }
+
+    @Override
     public DaemonParameters.Priority getPriority() {
         return priority;
     }
@@ -124,8 +133,9 @@ public class DefaultDaemonContext implements DaemonContext {
                 daemonOpts.add(decoder.readString());
             }
             boolean applyInstrumentationAgent = decoder.readBoolean();
+            NativeServicesMode nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
             DaemonParameters.Priority priority = decoder.readBoolean() ? DaemonParameters.Priority.values()[decoder.readInt()] : null;
-            return new DefaultDaemonContext(uid, javaHome, registryDir, pid, idle, daemonOpts, applyInstrumentationAgent, priority);
+            return new DefaultDaemonContext(uid, javaHome, registryDir, pid, idle, daemonOpts, applyInstrumentationAgent, nativeServicesMode, priority);
         }
 
         @Override
@@ -146,6 +156,7 @@ public class DefaultDaemonContext implements DaemonContext {
                 encoder.writeString(daemonOpt);
             }
             encoder.writeBoolean(context.applyInstrumentationAgent);
+            encoder.writeSmallInt(context.nativeServicesMode.ordinal());
             encoder.writeBoolean(context.priority != null);
             if (context.priority != null) {
                 encoder.writeInt(context.priority.ordinal());

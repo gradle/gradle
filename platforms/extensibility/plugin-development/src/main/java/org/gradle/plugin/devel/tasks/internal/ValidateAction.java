@@ -30,8 +30,8 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.internal.DefaultProblemCategory;
-import org.gradle.api.problems.internal.ProblemReport;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
@@ -68,7 +68,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 
     @Override
     public void execute() {
-        List<ProblemReport> taskValidationProblems = new ArrayList<>();
+        List<Problem> taskValidationProblems = new ArrayList<>();
 
         Params params = getParameters();
 
@@ -77,7 +77,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
     }
 
 
-    private static void storeResults(List<ProblemReport> problemMessages, RegularFileProperty outputFile) {
+    private static void storeResults(List<Problem> problemMessages, RegularFileProperty outputFile) {
         if (outputFile.isPresent()) {
             File output = outputFile.get().getAsFile();
             try {
@@ -109,10 +109,10 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 
     private static class ValidationProblemCollector extends EmptyFileVisitor {
         private final ClassLoader classLoader;
-        private final List<ProblemReport> taskValidationProblems;
+        private final List<Problem> taskValidationProblems;
         private final Params params;
 
-        public ValidationProblemCollector(List<ProblemReport> taskValidationProblems, Params params) {
+        public ValidationProblemCollector(List<Problem> taskValidationProblems, Params params) {
             this.classLoader = Thread.currentThread().getContextClassLoader();
             this.taskValidationProblems = taskValidationProblems;
             this.params = params;
@@ -135,7 +135,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 collectValidationProblems(clazz, taskValidationProblems, params.getEnableStricterValidation().get());
             }
         }
-        private static void collectValidationProblems(Class<?> topLevelBean, List<ProblemReport> problems, boolean enableStricterValidation) {
+        private static void collectValidationProblems(Class<?> topLevelBean, List<Problem> problems, boolean enableStricterValidation) {
             DefaultTypeValidationContext validationContext = createTypeValidationContext(topLevelBean, enableStricterValidation);
             PropertyValidationAccess.collectValidationProblems(topLevelBean, validationContext);
 
@@ -182,9 +182,9 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 validationContext.visitTypeProblem(problem -> {
                         ProblemSpec builder = problem
                             .withAnnotationType(topLevelBean)
-                            .label("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
+                            .id(TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON), "annotation missing", GradleCoreProblemGroup.validation().type())
+                            .contextualLabel("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                             .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
-                            .category(DefaultProblemCategory.VALIDATION, "type", TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON))
                             .severity(WARNING)
                             .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")
                             .solution("Add " + disableCachingAnnotation + "(because = ...)")

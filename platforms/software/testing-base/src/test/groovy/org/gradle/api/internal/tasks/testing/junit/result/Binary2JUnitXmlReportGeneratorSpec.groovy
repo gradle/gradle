@@ -17,19 +17,12 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
-import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.BuildOperationListener
-import org.gradle.internal.operations.DefaultBuildOperationExecutor
-import org.gradle.internal.operations.DefaultBuildOperationIdFactory
-import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
+import org.gradle.internal.operations.BuildOperationExecutorSupport
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.MultipleBuildOperationFailures
-import org.gradle.internal.progress.NoOpProgressLoggerFactory
-import org.gradle.internal.time.Clock
-import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -38,16 +31,21 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
     @Rule
     private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     private resultsProvider = Mock(TestResultsProvider)
+    BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     BuildOperationExecutor buildOperationExecutor
     Binary2JUnitXmlReportGenerator generator
-    final WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
 
     def generatorWithMaxThreads(int numThreads) {
-        def parallelismConfiguration = new DefaultParallelismConfiguration(false, numThreads)
-        buildOperationExecutor = new DefaultBuildOperationExecutor(
-                Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
-                new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelismConfiguration, new DefaultBuildOperationIdFactory())
-        Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, new JUnitXmlResultOptions(false, false), buildOperationExecutor, "localhost")
+        buildOperationExecutor = BuildOperationExecutorSupport.builder(numThreads)
+            .withRunner(buildOperationRunner)
+            .build()
+        Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(
+            temp.testDirectory,
+            resultsProvider,
+            new JUnitXmlResultOptions(false, false, true, true),
+            buildOperationRunner,
+            buildOperationExecutor,
+            "localhost")
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator
     }

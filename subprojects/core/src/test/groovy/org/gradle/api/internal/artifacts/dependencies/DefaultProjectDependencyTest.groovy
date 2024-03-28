@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.internal.component.ConfigurationNotConsumableException
+import org.gradle.internal.component.resolution.failure.exception.ConfigurationSelectionException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependencySpec.assertDeepCopy
@@ -120,7 +120,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         projectDependency.buildDependencies.visitDependencies(context)
 
         then:
-        def e = thrown(ConfigurationNotConsumableException)
+        def e = thrown(ConfigurationSelectionException)
         e.message == "Selected configuration 'conf' on 'root project 'test-project'' but it can't be used as a project dependency because it isn't intended for consumption by other components."
     }
 

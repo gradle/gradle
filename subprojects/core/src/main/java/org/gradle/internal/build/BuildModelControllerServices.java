@@ -19,7 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 /**
  * Contributes build scoped services.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildModelControllerServices {
     /**
      * Makes the following services available:

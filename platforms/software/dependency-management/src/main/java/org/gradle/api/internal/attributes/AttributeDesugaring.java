@@ -22,14 +22,14 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class AttributeDesugaring {
     private final Map<ImmutableAttributes, ImmutableAttributes> desugared = new IdentityHashMap<>();
     private final ImmutableAttributesFactory attributesFactory;

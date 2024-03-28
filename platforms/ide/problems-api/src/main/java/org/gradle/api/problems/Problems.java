@@ -17,7 +17,7 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -32,14 +32,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 8.6
  */
 @Incubating
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface Problems {
 
     /**
      * Return a problem reporter associated with a plugin.
      * <p>
-     * The namespace provides separation for identical problems emitted from different components.
-     * For more details on check {@link ProblemSpec#category(String, String...)}
+     * The namespace provides separation for identical problems emitted from different components (Gradle core and third-party plugins).
      *
      * @return The problem reporter.
      * @since 8.6

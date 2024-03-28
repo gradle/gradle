@@ -22,7 +22,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.serialize.BaseSerializerFactory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
@@ -34,7 +34,7 @@ import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public class JavaModuleDetector {
 
     private final Spec<? super File> classpathFilter = this::isNotModule;

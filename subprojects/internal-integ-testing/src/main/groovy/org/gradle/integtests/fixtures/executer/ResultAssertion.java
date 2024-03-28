@@ -149,7 +149,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
             } else if (removeFirstExpectedDeprecationWarning(lines, i)) {
                 i += lastMatchedDeprecationWarning.getNumLines();
                 i = skipStackTrace(lines, i);
-            } else if (line.matches(".*\\s+deprecated.*") && !isConfigurationAllowedUsageChangingInfoLogMessage(line)) {
+            } else if (line.matches(".*\\s+deprecated.*")) {
                 if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {
                     throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                 }
@@ -184,23 +184,6 @@ public class ResultAssertion implements Action<ExecutionResult> {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    /**
-     * Changes to a configuration's allowed usage contain the string "deprecated" and thus will trigger
-     * false positive identification as Deprecation warnings by the logic in {@link #validate(String, String)};
-     * this method is used to filter out those false positives.
-     * <p>
-     * The check for the "this behavior..." string ensures that deprecation warnings in this regard, as opposed
-     * to log messages, are not filtered out.
-     *
-     * @param line the output line to check
-     * @return {@code true} if the line is a configuration allowed usage changing info log message; {@code false} otherwise
-     */
-    private static boolean isConfigurationAllowedUsageChangingInfoLogMessage(String line) {
-        String msgPrefix = "Allowed usage is changing for configuration";
-        return (line.startsWith(msgPrefix) || line.contains("[org.gradle.api.internal.artifacts.configurations.DefaultConfiguration] " + msgPrefix))
-            && !line.contains("This behavior has been deprecated.");
     }
 
     /**

@@ -18,11 +18,11 @@ package org.gradle.configurationcache
 
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.internal.classpath.InstrumentedExecutionAccess
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 internal
 class InstrumentedExecutionAccessListener(
     private val executionAccessChecker: ExecutionAccessChecker

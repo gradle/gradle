@@ -18,13 +18,13 @@ package org.gradle.configurationcache
 
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 interface BuildTreeConfigurationCache {
     /**
      * Determines whether the cache entry can be loaded or needs to be stored or updated.

@@ -21,20 +21,30 @@ import org.gradle.api.Describable;
 import java.io.File;
 
 public class InstallationLocation implements Describable {
-
-    private File location;
-
-    private String source;
-
-    private boolean autoProvisioned;
-
-    public InstallationLocation(File location, String source) {
-        this(location, source, false);
+    public static InstallationLocation userDefined(File location, String source) {
+        return new InstallationLocation(location, source, false, false);
     }
 
-    public InstallationLocation(File location, String source, boolean autoProvisioned) {
+    public static InstallationLocation autoDetected(File location, String source) {
+        return new InstallationLocation(location, source, true, false);
+    }
+
+    public static InstallationLocation autoProvisioned(File location, String source) {
+        return new InstallationLocation(location, source, true, true);
+    }
+
+    private final File location;
+
+    private final String source;
+
+    private final boolean autoDetected;
+
+    private final boolean autoProvisioned;
+
+    private InstallationLocation(File location, String source, boolean autoDetected, boolean autoProvisioned) {
         this.location = location;
         this.source = source;
+        this.autoDetected = autoDetected;
         this.autoProvisioned = autoProvisioned;
     }
 
@@ -51,7 +61,20 @@ public class InstallationLocation implements Describable {
         return source;
     }
 
+    /**
+     * Flag for if this location was auto-detected, i.e. not explicitly defined by the user.
+     *
+     * This is used to lower the severity of issues related to this location.
+     */
+    public boolean isAutoDetected() {
+        return autoDetected;
+    }
+
     public boolean isAutoProvisioned() {
         return autoProvisioned;
+    }
+
+    public InstallationLocation withLocation(File location) {
+        return new InstallationLocation(location, source, autoDetected, autoProvisioned);
     }
 }

@@ -17,17 +17,16 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.CleanupProgressMonitor;
-import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.operations.BuildOperationContext;
 
 public class DefaultCleanupProgressMonitor implements CleanupProgressMonitor {
 
-    private final ProgressLogger progressLogger;
-
+    private final BuildOperationContext buildOperationContext;
     private long deleted;
     private long skipped;
 
-    public DefaultCleanupProgressMonitor(ProgressLogger progressLogger) {
-        this.progressLogger = progressLogger;
+    public DefaultCleanupProgressMonitor(BuildOperationContext buildOperationContext) {
+        this.buildOperationContext = buildOperationContext;
     }
 
     @Override
@@ -48,8 +47,7 @@ public class DefaultCleanupProgressMonitor implements CleanupProgressMonitor {
     }
 
     private void updateProgress() {
-        progressLogger.progress(progressLogger.getDescription() + ": "
-            + mandatoryNumber(deleted, " entry", " entries") + " deleted"
+        buildOperationContext.progress(mandatoryNumber(deleted, " entry", " entries") + " deleted"
             + optionalNumber(", ", skipped, " skipped"));
     }
 

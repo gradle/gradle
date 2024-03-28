@@ -18,8 +18,10 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -40,6 +42,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.support.descriptor.ClassSource;
+import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
@@ -220,8 +223,15 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return wasCreated.get();
     }
 
-    private DefaultNestedTestSuiteDescriptor createNestedTestSuite(TestIdentifier node, String displayName, CompositeIdGenerator.CompositeId candidateId) {
-        return new DefaultNestedTestSuiteDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), displayName, candidateId);
+    private DefaultTestSuiteDescriptor createNestedTestSuite(TestIdentifier node, String displayName, CompositeIdGenerator.CompositeId candidateId) {
+        Optional<MethodSource> methodSource = getMethodSource(node);
+        if (methodSource.isPresent()) {
+            TestIdentifier classIdentifier = findTestClassIdentifier(node);
+            String className = className(classIdentifier);
+            return new DefaultParameterizedTestDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), className, displayName, candidateId);
+        } else {
+            return new DefaultNestedTestSuiteDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), displayName, candidateId);
+        }
     }
 
     private DefaultTestClassDescriptor createTestClassDescriptor(TestIdentifier node) {
@@ -303,6 +313,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return testIdentifier.getSource()
             .filter(source -> source instanceof ClassSource)
             .map(source -> (ClassSource) source);
+    }
+
+    private static Optional<MethodSource> getMethodSource(TestIdentifier testIdentifier) {
+        return testIdentifier.getSource()
+            .filter(source -> source instanceof MethodSource)
+            .map(source -> (MethodSource) source);
     }
 
     private boolean hasDifferentSourceThanAncestor(TestIdentifier testIdentifier) {

@@ -24,8 +24,9 @@ import org.gradle.util.internal.VersionNumber
 trait WithAndroidDeprecations implements WithReportDeprecations {
     private static final VersionNumber AGP_VERSION_WITH_FIXED_NEW_WORKERS_API = VersionNumber.parse('4.2')
     private static final VersionNumber AGP_VERSION_WITHOUT_CONVENTION_USAGES = VersionNumber.parse('7.4')
-    private static final VersionNumber AGP_VERSION_WITHOUT_CONFIG_UTIL = VersionNumber.parse('8.0.0-rc01')
-    private static final VersionNumber AGP_VERSION_WITHOUT_CLIENT_MODULE = VersionNumber.parse('8.2.0-alpha06')
+    private static final VersionNumber AGP_VERSION_WITHOUT_CONFIG_UTIL = VersionNumber.parse('8.0')
+    private static final VersionNumber AGP_VERSION_WITHOUT_CLIENT_MODULE = VersionNumber.parse('8.2')
+    private static final VersionNumber AGP_VERSION_WITHOUT_CONFIGURATION_MUTATION = VersionNumber.parse('8.3.0-alpha11')
 
     boolean androidPluginUsesOldWorkerApi(String agpVersion) {
         versionIsLower(agpVersion, AGP_VERSION_WITH_FIXED_NEW_WORKERS_API)
@@ -103,6 +104,34 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
                 "Please use component metadata rules instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#declaring_client_module_dependencies",
         )
+    }
+
+    void expectConfigurationMutationDeprecationWarnings(String agpVersion, List<String> confs) {
+        confs.each { conf ->
+            runner.expectLegacyDeprecationWarningIf(
+                versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CONFIGURATION_MUTATION),
+                "Mutating the dependencies of configuration '${conf}' after it has been resolved or consumed. " +
+                    "This behavior has been deprecated. " +
+                    "This will fail with an error in Gradle 9.0. " +
+                    "After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#mutate_configuration_after_locking"
+            )
+        }
+    }
+
+    void maybeexpectConfigurationMutationDeprecationWarnings(String agpVersion, List<String> confs) {
+        confs.each { conf ->
+            runner.maybeExpectLegacyDeprecationWarningIf(
+                versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CONFIGURATION_MUTATION),
+                "Mutating the dependencies of configuration '${conf}' after it has been resolved or consumed. " +
+                    "This behavior has been deprecated. " +
+                    "This will fail with an error in Gradle 9.0. " +
+                    "After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#mutate_configuration_after_locking"
+            )
+        }
     }
 
     void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion, String fixedVersion = '8.0.0') {

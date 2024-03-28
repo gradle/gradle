@@ -22,4 +22,11 @@ package org.gradle.tooling.internal.protocol.events;
  * @since 2.4
  */
 public interface InternalTestDescriptor extends InternalOperationDescriptor {
+    /**
+     * Returns the display name of the test.
+     *
+     * @return The display name of the test
+     * @since 8.8
+     */
+    String getTestDisplayName();
 }

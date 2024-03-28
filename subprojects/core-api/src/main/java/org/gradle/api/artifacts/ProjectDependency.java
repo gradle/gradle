@@ -26,6 +26,7 @@ import java.util.Set;
  * <p>A {@code ProjectDependency} is a {@link Dependency} on another project in the current project hierarchy.</p>
  */
 @HasInternalProtocol
+@SuppressWarnings("deprecation") // Because of SelfResolvingDependency
 public interface ProjectDependency extends ModuleDependency, SelfResolvingDependency {
     /**
      * Returns the project associated with this project dependency.
@@ -53,6 +54,7 @@ public interface ProjectDependency extends ModuleDependency, SelfResolvingDepend
      * @deprecated This class will no longer implement {@link SelfResolvingDependency} in Gradle 9.0
      */
     @Override
+    @Deprecated
     Set<File> resolve();
 
     /**
@@ -61,5 +63,6 @@ public interface ProjectDependency extends ModuleDependency, SelfResolvingDepend
      * @deprecated This class will no longer implement {@link SelfResolvingDependency} in Gradle 9.0
      */
     @Override
+    @Deprecated
     Set<File> resolve(boolean transitive);
 }

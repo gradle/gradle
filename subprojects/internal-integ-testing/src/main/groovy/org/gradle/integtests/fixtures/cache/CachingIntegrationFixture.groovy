@@ -20,6 +20,7 @@ import groovy.transform.SelfType
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 
 import static org.gradle.cache.internal.scopes.DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME
 
@@ -29,8 +30,12 @@ trait CachingIntegrationFixture {
         return executer.gradleUserHomeDir.file(GLOBAL_CACHE_DIR_NAME)
     }
 
+    TestFile getGradleVersionedCacheDir() {
+        return executer.gradleUserHomeDir.file(GLOBAL_CACHE_DIR_NAME, GradleVersion.current().getVersion())
+    }
+
     TestFile getMetadataCacheDir() {
-        return userHomeCacheDir.file(CacheLayout.ROOT.key)
+        return userHomeCacheDir.file(CacheLayout.MODULES.key)
     }
 
     void markForArtifactCacheCleanup() {

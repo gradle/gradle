@@ -23,7 +23,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
@@ -34,7 +34,7 @@ import java.io.IOException;
  * types: it will serialize the contents as strings, and read them as strings, only for reporting
  * purposes.
  */
-@ServiceScope(Scopes.BuildSession.class)
+@ServiceScope(Scope.BuildSession.class)
 public class DesugaredAttributeContainerSerializer extends AbstractSerializer<AttributeContainer> implements AttributeContainerSerializer {
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;

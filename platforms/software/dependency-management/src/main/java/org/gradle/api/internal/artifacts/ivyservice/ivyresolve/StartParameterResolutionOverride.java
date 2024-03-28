@@ -52,7 +52,7 @@ import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
@@ -60,7 +60,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class StartParameterResolutionOverride {
     private final StartParameter startParameter;
     private final File gradleDir;

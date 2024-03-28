@@ -13,10 +13,12 @@ dependencies {
 
     pluginsRuntimeOnly(project(":base-ide-plugins"))
     pluginsRuntimeOnly(project(":code-quality"))
+    pluginsRuntimeOnly(project(":core-jvm"))
     pluginsRuntimeOnly(project(":ear"))
     pluginsRuntimeOnly(project(":ide"))
     pluginsRuntimeOnly(project(":ide-plugins"))
     pluginsRuntimeOnly(project(":jacoco"))
+    pluginsRuntimeOnly(project(":plugins-application"))
     pluginsRuntimeOnly(project(":plugins-groovy"))
     pluginsRuntimeOnly(project(":plugins-java"))
     pluginsRuntimeOnly(project(":plugins-java-base"))

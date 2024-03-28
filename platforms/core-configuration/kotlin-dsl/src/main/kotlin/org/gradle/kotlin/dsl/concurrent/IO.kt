@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.concurrent
 
 import org.gradle.api.Project
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -66,7 +66,7 @@ interface IOScope : IO, AutoCloseable
 /**
  * A Gradle build service to offload IO actions to a dedicated thread.
  */
-@ServiceScope(Scopes.Build::class)
+@ServiceScope(Scope.Build::class)
 interface AsyncIOScopeFactory {
     fun newScope(): IOScope
 }

@@ -16,19 +16,14 @@
 
 package org.gradle.caching.local.internal
 
-
 import org.gradle.cache.PersistentCache
 import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.hash.TestHashCodes
-import org.gradle.internal.resource.local.DefaultPathKeyFileStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
-
-import java.nio.file.Files
 
 @UsesNativeServices
 @CleanupTestDirectory
@@ -36,14 +31,12 @@ class DirectoryBuildCacheTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def cacheDir = temporaryFolder.createDir("cache")
-    def fileStore = new DefaultPathKeyFileStore(TestUtil.checksumService, cacheDir)
     def persistentCache = Mock(PersistentCache) {
         getBaseDir() >> cacheDir
         withFileLock(_) >> { Runnable r -> r.run() }
     }
-    def tempFileStore = new DefaultBuildCacheTempFileStore({ prefix, suffix -> Files.createTempFile(cacheDir.toPath(), prefix, suffix).toFile() })
     def fileAccessTracker = Mock(FileAccessTracker)
-    def cache = new DirectoryBuildCache(fileStore, persistentCache, tempFileStore, fileAccessTracker, ".failed")
+    def cache = new DirectoryBuildCache(persistentCache, fileAccessTracker, ".failed")
     def key = TestHashCodes.hashCodeFrom(12345678)
     def hashCode = key.toString()
 
@@ -68,6 +61,7 @@ class DirectoryBuildCacheTest extends Specification {
         cacheDir.listFiles() as List == []
         0 * fileAccessTracker.markAccessed(_)
     }
+
 
     def "marks file accessed when storing and loading locally"() {
         File cachedFile = null
@@ -112,5 +106,34 @@ class DirectoryBuildCacheTest extends Specification {
         then:
         1 * fileAccessTracker.markAccessed(cachedFile)
         loaded
+    }
+
+    def "handles storing twice"() {
+        File cachedFile = null
+
+        given:
+        def originalFile = temporaryFolder.createFile("foo")
+        originalFile.text = "bar"
+
+        when:
+        cache.store(key) { output ->
+            output.write("foo".getBytes())
+        }
+
+        then:
+        1 * fileAccessTracker.markAccessed(_) >> { File file -> cachedFile = file }
+        cachedFile.absolutePath.startsWith(cacheDir.absolutePath)
+
+        when:
+        cache.store(key) { output ->
+            output.write("bar".getBytes())
+        }
+
+        then:
+        1 * fileAccessTracker.markAccessed(cachedFile)
+
+        // Note that we don't know which variant of the file ended up in the cache,
+        // as `Files.move()` and `File.renameTo()` can either fail or replace the
+        // already existing file; it's up to the implementation.
     }
 }

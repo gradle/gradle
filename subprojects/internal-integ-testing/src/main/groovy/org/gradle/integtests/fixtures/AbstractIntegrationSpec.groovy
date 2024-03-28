@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.apache.commons.lang.StringEscapeUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
@@ -33,7 +34,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.integtests.fixtures.problems.KnownCategories
+import org.gradle.integtests.fixtures.problems.KnownProblemIds
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -60,6 +61,7 @@ import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFA
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.Matchers.normalizedLineSeparators
+
 /**
  * Spockified version of AbstractIntegrationTest.
  *
@@ -128,7 +130,19 @@ abstract class AbstractIntegrationSpec extends Specification {
     def cleanup() {
         if (enableProblemsApiCheck) {
             collectedProblems.each {
-                KnownCategories.assertHasKnownCategory(it)
+                KnownProblemIds.assertHasKnownId(it)
+            }
+
+            if (getReceivedProblems().every {it == null }) {
+                receivedProblems = null
+            } else {
+                println "Problems that were not accessed during test execution:"
+                getReceivedProblems().eachWithIndex { ReceivedProblem problem, int index ->
+                    if (problem != null) {
+                        printCollectedProblems(problem, index)
+                    }
+                }
+                throw new AssertionError("Not all received problems were validated")
             }
         }
 
@@ -197,8 +211,16 @@ abstract class AbstractIntegrationSpec extends Specification {
         targetBuildFile << script
     }
 
+    void javaFile(TestFile targetBuildFile, @Language('JAVA') String code) {
+        targetBuildFile << code
+    }
+
     static String groovyScript(@GroovyBuildScriptLanguage String script) {
         script
+    }
+
+    void versionCatalogFile(@Language("toml") String script) {
+        versionCatalogFile << script
     }
 
     TestFile getBuildKotlinFile() {
@@ -254,6 +276,10 @@ abstract class AbstractIntegrationSpec extends Specification {
 
     protected TestFile getPropertiesFile() {
         testDirectory.file('gradle.properties')
+    }
+
+    protected TestFile getVersionCatalogFile() {
+        testDirectory.file('gradle/libs.versions.toml')
     }
 
     protected static String getSettingsFileName() {
@@ -362,8 +388,17 @@ abstract class AbstractIntegrationSpec extends Specification {
         executer.usingProjectDirectory(file(path))
     }
 
+    /**
+     * Use requireOwnGradleUserHomeDir(because) instead
+     */
+    @Deprecated
     protected GradleExecuter requireOwnGradleUserHomeDir() {
         executer.requireOwnGradleUserHomeDir()
+        executer
+    }
+
+    protected GradleExecuter requireOwnGradleUserHomeDir(String because) {
+        executer.requireOwnGradleUserHomeDir(because)
         executer
     }
 
@@ -493,7 +528,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     protected ExecutionFailure fails(String... tasks) {
         failure = executer.withTasks(*tasks).runWithFailure()
 
-        if (enableProblemsApiCheck && collectedProblems.isEmpty()) {
+        if (enableProblemsApiCheck && getReceivedProblems().isEmpty()) {
             throw new AssertionFailedError("Expected to find a problem emitted via the 'Problems' service for the failing build, but none was received.")
         }
 
@@ -753,6 +788,10 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         enableProblemsApiCheck = false
     }
 
+    def isProblemsApiCheckEnabled() {
+        enableProblemsApiCheck
+    }
+
     /**
      * Gets all problems collected by the Problems API.
      *
@@ -771,17 +810,71 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         }
     }
 
-    /**
-     * Gets the first problem of the given category. Assumes that there is only one problem.
-     *
-     * @return The first collected problem
-     * @throws AssertionError if there is no, or more than one, collected problem
-     * @throws IllegalStateException if the Problems API check is not enabled
-     */
-    ReceivedProblem getCollectedProblem() {
-        def problems = getCollectedProblems()
-        assert problems.size() == 1: "Expected to find exactly one problem, but found ${problems.size()} problems"
-        return problems[0]
+    static void printCollectedProblems(ReceivedProblem problem, int index) {
+        println "verifyAll(receivedProblem($index)) {"
+        println "    fqid == '${problem.definition.id.fqid}'"
+        if (problem.contextualLabel != null) {
+            println "    contextualLabel == '${problem.contextualLabel.replaceAll("'", "\\\\'")}'"
+        }
+        if (problem.details != null) {
+            println "    details == '${problem.details.replaceAll("'", "\\\\'")}'"
+        }
+        if (problem.solutions.size() == 1) {
+            println "    solutions == [ '${problem.solutions[0].replaceAll("'", "\\\\'")}' ]"
+        } else if (problem.solutions.size() > 1) {
+            println "    solutions == ["
+            problem.solutions.each { solution ->
+                println "        '${solution.replaceAll("'", "\\\\'")}',"
+            }
+            println "    ]"
+        }
+        if (problem.additionalData.size() == 1) {
+            println "    additionalData == [ '${problem.additionalData.keySet().iterator().next()}' : '${problem.additionalData.values().iterator().next()}' ]"
+        } else if (problem.additionalData.size() > 1) {
+            println "    additionalData == ["
+            problem.additionalData.each { key, value ->
+                println "        '$key' : '$value',"
+            }
+            println "    ]"
+        }
+        println "}"
+
+    }
+
+    private List<ReceivedProblem> receivedProblems
+
+    private List<ReceivedProblem> getReceivedProblems() {
+        if (receivedProblems == null) {
+            receivedProblems = getCollectedProblems()
+            // sometimes we receive problems in a non-deterministic order. To make the tests stable we sort them before performing the assertions.
+            receivedProblems.sort { p1, p2 ->
+                if (p1.fqid != p2.fqid) {
+                    return p1.fqid <=> p2.fqid
+                }
+                if (p1.contextualLabel != p2.contextualLabel) {
+                    return p1.contextualLabel <=> p2.contextualLabel
+                }
+                if (p1.details != p2.details) {
+                    return p1.details <=> p2.details
+                }
+                return 0
+            }
+        }
+        receivedProblems
+    }
+
+    ReceivedProblem getReceivedProblem() {
+        receivedProblem(0)
+    }
+
+    ReceivedProblem receivedProblem(int index) {
+        assert index >= 0: "Index must be non-negative"
+        assert index < getReceivedProblems().size(): "Only ${getReceivedProblems().size()} problems received"
+        def problems = getReceivedProblems()
+        def result = problems[index]
+        assert result != null: "Problem already validated"
+        problems.set(index, null)
+        return result
     }
 
     /**
@@ -820,4 +913,35 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             }
         """
     }
+
+    // Helpers for writing buildscripts using a common syntax
+
+    String renderString(String content) {
+        return '"' + StringEscapeUtils.escapeJava(content) + '"'
+    }
+
+    String newStringBuilder(String expression, GradleDsl dsl = GROOVY) {
+        return dsl == GROOVY ? "new StringBuilder($expression)" : "StringBuilder($expression)"
+    }
+
+    String makeNamedArgs(Map<String, String> expressionMap, GradleDsl dsl = GROOVY) {
+        if (dsl == GROOVY) {
+            return expressionMap.collect { k, v -> "${renderString(k)}: " + v }.join(", ")
+        } else {
+            return expressionMap.collect { k, v -> "$k = " + v }.join(", ")
+        }
+    }
+
+    String instanceOf(GradleDsl dsl = GROOVY) {
+        return dsl == GROOVY ? "instanceof" : "is"
+    }
+
+    String cast(String variable, String type, GradleDsl dsl = GROOVY) {
+        return dsl == GROOVY ? "((${type}) ${variable})" : "(${variable} as ${type})"
+    }
+
+    String setOf(String expression, GradleDsl dsl = GROOVY) {
+        return dsl == GROOVY ? "[$expression]" : "setOf($expression)"
+    }
+
 }

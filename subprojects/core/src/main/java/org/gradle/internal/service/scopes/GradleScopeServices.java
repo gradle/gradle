@@ -64,7 +64,7 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ScopedServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -78,7 +78,7 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class GradleScopeServices extends ScopedServiceRegistry {
     public GradleScopeServices(final ServiceRegistry parent) {
-        super(Scopes.Gradle.class, "Gradle-scope services", parent);
+        super(Scope.Gradle.class, "Gradle-scope services", parent);
         register(registration -> {
             registration.add(DefaultBuildOutputCleanupRegistry.class);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
@@ -95,19 +95,19 @@ public class GradleScopeServices extends ScopedServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector, build);
     }
 
-    BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildOperationExecutor buildOperationExecutor) {
+    BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildOperationRunner buildOperationRunner) {
         return new BuildOperationFiringBuildWorkerExecutor(
             new DryRunBuildExecutionAction(textOutputFactory,
                 new SelectedTaskExecutionAction()),
-            buildOperationExecutor);
+            buildOperationRunner);
     }
 
     BuildTaskScheduler createBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, BuildTaskSelector.BuildSpecificSelector selector, List<BuiltInCommand> builtInCommands) {
         return new DefaultTasksBuildTaskScheduler(projectConfigurer, builtInCommands, new TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector));
     }
 
-    TaskExecutionPreparer createTaskExecutionPreparer(BuildTaskScheduler buildTaskScheduler, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {
-        return new DefaultTaskExecutionPreparer(buildTaskScheduler, buildOperationExecutor, buildModelParameters);
+    TaskExecutionPreparer createTaskExecutionPreparer(BuildTaskScheduler buildTaskScheduler, BuildOperationRunner buildOperationRunner, BuildModelParameters buildModelParameters) {
+        return new DefaultTaskExecutionPreparer(buildTaskScheduler, buildOperationRunner, buildModelParameters);
     }
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {
@@ -141,7 +141,7 @@ public class GradleScopeServices extends ScopedServiceRegistry {
     TaskExecutionGraphInternal createTaskExecutionGraph(
         PlanExecutor planExecutor,
         List<NodeExecutor> nodeExecutors,
-        BuildOperationExecutor buildOperationExecutor,
+        BuildOperationRunner buildOperationRunner,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
         ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
@@ -152,7 +152,7 @@ public class GradleScopeServices extends ScopedServiceRegistry {
         return new DefaultTaskExecutionGraph(
             planExecutor,
             nodeExecutors,
-            buildOperationExecutor,
+            buildOperationRunner,
             listenerBuildOperationDecorator,
             gradleInternal,
             graphListeners,
@@ -166,9 +166,9 @@ public class GradleScopeServices extends ScopedServiceRegistry {
         return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope());
     }
 
-    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, InstantiatorFactory instantiatorFactory, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator decorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         PluginTarget target = new ImperativeOnlyPluginTarget<>(gradleInternal);
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(this), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
     FileContentCacheFactory createFileContentCacheFactory(

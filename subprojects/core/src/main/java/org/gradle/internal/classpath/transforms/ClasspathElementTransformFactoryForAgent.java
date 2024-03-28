@@ -18,14 +18,14 @@ package org.gradle.internal.classpath.transforms;
 
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public class ClasspathElementTransformFactoryForAgent implements ClasspathElementTransformFactory {
 
     private static final int AGENT_INSTRUMENTATION_VERSION = 3;
@@ -44,7 +44,7 @@ public class ClasspathElementTransformFactoryForAgent implements ClasspathElemen
     }
 
     @Override
-    public ClasspathElementTransform createTransformer(File file, ClassTransform classTransform, InstrumentingTypeRegistry typeRegistry) {
+    public ClasspathElementTransform createTransformer(File file, ClassTransform classTransform, InstrumentationTypeRegistry typeRegistry) {
         return new ClasspathElementTransformForAgent(file, classpathBuilder, classpathWalker, typeRegistry, classTransform);
     }
 

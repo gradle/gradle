@@ -73,14 +73,14 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     public DefaultLocalComponentGraphResolveState(long instanceId, LocalComponentMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator, boolean adHoc) {
         super(instanceId, metadata, metadata, attributeDesugaring);
-        allVariantsForGraphResolution = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
+        this.allVariantsForGraphResolution = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().map(variants ->
             variants.stream()
                 .map(variant -> getConfiguration(variant.getName()).asVariant())
                 .collect(Collectors.toList())
         ));
         this.idGenerator = idGenerator;
         this.adHoc = adHoc;
-        selectableVariantResults = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream()
+        this.selectableVariantResults = Lazy.locking().of(() -> metadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream()
             .map(LocalConfigurationGraphResolveMetadata.class::cast)
             .flatMap(variant -> variant.getVariants().stream())
             .map(variant -> new DefaultResolvedVariantResult(
@@ -143,17 +143,18 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             if (configuration == null) {
                 return null;
             } else {
-                return new DefaultLocalConfigurationGraphResolveState(idGenerator.nextVariantId(), getMetadata(), configuration);
+                return new DefaultLocalConfigurationGraphResolveState(idGenerator.nextVariantId(), this, getMetadata(), configuration);
             }
         });
     }
 
-    private class DefaultLocalConfigurationGraphResolveState extends AbstractVariantGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
+    private static class DefaultLocalConfigurationGraphResolveState extends AbstractVariantGraphResolveState implements VariantGraphResolveState, ConfigurationGraphResolveState {
         private final long instanceId;
         private final LocalConfigurationMetadata configuration;
         private final Lazy<DefaultLocalConfigurationArtifactResolveState> artifactResolveState;
 
-        public DefaultLocalConfigurationGraphResolveState(long instanceId, LocalComponentMetadata component, LocalConfigurationMetadata configuration) {
+        public DefaultLocalConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?, ?> componentState, LocalComponentMetadata component, LocalConfigurationMetadata configuration) {
+            super(componentState);
             this.instanceId = instanceId;
             this.configuration = configuration;
             // We deliberately avoid locking the initialization of `artifactResolveState`.

@@ -20,7 +20,7 @@ public class ProblemReportingPlugin implements Plugin<Project> {
 
     public void apply(Project project) {
         this.problemReporter.reporting(builder -> builder // <3>
-            .label("Plugin 'x' is deprecated")
+            .id("adhoc-deprecation", "Plugin 'x' is deprecated")
             .details("The plugin 'x' is deprecated since version 2.5")
             .solution("Please use plugin 'y'")
             .severity(Severity.WARNING)

@@ -27,7 +27,6 @@ import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
-import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.AbstractFileChangeMutator
 import spock.lang.Issue
 
@@ -37,6 +36,7 @@ import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
 import static org.gradle.performance.results.OperatingSystem.LINUX
+import static org.gradle.profiler.mutations.AbstractCleanupMutator.CleanupSchedule.BUILD
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
 
@@ -103,7 +103,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.cleanTasks = ["clean"]
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
-            new ClearArtifactTransformCacheWithoutInstrumentedJarsMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
+            ClearArtifactTransformCacheWithoutInstrumentedJarsMutator.create(invocationSettings.getGradleUserHome(), BUILD)
         }
         if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
             configureRunnerSpecificallyForNowInAndroid()

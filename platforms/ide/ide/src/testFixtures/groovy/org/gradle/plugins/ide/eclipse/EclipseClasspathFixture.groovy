@@ -182,7 +182,7 @@ class EclipseClasspathFixture {
         }
 
         private String cachePath(String group, String module, String version) {
-            return Pattern.quote("${userHomeDir.path.replace(File.separator, '/')}") + "/caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/" + Pattern.quote("${group}/${module}/${version}/") + "\\w+/"
+            return Pattern.quote("${userHomeDir.path.replace(File.separator, '/')}") + "/caches/${CacheLayout.MODULES.getKey()}/${CacheLayout.FILE_STORE.getKey()}/" + Pattern.quote("${group}/${module}/${version}/") + "\\w+/"
         }
 
         void assertHasNoSource() {

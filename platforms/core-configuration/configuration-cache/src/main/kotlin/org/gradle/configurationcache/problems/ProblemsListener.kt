@@ -20,11 +20,11 @@ import org.gradle.configurationcache.ConfigurationCacheError
 import org.gradle.configurationcache.ConfigurationCacheThrowable
 import org.gradle.configurationcache.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.internal.service.scopes.EventScope
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import java.io.IOException
 
 
-@EventScope(Scopes.BuildTree::class)
+@EventScope(Scope.BuildTree::class)
 interface ProblemsListener {
 
     fun onProblem(problem: PropertyProblem)

@@ -16,23 +16,23 @@
 
 package org.gradle.configuration
 
-import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Describables
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.code.DefaultUserCodeApplicationContext
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.ResourceLocation
 import org.gradle.internal.resource.TextResource
 import spock.lang.Specification
 
 class BuildOperationScriptPluginTest extends Specification {
 
-    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def buildOperationRunner = new TestBuildOperationRunner()
     def userCodeApplicationContext = new DefaultUserCodeApplicationContext()
     def scriptSource = Mock(ScriptSource)
     def scriptSourceResource = Mock(TextResource)
     def scriptSourceResourceLocation = Mock(ResourceLocation)
     def decoratedScriptPlugin = Mock(ScriptPlugin)
-    def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationExecutor, userCodeApplicationContext)
+    def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationRunner, userCodeApplicationContext)
     def target = "Test Target"
 
     def "delegates to decorated script plugin via build operation"() {
@@ -49,9 +49,9 @@ class BuildOperationScriptPluginTest extends Specification {
         1 * decoratedScriptPlugin.apply(target)
         0 * decoratedScriptPlugin._
 
-        buildOperationExecutor.operations.size() == 1
-        buildOperationExecutor.operations.get(0).displayName == "Apply <test.source> to $target"
-        buildOperationExecutor.operations.get(0).name == "Apply <test.source>"
+        buildOperationRunner.operations.size() == 1
+        buildOperationRunner.operations.get(0).displayName == "Apply <test.source> to $target"
+        buildOperationRunner.operations.get(0).name == "Apply <test.source>"
     }
 
     def "delegates to decorated script plugin without build operation in cached source has no content"() {
@@ -66,6 +66,6 @@ class BuildOperationScriptPluginTest extends Specification {
         1 * decoratedScriptPlugin.apply(target)
         0 * decoratedScriptPlugin._
 
-        buildOperationExecutor.operations.size() == 0
+        buildOperationRunner.operations.size() == 0
     }
 }

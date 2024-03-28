@@ -22,6 +22,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.MessagingServer;
@@ -70,6 +71,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationClassPath;
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
+    private NativeServicesMode nativeServicesMode = NativeServicesMode.NOT_SET;
 
     DefaultWorkerProcessBuilder(
         JavaExecHandleFactory execHandleFactory,
@@ -198,6 +200,16 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     @Override
     public void enableJvmMemoryInfoPublishing(boolean shouldPublish) {
         this.shouldPublishJvmMemoryInfo = shouldPublish;
+    }
+
+    @Override
+    public void setNativeServicesMode(NativeServicesMode nativeServicesMode) {
+        this.nativeServicesMode = nativeServicesMode;
+    }
+
+    @Override
+    public NativeServicesMode getNativeServicesMode() {
+        return nativeServicesMode;
     }
 
     @Override

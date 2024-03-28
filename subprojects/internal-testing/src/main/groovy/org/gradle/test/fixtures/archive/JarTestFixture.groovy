@@ -47,7 +47,7 @@ class JarTestFixture extends ZipTestFixture {
          super(file, metadataCharset, contentCharset)
          this.file = file
          if (checkManifest) {
-             isManifestPresentAndFirstEntry()
+             assertManifestPresentAndFirstEntry()
          }
      }
 
@@ -61,7 +61,7 @@ class JarTestFixture extends ZipTestFixture {
     /**
      * Asserts that the manifest file is present and first entry in this jar file.
      */
-    void isManifestPresentAndFirstEntry() {
+    void assertManifestPresentAndFirstEntry() {
         def zipFile = new ZipFile(file, metadataCharset)
         try {
             def entries = zipFile.getEntries()

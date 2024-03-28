@@ -40,11 +40,11 @@ import org.gradle.configurationcache.serialization.Workarounds.canAccessConventi
 import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scope.BuildTree::class)
 interface ConfigurationCacheProblemsListener : ExecutionAccessListener, TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener
 
 

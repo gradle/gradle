@@ -20,7 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.DeprecatedInGradleScope;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 /**
  * <p>A {@code TaskExecutionListener} is notified of the execution of the tasks in a build.</p>
@@ -29,7 +29,7 @@ import org.gradle.internal.service.scopes.Scopes;
  *
  * @deprecated This type is not supported when configuration caching is enabled.
  */
-@EventScope(Scopes.Build.class)
+@EventScope(Scope.Build.class)
 @Deprecated
 @DeprecatedInGradleScope
 public interface TaskExecutionListener {

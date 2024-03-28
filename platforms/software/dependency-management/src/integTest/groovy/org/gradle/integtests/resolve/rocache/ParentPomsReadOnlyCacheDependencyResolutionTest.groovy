@@ -36,7 +36,7 @@ class ParentPomsReadOnlyCacheDependencyResolutionTest extends AbstractReadOnlyCa
         """
 
         when:
-        fileInReadReadOnlyCache("modules-${CacheLayout.ROOT.version}/files-${CacheLayout.FILE_STORE.version}/org.readonly/parent/1.0").eachFileRecurse { it.delete() }
+        fileInReadReadOnlyCache("modules-${CacheLayout.MODULES.version}/files-${CacheLayout.FILE_STORE.version}/org.readonly/parent/1.0").eachFileRecurse { it.delete() }
         withReadOnlyCache()
         other.allowAll()
         parent.allowAll()

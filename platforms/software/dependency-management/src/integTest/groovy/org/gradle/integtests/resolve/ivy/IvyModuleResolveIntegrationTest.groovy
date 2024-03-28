@@ -136,7 +136,7 @@ task retrieve(type: Sync) {
 
         expect:
         fails 'retrieve'
-        failure.assertHasCause("Test:target:1.0 declares a dependency from configuration 'something' to configuration 'unknown' which is not declared in the descriptor for test:b:1.0.")
+        failure.assertHasCause("A dependency was declared from configuration 'something' to configuration 'unknown' which is not declared in the descriptor for test:b:1.0.")
     }
 
     def "correctly handles configuration mapping rule '#rule'"() {

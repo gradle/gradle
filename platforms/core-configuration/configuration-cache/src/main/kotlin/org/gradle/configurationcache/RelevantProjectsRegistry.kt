@@ -21,12 +21,12 @@ import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.execution.plan.Node
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
 
 
-@ServiceScope(Scopes.Build::class)
+@ServiceScope(Scope.Build::class)
 class RelevantProjectsRegistry(
     private val build: BuildState,
     private val projectStateRegistry: ProjectStateRegistry

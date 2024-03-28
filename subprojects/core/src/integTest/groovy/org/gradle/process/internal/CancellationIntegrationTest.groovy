@@ -22,9 +22,9 @@ import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import spock.lang.Ignore
+import org.gradle.test.fixtures.Flaky
 
-@Ignore("https://github.com/gradle/gradle/issues/18280")
+@Flaky(because = "https://github.com/gradle/gradle/issues/18280")
 class CancellationIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
     private static final String START_UP_MESSAGE = "Cancellable task started!"
     private DaemonClientFixture client

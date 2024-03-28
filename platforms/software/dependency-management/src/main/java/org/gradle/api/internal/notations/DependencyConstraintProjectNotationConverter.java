@@ -21,15 +21,18 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 public class DependencyConstraintProjectNotationConverter implements NotationConverter<Project, DependencyConstraint> {
 
+    private final Instantiator instantiator;
     private final DefaultProjectDependencyFactory factory;
 
-    public DependencyConstraintProjectNotationConverter(DefaultProjectDependencyFactory factory) {
+    public DependencyConstraintProjectNotationConverter(Instantiator instantiator, DefaultProjectDependencyFactory factory) {
+        this.instantiator = instantiator;
         this.factory = factory;
     }
 
@@ -40,6 +43,6 @@ public class DependencyConstraintProjectNotationConverter implements NotationCon
 
     @Override
     public void convert(Project notation, NotationConvertResult<? super DependencyConstraint> result) throws TypeConversionException {
-        result.converted(new DefaultProjectDependencyConstraint(factory.create(notation)));
+        result.converted(instantiator.newInstance(DefaultProjectDependencyConstraint.class, factory.create(notation)));
     }
 }

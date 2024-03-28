@@ -21,12 +21,12 @@ import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.descriptor.Artifact;
-import org.gradle.internal.component.external.model.ConfigurationBoundExternalDependencyMetadata;
-import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.external.model.GradleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
+import org.gradle.internal.component.external.model.ivy.IvyDependencyMetadata;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
+import org.gradle.internal.component.external.model.maven.MavenDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collections;
@@ -65,15 +65,12 @@ public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataA
 
     private List<IvyArtifactName> getIvyArtifacts() {
         ModuleDependencyMetadata originalMetadata = getMetadata();
-        if (originalMetadata instanceof ConfigurationBoundExternalDependencyMetadata) {
-            ConfigurationBoundExternalDependencyMetadata externalMetadata = (ConfigurationBoundExternalDependencyMetadata) originalMetadata;
-            ExternalDependencyDescriptor descriptor = externalMetadata.getDependencyDescriptor();
-            if (descriptor instanceof MavenDependencyDescriptor) {
-                return fromMavenDescriptor((MavenDependencyDescriptor) descriptor);
-            }
-            if (descriptor instanceof IvyDependencyDescriptor) {
-                return fromIvyDescriptor((IvyDependencyDescriptor) descriptor);
-            }
+        if (originalMetadata instanceof MavenDependencyMetadata) {
+            MavenDependencyMetadata mavenMetadata = (MavenDependencyMetadata) originalMetadata;
+            return fromMavenDescriptor(mavenMetadata.getDependencyDescriptor());
+        } else if (originalMetadata instanceof IvyDependencyMetadata) {
+            IvyDependencyMetadata ivyMetadata = (IvyDependencyMetadata) originalMetadata;
+            return fromIvyDescriptor(ivyMetadata.getDependencyDescriptor());
         } else if (originalMetadata instanceof GradleDependencyMetadata){
             return fromGradleMetadata((GradleDependencyMetadata) originalMetadata);
         }

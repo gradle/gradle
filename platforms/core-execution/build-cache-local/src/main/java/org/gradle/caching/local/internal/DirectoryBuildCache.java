@@ -23,8 +23,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.io.IoConsumer;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.Closeable;
@@ -35,6 +33,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -43,17 +44,23 @@ import java.util.function.Consumer;
 @NonNullApi
 public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, LocalBuildCache {
 
-    private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
     private final BuildCacheTempFileStore tempFileStore;
     private final FileAccessTracker fileAccessTracker;
     private final String failedFileSuffix;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public DirectoryBuildCache(PathKeyFileStore fileStore, PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
-        this.fileStore = fileStore;
+    public DirectoryBuildCache(PersistentCache persistentCache, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
         this.persistentCache = persistentCache;
-        this.tempFileStore = tempFileStore;
+        // Create temporary files in the cache directory to ensure they are on the same file system,
+        // and thus can always be moved into the cache proper atomically
+        this.tempFileStore = new DefaultBuildCacheTempFileStore((prefix, suffix) -> {
+            try {
+                return Files.createTempFile(persistentCache.getBaseDir().toPath(), prefix, suffix).toFile();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
         this.fileAccessTracker = fileAccessTracker;
         this.failedFileSuffix = failedFileSuffix;
     }
@@ -82,6 +89,7 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     public void loadLocally(HashCode key, Consumer<? super File> reader) {
         // We need to lock other processes out here because garbage collection can be under way in another process
         persistentCache.withFileLock(() -> {
+            // Additional locking necessary because of https://github.com/gradle/gradle/issues/3537
             lock.readLock().lock();
             try {
                 loadInsideLock(key, reader);
@@ -92,12 +100,11 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     }
 
     private void loadInsideLock(HashCode key, Consumer<? super File> reader) {
-        LocallyAvailableResource resource = fileStore.get(key.toString());
-        if (resource == null) {
+        File file = getCacheEntryFile(key);
+        if (!file.exists()) {
             return;
         }
 
-        File file = resource.getFile();
         fileAccessTracker.markAccessed(file);
 
         try {
@@ -136,7 +143,9 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
 
     @Override
     public void storeLocally(HashCode key, File file) {
+        // We need to lock other processes out here because garbage collection can be under way in another process
         persistentCache.withFileLock(() -> {
+            // Additional locking necessary because of https://github.com/gradle/gradle/issues/3537
             lock.writeLock().lock();
             try {
                 storeInsideLock(key, file);
@@ -146,9 +155,19 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
         });
     }
 
-    private void storeInsideLock(HashCode key, File file) {
-        LocallyAvailableResource resource = fileStore.move(key.toString(), file);
-        fileAccessTracker.markAccessed(resource.getFile());
+    private void storeInsideLock(HashCode key, File sourceFile) {
+        File targetFile = getCacheEntryFile(key);
+        try {
+            Files.move(sourceFile.toPath(), targetFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+        } catch (FileAlreadyExistsException ignore) {
+            // We already have the file in the build cache
+            // Note that according to the documentation of `Files.move()`, whether this exception is thrown
+            // is implementation specific: it can also happen that the target file gets overwritten, as if
+            // `REPLACE_EXISTING` was specified. This seems to match the behavior exhibited by `File.renameTo()`.
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Couldn't move cache entry '%s' into local cache: %s", key, e), e);
+        }
+        fileAccessTracker.markAccessed(targetFile);
     }
 
     @Override
@@ -159,5 +178,9 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     @Override
     public void close() {
         persistentCache.close();
+    }
+
+    private File getCacheEntryFile(HashCode key) {
+        return new File(persistentCache.getBaseDir(), key.toString());
     }
 }

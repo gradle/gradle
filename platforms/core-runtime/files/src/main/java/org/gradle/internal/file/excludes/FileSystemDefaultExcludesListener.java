@@ -17,12 +17,12 @@
 package org.gradle.internal.file.excludes;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 import java.util.List;
 
 
-@EventScope(Scopes.BuildSession.class)
+@EventScope(Scope.BuildSession.class)
 public interface FileSystemDefaultExcludesListener {
 
     void onDefaultExcludesChanged(List<String> excludes);

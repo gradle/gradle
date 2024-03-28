@@ -35,6 +35,7 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -127,6 +128,9 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun getDefaultProject(): ProjectInternal = crossProjectModelAccess.access(referrerProject, delegate.defaultProject)
 
     override fun getGradle(): Gradle = this
+
+    override fun getLifecycle(): GradleLifecycle =
+        delegate.lifecycle
 
     override fun addListener(listener: Any) {
         delegate.addListener(maybeWrapListener(listener))

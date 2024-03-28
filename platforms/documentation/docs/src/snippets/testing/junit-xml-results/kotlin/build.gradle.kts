@@ -26,6 +26,8 @@ java.testResultsDir = layout.buildDirectory.dir("junit-xml")
 tasks.test {
     reports {
         junitXml.apply {
+            includeSystemOutLog = false // defaults to true
+            includeSystemErrLog = false // defaults to true
             isOutputPerTestCase = true // defaults to false
             mergeReruns = true // defaults to false
         }

@@ -18,21 +18,21 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
-import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
 
 import java.util.LinkedList;
 import java.util.List;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class PluginResolverFactory {
 
     private final PluginRegistry pluginRegistry;
