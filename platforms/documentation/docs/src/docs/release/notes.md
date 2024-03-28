@@ -54,7 +54,9 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### Configuration cache improvements
 
-[Java Record classes](https://docs.oracle.com/en/java/javase/21/language/records.html) are now supported in the configuration cache.
+The configuration cache now supports:
+* [Java Record classes](https://docs.oracle.com/en/java/javase/21/language/records.html)
+* [java.io.Externalizable instances](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Externalizable.html)
 
 #### Ability to set conventions on file collections
 
