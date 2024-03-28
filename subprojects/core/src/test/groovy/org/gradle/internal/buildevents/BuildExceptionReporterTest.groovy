@@ -19,6 +19,7 @@ package org.gradle.internal.buildevents
 import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.exceptions.ContextAwareException
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.FailureResolutionAware
 import org.gradle.internal.exceptions.LocationAwareException
@@ -460,6 +462,66 @@ $INFO_OR_DEBUG
 $GET_HELP
 """
     }
+
+    // region Duplicate Exception Branch Filtering
+    def "multi-cause exceptions summaries branches with identical root causes"() {
+        def ultimateCause = new RuntimeException("ultimate cause")
+        def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
+        def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
+        Throwable exception = new ContextAwareException(new DefaultLenientConfiguration.ArtifactResolveException("task dependencies", "org:example:1.0", [branch1, branch2]))
+
+        when:
+        reporter.buildFinished(result(exception))
+        print(output.value)
+
+        then:
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+Could not resolve all task dependencies for org:example:1.0.
+{info}> {normal}first failure
+   {info}> {normal}ultimate cause
+{info}> {normal}There was 1 additional failure with the same cause that was not printed.
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$SCAN
+$GET_HELP
+"""
+    }
+
+    def "multi-cause exceptions summaries branches with identical root causes with additional intermediate failures"() {
+        def ultimateCause = new RuntimeException("ultimate cause")
+        def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
+        def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
+        def intermediateFailure = new DefaultMultiCauseException("intermediate failure", ultimateCause)
+        def branch3 = new DefaultMultiCauseException("third failure", intermediateFailure)
+        Throwable exception = new ContextAwareException(new DefaultLenientConfiguration.ArtifactResolveException("task dependencies", "org:example:1.0", [branch1, branch2, branch3]))
+
+        when:
+        reporter.buildFinished(result(exception))
+        print(output.value)
+
+        then:
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+Could not resolve all task dependencies for org:example:1.0.
+{info}> {normal}first failure
+   {info}> {normal}ultimate cause
+{info}> {normal}There were 2 additional failures with the same cause that were not printed.
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$SCAN
+$GET_HELP
+"""
+    }
+    // endregion Duplicate Exception Branch Filtering
 
     def result(Throwable failure) {
         BuildResult result = Mock()
