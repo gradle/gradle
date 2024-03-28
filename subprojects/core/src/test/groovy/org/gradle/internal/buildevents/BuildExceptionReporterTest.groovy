@@ -464,7 +464,7 @@ $GET_HELP
     }
 
     // region Duplicate Exception Branch Filtering
-    def "multi-cause exceptions summaries branches with identical root causes"() {
+    def "multi-cause exceptions have branches with identical root causes summarized properly"() {
         def ultimateCause = new RuntimeException("ultimate cause")
         def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
         def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
@@ -492,7 +492,7 @@ $GET_HELP
 """
     }
 
-    def "multi-cause exceptions summaries branches with identical root causes with additional intermediate failures"() {
+    def "multi-cause exceptions have branches with identical root causes and additional intermediate failures summarized properly"() {
         def ultimateCause = new RuntimeException("ultimate cause")
         def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
         def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
@@ -522,7 +522,7 @@ $GET_HELP
 """
     }
 
-    def "multi-cause exceptions summaries branches properly when identical root cause is self-caused"() {
+    def "multi-cause exceptions have branches with identical root causes summarized properly when ultimate cause is self-caused"() {
         def ultimateCause = new RuntimeException("ultimate cause")
         ultimateCause.cause = ultimateCause
         def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
