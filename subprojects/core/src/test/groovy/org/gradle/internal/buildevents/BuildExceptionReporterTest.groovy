@@ -550,6 +550,45 @@ $SCAN
 $GET_HELP
 """
     }
+
+    def "multi-cause exceptions with multiple branches with a set of identical root causes are summarized properly"() {
+        def ultimateCause1 = new RuntimeException("ultimate cause 1")
+        def branch1 = new DefaultMultiCauseException("first failure", ultimateCause1)
+        def branch2 = new DefaultMultiCauseException("second failure", ultimateCause1)
+        def intermediateFailure1 = new DefaultMultiCauseException("intermediate failure", ultimateCause1)
+        def branch3 = new DefaultMultiCauseException("third failure", intermediateFailure1)
+
+        def ultimateCause2 = new RuntimeException("ultimate cause 2")
+        def branch4 = new DefaultMultiCauseException("forth failure", ultimateCause2)
+        def branch5 = new DefaultMultiCauseException("fifth failure", ultimateCause2)
+        def intermediateFailure2 = new DefaultMultiCauseException("intermediate failure 2", ultimateCause2)
+        def branch6 = new DefaultMultiCauseException("sixth failure", intermediateFailure2)
+
+        Throwable exception = new ContextAwareException(new DefaultLenientConfiguration.ArtifactResolveException("task dependencies", "org:example:1.0", [branch1, branch2, branch3, branch4, branch5, branch6]))
+
+        when:
+        reporter.buildFinished(result(exception))
+        print(output.value)
+
+        then:
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+Could not resolve all task dependencies for org:example:1.0.
+{info}> {normal}first failure
+   {info}> {normal}ultimate cause 1
+{info}> {normal}forth failure
+   {info}> {normal}ultimate cause 2
+{info}> {normal}There were 4 additional failures with the same cause that were not printed.
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$SCAN
+$GET_HELP
+"""
+    }
     // endregion Duplicate Exception Branch Filtering
 
     def result(Throwable failure) {
