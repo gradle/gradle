@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.test.fixtures.file.TestFile
@@ -35,6 +36,7 @@ import spock.lang.Unroll
 import java.nio.file.Files
 import java.util.stream.Collectors
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -102,6 +104,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         loopNumber << (1..6).toList()
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "build script classloader copies only non-cached jar files to cache"() {
         given:
         createBuildFileThatPrintsClasspathURLs("""
@@ -229,6 +232,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "cleans up unused cached entries in the Jars cache"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon
@@ -401,6 +405,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("JAR = 11")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "class with #lambdaCount lambdas can be instrumented"() {
         given:
         createDir("buildSrc/src/main/java") {

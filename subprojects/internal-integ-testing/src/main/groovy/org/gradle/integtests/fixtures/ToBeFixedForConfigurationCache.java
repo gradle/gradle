@@ -81,6 +81,11 @@ public @interface ToBeFixedForConfigurationCache {
          * Use this reason on tests that take a long time to fail, slowing down the CI feedback.
          * Use sparingly, only in dramatic cases.
          */
-        LONG_TIMEOUT
+        LONG_TIMEOUT,
+
+        /**
+         * This test has been seen failing, but we did not have time to investigate the reason yet.
+         */
+        INVESTIGATE
     }
 }

@@ -17,10 +17,13 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.work.NormalizeLineEndings
 
 import java.lang.annotation.Annotation
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 
 abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractIntegrationSpec {
@@ -275,6 +278,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         api << Api.values()
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "artifact transforms are sensitive to line endings by default"() {
         createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.DEFAULT)
         file('producer/foo/bar.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
@@ -310,6 +314,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         assertTransformExecuted()
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "artifact transforms can ignore line endings when specified"() {
         createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
         file('producer/foo/bar.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)

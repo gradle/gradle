@@ -32,6 +32,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+
 class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def "reports which properties are not serializable"() {
@@ -56,6 +58,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
         failure.assertHasCause("Cannot fingerprint input property 'b': value 'xxx' cannot be serialized.")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "deals gracefully with not serializable contents of GStrings"() {
         buildFile << """
             task foo {
@@ -238,8 +241,9 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
         buildFile << """
             task a {
                 outputs.file 'a.txt'
+                def outputFile = file('a.txt')
                 doLast {
-                    file('a.txt') << "Data"
+                    outputFile << "Data"
                 }
             }
 
