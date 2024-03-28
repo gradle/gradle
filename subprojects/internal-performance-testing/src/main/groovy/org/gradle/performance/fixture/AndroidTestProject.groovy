@@ -74,33 +74,10 @@ class AndroidTestProject implements TestProject {
         version
     }
 
-    static String useKotlinLatestVersion(CrossVersionPerformanceTestRunner runner) {
-        def version = KGP_VERSIONS.latest
-        runner.args.add("-DkotlinVersion=${ version}")
-        version
-    }
-
-    static String useAgpLatestOfMinorVersion(CrossVersionPerformanceTestRunner runner, String lowerBound) {
-        def version = AGP_VERSIONS.getLatestOfMinor(lowerBound)
-        configureForAgpVersion(runner, version)
-        version
-    }
-
     static String useAgpLatestStableOrRcVersion(CrossVersionPerformanceTestRunner runner) {
         def version = AGP_VERSIONS.latestStableOrRC
         configureForAgpVersion(runner, version)
         version
-    }
-
-    static String useAgpLatestVersion(CrossVersionPerformanceTestRunner runner) {
-        def version = AGP_VERSIONS.latest
-        configureForAgpVersion(runner, version)
-        version
-    }
-
-    static void useJavaVersion(CrossVersionPerformanceTestRunner runner, JavaVersion javaVersion) {
-        def buildJavaHome = AvailableJavaHomes.getJdk(javaVersion).javaHome
-        runner.addBuildMutator { invocation -> new JavaVersionMutator(invocation, javaVersion, buildJavaHome) }
     }
 
     private static void configureForAgpVersion(CrossVersionPerformanceTestRunner runner, String agpVersion) {

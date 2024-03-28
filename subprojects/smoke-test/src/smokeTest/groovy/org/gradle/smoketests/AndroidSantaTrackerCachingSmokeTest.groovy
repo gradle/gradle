@@ -42,7 +42,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'clean build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
-        def result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(originalDir, agpVersion)
+        def result = buildLocation(originalDir, agpVersion)
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -51,7 +51,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'up-to-date build, reusing configuration cache when enabled'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
-        result = buildUpToDateLocation(originalDir, agpVersion)
+        result = buildLocation(originalDir, agpVersion)
 
         then:
         // TODO - this is here because AGP >=7.4 and <8.1.0 reads build/generated/source/kapt/debug at configuration time
@@ -76,7 +76,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'clean cached build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(relocatedDir, homeDir)
-        result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(relocatedDir, agpVersion)
+        result = buildLocation(relocatedDir, agpVersion)
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -98,12 +98,12 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         verify(result, expectedResults)
 
         when: 'clean cached build, reusing configuration cache when enabled'
-        cleanLocation(relocatedDir, agpVersion)
+        runnerForLocation(relocatedDir, agpVersion, "clean").build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(relocatedDir, homeDir)
         if (GradleContextualExecuter.notConfigCache) {
-            result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(relocatedDir, agpVersion)
+            result = buildLocation(relocatedDir, agpVersion)
         } else {
-            result = buildLocationMaybeExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
+            result = runnerForLocation(relocatedDir, agpVersion, "assembleDebug").build()
         }
 
         then:
@@ -112,7 +112,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         }
 
         where:
-        agpVersion << TESTED_AGP_VERSIONS
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 

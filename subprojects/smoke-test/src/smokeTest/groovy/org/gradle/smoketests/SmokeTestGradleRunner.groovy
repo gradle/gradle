@@ -210,6 +210,13 @@ class SmokeTestGradleRunner extends GradleRunner {
         return this
     }
 
+    SmokeTestGradleRunner ignoreDeprecationWarningsIf(boolean condition, String reason) {
+        if (condition) {
+            ignoreDeprecationWarnings(reason)
+        }
+        return this
+    }
+
     def <U extends BaseDeprecations, T> SmokeTestGradleRunner deprecations(
         @DelegatesTo.Target Class<U> deprecationClass,
         @DelegatesTo(

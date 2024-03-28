@@ -324,6 +324,7 @@ abstract class AbstractSmokeTest extends Specification {
             extraArgs += ["-I", init.canonicalPath]
         }
         return runner.withArguments([runner.arguments, extraArgs].flatten())
+            .ignoreDeprecationWarningsIf(AGP_VERSIONS.isOld(agpVersion), "Old version of AGP")
     }
 
     protected void replaceVariablesInBuildFile(Map binding) {
