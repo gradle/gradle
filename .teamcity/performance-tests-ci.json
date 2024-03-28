@@ -364,6 +364,14 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean check on ephemeral ci",
+    "groups" : [ {
+      "testProject" : "smallJavaMultiProjectManyExternalDependencies",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingNativePerformanceTest.clean assemble with local cache (native project)",
     "groups" : [ {
       "testProject" : "bigCppApp",
