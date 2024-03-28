@@ -521,6 +521,35 @@ $SCAN
 $GET_HELP
 """
     }
+
+    def "multi-cause exceptions summaries branches properly when identical root cause is self-caused"() {
+        def ultimateCause = new RuntimeException("ultimate cause")
+        ultimateCause.cause = ultimateCause
+        def branch1 = new DefaultMultiCauseException("first failure", ultimateCause)
+        def branch2 = new DefaultMultiCauseException("second failure", ultimateCause)
+        Throwable exception = new ContextAwareException(new DefaultLenientConfiguration.ArtifactResolveException("task dependencies", "org:example:1.0", [branch1, branch2]))
+
+        when:
+        reporter.buildFinished(result(exception))
+        print(output.value)
+
+        then:
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+Could not resolve all task dependencies for org:example:1.0.
+{info}> {normal}first failure
+   {info}> {normal}ultimate cause
+{info}> {normal}There was 1 additional failure with the same cause that was not printed.
+
+* Try:
+$STACKTRACE
+$INFO_OR_DEBUG
+$SCAN
+$GET_HELP
+"""
+    }
     // endregion Duplicate Exception Branch Filtering
 
     def result(Throwable failure) {
