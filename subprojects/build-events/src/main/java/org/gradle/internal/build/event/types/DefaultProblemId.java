@@ -17,29 +17,36 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
-import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
-import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
+import org.gradle.tooling.internal.protocol.InternalProblemGroup;
+import org.gradle.tooling.internal.protocol.InternalProblemId;
+
+import java.io.Serializable;
 
 @NonNullApi
-public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDescriptor> implements InternalProblemEventVersion2 {
-    private final InternalProblemDetailsVersion2 details;
+public class DefaultProblemId implements InternalProblemId, Serializable {
 
-    public DefaultProblemEvent(
-        InternalProblemDescriptor descriptor,
-        InternalProblemDetailsVersion2 details
-    ) {
-        super(System.currentTimeMillis(), descriptor);
-        this.details = details;
+    private final String name;
+    private final String displayName;
+    private final InternalProblemGroup group;
+
+    public DefaultProblemId(String name, String displayName, InternalProblemGroup group) {
+          this.name = name;
+          this.displayName = displayName;
+          this.group = group;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
     public String getDisplayName() {
-        return "problem";
+        return displayName;
     }
 
     @Override
-    public InternalProblemDetailsVersion2 getDetails() {
-        return details;
+    public InternalProblemGroup getGroup() {
+        return group;
     }
 }

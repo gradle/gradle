@@ -17,66 +17,32 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetailsV2;
+import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
-import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
-import org.gradle.tooling.internal.protocol.problem.InternalLabel;
-import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
-import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
+import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultProblemAggregationDetails implements InternalProblemAggregationDetailsV2, Serializable {
+public class DefaultProblemAggregationDetails implements InternalProblemAggregationDetailsVersion3, Serializable {
 
-    private final InternalLabel label;
-    private final InternalProblemCategory category;
-    private final InternalSeverity severity;
-    private final InternalDocumentationLink documentationLink;
+    private final InternalProblemDefinition definition;
     private final List<InternalProblemContextDetails> problems;
 
-    public DefaultProblemAggregationDetails(InternalLabel label,
-                                            InternalProblemCategory category,
-                                            InternalSeverity severity,
-                                            InternalDocumentationLink documentationLink,
+    public DefaultProblemAggregationDetails(InternalProblemDefinition definition,
                                             List<InternalProblemContextDetails> problems) {
-        this.label = label;
-        this.category = category;
-        this.severity = severity;
-        this.documentationLink = documentationLink;
+        this.definition = definition;
         this.problems = problems;
     }
 
     @Override
-    public String getJson() {
-        return "{}";
-    }
-
-    @Nullable
-    @Override
-    public InternalDocumentationLink getDocumentationLink() {
-        return documentationLink;
-    }
-
-    @Override
-    public InternalSeverity getSeverity() {
-        return severity;
+    public InternalProblemDefinition getDefinition() {
+        return definition;
     }
 
     @Override
     public List<InternalProblemContextDetails> getProblems() {
         return problems;
-    }
-
-    @Override
-    public InternalLabel getLabel() {
-        return label;
-    }
-
-    @Override
-    public InternalProblemCategory getCategory() {
-        return category;
     }
 }
