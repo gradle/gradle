@@ -38,7 +38,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        def result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
+        def result = buildLocation(checkoutDir, agpVersion)
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -46,7 +46,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         }
 
         where:
-        agpVersion << TESTED_AGP_VERSIONS
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 
@@ -69,7 +69,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
 
         when:
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
-        def result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
+        def result = buildLocation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
 
         then:
@@ -81,11 +81,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
-        if (GradleContextualExecuter.notConfigCache) {
-            result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
-        } else {
-            result = buildLocationMaybeExpectingWorkerExecutorAndConfigUtilDeprecation(checkoutDir, agpVersion)
-        }
+        result = buildLocation(checkoutDir, agpVersion)
 
         def md5After = compiledClassFile.md5Hash
 
@@ -104,7 +100,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         md5After != md5Before
 
         where:
-        agpVersion << TESTED_AGP_VERSIONS
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 
@@ -127,15 +123,6 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
         runner.deprecations(SantaTrackerDeprecations) {
-            expectAndroidConventionTypeDeprecationWarning(agpVersion)
-            expectBasePluginConventionDeprecation(agpVersion)
-            expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion, '8.2.0')
-            expectClientModuleDeprecationWarning(agpVersion)
-            if (agpVersion.startsWith('7.')) {
-                expectBuildIdentifierNameDeprecation(agpVersion)
-            }
-            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
-            expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
             expectConfigurationMutationDeprecationWarnings(agpVersion, lintMutatedConfigurations)
         }
         def result = runner.buildAndFail()
@@ -155,11 +142,6 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         runner.withArguments(runner.arguments + "--continue")
         runner.deprecations(SantaTrackerDeprecations) {
             if (GradleContextualExecuter.notConfigCache) {
-                expectAndroidConventionTypeDeprecationWarning(agpVersion)
-                expectBasePluginConventionDeprecation(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-                expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
-                expectClientModuleDeprecationWarning(agpVersion)
                 expectConfigurationMutationDeprecationWarnings(agpVersion, lintMutatedConfigurations)
             }
         }
@@ -172,7 +154,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        agpVersion << TESTED_AGP_VERSIONS
+        agpVersion << TestedVersions.androidGradle.versions
     }
 
     private ArrayList<String> getLintMutatedConfigurations() {
