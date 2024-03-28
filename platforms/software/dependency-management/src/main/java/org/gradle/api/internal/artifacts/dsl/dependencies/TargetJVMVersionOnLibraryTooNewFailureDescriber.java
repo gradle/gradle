@@ -69,6 +69,6 @@ public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends Ab
     }
 
     private String suggestChangeLibraryVersion(String requestedName, JavaVersion minRequiredJVMVersion) {
-        return "Change the dependency on '" + requestedName + "' to an earlier version that supports a Java " + minRequiredJVMVersion.getMajorVersion() + " JVM.";
+        return "Change the dependency on '" + requestedName + "' to an earlier version that supports JVM runtime version " + minRequiredJVMVersion.getMajorVersion() + ".";
     }
 }
