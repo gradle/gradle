@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -300,7 +301,13 @@ public class DefaultGradleRunner extends GradleRunner {
         message.append(" with arguments ");
         message.append(getArguments());
 
-        String output = gradleExecutionResult.getOutput();
+        String output;
+        try {
+            output = gradleExecutionResult.getOutputSource().asCharSource(Charset.defaultCharset()).read();
+        } catch (IOException e) {
+            output = "<Error fetching output: " + e.getMessage() + ">";
+        }
+
         if (output != null && !output.isEmpty()) {
             message.append(lineBreak);
             message.append(lineBreak);
@@ -368,10 +375,10 @@ public class DefaultGradleRunner extends GradleRunner {
         return createBuildResult(execResult);
     }
 
-    private BuildResult createBuildResult(GradleExecutionResult execResult) {
+    private static BuildResult createBuildResult(GradleExecutionResult execResult) {
         return new FeatureCheckBuildResult(
             execResult.getBuildOperationParameters(),
-            execResult.getOutput(),
+            execResult.getOutputSource(),
             execResult.getTasks()
         );
     }
