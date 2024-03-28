@@ -89,6 +89,17 @@ class KotlinGradlePluginVersions {
         return latestsStableOrRC.last()
     }
 
+    /**
+     * Determines if the provided version is older than the most recent tested stable.
+     */
+    boolean isOld(String kgpVersion) {
+        isOld(VersionNumber.parse(kgpVersion))
+    }
+
+    boolean isOld(VersionNumber kgpVersion) {
+        kgpVersion < VersionNumber.parse(latestStable)
+    }
+
     static final VersionNumber KOTLIN_1_6_21 = VersionNumber.parse('1.6.21')
     static final VersionNumber KOTLIN_1_8_0 = VersionNumber.parse('1.8.0')
     static final VersionNumber KOTLIN_1_9_0 = VersionNumber.parse('1.9.0')

@@ -28,40 +28,15 @@ class BaseDeprecations {
         "Please use the archiveFile property instead. " +
         String.format(RECOMMENDATION, "information", DOCUMENTATION_REGISTRY.getDslRefForProperty("org.gradle.api.tasks.bundling.AbstractArchiveTask","archivePath"))
 
-    public static final String WORKER_SUBMIT_DEPRECATION = "The WorkerExecutor.submit() method has been deprecated. This is scheduled to be removed in Gradle 8.0. " +
-        "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-        "See ${DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_5", "method_workerexecutor_submit_is_deprecated")} for more details."
-
     public static final String CONVENTION_TYPE_DEPRECATION = "The org.gradle.api.plugins.Convention type has been deprecated. " +
         "This is scheduled to be removed in Gradle 9.0. " +
         "Consult the upgrading guide for further information: " +
         DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","deprecated_access_to_conventions")
 
-    public static final String APPLICATION_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.ApplicationPluginConvention type has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Consult the upgrading guide for further information: " +
-        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","application_convention_deprecation")
-
-    public static final String BASE_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.BasePluginConvention type has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Consult the upgrading guide for further information: " +
-        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","base_convention_deprecation")
-
-    public static final String GUTIL_DEPRECATION = "The org.gradle.util.GUtil type has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Consult the upgrading guide for further information: " +
-        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_7", "org_gradle_util_reports_deprecations")
-
     public static final String JAVA_PLUGIN_CONVENTION_DEPRECATION = "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
         "This is scheduled to be removed in Gradle 9.0. " +
         "Consult the upgrading guide for further information: " +
         DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8","java_convention_deprecation")
-
-    public static final String FOR_USE_AT_CONFIGURATION_TIME_DEPRECATION = "The Provider.forUseAtConfigurationTime method has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Simply remove the call. " +
-        "Consult the upgrading guide for further information: " +
-        DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_7", "for_use_at_configuration_time_deprecation")
 
     final SmokeTestGradleRunner runner
 

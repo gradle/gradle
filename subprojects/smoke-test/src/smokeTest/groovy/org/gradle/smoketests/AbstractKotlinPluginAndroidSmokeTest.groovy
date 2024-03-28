@@ -55,27 +55,12 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
                     androidBuildToolsVersion: TestedVersions.androidTools)
         }
         def kotlinPluginVersionNumber = VersionNumber.parse(kotlinPluginVersion)
-        def androidPluginVersionNumber = VersionNumber.parse(androidPluginVersion)
 
         when:
-        def runner = createRunner(parallelTasksInProject, kotlinPluginVersionNumber, androidPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
+        def runner = runner(parallelTasksInProject, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
         def result = useAgpVersion(androidPluginVersion, runner)
+                .ignoreDeprecationWarningsIf(KOTLIN_VERSIONS.isOld(kotlinPluginVersion), "KGP version")
                 .deprecations(KotlinAndroidDeprecations) {
-                    expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersionNumber)
-                    expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersionNumber, parallelTasksInProject, kotlinPluginVersionNumber)
-                    expectReportDestinationPropertyDeprecation(androidPluginVersion)
-                    expectKotlinCompileDestinationDirPropertyDeprecation(kotlinPluginVersionNumber)
-                    if (GradleContextualExecuter.configCache || (kotlinPluginVersionNumber >= KOTLIN_1_8_0 && kotlinPluginVersionNumber.baseVersion < KOTLIN_2_0_0)) {
-                        expectBuildIdentifierIsCurrentBuildDeprecation(androidPluginVersion)
-                    }
-                    2.times {
-                        maybeExpectOrgGradleUtilGUtilDeprecation(androidPluginVersion)
-                    }
-                    if (GradleContextualExecuter.configCache) {
-                        expectForUseAtConfigurationTimeDeprecation(kotlinPluginVersionNumber)
-                    }
-                    expectBasePluginExtensionArchivesBaseNameDeprecation(kotlinPluginVersionNumber, androidPluginVersionNumber)
-                    expectClientModuleDeprecationWarning(androidPluginVersion)
                     expectConfigurationMutationDeprecationWarnings(androidPluginVersion, [":app:debugCompileClasspath"])
                     if (GradleContextualExecuter.configCache || (kotlinPluginVersionNumber >= KOTLIN_1_8_0 && kotlinPluginVersionNumber.baseVersion < KOTLIN_2_0_0)) {
                         expectConfigurationMutationDeprecationWarnings(androidPluginVersion, [":app:debugUnitTestCompileClasspath"])

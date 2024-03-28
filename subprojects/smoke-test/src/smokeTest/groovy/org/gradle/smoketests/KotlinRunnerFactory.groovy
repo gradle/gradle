@@ -16,23 +16,16 @@
 
 package org.gradle.smoketests
 
+import groovy.transform.SelfType
 import org.gradle.api.JavaVersion
 import org.gradle.util.internal.VersionNumber
 
 /**
  * Implementing this trait means that a class knows how to create runners for testing Kotlin plugins.
  */
+@SelfType(AbstractSmokeTest)
 trait KotlinRunnerFactory {
     private static final String PARALLEL_TASKS_IN_PROJECT_PROPERTY = 'kotlin.parallel.tasks.in.project'
-
-    SmokeTestGradleRunner createRunner(ParallelTasksInProject parallelTasksInProject, VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber, String... tasks) {
-        return runnerFor(this, parallelTasksInProject, kotlinVersionNumber, tasks)
-                .deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
-                    expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber)
-                    expectBasePluginConventionDeprecation(kotlinVersionNumber, agpVersionNumber)
-                    expectConventionTypeDeprecation(kotlinVersionNumber, agpVersionNumber)
-                }
-    }
 
     SmokeTestGradleRunner runner(ParallelTasksInProject parallelTasksInProject, VersionNumber kotlinVersion, String... tasks) {
         return runnerFor(this, parallelTasksInProject, kotlinVersion, tasks)
@@ -56,11 +49,15 @@ trait KotlinRunnerFactory {
     }
 
     SmokeTestGradleRunner runnerFor(AbstractSmokeTest smokeTest, ParallelTasksInProject parallelTasksInProject, VersionNumber kotlinVersion, String... tasks) {
+        def runner
         if (kotlinVersion.getMinor() < 5 && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             String kotlinOpts = "-Dkotlin.daemon.jvm.options=--add-exports=java.base/sun.nio.ch=ALL-UNNAMED,--add-opens=java.base/java.util=ALL-UNNAMED"
-            return runnerFor(smokeTest, parallelTasksInProject, tasks + [kotlinOpts] as String[])
+            runner = runnerFor(smokeTest, parallelTasksInProject, tasks + [kotlinOpts] as String[])
+        } else {
+            runner = runnerFor(smokeTest, parallelTasksInProject, tasks)
         }
-        runnerFor(smokeTest, parallelTasksInProject, tasks)
+
+        runner.ignoreDeprecationWarningsIf(AbstractSmokeTest.KOTLIN_VERSIONS.isOld(kotlinVersion), "Old Kotlin version")
     }
 
     /**
