@@ -20,7 +20,9 @@ Learn the basics of Gradle's incremental builds.
 ****
 **In this section you will:**
 
+- Use Gradle properties
 - Understand incremental builds
+- Explore task outcome labels
 ****
 
 [[part5_begin]]
@@ -50,6 +52,8 @@ $ touch gradle.properties
 ----
 
 Add `org.gradle.console=verbose` so the contents of the file look like this:
+
+.gradle.properties
 [source,properties]
 ----
 org.gradle.console=verbose
