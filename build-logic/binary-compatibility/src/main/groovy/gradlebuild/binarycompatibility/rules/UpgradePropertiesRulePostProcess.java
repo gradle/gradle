@@ -16,7 +16,8 @@
 
 package gradlebuild.binarycompatibility.rules;
 
-import gradlebuild.binarycompatibility.upgrades.UpgradedProperty;
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.BinaryCompatibility;
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedMethod;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedMethodKey;
 import me.champeau.gradle.japicmp.report.PostProcessViolationsRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContextWithViolations;
@@ -35,12 +36,34 @@ public class UpgradePropertiesRulePostProcess implements PostProcessViolationsRu
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContextWithViolations context) {
         Set<UpgradedMethodKey> seenUpgradedMethodChanges = (Set<UpgradedMethodKey>) context.getUserData().get(SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES);
-        Map<UpgradedMethodKey, UpgradedProperty> oldMethodsOfUpgradedProperties = (Map<UpgradedMethodKey, UpgradedProperty>) context.getUserData().get(OLD_METHODS_OF_UPGRADED_PROPERTIES);
-        Map<UpgradedMethodKey, UpgradedProperty> left = new HashMap<>(oldMethodsOfUpgradedProperties);
-        left.keySet().removeIf(seenUpgradedMethodChanges::contains);
-        if (!left.isEmpty()) {
-            String formattedLeft = CollectionUtils.join("\n", left.keySet());
-            throw new RuntimeException("The following methods were upgraded, but didn't match any changed method:\n\n" + formattedLeft);
+        Map<UpgradedMethodKey, UpgradedMethod> oldMethodsOfUpgradedProperties = (Map<UpgradedMethodKey, UpgradedMethod>) context.getUserData().get(OLD_METHODS_OF_UPGRADED_PROPERTIES);
+
+        // Find methods that were not removed but should be
+        Map<UpgradedMethodKey, UpgradedMethod> leftMethods = new HashMap<>(oldMethodsOfUpgradedProperties);
+        leftMethods.entrySet().removeIf(e -> {
+            if (seenUpgradedMethodChanges.contains(e.getKey())) {
+                return true;
+            }
+            UpgradedMethod method = e.getValue();
+            return method.getBinaryCompatibility() == BinaryCompatibility.METHODS_KEPT;
+        });
+        if (!leftMethods.isEmpty()) {
+            String formattedLeft = CollectionUtils.join("\n", leftMethods.keySet());
+            throw new RuntimeException("The following methods were upgraded, but didn't match any removed/changed method:\n\n" + formattedLeft);
+        }
+
+        // Find methods that were removed but shouldn't be
+        Map<UpgradedMethodKey, UpgradedMethod> keptMethods = new HashMap<>(oldMethodsOfUpgradedProperties);
+        keptMethods.entrySet().removeIf(e -> {
+            if (!seenUpgradedMethodChanges.contains(e.getKey())) {
+                return true;
+            }
+            UpgradedMethod method = e.getValue();
+            return method.getBinaryCompatibility() == BinaryCompatibility.METHODS_REMOVED;
+        });
+        if (!keptMethods.isEmpty()) {
+            String formattedKept = CollectionUtils.join("\n", keptMethods.keySet());
+            throw new RuntimeException("The following methods were upgraded, but methods were removed although they shouldn't be:\n\n" + formattedKept);
         }
     }
 }

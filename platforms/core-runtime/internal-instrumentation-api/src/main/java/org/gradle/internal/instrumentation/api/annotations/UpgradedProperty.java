@@ -59,11 +59,6 @@ public @interface UpgradedProperty {
         /**
          * Gradle binary compatibility check will fail if the method was not kept
          */
-        METHODS_KEPT,
-
-        /**
-         * Gradle binary compatibility check will not fail at all
-         */
-        ANY
+        METHODS_KEPT
     }
 }

@@ -71,10 +71,12 @@ public class UpgradedProperty {
     public static class UpgradedMethod {
         private final String name;
         private final String descriptor;
+        private final BinaryCompatibility binaryCompatibility;
 
-        public UpgradedMethod(String name, String descriptor) {
+        public UpgradedMethod(String name, String descriptor, BinaryCompatibility binaryCompatibility) {
             this.name = name;
             this.descriptor = descriptor;
+            this.binaryCompatibility = binaryCompatibility;
         }
 
         public String getName() {
@@ -85,13 +87,23 @@ public class UpgradedProperty {
             return descriptor;
         }
 
+        public BinaryCompatibility getBinaryCompatibility() {
+            return binaryCompatibility;
+        }
+
         @Override
         public String toString() {
             return "UpgradedMethod{" +
                 "name='" + name + '\'' +
                 ", descriptor='" + descriptor + '\'' +
+                ", binaryCompatibility='" + binaryCompatibility + '\'' +
                 '}';
         }
+    }
+
+    public enum BinaryCompatibility {
+        METHODS_REMOVED,
+        METHODS_KEPT
     }
 
     public static class UpgradedMethodKey {

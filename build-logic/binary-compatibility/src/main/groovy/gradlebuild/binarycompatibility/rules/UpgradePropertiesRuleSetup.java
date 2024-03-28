@@ -18,6 +18,7 @@ package gradlebuild.binarycompatibility.rules;
 
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperties;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty;
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedMethod;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedMethodKey;
 import me.champeau.gradle.japicmp.report.SetupRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
@@ -64,17 +65,17 @@ public class UpgradePropertiesRuleSetup implements SetupRule {
         return upgradedProperties.stream().collect(Collectors.toMap(UpgradedMethodKey::ofUpgradedProperty, Function.identity()));
     }
 
-    private static Map<UpgradedMethodKey, UpgradedProperty> mapOldMethodsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
+    private static Map<UpgradedMethodKey, UpgradedMethod> mapOldMethodsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
         return upgradedProperties.stream()
             .flatMap(UpgradePropertiesRuleSetup::mapOldMethodsOfUpgradedProperty)
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private static Stream<Map.Entry<UpgradedMethodKey, UpgradedProperty>> mapOldMethodsOfUpgradedProperty(UpgradedProperty upgradedProperty) {
+    private static Stream<Map.Entry<UpgradedMethodKey, UpgradedMethod>> mapOldMethodsOfUpgradedProperty(UpgradedProperty upgradedProperty) {
         return upgradedProperty.getUpgradedMethods().stream()
             .map(upgradedMethod -> {
                 UpgradedMethodKey key = UpgradedMethodKey.ofUpgradedMethod(upgradedProperty.getContainingType(), upgradedMethod);
-                return new AbstractMap.SimpleEntry<>(key, upgradedProperty);
+                return new AbstractMap.SimpleEntry<>(key, upgradedMethod);
             });
     }
 
