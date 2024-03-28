@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,48 +16,15 @@
 
 package org.gradle.model.internal.asm;
 
+import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import java.util.List;
-
-import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
-import static org.gradle.internal.reflect.JavaReflectionUtil.getWrapperTypeForPrimitiveType;
-import static org.objectweb.asm.Opcodes.AALOAD;
-import static org.objectweb.asm.Opcodes.AASTORE;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ANEWARRAY;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.ASTORE;
-import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.F_SAME;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Opcodes.GETSTATIC;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.ICONST_0;
-import static org.objectweb.asm.Opcodes.ICONST_1;
-import static org.objectweb.asm.Opcodes.IFEQ;
-import static org.objectweb.asm.Opcodes.IFNONNULL;
-import static org.objectweb.asm.Opcodes.IFNULL;
-import static org.objectweb.asm.Opcodes.ILOAD;
-import static org.objectweb.asm.Opcodes.INSTANCEOF;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.IRETURN;
-import static org.objectweb.asm.Opcodes.NEW;
-import static org.objectweb.asm.Opcodes.POP;
-import static org.objectweb.asm.Opcodes.PUTFIELD;
-import static org.objectweb.asm.Opcodes.PUTSTATIC;
-import static org.objectweb.asm.Opcodes.RETURN;
-import static org.objectweb.asm.Opcodes.SWAP;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
 
 /**
  * Simplifies emitting bytecode to a {@link MethodVisitor} by providing a JVM bytecode DSL.
@@ -65,26 +32,26 @@ import static org.objectweb.asm.Type.getType;
 @SuppressWarnings({"NewMethodNamingConvention", "SpellCheckingInspection"})
 public class MethodVisitorScope extends MethodVisitor {
 
-    private static final String BOXED_BOOLEAN_TYPE = getType(Boolean.class).getInternalName();
-    private static final String BOXED_CHAR_TYPE = getType(Character.class).getInternalName();
-    private static final String BOXED_BYTE_TYPE = getType(Byte.class).getInternalName();
-    private static final String BOXED_SHORT_TYPE = getType(Short.class).getInternalName();
-    private static final String BOXED_INT_TYPE = getType(Integer.class).getInternalName();
-    private static final String BOXED_LONG_TYPE = getType(Long.class).getInternalName();
-    private static final String BOXED_FLOAT_TYPE = getType(Float.class).getInternalName();
-    private static final String BOXED_DOUBLE_TYPE = getType(Double.class).getInternalName();
+    private static final String BOXED_BOOLEAN_TYPE = Type.getType(Boolean.class).getInternalName();
+    private static final String BOXED_CHAR_TYPE = Type.getType(Character.class).getInternalName();
+    private static final String BOXED_BYTE_TYPE = Type.getType(Byte.class).getInternalName();
+    private static final String BOXED_SHORT_TYPE = Type.getType(Short.class).getInternalName();
+    private static final String BOXED_INT_TYPE = Type.getType(Integer.class).getInternalName();
+    private static final String BOXED_LONG_TYPE = Type.getType(Long.class).getInternalName();
+    private static final String BOXED_FLOAT_TYPE = Type.getType(Float.class).getInternalName();
+    private static final String BOXED_DOUBLE_TYPE = Type.getType(Double.class).getInternalName();
 
-    private static final String RETURN_PRIMITIVE_BOOLEAN = getMethodDescriptor(Type.BOOLEAN_TYPE);
-    private static final String RETURN_CHAR = getMethodDescriptor(Type.CHAR_TYPE);
-    private static final String RETURN_PRIMITIVE_BYTE = getMethodDescriptor(Type.BYTE_TYPE);
-    private static final String RETURN_PRIMITIVE_SHORT = getMethodDescriptor(Type.SHORT_TYPE);
-    private static final String RETURN_INT = getMethodDescriptor(Type.INT_TYPE);
-    private static final String RETURN_PRIMITIVE_LONG = getMethodDescriptor(Type.LONG_TYPE);
-    private static final String RETURN_PRIMITIVE_FLOAT = getMethodDescriptor(Type.FLOAT_TYPE);
-    private static final String RETURN_PRIMITIVE_DOUBLE = getMethodDescriptor(Type.DOUBLE_TYPE);
+    private static final String RETURN_PRIMITIVE_BOOLEAN = Type.getMethodDescriptor(Type.BOOLEAN_TYPE);
+    private static final String RETURN_CHAR = Type.getMethodDescriptor(Type.CHAR_TYPE);
+    private static final String RETURN_PRIMITIVE_BYTE = Type.getMethodDescriptor(Type.BYTE_TYPE);
+    private static final String RETURN_PRIMITIVE_SHORT = Type.getMethodDescriptor(Type.SHORT_TYPE);
+    private static final String RETURN_INT = Type.getMethodDescriptor(Type.INT_TYPE);
+    private static final String RETURN_PRIMITIVE_LONG = Type.getMethodDescriptor(Type.LONG_TYPE);
+    private static final String RETURN_PRIMITIVE_FLOAT = Type.getMethodDescriptor(Type.FLOAT_TYPE);
+    private static final String RETURN_PRIMITIVE_DOUBLE = Type.getMethodDescriptor(Type.DOUBLE_TYPE);
 
     public MethodVisitorScope(MethodVisitor methodVisitor) {
-        super(ASM_LEVEL, methodVisitor);
+        super(AsmConstants.ASM_LEVEL, methodVisitor);
     }
 
     protected void emit(BytecodeFragment bytecode) {
@@ -137,8 +104,8 @@ public class MethodVisitorScope extends MethodVisitor {
     protected void _AUTOBOX(Class<?> valueClass, Type valueType) {
         if (valueClass.isPrimitive()) {
             // Box value
-            Type boxedType = getType(getWrapperTypeForPrimitiveType(valueClass));
-            _INVOKESTATIC(boxedType, "valueOf", getMethodDescriptor(boxedType, valueType));
+            Type boxedType = Type.getType(JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueClass));
+            _INVOKESTATIC(boxedType, "valueOf", Type.getMethodDescriptor(boxedType, valueType));
         }
     }
 
@@ -146,7 +113,7 @@ public class MethodVisitorScope extends MethodVisitor {
      * @see org.objectweb.asm.Opcodes#F_SAME
      */
     protected void _F_SAME() {
-        super.visitFrame(F_SAME, 0, new Object[0], 0, new Object[0]);
+        super.visitFrame(Opcodes.F_SAME, 0, new Object[0], 0, new Object[0]);
     }
 
     protected void _INVOKESPECIAL(Type owner, String name, String descriptor) {
@@ -162,7 +129,7 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected void _INVOKESPECIAL(String owner, String name, String descriptor, boolean isInterface) {
-        super.visitMethodInsn(INVOKESPECIAL, owner, name, descriptor, isInterface);
+        super.visitMethodInsn(Opcodes.INVOKESPECIAL, owner, name, descriptor, isInterface);
     }
 
     protected void _INVOKEINTERFACE(Type owner, String name, String descriptor) {
@@ -170,7 +137,7 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected void _INVOKEINTERFACE(String owner, String name, String descriptor) {
-        super.visitMethodInsn(INVOKEINTERFACE, owner, name, descriptor, true);
+        super.visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, name, descriptor, true);
     }
 
     protected void _INVOKESTATIC(Type owner, String name, String descriptor) {
@@ -178,11 +145,11 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected void _INVOKESTATIC(String owner, String name, String descriptor) {
-        super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, false);
+        super.visitMethodInsn(Opcodes.INVOKESTATIC, owner, name, descriptor, false);
     }
 
     protected void _INVOKESTATIC(String owner, String name, String descriptor, boolean targetIsInterface) {
-        super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, targetIsInterface);
+        super.visitMethodInsn(Opcodes.INVOKESTATIC, owner, name, descriptor, targetIsInterface);
     }
 
     protected void _INVOKEVIRTUAL(Type owner, String name, String descriptor) {
@@ -190,7 +157,7 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected void _INVOKEVIRTUAL(String owner, String name, String descriptor) {
-        super.visitMethodInsn(INVOKEVIRTUAL, owner, name, descriptor, false);
+        super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, owner, name, descriptor, false);
     }
 
     protected void _INVOKEDYNAMIC(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
@@ -198,27 +165,27 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected void _SWAP() {
-        super.visitInsn(SWAP);
+        super.visitInsn(Opcodes.SWAP);
     }
 
     protected void _POP() {
-        super.visitInsn(POP);
+        super.visitInsn(Opcodes.POP);
     }
 
     protected void _DUP() {
-        super.visitInsn(DUP);
+        super.visitInsn(Opcodes.DUP);
     }
 
     protected void _ICONST_0() {
-        super.visitInsn(ICONST_0);
+        super.visitInsn(Opcodes.ICONST_0);
     }
 
     protected void _ICONST_1() {
-        super.visitInsn(ICONST_1);
+        super.visitInsn(Opcodes.ICONST_1);
     }
 
     protected void _ACONST_NULL() {
-        super.visitInsn(ACONST_NULL);
+        super.visitInsn(Opcodes.ACONST_NULL);
     }
 
     protected void _LDC(Object value) {
@@ -226,7 +193,7 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected void _NEW(Type type) {
-        super.visitTypeInsn(NEW, type.getInternalName());
+        super.visitTypeInsn(Opcodes.NEW, type.getInternalName());
     }
 
     protected void _CHECKCAST(Type type) {
@@ -234,71 +201,71 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     private void _CHECKCAST(String internalName) {
-        super.visitTypeInsn(CHECKCAST, internalName);
+        super.visitTypeInsn(Opcodes.CHECKCAST, internalName);
     }
 
     protected void _INSTANCEOF(Type type) {
-        super.visitTypeInsn(INSTANCEOF, type.getInternalName());
+        super.visitTypeInsn(Opcodes.INSTANCEOF, type.getInternalName());
     }
 
     protected void _ILOAD_OF(Type type, int var) {
-        super.visitVarInsn(type.getOpcode(ILOAD), var);
+        super.visitVarInsn(type.getOpcode(Opcodes.ILOAD), var);
     }
 
     protected void _ALOAD(int var) {
-        super.visitVarInsn(ALOAD, var);
+        super.visitVarInsn(Opcodes.ALOAD, var);
     }
 
     protected void _ASTORE(int var) {
-        super.visitVarInsn(ASTORE, var);
+        super.visitVarInsn(Opcodes.ASTORE, var);
     }
 
     protected void _ANEWARRAY(Type type) {
-        super.visitTypeInsn(ANEWARRAY, type.getInternalName());
+        super.visitTypeInsn(Opcodes.ANEWARRAY, type.getInternalName());
     }
 
     protected void _AALOAD() {
-        super.visitInsn(AALOAD);
+        super.visitInsn(Opcodes.AALOAD);
     }
 
     protected void _AASTORE() {
-        super.visitInsn(AASTORE);
+        super.visitInsn(Opcodes.AASTORE);
     }
 
     protected void _IFNONNULL(Label label) {
-        super.visitJumpInsn(IFNONNULL, label);
+        super.visitJumpInsn(Opcodes.IFNONNULL, label);
     }
 
     protected void _IFNULL(Label label) {
-        super.visitJumpInsn(IFNULL, label);
+        super.visitJumpInsn(Opcodes.IFNULL, label);
     }
 
     protected void _IFEQ(Label label) {
-        super.visitJumpInsn(IFEQ, label);
+        super.visitJumpInsn(Opcodes.IFEQ, label);
     }
 
     protected void _GOTO(Label label) {
-        super.visitJumpInsn(GOTO, label);
+        super.visitJumpInsn(Opcodes.GOTO, label);
     }
 
     protected void _ARETURN() {
-        super.visitInsn(ARETURN);
+        super.visitInsn(Opcodes.ARETURN);
     }
 
     protected void _IRETURN_OF(Type type) {
-        super.visitInsn(type.getOpcode(IRETURN));
+        super.visitInsn(type.getOpcode(Opcodes.IRETURN));
     }
 
     protected void _IRETURN() {
-        super.visitInsn(IRETURN);
+        super.visitInsn(Opcodes.IRETURN);
     }
 
     protected void _RETURN() {
-        super.visitInsn(RETURN);
+        super.visitInsn(Opcodes.RETURN);
     }
 
     protected void _PUTFIELD(String owner, String name, String descriptor) {
-        super.visitFieldInsn(PUTFIELD, owner, name, descriptor);
+        super.visitFieldInsn(Opcodes.PUTFIELD, owner, name, descriptor);
     }
 
     protected void _PUTFIELD(String owner, String name, Type fieldType) {
@@ -314,7 +281,7 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected void _GETFIELD(String owner, String name, String descriptor) {
-        super.visitFieldInsn(GETFIELD, owner, name, descriptor);
+        super.visitFieldInsn(Opcodes.GETFIELD, owner, name, descriptor);
     }
 
     protected void _GETFIELD(String owner, String name, Type fieldType) {
@@ -330,7 +297,7 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected void _PUTSTATIC(String owner, String name, String descriptor) {
-        super.visitFieldInsn(PUTSTATIC, owner, name, descriptor);
+        super.visitFieldInsn(Opcodes.PUTSTATIC, owner, name, descriptor);
     }
 
     protected void _PUTSTATIC(Type owner, String name, Type fieldType) {
@@ -342,7 +309,7 @@ public class MethodVisitorScope extends MethodVisitor {
     }
 
     protected void _GETSTATIC(String owner, String name, String descriptor) {
-        super.visitFieldInsn(GETSTATIC, owner, name, descriptor);
+        super.visitFieldInsn(Opcodes.GETSTATIC, owner, name, descriptor);
     }
 
     protected void _GETSTATIC(Type owner, String name, Type fieldType) {

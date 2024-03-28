@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,13 @@
 
 package org.gradle.model.internal.asm;
 
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import javax.annotation.Nullable;
-
-import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
-import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
-import static org.objectweb.asm.Type.getDescriptor;
 
 /**
  * Simplifies the usage of {@link ClassVisitor}.
@@ -34,14 +30,14 @@ import static org.objectweb.asm.Type.getDescriptor;
 public class ClassVisitorScope extends ClassVisitor {
 
     protected ClassVisitorScope(ClassVisitor cv) {
-        super(ASM_LEVEL, cv);
+        super(AsmConstants.ASM_LEVEL, cv);
     }
 
     /**
      * Adds a field to the generated type.
      */
     protected void addField(int access, String fieldName, Class<?> type) {
-        addField(access, fieldName, getDescriptor(type));
+        addField(access, fieldName, Type.getDescriptor(type));
     }
 
     /**
@@ -62,7 +58,7 @@ public class ClassVisitorScope extends ClassVisitor {
      * Adds a private synthetic method to the generated type.
      */
     protected void privateSyntheticMethod(String name, String descriptor, BytecodeFragment body) {
-        addMethod(ACC_PRIVATE | ACC_SYNTHETIC, name, descriptor, null, body);
+        addMethod(Opcodes.ACC_PRIVATE | Opcodes.ACC_SYNTHETIC, name, descriptor, null, body);
     }
 
     /**
@@ -76,7 +72,7 @@ public class ClassVisitorScope extends ClassVisitor {
      * Adds a public method to the generated type.
      */
     protected void publicMethod(String name, String descriptor, String signature, BytecodeFragment body) {
-        addMethod(ACC_PUBLIC, name, descriptor, signature, body);
+        addMethod(Opcodes.ACC_PUBLIC, name, descriptor, signature, body);
     }
 
     /**
