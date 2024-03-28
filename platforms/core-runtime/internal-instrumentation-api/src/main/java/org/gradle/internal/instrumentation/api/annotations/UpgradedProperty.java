@@ -21,6 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.METHODS_REMOVED;
+
 /**
  * Marks that a property is upgraded
  */
@@ -43,6 +45,25 @@ public @interface UpgradedProperty {
 
     UpgradedAccessor[] originalAccessors() default {};
 
+    BinaryCompatibility binaryCompatibility() default METHODS_REMOVED;
+
     interface DefaultValue {
+    }
+
+    enum BinaryCompatibility {
+        /**
+         * Gradle binary compatibility check will fail if the method was not removed
+         */
+        METHODS_REMOVED,
+
+        /**
+         * Gradle binary compatibility check will fail if the method was not kept
+         */
+        METHODS_KEPT,
+
+        /**
+         * Gradle binary compatibility check will not fail at all
+         */
+        ANY
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
 
@@ -27,6 +28,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
     private final String interceptedPropertyAccessorName;
     private final String interceptedPropertyAccessorDescriptor;
     private final GradleLazyType upgradedPropertyType;
+    private final BinaryCompatibility binaryCompatibility;
 
     public PropertyUpgradeRequestExtra(
         String propertyName,
@@ -34,7 +36,8 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         String implementationClassName,
         String interceptedPropertyAccessorName,
         String interceptedPropertyAccessorDescriptor,
-        GradleLazyType upgradedPropertyType
+        GradleLazyType upgradedPropertyType,
+        BinaryCompatibility binaryCompatibility
     ) {
         this.propertyName = propertyName;
         this.isFluentSetter = isFluentSetter;
@@ -42,6 +45,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         this.interceptedPropertyAccessorName = interceptedPropertyAccessorName;
         this.interceptedPropertyAccessorDescriptor = interceptedPropertyAccessorDescriptor;
         this.upgradedPropertyType = upgradedPropertyType;
+        this.binaryCompatibility = binaryCompatibility;
     }
 
     public String getPropertyName() {
@@ -66,5 +70,9 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
 
     public boolean isFluentSetter() {
         return isFluentSetter;
+    }
+
+    public BinaryCompatibility getBinaryCompatibility() {
+        return binaryCompatibility;
     }
 }

@@ -19,7 +19,9 @@ package org.gradle.internal.instrumentation.extensions.property;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationResourceGenerator;
 import org.objectweb.asm.Type;
@@ -94,20 +96,21 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static PropertyEntry toPropertyEntry(List<CallInterceptionRequest> requests) {
-        CallInterceptionRequest request = requests.get(0);
-        PropertyUpgradeRequestExtra upgradeExtra = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get();
+        CallInterceptionRequest firstRequest = requests.get(0);
+        PropertyUpgradeRequestExtra upgradeExtra = firstRequest.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get();
         String propertyName = upgradeExtra.getPropertyName();
         String methodName = upgradeExtra.getInterceptedPropertyAccessorName();
         String methodDescriptor = upgradeExtra.getInterceptedPropertyAccessorDescriptor();
-        String containingType = request.getInterceptedCallable().getOwner().getType().getClassName();
+        String containingType = firstRequest.getInterceptedCallable().getOwner().getType().getClassName();
         List<UpgradedMethod> upgradedMethods = requests.stream()
-            .map(CallInterceptionRequest::getInterceptedCallable)
-            .map(intercepted -> {
+            .map(request -> {
+                PropertyUpgradeRequestExtra requestExtra = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get();
+                CallableInfo intercepted = request.getInterceptedCallable();
                 Type returnType = intercepted.getReturnType().getType();
                 Type[] parameterTypes = intercepted.getParameters().stream()
                     .map(ParameterInfo::getParameterType)
                     .toArray(Type[]::new);
-                return new UpgradedMethod(intercepted.getCallableName(), Type.getMethodDescriptor(returnType, parameterTypes));
+                return new UpgradedMethod(intercepted.getCallableName(), Type.getMethodDescriptor(returnType, parameterTypes), requestExtra.getBinaryCompatibility());
             })
             .sorted(Comparator.comparing((UpgradedMethod o) -> o.name).thenComparing(o -> o.descriptor))
             .collect(Collectors.toList());
@@ -155,10 +158,12 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
     static class UpgradedMethod {
         private final String name;
         private final String descriptor;
+        private final BinaryCompatibility binaryCompatibility;
 
-        public UpgradedMethod(String name, String descriptor) {
+        public UpgradedMethod(String name, String descriptor, BinaryCompatibility binaryCompatibility) {
             this.name = name;
             this.descriptor = descriptor;
+            this.binaryCompatibility = binaryCompatibility;
         }
 
         public String getName() {
@@ -167,6 +172,10 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
         public String getDescriptor() {
             return descriptor;
+        }
+
+        public BinaryCompatibility getBinaryCompatibility() {
+            return binaryCompatibility;
         }
     }
 }

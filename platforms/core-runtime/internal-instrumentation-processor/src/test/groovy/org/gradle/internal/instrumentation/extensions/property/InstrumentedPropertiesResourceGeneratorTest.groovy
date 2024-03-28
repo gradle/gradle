@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets
 
 import static com.google.testing.compile.CompilationSubject.assertThat
 import static javax.tools.StandardLocation.CLASS_OUTPUT
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.METHODS_REMOVED
 import static org.gradle.internal.instrumentation.extensions.property.InstrumentedPropertiesResourceGenerator.PropertyEntry
 import static org.gradle.internal.instrumentation.extensions.property.InstrumentedPropertiesResourceGenerator.UpgradedMethod
 
@@ -56,18 +57,18 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
         then:
         def maxErrorMethods = [
             // Order is important
-            new UpgradedMethod("getMaxErrors", "()I"),
-            new UpgradedMethod("setMaxErrors", "(I)V")
+            new UpgradedMethod("getMaxErrors", "()I", METHODS_REMOVED),
+            new UpgradedMethod("setMaxErrors", "(I)V", METHODS_REMOVED)
         ]
         def sourceCompatibilityMethods = [
             // Order is important
-            new UpgradedMethod("getSourceCompatibility", "()Ljava/lang/String;"),
-            new UpgradedMethod("setSourceCompatibility", "(Ljava/lang/String;)V")
+            new UpgradedMethod("getSourceCompatibility", "()Ljava/lang/String;", METHODS_REMOVED),
+            new UpgradedMethod("setSourceCompatibility", "(Ljava/lang/String;)V", METHODS_REMOVED)
         ]
         def targetCompatibilityMethods = [
             // Order is important
-            new UpgradedMethod("getTargetCompatibility", "()Ljava/lang/String;"),
-            new UpgradedMethod("setTargetCompatibility", "(Ljava/lang/String;)Lorg/gradle/test/Task;")
+            new UpgradedMethod("getTargetCompatibility", "()Ljava/lang/String;", METHODS_REMOVED),
+            new UpgradedMethod("setTargetCompatibility", "(Ljava/lang/String;)Lorg/gradle/test/Task;", METHODS_REMOVED)
         ]
         def properties = [
             // Order is important
@@ -103,6 +104,6 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
         assertThat(compilation)
             .generatedFile(CLASS_OUTPUT, "META-INF/gradle/instrumentation/upgraded-properties.json")
             .contentsAsString(StandardCharsets.UTF_8)
-            .isEqualTo("[{\"containingType\":\"org.gradle.test.Task\",\"methodDescriptor\":\"()Lorg/gradle/api/provider/Property;\",\"methodName\":\"getSourceCompatibility\",\"propertyName\":\"sourceCompatibility\",\"upgradedMethods\":[{\"descriptor\":\"()Ljava/lang/String;\",\"name\":\"getSourceCompatibility\"},{\"descriptor\":\"(Ljava/lang/String;)V\",\"name\":\"setSourceCompatibility\"}]}]")
+            .isEqualTo("[{\"containingType\":\"org.gradle.test.Task\",\"methodDescriptor\":\"()Lorg/gradle/api/provider/Property;\",\"methodName\":\"getSourceCompatibility\",\"propertyName\":\"sourceCompatibility\",\"upgradedMethods\":[{\"binaryCompatibility\":\"METHODS_REMOVED\",\"descriptor\":\"()Ljava/lang/String;\",\"name\":\"getSourceCompatibility\"},{\"binaryCompatibility\":\"METHODS_REMOVED\",\"descriptor\":\"(Ljava/lang/String;)V\",\"name\":\"setSourceCompatibility\"}]}]")
     }
 }
