@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.install.internal
+package org.gradle.jvm.toolchain.internal.install
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
-import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.provider.Property
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
@@ -35,7 +34,6 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.InstallationLocation
-import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
 import org.gradle.util.internal.Resources
 import org.junit.Rule
 import spock.lang.Ignore
@@ -54,7 +52,7 @@ class JdkCacheDirectoryTest extends Specification {
 
     def "handles non-existing jdk directory when listing java homes"() {
         given:
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), mockDetector())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), mockDetector(), tmpFileProvider())
 
         when:
         def homes = jdkCacheDirectory.listJavaHomes()
@@ -67,13 +65,13 @@ class JdkCacheDirectoryTest extends Specification {
         assumeTrue(OperatingSystem.current().isMacOsX())
 
         given:
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), mockDetector())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), mockDetector(), tmpFileProvider())
 
         def install1 = new File(temporaryFolder, "jdks/jdk-mac/Contents/Home").tap { mkdirs() }
-        new File(temporaryFolder, "jdks/jdk-mac/provisioned.ok").createNewFile()
+        new File(temporaryFolder, "jdks/jdk-mac/" + JdkCacheDirectory.MARKER_FILE).createNewFile()
 
         def install2 = new File(temporaryFolder, "jdks/jdk-mac-2/some-jdk-folder/Contents/Home").tap { mkdirs() }
-        new File(temporaryFolder, "jdks/jdk-mac-2/provisioned.ok").createNewFile()
+        new File(temporaryFolder, "jdks/jdk-mac-2/" + JdkCacheDirectory.MARKER_FILE).createNewFile()
 
         new File(temporaryFolder, "jdks/notReady").tap { mkdirs() }
 
@@ -81,24 +79,18 @@ class JdkCacheDirectoryTest extends Specification {
         def homes = jdkCacheDirectory.listJavaHomes()
 
         then:
-        homes.containsAll([install1, install2])
+        homes == ([install1, install2] as Set)
     }
 
-    def "lists jdk directories when listing java homes"() {
+    def "lists only ready jdk directories when listing java homes"() {
         given:
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), mockDetector())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), mockDetector(), tmpFileProvider())
 
         def install1 = new File(temporaryFolder, "jdks/jdk-1").tap { mkdirs() }
-        new File(install1, "provisioned.ok").createNewFile()
+        new File(install1, JdkCacheDirectory.MARKER_FILE).createNewFile()
 
         def install2 = new File(temporaryFolder, "jdks/jdk-2").tap { mkdirs() }
-        new File(install2, "provisioned.ok").createNewFile()
-
-        def install3 = new File(temporaryFolder, "jdks/jdk-3/sub-folder").tap { mkdirs() }
-        new File(install3, "provisioned.ok").createNewFile()
-
-        def install4 = new File(temporaryFolder, "jdks/jdk-3/sub-folder").tap { mkdirs() }
-        new File(install4, "provisioned.ok").createNewFile()
+        new File(install2, JdkCacheDirectory.MARKER_FILE).createNewFile()
 
         new File(temporaryFolder, "jdks/notReady").tap { mkdirs() }
 
@@ -106,52 +98,83 @@ class JdkCacheDirectoryTest extends Specification {
         def homes = jdkCacheDirectory.listJavaHomes()
 
         then:
-        homes.containsAll([install1, install2, install3, install4])
+        homes == ([install1, install2] as Set)
+    }
+
+    def "does not list jdk subdirectories when listing java homes"() {
+        given:
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), mockDetector(), tmpFileProvider())
+
+        def install1 = new File(temporaryFolder, "jdks/jdk-1/sub-folder").tap { mkdirs() }
+        new File(install1, JdkCacheDirectory.MARKER_FILE).createNewFile()
+
+        when:
+        def homes = jdkCacheDirectory.listJavaHomes()
+
+        then:
+        homes.isEmpty()
+    }
+
+    def "does not list directories with only flaky legacy marker"() {
+        given:
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), mockDetector(), tmpFileProvider())
+
+        def install1 = new File(temporaryFolder, "jdks/jdk-1").tap { mkdirs() }
+        new File(install1, JdkCacheDirectory.LEGACY_MARKER_FILE).createNewFile()
+
+        def install2 = new File(temporaryFolder, "jdks/jdk-2/sub-folder").tap { mkdirs() }
+        new File(install2, JdkCacheDirectory.LEGACY_MARKER_FILE).createNewFile()
+
+        when:
+        def homes = jdkCacheDirectory.listJavaHomes()
+
+        then:
+        homes.isEmpty()
     }
 
     def "provisions jdk from tar.gz archive"() {
         def jdkArchive = resources.getResource("jdk.tar.gz")
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
 
         when:
         def installedJdk = jdkCacheDirectory.provisionFromArchive(mockSpec(), jdkArchive, URI.create("uri"))
 
         then:
         installedJdk.exists()
-        installedJdk.getParentFile().getParentFile().getName() == "jdks"
-        installedJdk.getParentFile().getName() == "ibm-11-arch-${os()}"
-        installedJdk.getName() == "jdk"
-        new File(installedJdk, "provisioned.ok").exists()
-        new File(installedJdk, "file").exists()
+        installedJdk.getParentFile().getName() == "jdks"
+        installedJdk.getName() == "ibm-11-arch-${os()}.2"
+        new File(installedJdk, JdkCacheDirectory.LEGACY_MARKER_FILE).exists()
+        new File(installedJdk, JdkCacheDirectory.MARKER_FILE).exists()
+        new File(installedJdk, "jdk/file").exists()
     }
 
     def "provisions jdk from zip archive"() {
         def jdkArchive = resources.getResource("jdk.zip")
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
 
         when:
         def installedJdk = jdkCacheDirectory.provisionFromArchive(mockSpec(), jdkArchive, URI.create("uri"))
 
         then:
         installedJdk.exists()
-        installedJdk.getParentFile().getParentFile().getName() == "jdks"
-        installedJdk.getParentFile().getName() == "ibm-11-arch-${os()}"
-        installedJdk.getName() == "jdk-123"
-        new File(installedJdk, "provisioned.ok").exists()
-        new File(installedJdk, "file").exists()
+        installedJdk.getParentFile().getName() == "jdks"
+        installedJdk.getName() == "ibm-11-arch-${os()}.2"
+        new File(installedJdk, JdkCacheDirectory.LEGACY_MARKER_FILE).exists()
+        new File(installedJdk, JdkCacheDirectory.MARKER_FILE).exists()
+        new File(installedJdk, "jdk-123/file").exists()
     }
 
     @Ignore
     def "provisions jdk from tar.gz archive with MacOS symlinks"() {
         def jdkArchive = resources.getResource("jdk-with-symlinks.tar.gz")
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
 
         when:
         def installedJdk = jdkCacheDirectory.provisionFromArchive(mockSpec(), jdkArchive, URI.create("uri"))
 
         then:
         installedJdk.exists()
-        new File(installedJdk, "jdk-with-symlinks/bin/file").exists()
+        new File(installedJdk, "jdk-with-symlinks.2/bin/file").exists()
 
         //TODO: completely wrong; the uncompressed archive should look like this:
         // .
@@ -184,8 +207,8 @@ class JdkCacheDirectoryTest extends Specification {
         }
     }
 
-    TemporaryFileProvider tmpFileProvider() {
-        new DefaultTemporaryFileProvider({ temporaryFolder })
+    GradleUserHomeTemporaryFileProvider tmpFileProvider() {
+        new GradleUserHomeTemporaryFileProvider(newHomeDirProvider())
     }
 
     FileLockManager mockLockManager() {

@@ -69,7 +69,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
-        executer.requireOwnGradleUserHomeDir()
+        executer.requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
                 .withToolchainDownloadEnabled()
     }
 
@@ -151,7 +151,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
             @Override
             void visitFile(FileVisitDetails fileDetails) {
-                if (fileDetails.file.name == "provisioned.ok") {
+                if (fileDetails.file.name == ".ready") {
                     markerFile = fileDetails.file
                 }
             }

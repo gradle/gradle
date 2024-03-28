@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.FileLockManager
@@ -133,7 +134,7 @@ class AutoInstalledInstallationSupplierTest extends Specification {
     }
 
     private JdkCacheDirectory newCacheDirProvider(javaHomes) {
-        new JdkCacheDirectory(Mock(GradleUserHomeDirProvider), Mock(FileOperations), Mock(FileLockManager), Mock(JvmMetadataDetector)) {
+        new JdkCacheDirectory(Mock(GradleUserHomeDirProvider), Mock(FileOperations), Mock(FileLockManager), Mock(JvmMetadataDetector), Mock(GradleUserHomeTemporaryFileProvider)) {
             @Override
             Set<File> listJavaHomes() {
                 return javaHomes

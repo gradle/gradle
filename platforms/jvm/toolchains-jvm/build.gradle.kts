@@ -39,6 +39,7 @@ dependencies {
     api(project(":enterprise-operations"))
     api(project(":enterprise-logging"))
     api(project(":file-collections"))
+    api(project(":file-temp"))
     api(project(":jvm-services"))
     api(project(":model-core"))
     api(project(":persistent-cache"))
