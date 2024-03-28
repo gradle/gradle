@@ -17,6 +17,8 @@
 package promotion
 
 import common.VersionedSettingsBranch
+import jetbrains.buildServer.configs.kotlin.FailureAction
+import jetbrains.buildServer.configs.kotlin.RelativeId
 import jetbrains.buildServer.configs.kotlin.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.triggers.schedule
 import vcsroots.gradlePromotionBranches
@@ -55,6 +57,13 @@ class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDis
                     // The promotion itself will be triggered on gradle-promote's master branch
                     branchFilter = "+:master"
                 }
+            }
+        }
+
+        dependencies {
+            snapshot(RelativeId(NIGHTLY_DOCUMENTATION_PROMOTION_ID)) {
+                onDependencyFailure = FailureAction.FAIL_TO_START
+                onDependencyCancel = FailureAction.FAIL_TO_START
             }
         }
     }
