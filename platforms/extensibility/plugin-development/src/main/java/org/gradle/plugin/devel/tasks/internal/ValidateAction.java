@@ -182,7 +182,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 validationContext.visitTypeProblem(problem -> {
                         ProblemSpec builder = problem
                             .withAnnotationType(topLevelBean)
-                            .id(TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON), "annotation missing", GradleCoreProblemGroup.validation().type())
+                            .id(TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON), "Not cacheable without reason", GradleCoreProblemGroup.validation().type())
                             .contextualLabel("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                             .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
                             .severity(WARNING)
