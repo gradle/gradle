@@ -132,11 +132,11 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     @Deprecated
     def "detached configurations can contain artifacts and resolve them during a self-dependency scenario"() {
         given:
-        settingsFile << """
+        settingsFile """
             rootProject.name = 'test'
         """
 
-        buildFile << """
+        buildFile """
             plugins {
                 id 'java-library'
             }
@@ -168,21 +168,25 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         file("artifact.txt") << "sample artifact"
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The detachedConfiguration1 configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("While resolving configuration 'detachedConfiguration1', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
+        executer.expectDocumentedDeprecationWarning("The detachedConfiguration1 configuration has been deprecated for consumption. " +
+            "This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("While resolving configuration 'detachedConfiguration1', it was also selected as a variant. " +
+            "Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
 
         when:
         run "checkDependencies"
 
         then:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:deprecated-feature-used'
-            contextualLabel == 'The detachedConfiguration1 configuration has been deprecated for consumption.'
-        }
-        verifyAll(receivedProblem(1)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:configurations-acting-as-both-root-and-variant'
             contextualLabel == 'While resolving configuration \'detachedConfiguration1\', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated.'
             solutions == [ 'Be sure to mark configurations meant for resolution as canBeConsumed=false or use the \'resolvable(String)\' configuration factory method to create them.' ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption'
+            contextualLabel == 'The detachedConfiguration1 configuration has been deprecated for consumption.'
         }
     }
 
@@ -204,9 +208,9 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:creating-a-configuration-with-a-name-that-starts-with-detachedconfiguration'
             contextualLabel == 'Creating a configuration with a name that starts with \'detachedConfiguration\' has been deprecated.'
-            solutions == [ "Use a different name for the configuration '$name'." ]
+            solutions == ["Use a different name for the configuration '$name'.".toString()]
         }
 
         where:

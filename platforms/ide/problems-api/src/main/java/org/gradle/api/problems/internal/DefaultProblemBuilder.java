@@ -171,7 +171,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder documentedAt(DocLink doc) {
+    public InternalProblemBuilder documentedAt(@Nullable DocLink doc) {
         this.docLink = doc;
         return this;
     }

@@ -20,6 +20,8 @@ import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 
+import javax.annotation.Nullable;
+
 public interface InternalProblemSpec extends ProblemSpec {
 
     /**
@@ -45,7 +47,7 @@ public interface InternalProblemSpec extends ProblemSpec {
      *
      * @return this
      */
-    InternalProblemSpec documentedAt(DocLink doc);
+    InternalProblemSpec documentedAt(@Nullable DocLink doc);
 
     @Override
     InternalProblemSpec id(String name, String displayName);

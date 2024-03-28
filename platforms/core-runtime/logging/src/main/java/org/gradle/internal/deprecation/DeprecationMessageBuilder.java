@@ -17,6 +17,7 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.util.GradleVersion;
@@ -24,17 +25,22 @@ import org.gradle.util.GradleVersion;
 import javax.annotation.CheckReturnValue;
 import java.util.List;
 
+import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
+
 @CheckReturnValue
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     private static final GradleVersion GRADLE9 = GradleVersion.version("9.0");
 
-    private String summary;
+    protected String summary;
     private DeprecationTimeline deprecationTimeline;
     private String context;
     private String advice;
     private DocLink documentation = null;
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
+
+    protected String problemIdDisplayName;
+    protected String problemId;
 
     DeprecationMessageBuilder() {
     }
@@ -48,6 +54,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return withDeprecationTimeline.undocumented();
     }
 
+    protected String createDefaultDeprecationIdDisplayName() {
+        return summary;
+    }
+
     @SuppressWarnings("unchecked")
     public T withContext(String context) {
         this.context = context;
@@ -57,6 +67,18 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     @SuppressWarnings("unchecked")
     public T withAdvice(String advice) {
         this.advice = advice;
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public T withProblemIdDisplayName(String problemIdDisplayName) {
+        this.problemIdDisplayName = problemIdDisplayName;
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public T withProblemId(String problemId) {
+        this.problemId = problemId;
         return (T) this;
     }
 
@@ -108,8 +130,20 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         this.documentation = documentation;
     }
 
+    void setProblemIdDisplayName(String problemIdDisplayName) {
+        this.problemIdDisplayName = problemIdDisplayName;
+    }
+
     DeprecationMessage build() {
-        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType);
+        if (problemIdDisplayName == null) {
+            setProblemIdDisplayName(createDefaultDeprecationIdDisplayName());
+        }
+
+        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName, problemId);
+    }
+
+    public void setProblemId(String problemId) {
+        this.problemId = problemId;
     }
 
     public static class WithDeprecationTimeline extends Documentation.AbstractBuilder<WithDocumentation> {
@@ -142,7 +176,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     public static abstract class WithReplacement<T, SELF extends WithReplacement<T, SELF>> extends DeprecationMessageBuilder<SELF> {
-        private final String subject;
+        protected final String subject;
         private T replacement;
 
         WithReplacement(String subject) {
@@ -180,6 +214,14 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             if (replacement != null) {
                 setAdvice(formatAdvice(replacement));
             }
+
+            if (problemIdDisplayName == null) {
+                setProblemIdDisplayName(summary);
+            }
+            if(problemId == null) {
+                setProblemId(DeprecationMessageBuilder.createDefaultDeprecationId(createDefaultDeprecationIdDisplayName()));
+            }
+
             return super.build();
         }
     }
@@ -187,6 +229,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     public static class DeprecateAction extends WithReplacement<String, DeprecateAction> {
         DeprecateAction(String subject) {
             super(subject);
+        }
+
+        @Override
+        protected String createDefaultDeprecationIdDisplayName() {
+            return subject;
         }
 
         @Override
@@ -226,6 +273,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.propertyClass = propertyClass;
             this.property = property;
         }
+
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("property", this.propertyClass.getSimpleName(), this.property);
+//        }
 
         @Override
         public WithDeprecationTimeline willBeRemovedInGradle9() {
@@ -276,6 +328,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             // This never happens in user code
             setIndirectUsage();
         }
+
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("system-property", this.systemProperty);
+//        }
 
         @Override
         String formatSubject() {
@@ -343,6 +400,15 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
+    public static String createDefaultDeprecationId(String... ids) {
+        // the replaceAll calls are to ensure that the id is a valid identifier.
+        // it removes all whitespace and non-alphanumeric characters, and replaces multiple dashes with a single dash.
+        return screamingSnakeToKebabCase(StringUtils.join(ids, "-"))
+            .replaceAll("[^a-z-]", "-")
+            .replaceAll("-+", "-")
+            .replaceAll("^-+|-+$", "");
+    }
+
     public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> {
         private final Class<?> methodClass;
         private final String methodWithParams;
@@ -379,6 +445,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(invocation);
         }
 
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("invocation", this.subject);
+//        }
+
         @Override
         String formatSummary(String invocation) {
             return String.format("Using method %s has been deprecated.", invocation);
@@ -396,6 +467,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(type);
         }
 
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("type", this.subject);
+//        }
+
         @Override
         String formatSummary(String type) {
             return String.format("The %s type has been deprecated.", type);
@@ -411,6 +487,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         DeprecateTask(String task) {
             super(task);
         }
+
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("task", this.subject);
+//        }
 
         @Override
         String formatSummary(String task) {
@@ -431,6 +512,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.path = path;
         }
 
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("task-type", path, this.subject);
+//        }
+
         @Override
         String formatSummary(String type) {
             return String.format("The task type %s (used by the %s task) has been deprecated.", type, path);
@@ -449,6 +535,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         DeprecatePlugin(String plugin) {
             super(plugin);
         }
+
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("plugin", this.subject);
+//        }
 
         @Override
         String formatSummary(String plugin) {
@@ -474,6 +565,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(api);
         }
 
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("internal-api", this.subject);
+//        }
+
         @Override
         String formatSummary(String api) {
             return String.format("Internal API %s has been deprecated.", api);
@@ -492,6 +588,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         public DeprecateBehaviour(String behaviour) {
             this.behaviour = behaviour;
         }
+
+//        @Override
+//        protected String createDefaultDeprecationIdDisplayName() {
+//            return createDefaultDeprecationId("behaviour", behaviour);
+//        }
 
         /**
          * Output: This behavior is scheduled to be removed in Gradle 9.0.

@@ -16,12 +16,13 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 
 import java.util.Collections;
 
 public class ProblemsProgressEventEmitterHolder {
-    private static InternalProblems problemsService = new DefaultProblems(new NoOpProblemEmitter(), Collections.<ProblemTransformer>emptyList());
+    private static InternalProblems problemsService = new DefaultProblems(new NoOpProblemEmitter(), Collections.<ProblemTransformer>emptyList(), CurrentBuildOperationRef.instance());
 
     public static void init(InternalProblems problemsService) {
         ProblemsProgressEventEmitterHolder.problemsService = problemsService;

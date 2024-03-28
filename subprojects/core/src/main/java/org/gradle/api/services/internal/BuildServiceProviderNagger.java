@@ -50,6 +50,7 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
 
     private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {
         deprecateBehaviour(undeclaredBuildServiceUsage(provider, task))
+            .withProblemIdDisplayName("Build Service " + provider.getName()+ " undeclared usage")
             .withAdvice("Declare the association between the task and the build service using 'Task#usesService'.")
             .willBecomeAnErrorInGradle9()
             .withUpgradeGuideSection(7, "undeclared_build_service_usage")

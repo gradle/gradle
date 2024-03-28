@@ -94,6 +94,7 @@ public abstract class ValidatePlugins extends DefaultTask {
                     spec.getForkOptions().setExecutable(getLauncher().get().getExecutablePath());
                 } else {
                     DeprecationLogger.deprecateBehaviour("Using task ValidatePlugins without applying the Java Toolchain plugin.")
+                        .withProblemIdDisplayName("Using task ValidatePlugins without applying the Java Toolchain plugin.")
                         .willBecomeAnErrorInGradle9()
                         .withUpgradeGuideSection(8, "validate_plugins_without_java_toolchain")
                         .nagUser();

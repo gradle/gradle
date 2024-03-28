@@ -27,10 +27,12 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     private final ProblemEmitter emitter;
     private final List<ProblemTransformer> transformers;
+    private final CurrentBuildOperationRef currentBuildOperationRef;
 
-    public DefaultProblemReporter(ProblemEmitter emitter, List<ProblemTransformer> transformers) {
+    public DefaultProblemReporter(ProblemEmitter emitter, List<ProblemTransformer> transformers, CurrentBuildOperationRef currentBuildOperationRef) {
         this.emitter = emitter;
         this.transformers = transformers;
+        this.currentBuildOperationRef = currentBuildOperationRef;
     }
 
     @Override
@@ -96,7 +98,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem) {
-        OperationIdentifier id = CurrentBuildOperationRef.instance().getId();
+        OperationIdentifier id = currentBuildOperationRef.getId();
         if (id != null) {
             report(problem, id);
         }

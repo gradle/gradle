@@ -329,12 +329,11 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:repository-jcenter'
             contextualLabel == 'The RepositoryHandler.jcenter() method has been deprecated.'
             solutions == [ 'JFrog announced JCenter\'s sunset in February 2021. Use mavenCentral() instead.' ]
         }
     }
-
 
     void includesLinkToUserguide() {
         failure.assertThatCause(containsString("https://docs.gradle.org/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugin_management"))

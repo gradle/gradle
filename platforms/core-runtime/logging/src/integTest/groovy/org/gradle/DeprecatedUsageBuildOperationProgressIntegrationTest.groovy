@@ -167,7 +167,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         and:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:custom-task-action'
             contextualLabel == 'Custom Task action has been deprecated.'
             solutions == [
                 'Use task type X instead.',
@@ -175,37 +175,37 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
             ]
         }
         verifyAll(receivedProblem(1)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:init-script'
             contextualLabel == 'Init script has been deprecated.'
         }
         verifyAll(receivedProblem(2)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:init-script'
             contextualLabel == 'Init script has been deprecated.'
         }
         verifyAll(receivedProblem(3)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:plugin'
             contextualLabel == 'Plugin has been deprecated.'
         }
         verifyAll(receivedProblem(4)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:plugin-script'
             contextualLabel == 'Plugin script has been deprecated.'
         }
         verifyAll(receivedProblem(5)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:some-indirect-deprecation'
             contextualLabel == 'Some indirect deprecation has been deprecated.'
             solutions == [ 'Some advice.' ]
         }
         verifyAll(receivedProblem(6)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:some-invocation-feature'
             contextualLabel == 'Some invocation feature has been deprecated.'
             solutions == [ 'Don\'t do custom invocation.' ]
         }
         verifyAll(receivedProblem(7)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:typed-task'
             contextualLabel == 'Typed task has been deprecated.'
         }
         verifyAll(receivedProblem(8)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:typed-task'
             contextualLabel == 'Typed task has been deprecated.'
         }
     }
@@ -233,7 +233,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:buildsrc-script'
             contextualLabel == 'BuildSrc script has been deprecated.'
         }
     }
@@ -286,11 +286,11 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         and:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:included-build-script'
             contextualLabel == 'Included build script has been deprecated.'
         }
         verifyAll(receivedProblem(1)) {
-            fqid == 'deprecation:deprecated-feature-used'
+            fqid == 'deprecation:included-build-task'
             contextualLabel == 'Included build task has been deprecated.'
         }
     }
@@ -299,8 +299,12 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         file('settings.gradle') << "rootProject.name = 'root'"
 
         51.times {
-            buildFile << """
-                org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it').willBeRemovedInGradle9().undocumented().nagUser();
+            buildFile """
+                org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it')
+                                                                 .withProblemIdDisplayName('Thing has been deprecated.')
+                                                                 .willBeRemovedInGradle9()
+                                                                 .undocumented()
+                                                                 .nagUser();
             """
         }
 
@@ -317,7 +321,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         and:
         51.times {
             verifyAll(receivedProblem(it)) {
-                fqid == 'deprecation:deprecated-feature-used'
+                fqid == 'deprecation:thing'
                 contextualLabel.contains(" has been deprecated.")
             }
         }
@@ -330,8 +334,12 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         file('settings.gradle') << "rootProject.name = 'root'"
 
         100.times {
-            buildFile << """
-                org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it').willBeRemovedInGradle9().undocumented().nagUser();
+            buildFile """
+                org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it')
+                                                                .withProblemIdDisplayName('Thing has been deprecated.')
+                                                                .willBeRemovedInGradle9()
+                                                                .undocumented()
+                                                                .nagUser();
             """
         }
 
@@ -351,7 +359,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         and:
         100.times {
             verifyAll(receivedProblem(it)) {
-                fqid == 'deprecation:deprecated-feature-used'
+                fqid == 'deprecation:thing'
                 contextualLabel.contains('has been deprecated.')
             }
         }
