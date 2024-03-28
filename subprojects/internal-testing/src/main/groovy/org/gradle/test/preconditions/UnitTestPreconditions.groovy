@@ -22,6 +22,8 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.TestPrecondition
 import org.testcontainers.DockerClientFactory
 
+// These imports are required, IntelliJ incorrectly thinks that they are not used because old versions of Groovy
+// permitted subtypes to use the parent type's methods without importing them
 import static org.gradle.test.precondition.TestPrecondition.satisfied;
 import static org.gradle.test.precondition.TestPrecondition.notSatisfied;
 
