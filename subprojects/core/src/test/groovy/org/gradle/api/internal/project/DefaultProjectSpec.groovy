@@ -28,6 +28,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
@@ -118,7 +119,9 @@ class DefaultProjectSpec extends Specification {
         then:
         isolatedProject.name == 'root'
         isolatedProject.path == ':'
+        isolatedProject.buildTreePath == ':'
         isolatedProject.projectDirectory === project.layout.projectDirectory
+        isolatedProject.buildFile.asFile == project.buildFile
         isolatedProject.rootProject === isolatedProject
     }
 

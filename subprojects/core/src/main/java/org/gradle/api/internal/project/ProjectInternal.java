@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -149,6 +150,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     void addRuleBasedPluginListener(RuleBasedPluginListener listener);
 
     void prepareForRuleBasedPlugins();
+
+    RegularFile getBuildScriptFile();
 
     FileResolver getFileResolver();
 

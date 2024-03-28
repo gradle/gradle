@@ -17,6 +17,7 @@
 package org.gradle.api;
 
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
 
 /**
  * An isolated view of {@link Project} that exposes only those properties that are safe to access from outside of
@@ -47,12 +48,30 @@ public interface IsolatedProject {
     String getPath();
 
     /**
+     * Returns a path to the project for the full build tree.
+     *
+     * @return The build tree path
+     * @since 8.8
+     */
+    String getBuildTreePath();
+
+    /**
      * <p>The directory containing the project build file.</p>
      *
      * @return The project directory. Never returns null.
      * @since 8.8
      */
     Directory getProjectDirectory();
+
+    /**
+     * The build script for this project.
+     * <p>
+     * If the file exists, it will be evaluated against this project when this project is configured.
+     *
+     * @return the build script for this project.
+     * @since 8.8
+     */
+    RegularFile getBuildFile();
 
     /**
      * <p>Returns the root project for the hierarchy that this project belongs to.  In the case of a single-project

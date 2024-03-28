@@ -41,6 +41,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFile
 import org.gradle.api.file.SyncSpec
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GradleInternal
@@ -253,6 +254,10 @@ class ProblemReportingCrossProjectModelAccess(
 
         override fun getBuildFile(): File {
             return delegate.buildFile
+        }
+
+        override fun getBuildScriptFile(): RegularFile {
+            return delegate.buildScriptFile
         }
 
         override fun getDisplayName(): String {
