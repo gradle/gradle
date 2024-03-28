@@ -32,7 +32,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     private static final GradleVersion GRADLE9 = GradleVersion.version("9.0");
 
-    private String summary;
+    protected String summary;
     private DeprecationTimeline deprecationTimeline;
     private String context;
     private String advice;
@@ -142,6 +142,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName, problemId);
     }
 
+    public void setProblemId(String problemId) {
+        this.problemId = problemId;
+    }
+
     public static class WithDeprecationTimeline extends Documentation.AbstractBuilder<WithDocumentation> {
         private final DeprecationMessageBuilder<?> builder;
 
@@ -210,6 +214,14 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             if (replacement != null) {
                 setAdvice(formatAdvice(replacement));
             }
+
+            if (problemIdDisplayName == null) {
+                setProblemIdDisplayName(summary);
+            }
+            if(problemId == null) {
+                setProblemId(DeprecationMessageBuilder.createDefaultDeprecationId(createDefaultDeprecationIdDisplayName()));
+            }
+
             return super.build();
         }
     }
@@ -217,6 +229,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     public static class DeprecateAction extends WithReplacement<String, DeprecateAction> {
         DeprecateAction(String subject) {
             super(subject);
+        }
+
+        @Override
+        protected String createDefaultDeprecationIdDisplayName() {
+            return subject;
         }
 
         @Override

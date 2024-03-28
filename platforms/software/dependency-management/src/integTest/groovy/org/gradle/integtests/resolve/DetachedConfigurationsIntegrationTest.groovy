@@ -180,7 +180,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:configurations-should-not-act-as-both-a-resolution-root-and-a-variant-simultaneously'
+            fqid == 'deprecation:configurations-acting-as-both-root-and-variant'
             contextualLabel == 'While resolving configuration \'detachedConfiguration1\', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated.'
             solutions == [ 'Be sure to mark configurations meant for resolution as canBeConsumed=false or use the \'resolvable(String)\' configuration factory method to create them.' ]
         }
@@ -208,7 +208,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:creating-a-configuration-with-a-name-that-starts-with-detachedconfiguration-has-been-deprecated'
+            fqid == 'deprecation:creating-a-configuration-with-a-name-that-starts-with-detachedconfiguration'
             contextualLabel == 'Creating a configuration with a name that starts with \'detachedConfiguration\' has been deprecated.'
             solutions == ["Use a different name for the configuration '$name'.".toString()]
         }

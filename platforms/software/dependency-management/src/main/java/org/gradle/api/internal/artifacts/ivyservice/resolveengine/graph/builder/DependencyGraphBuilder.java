@@ -408,6 +408,7 @@ public class DependencyGraphBuilder {
                         rootNodeName
                     ))
                 .withProblemIdDisplayName("Configurations should not act as both a resolution root and a variant simultaneously.")
+                .withProblemId("configurations-acting-as-both-root-and-variant")
                 .withAdvice("Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "depending_on_root_configuration")
