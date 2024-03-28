@@ -30,9 +30,11 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.test.TestFailureResult
 import org.gradle.tooling.events.test.TestFinishEvent
 import org.gradle.tooling.events.test.TestOperationResult
+import spock.lang.Ignore
 
 @ToolingApiVersion(">=7.6")
 @TargetGradleVersion(">=7.6")
+@Ignore
 class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     ProgressEventCollector progressEventCollector

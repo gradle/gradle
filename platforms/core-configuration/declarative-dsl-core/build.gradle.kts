@@ -26,6 +26,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 
+    testImplementation(project(":internal-testing"))
     testImplementation(libs.futureKotlin("test-junit5"))
     testImplementation("org.jetbrains:annotations:24.0.1")
 
