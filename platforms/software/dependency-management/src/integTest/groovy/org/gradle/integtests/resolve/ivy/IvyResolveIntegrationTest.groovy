@@ -391,9 +391,7 @@ dependencies {
         }
     }
 
-    // TODO: This is not desired behavior. We should deprecate and forbid this.
-    def "can consume non-consumable project configuration when substituted as a transitive dependency"() {
-
+    def "cannot consume non-consumable project configuration when substituted as a transitive dependency"() {
         file("included/settings.gradle") << """
             rootProject.name = "transitive"
         """
@@ -443,6 +441,7 @@ dependencies {
         """
 
         expect:
-        succeeds("resolve")
+        fails("resolve")
+        failure.assertHasCause("A dependency was declared on configuration 'default' of 'project :included' but no variant with that configuration name exists. The requested configuration is either not present in the target project or the named configuration is not consumable.")
     }
 }

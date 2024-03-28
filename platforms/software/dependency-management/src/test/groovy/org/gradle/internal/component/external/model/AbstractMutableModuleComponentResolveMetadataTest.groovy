@@ -27,7 +27,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
-import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
@@ -74,7 +73,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         !metadata.changing
         !metadata.missing
         metadata.status == "integration"
-        metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        metadata.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
 
         def immutable = metadata.asImmutable()
@@ -82,7 +81,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         !immutable.changing
         !immutable.missing
         immutable.status == "integration"
-        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        immutable.statusScheme == ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
         immutable.getConfiguration("default")
         immutable.getConfiguration("default").artifacts.size() == 1
@@ -282,8 +281,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
         expect:
         def immutable = metadata.asImmutable()
-        def variantsForTraversal = immutable.getVariantsForGraphTraversal().orElse(null)
-        variantsForTraversal != null
+        def variantsForTraversal = immutable.getVariantsForGraphTraversal()
         variantsForTraversal.size() == 2
         variantsForTraversal[0].name == 'api'
         variantsForTraversal[0].dependencies.size() == 1

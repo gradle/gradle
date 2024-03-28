@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
@@ -32,20 +32,15 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Builds {@link LocalConfigurationMetadata} instances from {@link ConfigurationInternal}s, while
+ * Builds {@link LocalVariantGraphResolveMetadata} instances from {@link ConfigurationInternal}s, while
  * caching intermediary dependency and exclude state.
  */
-public interface LocalConfigurationMetadataBuilder {
+public interface LocalVariantMetadataBuilder {
 
-    /**
-     * TODO: Ideally, building a configuration's metadata should not require the parent component
-     * reference. We currently need it in order to traverse the configuration hierarchy for building
-     * artifact metadata.
-     */
-    LocalConfigurationMetadata create(
+    LocalVariantGraphResolveMetadata create(
         ConfigurationInternal configuration,
         ConfigurationsProvider configurationsProvider,
-        LocalComponentMetadata parent,
+        ComponentIdentifier componentId,
         DependencyCache dependencyCache,
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
@@ -57,9 +52,9 @@ public interface LocalConfigurationMetadataBuilder {
      * (resolvable and consumable), these conversions do not need to be executed multiple times.
      */
     class DependencyCache {
-        private final Map<String, DefaultLocalConfigurationMetadataBuilder.DependencyState> cache = new HashMap<>();
+        private final Map<String, DefaultLocalVariantMetadataBuilder.DependencyState> cache = new HashMap<>();
 
-        public DefaultLocalConfigurationMetadataBuilder.DependencyState computeIfAbsent(
+        public DefaultLocalVariantMetadataBuilder.DependencyState computeIfAbsent(
             ConfigurationInternal configuration,
             Function<ConfigurationInternal, DependencyState> factory
         ) {
@@ -77,7 +72,7 @@ public interface LocalConfigurationMetadataBuilder {
     }
 
     /**
-     * The immutable state of a configuration's dependencies and excludes. This type tracks
+     * The immutable state of a variant's dependencies and excludes. This type tracks
      * the internal representations, after they have been converted from their DSL representations.
      */
     class DependencyState {

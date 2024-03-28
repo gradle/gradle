@@ -28,13 +28,14 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -43,28 +44,31 @@ import java.util.stream.Collectors;
 /**
  * Holds the resolution state for an external component.
  */
-public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ExternalComponentResolveMetadata> extends AbstractComponentGraphResolveState<T, S> {
+public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ExternalComponentResolveMetadata> extends AbstractComponentGraphResolveState<T> {
     private final ComponentIdGenerator idGenerator;
+    private final S artifactMetadata;
 
     // The resolve state for each configuration of this component
     private final ConcurrentMap<ModuleConfigurationMetadata, DefaultConfigurationGraphResolveState> variants = new ConcurrentHashMap<>();
 
     // The variants to use for variant selection during graph resolution
-    private final Lazy<Optional<List<? extends VariantGraphResolveState>>> allVariantsForGraphResolution;
+    private final Lazy<List<? extends VariantGraphResolveState>> allVariantsForGraphResolution;
 
     // The public view of all selectable variants of this component
     private final List<ResolvedVariantResult> selectableVariantResults;
 
     public DefaultComponentGraphResolveState(long instanceId, T graphMetadata, S artifactMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
-        super(instanceId, graphMetadata, artifactMetadata, attributeDesugaring);
-        this.allVariantsForGraphResolution = Lazy.locking().of(() -> graphMetadata.getVariantsForGraphTraversal().map(variants ->
-            variants.stream()
+        super(instanceId, graphMetadata, attributeDesugaring);
+        this.artifactMetadata = artifactMetadata;
+        this.allVariantsForGraphResolution = Lazy.locking().of(() ->
+            getVariantsForGraphTraversal(graphMetadata)
+                .stream()
                 .map(ModuleConfigurationMetadata.class::cast)
                 .map(variant -> resolveStateFor(variant).asVariant())
                 .collect(Collectors.toList())
-        ));
+        );
         this.idGenerator = idGenerator;
-        this.selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().orElse(Collections.emptyList()).stream()
+        this.selectableVariantResults = getVariantsForGraphTraversal(graphMetadata).stream()
             .flatMap(variant -> variant.getVariants().stream())
             .map(variant -> new DefaultResolvedVariantResult(
                 getId(),
@@ -74,6 +78,17 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
                 null
             ))
             .collect(Collectors.toList());
+    }
+
+    private static <T extends ComponentGraphResolveMetadata> List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal(T graphMetadata) {
+        if (!(graphMetadata instanceof ModuleComponentResolveMetadata)) {
+            return ImmutableList.of();
+        }
+        return ((ModuleComponentResolveMetadata) graphMetadata).getVariantsForGraphTraversal();
+    }
+
+    public S getArtifactMetadata() {
+        return artifactMetadata;
     }
 
     @Override
@@ -92,14 +107,30 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     }
 
     @Override
-    protected Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal() {
+    public GraphSelectionCandidates getCandidatesForGraphVariantSelection() {
+        return new ExternalComponentGraphSelectionCandidates(this);
+    }
+
+    private List<? extends VariantGraphResolveState> getVariantsForGraphTraversal() {
         return allVariantsForGraphResolution.get();
     }
 
+    private Set<String> getConfigurationNames() {
+        if (!(getMetadata() instanceof ModuleComponentGraphResolveMetadata)) {
+            return Collections.emptySet();
+        }
+
+        return ((ModuleComponentGraphResolveMetadata) getMetadata()).getConfigurationNames();
+    }
+
     @Nullable
-    @Override
     public ConfigurationGraphResolveState getConfiguration(String configurationName) {
-        ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) getMetadata().getConfiguration(configurationName);
+        if (!(getMetadata() instanceof ModuleComponentGraphResolveMetadata)) {
+            return null;
+        }
+
+        ModuleComponentGraphResolveMetadata metadata = (ModuleComponentGraphResolveMetadata) getMetadata();
+        ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) metadata.getConfiguration(configurationName);
         if (configuration == null) {
             return null;
         } else {
@@ -124,7 +155,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         private final ModuleConfigurationMetadata configuration;
         private final Lazy<DefaultConfigurationArtifactResolveState> artifactResolveState;
 
-        public DefaultConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?, ?> componentState, ExternalComponentResolveMetadata component, ModuleConfigurationMetadata configuration) {
+        public DefaultConfigurationGraphResolveState(long instanceId, AbstractComponentGraphResolveState<?> componentState, ExternalComponentResolveMetadata component, ModuleConfigurationMetadata configuration) {
             super(componentState);
             this.instanceId = instanceId;
             this.configuration = configuration;
@@ -198,7 +229,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         }
     }
 
-    private static class ExternalArtifactResolveMetadata implements ComponentArtifactResolveMetadata {
+    protected static class ExternalArtifactResolveMetadata implements ComponentArtifactResolveMetadata {
         private final ExternalComponentResolveMetadata metadata;
 
         public ExternalArtifactResolveMetadata(ExternalComponentResolveMetadata metadata) {
@@ -229,10 +260,43 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
         public AttributesSchemaInternal getAttributesSchema() {
             return metadata.getAttributesSchema();
         }
+    }
+
+    private static class ExternalComponentGraphSelectionCandidates implements GraphSelectionCandidates {
+        private final List<? extends VariantGraphResolveState> variants;
+        private final DefaultComponentGraphResolveState<?, ?> component;
+
+        public ExternalComponentGraphSelectionCandidates(DefaultComponentGraphResolveState<?, ?> component) {
+            this.variants = component.getVariantsForGraphTraversal();
+            this.component = component;
+        }
 
         @Override
-        public ComponentResolveMetadata getMetadata() {
-            return metadata;
+        public boolean supportsAttributeMatching() {
+            return !variants.isEmpty();
+        }
+
+        @Override
+        public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
+            if (variants.isEmpty()) {
+                throw new IllegalStateException("No variants available for attribute matching.");
+            }
+            return variants;
+        }
+
+        @Override
+        public Set<String> getConfigurationNames() {
+            return component.getConfigurationNames();
+        }
+
+        @Nullable
+        @Override
+        public VariantGraphResolveState getVariantByConfigurationName(String name) {
+            ConfigurationGraphResolveState conf = component.getConfiguration(name);
+            if (conf == null) {
+                return null;
+            }
+            return conf.asVariant();
         }
     }
 }

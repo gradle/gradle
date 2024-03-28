@@ -35,6 +35,6 @@ public abstract class ExternalRequestedConfigurationNotFoundFailureDescriber ext
     }
 
     private String buildExternalConfigurationNotFoundFailureMsg(ExternalRequestedConfigurationNotFoundFailure failure) {
-        return String.format("A dependency was declared from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", failure.getFromConfigurationName(), failure.getRequestedName(), failure.getRequestedComponentDisplayName());
+        return String.format("A dependency was declared from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", failure.getFromConfigurationName(), failure.getRequestedName(), failure.getRequestedComponentId().getDisplayName());
     }
 }

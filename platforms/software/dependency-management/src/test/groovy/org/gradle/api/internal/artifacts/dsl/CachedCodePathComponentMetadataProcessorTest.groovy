@@ -93,7 +93,7 @@ class CachedCodePathComponentMetadataProcessorTest extends Specification {
         def result = processor.processMetadata(metadata.asImmutable())
 
         then: "the result should have the variant added by the rule"
-        def variantsForGraphTraversal = result.variantsForGraphTraversal.get()
+        def variantsForGraphTraversal = result.variantsForGraphTraversal
         variantsForGraphTraversal.size() == ownVariants + 1
         def variant = variantsForGraphTraversal.find { it.name == "test" }
         variant != null

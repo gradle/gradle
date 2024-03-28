@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Modul
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleDependencyMetadataConverter;
@@ -75,7 +75,7 @@ class DependencyManagementGlobalScopeServices {
         registration.add(DefaultIvyContextManager.class);
         registration.add(DefaultImmutableModuleIdentifierFactory.class);
         registration.add(DefaultExcludeRuleConverter.class);
-        registration.add(DefaultLocalConfigurationMetadataBuilder.class);
+        registration.add(DefaultLocalVariantMetadataBuilder.class);
     }
 
     NotationParser<Object, ComponentSelector> createComponentSelectorFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, CrossBuildInMemoryCacheFactory cacheFactory) {

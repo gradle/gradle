@@ -30,6 +30,7 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -80,11 +81,11 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
     }
 
     @Override
-    public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
+    public List<? extends VariantGraphResolveMetadata> getVariantsForGraphTraversal() {
         if (graphVariants == null) {
             graphVariants = buildVariantsForGraphTraversal(getVariants());
         }
-        return graphVariants;
+        return graphVariants.orElse(Collections.emptyList());
     }
 
     private Optional<List<? extends VariantGraphResolveMetadata>> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {

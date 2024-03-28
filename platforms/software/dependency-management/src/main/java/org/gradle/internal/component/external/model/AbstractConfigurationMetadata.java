@@ -129,11 +129,6 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     @Override
-    public boolean isCanBeConsumed() {
-        return true;
-    }
-
-    @Override
     public boolean isExternalVariant() {
         return externalVariant;
     }

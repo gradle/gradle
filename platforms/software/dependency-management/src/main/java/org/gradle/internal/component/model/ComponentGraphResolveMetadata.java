@@ -23,8 +23,6 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * Immutable metadata for a component instance (ie version of a component) that is used to perform dependency graph resolution.
@@ -47,16 +45,6 @@ public interface ComponentGraphResolveMetadata {
     AttributesSchemaInternal getAttributesSchema();
 
     boolean isChanging();
-
-    /**
-     * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes. May be empty, in which case selection falls back to the legacy configurations available via {@link #getConfiguration(String)}. The component should provide a configuration called {@value Dependency#DEFAULT_CONFIGURATION}.
-     */
-    Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal();
-
-    Set<String> getConfigurationNames();
-
-    @Nullable
-    ConfigurationGraphResolveMetadata getConfiguration(String name);
 
     /**
      * Returns the platforms that this component belongs to.

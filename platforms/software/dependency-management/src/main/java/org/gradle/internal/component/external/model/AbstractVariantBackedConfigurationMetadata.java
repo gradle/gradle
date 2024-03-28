@@ -115,11 +115,6 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public boolean isCanBeConsumed() {
-        return true;
-    }
-
-    @Override
     public boolean isTransitive() {
         return true;
     }

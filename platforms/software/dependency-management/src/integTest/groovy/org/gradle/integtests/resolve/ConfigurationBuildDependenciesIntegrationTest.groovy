@@ -230,12 +230,12 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
-        failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
+        failure.assertHasCause("A dependency was declared on configuration 'default' of 'project :child' but no variant with that configuration name exists. The requested configuration is either not present in the target project or the named configuration is not consumable.")
 
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
-        failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
+        failure.assertHasCause("A dependency was declared on configuration 'default' of 'project :child' but no variant with that configuration name exists. The requested configuration is either not present in the target project or the named configuration is not consumable.")
 
         where:
         fluid << [true, false]

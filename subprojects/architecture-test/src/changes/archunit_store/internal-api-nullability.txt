@@ -541,7 +541,6 @@ Class <org.gradle.api.internal.resolve.DefaultProjectModelResolver> is not annot
 Class <org.gradle.api.internal.resolve.LibraryResolutionErrorMessageBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LibraryResolutionErrorMessageBuilder.java:0)
 Class <org.gradle.api.internal.resolve.LibraryResolutionResult$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LibraryResolutionResult.java:0)
 Class <org.gradle.api.internal.resolve.LibraryResolutionResult> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LibraryResolutionResult.java:0)
-Class <org.gradle.api.internal.resolve.LocalLibraryMetaDataAdapter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LocalLibraryMetaDataAdapter.java:0)
 Class <org.gradle.api.internal.resolve.LocalLibraryResolver> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LocalLibraryResolver.java:0)
 Class <org.gradle.api.internal.resolve.ProjectModelResolver> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ProjectModelResolver.java:0)
 Class <org.gradle.api.internal.resolve.VariantBinarySelector> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (VariantBinarySelector.java:0)

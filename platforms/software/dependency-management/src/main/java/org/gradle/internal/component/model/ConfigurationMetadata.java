@@ -86,8 +86,6 @@ public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetada
 
     boolean isVisible();
 
-    boolean isCanBeConsumed();
-
     /**
      * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.
      *

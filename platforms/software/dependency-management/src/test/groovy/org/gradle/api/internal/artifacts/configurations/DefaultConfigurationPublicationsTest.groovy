@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
+
 import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
+import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.DefaultFileSystemLocation
 import org.gradle.api.internal.file.TestFiles
@@ -28,6 +30,7 @@ import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.provider.SetProperty
 import org.gradle.internal.Describables
+import org.gradle.internal.DisplayName
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -54,18 +57,13 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
     def "converts to OutgoingVariant when nothing defined"() {
         expect:
-        def variant = publications.convertToOutgoingVariant()
+        def variants = getOutgoingVariants(publications)
+        variants.size() == 1
 
-        variant.asDescribable() == displayName
-        variant.attributes == publications.attributes
-        variant.artifacts == publications.artifacts
-        variant.children.size() == 1
-
-        def child = variant.children.first()
-        child.asDescribable() == displayName
-        child.attributes == publications.attributes
+        def child = variants.first()
+        child.displayName == displayName
+        child.attributes == ImmutableAttributes.EMPTY
         child.artifacts == allArtifacts
-        child.children.empty
     }
 
     def "converts to OutgoingVariant when artifacts declared"() {
@@ -75,17 +73,13 @@ class DefaultConfigurationPublicationsTest extends Specification {
         publications.artifacts.add(artifact)
 
         expect:
-        def variant = publications.convertToOutgoingVariant()
-        variant.asDescribable() == displayName
-        variant.attributes == publications.attributes
-        variant.artifacts == publications.artifacts
-        variant.children.size() == 1
+        def variants = getOutgoingVariants(publications)
+        variants.size() == 1
 
-        def child = variant.children.first()
-        child.asDescribable() == displayName
-        child.attributes == publications.attributes
+        def child = variants.first()
+        child.displayName == displayName
+        child.attributes == ImmutableAttributes.EMPTY
         child.artifacts == allArtifacts
-        child.children.empty
     }
 
     def "converts to OutgoingVariant when artifacts inherited"() {
@@ -95,17 +89,13 @@ class DefaultConfigurationPublicationsTest extends Specification {
         allArtifacts.add(artifact)
 
         expect:
-        def variant = publications.convertToOutgoingVariant()
-        variant.asDescribable() == displayName
-        variant.attributes == publications.attributes
-        variant.artifacts == publications.artifacts
-        variant.children.size() == 1
+        def variants = getOutgoingVariants(publications)
+        variants.size() == 1
 
-        def child = variant.children.first()
-        child.asDescribable() == displayName
-        child.attributes == publications.attributes
+        def child = variants.first()
+        child.displayName == displayName
+        child.attributes == ImmutableAttributes.EMPTY
         child.artifacts == allArtifacts
-        child.children.empty
     }
 
     def "converts to OutgoingVariant when attributes declared"() {
@@ -113,17 +103,13 @@ class DefaultConfigurationPublicationsTest extends Specification {
         publications.attributes.attribute(Attribute.of("thing", String), "value")
 
         expect:
-        def variant = publications.convertToOutgoingVariant()
-        variant.asDescribable() == displayName
-        variant.attributes == publications.attributes
-        variant.artifacts == publications.artifacts
-        variant.children.size() == 1
+        def variants = getOutgoingVariants(publications)
+        variants.size() == 1
 
-        def child = variant.children.first()
-        child.asDescribable() == displayName
-        child.attributes == publications.attributes
+        def child = variants.first()
+        child.displayName == displayName
+        child.attributes == AttributeTestUtil.attributes(["thing": "value"])
         child.artifacts == allArtifacts
-        child.children.empty
     }
 
     def "converts to OutgoingVariant when explicit variant defined"() {
@@ -135,17 +121,13 @@ class DefaultConfigurationPublicationsTest extends Specification {
         variantDef.artifacts.add(artifact)
 
         expect:
-        def variant = publications.convertToOutgoingVariant()
-        variant.asDescribable() == displayName
-        variant.attributes == publications.attributes
-        variant.artifacts == publications.artifacts
-        variant.children.size() == 1
+        def variants = getOutgoingVariants(publications)
+        variants.size() == 1
 
-        def child = variant.children.first()
-        child.asDescribable().displayName == '<config> variant child'
-        child.attributes == variantDef.attributes
+        def child = variants.first()
+        child.displayName.displayName == '<config> variant child'
+        child.attributes == AttributeTestUtil.attributes(["thing": "value"])
         child.artifacts == variantDef.artifacts
-        child.children.empty
     }
 
     def "converts to OutgoingVariant when explicit variant and artifacts defined"() {
@@ -160,23 +142,18 @@ class DefaultConfigurationPublicationsTest extends Specification {
         variantDef.artifacts.add(artifact2)
 
         expect:
-        def variant = publications.convertToOutgoingVariant()
-        variant.asDescribable() == displayName
-        variant.attributes == publications.attributes
-        variant.artifacts == publications.artifacts
-        variant.children.size() == 2
+        def variants = getOutgoingVariants(publications)
+        variants.size() == 2
 
-        def implicit = variant.children.first()
-        implicit.asDescribable() == displayName
-        implicit.attributes == publications.attributes
+        def implicit = variants.first()
+        implicit.displayName == displayName
+        implicit.attributes == AttributeTestUtil.attributes(["thing": "value1"])
         implicit.artifacts == allArtifacts
-        implicit.children.empty
 
-        def explicit = (variant.children as List)[1]
-        explicit.asDescribable().displayName == '<config> variant child'
-        explicit.attributes == variantDef.attributes
+        def explicit = (variants as List)[1]
+        explicit.displayName.displayName == '<config> variant child'
+        explicit.attributes == AttributeTestUtil.attributes(["thing": "value2"])
         explicit.artifacts == variantDef.artifacts
-        explicit.children.empty
     }
 
     def "converts to OutgoingVariant when explicit variant and artifacts inherited"() {
@@ -191,23 +168,18 @@ class DefaultConfigurationPublicationsTest extends Specification {
         variantDef.artifacts.add(artifact2)
 
         expect:
-        def variant = publications.convertToOutgoingVariant()
-        variant.asDescribable() == displayName
-        variant.attributes == publications.attributes
-        variant.artifacts == publications.artifacts
-        variant.children.size() == 2
+        def variants = getOutgoingVariants(publications)
+        variants.size() == 2
 
-        def implicit = variant.children.first()
-        implicit.asDescribable() == displayName
-        implicit.attributes == publications.attributes
+        def implicit = variants.first()
+        implicit.displayName == displayName
+        implicit.attributes == AttributeTestUtil.attributes(["thing": "value1"])
         implicit.artifacts == allArtifacts
-        implicit.children.empty
 
-        def explicit = (variant.children as List)[1]
-        explicit.asDescribable().displayName == '<config> variant child'
-        explicit.attributes == variantDef.attributes
+        def explicit = (variants as List)[1]
+        explicit.displayName.displayName == '<config> variant child'
+        explicit.attributes == AttributeTestUtil.attributes(["thing": "value2"])
         explicit.artifacts == variantDef.artifacts
-        explicit.children.empty
     }
 
     def "can declare outgoing artifacts using lazy provider for configuration"() {
@@ -240,5 +212,37 @@ class DefaultConfigurationPublicationsTest extends Specification {
         then:
         prop.get().size() == 2
         publications.getArtifacts()*.name == ["file1"] // Added new file to prop, but artifacts already resolved
+    }
+
+    Set<? extends OutgoingVariant> getOutgoingVariants(DefaultConfigurationPublications publications) {
+        Set<OutgoingVariant> variants = new LinkedHashSet<>()
+        publications.collectVariants(new ConfigurationInternal.VariantVisitor() {
+            @Override
+            void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
+                variants.add(new OutgoingVariant(displayName, attributes, artifacts))
+            }
+
+            @Override
+            void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
+                variants.add(new OutgoingVariant(displayName, attributes, artifacts))
+            }
+        })
+        return variants
+    }
+
+    static class OutgoingVariant {
+        public final AttributeContainerInternal attributes
+        public final Collection<? extends PublishArtifact> artifacts
+        public final DisplayName displayName
+
+        OutgoingVariant(
+            DisplayName displayName,
+            AttributeContainerInternal attributes,
+            Collection<? extends PublishArtifact> artifacts
+        ) {
+            this.displayName = displayName
+            this.attributes = attributes
+            this.artifacts = artifacts
+        }
     }
 }

@@ -19,9 +19,13 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.GraphSelectionCandidates;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
 
 /**
  * A specialized {@link ComponentGraphResolveState} for local components (ie project dependencies).
@@ -30,14 +34,43 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public interface LocalComponentGraphResolveState extends ComponentGraphResolveState {
+
+    /**
+     * Get the variant with the given name that may be used as the root of a dependency graph.
+     *
+     * TODO: This functionality should be separate from the component. We should be able to create
+     * root variants without the knowledge of the component. This is blocked by the behavior where
+     * a root variant can be selected by dependencies. This behavior is deprecated and will be an
+     * error in Gradle 9.0.
+     *
+     * @throws IllegalArgumentException If no such variant exists.
+     */
+    LocalVariantGraphResolveState getRootVariant(String name);
+
+    @Override
+    LocalComponentGraphSelectionCandidates getCandidatesForGraphVariantSelection();
+
     ModuleVersionIdentifier getModuleVersionId();
 
-    LocalComponentMetadata getArtifactMetadata();
+    @Override
+    ComponentGraphResolveMetadata getMetadata();
 
-    LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
+    /**
+     * Copies this state, but with the new component ID and the artifacts transformed by the given transformer.
+     */
+    LocalComponentGraphResolveState copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
 
     /**
      * @see LocalComponentGraphResolveState#reevaluate()
      */
     void reevaluate();
+
+    interface LocalComponentGraphSelectionCandidates extends GraphSelectionCandidates {
+        @Override
+        List<? extends LocalVariantGraphResolveState> getVariantsForAttributeMatching();
+
+        @Nullable
+        @Override
+        LocalVariantGraphResolveState getVariantByConfigurationName(String name);
+    }
 }

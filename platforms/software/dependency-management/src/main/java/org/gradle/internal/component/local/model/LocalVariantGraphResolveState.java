@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resolve;
+package org.gradle.internal.component.local.model;
 
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.platform.base.Binary;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 
-public interface LocalLibraryMetaDataAdapter {
-    LocalComponentMetadata createLocalComponentMetaData(Binary selectedBinary, String projectPath, boolean toAssembly);
+/**
+ * {@link VariantGraphResolveState} for variants of local components.
+ */
+public interface LocalVariantGraphResolveState extends VariantGraphResolveState {
+    @Override
+    LocalVariantGraphResolveMetadata getMetadata();
 }

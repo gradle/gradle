@@ -79,10 +79,6 @@ public class DefaultVariant implements ConfigurationVariantInternal {
         return name;
     }
 
-    public OutgoingVariant convertToOutgoingVariant() {
-        return new LeafOutgoingVariant(getDisplayName(), attributes, getArtifacts());
-    }
-
     @Override
     public DisplayName getDisplayName() {
         return Describables.of(parentDisplayName, "variant", name);

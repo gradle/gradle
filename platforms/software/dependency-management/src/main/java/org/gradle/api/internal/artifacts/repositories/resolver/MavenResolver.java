@@ -31,8 +31,8 @@ import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
@@ -50,7 +50,7 @@ import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMetadata> {
+public class MavenResolver extends ExternalResourceResolver {
     private final URI root;
     private final MavenMetadataLoader mavenMetaDataLoader;
 
@@ -91,11 +91,6 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         return "Maven repository '" + getName() + "'";
     }
 
-    @Override
-    protected Class<MavenModuleResolveMetadata> getSupportedMetadataType() {
-        return MavenModuleResolveMetadata.class;
-    }
-
     public URI getRoot() {
         return root;
     }
@@ -124,7 +119,11 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     @Override
-    protected ExternalResourceArtifactResolver createArtifactResolver(final ModuleSources moduleSources) {
+    protected ExternalResourceArtifactResolver createArtifactResolver(@Nullable ModuleSources moduleSources) {
+        if (moduleSources == null) {
+            return super.createArtifactResolver(null);
+        }
+
         return moduleSources.withSource(MavenUniqueSnapshotModuleSource.class, source -> {
             if (source.isPresent()) {
                 return new MavenUniqueSnapshotExternalResourceArtifactResolver(super.createArtifactResolver(moduleSources), source.get());
@@ -199,12 +198,12 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
 
         @Override
-        protected void resolveJavadocArtifacts(MavenModuleResolveMetadata module, BuildableArtifactSetResolveResult result) {
+        protected void resolveJavadocArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
             // Javadoc artifacts are optional, so we need to probe for them remotely
         }
 
         @Override
-        protected void resolveSourceArtifacts(MavenModuleResolveMetadata module, BuildableArtifactSetResolveResult result) {
+        protected void resolveSourceArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
             // Source artifacts are optional, so we need to probe for them remotely
         }
     }
