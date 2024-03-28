@@ -288,9 +288,13 @@ public class BuildExceptionReporter implements Action<Throwable> {
         @Override
         protected void endVisiting() {
             if (suppressedDuplicateBranchCount > 0) {
-                boolean plural = suppressedDuplicateBranchCount > 1;
                 LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
-                output.append(String.format("There were %d additional failure%s with the same cause that %s not printed.", suppressedDuplicateBranchCount, plural ? "s" : "", plural ? "were" : "was"));
+                boolean plural = suppressedDuplicateBranchCount > 1;
+                if (plural) {
+                    output.append(String.format("There were %d additional failures with the same cause that were not printed.", suppressedDuplicateBranchCount));
+                } else {
+                    output.append("There was 1 additional failure with the same cause that was not printed.");
+                }
             }
         }
     }
