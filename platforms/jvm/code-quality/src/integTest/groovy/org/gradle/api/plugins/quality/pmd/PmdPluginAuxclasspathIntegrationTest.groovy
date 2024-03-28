@@ -199,18 +199,21 @@ project("rule-using") {
 
     private static ruleCode() {
         def resolverFunction
+        def addViolation
         if (versionNumber < VersionNumber.parse("7.0.0")) {
             resolverFunction = """
             boolean classNameExists(final ASTCompilationUnit node, final String name){
                 return node.getClassTypeResolver().classNameExists(name);
             }
             """
+            addViolation = { String message -> """addViolationWithMessage(data, node, "$message")""" }
         } else {
             resolverFunction = """
             boolean classNameExists(final ASTCompilationUnit node, final String name){
                 return node.getTypeSystem().getClassSymbolFromCanonicalName(name) != null;
             }
             """
+            addViolation = { String message -> """asCtx(data).addViolationWithMessage(node, "$message")""" }
         }
         """
             package org.gradle.pmd.rules;
@@ -226,9 +229,9 @@ project("rule-using") {
                 @Override
                 public Object visit(final ASTCompilationUnit node, final Object data) {
                     if (classNameExists(node, ASSERTJ_TEST) && classNameExists(node, CLASS1)) {
-                        asCtx(data).addViolationWithMessage(node, "auxclasspath configured.");
+                        ${addViolation("auxclasspath configured.")};
                     } else {
-                        asCtx(data).addViolationWithMessage(node, "auxclasspath not configured.");
+                        ${addViolation("auxclasspath not configured.")};
                     }
                     return super.visit(node, data);
                 }

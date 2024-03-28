@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.quality
+package org.gradle.api.plugins.quality.pmd
 
-import org.gradle.api.plugins.quality.pmd.AbstractPmdPluginVersionIntegrationTest
 import org.gradle.util.Matchers
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers
@@ -96,7 +95,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         given:
         Assume.assumeTrue(supportIncrementalAnalysis())
         goodCode()
-        customRuleSet()
+        file("customRuleSet.xml") << customRuleSet()
 
         succeeds('pmdMain')
 
@@ -145,7 +144,6 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         file("src/main/java/org/gradle/GoodClass.java") <<
             """package org.gradle;
                class GoodClass {
-                   public GoodClass() {}
                    public boolean isFoo(final Object arg) { return true; }
                }""".stripMargin()
     }
@@ -155,22 +153,6 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         // PMD Lvl 3 Warning OverrideBothEqualsAndHashcode
         file("src/main/java/org/gradle/BadClass.java") <<
             "package org.gradle; class BadClass { public boolean equals(Object arg) { return java.lang.Boolean.valueOf(true); } }"
-    }
-
-    private customRuleSet() {
-        String ruleset = versionNumber < VersionNumber.parse("6.0.0") ? "rulesets/java/braces.xml" : "category/java/codestyle.xml"
-        file("customRuleSet.xml") << """
-            <ruleset name="custom"
-                xmlns="http://pmd.sf.net/ruleset/1.0.0"
-                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd"
-                xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_xml_schema.xsd">
-
-                <description>Custom rule set</description>
-
-                <rule ref="$ruleset"/>
-            </ruleset>
-        """
     }
 
 }

@@ -62,4 +62,31 @@ class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpe
     static boolean supportIncrementalAnalysis() {
         return versionNumber >= VersionNumber.parse('6.0.0')
     }
+
+    static String bracesRuleSetPath() {
+        if (versionNumber < VersionNumber.version(5)) {
+            "rulesets/braces.xml"
+        } else if (versionNumber < VersionNumber.version(6)) {
+            "rulesets/java/braces.xml"
+        } else if (versionNumber < VersionNumber.version(6, 13)) {
+            "category/java/codestyle.xml/IfStmtsMustUseBraces"
+        } else {
+            "category/java/codestyle.xml/ControlStatementBraces"
+        }
+    }
+
+    static String customRuleSet() {
+        """
+            <ruleset name="custom"
+                xmlns="http://pmd.sf.net/ruleset/1.0.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd"
+                xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_xml_schema.xsd">
+
+                <description>Custom rule set</description>
+
+                <rule ref="${bracesRuleSetPath()}"/>
+            </ruleset>
+        """
+    }
 }
