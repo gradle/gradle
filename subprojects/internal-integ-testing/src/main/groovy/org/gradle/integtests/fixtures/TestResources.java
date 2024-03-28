@@ -57,8 +57,10 @@ public class TestResources implements MethodRule {
             @Override
             public void evaluate() throws Throwable {
                 String className = method.getMethod().getDeclaringClass().getSimpleName();
+                String superClassName = method.getMethod().getDeclaringClass().getSuperclass().getSimpleName();
                 maybeCopy(String.format("%s/shared", className));
                 maybeCopy(String.format("%s/%s", className, method.getName()));
+                maybeCopy(String.format("%s/%s", superClassName, method.getName()));
                 for (String extraResource : extraResources) {
                     maybeCopy(extraResource);
                 }
