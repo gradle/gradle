@@ -485,6 +485,15 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         doubleTester.value == 3.14d
         doubleTester.reference.is(reference)
     }
+
+    def "action methods with generic parameters are generated properly"() {
+        when:
+        def actionClass = create(HasActionWithGenericParameter)
+
+        then:
+        def method = actionClass.class.getMethod("actionWithGenericParameter", Closure.class)
+        method.parameterAnnotations[0].length == 1
+    }
 }
 
 enum TestEnum {
@@ -806,5 +815,11 @@ class HasDoubleConstructor {
     HasDoubleConstructor(double value, Object reference) {
         this.value = value
         this.reference = reference
+    }
+}
+
+class HasActionWithGenericParameter {
+    void actionWithGenericParameter(Action<String> action) {
+        action.execute("Hello")
     }
 }
