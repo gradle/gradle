@@ -40,7 +40,7 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
 
         then:
         fixture.assertHtmlReportHasProblems {
-            totalProblemsCount = 78
+            totalProblemsCount = 76
             withLocatedProblem(new StringContains("sync.studio.tooling"), "Project ':' cannot access 'Project.apply' functionality on subprojects via 'allprojects'")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.gradle' functionality on subprojects via 'allprojects'")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'")
@@ -55,10 +55,8 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.gradle' functionality on child projects")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.extensions' functionality on child projects")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.tasks' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.properties' functionality on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.findProperty' functionality on child projects")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.configurations' functionality on child projects")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':app' cannot dynamically look up a property in the parent project ':'")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':lib' cannot dynamically look up a property in the parent project ':'")
         }
     }
 

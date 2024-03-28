@@ -97,9 +97,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'first build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        def result = runner.deprecations(AndroidDeprecations) {
-            expectConfigurationMutationDeprecationWarnings(agpVersion, mutatedConfigurations)
-        }.build()
+        def result = runner.build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -116,11 +114,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'up-to-date build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        result = runner.deprecations(AndroidDeprecations) {
-            if (!GradleContextualExecuter.isConfigCache()) {
-                expectConfigurationMutationDeprecationWarnings(agpVersion, mutatedConfigurations)
-            }
-        }.build()
+        result = runner.build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.UP_TO_DATE
@@ -136,11 +130,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'abi change on library'
         abiChange.run()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        result = runner.deprecations(AndroidDeprecations) {
-            if (!GradleContextualExecuter.isConfigCache()) {
-                expectConfigurationMutationDeprecationWarnings(agpVersion, mutatedConfigurations)
-            }
-        }.build()
+        result = runner.build()
 
         then: 'dependent sources are recompiled'
         result.task(':library:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -156,11 +146,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'clean re-build'
         useAgpVersion(agpVersion, this.runner('clean')).build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        result = runner.deprecations(AndroidDeprecations) {
-            if (!GradleContextualExecuter.isConfigCache()) {
-                expectConfigurationMutationDeprecationWarnings(agpVersion, mutatedConfigurations)
-            }
-        }.build()
+        result = runner.build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -436,19 +422,5 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 alwaysPasses()
             }
         }
-    }
-
-    private ArrayList<String> getMutatedConfigurations() {
-        [
-            ":library:debugCompileClasspath",
-            ":app:debugCompileClasspath",
-            ":app:debugUnitTestCompileClasspath",
-            ":app:debugAndroidTestRuntimeClasspath",
-            ":app:debugAndroidTestCompileClasspath",
-            ":library:debugAndroidTestRuntimeClasspath",
-            ":library:debugAndroidTestCompileClasspath",
-        ] + (GradleContextualExecuter.configCache ? [
-            ":library:debugUnitTestCompileClasspath"
-        ] : [])
     }
 }

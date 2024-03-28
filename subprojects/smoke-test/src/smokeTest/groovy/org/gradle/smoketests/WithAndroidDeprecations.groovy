@@ -18,44 +18,9 @@ package org.gradle.smoketests
 
 import groovy.transform.SelfType
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.VersionNumber
 
 @SelfType(BaseDeprecations)
 trait WithAndroidDeprecations {
-    private static final VersionNumber AGP_VERSION_WITHOUT_CONFIGURATION_MUTATION = VersionNumber.parse('8.3.0-alpha11')
-
-    private boolean versionIsLower(String version, VersionNumber threshold) {
-        VersionNumber versionNumber = VersionNumber.parse(version)
-        versionNumber < threshold
-    }
-
-    void expectConfigurationMutationDeprecationWarnings(String agpVersion, List<String> confs) {
-        confs.each { conf ->
-            runner.expectLegacyDeprecationWarningIf(
-                versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CONFIGURATION_MUTATION),
-                "Mutating the dependencies of configuration '${conf}' after it has been resolved or consumed. " +
-                    "This behavior has been deprecated. " +
-                    "This will fail with an error in Gradle 9.0. " +
-                    "After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#mutate_configuration_after_locking"
-            )
-        }
-    }
-
-    void maybeExpectConfigurationMutationDeprecationWarnings(String agpVersion, List<String> confs) {
-        confs.each { conf ->
-            runner.maybeExpectLegacyDeprecationWarningIf(
-                versionIsLower(agpVersion, AGP_VERSION_WITHOUT_CONFIGURATION_MUTATION),
-                "Mutating the dependencies of configuration '${conf}' after it has been resolved or consumed. " +
-                    "This behavior has been deprecated. " +
-                    "This will fail with an error in Gradle 9.0. " +
-                    "After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#mutate_configuration_after_locking"
-            )
-        }
-    }
 
     void expectFilteredFileCollectionDeprecationWarning() {
         // This warning is emitted by the Kotlin Kapt plugin

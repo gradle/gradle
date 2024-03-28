@@ -81,7 +81,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
-        result = buildLocation(checkoutDir, agpVersion)
+        result = buildCachedLocation(checkoutDir, agpVersion)
 
         def md5After = compiledClassFile.md5Hash
 
@@ -122,9 +122,6 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
-        runner.deprecations(SantaTrackerDeprecations) {
-            expectConfigurationMutationDeprecationWarnings(agpVersion, lintMutatedConfigurations)
-        }
         def result = runner.buildAndFail()
 
         then:
@@ -140,11 +137,6 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         )
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
-        runner.deprecations(SantaTrackerDeprecations) {
-            if (GradleContextualExecuter.notConfigCache) {
-                expectConfigurationMutationDeprecationWarnings(agpVersion, lintMutatedConfigurations)
-            }
-        }
         result = runner.buildAndFail()
 
         then:
@@ -155,23 +147,6 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
 
         where:
         agpVersion << TestedVersions.androidGradle.versions
-    }
-
-    private ArrayList<String> getLintMutatedConfigurations() {
-        [
-            ":common:debugCompileClasspath",
-            ":common:debugAndroidTestRuntimeClasspath",
-            ":doodles-lib:debugAndroidTestRuntimeClasspath",
-            ":doodles-lib:debugCompileClasspath",
-            ":playgames:debugAndroidTestRuntimeClasspath",
-            ":playgames:debugCompileClasspath",
-            ":common:debugAndroidTestCompileClasspath",
-            ":common:debugUnitTestCompileClasspath",
-            ":doodles-lib:debugAndroidTestCompileClasspath",
-            ":doodles-lib:debugUnitTestCompileClasspath",
-            ":playgames:debugAndroidTestCompileClasspath",
-            ":playgames:debugUnitTestCompileClasspath"
-        ]
     }
 }
 

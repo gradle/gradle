@@ -18,12 +18,9 @@ package org.gradle.smoketests
 
 import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.android.AndroidHome
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.KOTLIN_1_8_0
-import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.KOTLIN_2_0_0
 import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.hasConfigurationCacheWarnings
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -59,13 +56,8 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
         when:
         def runner = runner(parallelTasksInProject, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
         def result = useAgpVersion(androidPluginVersion, runner)
-                .ignoreDeprecationWarningsIf(KOTLIN_VERSIONS.isOld(kotlinPluginVersion), "KGP version")
-                .deprecations(KotlinAndroidDeprecations) {
-                    expectConfigurationMutationDeprecationWarnings(androidPluginVersion, [":app:debugCompileClasspath"])
-                    if (GradleContextualExecuter.configCache || (kotlinPluginVersionNumber >= KOTLIN_1_8_0 && kotlinPluginVersionNumber.baseVersion < KOTLIN_2_0_0)) {
-                        expectConfigurationMutationDeprecationWarnings(androidPluginVersion, [":app:debugUnitTestCompileClasspath"])
-                    }
-                }.build()
+            .ignoreDeprecationWarningsIf(KOTLIN_VERSIONS.isOld(kotlinPluginVersion), "KGP version")
+            .build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS

@@ -131,10 +131,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
 
         when: 'running the build for the 1st time'
         beforeAndroidBuild(runner)
-        def result = runnerFor(runner, agpVersion, kotlinVersionNumber)
-            .deprecations(KotlinAndroidDeprecations) {
-                expectConfigurationMutationDeprecationWarnings(agpVersion, [":app:debugCompileClasspath"])
-            }.build()
+        def result = runnerFor(runner, agpVersion, kotlinVersionNumber).build()
 
         then:
         result.task(":app:$taskName").outcome == TaskOutcome.SUCCESS
@@ -145,12 +142,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
         }
 
         when: 'running the build for the 2nd time'
-        result = runnerFor(runner, agpVersion, kotlinVersionNumber)
-            .deprecations(KotlinAndroidDeprecations) {
-                if (GradleContextualExecuter.isConfigCache()) {
-                    expectConfigurationMutationDeprecationWarnings(agpVersion, [":app:debugCompileClasspath"])
-                }
-            }.build()
+        result = runnerFor(runner, agpVersion, kotlinVersionNumber).build()
 
         then:
         result.task(":app:$taskName").outcome == TaskOutcome.UP_TO_DATE
@@ -204,6 +196,6 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
         String agpVersion,
         VersionNumber kotlinVersionNumber
     ) {
-        runner.ignoreDeprecationWarningsIf(AGP_VERSIONS.isOld(agpVersion) || KOTLIN_VERSIONS.isOld(kotlinVersionNumber), "Old version of KGP")
+        runner.ignoreDeprecationWarningsIf(AGP_VERSIONS.isOld(agpVersion) || KOTLIN_VERSIONS.isOld(kotlinVersionNumber), "Old version of AGP or KGP")
     }
 }

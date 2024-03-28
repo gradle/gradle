@@ -61,16 +61,15 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
+            expectFilteredFileCollectionDeprecationWarning()
+        }.build()
+    }
+
+    protected SmokeTestGradleRunner.SmokeTestBuildResult buildCachedLocation(File projectDir, String agpVersion) {
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
             if (GradleContextualExecuter.notConfigCache) {
-                expectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
                 expectFilteredFileCollectionDeprecationWarning()
-            } else {
-                maybeExpectConfigurationMutationDeprecationWarnings(agpVersion, getMutatedConfigurations())
             }
-            maybeExpectConfigurationMutationDeprecationWarnings(agpVersion, [
-                ":santa-tracker:debugCompileClasspath",
-                ":common:debugCompileClasspath",
-            ])
         }.build()
     }
 
@@ -141,24 +140,5 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             }
         }
         return hasMatchingTasks && allOutcomesMatched
-    }
-
-    private static ArrayList<String> getMutatedConfigurations() {
-        [
-            ":common:debugCompileClasspath",
-            ":doodles-lib:debugCompileClasspath",
-            ":playgames:debugCompileClasspath",
-            ":tracker:debugCompileClasspath",
-            ":wearable:debugCompileClasspath",
-            ":jetpack:debugCompileClasspath",
-            ":cityquiz:debugCompileClasspath",
-            ":gumball:debugCompileClasspath",
-            ":memory:debugCompileClasspath",
-            ":dasherdancer:debugCompileClasspath",
-            ":penguinswim:debugCompileClasspath",
-            ":snowballrun:debugCompileClasspath",
-            ":presenttoss:debugCompileClasspath",
-            ":rocketsleigh:debugCompileClasspath"
-        ]
     }
 }
