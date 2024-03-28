@@ -53,6 +53,23 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         succeeds()
     }
 
+    def "can set a none-provider as source for file collection"() {
+        buildFile """
+            def fileName
+            def files = objects.fileCollection().from([provider { fileName }], 'b')
+            def elements = files.elements
+
+            fileName = 'a'
+            assert elements.get().asFile == [file('a'), file('b')]
+
+            fileName = null
+            assert elements.get().asFile == [file('b')]
+        """
+
+        expect:
+        succeeds()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/10322")
     def "can construct file collection from the elements of a source directory set"() {
         buildFile """
