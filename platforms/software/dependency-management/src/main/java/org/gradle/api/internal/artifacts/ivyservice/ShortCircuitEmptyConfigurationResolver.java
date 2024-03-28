@@ -164,6 +164,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
+        @Deprecated
         public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
             return Collections.emptySet();
         }
@@ -184,6 +185,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
+        @Deprecated
         public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
             return Collections.emptySet();
         }
@@ -194,6 +196,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
+        @Deprecated
         public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
             return Collections.emptySet();
         }

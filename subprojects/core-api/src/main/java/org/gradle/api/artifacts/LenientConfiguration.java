@@ -38,7 +38,10 @@ public interface LenientConfiguration {
      *
      * @param dependencySpec dependency spec
      * @return only resolved dependencies
+     *
+     * @deprecated Use {@link #getFirstLevelModuleDependencies()}.
      */
+    @Deprecated
     Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec);
 
     /**
@@ -70,7 +73,10 @@ public interface LenientConfiguration {
      *
      * @param dependencySpec dependency spec
      * @return resolved dependencies files
+     *
+     * @deprecated Use a lenient {@link ArtifactView} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<File> getFiles(Spec<? super Dependency> dependencySpec);
 
     /**
@@ -86,6 +92,9 @@ public interface LenientConfiguration {
      *
      * @param dependencySpec dependency spec
      * @return successfully resolved artifacts for dependencies that match given dependency spec
+     *
+     * @deprecated Use a lenient {@link ArtifactView} with a {@code componentFilter} instead.
      */
+    @Deprecated
     Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec);
 }
