@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.os;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -34,6 +35,7 @@ public abstract class OperatingSystem {
     public static final Linux LINUX = new Linux();
     public static final FreeBSD FREE_BSD = new FreeBSD();
     public static final Unix UNIX = new Unix();
+    public static final Aix AIX = new Aix();
     private static OperatingSystem currentOs;
     private final String toStringValue;
     private final String osName;
@@ -69,6 +71,8 @@ public abstract class OperatingSystem {
             return LINUX;
         } else if (osName.contains("freebsd")) {
             return FREE_BSD;
+        } else if (osName.contains("aix")) {
+            return AIX;
         } else {
             // Not strictly true
             return UNIX;
@@ -428,4 +432,18 @@ public abstract class OperatingSystem {
             return super.getArch();
         }
     }
+
+    @NonNullApi
+    static class Aix extends Unix {
+        @Override
+        public String getFamilyName() {
+            return "aix";
+        }
+
+        @Override
+        protected String getOsPrefix() {
+            return "aix";
+        }
+    }
+
 }
