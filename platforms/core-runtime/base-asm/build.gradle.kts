@@ -18,7 +18,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
+description = "Base asm classes and utilities for Gradle's internal use"
 
 dependencies {
     api(libs.asm)

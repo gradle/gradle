@@ -41,8 +41,8 @@ dependencies {
     implementation(libs.jacksonDatabind)
 
     implementation(project(":base-services"))
+    implementation(project(":base-asm"))
     implementation(project(":core-api"))
-    implementation(project(":model-core"))
 
     testCompileOnly(libs.jetbrainsAnnotations)
 
