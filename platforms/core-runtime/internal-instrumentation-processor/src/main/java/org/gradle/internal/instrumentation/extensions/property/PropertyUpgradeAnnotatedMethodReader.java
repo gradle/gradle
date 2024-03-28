@@ -16,17 +16,7 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
-import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.UpgradedPropertyType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
@@ -38,6 +28,7 @@ import org.gradle.internal.instrumentation.model.ImplementationInfoImpl;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfoImpl;
 import org.gradle.internal.instrumentation.model.RequestExtra;
+import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
 import org.gradle.internal.instrumentation.processor.extensibility.AnnotatedMethodReaderExtension;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.Result.InvalidRequest;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.Result.Success;
@@ -74,14 +65,13 @@ import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANC
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.AbstractInstrumentationProcessor.PROJECT_NAME_OPTIONS;
+import static org.gradle.internal.instrumentation.processor.codegen.GradleLazyType.FILE_COLLECTION;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
     private static final Type DEFAULT_TYPE = Type.getType(UpgradedProperty.DefaultValue.class);
-    public static final Type PROVIDER_TYPE = Type.getType(Provider.class);
-    public static final Type PROPERTY_TYPE = Type.getType(Property.class);
 
     private final String projectName;
     private final Elements elements;
@@ -156,7 +146,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     static boolean isProviderOrProperty(Type type) {
-        return type.equals(PROVIDER_TYPE) || type.equals(PROPERTY_TYPE);
+        return GradleLazyType.PROVIDER.asType().equals(type);
     }
 
     @SuppressWarnings("unchecked")
@@ -225,20 +215,24 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         String typeName = method.getReturnType() instanceof DeclaredType
             ? ((DeclaredType) method.getReturnType()).asElement().toString()
             : method.getReturnType().toString();
-        if (typeName.equals(RegularFileProperty.class.getName()) || typeName.equals(DirectoryProperty.class.getName())) {
-            return Type.getType(File.class);
-        } else if (typeName.equals(Property.class.getName()) && ((DeclaredType) typeMirror).getTypeArguments().size() == 1) {
-            return extractType(((DeclaredType) typeMirror).getTypeArguments().get(0));
-        } else if (typeName.equals(ConfigurableFileCollection.class.getName())) {
-            return Type.getType(FileCollection.class);
-        } else if (typeName.equals(MapProperty.class.getName())) {
-            return Type.getType(Map.class);
-        } else if (typeName.equals(ListProperty.class.getName())) {
-            return Type.getType(List.class);
-        } else if (typeName.equals(SetProperty.class.getName())) {
-            return Type.getType(Set.class);
-        } else {
-            throw new AnnotationReadFailure(String.format("Cannot extract original type for method '%s.%s: %s'. Use explicit @UpgradedProperty#originalType instead.", method.getEnclosingElement(), method, typeMirror));
+        GradleLazyType gradleLazyType = GradleLazyType.from(typeName);
+        switch (gradleLazyType) {
+            case CONFIGURABLE_FILE_COLLECTION:
+                return FILE_COLLECTION.asType();
+            case DIRECTORY_PROPERTY:
+            case REGULAR_FILE_PROPERTY:
+                return Type.getType(File.class);
+            case LIST_PROPERTY:
+                return Type.getType(List.class);
+            case SET_PROPERTY:
+                return Type.getType(Set.class);
+            case MAP_PROPERTY:
+                return Type.getType(Map.class);
+            case PROPERTY:
+            case PROVIDER:
+                return extractType(((DeclaredType) typeMirror).getTypeArguments().get(0));
+            default:
+                throw new AnnotationReadFailure(String.format("Cannot extract original type for method '%s.%s: %s'. Use explicit @UpgradedProperty#originalType instead.", method.getEnclosingElement(), method, typeMirror));
         }
     }
 
@@ -287,9 +281,9 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         extras.add(new RequestExtra.OriginatingElement(method));
         extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName, BYTECODE_UPGRADE));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
-        UpgradedPropertyType upgradedPropertyType = UpgradedPropertyType.from(extractType(method.getReturnType()));
+        GradleLazyType gradleLazyType = GradleLazyType.from(extractType(method.getReturnType()));
         String methodDescriptor = extractMethodDescriptor(method);
-        extras.add(new PropertyUpgradeRequestExtra(propertyName, isFluentSetter, implementationClass, method.getSimpleName().toString(), methodDescriptor, upgradedPropertyType));
+        extras.add(new PropertyUpgradeRequestExtra(propertyName, isFluentSetter, implementationClass, method.getSimpleName().toString(), methodDescriptor, gradleLazyType));
         return extras;
     }
 

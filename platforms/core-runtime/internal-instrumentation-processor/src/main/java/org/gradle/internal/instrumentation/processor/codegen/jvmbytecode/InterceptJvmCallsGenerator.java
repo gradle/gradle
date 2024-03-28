@@ -38,7 +38,6 @@ import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures.FailureInfo;
 import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
-import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -59,6 +58,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.METHOD_VISITOR_SCOPE;
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.SUPPRESS_ERROR_PRONE;
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasCallerClassName;
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasInjectVisitorContext;
@@ -107,7 +107,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addField(METHOD_VISITOR_FIELD)
                 .addField(METADATA_FIELD)
                 .addField(CONTEXT_FIELD)
-                .superclass(MethodVisitorScope.class)
+                .superclass(METHOD_VISITOR_SCOPE.asTypeName())
                 // actual content:
                 .addMethod(visitMethodInsnBuilder.build())
                 .addFields(typeFieldByOwner.values())
