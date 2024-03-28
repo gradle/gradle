@@ -30,7 +30,7 @@ import org.gradle.launcher.daemon.protocol.UserResponse;
 
 import javax.annotation.Nullable;
 import java.io.InputStream;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Eagerly consumes from an input stream, sending each line as a commands over the connection and finishing with a {@link CloseInput} command.
@@ -61,7 +61,7 @@ public class DaemonClientInputForwarder implements Stoppable {
     ) {
         this.userInput = userInput;
         ForwardTextStreamToConnection handler = new ForwardTextStreamToConnection(dispatch);
-        forwarder = new InputForwarder(inputStream, handler, executorFactory, bufferSize);
+        this.forwarder = new InputForwarder(inputStream, handler, executorFactory, bufferSize);
         userInput.dispatchTo(new ForwardingUserInput(handler));
     }
 
@@ -83,21 +83,29 @@ public class DaemonClientInputForwarder implements Stoppable {
         }
 
         @Override
-        public void readAndForwardText() {
-            handler.forwardNextLineAsUserResponse();
+        public void readAndForwardText(Normalizer normalizer) {
+            handler.forwardNextLineAsUserResponse(new UserInputRequest(normalizer));
+        }
+    }
+
+    private static class UserInputRequest {
+        private final UserInputReceiver.Normalizer normalizer;
+
+        public UserInputRequest(UserInputReceiver.Normalizer normalizer) {
+            this.normalizer = normalizer;
         }
     }
 
     private static class ForwardTextStreamToConnection implements TextStream {
         private final Dispatch<? super InputMessage> dispatch;
-        private final AtomicBoolean forwardResponse = new AtomicBoolean();
+        private final AtomicReference<UserInputRequest> pending = new AtomicReference<>();
 
         public ForwardTextStreamToConnection(Dispatch<? super InputMessage> dispatch) {
             this.dispatch = dispatch;
         }
 
-        void forwardNextLineAsUserResponse() {
-            if (!forwardResponse.compareAndSet(false, true)) {
+        void forwardNextLineAsUserResponse(UserInputRequest request) {
+            if (!pending.compareAndSet(null, request)) {
                 throw new IllegalStateException("Already expecting user input");
             }
         }
@@ -107,8 +115,16 @@ public class DaemonClientInputForwarder implements Stoppable {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Forwarding input to daemon: '{}'", input.replace("\n", "\\n"));
             }
-            if (forwardResponse.compareAndSet(true, false)) {
-                dispatch.dispatch(new UserResponse(input));
+            UserInputRequest userInputRequest = pending.get();
+            if (userInputRequest != null) {
+                // Expecting some user input
+                String result = userInputRequest.normalizer.normalize(input);
+                if (result != null) {
+                    // Send result
+                    pending.set(null);
+                    dispatch.dispatch(new UserResponse(result));
+                }
+                // Else, input was no good, so try again
             } else {
                 dispatch.dispatch(new ForwardInput(input.getBytes()));
             }

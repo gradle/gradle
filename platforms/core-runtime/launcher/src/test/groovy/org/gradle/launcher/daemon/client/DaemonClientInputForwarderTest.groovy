@@ -15,8 +15,11 @@
  */
 package org.gradle.launcher.daemon.client
 
+import org.gradle.internal.Either
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.logging.console.DefaultUserInputReceiver
+import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.PromptOutputEvent
 import org.gradle.launcher.daemon.protocol.CloseInput
 import org.gradle.launcher.daemon.protocol.ForwardInput
 import org.gradle.launcher.daemon.protocol.UserResponse
@@ -63,6 +66,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
     def forwarder
 
     def createForwarder() {
+        userInputReceiver.attachConsole(Mock(OutputEventListener))
         forwarder = new DaemonClientInputForwarder(inputStream, dispatch, userInputReceiver, executorFactory, bufferSize)
         forwarder.start()
     }
@@ -91,7 +95,10 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         receiveClosed()
     }
 
-    def "one line of text is forwarded as user response"() {
+    def "one line of text is converted and forwarded as user response"() {
+        def event = Stub(PromptOutputEvent)
+        _ * event.convert("def") >> Either.left(12)
+
         when:
         source << toPlatformLineSeparators("abc\n")
 
@@ -99,11 +106,37 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
         receiveStdin toPlatformLineSeparators("abc\n")
 
         when:
-        userInputReceiver.readAndForwardText()
+        userInputReceiver.readAndForwardText(event)
         source << toPlatformLineSeparators("def\njkl\n")
 
         then:
-        receiveUserResponse toPlatformLineSeparators("def\n")
+        receiveUserResponse "12"
+        receiveStdin toPlatformLineSeparators("jkl\n")
+
+        when:
+        forwarder.stop()
+
+        then:
+        receiveClosed()
+    }
+
+    def "collects additional line of text when invalid user response received"() {
+        def event = Stub(PromptOutputEvent)
+        _ * event.convert("bad") >> Either.right("try again")
+        _ * event.convert("ok") >> Either.left(12)
+
+        when:
+        source << toPlatformLineSeparators("abc\n")
+
+        then:
+        receiveStdin toPlatformLineSeparators("abc\n")
+
+        when:
+        userInputReceiver.readAndForwardText(event)
+        source << toPlatformLineSeparators("bad\nok\njkl\n")
+
+        then:
+        receiveUserResponse "12"
         receiveStdin toPlatformLineSeparators("jkl\n")
 
         when:
