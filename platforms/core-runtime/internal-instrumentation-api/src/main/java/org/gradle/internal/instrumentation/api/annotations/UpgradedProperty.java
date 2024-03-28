@@ -41,6 +41,8 @@ public @interface UpgradedProperty {
 
     boolean fluentSetter() default false;
 
+    UpgradedAccessor[] originalAccessors() default {};
+
     interface DefaultValue {
     }
 }

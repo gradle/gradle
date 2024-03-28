@@ -54,6 +54,7 @@ import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.callableKindForJavadoc;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptedCallableLink;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptorImplementationLink;
+import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.SUPPRESS_ERROR_PRONE;
 
 public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
     @Override
@@ -110,6 +111,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
 
     private static TypeSpec.Builder generateInterceptorClass(String className, BytecodeInterceptorType interceptorType, CodeBlock scopes, List<CallInterceptionRequest> requests) {
         TypeSpec.Builder generatedClass = TypeSpec.classBuilder(className)
+            .addAnnotation(SUPPRESS_ERROR_PRONE)
             .superclass(CALL_INTERCEPTOR_CLASS)
             .addSuperinterface(SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS)
             .addSuperinterface(interceptorType.getInterceptorMarkerInterface())
