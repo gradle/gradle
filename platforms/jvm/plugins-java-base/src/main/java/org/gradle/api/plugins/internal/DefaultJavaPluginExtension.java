@@ -36,6 +36,7 @@ import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -87,6 +88,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private JavaVersion srcCompat;
     private JavaVersion targetCompat;
     private boolean autoTargetJvm = true;
+    private final Property<Boolean> enablePreview;
 
     @Inject
     public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec) {
@@ -99,6 +101,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.objectFactory = project.getObjects();
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.toolchain = toolchainSpec;
+        this.enablePreview = project.getObjects().property(Boolean.class);
         configureDefaults();
     }
 
@@ -322,6 +325,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         final ConfigurationContainer configurations = project.getConfigurations();
         final SourceSetContainer sourceSets = getSourceSets();
         action.execute(project.getObjects().newInstance(DefaultJavaPluginExtension.DefaultJavaResolutionConsistency.class, components, sourceSets, configurations));
+    }
+
+    @Override
+    public Property<Boolean> getEnablePreview() {
+        return enablePreview;
     }
 
     private static String validateFeatureName(String name) {

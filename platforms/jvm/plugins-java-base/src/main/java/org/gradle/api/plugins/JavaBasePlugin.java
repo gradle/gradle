@@ -149,6 +149,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
         DefaultJavaPluginExtension javaPluginExtension = addExtensions(project);
 
+        // TODO: configure test and javadoc tasks
         configureCompileDefaults(project, javaPluginExtension);
         configureSourceSetDefaults(project, javaPluginExtension);
         configureJavaDoc(project, javaPluginExtension);
@@ -233,6 +234,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             javaCompile.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
+
+            javaCompile.getOptions().getEnablePreview().convention(javaPluginExtension.getEnablePreview());
         });
         JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, javaSource, project, compileTask, compileTask.map(JavaCompile::getOptions));
 

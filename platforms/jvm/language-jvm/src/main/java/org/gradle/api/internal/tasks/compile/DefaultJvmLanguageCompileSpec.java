@@ -33,6 +33,7 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     private String sourceCompatibility;
     private String targetCompatibility;
     private List<File> sourceRoots;
+    private boolean enablePreview;
 
     @Override
     public File getWorkingDir() {
@@ -128,5 +129,15 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     @Override
     public void setSourcesRoots(List<File> sourceRoots) {
         this.sourceRoots = sourceRoots;
+    }
+
+    @Override
+    public boolean getEnablePreview() {
+        return enablePreview;
+    }
+
+    @Override
+    public void setEnablePreview(boolean enablePreview) {
+        this.enablePreview = enablePreview;
     }
 }
