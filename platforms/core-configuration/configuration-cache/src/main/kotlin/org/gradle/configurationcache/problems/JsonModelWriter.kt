@@ -45,13 +45,15 @@ class JsonModelWriter(val writer: Writer) {
         beginArray()
     }
 
-    fun endModel(cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
+    fun endModel(buildDisplayName: String, cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
         endArray()
 
         comma()
         property("totalProblemCount") {
             write(totalProblemCount.toString())
         }
+        comma()
+        property("buildName", buildDisplayName)
         comma()
         property("cacheAction", cacheAction)
         comma()
