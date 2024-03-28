@@ -115,6 +115,9 @@ class JavaObjectSerializationCodec(
                     readResolve(SerializedLambdaParametersCheckingCodec.run { decode() })
                         .also { putIdentity(id, it) }
                 }
+                Format.WriteReplace -> {
+                    read()!!.also { putIdentity(id, it) }
+                }
             }
         }
 
@@ -164,8 +167,8 @@ class JavaObjectSerializationCodec(
                         encode(replacement)
                     }
                 } else {
-                    writeEnum(Format.ReadResolve)
-                    encodeBean(replacement)
+                    writeEnum(Format.WriteReplace)
+                    write(replacement)
                 }
             }
         }
@@ -186,7 +189,8 @@ class JavaObjectSerializationCodec(
         ReadResolve,
         WriteObject,
         ReadObject,
-        SerializedLambda
+        SerializedLambda,
+        WriteReplace,
     }
 
     private
