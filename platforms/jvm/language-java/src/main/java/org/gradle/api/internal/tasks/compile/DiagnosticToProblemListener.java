@@ -17,11 +17,19 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.sun.tools.javac.api.ClientCodeWrapper;
+import com.sun.tools.javac.api.DiagnosticFormatter;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.JavacMessages;
+import com.sun.tools.javac.util.Log;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 
 import javax.annotation.Nullable;
 import javax.tools.Diagnostic;
@@ -34,25 +42,38 @@ import java.util.Locale;
  *
  * @since 8.5
  */
+@ClientCodeWrapper.Trusted
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
 
     private final ProblemReporter problemReporter;
+    private final Context context;
 
-    public DiagnosticToProblemListener(ProblemReporter problemReporter) {
+    public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
         this.problemReporter = problemReporter;
+        this.context = context;
     }
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
-        problemReporter.reporting(spec -> buildProblem(diagnostic, spec));
+        problemReporter.reporting(spec -> buildProblem(diagnostic, context,  spec));
     }
 
     @VisibleForTesting
-    static void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
+    static void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, Context context, ProblemSpec spec) {
+        String formattedMessage = getFormattedMessage(context, diagnostic);
+        System.err.println(formattedMessage);
+        ((InternalProblemSpec) spec).additionalData("formatted", formattedMessage);
         spec.id(mapKindToId(diagnostic.getKind()), mapKindToLabel(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
         spec.severity(mapKindToSeverity(diagnostic.getKind()));
         addDetails(spec, diagnostic.getMessage(Locale.getDefault()));
         addLocations(spec, diagnostic);
+    }
+
+
+    private static String getFormattedMessage(Context context, Diagnostic<? extends JavaFileObject> diagnostic) {
+        DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
+        Locale locale = JavacMessages.instance(context).getCurrentLocale();
+        return formatter.format((JCDiagnostic) diagnostic, locale);
     }
 
     private static void addDetails(ProblemSpec spec, @Nullable String diagnosticMessage) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile;
+package org.gradle.problems.rendering;
 
-import java.io.File;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.internal.Problem;
 
-public interface ForkingJavaCompileSpec {
+import java.util.List;
 
-    File getJavaHome();
+@NonNullApi
+public interface ProblemRenderer {
 
-    int getJavaLanguageVersion();
+    void render(List<Problem> problems);
 
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.sun.source.util.JavacTask;
+import com.sun.tools.javac.api.JavacTool;
+import com.sun.tools.javac.util.Context;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
 import org.gradle.internal.Cast;
@@ -59,6 +62,7 @@ public class JdkTools {
 
     // Copied from ToolProvider.defaultJavaCompilerName
     private static final String DEFAULT_COMPILER_IMPL_NAME = "com.sun.tools.javac.api.JavacTool";
+    private static final String DEFAULT_CONTEXT_IMPL_NAME = "com.sun.tools.javac.util.Context";
 
     private final ClassLoader isolatedToolsLoader;
     private final boolean isJava9Compatible;
@@ -93,17 +97,26 @@ public class JdkTools {
         return classLoaderFactory.createFilteringClassLoader(getSystemClassLoader(), filterSpec);
     }
 
-    public JavaCompiler getSystemJavaCompiler() {
+    public ContextAwareJavaCompiler getSystemJavaCompiler() {
         return new DefaultIncrementalAwareCompiler(buildJavaCompiler());
     }
 
-    private JavaCompiler buildJavaCompiler() {
+    public Context getCompilerContext() {
+        try {
+            Class<?> contextClass = isolatedToolsLoader.loadClass(DEFAULT_CONTEXT_IMPL_NAME);
+            return DirectInstantiator.instantiate(contextClass.asSubclass(Context.class));
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not load class '" + DEFAULT_CONTEXT_IMPL_NAME);
+        }
+    }
+
+    private JavacTool buildJavaCompiler() {
         Class<?> clazz;
         try {
             if (isJava9Compatible) {
                 clazz = isolatedToolsLoader.loadClass("javax.tools.ToolProvider");
                 try {
-                    JavaCompiler compiler = (JavaCompiler) clazz.getDeclaredMethod("getSystemJavaCompiler").invoke(null);
+                    JavacTool compiler = (JavacTool) clazz.getDeclaredMethod("getSystemJavaCompiler").invoke(null);
                     if (compiler == null) {
                         // We were trying to load a compiler in our process so Jvm.current() is the correct one to blame.
                         throw new IllegalStateException("Java compiler is not available. Please check that "
@@ -112,7 +125,7 @@ public class JdkTools {
                     }
                     return compiler;
                 } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                    cannotCreateJavaCompiler(e);
+                    throw new IllegalStateException("Could not create system Java compiler", e);
                 }
             } else {
                 clazz = isolatedToolsLoader.loadClass(DEFAULT_COMPILER_IMPL_NAME);
@@ -120,23 +133,24 @@ public class JdkTools {
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Could not load class '" + DEFAULT_COMPILER_IMPL_NAME);
         }
-        return DirectInstantiator.instantiate(clazz.asSubclass(JavaCompiler.class));
-    }
-
-    private void cannotCreateJavaCompiler(Exception e) {
-        throw new IllegalStateException("Could not create system Java compiler", e);
+        return DirectInstantiator.instantiate(clazz.asSubclass(JavacTool.class));
     }
 
     private class DefaultIncrementalAwareCompiler implements IncrementalCompilationAwareJavaCompiler {
-        private final JavaCompiler delegate;
+        private final JavacTool delegate;
 
-        private DefaultIncrementalAwareCompiler(JavaCompiler delegate) {
+        private DefaultIncrementalAwareCompiler(JavacTool delegate) {
             this.delegate = delegate;
         }
 
         @Override
         public CompilationTask getTask(Writer out, JavaFileManager fileManager, DiagnosticListener<? super JavaFileObject> diagnosticListener, Iterable<String> options, Iterable<String> classes, Iterable<? extends JavaFileObject> compilationUnits) {
             return delegate.getTask(out, fileManager, diagnosticListener, options, classes, compilationUnits);
+        }
+
+        @Override
+        public JavacTask getTask(Writer out, JavaFileManager fileManager, DiagnosticListener<? super JavaFileObject> diagnosticListener, Iterable<String> options, Iterable<String> classes, Iterable<? extends JavaFileObject> compilationUnits, Context context) {
+            return delegate.getTask(out, fileManager, diagnosticListener, options, classes, compilationUnits, context);
         }
 
         @Override
@@ -178,6 +192,7 @@ public class JdkTools {
                 (BiConsumer<String, String>) constantsAnalysisResult::addPrivateDependent
             );
         }
+
     }
 
     private void ensureCompilerTask() {
