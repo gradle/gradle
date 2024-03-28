@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
@@ -201,8 +202,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
 
         File analysisFile = incrementalOptions.getAnalysisFile().getAsFile().get();
         File classpathBackupDir = incrementalOptions.getClassfileBackupDir().getAsFile().get();
-        Map<File, File> globalAnalysisMap = resolveAnalysisMappingsForOtherProjects();
-        spec.setAnalysisMap(globalAnalysisMap);
+        Map<File, File> analysisMap = resolveInputAnalysisMap();
+        spec.setAnalysisMap(analysisMap);
         spec.setAnalysisFile(analysisFile);
         spec.setClassfileBackupDir(classpathBackupDir);
 
@@ -219,8 +220,16 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
             GFileUtils.writeFile(publishedCode.getAbsolutePath() + "\n" + analysisFile.getAbsolutePath(), analysisMapping);
         }
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("scala-incremental Analysis map: {}", globalAnalysisMap);
+            LOGGER.debug("scala-incremental Analysis map: {}", analysisMap);
         }
+    }
+
+
+    private Map<File, File> resolveInputAnalysisMap() {
+        Map<File, File> analysisMap = new HashMap<>();
+        analysisMap.putAll(resolveAnalysisMappingsForLocalSourceSets());
+        analysisMap.putAll(resolveAnalysisMappingsForOtherProjects());
+        return analysisMap;
     }
 
     private Map<File, File> resolveAnalysisMappingsForOtherProjects() {
@@ -236,6 +245,21 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
                 }
             }
         }
+
+        return analysisMap;
+    }
+
+    private Map<File, File> resolveAnalysisMappingsForLocalSourceSets() {
+        Map<File, File> analysisMap = new HashMap<>();
+        for (Task taskDependency : getTaskDependencies().getDependenciesForInternalUse(this)) {
+            if (taskDependency instanceof AbstractScalaCompile) {
+                AbstractScalaCompile scalaCompileTask = (AbstractScalaCompile) taskDependency;
+                File destinationDirectory = scalaCompileTask.getDestinationDirectory().getAsFile().get();
+                File analysisFile = scalaCompileTask.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile().getAsFile().get();
+                analysisMap.put(destinationDirectory, analysisFile);
+            }
+        }
+
         return analysisMap;
     }
 
