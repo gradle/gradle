@@ -19,8 +19,9 @@ package org.gradle.internal.exceptions
 import spock.lang.Specification
 
 class ContextAwareExceptionTest extends Specification {
+    private ExceptionContextVisitor visitor = Mock()
+
     def "visitor does not visit direct cause"() {
-        ExceptionContextVisitor visitor = Mock()
         def cause = new RuntimeException()
         def e = new ContextAwareException(cause)
 
@@ -29,6 +30,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
+        1 * visitor.endVisiting()
         0 * visitor._
 
         and:
@@ -36,7 +38,6 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor visits indirect cause"() {
-        ExceptionContextVisitor visitor = Mock()
         def childCause = new RuntimeException()
         def cause = new RuntimeException(childCause)
         def e = new ContextAwareException(cause)
@@ -46,6 +47,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
+        1 * visitor.endVisiting()
         1 * visitor.startChildren()
 
         and:
@@ -60,7 +62,6 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor visits causes of contextual exception"() {
-        ExceptionContextVisitor visitor = Mock()
         def childCause = new RuntimeException()
         def cause = new TestContextualException(childCause)
         def e = new ContextAwareException(cause)
@@ -70,6 +71,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
+        1 * visitor.endVisiting()
         1 * visitor.startChildren()
 
         and:
@@ -84,7 +86,6 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor visits all contextual exceptions and direct cause of last contextual exception"() {
-        ExceptionContextVisitor visitor = Mock()
         def unreportedCause = new RuntimeException()
         def reportedCause = new RuntimeException(unreportedCause)
         def lastContextual = new TestContextualException(reportedCause)
@@ -99,6 +100,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
+        1 * visitor.endVisiting()
 
         1 * visitor.node(contextual)
         1 * visitor.node(lastContextual)
@@ -114,7 +116,6 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor visits causes of multi-cause exception"() {
-        ExceptionContextVisitor visitor = Mock()
         def childCause1 = new RuntimeException()
         def childCause2 = new RuntimeException()
         def cause = new DefaultMultiCauseException("broken", childCause1, childCause2)
@@ -125,6 +126,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
+        1 * visitor.endVisiting()
 
         1 * visitor.startChildren()
 
@@ -143,7 +145,6 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor treats multi-cause exception as contextual"() {
-        ExceptionContextVisitor visitor = Mock()
         def childCause1 = new RuntimeException()
         def detail = new RuntimeException()
         def childCause2 = new TestContextualException(detail)
@@ -157,6 +158,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(intermediate2)
+        1 * visitor.endVisiting()
 
         1 * visitor.startChildren()
 
@@ -187,7 +189,6 @@ class ContextAwareExceptionTest extends Specification {
     }
 
     def "visitor visits causes recursively"() {
-        ExceptionContextVisitor visitor = Mock()
         def ignored = new RuntimeException()
         def childCause1 = new RuntimeException(ignored)
         def childCause2 = new RuntimeException()
@@ -201,6 +202,7 @@ class ContextAwareExceptionTest extends Specification {
 
         then:
         1 * visitor.visitCause(cause)
+        1 * visitor.endVisiting()
 
         3 * visitor.startChildren()
         1 * visitor.node(childCause1)
