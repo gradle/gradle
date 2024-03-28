@@ -1,4 +1,4 @@
-package org.gradle.client.ui.welcome
+package org.gradle.client.ui.buildlist
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
@@ -10,19 +10,19 @@ import org.gradle.client.logic.database.BuildsRepository
 import org.gradle.client.ui.util.componentScope
 import java.io.File
 
-sealed interface WelcomeModel {
-    data object Loading : WelcomeModel
-    data class Loaded(val builds: List<Build>) : WelcomeModel
+sealed interface BuildListModel {
+    data object Loading : BuildListModel
+    data class Loaded(val builds: List<Build>) : BuildListModel
 }
 
-class WelcomeComponent(
+class BuildListComponent(
     context: ComponentContext,
     private val buildsRepository: BuildsRepository,
     private val onBuildSelected: (String) -> Unit
 ) : ComponentContext by context {
 
-    private val mutableModel = MutableValue<WelcomeModel>(WelcomeModel.Loading)
-    val model: Value<WelcomeModel> = mutableModel
+    private val mutableModel = MutableValue<BuildListModel>(BuildListModel.Loading)
+    val model: Value<BuildListModel> = mutableModel
 
     private val scope = componentScope()
 
@@ -30,13 +30,13 @@ class WelcomeComponent(
         val fetchAll = scope.launch {
             buildsRepository.fetchAll().cancellable().collect { builds ->
                 mutableModel.value = when (val state = model.value) {
-                    WelcomeModel.Loading -> WelcomeModel.Loaded(builds)
-                    is WelcomeModel.Loaded -> state.copy(builds = builds)
+                    BuildListModel.Loading -> BuildListModel.Loaded(builds)
+                    is BuildListModel.Loaded -> state.copy(builds = builds)
                 }
             }
         }
         fetchAll.invokeOnCompletion {
-            mutableModel.value = WelcomeModel.Loading
+            mutableModel.value = BuildListModel.Loading
         }
     }
 

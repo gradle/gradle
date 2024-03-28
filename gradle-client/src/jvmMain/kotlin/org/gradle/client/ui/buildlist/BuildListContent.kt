@@ -1,4 +1,4 @@
-package org.gradle.client.ui.welcome
+package org.gradle.client.ui.buildlist
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,7 +22,7 @@ import org.gradle.client.ui.composables.PlainTextTooltip
 import org.gradle.client.ui.theme.plusPaneSpacing
 
 @Composable
-fun WelcomeContent(component: WelcomeComponent) {
+fun BuildListContent(component: BuildListComponent) {
     Scaffold(
         topBar = { TopBar() },
         floatingActionButton = { AddBuildButton(component) },
@@ -30,15 +30,15 @@ fun WelcomeContent(component: WelcomeComponent) {
         Surface(Modifier.padding(scaffoldPadding.plusPaneSpacing())) {
             val model by component.model.subscribeAsState()
             when (val current = model) {
-                WelcomeModel.Loading -> Loading()
-                is WelcomeModel.Loaded -> BuildsList(component, current)
+                BuildListModel.Loading -> Loading()
+                is BuildListModel.Loaded -> BuildsList(component, current)
             }
         }
     }
 }
 
 @Composable
-private fun BuildsList(component: WelcomeComponent, model: WelcomeModel.Loaded) {
+private fun BuildsList(component: BuildListComponent, model: BuildListModel.Loaded) {
     LazyColumn {
         items(items = model.builds, key = { it.id }) { build ->
             ListItem(
@@ -65,7 +65,7 @@ private fun BuildListIcon() {
 }
 
 @Composable
-private fun BuildListDeleteButon(component: WelcomeComponent, build: Build) {
+private fun BuildListDeleteButon(component: BuildListComponent, build: Build) {
     PlainTextTooltip("Delete") {
         IconButton(
             onClick = { component.onDeleteBuildClicked(build) },
@@ -88,7 +88,7 @@ private fun TopBar() {
 }
 
 @Composable
-private fun AddBuildButton(component: WelcomeComponent) {
+private fun AddBuildButton(component: BuildListComponent) {
     var isPathChooserOpen by remember { mutableStateOf(false) }
     if (isPathChooserOpen) {
         PathChooserDialog(

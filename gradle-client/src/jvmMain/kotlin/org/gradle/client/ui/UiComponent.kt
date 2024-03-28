@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 import org.gradle.client.logic.database.BuildsRepository
 import org.gradle.client.logic.files.AppDirs
 import org.gradle.client.ui.build.BuildComponent
-import org.gradle.client.ui.welcome.WelcomeComponent
+import org.gradle.client.ui.buildlist.BuildListComponent
 
 class UiComponent(
     context: ComponentContext,
@@ -16,7 +16,7 @@ class UiComponent(
 ) : ComponentContext by context {
 
     sealed interface Child {
-        class Welcome(val component: WelcomeComponent) : Child
+        class BuildList(val component: BuildListComponent) : Child
         class Build(val component: BuildComponent) : Child
     }
 
@@ -26,15 +26,15 @@ class UiComponent(
         childStack(
             source = navigation,
             serializer = Config.serializer(),
-            initialConfiguration = Config.Welcome,
+            initialConfiguration = Config.BuildList,
             handleBackButton = true,
             childFactory = ::createChild,
         )
 
     private fun createChild(config: Config, context: ComponentContext): Child =
         when (config) {
-            Config.Welcome -> Child.Welcome(
-                WelcomeComponent(
+            Config.BuildList -> Child.BuildList(
+                BuildListComponent(
                     context = context,
                     buildsRepository = buildsRepository,
                     onBuildSelected = { id -> navigation.push(Config.Build(id)) }
@@ -55,7 +55,7 @@ class UiComponent(
     @Serializable
     private sealed class Config {
         @Serializable
-        data object Welcome : Config()
+        data object BuildList : Config()
 
         @Serializable
         data class Build(val id: String) : Config()
