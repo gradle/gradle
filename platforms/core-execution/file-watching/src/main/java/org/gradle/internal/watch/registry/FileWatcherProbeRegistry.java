@@ -24,7 +24,7 @@ import java.util.stream.Stream;
  * indeed receives file system events from the operating system.
  * This is to avoid trusting locations where OSs silently not send any events, despite watchers being registered.
  *
- * When the hierarchy is first registered via {@link #registerProbe(File)}, we don't yet create the probe.
+ * When the hierarchy is first registered via {@link #registerProbe(File, File)}, we don't yet create the probe.
  * That only happens when the hierarchy is actually read or written by Gradle, in which case
  * {@link #armWatchProbe(File)} is called.
  *
@@ -42,7 +42,7 @@ import java.util.stream.Stream;
  * the registry is closed.
  */
 public interface FileWatcherProbeRegistry {
-    void registerProbe(File hierarchy);
+    void registerProbe(File hierarchy, File probeLocation);
 
     Stream<File> unprovenHierarchies();
 

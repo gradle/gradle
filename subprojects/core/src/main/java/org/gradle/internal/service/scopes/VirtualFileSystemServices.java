@@ -43,6 +43,7 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.buildoption.IntegerInternalOption;
 import org.gradle.internal.buildoption.InternalFlag;
@@ -208,8 +209,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(
                 OperatingSystem.current(),
                 nativeCapabilities,
-                fileWatchingFilter.getImmutableLocations()::contains)
-                .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
+                fileWatchingFilter.getImmutableLocations()::contains
+            ).<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     root,
                     sectionId -> documentationRegistry.getDocumentationRecommendationFor("details", "gradle_daemon", sectionId),
@@ -218,9 +219,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     fileChangeListeners
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(root));
+
             listenerManager.addListener((BuildAddedListener) buildState -> {
                     File buildRootDir = buildState.getBuildRootDir();
-                    virtualFileSystem.registerWatchableHierarchy(buildRootDir);
+                File projectCacheDir = buildState.getMutableModel().getServices().get(ProjectCacheDir.class).getDir();
+                virtualFileSystem.registerWatchableHierarchy(buildRootDir, projectCacheDir);
                 }
             );
             return virtualFileSystem;

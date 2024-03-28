@@ -254,6 +254,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                 statStatisticsCollector,
                                 fileHasherStatisticsCollector,
                                 directorySnapshotterStatisticsCollector,
+                                buildLayout,
                                 buildOperationRunner,
                                 new BuildOutcomeReportingBuildActionRunner(
                                     styledTextOutputFactory,

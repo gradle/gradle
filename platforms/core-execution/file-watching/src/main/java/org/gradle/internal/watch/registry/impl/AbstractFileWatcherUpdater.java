@@ -56,9 +56,10 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, File probeLocation) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
-        probeRegistry.registerProbe(watchableHierarchy);
+        // TODO: probably it would be better to have a service that maps hierarchy to probe location with respect to the project-cache-dir instead of passing it through
+        probeRegistry.registerProbe(watchableHierarchy, probeLocation);
         update(root);
     }
 
@@ -158,6 +159,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
                 stopWatchingProbeDirectory(probeDirectory);
             });
 
+        //TODO: simplify this, if the fs is the same, no need to add more probes
         probedHierarchies.stream()
             .filter(newProbedHierarchy -> !oldProbedHierarchies.contains(newProbedHierarchy))
             .forEach(probedHierarchy -> {

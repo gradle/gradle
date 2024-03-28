@@ -54,7 +54,7 @@ public interface FileWatcherRegistry extends Closeable {
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
+    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root, File probeLocation);
 
     /**
      * Updates the watchers after changes to the root.

@@ -20,6 +20,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
@@ -37,6 +38,13 @@ import org.gradle.internal.watch.vfs.WatchLogging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileStore;
+import java.nio.file.Files;
+import java.util.Objects;
+
 public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemWatchingBuildActionRunner.class);
 
@@ -46,6 +54,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     private final StatStatistics.Collector statStatisticsCollector;
     private final FileHasherStatistics.Collector fileHasherStatisticsCollector;
     private final DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector;
+    private final BuildLayout buildLayout;
     private final BuildOperationRunner buildOperationRunner;
     private final BuildActionRunner delegate;
     private final InternalOptions options;
@@ -57,6 +66,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         StatStatistics.Collector statStatisticsCollector,
         FileHasherStatistics.Collector fileHasherStatisticsCollector,
         DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
+        BuildLayout buildLayout,
         BuildOperationRunner buildOperationRunner,
         BuildActionRunner delegate,
         InternalOptions options
@@ -67,6 +77,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         this.statStatisticsCollector = statStatisticsCollector;
         this.fileHasherStatisticsCollector = fileHasherStatisticsCollector;
         this.directorySnapshotterStatisticsCollector = directorySnapshotterStatisticsCollector;
+        this.buildLayout = buildLayout;
         this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
         this.options = options;
@@ -99,15 +110,16 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             logVfsStatistics("since last build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
         }
 
-        if (action.getStartParameter().getProjectCacheDir() != null) {
+        if (action.getStartParameter().getProjectCacheDir() != null &&
+            !Objects.equals(getFileStore(action.getStartParameter().getProjectCacheDir()), getFileStore(buildLayout.getRootDirectory()))
+        ) {
             // We'd like to create the probe in the `.gradle` directory under the build root,
-            // but if project cache is somewhere else, then we don't want to put trash in there
-            // See https://github.com/gradle/gradle/issues/17262
+            // but if project cache is on another file system, the probe won't give us proper information.
             switch (watchFileSystemMode) {
                 case ENABLED:
-                    throw new IllegalStateException("Enabling file system watching via --watch-fs (or via the " + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + " property) with --project-cache-dir also specified is not supported; remove either option to fix this problem");
+                    throw new IllegalStateException("Enabling file system watching via --watch-fs (or via the " + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + " property) with --project-cache-dir located on another filesystem is not supported; remove either option to fix this problem");
                 case DEFAULT:
-                    LOGGER.info("File system watching is disabled because --project-cache-dir is specified");
+                    LOGGER.info("File system watching is disabled because --project-cache-dir is on another filesystem");
                     watchFileSystemMode = WatchMode.DISABLED;
                     break;
                 default:
@@ -168,6 +180,18 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     private static void dropVirtualFileSystemIfRequested(InternalOptions options, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
         if (VirtualFileSystemServices.isDropVfs(options)) {
             virtualFileSystem.invalidateAll();
+        }
+    }
+
+    @Nullable
+    private static FileStore getFileStore(@Nullable File file) {
+        if (file == null) {
+            return null;
+        }
+        try {
+            return Files.getFileStore(file.toPath().toRealPath());
+        } catch (IOException e) {
+            return null;
         }
     }
 }

@@ -77,7 +77,7 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    public void registerWatchableHierarchy(File rootDirectoryForWatching) {
+    public void registerWatchableHierarchy(File rootDirectoryForWatching, File probeLocation) {
     }
 
     @Override
