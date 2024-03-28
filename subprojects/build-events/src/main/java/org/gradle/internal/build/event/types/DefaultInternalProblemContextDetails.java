@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalContextualLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
@@ -37,16 +38,22 @@ public class DefaultInternalProblemContextDetails implements InternalProblemCont
     private final List<InternalSolution> solutions;
     private InternalFailure failure;
 
+    private final InternalContextualLabel contextualLabel;
+
+
     public DefaultInternalProblemContextDetails(InternalAdditionalData additionalData,
                                                 @Nullable InternalDetails details,
                                                 List<InternalLocation> locations,
                                                 List<InternalSolution> solutions,
-                                                InternalFailure failure) {
+                                                @Nullable InternalFailure failure,
+                                                @Nullable InternalContextualLabel contextualLabel
+    ) {
         this.additionalData = additionalData;
         this.details = details;
         this.locations = locations;
         this.solutions = solutions;
         this.failure = failure;
+        this.contextualLabel = contextualLabel;
     }
     @Override
     public InternalAdditionalData getAdditionalData() {
@@ -72,5 +79,11 @@ public class DefaultInternalProblemContextDetails implements InternalProblemCont
     @Override
     public InternalFailure getFailure() {
         return failure;
+    }
+
+    @Nullable
+    @Override
+    public InternalContextualLabel getContextualLabel() {
+        return contextualLabel;
     }
 }

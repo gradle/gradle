@@ -28,6 +28,15 @@ import java.util.List;
  */
 @Incubating
 public interface SingleProblemEvent extends ProblemEvent {
+
+    /**
+     * Returns the problem definition.
+     *
+     * @return the definition
+     * @since 8.8
+     */
+    ProblemDefinition getDefinition();
+
     /**
      * Returns the problem category.
      *
@@ -43,6 +52,14 @@ public interface SingleProblemEvent extends ProblemEvent {
      * @since 8.8
      */
     Label getLabel();
+
+    /**
+     * Returns the contextual label.
+     *
+     * @return the problem label
+     * @since 8.8
+     */
+    ContextualLabel getContextualLabel();
 
     /**
      * Returns the details string.
