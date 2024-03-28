@@ -34,6 +34,7 @@ public class GradlePluginVariantsSupport {
         strategy.getDisambiguationRules().add(TargetGradleVersionDisambiguationRule.class);
 
         attributesSchema.addFailureDescriber(IncompatibleGraphVariantFailure.class, NewerGradleNeededByPluginFailureDescriber.class);
+        attributesSchema.addFailureDescriber(IncompatibleGraphVariantFailure.class, TargetJVMVersionOnPluginTooNewFailureDescriber.class);
     }
 
     public static class TargetGradleVersionCompatibilityRule implements AttributeCompatibilityRule<GradlePluginApiVersion> {
