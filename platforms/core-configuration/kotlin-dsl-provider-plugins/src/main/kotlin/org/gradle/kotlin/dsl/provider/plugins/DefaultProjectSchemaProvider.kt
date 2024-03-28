@@ -23,6 +23,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
@@ -44,16 +45,32 @@ import kotlin.reflect.KVisibility
 
 class DefaultProjectSchemaProvider : ProjectSchemaProvider {
 
-    override fun schemaFor(project: Project): TypedProjectSchema =
-        targetSchemaFor(project, typeOfProject).let { targetSchema ->
-            ProjectSchema(
-                targetSchema.extensions,
-                targetSchema.conventions,
-                targetSchema.tasks,
-                targetSchema.containerElements,
-                accessibleConfigurationsOf(project)
-            ).map(::SchemaType)
-        }
+    override fun schemaFor(scriptTarget: Any): TypedProjectSchema? =
+        targetTypeOf(scriptTarget)
+            ?.let { scriptTargetType ->
+                targetSchemaFor(
+                    scriptTarget,
+                    scriptTargetType
+                )
+            }?.let { targetSchema ->
+                ProjectSchema(
+                    targetSchema.extensions,
+                    targetSchema.conventions,
+                    targetSchema.tasks,
+                    targetSchema.containerElements,
+                    (scriptTarget as? Project)
+                        ?.let { accessibleConfigurationsOf(it) }
+                        ?: emptyList(),
+                    scriptTarget
+                ).map(::SchemaType)
+            }
+
+    private
+    fun targetTypeOf(scriptTarget: Any) = when (scriptTarget) {
+        is Project -> typeOfProject
+        is Settings -> typeOfSettings
+        else -> null
+    }
 }
 
 
@@ -268,6 +285,10 @@ fun isPublic(name: String): Boolean =
 
 private
 val typeOfProject = typeOf<Project>()
+
+
+private
+val typeOfSettings = typeOf<Settings>()
 
 
 private
