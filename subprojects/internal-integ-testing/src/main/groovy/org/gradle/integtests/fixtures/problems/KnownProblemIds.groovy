@@ -86,6 +86,7 @@ class KnownProblemIds {
         'deprecation:some-indirect-deprecation-has-been-deprecated' : 'Some indirect deprecation has been deprecated.',
         'deprecation:some-invocation-feature-has-been-deprecated' : 'Some invocation feature has been deprecated.',
         'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption' : 'The detachedConfiguration1 configuration has been deprecated for consumption.',
+        'deprecation:configurations-should-not-act-as-both-a-resolution-root-and-a-variant-simultaneously' : 'Configurations should not act as both a resolution root and a variant simultaneously.',
         'deprecation:the-repositoryhandler-jcenter-method-has-been-deprecated' : 'The RepositoryHandler.jcenter() method has been deprecated.',
         'deprecation:thing-has-been-deprecated' : 'Thing has been deprecated.',
         'deprecation:typed-task-has-been-deprecated' : 'Typed task has been deprecated.',

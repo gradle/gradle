@@ -180,13 +180,13 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption'
-            contextualLabel == 'The detachedConfiguration1 configuration has been deprecated for consumption.'
-        }
-        verifyAll(receivedProblem(1)) {
-            fqid == 'deprecation:while-resolving-configuration-detachedconfiguration-it-was-also-selected-as-a-variant-configurations-should-not-act-as-both-a-resolution-root-and-a-variant-simultaneously-depending-on-the-resolved-configuration-in-this-manner-has-been-deprecated'
+            fqid == 'deprecation:configurations-should-not-act-as-both-a-resolution-root-and-a-variant-simultaneously'
             contextualLabel == 'While resolving configuration \'detachedConfiguration1\', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated.'
             solutions == [ 'Be sure to mark configurations meant for resolution as canBeConsumed=false or use the \'resolvable(String)\' configuration factory method to create them.' ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption'
+            contextualLabel == 'The detachedConfiguration1 configuration has been deprecated for consumption.'
         }
     }
 
