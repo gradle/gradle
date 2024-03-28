@@ -178,7 +178,7 @@ class ConfigurationCacheProblems(
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        val buildDisplayName = buildName ?: "a build"
+        val buildDisplayName = buildName
         val htmlReportFile = report.writeReportFileTo(outputDirectory, buildDisplayName, cacheActionText, requestedTasks, summary.problemCount)
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
@@ -206,7 +206,7 @@ class ConfigurationCacheProblems(
 
     private
     fun ConfigurationCacheStartParameter.requestedTasksOrDefault() =
-        requestedTaskNames.takeIf { it.isNotEmpty() }?.joinToString(" ") ?: "default tasks"
+        requestedTaskNames.takeIf { it.isNotEmpty() }?.joinToString(" ")
 
     private
     fun outputDirectoryFor(buildDir: File): File =

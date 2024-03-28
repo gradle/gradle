@@ -45,19 +45,23 @@ class JsonModelWriter(val writer: Writer) {
         beginArray()
     }
 
-    fun endModel(buildDisplayName: String, cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
+    fun endModel(buildDisplayName: String?, cacheAction: String, requestedTasks: String?, totalProblemCount: Int) {
         endArray()
 
         comma()
         property("totalProblemCount") {
             write(totalProblemCount.toString())
         }
-        comma()
-        property("buildName", buildDisplayName)
+        if (buildDisplayName != null) {
+            comma()
+            property("buildName", buildDisplayName)
+        }
+        if (requestedTasks != null) {
+            comma()
+            property("requestedTasks", requestedTasks)
+        }
         comma()
         property("cacheAction", cacheAction)
-        comma()
-        property("requestedTasks", requestedTasks)
         comma()
         property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
 
