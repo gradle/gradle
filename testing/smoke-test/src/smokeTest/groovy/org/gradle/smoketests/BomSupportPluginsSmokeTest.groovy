@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 
 /**
  * https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
@@ -59,7 +60,11 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         resolve.prepare()
 
         when:
-        runner('checkDep').build()
+        def runner = runner('checkDep')
+        if (bomSupportProvider == "spring dependency management plugin") {
+            runner.expectDeprecationWarning("The LenientConfiguration.getArtifacts(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods", "https://github.com/spring-gradle-plugins/dependency-management-plugin/issues/381")
+        }
+        runner.build()
 
         then:
         def junitDeps = {

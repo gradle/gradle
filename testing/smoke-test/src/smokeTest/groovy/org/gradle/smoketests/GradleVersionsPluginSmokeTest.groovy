@@ -65,6 +65,10 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 "https://github.com/gradle/gradle/issues/24895"
             )
         }
+        runner.expectDeprecationWarning(
+            "The LenientConfiguration.getFirstLevelModuleDependencies(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getFirstLevelModuleDependencies() instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods",
+            "https://github.com/ben-manes/gradle-versions-plugin/pull/856"
+        )
 
         def result = runner.build()
 
