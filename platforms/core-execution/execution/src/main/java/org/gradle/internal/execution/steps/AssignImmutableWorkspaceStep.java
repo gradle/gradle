@@ -227,14 +227,19 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     }
 
     private static ImmutableListMultimap<String, HashCode> calculateOutputHashes(ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
-        return outputSnapshots.entrySet().stream()
+        ImmutableListMultimap<String, HashCode> hashes = outputSnapshots.entrySet().stream()
             .flatMap(entry ->
                 entry.getValue().roots()
+                    .peek(locationSnapshot -> System.out.println("Snapshot:\n" + AssignImmutableWorkspaceStep.describeSnapshot(locationSnapshot)))
                     .map(locationSnapshot -> immutableEntry(entry.getKey(), locationSnapshot.getHash())))
             .collect(toImmutableListMultimap(
                 Map.Entry::getKey,
                 Map.Entry::getValue
             ));
+        if (hashes.containsKey("outputDirectory")) {
+            System.out.println("Output hash: " + hashes.get("outputDirectory"));
+        }
+        return hashes;
     }
 
     private WorkspaceResult moveTemporaryWorkspaceToImmutableLocation(ImmutableWorkspace workspace, WorkspaceMoveHandler move) {
