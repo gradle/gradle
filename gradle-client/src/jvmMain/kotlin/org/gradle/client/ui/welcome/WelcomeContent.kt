@@ -13,16 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.AwtWindow
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.gradle.client.logic.Constants.APPLICATION_DISPLAY_NAME
 import org.gradle.client.logic.build.Build
 import org.gradle.client.ui.composables.Loading
+import org.gradle.client.ui.composables.PathChooserDialog
 import org.gradle.client.ui.composables.PlainTextTooltip
 import org.gradle.client.ui.theme.plusPaneSpacing
-import java.awt.FileDialog
-import java.awt.Frame
-import java.io.File
 
 @Composable
 fun WelcomeContent(component: WelcomeComponent) {
@@ -92,11 +89,18 @@ private fun TopBar() {
 
 @Composable
 private fun AddBuildButton(component: WelcomeComponent) {
-    var isDirChooserOpen by remember { mutableStateOf(false) }
-    if (isDirChooserOpen) {
-        BuildChooserDialog(
-            onBuildChosen = { rootDir ->
-                isDirChooserOpen = false
+    var isPathChooserOpen by remember { mutableStateOf(false) }
+    if (isPathChooserOpen) {
+        PathChooserDialog(
+            helpText = addBuildHelpText,
+            selectableFilter = { path ->
+                path.isFile && path.name.startsWith("settings.gradle")
+            },
+            choiceMapper = { path ->
+                path.parentFile
+            },
+            onPathChosen = { rootDir ->
+                isPathChooserOpen = false
                 if (rootDir != null) {
                     component.onNewBuildRootDirChosen(rootDir)
                 }
@@ -107,33 +111,9 @@ private fun AddBuildButton(component: WelcomeComponent) {
         ExtendedFloatingActionButton(
             icon = { Icon(Icons.Default.Add, "") },
             text = { Text("Add build") },
-            onClick = { isDirChooserOpen = true },
+            onClick = { isPathChooserOpen = true },
         )
     }
 }
 
 private const val addBuildHelpText = "Choose a Gradle settings script"
-
-@Composable
-private fun BuildChooserDialog(
-    parent: Frame? = null,
-    onBuildChosen: (buildRootDir: File?) -> Unit
-) = AwtWindow(
-    create = {
-        object : FileDialog(parent, addBuildHelpText, LOAD) {
-            init {
-                setFilenameFilter { dir, name ->
-                    dir.resolve(name).let { it.isFile && it.name.startsWith("settings.gradle") }
-                }
-            }
-
-            override fun setVisible(value: Boolean) {
-                super.setVisible(value)
-                if (value) {
-                    onBuildChosen(directory?.let(::File))
-                }
-            }
-        }
-    },
-    dispose = FileDialog::dispose
-)

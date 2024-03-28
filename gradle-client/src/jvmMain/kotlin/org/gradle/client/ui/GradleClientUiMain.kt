@@ -11,6 +11,7 @@ import org.gradle.client.logic.Constants.APPLICATION_DISPLAY_NAME
 import org.gradle.client.logic.database.BuildsRepository
 import org.gradle.client.logic.database.sqldelight.ApplicationDatabaseFactory
 import org.gradle.client.logic.database.sqldelight.SqlDriverFactory
+import org.gradle.client.logic.files.AppDirs
 import org.gradle.client.ui.theme.GradleClientTheme
 import org.gradle.client.ui.util.appDirs
 import org.gradle.client.ui.util.runOnUiThread
@@ -34,10 +35,14 @@ fun main() {
         logger.atInfo().log { "DB started" }
     }
 
-    GradleClientUiMain(BuildsRepository(database.buildsQueries)).run()
+    GradleClientUiMain(
+        appDirs,
+        BuildsRepository(database.buildsQueries)
+    ).run()
 }
 
 class GradleClientUiMain(
+    private val appDirs: AppDirs,
     private val buildsRepository: BuildsRepository
 ) : Runnable {
 
@@ -52,6 +57,7 @@ class GradleClientUiMain(
         val uiComponent = runOnUiThread {
             UiComponent(
                 context = DefaultComponentContext(lifecycle = lifecycle),
+                appDirs = appDirs,
                 buildsRepository = buildsRepository,
             )
         }

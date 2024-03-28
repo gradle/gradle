@@ -4,6 +4,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import org.gradle.client.logic.build.Build
 import org.gradle.client.logic.database.sqldelight.generated.queries.BuildsQueries
@@ -21,12 +22,15 @@ class BuildsRepository(
 
     suspend fun fetch(id: String): Flow<Build> =
         withContext(readDispatcher) {
-            queries.select(id, DbBuildMapper).asFlow().map { it.executeAsOne() }
+            queries.select(id, DbBuildMapper).asFlow().mapNotNull { it.executeAsOneOrNull() }
         }
 
     suspend fun insert(build: Build) =
         withContext(writeDispatcher) {
-            queries.insert(build.id, build.rootDir.absolutePath)
+            queries.insert(
+                id = build.id,
+                rootDir = build.rootDir.absolutePath,
+            )
         }
 
     suspend fun delete(build: Build) =

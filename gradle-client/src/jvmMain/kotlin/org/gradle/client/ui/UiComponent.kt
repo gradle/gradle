@@ -5,11 +5,13 @@ import com.arkivanov.decompose.router.stack.*
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
 import org.gradle.client.logic.database.BuildsRepository
+import org.gradle.client.logic.files.AppDirs
 import org.gradle.client.ui.build.BuildComponent
 import org.gradle.client.ui.welcome.WelcomeComponent
 
 class UiComponent(
     context: ComponentContext,
+    private val appDirs: AppDirs,
     private val buildsRepository: BuildsRepository,
 ) : ComponentContext by context {
 
@@ -42,6 +44,7 @@ class UiComponent(
             is Config.Build -> Child.Build(
                 BuildComponent(
                     context = context,
+                    appDirs = appDirs,
                     buildsRepository = buildsRepository,
                     id = config.id,
                     onFinished = { navigation.pop() }

@@ -16,6 +16,7 @@ kotlin {
                 implementation(project.dependencies.platform(libs.kotlin.bom))
                 implementation(project.dependencies.platform(libs.kotlinx.coroutines.bom))
                 implementation(project.dependencies.platform(libs.kotlinx.serialization.bom))
+                implementation(project.dependencies.platform(libs.ktor.bom))
             }
         }
 
@@ -36,6 +37,9 @@ kotlin {
             implementation(libs.decompose.compose)
             implementation(libs.essenty.lifecycle.coroutines)
             implementation(libs.kotlinx.serialization.json)
+
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.ktor.serialization.kotlinx.json)
 
             implementation(libs.materialKolor)
 
