@@ -291,7 +291,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
                 LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
                 boolean plural = suppressedDuplicateBranchCount > 1;
                 if (plural) {
-                    output.append(String.format("There were %d additional failures with the same cause that were not printed.", suppressedDuplicateBranchCount));
+                    output.append(String.format("There are %d more failures with identical causes.", suppressedDuplicateBranchCount));
                 } else {
                     output.append("There was 1 additional failure with the same cause that was not printed.");
                 }
