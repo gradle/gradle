@@ -35,7 +35,7 @@ import org.gradle.internal.build.event.types.DefaultContextualLabel;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
 import org.gradle.internal.build.event.types.DefaultFailure;
-import org.gradle.internal.build.event.types.DefaultProblemDefintion;
+import org.gradle.internal.build.event.types.DefaultProblemDefinition;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
@@ -102,7 +102,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
 
     private InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, Problem problem) {
         return new DefaultProblemEvent(
-            cerateDefaultProblemDescriptor(buildOperationId),
+            createDefaultProblemDescriptor(buildOperationId),
             new DefaultProblemDetails(
                 toInternalDefinition(problem.getDefinition()),
                 toInternalDetails(problem.getDetails()),
@@ -123,26 +123,26 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         return DefaultFailure.fromThrowable(ex);
     }
 
-    private InternalProblemDescriptor cerateDefaultProblemDescriptor(OperationIdentifier parentBuildOperationId) {
+    private InternalProblemDescriptor createDefaultProblemDescriptor(OperationIdentifier parentBuildOperationId) {
         return new DefaultProblemDescriptor(
             operationIdentifierSupplier.get(),
             parentBuildOperationId);
     }
 
     private static InternalProblemDefinition toInternalDefinition(ProblemDefinition definition) {
-        return new DefaultProblemDefintion(
-                toInternalId(definition.getId()),
+        return new DefaultProblemDefinition(
+            toInternalId(definition.getId()),
             toInternalSeverity(definition.getSeverity()),
             toInternalDocumentationLink(definition.getDocumentationLink())
-                );
-        }
+        );
+    }
 
-        private static InternalProblemId toInternalId(ProblemId problemId) {
-            return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toInternalGroup(problemId.getGroup()));
-        }
+    private static InternalProblemId toInternalId(ProblemId problemId) {
+        return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toInternalGroup(problemId.getGroup()));
+    }
 
-        private static InternalProblemGroup toInternalGroup(ProblemGroup group) {
-            return new DefaultProblemGroup(group.getName(), group.getDisplayName(), group.getParent() == null ? null : toInternalGroup(group.getParent()));
+    private static InternalProblemGroup toInternalGroup(ProblemGroup group) {
+        return new DefaultProblemGroup(group.getName(), group.getDisplayName(), group.getParent() == null ? null : toInternalGroup(group.getParent()));
     }
 
     private static @Nullable InternalContextualLabel toInternalContextualLabel(@Nullable String contextualLabel) {

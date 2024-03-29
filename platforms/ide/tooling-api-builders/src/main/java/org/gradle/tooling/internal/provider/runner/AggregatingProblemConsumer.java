@@ -86,15 +86,15 @@ public class AggregatingProblemConsumer {
     }
 
     private static DefaultInternalProblemAggregation createProblemAggregation(List<InternalProblemEventVersion2> aggregatedEvents) {
-        InternalProblemDetailsVersion2 details1 = aggregatedEvents.iterator().next().getDetails();
-        if (!(details1 instanceof InternalBasicProblemDetailsVersion3)) {
-            throw new UnsupportedOperationException("Unsupported problem details: " + details1.getClass().getName());
+        InternalProblemDetailsVersion2 details = aggregatedEvents.iterator().next().getDetails();
+        if (!(details instanceof InternalBasicProblemDetailsVersion3)) {
+            throw new UnsupportedOperationException("Unsupported problem details: " + details.getClass().getName());
         }
-        InternalBasicProblemDetailsVersion3 d = (InternalBasicProblemDetailsVersion3) details1;
+        InternalBasicProblemDetailsVersion3 detailsV3 = (InternalBasicProblemDetailsVersion3) details;
         List<InternalProblemContextDetails> aggregatedContextDetails = aggregatedEvents.stream().map(event -> {
-            InternalProblemDetailsVersion2 details = event.getDetails();
-            if (details instanceof InternalBasicProblemDetailsVersion3) {
-                InternalBasicProblemDetailsVersion3 basicDetails = (InternalBasicProblemDetailsVersion3) details;
+            InternalProblemDetailsVersion2 detailsV2 = event.getDetails();
+            if (detailsV2 instanceof InternalBasicProblemDetailsVersion3) {
+                InternalBasicProblemDetailsVersion3 basicDetails = (InternalBasicProblemDetailsVersion3) detailsV2;
                 return new DefaultInternalProblemContextDetails(
                     basicDetails.getAdditionalData(),
                     basicDetails.getDetails(),
@@ -104,10 +104,10 @@ public class AggregatingProblemConsumer {
                     basicDetails.getContextualLabel()
                 );
             } else {
-                throw new UnsupportedOperationException("Unsupported problem details: " + details.getClass().getName());
+                throw new UnsupportedOperationException("Unsupported problem details: " + detailsV2.getClass().getName());
             }
     }).collect(toImmutableList());
-        return new DefaultInternalProblemAggregation(d.getDefinition(), aggregatedContextDetails);
+        return new DefaultInternalProblemAggregation(detailsV3.getDefinition(), aggregatedContextDetails);
     }
 
     void emit(InternalProblemEventVersion2 problem) {

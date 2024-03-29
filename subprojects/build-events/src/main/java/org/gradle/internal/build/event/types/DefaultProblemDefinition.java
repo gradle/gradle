@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 
 @NonNullApi
-public class DefaultProblemDefintion implements InternalProblemDefinition, Serializable {
+public class DefaultProblemDefinition implements InternalProblemDefinition, Serializable {
 
     private final InternalProblemId id;
 
@@ -34,7 +34,7 @@ public class DefaultProblemDefintion implements InternalProblemDefinition, Seria
 
     private final InternalDocumentationLink documentationLink;
 
-    public DefaultProblemDefintion(InternalProblemId id, InternalSeverity severity, @Nullable InternalDocumentationLink documentationLink) {
+    public DefaultProblemDefinition(InternalProblemId id, InternalSeverity severity, @Nullable InternalDocumentationLink documentationLink) {
         this.id = id;
         this.severity = severity;
         this.documentationLink = documentationLink;
