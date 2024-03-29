@@ -22,9 +22,12 @@ description = "Contains the java-library plugin, and its supporting classes.  Th
 
 dependencies {
     api(project(":core-api"))
+    api(project(":dependency-management"))
 
     api(libs.inject)
 
+    implementation(project(":base-annotations"))
+    implementation(project(":base-services"))
     implementation(project(":base-services"))
     implementation(project(":language-java"))
     implementation(project(":language-jvm"))
@@ -32,6 +35,8 @@ dependencies {
     implementation(project(":plugins-distribution"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-jvm-test-suite"))
+
+    implementation(libs.guava)
 
     runtimeOnly(project(":core"))
     runtimeOnly(project(":platform-base"))

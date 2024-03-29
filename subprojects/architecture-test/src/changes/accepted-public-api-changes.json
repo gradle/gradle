@@ -7,6 +7,22 @@
             "changes": [
                 "org.gradle.api.provider.SupportsConvention"
             ]
+        },
+        {
+            "type": "org.gradle.api.file.ConfigurableFileCollection",
+            "member": "Class org.gradle.api.file.ConfigurableFileCollection",
+            "acceptation": "Introduce SupportsConvention",
+            "changes": [
+                "org.gradle.api.provider.SupportsConvention"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getKmp-failure-describers(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Experimenting with KMP failure describer plugin",
+            "changes": [
+                "Method added to public class"
+            ]
         }
     ]
 }
