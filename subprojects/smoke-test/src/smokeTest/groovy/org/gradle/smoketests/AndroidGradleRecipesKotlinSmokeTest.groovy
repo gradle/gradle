@@ -23,7 +23,7 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
-class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
+class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements RunnerFactory {
 
     @Issue('https://github.com/gradle/gradle/issues/23014')
     def "android gradle recipes: custom BuildConfig field in Kotlin (agp=#agpVersion, provider=#providerType)"() {
@@ -127,11 +127,11 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
             </manifest>'''.stripIndent()
 
         and:
-        def runner = useAgpVersion(agpVersion, runner(taskName))
+        def runner = mixedRunner(false, agpVersion, kotlinVersionNumber, taskName)
 
         when: 'running the build for the 1st time'
         beforeAndroidBuild(runner)
-        def result = runnerFor(runner, agpVersion, kotlinVersionNumber).build()
+        def result = runner.build()
 
         then:
         result.task(":app:$taskName").outcome == TaskOutcome.SUCCESS
@@ -142,7 +142,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
         }
 
         when: 'running the build for the 2nd time'
-        result = runnerFor(runner, agpVersion, kotlinVersionNumber).build()
+        result = runner.build()
 
         then:
         result.task(":app:$taskName").outcome == TaskOutcome.UP_TO_DATE
@@ -189,13 +189,5 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
             runner.projectDir,
             IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir
         )
-    }
-
-    private SmokeTestGradleRunner runnerFor(
-        SmokeTestGradleRunner runner,
-        String agpVersion,
-        VersionNumber kotlinVersionNumber
-    ) {
-        runner.ignoreDeprecationWarningsIf(AGP_VERSIONS.isOld(agpVersion) || KOTLIN_VERSIONS.isOld(kotlinVersionNumber), "Old version of AGP or KGP")
     }
 }
