@@ -47,11 +47,11 @@ Our build currently consists of a root project called `authoring-tutorial`, whic
 =====
 [source, kotlin]
 ----
-.                           // <1>
-├── app                     // <2>
-│   ...                     // <3>
-│   └── build.gradle.kts    // <4>
-└── settings.gradle.kts     // <5>
+.   // <1>
+├── app // <2>
+│   ... // <3>
+│   └── build.gradle.kts // <4>
+└── settings.gradle.kts  // <5>
 ----
 <1> The `authoring-tutorial` root project
 <2> The `app` subproject
@@ -63,11 +63,11 @@ Our build currently consists of a root project called `authoring-tutorial`, whic
 =====
 [source, groovy]
 ----
-.                           // <1>
-├── app                     // <2>
-│   ...                     // <3>
-│   └── build.gradle        // <4>
-└── settings.gradle         // <5>
+.   // <1>
+├── app // <2>
+│   ... // <3>
+│   └── build.gradle // <4>
+└── settings.gradle  // <5>
 ----
 <1> The `authoring-tutorial` root project
 <2> The `app` subproject
@@ -292,6 +292,7 @@ include("lib") // Add lib to the build
 =====
 [.multi-language-sample]
 =====
+.settings.gradle
 [source, groovy]
 ----
 plugins {
@@ -408,7 +409,7 @@ cd license-plugin
 Once in the `gradle/license-plugin` directory, run `gradle init`.
 Make sure that you select the `Gradle plugin` project as well as the other options for the `init` task below:
 
-.multi-language-sample]
+[.multi-language-sample]
 =====
 [source, kotlin]
 ----

@@ -49,11 +49,11 @@ Early on in the tutorial, we registered and configured `task1` in the `app` buil
 .app/build.gradle.kts
 [source,kotlin]
 ----
-tasks.register("task1"){
+tasks.register("task1"){  // <1>
     println("REGISTER TASK1: This is executed during the configuration phase")
 }
 
-tasks.named("task1"){
+tasks.named("task1"){  // <2>
     println("NAMED TASK1: This is executed during the configuration phase")
     doFirst {
         println("NAMED TASK1 - doFirst: This is executed during the execution phase")
@@ -63,19 +63,19 @@ tasks.named("task1"){
     }
 }
 ----
-You can use the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-task-container/index.html[register()] method to create new tasks.
-You can use the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-task-collection/index.html[named()] method to configure existing tasks.
+<1> You can use the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-task-container/index.html[register()] method to create new tasks.
+<2> You can use the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-task-collection/index.html[named()] method to configure existing tasks.
 =====
 [.multi-language-sample]
 =====
 .app/build.gradle
 [source, groovy]
 ----
-tasks.register("task1") {
+tasks.register("task1") {  // <1>
     println("REGISTER TASK1: This is executed during the configuration phase")
 }
 
-tasks.named("task1") {
+tasks.named("task1") {  // <2>
     println("NAMED TASK1: This is executed during the configuration phase")
     doFirst {
         println("NAMED TASK1 - doFirst: This is executed during the execution phase")
@@ -85,13 +85,13 @@ tasks.named("task1") {
     }
 }
 ----
-You can use the link:{xxxxxxx}/gradle/org.gradle.api.tasks/-task-container/index.html[register()] method to create new tasks.
-You can use the link:{xxxxxxx}/gradle/org.gradle.api.tasks/-task-collection/index.html[named()] method to configure existing tasks.
+<1> You can use the link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer:register(java.lang.String)[register()] method to create new tasks.
+<2> You can use the link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer:named(java.lang.String)[named()] method to configure existing tasks.
 =====
 
 == Step 3. Create a custom Task
 
-To create a custom task, you must subclass link:{kotlinDslPath}/gradle/org.gradle.api/-default-task/index.html[`DefaultTask`] or link{xxxxxxxx}.
+To create a custom task, you must subclass link:{groovyDslPath}/org.gradle.api.DefaultTask.html#org.gradle.api.DefaultTask[`DefaultTask`] in Groovy DSL or link:{kotlinDslPath}/gradle/org.gradle.api/-default-task/index.html[`DefaultTask`] in Kotlin DSL.
 
 Create a custom class called `LicenseTask` with the code below and add it to the bottom of the `gradle/license-plugin/plugin/src/main/kotlin/license/LicensePlugin.kt` or `gradle/license-plugin/plugin/src/main/groovy/license/LicensePlugin.groovy` file:
 

@@ -123,14 +123,14 @@ repositories {                                                      // <4>
 }
 
 dependencies {                                                      // <6>
-    testImplementation libs.spock.core                              // <7>
+    testImplementation libs.spock.core
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-gradlePlugin {                                                      // <8>
+gradlePlugin {                                                      // <7>
     plugins {
         greeting {
-            id = 'license.greeting'                                 // <9>
+            id = 'license.greeting'                                 // <8>
             implementationClass = 'license.LicensePlugin'
         }
     }
@@ -138,15 +138,14 @@ gradlePlugin {                                                      // <8>
 
 // Additional lines //
 ----
-<1> Use the `plugins{}` block from link:{xxxxxxxx}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript] in the Kotlin DSL
+<1> Use the `plugins{}` block from the link:{groovyDslPath}/org.gradle.plugin.use.PluginDependenciesSpec.html[PluginDependenciesSpec API] in the Groovy DSL
 <2> Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
-<3> Apply the Kotlin JVM plugin to add support for Kotlin
-<4> Use link:{xxxxxxxx}/gradle/org.gradle.api/-project/repositories.html[`Project.repositories()`] to configure the repositories for this project
+<3> Apply the Groovy plugin to add support for Groovy
+<4> Use link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories[`Project.repositories()`] to configure the repositories for this project
 <5> Use link:https://repo.maven.apache.org/maven2/[Maven Central] for resolving dependencies
-<6> Use link:{xxxxxxxx}/gradle/org.gradle.api/-project/dependencies.html[`Project.dependencies()`] to configure the dependencies for this project
-<7> Use the Kotlin JUnit 5 integration
-<8> Use the `gradlePlugin{}` block from link:{xxxxxxxx}/gradle/org.gradle.plugin.devel/-gradle-plugin-development-extension/index.html[GradlePluginDevelopmentExtension] in the Kotlin DSL
-<9> Define the plugin `id` and `implementationClass`
+<6> Use link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:dependencies[`Project.dependencies()`] to configure the dependencies for this project
+<7> Use the `gradlePlugin{}` block from the link:{groovyDslPath}/org.gradle.api.plugins.PluginAware.html[PluginAware API] in the Groovy DSL
+<8> Define the plugin `id` and `implementationClass`
 =====
 
 Plugins, which enhance your build capabilities, are included like this:
@@ -200,7 +199,8 @@ Dependencies are requirements for building your application or library:
 [source, kotlin]
 ----
 dependencies {
-    implementation("org.apache.commons:commons-lang3:3.13.0")   // group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+    // group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+    implementation("org.apache.commons:commons-lang3:3.13.0")
 }
 ----
 =====
@@ -209,7 +209,8 @@ dependencies {
 [source, groovy]
 ----
 dependencies {
-    implementation 'org.apache.commons:commons-lang3:3.13.0'    // group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+    // group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+    implementation 'org.apache.commons:commons-lang3:3.13.0'
 }
 ----
 =====
@@ -220,16 +221,16 @@ Every dependency declared for a Gradle project must apply to a scope.
 That is, the dependency is either needed at compile time, runtime, or both.
 This is called a configuration and the `implementation` configuration is used when the dependency is only needed in the runtime classpath.
 
-Configuration blocks (not to be confused with dependency configurations above) are typically further configuration required by an applied plugin:
+Configuration blocks (not to be confused with dependency configurations above) are typically used to configure an applied plugin:
 
 [.multi-language-sample]
 =====
 [source, kotlin]
 ----
-gradlePlugin {
-    val greeting by plugins.creating {
-        id = "license.greeting"
-        implementationClass = "license.LicensePlugin"
+gradlePlugin {  // Define a custom plugin
+    val greeting by plugins.creating {  // Define `greeting` plugin using the `plugins.creating` method
+        id = "license.greeting" // Create plugin with the specified ID
+        implementationClass = "license.LicensePlugin"   // and specified implementation class
     }
 }
 ----
@@ -238,11 +239,11 @@ gradlePlugin {
 =====
 [source, groovy]
 ----
-gradlePlugin {
+gradlePlugin {  // Define a custom plugin
     plugins {
-        greeting {
-            id = 'license.greeting'
-            implementationClass = 'license.LicensePlugin'
+        greeting {  // Define a plugin named greeting
+            id = 'license.greeting' // using the id
+            implementationClass = 'license.LicensePlugin' // and implementationClass
         }
     }
 }
@@ -287,39 +288,16 @@ tasks.named('test') {
 ----
 =====
 
+In the example generated by Gradle init, we define two tasks:
+
+1. `functionalTest`: This task is registered using `tasks.register()`. It configures the test task for functional tests.
+
+2. `test`: This task is configured using `tasks.named()` for the existing `test` task. It also configures the task to use JUnit Jupiter for unit tests.
+
 == Step 3. Update the Build scripts
 
-Build init creates a "hello world" plugin when creating a Gradle plugin project:
-
-[.multi-language-sample]
-=====
-.gradle/license-plugin/plugin/src/main/kotlin/license/LicensePlugin.kt
-[source,kotlin]
-----
-/**
- * A simple 'hello world' plugin.
- */
-class LicensePlugin : Plugin<Project> {
-
-}
-----
-=====
-[.multi-language-sample]
-=====
-.gradle/license-plugin/plugin/src/main/groovy/license/LicensePlugin.groovy
-[source,groovy]
-----
-/**
- * A simple 'hello world' plugin.
- */
-class LicensePlugin implements Plugin<Project> {
-
-}
-----
-=====
-
-Over the following sections, we will write a plugin that automatically generates license headers for source code files.
-Let's update the build script with the proper name for our new `license` plugin:
+Over the following sections, we will update `LicensePlugin` to a plugin that automatically generates license headers for source code files.
+Let's first update the build script with the proper name for our new `license` plugin:
 
 [.multi-language-sample]
 =====
@@ -362,7 +340,7 @@ Let's apply our `license` plugin to the `app` subproject:
 ----
 plugins {
     application
-    id("com.tutorial.license")    // Apply the license plugin
+    id("com.tutorial.license")  // Apply the license plugin
 }
 ----
 =====
@@ -373,14 +351,15 @@ plugins {
 ----
 plugins {
     id 'application'
-    id('com.tutorial.license')
+    id('com.tutorial.license')  // Apply the license plugin
 }
 ----
 =====
 
 == Step 4. View Plugin Task
 
-The source code for the `license` plugin is also the "hello world" sample created by Gradle init:
+Build init creates a "hello world" plugin when generating a Gradle plugin project.
+Inside `LicensePlugin` is simply a task that prints a greeting to the console, the task name is `greeting`:
 
 [.multi-language-sample]
 =====
@@ -416,7 +395,7 @@ class LicensePlugin implements Plugin<Project> {
 ----
 =====
 
-As we can see, the `license` plugin, when applied, contains a `greeting` task with a simple print statement.
+As we can see, the `license` plugin, when applied, exposes a `greeting` task with a simple print statement.
 
 == Step 5. View Plugin Tasks
 

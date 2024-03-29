@@ -104,6 +104,7 @@ includeBuild("gradle/license-plugin")                                       // <
 =====
 [.multi-language-sample]
 =====
+.settings.gradle
 [source, groovy]
 ----
 plugins {                                                                   // <1>
