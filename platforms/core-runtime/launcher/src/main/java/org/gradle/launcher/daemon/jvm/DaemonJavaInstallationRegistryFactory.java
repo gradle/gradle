@@ -63,7 +63,7 @@ public class DaemonJavaInstallationRegistryFactory implements JavaInstallationRe
     @Override
     public JavaInstallationRegistry getRegistry(StartParameter startParameter) {
         List<InstallationSupplier> installationSuppliers = getInstallationSuppliers(startParameter);
-        return new JavaInstallationRegistry(installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory);
+        return new JavaInstallationRegistry(installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, null);
     }
 
     private List<InstallationSupplier> getInstallationSuppliers(StartParameter startParameter) {
