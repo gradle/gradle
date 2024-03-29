@@ -59,21 +59,34 @@ You can use any of the methods and properties on the link:{groovyDslPath}/org.gr
 
 For example:
 
-[source,kotlin]
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
- includeBuild("some-build")                         // Delegates to Settings.includeBuild()
- reportsDir = findProject("/myInternalProject")     // Delegates to Settings.findProject()
+includeBuild("some-build")                         // Delegates to Settings.includeBuild()
+reportsDir = findProject("/myInternalProject")     // Delegates to Settings.findProject()
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+includeBuild('some-build')                         // Delegates to Settings.includeBuild()
+reportsDir = findProject('/myInternalProject')     // Delegates to Settings.findProject()
+----
+=====
 
 == Step 3. The Settings file
 
 Let's break down the settings file in our project root directory:
 
+[.multi-language-sample]
+=====
 .settings.gradle.kts
 [source,kotlin]
 ----
 plugins {                                                                   // <1>
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"  // <2>
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"  // <2>
 }
 
 rootProject.name = "authoring-tutorial"                                     // <3>
@@ -83,11 +96,33 @@ include("lib")
 
 includeBuild("gradle/license-plugin")                                       // <5>
 ----
+<1> `plugins({})` from the link:{groovyDslPath}/org.gradle.plugin.use.PluginDependenciesSpec.html[PluginDependenciesSpec API]
+<2> `id()` method from the link:{groovyDslPath}/org.gradle.plugin.use.PluginDependenciesSpec.html[PluginDependenciesSpec API]
+<3> `getRootProject()` method from the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings API]
+<4> `include()` method from the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings API]
+<5> `includeBuild()` method from the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings API]
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+plugins {                                                                   // <1>
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'   // <2>
+}
+
+rootProject.name = 'running-tutorial-groovy'                                // <3>
+
+include('app')                                                              // <4>
+include('lib')
+
+includeBuild('gradle/license-plugin')                                       // <5>
+----
 <1> `plugins({})` method from link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript] in the Kotlin DSL
 <2> `id()` method from the link:{kotlinDslPath}/gradle/org.gradle.plugin.use/-plugin-dependencies-spec/index.html[PluginDependenciesSpec API]
 <3> `getRootProject()` method from the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings API]
 <4> `include()` method from the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings API]
 <5> `includeBuild()` method from the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[Settings API]
+=====
 
 [.text-right]
 **Next Step:** <<partr5_build_scripts#partr5_build_scripts,Writing a Build Script>> >>

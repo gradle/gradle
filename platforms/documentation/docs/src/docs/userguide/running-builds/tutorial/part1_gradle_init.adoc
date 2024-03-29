@@ -78,7 +78,7 @@ $ gradle init --type java-application  --dsl groovy
 ----
 =====
 
-Select defaults for any additional promps.
+Select defaults for any additional prompts.
 
 NOTE: In this tutorial, all examples are macOS based.
 
