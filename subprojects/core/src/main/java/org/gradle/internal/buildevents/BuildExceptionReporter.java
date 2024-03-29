@@ -293,7 +293,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
                 if (plural) {
                     output.append(String.format("There are %d more failures with identical causes.", suppressedDuplicateBranchCount));
                 } else {
-                    output.append("There was 1 additional failure with the same cause that was not printed.");
+                    output.append("There is 1 more failure with an identical cause.");
                 }
             }
         }

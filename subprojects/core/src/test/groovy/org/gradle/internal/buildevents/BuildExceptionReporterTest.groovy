@@ -484,7 +484,7 @@ $GET_HELP
 Could not resolve all task dependencies for org:example:1.0.
 {info}> {normal}first failure
    {info}> {normal}ultimate cause
-{info}> {normal}There was 1 additional failure with the same cause that was not printed.
+{info}> {normal}There is 1 more failure with an identical cause.
 
 * Try:
 $STACKTRACE
@@ -514,7 +514,7 @@ $GET_HELP
 Could not resolve all task dependencies for org:example:1.0.
 {info}> {normal}first failure
    {info}> {normal}ultimate cause
-{info}> {normal}There were 2 additional failures with the same cause that were not printed.
+{info}> {normal}There are 2 more failures with identical causes.
 
 * Try:
 $STACKTRACE
@@ -546,7 +546,7 @@ $GET_HELP
 Could not resolve all task dependencies for org:example:1.0.
 {info}> {normal}first failure
    {info}> {normal}ultimate cause
-{info}> {normal}There was 1 additional failure with the same cause that was not printed.
+{info}> {normal}There is 1 more failure with an identical cause.
 
 * Try:
 $STACKTRACE
@@ -585,7 +585,7 @@ Could not resolve all task dependencies for org:example:1.0.
    {info}> {normal}ultimate cause 1
 {info}> {normal}forth failure
    {info}> {normal}ultimate cause 2
-{info}> {normal}There were 4 additional failures with the same cause that were not printed.
+{info}> {normal}There are 4 more failures with identical causes.
 
 * Try:
 $STACKTRACE

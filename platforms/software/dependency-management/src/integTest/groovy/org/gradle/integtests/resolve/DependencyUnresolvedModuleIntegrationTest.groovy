@@ -223,7 +223,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
 
         then: "the original failure cause is reported and the subsequent failures which only duplicate the same info are skipped"
         assertDependencyMetaDataReadTimeout(moduleA)
-        assertAdditionalFailuresMessagePrinted(2)
+        failure.assertHasErrorOutput("There are 2 more failures with identical causes.")
         outputDoesNotContain("Could not resolve ${mavenModuleCoordinates(moduleD)}")
         outputDoesNotContain("Could not resolve ${mavenModuleCoordinates(moduleE)}")
         !downloadedLibsDir.isDirectory()
@@ -462,11 +462,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'.")
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${mavenModuleRepositoryPath(module)}.pom'.")
         failure.assertHasCause("Read timed out")
-    }
-
-    private void assertAdditionalFailuresMessagePrinted(int count) {
-        def plural = count > 1
-        failure.assertHasErrorOutput("> There were $count additional failure${plural ? "s" : ""} with the same cause that ${plural ? "were" : "was"} not printed.")
     }
 
     private void assertDependencyMetaDataInternalServerError(MavenModule module) {
