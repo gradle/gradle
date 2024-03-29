@@ -274,11 +274,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.property = property;
         }
 
-//        @Override
-//        protected String createDefaultDeprecationIdDisplayName() {
-//            return createDefaultDeprecationId("property", this.propertyClass.getSimpleName(), this.property);
-//        }
-
         @Override
         public WithDeprecationTimeline willBeRemovedInGradle9() {
             setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE9));
@@ -328,11 +323,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             // This never happens in user code
             setIndirectUsage();
         }
-
-//        @Override
-//        protected String createDefaultDeprecationIdDisplayName() {
-//            return createDefaultDeprecationId("system-property", this.systemProperty);
-//        }
 
         @Override
         String formatSubject() {
@@ -445,11 +435,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(invocation);
         }
 
-//        @Override
-//        protected String createDefaultDeprecationIdDisplayName() {
-//            return createDefaultDeprecationId("invocation", this.subject);
-//        }
-
         @Override
         String formatSummary(String invocation) {
             return String.format("Using method %s has been deprecated.", invocation);
@@ -467,11 +452,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(type);
         }
 
-//        @Override
-//        protected String createDefaultDeprecationIdDisplayName() {
-//            return createDefaultDeprecationId("type", this.subject);
-//        }
-
         @Override
         String formatSummary(String type) {
             return String.format("The %s type has been deprecated.", type);
@@ -487,11 +467,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         DeprecateTask(String task) {
             super(task);
         }
-
-//        @Override
-//        protected String createDefaultDeprecationIdDisplayName() {
-//            return createDefaultDeprecationId("task", this.subject);
-//        }
 
         @Override
         String formatSummary(String task) {
@@ -512,11 +487,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             this.path = path;
         }
 
-//        @Override
-//        protected String createDefaultDeprecationIdDisplayName() {
-//            return createDefaultDeprecationId("task-type", path, this.subject);
-//        }
-
         @Override
         String formatSummary(String type) {
             return String.format("The task type %s (used by the %s task) has been deprecated.", type, path);
@@ -535,11 +505,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         DeprecatePlugin(String plugin) {
             super(plugin);
         }
-
-//        @Override
-//        protected String createDefaultDeprecationIdDisplayName() {
-//            return createDefaultDeprecationId("plugin", this.subject);
-//        }
 
         @Override
         String formatSummary(String plugin) {
@@ -565,11 +530,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(api);
         }
 
-//        @Override
-//        protected String createDefaultDeprecationIdDisplayName() {
-//            return createDefaultDeprecationId("internal-api", this.subject);
-//        }
-
         @Override
         String formatSummary(String api) {
             return String.format("Internal API %s has been deprecated.", api);
@@ -588,11 +548,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         public DeprecateBehaviour(String behaviour) {
             this.behaviour = behaviour;
         }
-
-//        @Override
-//        protected String createDefaultDeprecationIdDisplayName() {
-//            return createDefaultDeprecationId("behaviour", behaviour);
-//        }
 
         /**
          * Output: This behavior is scheduled to be removed in Gradle 9.0.
