@@ -33,9 +33,27 @@ public @interface UpgradedDeprecation {
      */
     boolean enabled() default true;
 
+    /**
+     * Corresponds to .willBeRemovedInGradle9() in the DeprecationLogger
+     */
     int removedIn() default -1;
 
-    int withUpgradeGuideVersion() default -1;
+    /**
+     * Corresponds to .withUpgradeGuideSection(majorVersion, section) in the DeprecationLogger
+     */
+    int withUpgradeGuideMajorVersion() default -1;
 
+    /**
+     * Corresponds to .withUpgradeGuideSection(majorVersion, section) in the DeprecationLogger
+     *
+     * withUpgradeGuideSection is only added if withUpgradeGuideMajorVersion is set
+     */
     String withUpgradeGuideSection() default "";
+
+    /**
+     * Corresponds to .withDslReference() in the DeprecationLogger
+     *
+     * WithDslReference has lower priority than withUpgradeGuideSection
+     */
+    boolean withDslReference() default false;
 }

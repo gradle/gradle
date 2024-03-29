@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.jacksonDatabind)
 
     implementation(project(":base-services"))
+    implementation(project(":logging"))
 
     testCompileOnly(libs.jetbrainsAnnotations)
 

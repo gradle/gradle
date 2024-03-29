@@ -99,8 +99,8 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
         CallInterceptionRequest firstRequest = requests.get(0);
         PropertyUpgradeRequestExtra upgradeExtra = firstRequest.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get();
         String propertyName = upgradeExtra.getPropertyName();
-        String methodName = upgradeExtra.getInterceptedPropertyAccessorName();
-        String methodDescriptor = upgradeExtra.getInterceptedPropertyAccessorDescriptor();
+        String methodName = upgradeExtra.getMethodName();
+        String methodDescriptor = upgradeExtra.getMethodDescriptor();
         String containingType = firstRequest.getInterceptedCallable().getOwner().getType().getClassName();
         List<UpgradedMethod> upgradedMethods = requests.stream()
             .map(request -> {

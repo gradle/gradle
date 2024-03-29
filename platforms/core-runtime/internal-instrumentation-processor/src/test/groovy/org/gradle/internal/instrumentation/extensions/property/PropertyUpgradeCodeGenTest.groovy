@@ -40,6 +40,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.api.provider.Property;
             import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
             import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+            import org.gradle.internal.instrumentation.api.annotations.UpgradedDeprecation;
 
             @VisitForInstrumentation(value = {Task.class})
             public abstract class Task {
@@ -58,10 +59,12 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             public class Task_Adapter {
                 public static int access_get_getMaxErrors(Task self) {
+                    ${getDefaultDeprecation("Task", "maxErrors")}
                     return self.getMaxErrors().getOrElse(0);
                 }
 
                 public static void access_set_setMaxErrors(Task self, int arg0) {
+                    ${getDefaultDeprecation("Task", "maxErrors")}
                     self.getMaxErrors().set(arg0);
                 }
             }
@@ -69,7 +72,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
             .generatedSourceFile(fqName(generatedClass))
-            .hasSourceEquivalentTo(generatedClass)
+            .containsElementsIn(generatedClass)
     }
 
     def "should auto generate adapter for upgraded property with boolean"() {
@@ -119,10 +122,12 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
             public class Task_Adapter {
                 public static boolean access_get_isIncremental(Task self) {
+                    ${getDefaultDeprecation("Task", "incremental")}
                     return self.getIncremental().getOrElse(false);
                 }
 
                 public static Task access_set_setIncremental(Task self, boolean arg0) {
+                    ${getDefaultDeprecation("Task", "incremental")}
                     self.getIncremental().set(arg0);
                     return self;
                 }
@@ -134,7 +139,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             .containsElementsIn(generatedClass)
         assertThat(compilation)
             .generatedSourceFile(fqName(adapterClass))
-            .hasSourceEquivalentTo(adapterClass)
+            .containsElementsIn(adapterClass)
     }
 
     def "should auto generate adapter for upgraded property with type #upgradedType"() {
@@ -163,16 +168,19 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         def generatedClass = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
             ${imports.collect { "import $it.name;" }.join("\n")}
+            import org.gradle.internal.deprecation.DeprecationLogger;
             import org.gradle.test.Task;
 
             public class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_${getterPrefix}Property(Task self) {
+                    ${getDefaultDeprecation("Task", "property")}
                     return $getCall;
                 }
 
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static void access_set_setProperty(Task self, $originalType arg0) {
+                    ${getDefaultDeprecation("Task", "property")}
                     self.getProperty()$setCall;
                 }
             }
@@ -342,5 +350,13 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation)
             .generatedSourceFile(fqName(generatedClass))
             .containsElementsIn(generatedClass)
+    }
+
+    private static String getDefaultDeprecation(String className, String propertyName) {
+        return "DeprecationLogger.deprecateProperty(" + className + ".class, \"" + propertyName + "\")\n" +
+            ".withContext(\"Property was automatically upgraded to the lazy version.\")\n" +
+            ".startingWithGradle9(\"Property is replaced with lazy version.\")\n" +
+            ".undocumented()\n" +
+            ".nagUser();";
     }
 }

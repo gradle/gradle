@@ -161,19 +161,25 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private DeprecationSpec readDeprecationSpec(AnnotationMirror annotation) {
-        boolean enabled = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "enabled")
+        AnnotationMirror deprecation = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "deprecation")
+            .map(v -> (AnnotationMirror) v.getValue())
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'deprecation' attribute in @UpgradedProperty"));
+        boolean enabled = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "enabled")
             .map(annotationValue -> (Boolean) annotationValue.getValue())
-            .orElse(false);
-        int removedIn = AnnotationUtils.findAnnotationValue(annotation, "removedIn")
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'enabled' attribute in @UpgradedDeprecation"));
+        int removedIn = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "removedIn")
             .map(annotationValue -> (int) annotationValue.getValue())
-            .orElse(-1);
-        int withUpgradeGuideVersion = AnnotationUtils.findAnnotationValue(annotation, "withUpgradeGuideVersion")
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'removedIn' attribute in @UpgradedDeprecation"));
+        int withUpgradeGuideVersion = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "withUpgradeGuideMajorVersion")
             .map(annotationValue -> (int) annotationValue.getValue())
-            .orElse(-1);
-        String withUpgradeGuideSection = AnnotationUtils.findAnnotationValue(annotation, "withUpgradeGuideSection")
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'withUpgradeGuideMajorVersion' attribute in @UpgradedDeprecation"));
+        String withUpgradeGuideSection = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "withUpgradeGuideSection")
             .map(annotationValue -> (String) annotationValue.getValue())
-            .orElse("");
-        return new DeprecationSpec(enabled, removedIn, withUpgradeGuideVersion, withUpgradeGuideSection);
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'withUpgradeGuideSection' attribute in @UpgradedDeprecation"));
+        boolean withDslReference = AnnotationUtils.findAnnotationValueWithDefaults(elements, deprecation, "withDslReference")
+            .map(annotationValue -> (boolean) annotationValue.getValue())
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'withDslReference' attribute in @UpgradedDeprecation"));
+        return new DeprecationSpec(enabled, removedIn, withUpgradeGuideVersion, withUpgradeGuideSection, withDslReference);
     }
 
     private BinaryCompatibility readBinaryCompatibility(AnnotationMirror annotation) {
@@ -308,13 +314,16 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName, BYTECODE_UPGRADE));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
         GradleLazyType gradleLazyType = GradleLazyType.from(extractType(method.getReturnType()));
+        String propertyName = getPropertyName(method);
         String methodDescriptor = extractMethodDescriptor(method);
         extras.add(new PropertyUpgradeRequestExtra(
-            accessor.propertyName,
-            accessor.isFluentSetter,
-            implementationClass,
+            propertyName,
             method.getSimpleName().toString(),
             methodDescriptor,
+            accessor.isFluentSetter,
+            implementationClass,
+            accessor.propertyName,
+            accessor.methodName,
             gradleLazyType,
             accessor.deprecationSpec,
             binaryCompatibility
@@ -406,17 +415,20 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         private final int removedIn;
         private final int withUpgradeGuideVersion;
         private final String withUpgradeGuideSection;
+        private final boolean withDslReference;
 
         private DeprecationSpec(
             boolean enabled,
             int removedIn,
             int withUpgradeGuideVersion,
-            String withUpgradeGuideSection
+            String withUpgradeGuideSection,
+            boolean withDslReference
         ) {
             this.enabled = enabled;
             this.removedIn = removedIn;
             this.withUpgradeGuideVersion = withUpgradeGuideVersion;
             this.withUpgradeGuideSection = withUpgradeGuideSection;
+            this.withDslReference = withDslReference;
         }
 
         public boolean isEnabled() {
@@ -433,6 +445,10 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
 
         public String getWithUpgradeGuideSection() {
             return withUpgradeGuideSection;
+        }
+
+        public boolean isWithDslReference() {
+            return withDslReference;
         }
     }
 }
