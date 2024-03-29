@@ -47,6 +47,11 @@ public @interface UpgradedProperty {
 
     BinaryCompatibility binaryCompatibility() default METHODS_REMOVED;
 
+    /**
+     * Deprecation configuration for the property
+     */
+    UpgradedDeprecation deprecation() default @UpgradedDeprecation();
+
     interface DefaultValue {
     }
 
