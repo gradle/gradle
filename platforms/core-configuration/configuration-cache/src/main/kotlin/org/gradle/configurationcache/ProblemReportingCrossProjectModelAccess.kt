@@ -73,6 +73,10 @@ import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
+import org.gradle.configurationcache.CrossProjectModelAccessPattern.ALLPROJECTS
+import org.gradle.configurationcache.CrossProjectModelAccessPattern.CHILD
+import org.gradle.configurationcache.CrossProjectModelAccessPattern.DIRECT
+import org.gradle.configurationcache.CrossProjectModelAccessPattern.SUBPROJECT
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
@@ -112,19 +116,31 @@ class ProblemReportingCrossProjectModelAccess(
     private val buildModelParameters: BuildModelParameters
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
-        return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
+        return delegate.findProject(referrer, relativeTo, path)?.let {
+            it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it))
+        }
     }
 
     override fun access(referrer: ProjectInternal, project: ProjectInternal): ProjectInternal {
-        return project.wrap(referrer)
+        return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project))
+    }
+
+    override fun getChildProjects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableMap<String, Project> {
+        return delegate.getChildProjects(referrer, relativeTo).mapValuesTo(LinkedHashMap()) {
+            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, relativeTo))
+        }
     }
 
     override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
+        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
+            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, relativeTo))
+        }
     }
 
     override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
+        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
+            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, relativeTo))
+        }
     }
 
     override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
@@ -147,11 +163,14 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     private
-    fun ProjectInternal.wrap(referrer: ProjectInternal): ProjectInternal {
+    fun ProjectInternal.wrap(
+        referrer: ProjectInternal,
+        access: CrossProjectModelAccessInstance,
+    ): ProjectInternal {
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
+            ProblemReportingProject(this, referrer, access, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
         }
     }
 
@@ -159,6 +178,7 @@ class ProblemReportingCrossProjectModelAccess(
     class ProblemReportingProject(
         val delegate: ProjectInternal,
         val referrer: ProjectInternal,
+        val access: CrossProjectModelAccessInstance,
         val problems: ProblemsListener,
         val coupledProjectsListener: CoupledProjectsListener,
         val problemFactory: ProblemFactory,
@@ -178,7 +198,7 @@ class ProblemReportingCrossProjectModelAccess(
                 return false
             }
             val project = other as ProblemReportingProject
-            return delegate == project.delegate && referrer == project.referrer
+            return delegate == project.delegate && referrer == project.referrer // do not include `access`
         }
 
         override fun hashCode(): Int {
@@ -196,6 +216,7 @@ class ProblemReportingCrossProjectModelAccess(
             onProjectsCoupled()
 
             return withDelegateDynamicCallReportingConfigurationOrder(
+                propertyName,
                 action = { tryGetProperty(propertyName) },
                 resultNotFoundExceptionProvider = { getMissingProperty(propertyName) }
             )
@@ -213,6 +234,7 @@ class ProblemReportingCrossProjectModelAccess(
             onProjectsCoupled()
 
             return withDelegateDynamicCallReportingConfigurationOrder(
+                name,
                 action = { tryInvokeMethod(name, *varargs) },
                 resultNotFoundExceptionProvider = { methodMissingException(name, *varargs) }
             )
@@ -228,21 +250,21 @@ class ProblemReportingCrossProjectModelAccess(
 
         @Deprecated("Use layout.buildDirectory instead")
         override fun getBuildDir(): File {
-            onAccess()
+            onAccess("buildDir")
             @Suppress("DEPRECATION")
             return delegate.buildDir
         }
 
         @Deprecated("Use layout.buildDirectory instead")
         override fun setBuildDir(path: File) {
-            onAccess()
+            onAccess("buildDir")
             @Suppress("DEPRECATION")
             delegate.buildDir = path
         }
 
         @Deprecated("Use layout.buildDirectory instead")
         override fun setBuildDir(path: Any) {
-            onAccess()
+            onAccess("buildDir")
             @Suppress("DEPRECATION")
             delegate.setBuildDir(path)
         }
@@ -260,47 +282,47 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getDescription(): String? {
-            onAccess()
+            onAccess("description")
             return delegate.description
         }
 
         override fun setDescription(description: String?) {
-            onAccess()
+            onAccess("description")
             delegate.description = description
         }
 
         override fun getGroup(): Any {
-            onAccess()
+            onAccess("group")
             return delegate.group
         }
 
         override fun setGroup(group: Any) {
-            onAccess()
+            onAccess("group")
             delegate.group = group
         }
 
         override fun getVersion(): Any {
-            onAccess()
+            onAccess("version")
             return delegate.version
         }
 
         override fun setVersion(version: Any) {
-            onAccess()
+            onAccess("version")
             delegate.version = version
         }
 
         override fun getStatus(): Any {
-            onAccess()
+            onAccess("status")
             return delegate.status
         }
 
         override fun getInternalStatus(): Property<Any> {
-            onAccess()
+            onAccess("internalStatus")
             return delegate.internalStatus
         }
 
         override fun setStatus(status: Any) {
-            onAccess()
+            onAccess("status")
             delegate.status = status
         }
 
@@ -314,7 +336,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun setProperty(name: String, value: Any?) {
-            onAccess()
+            onAccess("property")
             delegate.setProperty(name, value)
         }
 
@@ -327,27 +349,27 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun task(name: String): Task {
-            onAccess()
+            onAccess("task")
             return delegate.task(name)
         }
 
         override fun task(args: MutableMap<String, *>, name: String): Task {
-            onAccess()
+            onAccess("task")
             return delegate.task(args, name)
         }
 
         override fun task(args: MutableMap<String, *>, name: String, configureClosure: Closure<*>): Task {
-            onAccess()
+            onAccess("task")
             return delegate.task(args, name, configureClosure)
         }
 
         override fun task(name: String, configureClosure: Closure<*>): Task {
-            onAccess()
+            onAccess("task")
             return delegate.task(name, configureClosure)
         }
 
         override fun task(name: String, configureAction: Action<in Task>): Task {
-            onAccess()
+            onAccess("task")
             return delegate.task(name, configureAction)
         }
 
@@ -360,37 +382,37 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getDefaultTasks(): MutableList<String> {
-            onAccess()
+            onAccess("defaultTasks")
             return delegate.defaultTasks
         }
 
         override fun setDefaultTasks(defaultTasks: MutableList<String>) {
-            onAccess()
+            onAccess("defaultTasks")
             delegate.defaultTasks = defaultTasks
         }
 
         override fun defaultTasks(vararg defaultTasks: String?) {
-            onAccess()
+            onAccess("defaultTasks")
             delegate.defaultTasks(*defaultTasks)
         }
 
         override fun evaluationDependsOn(path: String): Project {
-            onAccess()
+            onAccess("evaluationDependsOn")
             return delegate.evaluationDependsOn(path)
         }
 
         override fun evaluationDependsOnChildren() {
-            onAccess()
+            onAccess("evaluationDependsOnChildren")
             delegate.evaluationDependsOnChildren()
         }
 
         override fun getAllTasks(recursive: Boolean): MutableMap<Project, MutableSet<Task>> {
-            onAccess()
+            onAccess("allTasks")
             return delegate.getAllTasks(recursive)
         }
 
         override fun getTasksByName(name: String, recursive: Boolean): MutableSet<Task> {
-            onAccess()
+            onAccess("tasksByName")
             return delegate.getTasksByName(name, recursive)
         }
 
@@ -399,122 +421,122 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun file(path: Any): File {
-            onAccess()
+            onAccess("file")
             return delegate.file(path)
         }
 
         override fun file(path: Any, validation: PathValidation): File {
-            onAccess()
+            onAccess("file")
             return delegate.file(path, validation)
         }
 
         override fun uri(path: Any): URI {
-            onAccess()
+            onAccess("uri")
             return delegate.uri(path)
         }
 
         override fun relativePath(path: Any): String {
-            onAccess()
+            onAccess("relativePath")
             return delegate.relativePath(path)
         }
 
         override fun files(vararg paths: Any?): ConfigurableFileCollection {
-            onAccess()
+            onAccess("files")
             return delegate.files(*paths)
         }
 
         override fun files(paths: Any, configureClosure: Closure<*>): ConfigurableFileCollection {
-            onAccess()
+            onAccess("files")
             return delegate.files(paths, configureClosure)
         }
 
         override fun files(paths: Any, configureAction: Action<in ConfigurableFileCollection>): ConfigurableFileCollection {
-            onAccess()
+            onAccess("files")
             return delegate.files(paths, configureAction)
         }
 
         override fun fileTree(baseDir: Any): ConfigurableFileTree {
-            onAccess()
+            onAccess("fileTree")
             return delegate.fileTree(baseDir)
         }
 
         override fun fileTree(baseDir: Any, configureClosure: Closure<*>): ConfigurableFileTree {
-            onAccess()
+            onAccess("fileTree")
             return delegate.fileTree(baseDir, configureClosure)
         }
 
         override fun fileTree(baseDir: Any, configureAction: Action<in ConfigurableFileTree>): ConfigurableFileTree {
-            onAccess()
+            onAccess("fileTree")
             return delegate.fileTree(baseDir, configureAction)
         }
 
         override fun fileTree(args: MutableMap<String, *>): ConfigurableFileTree {
-            onAccess()
+            onAccess("fileTree")
             return delegate.fileTree(args)
         }
 
         override fun zipTree(zipPath: Any): FileTree {
-            onAccess()
+            onAccess("zipTree")
             return delegate.zipTree(zipPath)
         }
 
         override fun tarTree(tarPath: Any): FileTree {
-            onAccess()
+            onAccess("tarTree")
             return delegate.tarTree(tarPath)
         }
 
         override fun <T : Any> provider(value: Callable<out T?>): Provider<T> {
-            onAccess()
+            onAccess("provider")
             return delegate.provider(value)
         }
 
         override fun getProviders(): ProviderFactory {
-            onAccess()
+            onAccess("providers")
             return delegate.providers
         }
 
         override fun getObjects(): ObjectFactory {
-            onAccess()
+            onAccess("objects")
             return delegate.objects
         }
 
         override fun getLayout(): ProjectLayout {
-            onAccess()
+            onAccess("layout")
             return delegate.layout
         }
 
         override fun mkdir(path: Any): File {
-            onAccess()
+            onAccess("mkdir")
             return delegate.mkdir(path)
         }
 
         override fun delete(vararg paths: Any?): Boolean {
-            onAccess()
+            onAccess("delete")
             return delegate.delete(*paths)
         }
 
         override fun delete(action: Action<in DeleteSpec>): WorkResult {
-            onAccess()
+            onAccess("delete")
             return delegate.delete(action)
         }
 
         override fun javaexec(closure: Closure<*>): ExecResult {
-            onAccess()
+            onAccess("javaexec")
             return delegate.javaexec(closure)
         }
 
         override fun javaexec(action: Action<in JavaExecSpec>): ExecResult {
-            onAccess()
+            onAccess("javaexec")
             return delegate.javaexec(action)
         }
 
         override fun exec(closure: Closure<*>): ExecResult {
-            onAccess()
+            onAccess("exec")
             return delegate.exec(closure)
         }
 
         override fun exec(action: Action<in ExecSpec>): ExecResult {
-            onAccess()
+            onAccess("exec")
             return delegate.exec(action)
         }
 
@@ -527,53 +549,53 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getAnt(): AntBuilder {
-            onAccess()
+            onAccess("ant")
             return delegate.ant
         }
 
         override fun createAntBuilder(): AntBuilder {
-            onAccess()
+            onAccess("antBuilder")
             return delegate.createAntBuilder()
         }
 
         override fun ant(configureClosure: Closure<*>): AntBuilder {
-            onAccess()
+            onAccess("ant")
             return delegate.ant(configureClosure)
         }
 
         override fun ant(configureAction: Action<in AntBuilder>): AntBuilder {
-            onAccess()
+            onAccess("ant")
             return delegate.ant(configureAction)
         }
 
         override fun getConfigurations(): RoleBasedConfigurationContainerInternal {
-            onAccess()
+            onAccess("configurations")
             return delegate.configurations
         }
 
         override fun configurations(configureClosure: Closure<*>) {
-            onAccess()
+            onAccess("configurations")
             delegate.configurations(configureClosure)
         }
 
         override fun getArtifacts(): ArtifactHandler {
-            onAccess()
+            onAccess("artifacts")
             return delegate.artifacts
         }
 
         override fun artifacts(configureClosure: Closure<*>) {
-            onAccess()
+            onAccess("artifacts")
             delegate.artifacts(configureClosure)
         }
 
         override fun artifacts(configureAction: Action<in ArtifactHandler>) {
-            onAccess()
+            onAccess("artifacts")
             delegate.artifacts(configureAction)
         }
 
         @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
         override fun getConvention(): @Suppress("deprecation") org.gradle.api.plugins.Convention {
-            onAccess()
+            onAccess("convention")
             @Suppress("deprecation")
             return delegate.convention
         }
@@ -639,202 +661,202 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun beforeEvaluate(action: Action<in Project>) {
-            onAccess()
+            onAccess("beforeEvaluate")
             delegate.beforeEvaluate(action)
         }
 
         override fun afterEvaluate(action: Action<in Project>) {
-            onAccess()
+            onAccess("afterEvaluate")
             delegate.afterEvaluate(action)
         }
 
         override fun beforeEvaluate(closure: Closure<*>) {
-            onAccess()
+            onAccess("beforeEvaluate")
             delegate.beforeEvaluate(closure)
         }
 
         override fun afterEvaluate(closure: Closure<*>) {
-            onAccess()
+            onAccess("afterEvaluate")
             delegate.afterEvaluate(closure)
         }
 
         override fun hasProperty(propertyName: String): Boolean {
-            onAccess()
+            onAccess("hasProperty")
             return delegate.hasProperty(propertyName)
         }
 
         override fun getProperties(): MutableMap<String, *> {
-            onAccess()
+            onAccess("properties")
             return delegate.properties
         }
 
         override fun property(propertyName: String): Any? {
-            onAccess()
+            onAccess("property")
             return delegate.property(propertyName)
         }
 
         override fun findProperty(propertyName: String): Any? {
-            onAccess()
+            onAccess("findProperty")
             return delegate.findProperty(propertyName)
         }
 
         override fun getLogger(): Logger {
-            onAccess()
+            onAccess("logger")
             return delegate.logger
         }
 
         override fun getLogging(): LoggingManager {
-            onAccess()
+            onAccess("logging")
             return delegate.logging
         }
 
         override fun configure(target: Any, configureClosure: Closure<*>): Any {
-            onAccess()
+            onAccess("configure")
             return delegate.configure(target, configureClosure)
         }
 
         override fun configure(targets: MutableIterable<*>, configureClosure: Closure<*>): MutableIterable<*> {
-            onAccess()
+            onAccess("configure")
             return delegate.configure(targets, configureClosure)
         }
 
         override fun <T : Any?> configure(targets: MutableIterable<T>, configureAction: Action<in T>): MutableIterable<T> {
-            onAccess()
+            onAccess("configure")
             return delegate.configure(targets, configureAction)
         }
 
         override fun getRepositories(): RepositoryHandler {
-            onAccess()
+            onAccess("repositories")
             return delegate.repositories
         }
 
         override fun repositories(configureClosure: Closure<*>) {
-            onAccess()
+            onAccess("repositories")
             delegate.repositories(configureClosure)
         }
 
         override fun getDependencies(): DependencyHandler {
-            onAccess()
+            onAccess("dependencies")
             return delegate.dependencies
         }
 
         override fun dependencies(configureClosure: Closure<*>) {
-            onAccess()
+            onAccess("dependencies")
             delegate.dependencies(configureClosure)
         }
 
         override fun getDependencyFactory(): DependencyFactory {
-            onAccess()
+            onAccess("dependencyFactory")
             return delegate.dependencyFactory
         }
 
         override fun buildscript(configureClosure: Closure<*>) {
-            onAccess()
+            onAccess("buildscript")
             delegate.buildscript(configureClosure)
         }
 
         override fun copy(closure: Closure<*>): WorkResult {
-            onAccess()
+            onAccess("copy")
             return delegate.copy(closure)
         }
 
         override fun copy(action: Action<in CopySpec>): WorkResult {
-            onAccess()
+            onAccess("copy")
             return delegate.copy(action)
         }
 
         override fun copySpec(closure: Closure<*>): CopySpec {
-            onAccess()
+            onAccess("copySpec")
             return delegate.copySpec(closure)
         }
 
         override fun copySpec(action: Action<in CopySpec>): CopySpec {
-            onAccess()
+            onAccess("copySpec")
             return delegate.copySpec(action)
         }
 
         override fun copySpec(): CopySpec {
-            onAccess()
+            onAccess("copySpec")
             return delegate.copySpec()
         }
 
         override fun sync(action: Action<in SyncSpec>): WorkResult {
-            onAccess()
+            onAccess("sync")
             return delegate.sync(action)
         }
 
         override fun <T : Any?> container(type: Class<T>): NamedDomainObjectContainer<T> {
-            onAccess()
+            onAccess("container")
             return delegate.container(type)
         }
 
         override fun <T : Any?> container(type: Class<T>, factory: NamedDomainObjectFactory<T>): NamedDomainObjectContainer<T> {
-            onAccess()
+            onAccess("container")
             return delegate.container(type, factory)
         }
 
         override fun <T : Any?> container(type: Class<T>, factoryClosure: Closure<*>): NamedDomainObjectContainer<T> {
-            onAccess()
+            onAccess("container")
             return delegate.container(type, factoryClosure)
         }
 
         override fun getResources(): ResourceHandler {
-            onAccess()
+            onAccess("resources")
             return delegate.resources
         }
 
         override fun getComponents(): SoftwareComponentContainer {
-            onAccess()
+            onAccess("components")
             return delegate.components
         }
 
         override fun components(configuration: Action<in SoftwareComponentContainer>) {
-            onAccess()
+            onAccess("components")
             delegate.components(configuration)
         }
 
         override fun getNormalization(): InputNormalizationHandlerInternal {
-            onAccess()
+            onAccess("normalization")
             return delegate.normalization
         }
 
         override fun normalization(configuration: Action<in InputNormalizationHandler>) {
-            onAccess()
+            onAccess("normalization")
             delegate.normalization(configuration)
         }
 
         override fun dependencyLocking(configuration: Action<in DependencyLockingHandler>) {
-            onAccess()
+            onAccess("dependencyLocking")
             delegate.dependencyLocking(configuration)
         }
 
         override fun getDependencyLocking(): DependencyLockingHandler {
-            onAccess()
+            onAccess("dependencyLocking")
             return delegate.dependencyLocking
         }
 
         override fun getPlugins(): PluginContainer {
-            onAccess()
+            onAccess("plugins")
             return delegate.plugins
         }
 
         override fun apply(closure: Closure<*>) {
-            onAccess()
+            onAccess("apply")
             delegate.apply(closure)
         }
 
         override fun apply(action: Action<in ObjectConfigurationAction>) {
-            onAccess()
+            onAccess("apply")
             delegate.apply(action)
         }
 
         override fun apply(options: MutableMap<String, *>) {
-            onAccess()
+            onAccess("apply")
             delegate.apply(options)
         }
 
         override fun getPluginManager(): PluginManagerInternal {
-            onAccess()
+            onAccess("pluginManager")
             return delegate.pluginManager
         }
 
@@ -911,7 +933,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getTasks(): TaskContainerInternal {
-            onAccess()
+            onAccess("tasks")
             return delegate.tasks
         }
 
@@ -940,7 +962,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getGradle(): GradleInternal {
-            onAccess()
+            onAccess("gradle")
             return delegate.gradle
         }
 
@@ -977,12 +999,12 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getState(): ProjectStateInternal {
-            onAccess()
+            onAccess("state")
             return delegate.state
         }
 
         override fun getExtensions(): ExtensionContainerInternal {
-            onAccess()
+            onAccess("extensions")
             return delegate.extensions
         }
 
@@ -1031,7 +1053,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getBuildscript(): ScriptHandlerInternal {
-            onAccess()
+            onAccess("buildscript")
             return delegate.buildscript
         }
 
@@ -1044,8 +1066,8 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         private
-        fun onAccess() {
-            reportCrossProjectAccessProblem()
+        fun onAccess(what: String) {
+            reportCrossProjectAccessProblem("Project.$what", "functionality")
             onProjectsCoupled()
         }
 
@@ -1074,6 +1096,7 @@ class ProblemReportingCrossProjectModelAccess(
 
         private
         fun withDelegateDynamicCallReportingConfigurationOrder(
+            accessRef: String,
             action: DynamicObject.() -> DynamicInvokeResult,
             resultNotFoundExceptionProvider: DynamicObject.() -> GroovyRuntimeException
         ): Any? {
@@ -1081,9 +1104,10 @@ class ProblemReportingCrossProjectModelAccess(
                 withDelegateDynamicCallIgnoringProblem(action, resultNotFoundExceptionProvider)
             }
 
+            val memberKind = "extension"
             return when {
                 result.isSuccess -> {
-                    reportCrossProjectAccessProblem { configurationOrderMessage() }
+                    reportCrossProjectAccessProblem(accessRef, memberKind)
                     result.getOrNull()
                 }
 
@@ -1091,12 +1115,12 @@ class ProblemReportingCrossProjectModelAccess(
                 // This can be a case in an incremental sync scenario, when referrer script was changed and since re-configured,
                 // but referent wasn't changed and since wasn't configured.
                 delegate < referrer && delegate.state.isUnconfigured && !buildModelParameters.isInvalidateCoupledProjects -> {
-                    reportCrossProjectAccessProblem { missedReferentConfigurationMessage() }
+                    reportCrossProjectAccessProblem(accessRef, memberKind) { missedReferentConfigurationMessage() }
                     null
                 }
 
                 else -> {
-                    reportCrossProjectAccessProblem { configurationOrderMessage() }
+                    reportCrossProjectAccessProblem(accessRef, memberKind)
                     throw result.exceptionOrNull()!!
                 }
             }
@@ -1112,12 +1136,18 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         private
-        fun reportCrossProjectAccessProblem(buildAdditionalMessage: StructuredMessage.Builder.() -> Unit = {}) {
+        fun reportCrossProjectAccessProblem(
+            accessRef: String,
+            accessRefKind: String,
+            buildAdditionalMessage: StructuredMessage.Builder.() -> Unit = {}
+        ) {
             val problem = problemFactory.problem {
-                text("Cannot access project ")
-                reference(delegate.identityPath.toString())
-                text(" from project ")
-                reference(referrer.identityPath.toString())
+                text("Project ")
+                reference(referrer)
+                text(" cannot access ")
+                reference(accessRef)
+                text(" $accessRefKind on ")
+                describeCrossProjectAccess()
                 buildAdditionalMessage()
             }
                 .exception()
@@ -1128,21 +1158,52 @@ class ProblemReportingCrossProjectModelAccess(
 
         private
         fun StructuredMessage.Builder.missedReferentConfigurationMessage() = apply {
-            text(". ")
+            text(". Setting ")
             reference("org.gradle.internal.invalidate-coupled-projects=false")
-            text(" is preventing configuration of project ")
-            reference(delegate.identityPath.toString())
+            text(" is preventing configuration of ")
+            describeCrossProjectAccess()
         }
 
         private
-        fun StructuredMessage.Builder.configurationOrderMessage() = apply {
-            text(". ")
-            reference("Project.evaluationDependsOn")
-            text(" must be used to establish a dependency between project ")
-            reference(delegate.identityPath.toString())
-            text(" and project ")
-            reference(referrer.identityPath.toString())
-            text(" evaluation")
+        fun StructuredMessage.Builder.describeCrossProjectAccess() {
+            val relativeToAnother = access.relativeTo != referrer
+
+            when (access.pattern) {
+                DIRECT -> {
+                    text("another project ")
+                    reference(delegate)
+                }
+
+                CHILD -> {
+                    text("child projects")
+                    if (relativeToAnother) {
+                        text(" of project ")
+                        reference(access.relativeTo)
+                    }
+                }
+
+                SUBPROJECT -> {
+                    text("subprojects")
+                    if (relativeToAnother) {
+                        text(" of project ")
+                        reference(access.relativeTo)
+                    }
+                }
+
+                ALLPROJECTS -> {
+                    text("subprojects")
+                    if (relativeToAnother) {
+                        text(" of project ")
+                        reference(access.relativeTo)
+                    } else {
+                        text(" via ")
+                        reference("allprojects")
+                    }
+                }
+            }
         }
+
+        private
+        fun StructuredMessage.Builder.reference(project: ProjectInternal) = reference(project.identityPath.toString())
     }
 }
