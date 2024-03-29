@@ -28,7 +28,6 @@ public enum GradleLazyType {
     SET_PROPERTY("org.gradle.api.provider.SetProperty"),
     MAP_PROPERTY("org.gradle.api.provider.MapProperty"),
     PROPERTY("org.gradle.api.provider.Property"),
-    PROVIDER("org.gradle.api.provider.Provider"),
     UNSUPPORTED((Type) null) {
         @Override
         public Type asType() {

@@ -197,55 +197,6 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         "ConfigurableFileCollection"  | "FileCollection" | "self.getProperty()"                             | ".setFrom(arg0)"   | [FileCollection]
     }
 
-    def "should auto generate adapter for upgraded setter property with Provider argument for #upgradedType"() {
-        given:
-        def givenSource = source """
-            package org.gradle.test;
-
-            import org.gradle.api.provider.*;
-            import org.gradle.api.file.*;
-            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor;
-            import org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType;
-
-            public abstract class Task {
-                @UpgradedProperty(originalAccessors = {
-                    @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setProperty", originalType = Provider.class)
-                })
-                public abstract $upgradedType getProperty();
-            }
-        """
-
-        when:
-        Compilation compilation = compile(givenSource)
-
-        then:
-        def generatedClass = source """
-            package $GENERATED_CLASSES_PACKAGE_NAME;
-            import java.lang.SuppressWarnings;
-            import org.gradle.api.provider.Provider;
-            import org.gradle.test.Task;
-
-            public class Task_Adapter {
-                @SuppressWarnings({"unchecked", "rawtypes"})
-                public static void access_set_setProperty(Task self, Provider arg0) {
-                    self.getProperty()$setCall;
-                }
-            }
-        """
-        assertThat(compilation).succeededWithoutWarnings()
-        assertThat(compilation)
-            .generatedSourceFile(fqName(generatedClass))
-            .hasSourceEquivalentTo(generatedClass)
-
-        where:
-        upgradedType          | setCall
-        "Property<String>"    | ".set((Provider) arg0)"
-        "RegularFileProperty" | ".fileProvider(arg0)"
-        "DirectoryProperty"   | ".fileProvider(arg0)"
-    }
-
     def "should correctly generate interceptor when property name contains get"() {
         given:
         def givenSource = source"""
@@ -352,8 +303,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                 @UpgradedProperty(originalAccessors = {
                     @UpgradedAccessor(value = AccessorType.GETTER, methodName = "getDestinationDir"),
                     @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setDestinationDir"),
-                    @UpgradedAccessor(value = AccessorType.SETTER, methodName = "destinationDir", originalType = File.class),
-                    @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setDestinationDir", originalType = Provider.class)
+                    @UpgradedAccessor(value = AccessorType.SETTER, methodName = "destinationDir", originalType = File.class)
                 })
                 public abstract DirectoryProperty getDestinationDirectory();
             }
@@ -381,10 +331,6 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                         }
                         if (name.equals("destinationDir") && descriptor.equals("(Ljava/io/File;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
                             _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_destinationDir", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
-                            return true;
-                        }
-                        if (name.equals("setDestinationDir") && descriptor.equals("(Lorg/gradle/api/provider/Provider;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                            _INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setDestinationDir", "(Lorg/gradle/test/Task;Lorg/gradle/api/provider/Provider;)V");
                             return true;
                         }
                     }

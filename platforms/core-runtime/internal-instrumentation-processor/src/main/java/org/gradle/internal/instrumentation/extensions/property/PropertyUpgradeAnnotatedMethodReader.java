@@ -120,10 +120,6 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             for (AccessorSpec accessorSpec : accessorSpecs) {
                 switch (accessorSpec.accessorType) {
                     case GETTER:
-                        if (isProviderOrProperty(accessorSpec.originalType)) {
-                            // We don't support Provider or Property as original type for a getter accessor
-                            return Collections.singletonList(new InvalidRequest(String.format("`Provider` or `Property` type is not supported as original type for a GETTER accessor. Method: %s.%s", method.getEnclosingElement(), method)));
-                        }
                         CallInterceptionRequest groovyPropertyRequest = createGroovyPropertyInterceptionRequest(accessorSpec, method);
                         CallInterceptionRequest jvmGetterRequest = createJvmGetterInterceptionRequest(accessorSpec, method);
                         requests.add(groovyPropertyRequest);
@@ -143,10 +139,6 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         } catch (AnnotationReadFailure failure) {
             return Collections.singletonList(new InvalidRequest(failure.reason));
         }
-    }
-
-    static boolean isProviderOrProperty(Type type) {
-        return GradleLazyType.PROVIDER.asType().equals(type);
     }
 
     @SuppressWarnings("unchecked")
@@ -229,7 +221,6 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             case MAP_PROPERTY:
                 return Type.getType(Map.class);
             case PROPERTY:
-            case PROVIDER:
                 return extractType(((DeclaredType) typeMirror).getTypeArguments().get(0));
             default:
                 throw new AnnotationReadFailure(String.format("Cannot extract original type for method '%s.%s: %s'. Use explicit @UpgradedProperty#originalType instead.", method.getEnclosingElement(), method, typeMirror));

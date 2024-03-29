@@ -29,7 +29,6 @@ import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
-import org.objectweb.asm.Type;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collections;
@@ -37,7 +36,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.isProviderOrProperty;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.LIST_PROPERTY_LIST_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.MAP_PROPERTY_MAP_VIEW;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.SET_PROPERTY_SET_VIEW;
@@ -84,7 +82,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
                 .addParameters(parameters)
                 .addCode(generateMethodBody(implementation, callable, implementationExtra))
                 .returns(typeName(callable.getReturnType().getType()))
-                .addAnnotations(getAnnotations(implementationExtra, callable))
+                .addAnnotations(getAnnotations(implementationExtra))
                 .build();
             onProcessedRequest.accept(request);
             return spec;
@@ -95,7 +93,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
 
     }
 
-    private static List<AnnotationSpec> getAnnotations(PropertyUpgradeRequestExtra implementationExtra, CallableInfo callable) {
+    private static List<AnnotationSpec> getAnnotations(PropertyUpgradeRequestExtra implementationExtra) {
         switch (implementationExtra.getUpgradedPropertyType()) {
             case LIST_PROPERTY:
             case SET_PROPERTY:
@@ -104,19 +102,8 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
                     .addMember("value", "$L", "{\"unchecked\", \"rawtypes\"}")
                     .build());
             default:
-                if (hasAParameterWithGenerics(callable)) {
-                    return Collections.singletonList(AnnotationSpec.builder(SuppressWarnings.class)
-                        .addMember("value", "$L", "{\"unchecked\", \"rawtypes\"}")
-                        .build());
-                } else {
-                    return Collections.emptyList();
-                }
+                return Collections.emptyList();
         }
-    }
-
-    private static boolean hasAParameterWithGenerics(CallableInfo callable) {
-        // We currently support only Provider<?> and Property<?>
-        return callable.getParameters().stream().anyMatch(p -> isProviderOrProperty(p.getParameterType()));
     }
 
     private static CodeBlock generateMethodBody(ImplementationInfo implementation, CallableInfo callableInfo, PropertyUpgradeRequestExtra implementationExtra) {
@@ -125,8 +112,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         CallableReturnTypeInfo returnType = callableInfo.getReturnType();
         GradleLazyType upgradedPropertyType = implementationExtra.getUpgradedPropertyType();
         if (isSetter) {
-            Type parameterType = callableInfo.getParameters().get(0).getParameterType();
-            String setCall = getSetCall(upgradedPropertyType, parameterType);
+            String setCall = getSetCall(upgradedPropertyType);
             if (implementationExtra.isFluentSetter()) {
                 return CodeBlock.of("$N.$N()$N;\nreturn $N;", SELF_PARAMETER_NAME, propertyGetterName, setCall, SELF_PARAMETER_NAME);
             } else {
@@ -152,35 +138,24 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
             case MAP_PROPERTY:
                 return CodeBlock.of("return new $T<>($N.$N());", MAP_PROPERTY_MAP_VIEW.asTypeName(), SELF_PARAMETER_NAME, propertyGetterName);
             case PROPERTY:
-            case PROVIDER:
                 return CodeBlock.of("return $N.$N().getOrElse($L);", SELF_PARAMETER_NAME, propertyGetterName, TypeUtils.getDefaultValue(returnType.getType()));
             default:
                 throw new UnsupportedOperationException("Generating get call for type: " + upgradedPropertyType.asType() + " is not supported");
         }
     }
 
-    private static String getSetCall(GradleLazyType upgradedPropertyType, Type parameterType) {
+    private static String getSetCall(GradleLazyType upgradedPropertyType) {
         switch (upgradedPropertyType) {
             case REGULAR_FILE_PROPERTY:
             case DIRECTORY_PROPERTY:
-                if (isProviderOrProperty(parameterType)) {
-                    // expect `Provider<File> arg0`
-                    return ".fileProvider(arg0)";
-                } else {
-                    // expect `File arg0`
-                    return ".fileValue(arg0)";
-                }
+                return ".fileValue(arg0)";
             case CONFIGURABLE_FILE_COLLECTION:
                 return ".setFrom(arg0)";
             case LIST_PROPERTY:
             case SET_PROPERTY:
             case MAP_PROPERTY:
             case PROPERTY:
-                if (isProviderOrProperty(parameterType)) {
-                    return ".set((Provider) arg0)";
-                } else {
-                    return ".set(arg0)";
-                }
+                return ".set(arg0)";
             default:
                 throw new UnsupportedOperationException("Generating set call for type: " + upgradedPropertyType.asType() + " is not supported");
         }
