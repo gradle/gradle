@@ -21,6 +21,7 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableReturnTypeInfo;
@@ -111,16 +112,21 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         boolean isSetter = implementation.getName().startsWith("access_set_");
         CallableReturnTypeInfo returnType = callableInfo.getReturnType();
         GradleLazyType upgradedPropertyType = implementationExtra.getUpgradedPropertyType();
-        if (isSetter) {
-            String setCall = getSetCall(upgradedPropertyType);
-            if (implementationExtra.isFluentSetter()) {
-                return CodeBlock.of("$N.$N()$N;\nreturn $N;", SELF_PARAMETER_NAME, propertyGetterName, setCall, SELF_PARAMETER_NAME);
-            } else {
-                return CodeBlock.of("$N.$N()$N;", SELF_PARAMETER_NAME, propertyGetterName, setCall);
-            }
-        } else {
-            return getGetCall(propertyGetterName, returnType, upgradedPropertyType);
+
+        CodeBlock.Builder codeBlockBuilder = CodeBlock.builder();
+        if (implementationExtra.getDeprecationSpec().isEnabled()) {
+            codeBlockBuilder.add(getDeprecationCodeBlock(implementationExtra.getDeprecationSpec()));
         }
+
+        CodeBlock logic = isSetter
+            ? getSetCall(propertyGetterName, implementationExtra, upgradedPropertyType)
+            : getGetCall(propertyGetterName, returnType, upgradedPropertyType);
+
+        return codeBlockBuilder.add(logic).build();
+    }
+
+    private static CodeBlock getDeprecationCodeBlock(@SuppressWarnings("unused") DeprecationSpec deprecationSpec) {
+        return CodeBlock.of("");
     }
 
     private static CodeBlock getGetCall(String propertyGetterName, CallableReturnTypeInfo returnType, GradleLazyType upgradedPropertyType) {
@@ -144,20 +150,29 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         }
     }
 
-    private static String getSetCall(GradleLazyType upgradedPropertyType) {
+    private static CodeBlock getSetCall(String propertyGetterName, PropertyUpgradeRequestExtra implementationExtra, GradleLazyType upgradedPropertyType) {
+        String assignment;
         switch (upgradedPropertyType) {
             case REGULAR_FILE_PROPERTY:
             case DIRECTORY_PROPERTY:
-                return ".fileValue(arg0)";
+                assignment = ".fileValue(arg0)";
+                break;
             case CONFIGURABLE_FILE_COLLECTION:
-                return ".setFrom(arg0)";
+                assignment = ".setFrom(arg0)";
+                break;
             case LIST_PROPERTY:
             case SET_PROPERTY:
             case MAP_PROPERTY:
             case PROPERTY:
-                return ".set(arg0)";
+                assignment = ".set(arg0)";
+                break;
             default:
                 throw new UnsupportedOperationException("Generating set call for type: " + upgradedPropertyType.asType() + " is not supported");
+        }
+        if (implementationExtra.isFluentSetter()) {
+            return CodeBlock.of("$N.$N()$N;\nreturn $N;", SELF_PARAMETER_NAME, propertyGetterName, assignment, SELF_PARAMETER_NAME);
+        } else {
+            return CodeBlock.of("$N.$N()$N;", SELF_PARAMETER_NAME, propertyGetterName, assignment);
         }
     }
 }

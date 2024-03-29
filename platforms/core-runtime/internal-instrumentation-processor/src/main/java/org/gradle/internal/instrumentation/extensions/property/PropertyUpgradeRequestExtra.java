@@ -17,6 +17,7 @@
 package org.gradle.internal.instrumentation.extensions.property;
 
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader.DeprecationSpec;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.GradleLazyType;
 
@@ -28,6 +29,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
     private final String interceptedPropertyAccessorName;
     private final String interceptedPropertyAccessorDescriptor;
     private final GradleLazyType upgradedPropertyType;
+    private final DeprecationSpec deprecationSpec;
     private final BinaryCompatibility binaryCompatibility;
 
     public PropertyUpgradeRequestExtra(
@@ -37,6 +39,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         String interceptedPropertyAccessorName,
         String interceptedPropertyAccessorDescriptor,
         GradleLazyType upgradedPropertyType,
+        DeprecationSpec deprecationSpec,
         BinaryCompatibility binaryCompatibility
     ) {
         this.propertyName = propertyName;
@@ -45,6 +48,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         this.interceptedPropertyAccessorName = interceptedPropertyAccessorName;
         this.interceptedPropertyAccessorDescriptor = interceptedPropertyAccessorDescriptor;
         this.upgradedPropertyType = upgradedPropertyType;
+        this.deprecationSpec = deprecationSpec;
         this.binaryCompatibility = binaryCompatibility;
     }
 
@@ -70,6 +74,10 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
 
     public boolean isFluentSetter() {
         return isFluentSetter;
+    }
+
+    public DeprecationSpec getDeprecationSpec() {
+        return deprecationSpec;
     }
 
     public BinaryCompatibility getBinaryCompatibility() {

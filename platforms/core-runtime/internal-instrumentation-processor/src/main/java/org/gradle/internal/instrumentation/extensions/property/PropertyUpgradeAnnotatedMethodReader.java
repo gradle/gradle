@@ -148,9 +148,10 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             .map(v -> (List<AnnotationMirror>) v.getValue())
             .orElse(Collections.emptyList());
         if (!originalAccessors.isEmpty()) {
+            DeprecationSpec parentDeprecationSpec = readDeprecationSpec(annotationMirror);
             BinaryCompatibility parentBinaryCompatibility = readBinaryCompatibility(annotationMirror);
             return originalAccessors.stream()
-                .map(annotation -> getAccessorSpec(method, annotation, parentBinaryCompatibility))
+                .map(annotation -> getAccessorSpec(method, annotation, parentDeprecationSpec, parentBinaryCompatibility))
                 .collect(Collectors.toList());
         }
         return Arrays.asList(
@@ -159,13 +160,29 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
+    private DeprecationSpec readDeprecationSpec(AnnotationMirror annotation) {
+        boolean enabled = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "enabled")
+            .map(annotationValue -> (Boolean) annotationValue.getValue())
+            .orElse(false);
+        int removedIn = AnnotationUtils.findAnnotationValue(annotation, "removedIn")
+            .map(annotationValue -> (int) annotationValue.getValue())
+            .orElse(-1);
+        int withUpgradeGuideVersion = AnnotationUtils.findAnnotationValue(annotation, "withUpgradeGuideVersion")
+            .map(annotationValue -> (int) annotationValue.getValue())
+            .orElse(-1);
+        String withUpgradeGuideSection = AnnotationUtils.findAnnotationValue(annotation, "withUpgradeGuideSection")
+            .map(annotationValue -> (String) annotationValue.getValue())
+            .orElse("");
+        return new DeprecationSpec(enabled, removedIn, withUpgradeGuideVersion, withUpgradeGuideSection);
+    }
+
     private BinaryCompatibility readBinaryCompatibility(AnnotationMirror annotation) {
         return AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "binaryCompatibility")
             .map(v -> BinaryCompatibility.valueOf(v.getValue().toString()))
             .orElseThrow(() -> new AnnotationReadFailure("Missing 'binaryCompatibility' attribute in @UpgradedAccessor"));
     }
 
-    private AccessorSpec getAccessorSpec(ExecutableElement method, AnnotationMirror annotation, BinaryCompatibility binaryCompatibility) {
+    private AccessorSpec getAccessorSpec(ExecutableElement method, AnnotationMirror annotation, DeprecationSpec parentDeprecationSpec, BinaryCompatibility binaryCompatibility) {
         String methodName = AnnotationUtils.findAnnotationValue(annotation, "methodName")
             .map(v -> (String) v.getValue())
             .orElseThrow(() -> new AnnotationReadFailure("Missing 'methodName' attribute in @UpgradedAccessor"));
@@ -173,7 +190,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             .map(v -> AccessorType.valueOf(v.getValue().toString()))
             .orElseThrow(() -> new AnnotationReadFailure("Missing 'value' attribute in @UpgradedAccessor"));
         Type originalType = extractOriginalType(method, annotation);
-        return getAccessorSpec(accessorType, methodName, originalType, annotation, binaryCompatibility);
+        return getAccessorSpec(accessorType, methodName, originalType, annotation, parentDeprecationSpec, binaryCompatibility);
     }
 
     private AccessorSpec getAccessorSpec(ExecutableElement method, AccessorType accessorType, AnnotationMirror annotation) {
@@ -191,16 +208,26 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             default:
                 throw new IllegalArgumentException("Unsupported accessor type: " + accessorType);
         }
+        DeprecationSpec deprecationSpec = readDeprecationSpec(annotation);
         BinaryCompatibility binaryCompatibility = readBinaryCompatibility(annotation);
-        return getAccessorSpec(accessorType, methodName, originalType, annotation, binaryCompatibility);
+        return getAccessorSpec(accessorType, methodName, originalType, annotation, deprecationSpec, binaryCompatibility);
     }
 
-    private AccessorSpec getAccessorSpec(AccessorType accessorType, String methodName, Type originalType, AnnotationMirror annotation, BinaryCompatibility binaryCompatibility) {
-        boolean isFluentSetter = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "fluentSetter")
+    private AccessorSpec getAccessorSpec(
+        AccessorType accessorType,
+        String methodName,
+        Type originalType,
+        AnnotationMirror annotation,
+        DeprecationSpec deprecationSpec,
+        BinaryCompatibility binaryCompatibility
+    ) {
+        boolean isFluentSetter = accessorType == AccessorType.SETTER
+            ? AnnotationUtils.findAnnotationValueWithDefaults(elements, annotation, "fluentSetter")
             .map(v -> (Boolean) v.getValue())
-            .orElseThrow(() -> new AnnotationReadFailure("Missing 'fluentSetter' attribute"));
+            .orElseThrow(() -> new AnnotationReadFailure("Missing 'fluentSetter' attribute"))
+            : false;
         String propertyName = getPropertyName(methodName);
-        return new AccessorSpec(accessorType, propertyName, methodName, originalType, binaryCompatibility, isFluentSetter);
+        return new AccessorSpec(accessorType, propertyName, methodName, originalType, deprecationSpec, binaryCompatibility, isFluentSetter);
     }
 
     private static Type extractOriginalType(ExecutableElement method, AnnotationMirror annotation) {
@@ -249,7 +276,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private CallInterceptionRequest createJvmGetterInterceptionRequest(AccessorSpec accessor, ExecutableElement method) {
-        List<RequestExtra> extras = getJvmRequestExtras(accessor.propertyName, method, accessor.binaryCompatibility, false);
+        List<RequestExtra> extras = getJvmRequestExtras(accessor, method, accessor.binaryCompatibility);
         String callableName = accessor.methodName;
         Type originalType = accessor.originalType;
         return new CallInterceptionRequestImpl(
@@ -260,14 +287,12 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private CallInterceptionRequest createJvmSetterInterceptionRequest(AccessorSpec accessor, ExecutableElement method) {
-        boolean isFluentSetter = accessor.isFluentSetter;
-        String propertyName = accessor.propertyName;
         Type originalType = accessor.originalType;
-        Type returnType = isFluentSetter ? extractType(method.getEnclosingElement().asType()) : Type.VOID_TYPE;
+        Type returnType = accessor.isFluentSetter ? extractType(method.getEnclosingElement().asType()) : Type.VOID_TYPE;
         String callableName = accessor.methodName;
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("arg0", originalType, METHOD_PARAMETER));
         BinaryCompatibility binaryCompatibility = accessor.binaryCompatibility;
-        List<RequestExtra> extras = getJvmRequestExtras(propertyName, method, binaryCompatibility, isFluentSetter);
+        List<RequestExtra> extras = getJvmRequestExtras(accessor, method, binaryCompatibility);
         return new CallInterceptionRequestImpl(
             extractCallableInfo(INSTANCE_METHOD, method, returnType, callableName, parameters),
             extractImplementationInfo(method, returnType, accessor.methodName, "set", parameters),
@@ -276,7 +301,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     @Nonnull
-    private List<RequestExtra> getJvmRequestExtras(String propertyName, ExecutableElement method, BinaryCompatibility binaryCompatibility, boolean isFluentSetter) {
+    private List<RequestExtra> getJvmRequestExtras(AccessorSpec accessor, ExecutableElement method, BinaryCompatibility binaryCompatibility) {
         String interceptorsClassName = getJavaInterceptorsClassName();
         List<RequestExtra> extras = new ArrayList<>();
         extras.add(new RequestExtra.OriginatingElement(method));
@@ -284,7 +309,16 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
         GradleLazyType gradleLazyType = GradleLazyType.from(extractType(method.getReturnType()));
         String methodDescriptor = extractMethodDescriptor(method);
-        extras.add(new PropertyUpgradeRequestExtra(propertyName, isFluentSetter, implementationClass, method.getSimpleName().toString(), methodDescriptor, gradleLazyType, binaryCompatibility));
+        extras.add(new PropertyUpgradeRequestExtra(
+            accessor.propertyName,
+            accessor.isFluentSetter,
+            implementationClass,
+            method.getSimpleName().toString(),
+            methodDescriptor,
+            gradleLazyType,
+            accessor.deprecationSpec,
+            binaryCompatibility
+        ));
         return extras;
     }
 
@@ -346,12 +380,14 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         private final Type originalType;
         private final boolean isFluentSetter;
         private final BinaryCompatibility binaryCompatibility;
+        private final DeprecationSpec deprecationSpec;
 
         private AccessorSpec(
             AccessorType accessorType,
             String propertyName,
             String methodName,
             Type originalType,
+            DeprecationSpec deprecationSpec,
             BinaryCompatibility binaryCompatibility,
             boolean isFluentSetter
         ) {
@@ -359,8 +395,44 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             this.accessorType = accessorType;
             this.methodName = methodName;
             this.originalType = originalType;
+            this.deprecationSpec = deprecationSpec;
             this.binaryCompatibility = binaryCompatibility;
             this.isFluentSetter = isFluentSetter;
+        }
+    }
+
+    static class DeprecationSpec {
+        private final boolean enabled;
+        private final int removedIn;
+        private final int withUpgradeGuideVersion;
+        private final String withUpgradeGuideSection;
+
+        private DeprecationSpec(
+            boolean enabled,
+            int removedIn,
+            int withUpgradeGuideVersion,
+            String withUpgradeGuideSection
+        ) {
+            this.enabled = enabled;
+            this.removedIn = removedIn;
+            this.withUpgradeGuideVersion = withUpgradeGuideVersion;
+            this.withUpgradeGuideSection = withUpgradeGuideSection;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public int getRemovedIn() {
+            return removedIn;
+        }
+
+        public int getWithUpgradeGuideVersion() {
+            return withUpgradeGuideVersion;
+        }
+
+        public String getWithUpgradeGuideSection() {
+            return withUpgradeGuideSection;
         }
     }
 }
