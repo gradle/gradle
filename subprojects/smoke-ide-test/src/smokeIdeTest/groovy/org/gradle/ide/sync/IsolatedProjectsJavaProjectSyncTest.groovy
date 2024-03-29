@@ -41,12 +41,22 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
         then:
         fixture.assertHtmlReportHasProblems {
             totalProblemsCount = 78
-            withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':app' from project ':'")
-            withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':lib' from project ':'")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':lib' from project ':'")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':app' and project ':' evaluation")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':lib' from project ':'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':lib' and project ':' evaluation")
+            withLocatedProblem(new StringContains("sync.studio.tooling"), "Project ':' cannot access 'Project.apply' functionality on subprojects via 'allprojects'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.gradle' functionality on subprojects via 'allprojects'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.tasks' functionality on subprojects via 'allprojects'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.plugins' functionality on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.version' functionality on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.description' functionality on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.buildDir' functionality on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.group' functionality on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.hasProperty' functionality on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'testing' extension on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.gradle' functionality on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.extensions' functionality on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.tasks' functionality on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.properties' functionality on child projects")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.configurations' functionality on child projects")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':app' cannot dynamically look up a property in the parent project ':'")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':lib' cannot dynamically look up a property in the parent project ':'")
         }
