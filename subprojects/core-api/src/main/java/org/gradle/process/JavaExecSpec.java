@@ -34,6 +34,8 @@ import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_KEPT;
+
 /**
  * Specifies the options for executing a Java application.
  */
@@ -72,7 +74,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     @Input
     @UpgradedProperty(originalAccessors = {
         @UpgradedAccessor(value = AccessorType.SETTER, methodName = "setMain", fluentSetter = true)
-    })
+    }, binaryCompatibility = ACCESSORS_KEPT)
     Property<String> getMainClass();
 
     /**

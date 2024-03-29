@@ -32,6 +32,7 @@ import java.io.File;
 
 import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.SETTER;
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
  * The base class for all JVM-based language compilation tasks.
@@ -76,7 +77,7 @@ public abstract class AbstractCompile extends SourceTask {
     @UpgradedProperty(originalAccessors = {
         @UpgradedAccessor(value = GETTER, methodName = "getDestinationDir"),
         @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir")
-    })
+    }, binaryCompatibility = ACCESSORS_KEPT)
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;
     }

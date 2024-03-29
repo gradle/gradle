@@ -51,6 +51,7 @@ import java.util.Map;
 
 import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.UpgradedAccessor.AccessorType.SETTER;
+import static org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.BinaryCompatibility.ACCESSORS_KEPT;
 
 /**
  * Main options for Java compilation.
@@ -520,7 +521,7 @@ public abstract class CompileOptions extends AbstractOptions {
     @UpgradedProperty(originalAccessors = {
         @UpgradedAccessor(value = GETTER, methodName = "getAnnotationProcessorGeneratedSourcesDirectory"),
         @UpgradedAccessor(value = SETTER, methodName = "setAnnotationProcessorGeneratedSourcesDirectory")
-    })
+    }, binaryCompatibility = ACCESSORS_KEPT)
     public DirectoryProperty getGeneratedSourceOutputDirectory() {
         return generatedSourceOutputDirectory;
     }
