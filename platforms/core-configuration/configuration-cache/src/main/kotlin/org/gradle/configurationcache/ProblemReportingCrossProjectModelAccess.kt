@@ -1050,7 +1050,7 @@ class ProblemReportingCrossProjectModelAccess(
 
         private
         fun onAccess(what: String) {
-            reportCrossProjectAccessProblem(what)
+            reportCrossProjectAccessProblem("Project.$what", "functionality")
             onProjectsCoupled()
         }
 
@@ -1087,9 +1087,10 @@ class ProblemReportingCrossProjectModelAccess(
                 withDelegateDynamicCallIgnoringProblem(action, resultNotFoundExceptionProvider)
             }
 
+            val memberKind = "extension"
             return when {
                 result.isSuccess -> {
-                    reportCrossProjectAccessProblem(accessRef)
+                    reportCrossProjectAccessProblem(accessRef, memberKind)
                     result.getOrNull()
                 }
 
@@ -1097,12 +1098,12 @@ class ProblemReportingCrossProjectModelAccess(
                 // This can be a case in an incremental sync scenario, when referrer script was changed and since re-configured,
                 // but referent wasn't changed and since wasn't configured.
                 delegate < referrer && delegate.state.isUnconfigured && !buildModelParameters.isInvalidateCoupledProjects -> {
-                    reportCrossProjectAccessProblem(accessRef) { missedReferentConfigurationMessage() }
+                    reportCrossProjectAccessProblem(accessRef, memberKind) { missedReferentConfigurationMessage() }
                     null
                 }
 
                 else -> {
-                    reportCrossProjectAccessProblem(accessRef)
+                    reportCrossProjectAccessProblem(accessRef, memberKind)
                     throw result.exceptionOrNull()!!
                 }
             }
@@ -1120,6 +1121,7 @@ class ProblemReportingCrossProjectModelAccess(
         private
         fun reportCrossProjectAccessProblem(
             accessRef: String,
+            accessRefKind: String,
             buildAdditionalMessage: StructuredMessage.Builder.() -> Unit = {}
         ) {
             val problem = problemFactory.problem {
@@ -1127,6 +1129,7 @@ class ProblemReportingCrossProjectModelAccess(
                 reference(referrer.identityPath.toString())
                 text(" cannot access ")
                 reference(accessRef)
+                text(" $accessRefKind")
                 when (accessKind) {
                     DIRECT -> {
                         text(" on another project ")
