@@ -58,17 +58,6 @@ class IsolatedProjectsIdeSyncFixture {
             Pair.of(location, message)
         }.unique()
 
-        println()
-        println()
-        println("Y1: Actual problems:")
-        actualLocationsWithProblems.each {
-            println("Location: ${it.left}")
-            println("Message:")
-            println("${it.right}")
-        }
-        println()
-        println()
-
         assert jsModel.totalProblemCount == spec.totalProblemsCount
         assert actualLocationsWithProblems.size() == spec.locationsWithProblems.size()
         assert spec.locationsWithProblems.every { expectedLocation ->
