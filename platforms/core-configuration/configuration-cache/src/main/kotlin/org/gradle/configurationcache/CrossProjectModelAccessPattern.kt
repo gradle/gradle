@@ -16,7 +16,19 @@
 
 package org.gradle.configurationcache
 
-enum class CrossProjectModelAccessKind {
+import org.gradle.api.internal.project.ProjectInternal
+
+internal
+enum class CrossProjectModelAccessPattern {
     DIRECT,
-    SUBPROJECT
+    CHILD,
+    SUBPROJECT,
+    ALLPROJECTS
 }
+
+
+internal
+data class CrossProjectModelAccessInstance(
+    val pattern: CrossProjectModelAccessPattern,
+    val relativeTo: ProjectInternal,
+)

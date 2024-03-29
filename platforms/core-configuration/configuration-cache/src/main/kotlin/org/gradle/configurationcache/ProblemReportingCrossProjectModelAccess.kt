@@ -73,8 +73,10 @@ import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
-import org.gradle.configurationcache.CrossProjectModelAccessKind.SUBPROJECT
-import org.gradle.configurationcache.CrossProjectModelAccessKind.DIRECT
+import org.gradle.configurationcache.CrossProjectModelAccessPattern.ALLPROJECTS
+import org.gradle.configurationcache.CrossProjectModelAccessPattern.CHILD
+import org.gradle.configurationcache.CrossProjectModelAccessPattern.DIRECT
+import org.gradle.configurationcache.CrossProjectModelAccessPattern.SUBPROJECT
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
@@ -114,19 +116,31 @@ class ProblemReportingCrossProjectModelAccess(
     private val buildModelParameters: BuildModelParameters
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
-        return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer, DIRECT)
+        return delegate.findProject(referrer, relativeTo, path)?.let {
+            it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it))
+        }
     }
 
     override fun access(referrer: ProjectInternal, project: ProjectInternal): ProjectInternal {
-        return project.wrap(referrer, DIRECT)
+        return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project))
+    }
+
+    override fun getChildProjects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableMap<String, Project> {
+        return delegate.getChildProjects(referrer, relativeTo).mapValuesTo(LinkedHashMap()) {
+            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, relativeTo))
+        }
     }
 
     override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer, SUBPROJECT) }
+        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
+            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, relativeTo))
+        }
     }
 
     override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer, SUBPROJECT) }
+        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
+            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, relativeTo))
+        }
     }
 
     override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
@@ -149,11 +163,14 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     private
-    fun ProjectInternal.wrap(referrer: ProjectInternal, accessKind: CrossProjectModelAccessKind): ProjectInternal {
+    fun ProjectInternal.wrap(
+        referrer: ProjectInternal,
+        access: CrossProjectModelAccessInstance,
+    ): ProjectInternal {
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this, referrer, accessKind, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
+            ProblemReportingProject(this, referrer, access, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
         }
     }
 
@@ -161,7 +178,7 @@ class ProblemReportingCrossProjectModelAccess(
     class ProblemReportingProject(
         val delegate: ProjectInternal,
         val referrer: ProjectInternal,
-        val accessKind: CrossProjectModelAccessKind,
+        val access: CrossProjectModelAccessInstance,
         val problems: ProblemsListener,
         val coupledProjectsListener: CoupledProjectsListener,
         val problemFactory: ProblemFactory,
@@ -181,7 +198,7 @@ class ProblemReportingCrossProjectModelAccess(
                 return false
             }
             val project = other as ProblemReportingProject
-            return delegate == project.delegate && referrer == project.referrer
+            return delegate == project.delegate && referrer == project.referrer // do not include `access`
         }
 
         override fun hashCode(): Int {
@@ -1126,18 +1143,11 @@ class ProblemReportingCrossProjectModelAccess(
         ) {
             val problem = problemFactory.problem {
                 text("Project ")
-                reference(referrer.identityPath.toString())
+                reference(referrer)
                 text(" cannot access ")
                 reference(accessRef)
-                text(" $accessRefKind")
-                when (accessKind) {
-                    DIRECT -> {
-                        text(" on another project ")
-                        reference(delegate.identityPath.toString())
-                    }
-
-                    SUBPROJECT -> text(" on a subproject")
-                }
+                text(" $accessRefKind on ")
+                describeCrossProjectAccess()
                 buildAdditionalMessage()
             }
                 .exception()
@@ -1150,17 +1160,51 @@ class ProblemReportingCrossProjectModelAccess(
         fun StructuredMessage.Builder.missedReferentConfigurationMessage() = apply {
             text(". Setting ")
             reference("org.gradle.internal.invalidate-coupled-projects=false")
-            text(" is preventing configuration of")
-            when (accessKind) {
+            text(" is preventing configuration of ")
+            describeCrossProjectAccess()
+        }
+
+        private
+        fun StructuredMessage.Builder.describeCrossProjectAccess() {
+            val relativeToAnother = access.relativeTo != referrer
+
+            when (access.pattern) {
                 DIRECT -> {
-                    text(" the project ")
-                    reference(delegate.identityPath.toString())
+                    text("another project ")
+                    reference(delegate)
+                }
+
+                CHILD -> {
+                    text("child projects")
+                    if (relativeToAnother) {
+                        text(" of project ")
+                        reference(access.relativeTo)
+                    }
                 }
 
                 SUBPROJECT -> {
-                    text(" a subproject")
+                    text("subprojects")
+                    if (relativeToAnother) {
+                        text(" of project ")
+                        reference(access.relativeTo)
+                    }
+                }
+
+                ALLPROJECTS -> {
+                    text("subprojects")
+                    if (relativeToAnother) {
+                        text(" of project ")
+                        reference(access.relativeTo)
+                    } else {
+                        text(" via ")
+                        reference("allprojects")
+                    }
                 }
             }
+
         }
+
+        private
+        fun StructuredMessage.Builder.reference(project: ProjectInternal) = reference(project.identityPath.toString())
     }
 }

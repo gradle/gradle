@@ -519,12 +519,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjects() {
-        return getChildProjectsUnchecked().entrySet().stream().collect(
-            Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> getCrossProjectModelAccess().access(this, (ProjectInternal) entry.getValue())
-            )
-        );
+        return getCrossProjectModelAccess().getChildProjects(this, this);
     }
 
     @Override
