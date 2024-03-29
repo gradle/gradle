@@ -46,15 +46,6 @@ public interface PluginServiceRegistry {
     void registerGradleUserHomeServices(ServiceRegistration registration);
 
     /**
-     * TBD
-     *
-     * <p>Global and shared services are visible to cross build session scope services, but not vice versa</p>
-     *
-     * @see Scope.CrossBuildSession
-     */
-    void registerCrossBuildSessionServices(ServiceRegistration registration);
-
-    /**
      * Called once per build session to register any build session scoped services.  These services are reused across build invocations when in
      * continuous mode. They are closed at the end of the build session.
      *

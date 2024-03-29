@@ -53,7 +53,6 @@ public class BuildSessionState implements Closeable {
         sessionScopeServices = ServiceRegistryBuilder.builder()
             .scope(Scope.BuildSession.class)
             .displayName("build session services")
-            // TODO: why double parenting instead of single parent?
             .parent(userHomeServices)
             .parent(crossBuildSessionServices.getServices())
             .provider(new BuildSessionScopeServices(startParameter, requestMetaData, injectedPluginClassPath, buildCancellationToken, buildClientMetaData, buildEventConsumer))
@@ -74,7 +73,6 @@ public class BuildSessionState implements Closeable {
 
     @Override
     public void close() {
-        // TODO: this logic should probably move to the cross-sess state
         CompositeStoppable.stoppable(sessionScopeServices, (Closeable) () -> userHomeScopeServiceRegistry.release(userHomeServices)).stop();
     }
 }

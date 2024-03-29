@@ -71,7 +71,6 @@ public class CrossBuildSessionState implements Closeable {
             .displayName("cross session services")
             .parent(parent)
             .provider(new Services(startParameter))
-            // TODO: use CrossBuildSessionScopeServices instead
             .build();
         // Trigger listener to wire itself in
         services.get(BuildOperationTrace.class);
@@ -100,7 +99,6 @@ public class CrossBuildSessionState implements Closeable {
             registration.add(DefaultDynamicCallContextTracker.class);
         }
 
-        // TODO: decouple the state and the services
         CrossBuildSessionState createCrossBuildSessionState() {
             return CrossBuildSessionState.this;
         }

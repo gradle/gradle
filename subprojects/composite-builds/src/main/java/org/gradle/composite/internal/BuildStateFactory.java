@@ -47,7 +47,6 @@ public class BuildStateFactory {
     private final BuildTreeState buildTreeState;
     private final ListenerManager listenerManager;
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
-    // TODO: why does it need this?
     private final CrossBuildSessionState crossBuildSessionState;
     private final BuildCancellationToken buildCancellationToken;
 
