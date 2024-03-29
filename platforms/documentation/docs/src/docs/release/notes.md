@@ -217,6 +217,13 @@ Now, any values configured in the `pom` block will take priority if present, and
 
 This fixes https://github.com/gradle/gradle/issues/12259.
 
+#### Accessors for `Settings` extensions
+
+Previously, extensions registered in `Plugin<Settings>` weren't available in `settings.gradle.kts`. Access from Groovy work as expected.  
+
+Now, type-safe accessors for these extensions are being generating.
+
+This fixes https://github.com/gradle/gradle/issues/11210.
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

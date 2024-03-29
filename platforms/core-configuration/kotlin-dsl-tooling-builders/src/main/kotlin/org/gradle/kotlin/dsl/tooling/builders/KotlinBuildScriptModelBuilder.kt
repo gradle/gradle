@@ -263,11 +263,13 @@ fun ProjectInternal.accessorsClassPathOf(classPath: ClassPath): AccessorsClassPa
         + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources))
 }
 
+
 private
 fun SettingsInternal.accessorsClassPathOf(classPath: ClassPath): AccessorsClassPath {
     val projectAccessorClassPathGenerator = serviceOf<ProjectAccessorsClassPathGenerator>()
     return projectAccessorClassPathGenerator.projectAccessorsClassPath(this, classPath)
 }
+
 
 private
 fun initScriptModelBuilder(scriptFile: File, project: ProjectInternal) = project.run {
