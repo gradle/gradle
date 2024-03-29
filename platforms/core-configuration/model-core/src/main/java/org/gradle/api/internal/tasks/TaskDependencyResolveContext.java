@@ -17,12 +17,13 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Action;
+import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformNodeDependency;
 
 import javax.annotation.Nullable;
 
-public interface TaskDependencyResolveContext extends Action<Task> {
+public interface TaskDependencyResolveContext extends Action<Task>, Named {
     @Override
     default void execute(Task task) {
         add(task);
@@ -59,4 +60,10 @@ public interface TaskDependencyResolveContext extends Action<Task> {
      */
     @Nullable
     Task getTask();
+
+
+    @Override
+    default String getName() {
+        return "task dependencies";
+    }
 }

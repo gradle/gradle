@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import org.gradle.api.Buildable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 
@@ -58,6 +59,15 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
         this.walker = new CachingDirectedGraphWalker<>(new TaskGraphImpl(workResolvers));
     }
 
+    @Override
+    public String getName() {
+        if (task != null) {
+            return "task dependencies";
+        } else {
+            return "dependencies";
+        }
+    }
+
     public Set<T> getDependencies(@Nullable Task task, Object dependencies) {
         Preconditions.checkState(this.task == null);
         this.task = task;
@@ -65,7 +75,11 @@ public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependen
             walker.add(dependencies);
             return walker.findValues();
         } catch (Exception e) {
-            throw new TaskDependencyResolveException(format("Could not determine the dependencies of %s.", task), e);
+            if (task != null) {
+                throw new TaskDependencyResolveException(format("Could not determine the dependencies of %s.", task), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         } finally {
             queue.clear();
             this.task = null;
