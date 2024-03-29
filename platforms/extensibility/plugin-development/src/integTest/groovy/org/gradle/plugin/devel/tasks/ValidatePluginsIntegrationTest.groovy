@@ -1669,7 +1669,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractValidatePluginsIntegra
         and:
         verifyAll(receivedProblem) {
             fqid == 'validation:property-validation:nested-type-unsupported'
-            contextualLabel == "Type 'MyTask' property 'my$typeName' with nested type"
+            contextualLabel == "Type 'MyTask' property 'my$typeName' with nested type '$className' is not supported"
             reason == "$details."
             solutions == [
                 'Use a different input annotation if type is not a bean',
