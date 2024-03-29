@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.project.ProjectInternal
 
+
 internal
 enum class CrossProjectModelAccessPattern {
     DIRECT,

@@ -1201,7 +1201,6 @@ class ProblemReportingCrossProjectModelAccess(
                     }
                 }
             }
-
         }
 
         private
