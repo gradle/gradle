@@ -18,9 +18,12 @@ package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -31,9 +34,12 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.agents.AgentInitializer;
 import org.gradle.internal.agents.AgentStatus;
+import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmTaskConfigurator;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -43,6 +49,7 @@ import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
@@ -51,22 +58,27 @@ import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
 import org.gradle.launcher.daemon.configuration.BuildProcess;
+import org.gradle.launcher.daemon.configuration.DaemonConfigurationServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
+import org.gradle.launcher.daemon.jvm.DaemonJavaInstallationRegistryFactory;
+import org.gradle.launcher.daemon.jvm.DaemonJavaToolchainQueryService;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 
 import java.lang.management.ManagementFactory;
+import java.util.List;
 import java.util.UUID;
 
 class BuildActionsFactory implements CommandLineActionCreator {
-    private final ParametersConverter parametersConverter;
+    private final BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter;
     private final ServiceRegistry loggingServices;
     private final JvmVersionDetector jvmVersionDetector;
     private final FileCollectionFactory fileCollectionFactory;
     private final ServiceRegistry basicServices;
+    private final DaemonJavaToolchainQueryService daemonJavaToolchainQueryService;
 
     public BuildActionsFactory(ServiceRegistry loggingServices) {
         basicServices = ServiceRegistryBuilder.builder()
@@ -75,45 +87,53 @@ class BuildActionsFactory implements CommandLineActionCreator {
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
             .provider(new BasicGlobalScopeServices())
+            .provider(new DaemonConfigurationServices())
             .build();
         this.loggingServices = loggingServices;
         fileCollectionFactory = basicServices.get(FileCollectionFactory.class);
-        parametersConverter = new ParametersConverter(new BuildLayoutFactory(), basicServices.get(FileCollectionFactory.class));
+        buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
+            new BuildLayoutFactory(),
+            fileCollectionFactory,
+            basicServices.get(PropertyFactory.class)
+        );
         jvmVersionDetector = basicServices.get(JvmVersionDetector.class);
+        daemonJavaToolchainQueryService = new DaemonJavaToolchainQueryService(
+            basicServices.get(DaemonJavaInstallationRegistryFactory.class)
+        );
     }
 
     @Override
     public void configureCommandLineParser(CommandLineParser parser) {
-        parametersConverter.configure(parser);
+        buildEnvironmentConfigurationConverter.configure(parser);
     }
 
     @Override
     public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
-        Parameters parameters = parametersConverter.convert(commandLine, null);
+        Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(commandLine, null);
+        configDaemonJvm(commandLine, parameters);
 
-        parameters.getDaemonParameters().applyDefaultsFor(jvmVersionDetector.getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
-
-        if (parameters.getDaemonParameters().isStop()) {
-            return Actions.toAction(stopAllDaemons(parameters.getDaemonParameters()));
+        StartParameterInternal startParameter = parameters.getStartParameter();
+        DaemonParameters daemonParameters = parameters.getDaemonParameters();
+        if (daemonParameters.isStop()) {
+            return Actions.toAction(stopAllDaemons(daemonParameters));
         }
-        if (parameters.getDaemonParameters().isStatus()) {
-            return Actions.toAction(showDaemonStatus(parameters.getDaemonParameters()));
+        if (daemonParameters.isStatus()) {
+            return Actions.toAction(showDaemonStatus(daemonParameters));
         }
-        if (parameters.getDaemonParameters().isForeground()) {
-            DaemonParameters daemonParameters = parameters.getDaemonParameters();
+        if (daemonParameters.isForeground()) {
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
                 UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout(), daemonParameters.getPeriodicCheckInterval(), fileCollectionFactory,
                 daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode());
             return Actions.toAction(new ForegroundDaemonAction(loggingServices, conf));
         }
-        if (parameters.getDaemonParameters().isEnabled()) {
-            return Actions.toAction(runBuildWithDaemon(parameters.getStartParameter(), parameters.getDaemonParameters()));
+        if (daemonParameters.isEnabled()) {
+            return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters));
         }
-        if (canUseCurrentProcess(parameters.getDaemonParameters())) {
-            return Actions.toAction(runBuildInProcess(parameters.getStartParameter(), parameters.getDaemonParameters()));
+        if (canUseCurrentProcess(daemonParameters)) {
+            return Actions.toAction(runBuildInProcess(startParameter, daemonParameters));
         }
 
-        return Actions.toAction(runBuildInSingleUseDaemon(parameters.getStartParameter(), parameters.getDaemonParameters()));
+        return Actions.toAction(runBuildInSingleUseDaemon(startParameter, daemonParameters));
     }
 
     private Runnable stopAllDaemons(DaemonParameters daemonParameters) {
@@ -215,5 +235,29 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
     private GradleLauncherMetaData clientMetaData() {
         return new GradleLauncherMetaData();
+    }
+
+    private void configDaemonJvm(ParsedCommandLine commandLine, Parameters parameters) {
+        StartParameterInternal startParameters = parameters.getStartParameter();
+        DaemonParameters daemonParameters = parameters.getDaemonParameters();
+        JavaVersion version = jvmVersionDetector.getJavaVersion(daemonParameters.getEffectiveJvm());
+        try {
+            JavaToolchainSpec jvmToolchainCriteria = buildEnvironmentConfigurationConverter.convertJvmToolchainCriteria(commandLine, parameters.getProperties());
+            if (jvmToolchainCriteria != null) {
+                JvmInstallationMetadata installation = daemonJavaToolchainQueryService.findMatchingToolchain(jvmToolchainCriteria, startParameters);
+                daemonParameters.setJvm(Jvm.forHome(installation.getJavaHome().toFile()));
+                version = installation.getLanguageVersion();
+            }
+        } catch (Exception exception) {
+            if (!isExecutingUpdateDaemonJvmTask(startParameters)) {
+                throw exception;
+            }
+        }
+        daemonParameters.applyDefaultsFor(version);
+    }
+
+    private boolean isExecutingUpdateDaemonJvmTask(StartParameter startParameters) {
+        List<TaskExecutionRequest> taskExecutionRequests = startParameters.getTaskRequests();
+        return taskExecutionRequests.size() == 1 && taskExecutionRequests.get(0).getArgs().contains(UpdateDaemonJvmTaskConfigurator.TASK_NAME);
     }
 }

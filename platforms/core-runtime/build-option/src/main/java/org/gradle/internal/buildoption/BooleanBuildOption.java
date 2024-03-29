@@ -30,16 +30,16 @@ import java.util.Map;
  */
 public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T, BooleanCommandLineOptionConfiguration> {
 
-    public BooleanBuildOption(String gradleProperty) {
-        this(gradleProperty, (String) null);
+    public BooleanBuildOption(String property) {
+        this(property, (String) null);
     }
 
-    public BooleanBuildOption(String gradleProperty, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        this(gradleProperty, null, commandLineOptionConfigurations);
+    public BooleanBuildOption(String property, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        this(property, null, commandLineOptionConfigurations);
     }
 
-    public BooleanBuildOption(String gradleProperty, String deprecatedGradleProperty, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        super(gradleProperty, deprecatedGradleProperty, commandLineOptionConfigurations);
+    public BooleanBuildOption(String property, String deprecatedProperty, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(property, deprecatedProperty, commandLineOptionConfigurations);
     }
 
     @Override

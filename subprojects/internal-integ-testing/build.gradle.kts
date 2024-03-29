@@ -57,6 +57,7 @@ dependencies {
     implementation(project(":launcher"))
     implementation(project(":build-events"))
     implementation(project(":build-option"))
+    implementation(project(":toolchains-jvm-shared"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)

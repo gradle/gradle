@@ -25,6 +25,7 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.time.Clock
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
@@ -44,24 +45,26 @@ class BuildActionsFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     ServiceRegistry loggingServices = new DefaultServiceRegistry()
     boolean useCurrentProcess
-
-    BuildActionsFactory factory = new BuildActionsFactory(loggingServices) {
-        @Override
-        def boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
-            return useCurrentProcess
-        }
-    }
+    BuildActionsFactory factory
 
     def setup() {
-        def factory = Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
+        def factoryLoggingManager = Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
+        loggingServices.add(Clock, Mock(Clock))
         loggingServices.add(OutputEventListener, Mock(OutputEventListener))
         loggingServices.add(GlobalUserInputReceiver, Mock(GlobalUserInputReceiver))
         loggingServices.add(StyledTextOutputFactory, Mock(StyledTextOutputFactory))
         loggingServices.addProvider(new Object() {
             Factory<LoggingManagerInternal> createFactory() {
-                return factory
+                return factoryLoggingManager
             }
         })
+
+        factory = new BuildActionsFactory(loggingServices) {
+            @Override
+            boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
+                return useCurrentProcess
+            }
+        }
     }
 
     def "check that --max-workers overrides org.gradle.workers.max"() {

@@ -19,7 +19,8 @@ package org.gradle.launcher.cli.converter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.buildoption.BuildOptionSet;
-import org.gradle.launcher.configuration.AllProperties;
+
+import java.util.Map;
 
 public class BuildOptionBackedConverter<T> {
     private final BuildOptionSet<T> buildOptions;
@@ -32,8 +33,8 @@ public class BuildOptionBackedConverter<T> {
         buildOptions.commandLineConverter().configure(parser);
     }
 
-    public void convert(ParsedCommandLine commandLine, AllProperties properties, T target) {
-        buildOptions.propertiesConverter().convert(properties.getProperties(), target);
+    public void convert(ParsedCommandLine commandLine, Map<String, String> properties, T target) {
+        buildOptions.propertiesConverter().convert(properties, target);
         buildOptions.commandLineConverter().convert(commandLine, target);
     }
 }

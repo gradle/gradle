@@ -24,6 +24,7 @@ import org.gradle.jvm.toolchain.JvmImplementation;
 
 import java.util.function.Predicate;
 
+@SuppressWarnings("UnnecessaryLambda")
 public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallationMetadata> {
 
     private final JavaToolchainSpec spec;

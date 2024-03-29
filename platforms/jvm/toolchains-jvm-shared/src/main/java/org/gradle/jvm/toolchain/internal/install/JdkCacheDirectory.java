@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -223,7 +224,7 @@ public class JdkCacheDirectory {
         String os = OperatingSystem.current().getFamilyName();
         return String.format("%s-%s-%s-%s", vendor, version, architecture, os)
                 .replaceAll("[^a-zA-Z0-9\\-]", "_")
-                .toLowerCase();
+                .toLowerCase(Locale.ROOT);
     }
 
     private File unpack(File jdkArchive) {

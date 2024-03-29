@@ -98,6 +98,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-configuration",
+    "path": "platforms/core-runtime/build-configuration",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-events",
     "path": "subprojects/build-events",
     "unitTests": true,
@@ -977,6 +984,13 @@
     "path": "platforms/jvm/toolchains-jvm",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "toolchains-jvm-shared",
+    "path": "platforms/jvm/toolchains-jvm-shared",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

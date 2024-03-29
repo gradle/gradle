@@ -23,16 +23,16 @@ import java.util.Map;
 
 public abstract class IntegerBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
-    public IntegerBuildOption(String gradleProperty) {
-        super(gradleProperty);
+    public IntegerBuildOption(String property) {
+        super(property);
     }
 
-    public IntegerBuildOption(String gradleProperty, String deprecatedGradleProperty) {
-        super(gradleProperty, deprecatedGradleProperty);
+    public IntegerBuildOption(String property, String deprecatedProperty) {
+        super(property, deprecatedProperty);
     }
 
-    public IntegerBuildOption(String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        super(gradleProperty, commandLineOptionConfigurations);
+    public IntegerBuildOption(String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(property, commandLineOptionConfigurations);
     }
 
 

@@ -28,6 +28,7 @@ dependencies {
     api(project(":reporting"))
     api(project(":testing-base"))
     api(project(":toolchains-jvm"))
+    api(project(":toolchains-jvm-shared"))
 
     api(libs.asm)
     api(libs.groovy)
