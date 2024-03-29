@@ -73,6 +73,8 @@ import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
+import org.gradle.configurationcache.CrossProjectModelAccessKind.SUBPROJECT
+import org.gradle.configurationcache.CrossProjectModelAccessKind.DIRECT
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
@@ -112,19 +114,19 @@ class ProblemReportingCrossProjectModelAccess(
     private val buildModelParameters: BuildModelParameters
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
-        return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
+        return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer, DIRECT)
     }
 
     override fun access(referrer: ProjectInternal, project: ProjectInternal): ProjectInternal {
-        return project.wrap(referrer)
+        return project.wrap(referrer, DIRECT)
     }
 
     override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
+        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer, SUBPROJECT) }
     }
 
     override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
+        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer, SUBPROJECT) }
     }
 
     override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
@@ -147,11 +149,11 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     private
-    fun ProjectInternal.wrap(referrer: ProjectInternal): ProjectInternal {
+    fun ProjectInternal.wrap(referrer: ProjectInternal, accessKind: CrossProjectModelAccessKind): ProjectInternal {
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
+            ProblemReportingProject(this, referrer, accessKind, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
         }
     }
 
@@ -159,6 +161,7 @@ class ProblemReportingCrossProjectModelAccess(
     class ProblemReportingProject(
         val delegate: ProjectInternal,
         val referrer: ProjectInternal,
+        val accessKind: CrossProjectModelAccessKind,
         val problems: ProblemsListener,
         val coupledProjectsListener: CoupledProjectsListener,
         val problemFactory: ProblemFactory,
@@ -1086,7 +1089,7 @@ class ProblemReportingCrossProjectModelAccess(
 
             return when {
                 result.isSuccess -> {
-                    reportCrossProjectAccessProblem(accessRef) { configurationOrderMessage() }
+                    reportCrossProjectAccessProblem(accessRef)
                     result.getOrNull()
                 }
 
@@ -1099,7 +1102,7 @@ class ProblemReportingCrossProjectModelAccess(
                 }
 
                 else -> {
-                    reportCrossProjectAccessProblem(accessRef) { configurationOrderMessage() }
+                    reportCrossProjectAccessProblem(accessRef)
                     throw result.exceptionOrNull()!!
                 }
             }
@@ -1116,20 +1119,22 @@ class ProblemReportingCrossProjectModelAccess(
 
         private
         fun reportCrossProjectAccessProblem(
-            accessRef: String? = null,
+            accessRef: String,
             buildAdditionalMessage: StructuredMessage.Builder.() -> Unit = {}
         ) {
             val problem = problemFactory.problem {
-                if (accessRef == null) {
-                    text("Cannot access project ")
-                } else {
-                    text("Cannot access ")
-                    reference(accessRef)
-                    text(" on project ")
-                }
-                reference(delegate.identityPath.toString())
-                text(" from project ")
+                text("Project ")
                 reference(referrer.identityPath.toString())
+                text(" cannot access ")
+                reference(accessRef)
+                when (accessKind) {
+                    DIRECT -> {
+                        text(" on another project ")
+                        reference(delegate.identityPath.toString())
+                    }
+
+                    SUBPROJECT -> text(" on a subproject")
+                }
                 buildAdditionalMessage()
             }
                 .exception()
@@ -1140,21 +1145,19 @@ class ProblemReportingCrossProjectModelAccess(
 
         private
         fun StructuredMessage.Builder.missedReferentConfigurationMessage() = apply {
-            text(". ")
+            text(". Setting ")
             reference("org.gradle.internal.invalidate-coupled-projects=false")
-            text(" is preventing configuration of project ")
-            reference(delegate.identityPath.toString())
-        }
+            text(" is preventing configuration of")
+            when (accessKind) {
+                DIRECT -> {
+                    text(" the project ")
+                    reference(delegate.identityPath.toString())
+                }
 
-        private
-        fun StructuredMessage.Builder.configurationOrderMessage() = apply {
-            text(". ")
-            reference("Project.evaluationDependsOn")
-            text(" must be used to establish a dependency between project ")
-            reference(delegate.identityPath.toString())
-            text(" and project ")
-            reference(referrer.identityPath.toString())
-            text(" evaluation")
+                SUBPROJECT -> {
+                    text(" a subproject")
+                }
+            }
         }
     }
 }
