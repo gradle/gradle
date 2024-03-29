@@ -519,8 +519,7 @@ public abstract class CompileOptions extends AbstractOptions {
     @OutputDirectory
     @UpgradedProperty(originalAccessors = {
         @UpgradedAccessor(value = GETTER, methodName = "getAnnotationProcessorGeneratedSourcesDirectory"),
-        @UpgradedAccessor(value = SETTER, methodName = "setAnnotationProcessorGeneratedSourcesDirectory"),
-        @UpgradedAccessor(value = SETTER, methodName = "setAnnotationProcessorGeneratedSourcesDirectory", originalType = Provider.class)
+        @UpgradedAccessor(value = SETTER, methodName = "setAnnotationProcessorGeneratedSourcesDirectory")
     })
     public DirectoryProperty getGeneratedSourceOutputDirectory() {
         return generatedSourceOutputDirectory;

@@ -75,8 +75,7 @@ public abstract class AbstractCompile extends SourceTask {
     @OutputDirectory
     @UpgradedProperty(originalAccessors = {
         @UpgradedAccessor(value = GETTER, methodName = "getDestinationDir"),
-        @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir"),
-        @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir", originalType = Provider.class),
+        @UpgradedAccessor(value = SETTER, methodName = "setDestinationDir")
     })
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;
