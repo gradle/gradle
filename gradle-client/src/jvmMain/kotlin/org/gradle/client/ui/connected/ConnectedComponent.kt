@@ -12,11 +12,14 @@ import org.gradle.client.ui.util.componentScope
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.time.Duration
+import java.time.Instant
 import kotlin.reflect.KClass
 
 private val logger = LoggerFactory.getLogger(ConnectedComponent::class.java)
@@ -24,10 +27,14 @@ private val logger = LoggerFactory.getLogger(ConnectedComponent::class.java)
 sealed interface ConnectionModel {
     data object Disconnected : ConnectionModel
     data class Connected(
-        val events: List<String> = emptyList(),
+        val events: List<Event> = emptyList(),
         val result: Any? = null,
     ) : ConnectionModel
 }
+
+// Hashcode is necessary to distinguish similar events in the stream
+// for presentation in LazyColumn
+data class Event(val text: String, private val hashCode: Int)
 
 class ConnectedComponent(
     context: ComponentContext,
@@ -42,10 +49,36 @@ class ConnectedComponent(
 
     private lateinit var connection: ProjectConnection
 
-    private val progressListener = org.gradle.tooling.events.ProgressListener { event ->
-        mutableModel.value = when (val current = model.value) {
-            ConnectionModel.Disconnected -> TODO("BOOM")
-            is ConnectionModel.Connected -> current.copy(current.events + event.displayName)
+    private fun newEventListener(): org.gradle.tooling.events.ProgressListener =
+        object : org.gradle.tooling.events.ProgressListener {
+            private val start = Instant.now()
+            override fun statusChanged(event: ProgressEvent) {
+                val eventInstant = Instant.ofEpochMilli(event.eventTime)
+                val eventTimeSinceStart = Duration.between(start, eventInstant)
+                mutableModel.value = when (val current = model.value) {
+                    ConnectionModel.Disconnected -> TODO("BOOM")
+                    is ConnectionModel.Connected -> current.copy(
+                        current.events + Event(
+                            "${eventTimeSinceStart.toPrettyString().padEnd(12)} ${event.displayName}",
+                            event.hashCode()
+                        )
+                    )
+                }
+            }
+        }
+
+    private fun Duration.toPrettyString() = buildString {
+        val hours = toHours()
+        if (hours > 0) append("${hours}h ")
+        val minutes = minusHours(hours).toMinutes()
+        if (minutes > 0) append("${minutes}m ")
+        if (hours <= 0) {
+            val seconds = minusHours(hours).minusMinutes(minutes).toSeconds()
+            if (seconds > 0) append("${seconds}s ")
+            if (minutes <= 0) {
+                val milliseconds = minusHours(hours).minusMinutes(minutes).minusSeconds(seconds).toMillis()
+                if (milliseconds > 0) append("${milliseconds}ms ")
+            }
         }
     }
 
@@ -83,15 +116,23 @@ class ConnectedComponent(
         when (val current = model.value) {
             ConnectionModel.Disconnected -> TODO("BOOM")
             is ConnectionModel.Connected -> {
-                mutableModel.value = current.copy(result = null)
+                mutableModel.value = current.copy(events = emptyList(), result = null)
                 scope.launch {
                     withContext(Dispatchers.IO) {
                         logger.atDebug().log { "Get ${modelType.simpleName} model!" }
                         val result = connection.model(modelType.java)
-                            .addProgressListener(progressListener, OperationType.entries.toSet())
+                            .addProgressListener(
+                                newEventListener(),
+                                OperationType.entries.toSet() - OperationType.GENERIC
+                            )
                             .get()
                         logger.atInfo().log { "Got ${modelType.simpleName} model: $result" }
-                        mutableModel.value = current.copy(result = result)
+                        when (val c = model.value) {
+                            ConnectionModel.Disconnected -> TODO("BOOM")
+                            is ConnectionModel.Connected -> {
+                                mutableModel.value = c.copy(result = result)
+                            }
+                        }
                     }
                 }
             }
