@@ -41,6 +41,7 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.ktor.serialization.kotlinx.json)
 
+            implementation(libs.material3WindowSizeClassMultiplatform)
             implementation(libs.materialKolor)
 
             implementation(libs.slf4j.api)
@@ -60,7 +61,7 @@ compose.desktop {
     application {
         mainClass = "org.gradle.client.ui.GradleClientUiMainKt"
         jvmArgs += "-Xms35m"
-        jvmArgs += "-Xmx64m"
+        jvmArgs += "-Xmx128m"
 
         buildTypes.release.proguard {
             optimize = false

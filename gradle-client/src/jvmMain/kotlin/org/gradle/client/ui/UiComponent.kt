@@ -58,7 +58,7 @@ class UiComponent(
             is Config.Connected -> Child.Connected(
                 ConnectedComponent(
                     context = context,
-                    gradleConnectionParameters = config.inputs,
+                    parameters = config.inputs,
                     onFinished = { navigation.pop() },
                 )
             )

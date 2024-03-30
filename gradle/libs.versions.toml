@@ -28,6 +28,7 @@ decompose-decompose = { module = "com.arkivanov.decompose:decompose", version.re
 decompose-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
 essenty-lifecycle-coroutines = { module = "com.arkivanov.essenty:lifecycle-coroutines", version = "1.3.0" }
 gradle-tooling = { module = "org.gradle:gradle-tooling-api", version.ref = "gradle-tooling" }
+material3WindowSizeClassMultiplatform = { module = "dev.chrisbanes.material3:material3-window-size-class-multiplatform", version = "0.3.1" }
 materialKolor = { module = "com.materialkolor:material-kolor", version = "1.4.4" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.12" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.3" }

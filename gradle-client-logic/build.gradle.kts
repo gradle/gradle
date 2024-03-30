@@ -18,7 +18,7 @@ kotlin {
 
         jvmMain.dependencies {
 
-            implementation(libs.gradle.tooling)
+            api(libs.gradle.tooling)
 
             implementation(libs.sqldelight.extensions.coroutines)
             implementation(libs.sqldelight.runtime)

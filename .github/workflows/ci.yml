@@ -10,7 +10,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew --scan check
+      - run: ./gradlew --stacktrace --scan check
   check_macos:
     needs: check_linux
     runs-on: macos-latest
@@ -21,7 +21,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew --scan check
+      - run: ./gradlew --stacktrace --scan check
   check_windows:
     needs: check_linux
     runs-on: windows-latest
@@ -32,7 +32,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew --scan check
+      - run: ./gradlew --stacktrace --scan check
   build_linux:
     needs: check_linux
     runs-on: ubuntu-latest
@@ -43,7 +43,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew --scan packageZip
+      - run: ./gradlew --stacktrace --scan packageZip
       - uses: actions/upload-artifact@v4
         with:
           name: linux-distribution
@@ -59,7 +59,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew --scan packageZip
+      - run: ./gradlew --stacktrace --scan packageZip
       - uses: actions/upload-artifact@v4
         with:
           name: macos-distribution
@@ -75,7 +75,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew --scan packageZip
+      - run: ./gradlew --stacktrace --scan packageZip
       - uses: actions/upload-artifact@v4
         with:
           name: windows-distribution
